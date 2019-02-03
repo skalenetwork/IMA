@@ -37,7 +37,8 @@ async function deploy(deployer) {
     let messageProxyResult0 = await deployContract(MessageProxy, {gas: 8000000, 'account': account, 'arguments': ["Mainnet"]});
     let messageProxyResult1 = await deployContract(MessageProxy, {gas: 8000000, 'account': account, 'arguments': ["Artem's Schain"]});
     let depositBoxResult = await deployContract(DepositBox, {gas: 8000000, 'account': account, 'arguments': [messageProxyResult0.address]});
-    let tokenManagerResult = await deployContract(TokenManager, {gas: 8000000, 'account': account, 'arguments': ["Artem's Schain", depositBoxResult.address, messageProxyResult1.address], 'value': web3.toWei(102000000, "ether")});
+    //let tokenManagerResult = await deployContract(TokenManager, {gas: 5000000, 'account': account, 'arguments': ["Artem's Schain", depositBoxResult.address, messageProxyResult1.address], 'value': web3.toWei(102000000, "ether")});
+    let tokenManagerResult = await deployContract(TokenManager, {gas: 5000000, 'account': account, 'arguments': ["Artem's Schain", depositBoxResult.address, messageProxyResult1.address], 'value': web3.toWei(100, "ether")});
 
     let jsonObject = {
         deposit_box_address: depositBoxResult.address,
