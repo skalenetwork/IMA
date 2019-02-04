@@ -24,7 +24,7 @@ contract TokenManager is Ownable {
     // TODO: TOKEN_RESERVE = 102000000 * (10 ** 18);
 
     //uint public TOKEN_RESERVE = 102000000 * (10 ** 18); //ether
-    uint public TOKEN_RESERVE = 100 * (10 ** 18); //ether
+    uint public TOKEN_RESERVE = 990 * (10 ** 18); //ether
 
     // Owner of this schain. For mainnet
     //address public owner;

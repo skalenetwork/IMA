@@ -51,7 +51,7 @@ module.exports = {
       network_id: "*"
     },
     schain: {
-      host: "167.99.167.78",
+      host: "159.89.130.2",
       port: 8003,
       gasPrice: 10000000000,
       gas: 8000000,

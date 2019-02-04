@@ -12,13 +12,20 @@ const SCHAIN_NAME = process.env.SCHAIN_ID;
 const SCHAIN_RPC_URL = process.env.SCHAIN_RPC_URL;
 const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL;
 
+const NODE_NUMBER = process.env.NODE_NUMBER;
+const NODES_COUNT = process.env.NODES_COUNT;
+
 let debugInfo = `LOCAL_WALLET_PATH: ${LOCAL_WALLET_PATH},
 MAINNET_PROXY_PATH: ${MAINNET_PROXY_PATH},
 SCHAIN_PROXY_PATH: ${SCHAIN_PROXY_PATH},
 SCHAIN_DIR: ${SCHAIN_DIR},
 SCHAIN_NAME: ${SCHAIN_NAME},
 SCHAIN_RPC_URL: ${SCHAIN_RPC_URL},
-MAINNET_RPC_URL: ${MAINNET_RPC_URL}
+MAINNET_RPC_URL: ${MAINNET_RPC_URL},
+
+NODE_NUMBER: ${NODE_NUMBER},
+NODES_COUNT: ${NODES_COUNT},
+
 `;
 console.log(debugInfo);
 
@@ -45,7 +52,8 @@ async function run() {
 
       let baseArgs = `--url-main-net=${MAINNET_RPC_URL} --url-s-chain=${SCHAIN_RPC_URL} \
       --id-main-net=Mainnet --id-s-chain=${SCHAIN_NAME} --abi-main-net=${MAINNET_PROXY_PATH} \
-      --abi-s-chain=${SCHAIN_PROXY_PATH} --key-main-net=${pk} --key-s-chain=${pk} `;
+      --node-number=${NODE_NUMBER} --nodes-count=${NODES_COUNT}  \
+      --abi-s-chain=${SCHAIN_PROXY_PATH} --key-main-net=${pk} --key-s-chain=${pk}  `;
 
       let baseCmd = `node ${__dirname}/main.js`;
       let registerCmd = `${baseCmd} --register ${baseArgs}`;

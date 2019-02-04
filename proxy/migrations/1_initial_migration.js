@@ -38,7 +38,7 @@ async function deploy(deployer) {
     let messageProxyResult1 = await deployContract(MessageProxy, {gas: 8000000, 'account': account, 'arguments': ["Artem's Schain"]});
     let depositBoxResult = await deployContract(DepositBox, {gas: 8000000, 'account': account, 'arguments': [messageProxyResult0.address]});
     //let tokenManagerResult = await deployContract(TokenManager, {gas: 5000000, 'account': account, 'arguments': ["Artem's Schain", depositBoxResult.address, messageProxyResult1.address], 'value': web3.toWei(102000000, "ether")});
-    let tokenManagerResult = await deployContract(TokenManager, {gas: 5000000, 'account': account, 'arguments': ["Artem's Schain", depositBoxResult.address, messageProxyResult1.address], 'value': web3.toWei(100, "ether")});
+    let tokenManagerResult = await deployContract(TokenManager, {gas: 5000000, 'account': account, 'arguments': ["Artem's Schain", depositBoxResult.address, messageProxyResult1.address], 'value': web3.toWei(990, "ether")});
 
     let jsonObject = {
         deposit_box_address: depositBoxResult.address,
@@ -51,7 +51,7 @@ async function deploy(deployer) {
         message_proxy_chain_abi: MessageProxy.abi
     }
 
-    fs.writeFile('proxy.json', JSON.stringify(jsonObject), function (err) {
+    fs.writeFile(`${networkName}_proxy.json`, JSON.stringify(jsonObject), function (err) {
         if (err) {
             return console.log(err);
         }

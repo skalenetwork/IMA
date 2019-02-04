@@ -16,7 +16,7 @@ with open('config.json') as f:
 path_on_node = get_schain_dir_path(config['sChainName'])
 
 for node_ip in config['nodes']:
-    cmd = f'scp -o StrictHostKeyChecking=no ../proxy/proxy.json {DEFAULT_USER}@{node_ip}:{path_on_node}'
+    cmd = f'scp -o StrictHostKeyChecking=no ../proxy/schain_proxy.json {DEFAULT_USER}@{node_ip}:{path_on_node}/proxy.json'
 
     print(node_ip)
     print(cmd)
