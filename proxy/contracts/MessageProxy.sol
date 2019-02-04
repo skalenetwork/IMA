@@ -1,4 +1,4 @@
-pragma solidity 0.4.24;
+pragma solidity ^0.4.24;
 
 interface ContractReceiver {
     function postMessage(address sender, string schainID, address to, uint amount) external;
