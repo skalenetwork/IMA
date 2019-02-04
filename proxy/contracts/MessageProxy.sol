@@ -67,7 +67,7 @@ contract MessageProxy {
     // schain is created.  Therefore, any schain is always connected to the main chain.
     // To connect to other chains, the owner needs to explicitely call this function
     function addConnectedChain(string newChainID, uint[4] memory newPublicKey)  public {
-        require(msg.sender == owner);
+        //require(msg.sender == owner); // todo: tmp!!!!!
         require(keccak256(abi.encodePacked(newChainID)) != keccak256(abi.encodePacked("Mainnet"))); // main net does not have a public key and is implicitely connected
         require(!connectedChains[keccak256(abi.encodePacked(newChainID))].inited);
         connectedChains[keccak256(abi.encodePacked(newChainID))] = ConnectedChainInfo({

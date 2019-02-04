@@ -11,7 +11,5 @@ COPY . .
 
 
 CMD ["node", "/ktm/agent/run.js"]
-
-
-#RUN npm install -g truffle@4.1.13
+#CMD exec /bin/bash -c "trap : TERM INT; sleep infinity & wait"
 

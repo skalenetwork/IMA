@@ -1,3 +1,7 @@
+# truffle build
+
+proxy/build/
+
 # idea
 
 .DS_Store

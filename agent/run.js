@@ -39,14 +39,13 @@ async function run() {
     if (sChainAbiFileExists) {
       console.log('File found!');
 
-
       let fileContents = await fs.promises.readFile(LOCAL_WALLET_PATH);
       let localWallet = JSON.parse(fileContents);
-      let pk = localWallet['private_key'];
+      let pk = localWallet['private_key'].slice(2);
 
-      let baseArgs = `--url-main-net=${MAINNET_RPC_URL} --url-s-chain=${SCHAIN_RPC_URL} 
-      --id-main-net=Mainnet --id-s-chain=${SCHAIN_NAME} --abi-main-net=${MAINNET_PROXY_PATH} 
-      --abi-s-chain=${SCHAIN_PROXY_PATH} --key-main-net=${pk} --key-s-chain=${pk}`;
+      let baseArgs = `--url-main-net=${MAINNET_RPC_URL} --url-s-chain=${SCHAIN_RPC_URL} \
+      --id-main-net=Mainnet --id-s-chain=${SCHAIN_NAME} --abi-main-net=${MAINNET_PROXY_PATH} \
+      --abi-s-chain=${SCHAIN_PROXY_PATH} --key-main-net=${pk} --key-s-chain=${pk} `;
 
       let baseCmd = `node ${__dirname}/main.js`;
       let registerCmd = `${baseCmd} --register ${baseArgs}`;
@@ -57,6 +56,11 @@ async function run() {
 
       child_process.execSync(
         registerCmd,
+        {stdio: 'inherit'}
+      );
+
+      child_process.execSync(
+        loopCmd,
         {stdio: 'inherit'}
       );
 
