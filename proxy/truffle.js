@@ -42,6 +42,12 @@ module.exports = {
       gasPrice: 10000000000,
       network_id: "*",
     },
+    aws2: {
+      host: "18.218.24.50",
+      port: 1919,
+      gasPrice: 10000000000,
+      network_id: "*",
+    },
     serge: {
       host: "0.0.0.0",
       port: 2231,
