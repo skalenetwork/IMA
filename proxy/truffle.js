@@ -36,6 +36,12 @@ module.exports = {
       network_id: "*",
       "from": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
     },
+    do: {
+      host: "134.209.14.167",
+      port: 1919,
+      gasPrice: 10000000000,
+      network_id: "*",
+    },
     aws: {
       host: "13.59.228.21",
       port: 1919,
