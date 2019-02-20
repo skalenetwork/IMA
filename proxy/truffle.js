@@ -12,6 +12,10 @@
  *   },
  */
 
+let schainRpcIp = process.env.SCHAIN_RPC_IP;
+let schainRpcPort = process.env.SCHAIN_RPC_PORT;
+let schainName = process.env.SCHAIN_NAME;
+
 module.exports = {
   networks: {
     server: {
@@ -63,8 +67,8 @@ module.exports = {
       network_id: "*"
     },
     schain: {
-      host: "178.128.78.72",
-      port: 8003,
+      host: schainRpcIp,
+      port: schainRpcPort,
       gasPrice: 10000000000,
       gas: 8000000,
       from: "0x5112ce768917e907191557d7e9521c2590cdd3a0",

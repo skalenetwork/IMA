@@ -10,6 +10,8 @@ const privateKey = process.env.ETH_PRIVATE_KEY;
 let networks = require("../truffle.js");
 let currentNetwork = networks['networks'][networkName];
 
+let schainName = process.env.SCHAIN_NAME;
+
 const LINE = '======================================';
 
 const Web3 = require('web3');
@@ -51,11 +53,11 @@ async function deploy(deployer) {
         message_proxy_chain_abi: MessageProxy.abi
     }
 
-    fs.writeFile(`${networkName}_proxy.json`, JSON.stringify(jsonObject), function (err) {
+    fs.writeFile(`data/${networkName}_${schainName}_proxy.json`, JSON.stringify(jsonObject), function (err) {
         if (err) {
             return console.log(err);
         }
-        console.log(`Done, check ${networkName}.json file in data folder.`);
+        console.log(`Done, check ${networkName}_${schainName}_proxy.json file in data folder.`);
         process.exit(0);
     });
 }
