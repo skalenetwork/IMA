@@ -53,11 +53,13 @@ async function deploy(deployer) {
         message_proxy_chain_abi: MessageProxy.abi
     }
 
-    fs.writeFile(`data/${networkName}_${schainName}_proxy.json`, JSON.stringify(jsonObject), function (err) {
+    let filename = schainName ? `${networkName}_${schainName}_proxy.json` : `${networkName}_proxy.json`;
+
+    fs.writeFile(`data/${filename}`, JSON.stringify(jsonObject), function (err) {
         if (err) {
             return console.log(err);
         }
-        console.log(`Done, check ${networkName}_${schainName}_proxy.json file in data folder.`);
+        console.log(`Done, check ${filename} file in data folder.`);
         process.exit(0);
     });
 }
