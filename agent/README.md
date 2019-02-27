@@ -21,8 +21,8 @@ First of all, we need special truffle version **4.1.13** (notice, the *-g* optio
 
 Second, get source code of Solidity contracts and install dependecies:
 
-    git clone git@github.com:GalacticExchange/skale_blockchain_tools.git
-    cd skale_blockchain_tools/Proxy/
+    git clone git@github.com:GalacticExchange/KTM.git
+    cd KTM/proxy/
     npm install
 
 Third edit the *./truffle.js* and specify needed networks (Main-net and S-Chain) and account addresses which will own contracts on these blockchains:
@@ -84,13 +84,12 @@ Second, save generated **proxy.json** file with ABI of all the migrated contract
 
 First, get source code of **KTM**:
 
-    git clone git@github.com:GalacticExchange/SkaleExperimental.git
-    cd SkaleExperimental/skaled-tests/test-artem-cross-chain-contracts/
+    cd KTP/agent/
 
 Second, install dependecies:
 
-    npm install colors
     npm install web3@1.0.0-beta.35
+    npm install colors
     npm install ethereumjs-tx
     npm install ethereumjs-wallet
     npm install ethereumjs-util
