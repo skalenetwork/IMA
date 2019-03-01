@@ -84,8 +84,9 @@ const path = require( "path" );
 const url = require( "url" );
 const os = require( "os" );
 const KTM   = require( "../npms/skale-ktm" );
-const cc    = KTM.cc;
-const log   = KTM.log;
+     KTM.verbose_set( KTM.verbose_parse( "info" ) );
+const log = require( "../npms/skale-log/log.js" );
+const cc  = log.cc;
 const w3mod = KTM.w3mod;
 let ethereumjs_tx     = KTM.ethereumjs_tx;
 let ethereumjs_wallet = KTM.ethereumjs_wallet;
@@ -319,7 +320,7 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         return 0;
     }
     if( joArg.name == "version"          ) { print_about(); return 0; }
-    if( joArg.name == "verbose"          ) { KTM.verboseLevel = KTM.verbose_parse( joArg.value ); continue; }
+    if( joArg.name == "verbose"          ) { KTM.verbose_set( KTM.verbose_parse( joArg.value ) ); continue; }
     if( joArg.name == "verbose-list"     ) { KTM.verbose_list(); return 0; }
     if( joArg.name == "url-main-net"     ) { veryify_url_arg( joArg ); g_str_url_main_net  = joArg.value; continue; }
     if( joArg.name == "url-s-chain"      ) { veryify_url_arg( joArg ); g_str_url_s_chain   = joArg.value; continue; }
@@ -503,24 +504,24 @@ function load_node_config( strPath ) {
     try {
         strPath = normalize_path( strPath );
         //
-        if( KTM.verboseLevel >= KTM.RV_VERBOSE.information )
+        if( KTM.verbose_get() >= KTM.RV_VERBOSE.information )
             log.write( cc.debug("Loading values from S-Chain configuraton JSON file ") + cc.note(strPath) + cc.debug("...") + "\n" );
         var strJsonSChainNodeConfiguration = fs.readFileSync( strPath, "utf8" );
         var joSChainNodeConfiguration = JSON.parse( strJsonSChainNodeConfiguration );
-        if( KTM.verboseLevel >= KTM.RV_VERBOSE.trace )
+        if( KTM.verbose_get() >= KTM.RV_VERBOSE.trace )
             log.write( cc.debug("S-Chain configuraton JSON: ") + cc.j(joSChainNodeConfiguration) + "\n" );
         //
         g_nNodeNumber = find_node_index( joSChainNodeConfiguration );
-        if( KTM.verboseLevel >= KTM.RV_VERBOSE.debug )
+        if( KTM.verbose_get() >= KTM.RV_VERBOSE.debug )
             log.write( cc.debug("....from S-Chain configuraton JSON file....") + cc.notice("this node index") + cc.debug(" is ") + cc.info(g_nNodeNumber) + "\n" );
         g_nNodesCount = joSChainNodeConfiguration.skaleConfig.sChain.nodes.length;
-        if( KTM.verboseLevel >= KTM.RV_VERBOSE.debug )
+        if( KTM.verbose_get() >= KTM.RV_VERBOSE.debug )
             log.write( cc.debug("....from S-Chain configuraton JSON file....") + cc.notice("nodes count") + cc.debug(" is ") + cc.info(g_nNodesCount) + "\n" );
         //
-        if( KTM.verboseLevel >= KTM.RV_VERBOSE.information )
+        if( KTM.verbose_get() >= KTM.RV_VERBOSE.information )
             log.write( cc.success("Done") + cc.debug(" loading values from S-Chain configuraton JSON file ") + cc.note(strPath) + cc.debug(".") + "\n" );
     } catch( e ) {
-        if( KTM.verboseLevel >= KTM.RV_VERBOSE.fatal )
+        if( KTM.verbose_get() >= KTM.RV_VERBOSE.fatal )
             log.write( cc.fatal("Exception in load_node_config():") + cc.error(e) + "\n" );
     }
 }
@@ -558,7 +559,7 @@ function check_time_framing( d ) {
                 bInsideGap = true;
             }
         }
-        if( KTM.verboseLevel >= KTM.RV_VERBOSE.trace )
+        if( KTM.verbose_get() >= KTM.RV_VERBOSE.trace )
             log.write(
                 "\n"
                 + cc.info("Unix UTC time stamp") + cc.debug("........") + cc.notice(nUtcUnixTimeStamp) + "\n"
@@ -572,7 +573,7 @@ function check_time_framing( d ) {
         if( bSkip )
             return false;
     } catch( e ) {
-        if( KTM.verboseLevel >= KTM.RV_VERBOSE.fatal )
+        if( KTM.verbose_get() >= KTM.RV_VERBOSE.fatal )
             log.write( cc.fatal("Exception in check_time_framing():") + cc.error(e) + "\n" );
     }
     return true;
@@ -638,10 +639,10 @@ let g_jo_token_manager          = new g_w3_s_chain .eth.Contract( joTrufflePubli
 let g_jo_message_proxy_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.message_proxy_mainnet_abi, joTrufflePublishResult_main_net.message_proxy_mainnet_address );
 let g_jo_message_proxy_s_chain  = new g_w3_s_chain .eth.Contract( joTrufflePublishResult_s_chain .message_proxy_chain_abi,   joTrufflePublishResult_s_chain .message_proxy_chain_address   );
 
-if( KTM.verboseLevel > KTM.RV_VERBOSE.information || g_bShowConfigMode ) {
+if( KTM.verbose_get() > KTM.RV_VERBOSE.information || g_bShowConfigMode ) {
     print_about( true );
     ensure_have_value( "app path", __filename, false, true, null, (x) => { return cc.normal( x ); } );
-    ensure_have_value( "verbose level", KTM.VERBOSE[KTM.verboseLevel], false, true, null, (x) => { return cc.sunny( x ); } );
+    ensure_have_value( "verbose level", KTM.VERBOSE[KTM.verbose_get()], false, true, null, (x) => { return cc.sunny( x ); } );
     ensure_have_value( "main-net URL", g_str_url_main_net, false, true, null, (x) => { return cc.u( x ); } );
     ensure_have_value( "S-chain URL", g_str_url_s_chain, false, true, null, (x) => { return cc.u( x ); } );
     ensure_have_value( "main-net Ethereum network ID", g_chain_id_main_net, false, true, null, (x) => { return cc.note( x ); } );
@@ -700,28 +701,28 @@ if( g_bShowConfigMode ) {
 async function do_the_job() {
     let idxAction, cntActions = g_arrActions.length, cntFalse = 0, cntTrue = 0;
     for( idxAction = 0; idxAction < cntActions; ++ idxAction ) {
-        if( KTM.verboseLevel >= KTM.RV_VERBOSE.information )
+        if( KTM.verbose_get() >= KTM.RV_VERBOSE.information )
             log.write( cc.debug(KTM.longSeparator) + "\n" );
         var joAction = g_arrActions[ idxAction ], bOK = false;
-        if( KTM.verboseLevel >= KTM.RV_VERBOSE.debug )
+        if( KTM.verbose_get() >= KTM.RV_VERBOSE.debug )
             log.write( cc.notice("Will execute action:") + " " + cc.info(joAction.name) + cc.debug(" (") + cc.info(idxAction+1) + cc.debug(" of ") + cc.info(cntActions) + cc.debug(")") + "\n" );
         try {
             if( await joAction.fn() ) {
                 ++ cntTrue;
-                if( KTM.verboseLevel >= KTM.RV_VERBOSE.information )
+                if( KTM.verbose_get() >= KTM.RV_VERBOSE.information )
                     log.write( cc.success("Succeeded action:") + " " + cc.info(joAction.name) + "\n" );
             } else {
                 ++ cntFalse;
-                if( KTM.verboseLevel >= KTM.RV_VERBOSE.error )
+                if( KTM.verbose_get() >= KTM.RV_VERBOSE.error )
                     log.write( cc.warn("Failed action:") + " " + cc.info(joAction.name) + "\n" );
             }
         } catch( e ) {
             ++ cntFalse;
-            if( KTM.verboseLevel >= KTM.RV_VERBOSE.fatal )
+            if( KTM.verbose_get() >= KTM.RV_VERBOSE.fatal )
                 log.write( cc.fatal("Exception occurred while executing action:") + " " + cc.info(joAction.name) + cc.error(", error description: ") + cc.warn(e) + "\n" );
         }
     } // for( idxAction = 0; idxAction < cntActions; ++ idxAction )
-    if( KTM.verboseLevel >= KTM.RV_VERBOSE.information ) {
+    if( KTM.verbose_get() >= KTM.RV_VERBOSE.information ) {
         log.write( cc.debug(KTM.longSeparator) + "\n" );
         log.write( cc.info("FINISH:") + "\n" );
         log.write( cc.info(cntActions) + cc.notice( " task(s) executed") + "\n" );
@@ -744,7 +745,7 @@ async function register_all() {
         g_joAccount_main_net,
         g_chain_id_s_chain
         );
-    var b2 = await KTM.register_s_chain_in_deposit_box(
+    var b2 = await KTM.register_s_chverboseLevelain_in_deposit_box(
         g_w3_main_net,
         g_jo_deposit_box, // only main net
         g_joAccount_main_net,
@@ -778,10 +779,10 @@ async function register_all() {
 // Run transfer loop
 //
 async function single_transfer_loop() {
-    if( KTM.verboseLevel >= KTM.RV_VERBOSE.debug )
+    if( KTM.verbose_get() >= KTM.RV_VERBOSE.debug )
         log.write( cc.debug(KTM.longSeparator) + "\n" );
     if( ! check_time_framing() ) {
-        if( KTM.verboseLevel >= KTM.RV_VERBOSE.debug )
+        if( KTM.verbose_get() >= KTM.RV_VERBOSE.debug )
             log.write( cc.warn("Skipped due to time framing") + "\n" );
         return true;
     }
