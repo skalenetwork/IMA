@@ -6,5 +6,5 @@ proxy/build/
 proxy/node_modules/
 proxy/package-lock.json
 proxy/proxy.json
-npms/skale-ktm/node_modules/
-npms/skale-ktm/package-lock.json
+npms/skale-mta/node_modules/
+npms/skale-mta/package-lock.json

@@ -14,7 +14,7 @@ cc.enable( true );
 log.addStdout();
 //log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount );
 
-let ktmStrLongSeparator = "=======================================================================================================================";
+let g_mtaStrLongSeparator = "=======================================================================================================================";
 
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,9 +132,9 @@ async function register_s_chain_on_main_net(
     chain_id_s_chain
     ) {
     if(verbose_get() >= RV_VERBOSE.debug ) {
-        log.write( cc.debug(ktmStrLongSeparator) + "\n" );
+        log.write( cc.debug(g_mtaStrLongSeparator) + "\n" );
         log.write( cc.bright("register_s_chain_on_main_net") + "\n" );
-        log.write( cc.debug(ktmStrLongSeparator) + "\n" );
+        log.write( cc.debug(g_mtaStrLongSeparator) + "\n" );
     }
     let r, strActionName = "";
     try {
@@ -190,9 +190,9 @@ async function register_s_chain_in_deposit_box(
     chain_id_s_chain
     ) {
     if(verbose_get() >= RV_VERBOSE.debug ) {
-        log.write( cc.debug(ktmStrLongSeparator) + "\n" );
+        log.write( cc.debug(g_mtaStrLongSeparator) + "\n" );
         log.write( cc.bright("register_s_chain_in_deposit_box") + "\n" );
-        log.write( cc.debug(ktmStrLongSeparator) + "\n" );
+        log.write( cc.debug(g_mtaStrLongSeparator) + "\n" );
     }
     let r, strActionName = "";
     try {
@@ -239,9 +239,9 @@ async function reister_main_net_depositBox_on_s_chain(
     joAccount
     ) {
     if(verbose_get() >= RV_VERBOSE.debug ) {
-        log.write( cc.debug(ktmStrLongSeparator) + "\n" );
+        log.write( cc.debug(g_mtaStrLongSeparator) + "\n" );
         log.write( cc.bright("reister_main_net_depositBox_on_s_chain") + "\n" );
-        log.write( cc.debug(ktmStrLongSeparator) + "\n" );
+        log.write( cc.debug(g_mtaStrLongSeparator) + "\n" );
     }
     let r, strActionName = "";
     try {
@@ -592,7 +592,7 @@ async function do_transfer(
 // init helpers
 //
 function noop() { return null; }
-module.exports.longSeparator = ktmStrLongSeparator;
+module.exports.longSeparator = g_mtaStrLongSeparator;
 module.exports.noop  = noop;
 module.exports.cc    = cc;
 module.exports.log   = log;

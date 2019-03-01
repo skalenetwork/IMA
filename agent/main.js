@@ -79,18 +79,18 @@ node ./main.js --load-node-config=~/Work/SkaleExperimental/skaled-tests/single-n
 //
 //
 // init very basics
-const fs = require( "fs" );
+const fs   = require( "fs" );
 const path = require( "path" );
-const url = require( "url" );
-const os = require( "os" );
-const KTM   = require( "../npms/skale-ktm" );
-     KTM.verbose_set( KTM.verbose_parse( "info" ) );
+const url  = require( "url" );
+const os   = require( "os" );
+const MTA  = require( "../npms/skale-mta" );
+     MTA.verbose_set( MTA.verbose_parse( "info" ) );
 const log = require( "../npms/skale-log/log.js" );
 const cc  = log.cc;
-const w3mod = KTM.w3mod;
-let ethereumjs_tx     = KTM.ethereumjs_tx;
-let ethereumjs_wallet = KTM.ethereumjs_wallet;
-let ethereumjs_util   = KTM.ethereumjs_util;
+const w3mod = MTA.w3mod;
+let ethereumjs_tx     = MTA.ethereumjs_tx;
+let ethereumjs_wallet = MTA.ethereumjs_wallet;
+let ethereumjs_util   = MTA.ethereumjs_util;
 
 // TO-DO: the next ABI JSON should contain main-net only contract info - S-chain contract addresses must be downloaded from S-chain
 let joTrufflePublishResult_main_net = {};
@@ -149,7 +149,7 @@ let g_joAccount_s_chain  = { "privateKey": "", "address": fn_address_impl_ };
 
 function fn_address_impl_( w3 ) {
     if( this.address_ == undefined || this.address_ == null )
-        this.address_ = "" + KTM.private_key_2_account_address( w3, this.privateKey );
+        this.address_ = "" + MTA.private_key_2_account_address( w3, this.privateKey );
     return this.address_;
 }
 
@@ -320,8 +320,8 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         return 0;
     }
     if( joArg.name == "version"          ) { print_about(); return 0; }
-    if( joArg.name == "verbose"          ) { KTM.verbose_set( KTM.verbose_parse( joArg.value ) ); continue; }
-    if( joArg.name == "verbose-list"     ) { KTM.verbose_list(); return 0; }
+    if( joArg.name == "verbose"          ) { MTA.verbose_set( MTA.verbose_parse( joArg.value ) ); continue; }
+    if( joArg.name == "verbose-list"     ) { MTA.verbose_list(); return 0; }
     if( joArg.name == "url-main-net"     ) { veryify_url_arg( joArg ); g_str_url_main_net  = joArg.value; continue; }
     if( joArg.name == "url-s-chain"      ) { veryify_url_arg( joArg ); g_str_url_s_chain   = joArg.value; continue; }
     if( joArg.name == "id-s-chain"       ) { verify_arg_with_non_empty_value( joArg ); g_chain_id_s_chain  = joArg.value; continue; }
@@ -348,7 +348,7 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
     }
     if( joArg.name == "m2s-payment" ) {
         g_arrActions.push( { "name": "one M->S single payment", "fn": async function() {
-            return await KTM.do_payment_from_main_net(
+            return await MTA.do_payment_from_main_net(
                 g_w3_main_net,
                 g_joAccount_main_net,
                 g_joAccount_s_chain,
@@ -361,7 +361,7 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
     }
     if( joArg.name == "s2m-payment" ) {
         g_arrActions.push( { "name": "one S->M single payment", "fn": async function() {
-            return await KTM.do_payment_from_s_chain(
+            return await MTA.do_payment_from_s_chain(
                 g_w3_s_chain,
                 g_joAccount_s_chain,
                 g_joAccount_main_net,
@@ -373,7 +373,7 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
     }
     if( joArg.name == "m2s-transfer" ) {
         g_arrActions.push( { "name": "single M->S transfer loop", "fn": async function() {
-            return await KTM.do_transfer( // main-net --> s-chain
+            return await MTA.do_transfer( // main-net --> s-chain
                 /**/ g_w3_main_net,
                 g_jo_message_proxy_main_net,
                 g_joAccount_main_net,
@@ -390,7 +390,7 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
     }
     if( joArg.name == "s2m-transfer" ) {
         g_arrActions.push( { "name": "single S->M transfer loop", "fn": async function() {
-            return await KTM.do_transfer( // s-chain --> main-net
+            return await MTA.do_transfer( // s-chain --> main-net
                 /**/ g_w3_s_chain,
                 g_jo_message_proxy_s_chain,
                 g_joAccount_s_chain,
@@ -504,24 +504,24 @@ function load_node_config( strPath ) {
     try {
         strPath = normalize_path( strPath );
         //
-        if( KTM.verbose_get() >= KTM.RV_VERBOSE.information )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.information )
             log.write( cc.debug("Loading values from S-Chain configuraton JSON file ") + cc.note(strPath) + cc.debug("...") + "\n" );
         var strJsonSChainNodeConfiguration = fs.readFileSync( strPath, "utf8" );
         var joSChainNodeConfiguration = JSON.parse( strJsonSChainNodeConfiguration );
-        if( KTM.verbose_get() >= KTM.RV_VERBOSE.trace )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.trace )
             log.write( cc.debug("S-Chain configuraton JSON: ") + cc.j(joSChainNodeConfiguration) + "\n" );
         //
         g_nNodeNumber = find_node_index( joSChainNodeConfiguration );
-        if( KTM.verbose_get() >= KTM.RV_VERBOSE.debug )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.debug )
             log.write( cc.debug("....from S-Chain configuraton JSON file....") + cc.notice("this node index") + cc.debug(" is ") + cc.info(g_nNodeNumber) + "\n" );
         g_nNodesCount = joSChainNodeConfiguration.skaleConfig.sChain.nodes.length;
-        if( KTM.verbose_get() >= KTM.RV_VERBOSE.debug )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.debug )
             log.write( cc.debug("....from S-Chain configuraton JSON file....") + cc.notice("nodes count") + cc.debug(" is ") + cc.info(g_nNodesCount) + "\n" );
         //
-        if( KTM.verbose_get() >= KTM.RV_VERBOSE.information )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.information )
             log.write( cc.success("Done") + cc.debug(" loading values from S-Chain configuraton JSON file ") + cc.note(strPath) + cc.debug(".") + "\n" );
     } catch( e ) {
-        if( KTM.verbose_get() >= KTM.RV_VERBOSE.fatal )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.fatal )
             log.write( cc.fatal("Exception in load_node_config():") + cc.error(e) + "\n" );
     }
 }
@@ -559,7 +559,7 @@ function check_time_framing( d ) {
                 bInsideGap = true;
             }
         }
-        if( KTM.verbose_get() >= KTM.RV_VERBOSE.trace )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.trace )
             log.write(
                 "\n"
                 + cc.info("Unix UTC time stamp") + cc.debug("........") + cc.notice(nUtcUnixTimeStamp) + "\n"
@@ -573,7 +573,7 @@ function check_time_framing( d ) {
         if( bSkip )
             return false;
     } catch( e ) {
-        if( KTM.verbose_get() >= KTM.RV_VERBOSE.fatal )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.fatal )
             log.write( cc.fatal("Exception in check_time_framing():") + cc.error(e) + "\n" );
     }
     return true;
@@ -639,10 +639,10 @@ let g_jo_token_manager          = new g_w3_s_chain .eth.Contract( joTrufflePubli
 let g_jo_message_proxy_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.message_proxy_mainnet_abi, joTrufflePublishResult_main_net.message_proxy_mainnet_address );
 let g_jo_message_proxy_s_chain  = new g_w3_s_chain .eth.Contract( joTrufflePublishResult_s_chain .message_proxy_chain_abi,   joTrufflePublishResult_s_chain .message_proxy_chain_address   );
 
-if( KTM.verbose_get() > KTM.RV_VERBOSE.information || g_bShowConfigMode ) {
+if( MTA.verbose_get() > MTA.RV_VERBOSE.information || g_bShowConfigMode ) {
     print_about( true );
     ensure_have_value( "app path", __filename, false, true, null, (x) => { return cc.normal( x ); } );
-    ensure_have_value( "verbose level", KTM.VERBOSE[KTM.verbose_get()], false, true, null, (x) => { return cc.sunny( x ); } );
+    ensure_have_value( "verbose level", MTA.VERBOSE[MTA.verbose_get()], false, true, null, (x) => { return cc.sunny( x ); } );
     ensure_have_value( "main-net URL", g_str_url_main_net, false, true, null, (x) => { return cc.u( x ); } );
     ensure_have_value( "S-chain URL", g_str_url_s_chain, false, true, null, (x) => { return cc.u( x ); } );
     ensure_have_value( "main-net Ethereum network ID", g_chain_id_main_net, false, true, null, (x) => { return cc.note( x ); } );
@@ -684,9 +684,9 @@ if( g_bShowConfigMode ) {
 // var strAddressExpected = .......
 // var keyPrivate         = .......
 // console.log( "private key = " + keyPrivate );
-// var keyPublic = KTM.private_key_2_public_key( w3, keyPrivate );
+// var keyPublic = MTA.private_key_2_public_key( w3, keyPrivate );
 // console.log( "public  key = " + keyPublic );
-// var strAddressComputed = KTM.public_key_2_account_address( w3, keyPublic )
+// var strAddressComputed = MTA.public_key_2_account_address( w3, keyPublic )
 // console.log( "address expected = " + strAddressExpected );
 // console.log( "address computed = " + strAddressComputed );
 // console.log( "match = " + ( ( strAddressComputed === strAddressExpected ) ? true : false ) );
@@ -701,34 +701,34 @@ if( g_bShowConfigMode ) {
 async function do_the_job() {
     let idxAction, cntActions = g_arrActions.length, cntFalse = 0, cntTrue = 0;
     for( idxAction = 0; idxAction < cntActions; ++ idxAction ) {
-        if( KTM.verbose_get() >= KTM.RV_VERBOSE.information )
-            log.write( cc.debug(KTM.longSeparator) + "\n" );
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.information )
+            log.write( cc.debug(MTA.longSeparator) + "\n" );
         var joAction = g_arrActions[ idxAction ], bOK = false;
-        if( KTM.verbose_get() >= KTM.RV_VERBOSE.debug )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.debug )
             log.write( cc.notice("Will execute action:") + " " + cc.info(joAction.name) + cc.debug(" (") + cc.info(idxAction+1) + cc.debug(" of ") + cc.info(cntActions) + cc.debug(")") + "\n" );
         try {
             if( await joAction.fn() ) {
                 ++ cntTrue;
-                if( KTM.verbose_get() >= KTM.RV_VERBOSE.information )
+                if( MTA.verbose_get() >= MTA.RV_VERBOSE.information )
                     log.write( cc.success("Succeeded action:") + " " + cc.info(joAction.name) + "\n" );
             } else {
                 ++ cntFalse;
-                if( KTM.verbose_get() >= KTM.RV_VERBOSE.error )
+                if( MTA.verbose_get() >= MTA.RV_VERBOSE.error )
                     log.write( cc.warn("Failed action:") + " " + cc.info(joAction.name) + "\n" );
             }
         } catch( e ) {
             ++ cntFalse;
-            if( KTM.verbose_get() >= KTM.RV_VERBOSE.fatal )
+            if( MTA.verbose_get() >= MTA.RV_VERBOSE.fatal )
                 log.write( cc.fatal("Exception occurred while executing action:") + " " + cc.info(joAction.name) + cc.error(", error description: ") + cc.warn(e) + "\n" );
         }
     } // for( idxAction = 0; idxAction < cntActions; ++ idxAction )
-    if( KTM.verbose_get() >= KTM.RV_VERBOSE.information ) {
-        log.write( cc.debug(KTM.longSeparator) + "\n" );
+    if( MTA.verbose_get() >= MTA.RV_VERBOSE.information ) {
+        log.write( cc.debug(MTA.longSeparator) + "\n" );
         log.write( cc.info("FINISH:") + "\n" );
         log.write( cc.info(cntActions) + cc.notice( " task(s) executed") + "\n" );
         log.write( cc.info(cntTrue)    + cc.success(" task(s) succeeded") + "\n" );
         log.write( cc.info(cntFalse)   + cc.error  (" task(s) failed") + "\n" );
-        log.write( cc.debug(KTM.longSeparator) + "\n" );
+        log.write( cc.debug(MTA.longSeparator) + "\n" );
     }
 }
 do_the_job();
@@ -739,20 +739,20 @@ return 0; // FINISH
 
 
 async function register_all() {
-    var b1 = await KTM.register_s_chain_on_main_net(
+    var b1 = await MTA.register_s_chain_on_main_net(
         g_w3_main_net,
         g_jo_message_proxy_main_net,
         g_joAccount_main_net,
         g_chain_id_s_chain
         );
-    var b2 = await KTM.register_s_chverboseLevelain_in_deposit_box(
+    var b2 = await MTA.register_s_chverboseLevelain_in_deposit_box(
         g_w3_main_net,
         g_jo_deposit_box, // only main net
         g_joAccount_main_net,
         g_jo_token_manager, // only s-chain
         g_chain_id_s_chain
         );
-    var b3 = await KTM.reister_main_net_depositBox_on_s_chain(
+    var b3 = await MTA.reister_main_net_depositBox_on_s_chain(
         g_w3_s_chain,
         g_jo_token_manager, // only s-chain
         g_jo_deposit_box, // only main net
@@ -779,14 +779,14 @@ async function register_all() {
 // Run transfer loop
 //
 async function single_transfer_loop() {
-    if( KTM.verbose_get() >= KTM.RV_VERBOSE.debug )
-        log.write( cc.debug(KTM.longSeparator) + "\n" );
+    if( MTA.verbose_get() >= MTA.RV_VERBOSE.debug )
+        log.write( cc.debug(MTA.longSeparator) + "\n" );
     if( ! check_time_framing() ) {
-        if( KTM.verbose_get() >= KTM.RV_VERBOSE.debug )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.debug )
             log.write( cc.warn("Skipped due to time framing") + "\n" );
         return true;
     }
-    var b1 = await KTM.do_transfer( // main-net --> s-chain
+    var b1 = await MTA.do_transfer( // main-net --> s-chain
         /**/ g_w3_main_net,
         g_jo_message_proxy_main_net,
         g_joAccount_main_net,
@@ -798,7 +798,7 @@ async function single_transfer_loop() {
         g_nTransferBlockSizeM2S,
         g_nMaxTransactionsM2S
         );
-    var b2 = await KTM.do_transfer( // s-chain --> main-net
+    var b2 = await MTA.do_transfer( // s-chain --> main-net
         /**/ g_w3_s_chain,
         g_jo_message_proxy_s_chain,
         g_joAccount_s_chain,

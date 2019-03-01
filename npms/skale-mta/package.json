@@ -1,5 +1,5 @@
 {
-    "name": "skale-ktm",
+    "name": "skale-mta",
     "version": "1.0.1",
     "description": "SKALE money transfer agent",
     "main": "index.js",
@@ -10,9 +10,15 @@
         "test-travis": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [
-        "SKALE", "ethereum", "S-Chain",
-        "blockchain", "block", "chain",
-        "money", "transfer", "agent"
+        "SKALE",
+        "ethereum",
+        "S-Chain",
+        "blockchain",
+        "block",
+        "chain",
+        "money",
+        "transfer",
+        "agent"
     ],
     "engines": {
         "node": ">= 8.0"
