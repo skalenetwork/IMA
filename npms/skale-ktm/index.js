@@ -181,7 +181,7 @@ async function register_s_chain_on_main_net(
         if( verboseLevel >= RV_VERBOSE.trace )
             log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = new Buffer( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
+        var key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction(()";
@@ -236,7 +236,7 @@ async function register_s_chain_in_deposit_box(
         if( verboseLevel >= RV_VERBOSE.trace )
             log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = new Buffer( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
+        var key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction()";
@@ -264,7 +264,7 @@ async function reister_main_net_depositBox_on_s_chain(
     }
     let r, strActionName = "";
     try {
-        strActionName = "w3_s_chain.eth.getTransactionCount()";
+        strActionName = "w3_s_chain.eth.getTransactionCount()/reister_main_net_depositBox_on_s_chain";
         if( verboseLevel >= RV_VERBOSE.trace )
             log.write( cc.debug("Will call ") + cc.notice(strActionName) + cc.debug("...") + "\n" );
         let tcnt = await w3_s_chain.eth.getTransactionCount( joAccount.address(w3_s_chain), null );
@@ -285,7 +285,7 @@ async function reister_main_net_depositBox_on_s_chain(
         if( verboseLevel >= RV_VERBOSE.trace )
             log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = new Buffer( joAccount.privateKey, "hex" ); // convert private key to buffer
+        var key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
         strActionName = "w3_s_chain.eth.sendSignedTransaction()";
@@ -362,7 +362,7 @@ async function do_payment_from_main_net(
         if( verboseLevel >= RV_VERBOSE.trace )
             log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = new Buffer( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        var key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction()";
@@ -401,7 +401,7 @@ async function do_payment_from_s_chain(
     ) {
     let r, strActionName = "";
     try {
-        strActionName = "w3_s_chain.eth.getTransactionCount()";
+        strActionName = "w3_s_chain.eth.getTransactionCount()/do_payment_from_s_chain";
         if( verboseLevel >= RV_VERBOSE.trace )
             log.write( cc.debug("Will call ") + cc.notice(strActionName) + cc.debug("...") + "\n" );
         let tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address(w3_s_chain), null  );
@@ -424,7 +424,7 @@ async function do_payment_from_s_chain(
         if( verboseLevel >= RV_VERBOSE.trace )
             log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = new Buffer( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        var key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
         strActionName = "w3_s_chain.eth.sendSignedTransaction()";
@@ -602,7 +602,7 @@ async function do_transfer(
             if( verboseLevel >= RV_VERBOSE.trace )
                 log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );
             let tx = new ethereumjs_tx( rawTx );
-            var key = new Buffer( joAccountDst.privateKey, "hex" ); // convert private key to buffer ??????????????????????????????????
+            var key = Buffer.from( joAccountDst.privateKey, "hex" ); // convert private key to buffer ??????????????????????????????????
             tx.sign( key ); // arg is privateKey as buffer
             var serializedTx = tx.serialize();
             strActionName = "w3_dst.eth.sendSignedTransaction()";
