@@ -85,20 +85,20 @@ The following code demonstrates money transfer event processing:
         g_nMaxTransactionsS2M
         );
 
-    The following code demonstrates cross-chain payments:
+The following code demonstrates cross-chain payments:
 
-        KTM.do_payment_from_main_net(
-            g_w3_main_net,
-            g_joAccount_main_net,
-            g_joAccount_s_chain,
-            g_jo_deposit_box, // only main net
-            g_chain_id_s_chain,
-            g_wei_amount // how much money to send
-            );
-        await KTM.do_payment_from_s_chain(
-            g_w3_s_chain,
-            g_joAccount_s_chain,
-            g_joAccount_main_net,
-            g_jo_token_manager, // only s-chain
-            g_wei_amount // how much money to send
-            );
+    KTM.do_payment_from_main_net(
+        g_w3_main_net,
+        g_joAccount_main_net,
+        g_joAccount_s_chain,
+        g_jo_deposit_box, // only main net
+        g_chain_id_s_chain,
+        g_wei_amount // how much money to send
+        );
+    await KTM.do_payment_from_s_chain(
+        g_w3_s_chain,
+        g_joAccount_s_chain,
+        g_joAccount_main_net,
+        g_jo_token_manager, // only s-chain
+        g_wei_amount // how much money to send
+        );
