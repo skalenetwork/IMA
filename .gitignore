@@ -93,7 +93,7 @@ typings/
 wallet*.json
 *_ktm_info.tar.gz
 
-
+__pycache__/
 
 
 agent/abi_main_net.json.bak
