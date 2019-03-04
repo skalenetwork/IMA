@@ -1,4 +1,4 @@
-const cc = require( "./cc.js" );
+const cc = require( "../skale-cc/cc.js" );
 const fs = require( "fs" );
 const C = require( "constants" );
 let g_arrStreams = [ ];
@@ -172,7 +172,8 @@ let objEntry = getStreamWithFilePath( "" + strFilePath );
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 module.exports = {
-	"write": function() {
+	"cc": cc
+	, "write": function() {
 		let s = generateTimestampPrefix(), i = 0, cnt = 0;
 		try {
 			cnt = arguments.length;

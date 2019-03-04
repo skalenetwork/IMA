@@ -1,5 +1,5 @@
 #!/bin/bash
-FILE_SRC="../../../skale_blockchain_tools/Proxy/proxy.json"
+FILE_SRC="../proxy/proxy.json"
 FILE_DST="./abi_s_chain.json"
 FILE_BAK="${FILE_DST}.bak"
 echo "Source file......... '${FILE_SRC}'"
