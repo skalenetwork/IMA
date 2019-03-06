@@ -745,7 +745,7 @@ async function register_all() {
         g_joAccount_main_net,
         g_chain_id_s_chain
         );
-    var b2 = await MTA.register_s_chverboseLevelain_in_deposit_box(
+    var b2 = await MTA.register_s_chain_in_deposit_box(
         g_w3_main_net,
         g_jo_deposit_box, // only main net
         g_joAccount_main_net,

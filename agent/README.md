@@ -16,7 +16,9 @@ This article refers to **SKALE Money Transfer Agent** as **MTA**.
 
 First of all, we need special truffle version **4.1.13** (notice, the *-g* option of *npm* may require *sudo*):
 
-    npm install -g truffle@4.1.13
+    sudo npm uninstall -g truffle
+    sudo npm install -g truffle@4.1.13
+    truffle --version
 
 Second, get source code of Solidity contracts and install dependecies:
 
@@ -51,7 +53,6 @@ Fourth, rebuild all the contracts once to ensure everything initialized OK:
 
     rm -rf ./build
     truffle complile
-
 
 ### Contracts installation on Main-net
 

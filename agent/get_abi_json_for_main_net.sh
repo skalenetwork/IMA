@@ -1,5 +1,6 @@
 #!/bin/bash
-FILE_SRC="../proxy/proxy.json"
+#FILE_SRC="../proxy/proxy.json"
+FILE_SRC="../proxy/data/pseudo_main_net_proxy.json"
 FILE_DST="./abi_main_net.json"
 FILE_BAK="${FILE_DST}.bak"
 echo "Source file......... '${FILE_SRC}'"

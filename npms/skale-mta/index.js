@@ -165,7 +165,7 @@ async function register_s_chain_on_main_net(
         var key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
-        strActionName = "w3_main_net.eth.sendSignedTransaction(()";
+        strActionName = "w3_main_net.eth.sendSignedTransaction()";
         let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString("hex") );
         if(verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success("Result receipt: ") + cc.j(joReceipt) + "\n" );
