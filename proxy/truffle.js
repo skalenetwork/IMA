@@ -41,10 +41,11 @@ module.exports = {
       "from": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
     },
     do: {
-      host: "134.209.14.167",
+      host: "134.209.56.46",
       port: 1919,
       gasPrice: 10000000000,
       network_id: "*",
+      from: "0x5112ce768917e907191557d7e9521c2590cdd3a0"
     },
     aws: {
       host: "13.59.228.21",
