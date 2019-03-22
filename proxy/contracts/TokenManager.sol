@@ -3,8 +3,10 @@ pragma solidity ^0.4.24;
 import "./Ownable.sol";
 
 interface ProxyForSchain {
-    function postOutgoingMessage(string dstChainID, address dstContract, uint amount, address to) external;
+    function postOutgoingMessage(string dstChainID, address dstContract, uint amount, address to, bytes data) external;
 }
+
+
 
 // This contract runs on schains and accepts messages from main net creates ETH clones.
 // When the user exits, it burns them
@@ -30,7 +32,9 @@ contract TokenManager is Ownable {
     //address public owner;
 
 
-    event MoneyReceivedMessage(address sender, string FromSchainID, address to, uint amount);
+    event MoneyReceivedMessage(address sender, string FromSchainID, address to, uint amount, bytes data);
+
+    event Error(address sender, string fromSchainID, address to, uint amount, bytes data, string message);
 
 
     /// Create a new token manager
@@ -61,26 +65,26 @@ contract TokenManager is Ownable {
 
     // This is called by  schain owner.
     // Exit to main net
-    function exitToMain(address to) public payable {
+    function exitToMain(address to, bytes data) public payable {
         require(msg.value > 0);
-        ProxyForSchain(proxyForSchainAddress).postOutgoingMessage("Mainnet", tokenManagerAddresses[keccak256(abi.encodePacked("Mainnet"))], msg.value, to);
+        ProxyForSchain(proxyForSchainAddress).postOutgoingMessage("Mainnet", tokenManagerAddresses[keccak256(abi.encodePacked("Mainnet"))], msg.value, to, data);
     }
 
-    function transferToSchain(string schainID, address to) public payable {
+    function transferToSchain(string schainID, address to, bytes data) public payable {
         require(keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")));
         require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0));
         require(msg.value > 0);
-        ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], msg.value, to);
+        ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], msg.value, to, data);
     }
 
     // Receive money from main net and Schain
 
-    function postMessage(address sender, string fromSchainID, address to, uint amount) public {
+    function postMessage(address sender, string fromSchainID, address to, uint amount, bytes data) public {
         require(keccak256(abi.encodePacked(fromSchainID)) != keccak256(abi.encodePacked(chainID)));
         require(sender == tokenManagerAddresses[keccak256(abi.encodePacked(fromSchainID))]);
         //require(msg.sender == owner);
         require(to != address(0));
-        emit MoneyReceivedMessage(sender, fromSchainID, to, amount);
+        emit MoneyReceivedMessage(sender, fromSchainID, to, amount, data);
         require(address(to).send(amount));
     }
 }

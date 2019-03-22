@@ -3,7 +3,7 @@ pragma solidity ^0.4.24;
 import "./Ownable.sol";
 
 interface Proxy {
-    function postOutgoingMessage(string dstChainID, address dstContract, uint amount, address to) external;
+    function postOutgoingMessage(string dstChainID, address dstContract, uint amount, address to, bytes data) external;
 }
 
 // This contract runs on the main net and accepts deposits
@@ -22,7 +22,9 @@ contract DepositBox is Ownable {
 
     //mapping(address => mapping(address => uint)) public allowed;
 
-    event MoneyReceivedMessage(address sender, string FromSchainID, address to, uint amount);
+    event MoneyReceivedMessage(address sender, string fromSchainID, address to, uint amount, bytes data);
+
+    event Error(address sender, string fromSchainID, address to, uint amount, bytes data, string message);
 
     /// Create a new deposit box
     constructor(address newProxyAddress) public {
@@ -40,25 +42,29 @@ contract DepositBox is Ownable {
         tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] = tokenManagerAddress;
     }
 
-    function deposit(string schainID, address to) public payable {
+    function deposit(string schainID, address to, bytes data) public payable {
         require(keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")));
         require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0));
         require(msg.value > 0);
-        Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], msg.value, to);
+        Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], msg.value, to, data);
     }
 
-    function postMessage(address sender, string fromSchainID, address to, uint amount) public {
+    function postMessage(address sender, string fromSchainID, address to, uint amount, bytes data) public {
         require(msg.sender == proxyAddress);
         require(keccak256(abi.encodePacked(fromSchainID)) != keccak256(abi.encodePacked("Mainnet")));
         require(sender == tokenManagerAddresses[keccak256(abi.encodePacked(fromSchainID))]);
         require(to != address(0));
         require(amount > GAS_AMOUNT_POST_MESSAGE * tx.gasprice);
-        emit MoneyReceivedMessage(sender, fromSchainID, to, amount);
         //
         //require(address(to).send(amount));
-        if (amount - GAS_AMOUNT_POST_MESSAGE * tx.gasprice <= address(this).balance) {
-            require(address(to).send(amount - GAS_AMOUNT_POST_MESSAGE * tx.gasprice));
-            require(address(owner).send(GAS_AMOUNT_POST_MESSAGE * tx.gasprice));
+        if (!(amount - GAS_AMOUNT_POST_MESSAGE * tx.gasprice <= address(this).balance)) {
+            emit Error(sender, fromSchainID, to, amount, data, "Not enough money to finish this transaction");
+            return;
         }
+
+        emit MoneyReceivedMessage(sender, fromSchainID, to, amount, data);
+        require(address(owner).send(GAS_AMOUNT_POST_MESSAGE * tx.gasprice));
+        require(address(to).send(amount - GAS_AMOUNT_POST_MESSAGE * tx.gasprice));
+        
     }
 }
