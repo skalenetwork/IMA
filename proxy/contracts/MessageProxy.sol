@@ -1,7 +1,7 @@
-pragma solidity 0.4.24;
+pragma solidity ^0.4.24;
 
 interface ContractReceiver {
-    function postMessage(address sender, string schainID, address to, uint amount) external;
+    function postMessage(address sender, string schainID, address to, uint amount, bytes data) external;
 }
 
 contract MessageProxy {
@@ -35,7 +35,9 @@ contract MessageProxy {
         //uint32  maxGas,
         //bytes32[] concatenatedParameters
         address to,
-        uint amount
+        uint amount,
+        bytes data,
+        uint length
     );
 
     struct ConnectedChainInfo {
@@ -86,14 +88,14 @@ contract MessageProxy {
     }
 
     // This is called by a smart contract that wants to make a cross-chain call
-    function postOutgoingMessage(string dstChainID, address dstContract, uint amount, address to) public {
+    function postOutgoingMessage(string dstChainID, address dstContract, uint amount, address to, bytes data) public {
         //require(msg.sender == depositBoxAddress); TODO: know a bank address on THIS Schain
         require(connectedChains[keccak256(abi.encodePacked(dstChainID))].inited);
         connectedChains[keccak256(abi.encodePacked(dstChainID))].outgoingMessageCounter++;
-        emit OutgoingMessage(dstChainID, connectedChains[keccak256(abi.encodePacked(dstChainID))].outgoingMessageCounter - 1, msg.sender, dstContract, to, amount);
+        emit OutgoingMessage(dstChainID, connectedChains[keccak256(abi.encodePacked(dstChainID))].outgoingMessageCounter - 1, msg.sender, dstContract, to, amount, data, data.length);
     }
 
-    function postIncomingMessages(string srcChainID, uint64 startingCounter, address[] memory senders, address[] memory dstContracts, address[] memory to, uint[] memory amount/*uint[2] memory blsSignature*/) public {
+    function postIncomingMessages(string srcChainID, uint64 startingCounter, address[] memory senders, address[] memory dstContracts, address[] memory to, uint[] memory amount, bytes memory data, uint[] memory lengthOfData/*uint[2] memory blsSignature*/) public {
         //require(msg.sender == owner);
         require(connectedChains[keccak256(abi.encodePacked(srcChainID))].inited);
         require(senders.length == dstContracts.length);
@@ -101,8 +103,59 @@ contract MessageProxy {
 
         // TODO: Calculate hash and verify BLS signature on hash
 
+        uint index = 0;
         for (uint32 i = 0; i < senders.length; i++) {
-            ContractReceiver(dstContracts[i]).postMessage(senders[i], srcChainID, to[i], amount[i]);
+            bytes memory newData;
+            uint length = lengthOfData[i];
+            assembly {
+                switch iszero(length)
+                case 0 {
+                    // Get a location of some free memory and store it in tempBytes as
+                    // Solidity does for memory variables.
+                    newData := mload(0x40)
+                    // The first word of the slice result is potentially a partial
+                    // word read from the original array. To read it, we calculate
+                    // the length of that partial word and start copying that many
+                    // bytes into the array. The first word we copy will start with
+                    // data we don't care about, but the last `lengthmod` bytes will
+                    // land at the beginning of the contents of the new array. When
+                    // we're done copying, we overwrite the full first word with
+                    // the actual length of the slice.
+                    let lengthmod := and(length, 31)
+
+                    // The multiplication in the next line is necessary
+                    // because when slicing multiples of 32 bytes (lengthmod == 0)
+                    // the following copy loop was copying the origin's length
+                    // and then ending prematurely not copying everything it should.
+                    let mc := add(add(newData, lengthmod), mul(0x20, iszero(lengthmod)))
+                    let end := add(mc, length)
+
+                    for {
+                        // The multiplication in the next line has the same exact purpose
+                        // as the one above.
+                        let cc := add(add(add(data, lengthmod), mul(0x20, iszero(lengthmod))), index)
+                    } lt(mc, end) {
+                        mc := add(mc, 0x20)
+                        cc := add(cc, 0x20)
+                    } {
+                        mstore(mc, mload(cc))
+                    }
+
+                    mstore(newData, length)
+
+                    //update free-memory pointer
+                    //allocating the array padded to 32 bytes like the compiler does now
+                    mstore(0x40, and(add(mc, 31), not(31)))
+                }
+                //if we want a zero-length slice let's just return a zero-length array
+                default {
+                    newData := mload(0x40)
+
+                    mstore(0x40, add(newData, 0x20))
+                }
+            }
+
+            ContractReceiver(dstContracts[i]).postMessage(senders[i], srcChainID, to[i], amount[i], newData);
         }
         connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint64(senders.length);
     }
