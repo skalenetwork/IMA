@@ -8,6 +8,7 @@ const solc = require("solc");
 let Ownable = path.resolve(__dirname, '../contracts', 'Ownable.sol');
 let MessageProxy = path.resolve(__dirname, '../contracts', 'MessageProxy.sol');
 let DepositBox = path.resolve(__dirname, '../contracts', 'DepositBox.sol');
+let ERC20Box = path.resolve(__dirname, '../contracts', 'ERC20Box.sol');
 
 const networkName = process.env.NETWORK;
 const privateKey = process.env.ETH_PRIVATE_KEY;
@@ -46,18 +47,25 @@ async function deploy() {
         'MessageProxy.sol': fs.readFileSync(MessageProxy, 'UTF-8')
     }
     let messageProxyResult0 = await deployContract("MessageProxy.sol:MessageProxy", {sources: messageProxy}, {gas: 8000000, 'account': account, 'arguments': ["Mainnet"]});
-    let depositBox = {
+    /*let depositBox = {
         'Ownable.sol': fs.readFileSync(Ownable, 'UTF-8'),
         'DepositBox.sol': fs.readFileSync(DepositBox, 'UTF-8')
     }
-    let depositBoxResult = await deployContract("DepositBox.sol:DepositBox", {sources: depositBox}, {gas: 8000000, 'account': account, 'arguments': [messageProxyResult0.address]});  
+    let depositBoxResult = await deployContract("DepositBox.sol:DepositBox", {sources: depositBox}, {gas: 8000000, 'account': account, 'arguments': [messageProxyResult0.address]});*/
 
+    let erc20Box = {
+        'Ownable.sol': fs.readFileSync(Ownable, 'UTF-8'),
+        'ERC20Box.sol': fs.readFileSync(ERC20Box, 'UTF-8')
+    }
+    let erc20BoxResult = await deployContract("ERC20Box.sol:ERC20Box", {sources: erc20Box}, {gas: 8000000, 'account': account, 'arguments': [messageProxyResult0.address]});
 
     let jsonObject = {
-        deposit_box_address: depositBoxResult.address,
-        deposit_box_abi: DepositBox.abi,
+        //deposit_box_address: depositBoxResult.address,
+        //deposit_box_abi: DepositBox.abi,
+        erc20_box_address: erc20BoxResult.address,
+        erc20_box_abi: erc20BoxResult.abi,
         message_proxy_mainnet_address: messageProxyResult0.address,
-        message_proxy_mainnet_abi: MessageProxy
+        message_proxy_mainnet_abi: messageProxyResult0.abi
     }
 
     fs.writeFile('proxyMainnet.json', JSON.stringify(jsonObject), function (err) {

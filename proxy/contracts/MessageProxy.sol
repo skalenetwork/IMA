@@ -154,6 +154,7 @@ contract MessageProxy {
                     mstore(0x40, add(newData, 0x20))
                 }
             }
+            index += length;
 
             ContractReceiver(dstContracts[i]).postMessage(senders[i], srcChainID, to[i], amount[i], newData);
         }

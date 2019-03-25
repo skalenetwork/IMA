@@ -6,7 +6,9 @@ interface ProxyForSchain {
     function postOutgoingMessage(string dstChainID, address dstContract, uint amount, address to, bytes data) external;
 }
 
-
+interface MessageReceiver {
+    function postMessage(address sender, string schainID, address to, uint amount, bytes data) external;
+}
 
 // This contract runs on schains and accepts messages from main net creates ETH clones.
 // When the user exits, it burns them

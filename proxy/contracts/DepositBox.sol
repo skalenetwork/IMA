@@ -6,6 +6,10 @@ interface Proxy {
     function postOutgoingMessage(string dstChainID, address dstContract, uint amount, address to, bytes data) external;
 }
 
+interface MessageReceiver {
+    function postMessage(address sender, string schainID, address to, uint amount, bytes data) external;
+}
+
 // This contract runs on the main net and accepts deposits
 
 contract DepositBox is Ownable {
@@ -64,7 +68,14 @@ contract DepositBox is Ownable {
 
         emit MoneyReceivedMessage(sender, fromSchainID, to, amount, data);
         require(address(owner).send(GAS_AMOUNT_POST_MESSAGE * tx.gasprice));
-        require(address(to).send(amount - GAS_AMOUNT_POST_MESSAGE * tx.gasprice));
-        
+        /*uint length;
+        assembly {
+            length := extcodesize(to)
+        }
+        if (length == 0) {*/
+            require(address(to).send(amount - GAS_AMOUNT_POST_MESSAGE * tx.gasprice));
+            /*return;
+        }
+        require(MessageReceiver(to).postMessage(sender, schainID, to, amount - GAS_AMOUNT_POST_MESSAGE * tx.gasprice, data));*/
     }
 }
