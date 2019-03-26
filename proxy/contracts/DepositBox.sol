@@ -64,7 +64,14 @@ contract DepositBox is Ownable {
 
         emit MoneyReceivedMessage(sender, fromSchainID, to, amount, data);
         require(address(owner).send(GAS_AMOUNT_POST_MESSAGE * tx.gasprice));
-        require(address(to).send(amount - GAS_AMOUNT_POST_MESSAGE * tx.gasprice));
-        
+        /*uint length;
+        assembly {
+            length := extcodesize(to)
+        }
+        if (length == 0) {*/
+            require(address(to).send(amount - GAS_AMOUNT_POST_MESSAGE * tx.gasprice));
+            /*return;
+        }
+        require(MessageReceiver(to).postMessage(sender, schainID, to, amount - GAS_AMOUNT_POST_MESSAGE * tx.gasprice, data));*/
     }
 }
