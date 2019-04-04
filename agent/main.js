@@ -1,72 +1,6 @@
 /*
-=== contract deploy ===
-# Notice: we need special truffle version
-npm install -g truffle@4.1.13
+# Notice: we need special truffle version: npm install -g truffle@4.1.13
 
-# Notice: this tutorial uses "local" network profile of truffle, and the following joAccount_main_net address/privateKey account:
-////let g_joAccount_main_net = { "name": "Stan", "privateKey": "621761908cc4fba5f92e694e0e4a912aa9a12258a597a06783713a04610fad59", "address": fn_address_impl_ }; // "address": "0x6196d135CdDb9d73A0756C1E44b5b02B11acf594"
-let g_joAccount_main_net = { "name": "g3",  "privateKey": "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc", "address": fn_address_impl_ }; // "address": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
-let g_joAccount_s_chain  = { "name": "Bob",  "privateKey": "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e", "address": fn_address_impl_ }; // "address": "0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852"
-
-# 1) get latest version, export settings env vars
-cd /home/serge/Work/skale_blockchain_tools/Proxy
-reset; git reset --hard; git fetch; git pull; git branch; git status
-#
-export NETWORK=pseudo_main_net
-export ETH_PRIVATE_KEY=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc
-#
-export NETWORK=local
-export ETH_PRIVATE_KEY=621761908cc4fba5f92e694e0e4a912aa9a12258a597a06783713a04610fad59
-#
-reset; npm install
-
-# 2) edit ./truffle.js for "local" network definition, check "host", "port", "from"
-nano ./truffle.js
-
-local: {
-    gasPrice: 10000000000,
-    host: "127.0.0.1",
-    port: 2231,
-    gas: 8000000,
-    network_id: "*",
-    "from": "0x6196d135CdDb9d73A0756C1E44b5b02B11acf594"
-},
-pseudo_main_net: {
-    gasPrice: 10000000000,
-    host: "127.0.0.1",
-    port: 8545,
-    gas: 8000000,
-    network_id: "*",
-    "from": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
-},
-
-# 3) compile contracts, check if no errors
-reset; rm -rf ./build; truffle complile
-
-#4) deploy/migrate contracts to main-net/S-chain;
-#   if no errors then copy content of ./proxy.json (truffle calls it local.json) into
-#   initialization JSON of the joTrufflePublishResult_*** variable in this app's code
-#
-export NETWORK=pseudo_main_net
-export ETH_PRIVATE_KEY=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc
-reset; truffle migrate --network $NETWORK --compile-all --reset
-#
-export NETWORK=local
-export ETH_PRIVATE_KEY=621761908cc4fba5f92e694e0e4a912aa9a12258a597a06783713a04610fad59
-reset; truffle migrate --network $NETWORK --compile-all --reset
-
-=== this app ===
-npm install colors
-#npm install web3
-npm install web3@1.0.0-beta.35
-npm uninstall web3
-npm -g uninstall web3 --save
-npm install ethereumjs-tx
-npm install ethereumjs-wallet
-npm install ethereumjs-util
-#
-npm install --save-dev @babel/plugin-transform-runtime
-npm install --save @babel/runtime
 #
 #
 // register: node ./main.js --register ........
@@ -74,13 +8,23 @@ npm install --save @babel/runtime
 node ./main.js --load-node-config=~/Work/SkaleExperimental/skaled-tests/single-node/run-skaled/config0.json --loop --time-framing=10 --time-gap=3 --period=2
 */
 
+
+
 //
 //
 // init very basics
-const fs = require( "fs" );
+const fs   = require( "fs" );
 const path = require( "path" );
-const url = require( "url" );
-const os = require( "os" );
+const url  = require( "url" );
+const os   = require( "os" );
+const MTA  = require( "../npms/skale-mta" );
+     MTA.verbose_set( MTA.verbose_parse( "info" ) );
+const log = require( "../npms/skale-log/log.js" );
+const cc  = log.cc;
+const w3mod = MTA.w3mod;
+let ethereumjs_tx     = MTA.ethereumjs_tx;
+let ethereumjs_wallet = MTA.ethereumjs_wallet;
+let ethereumjs_util   = MTA.ethereumjs_util;
 
 // TO-DO: the next ABI JSON should contain main-net only contract info - S-chain contract addresses must be downloaded from S-chain
 let joTrufflePublishResult_main_net = {};
@@ -98,56 +42,6 @@ let g_strPathAbiJson_s_chain  = normalize_path( "./abi_s_chain.json"  );
 //
 // init other basics
 
-const cc = require( "./cc.js" );
-const log = require( "./log.js" );
-cc.enable( true );
-log.addStdout();
-//log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount );
-//
-//
-const VERBOSE = { 0:"silent", 2:"fatal", 3:"error", 4:"warning", 5:"attention", 6:"information", 7:"notce", 8:"debug", 9:"trace" };
-const RV_VERBOSE = function () {
-    var m = {};
-    for( var key in VERBOSE ) {
-        if( ! VERBOSE.hasOwnProperty(key) )
-            continue; // skip loop if the property is from prototype
-        var name = VERBOSE[key];
-        m[name] = key;
-    }
-    return m;
-} ();
-let g_nVerbose = RV_VERBOSE["trace"];
-function verbose_parse( s ) {
-    var n = 5;
-    try {
-        var isNumbersOnly = /^\d+$/.test(s);
-        if( isNumbersOnly ) {
-            n = parseInt( s );
-        } else {
-            var ch0 = s[0].toLowerCase();
-            for( var key in VERBOSE ) {
-                if( ! VERBOSE.hasOwnProperty(key) )
-                    continue; // skip loop if the property is from prototype
-                var name = VERBOSE[key];
-                var ch1 = name[0].toLowerCase();
-                if( ch0 == ch1 ) {
-                    n = key;
-                    break;
-                }
-            }
-        }
-    } catch( e ) {
-    }
-    return n;
-}
-function verbose_list() {
-    for( var key in VERBOSE ) {
-        if( ! VERBOSE.hasOwnProperty(key) )
-            continue; // skip loop if the property is from prototype
-        var name = VERBOSE[key];
-        console.log( "    " + cc.info(key) + cc.sunny("=") + cc.bright(name) );
-    }
-}
 //
 //
 let g_bShowConfigMode = false; // true - just show configuratin values and exit
@@ -164,10 +58,8 @@ function print_about( isLog ) {
         console.log(  strMsg );
 }
 
-// let g_str_url_main_net = "http://127.0.0.1:8545";
-// let g_str_url_s_chain  = "http://127.0.0.1:2231";
-let g_str_url_main_net = "";
-let g_str_url_s_chain  = "";
+let g_str_url_main_net = ""; // example: "http://127.0.0.1:8545"
+let g_str_url_s_chain  = ""; // example: "http://127.0.0.1:2231"
 
 let g_chain_id_main_net = "Mainnet";    // 0;
 let g_chain_id_s_chain  = "id-S-chain"; // 1;
@@ -189,7 +81,7 @@ let g_joAccount_s_chain  = { "privateKey": "", "address": fn_address_impl_ };
 
 function fn_address_impl_( w3 ) {
     if( this.address_ == undefined || this.address_ == null )
-        this.address_ = "" + private_key_2_account_address( w3, this.privateKey );
+        this.address_ = "" + MTA.private_key_2_account_address( w3, this.privateKey );
     return this.address_;
 }
 
@@ -209,7 +101,6 @@ let g_nNextFrameGap = 10;
 
 let g_arrActions = []; // array of actions to run
 
-let g_strLongSeparator = "=======================================================================================================================";
 
 //
 //
@@ -355,8 +246,8 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         return 0;
     }
     if( joArg.name == "version"          ) { print_about(); return 0; }
-    if( joArg.name == "verbose"          ) { g_nVerbose = verbose_parse( joArg.value ); continue; }
-    if( joArg.name == "verbose-list"     ) { verbose_list(); return 0; }
+    if( joArg.name == "verbose"          ) { MTA.verbose_set( MTA.verbose_parse( joArg.value ) ); continue; }
+    if( joArg.name == "verbose-list"     ) { MTA.verbose_list(); return 0; }
     if( joArg.name == "url-main-net"     ) { veryify_url_arg( joArg ); g_str_url_main_net  = joArg.value; continue; }
     if( joArg.name == "url-s-chain"      ) { veryify_url_arg( joArg ); g_str_url_s_chain   = joArg.value; continue; }
     if( joArg.name == "id-s-chain"       ) { verify_arg_with_non_empty_value( joArg ); g_chain_id_s_chain  = joArg.value; continue; }
@@ -383,7 +274,7 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
     }
     if( joArg.name == "m2s-payment" ) {
         g_arrActions.push( { "name": "one M->S single payment", "fn": async function() {
-            return await do_payment_from_main_net(
+            return await MTA.do_payment_from_main_net(
                 g_w3_main_net,
                 g_joAccount_main_net,
                 g_joAccount_s_chain,
@@ -396,7 +287,7 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
     }
     if( joArg.name == "s2m-payment" ) {
         g_arrActions.push( { "name": "one S->M single payment", "fn": async function() {
-            return await do_payment_from_s_chain(
+            return await MTA.do_payment_from_s_chain(
                 g_w3_s_chain,
                 g_joAccount_s_chain,
                 g_joAccount_main_net,
@@ -408,7 +299,7 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
     }
     if( joArg.name == "m2s-transfer" ) {
         g_arrActions.push( { "name": "single M->S transfer loop", "fn": async function() {
-            return await do_transfer( // main-net --> s-chain
+            return await MTA.do_transfer( // main-net --> s-chain
                 /**/ g_w3_main_net,
                 g_jo_message_proxy_main_net,
                 g_joAccount_main_net,
@@ -425,7 +316,7 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
     }
     if( joArg.name == "s2m-transfer" ) {
         g_arrActions.push( { "name": "single S->M transfer loop", "fn": async function() {
-            return await do_transfer( // s-chain --> main-net
+            return await MTA.do_transfer( // s-chain --> main-net
                 /**/ g_w3_s_chain,
                 g_jo_message_proxy_s_chain,
                 g_joAccount_s_chain,
@@ -508,8 +399,6 @@ function load_json( strPath ) {
     return JSON.parse( fs.readFileSync( strPath, "utf8") );
 }
 
-
-
 //
 //
 //
@@ -533,30 +422,27 @@ function load_node_config( strPath ) {
     try {
         strPath = normalize_path( strPath );
         //
-        if( g_nVerbose >= RV_VERBOSE.information )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.information )
             log.write( cc.debug("Loading values from S-Chain configuraton JSON file ") + cc.note(strPath) + cc.debug("...") + "\n" );
         var strJsonSChainNodeConfiguration = fs.readFileSync( strPath, "utf8" );
         var joSChainNodeConfiguration = JSON.parse( strJsonSChainNodeConfiguration );
-        if( g_nVerbose >= RV_VERBOSE.trace )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.trace )
             log.write( cc.debug("S-Chain configuraton JSON: ") + cc.j(joSChainNodeConfiguration) + "\n" );
         //
         g_nNodeNumber = find_node_index( joSChainNodeConfiguration );
-        if( g_nVerbose >= RV_VERBOSE.debug )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.debug )
             log.write( cc.debug("....from S-Chain configuraton JSON file....") + cc.notice("this node index") + cc.debug(" is ") + cc.info(g_nNodeNumber) + "\n" );
         g_nNodesCount = joSChainNodeConfiguration.skaleConfig.sChain.nodes.length;
-        if( g_nVerbose >= RV_VERBOSE.debug )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.debug )
             log.write( cc.debug("....from S-Chain configuraton JSON file....") + cc.notice("nodes count") + cc.debug(" is ") + cc.info(g_nNodesCount) + "\n" );
         //
-        if( g_nVerbose >= RV_VERBOSE.information )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.information )
             log.write( cc.success("Done") + cc.debug(" loading values from S-Chain configuraton JSON file ") + cc.note(strPath) + cc.debug(".") + "\n" );
     } catch( e ) {
-        if( g_nVerbose >= RV_VERBOSE.fatal )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.fatal )
             log.write( cc.fatal("Exception in load_node_config():") + cc.error(e) + "\n" );
     }
 }
-
-
-
 
 //
 //
@@ -584,7 +470,7 @@ function check_time_framing( d ) {
                 bInsideGap = true;
             }
         }
-        if( g_nVerbose >= RV_VERBOSE.trace )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.trace )
             log.write(
                 "\n"
                 + cc.info("Unix UTC time stamp") + cc.debug("........") + cc.notice(nUtcUnixTimeStamp) + "\n"
@@ -598,11 +484,12 @@ function check_time_framing( d ) {
         if( bSkip )
             return false;
     } catch( e ) {
-        if( g_nVerbose >= RV_VERBOSE.fatal )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.fatal )
             log.write( cc.fatal("Exception in check_time_framing():") + cc.error(e) + "\n" );
     }
     return true;
 }
+
 
 //
 //
@@ -645,27 +532,21 @@ if( g_str_url_s_chain.length == 0 ) {
     process.exit( 501 );
 }
 
-const w3mod = require( "web3" );
-
 const g_w3http_main_net = new w3mod.providers.HttpProvider( g_str_url_main_net );
 const g_w3_main_net = new w3mod( g_w3http_main_net );
 
 const g_w3http_s_chain = new w3mod.providers.HttpProvider( g_str_url_s_chain );
 const g_w3_s_chain = new w3mod( g_w3http_s_chain );
 
-let ethereumjs_tx     = require( "ethereumjs-tx"     );
-let ethereumjs_wallet = require( "ethereumjs-wallet" );
-let ethereumjs_util   = require( "ethereumjs-util"   );
-
 let g_jo_deposit_box            = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.deposit_box_abi,           joTrufflePublishResult_main_net.deposit_box_address           ); // only main net
 let g_jo_token_manager          = new g_w3_s_chain .eth.Contract( joTrufflePublishResult_s_chain .token_manager_abi,         joTrufflePublishResult_s_chain .token_manager_address         ); // only s-chain
 let g_jo_message_proxy_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.message_proxy_mainnet_abi, joTrufflePublishResult_main_net.message_proxy_mainnet_address );
 let g_jo_message_proxy_s_chain  = new g_w3_s_chain .eth.Contract( joTrufflePublishResult_s_chain .message_proxy_chain_abi,   joTrufflePublishResult_s_chain .message_proxy_chain_address   );
 
-if( g_nVerbose > RV_VERBOSE.information || g_bShowConfigMode ) {
+if( MTA.verbose_get() > MTA.RV_VERBOSE.information || g_bShowConfigMode ) {
     print_about( true );
     ensure_have_value( "app path", __filename, false, true, null, (x) => { return cc.normal( x ); } );
-    ensure_have_value( "verbose level", VERBOSE[g_nVerbose], false, true, null, (x) => { return cc.sunny( x ); } );
+    ensure_have_value( "verbose level", MTA.VERBOSE[MTA.verbose_get()], false, true, null, (x) => { return cc.sunny( x ); } );
     ensure_have_value( "main-net URL", g_str_url_main_net, false, true, null, (x) => { return cc.u( x ); } );
     ensure_have_value( "S-chain URL", g_str_url_s_chain, false, true, null, (x) => { return cc.u( x ); } );
     ensure_have_value( "main-net Ethereum network ID", g_chain_id_main_net, false, true, null, (x) => { return cc.note( x ); } );
@@ -704,304 +585,60 @@ if( g_bShowConfigMode ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// utilites
-//
-function ensure_starts_with_0x( s ) {
-    if( s == null || s == undefined || typeof s !== "string" )
-        return s;
-    if( s.length < 2 )
-        return "0x" + s;
-    if( s[0] == "0" && s[1] == "x" )
-        return s;
-    return "0x" + s;
-}
-function remove_starting_0x( s ) {
-    if( s == null || s == undefined || typeof s !== "string" )
-        return s;
-    if( s.length < 2 )
-        return s;
-    if( s[0] == "0" && s[1] == "x" )
-        return s.substr( 2 );
-    return s;
-}
-function private_key_2_public_key( w3, keyPrivate ) {
-    if( w3 == null || w3 == undefined || keyPrivate == null || keyPrivate == undefined )
-        return "";
-    // get a wallet instance from a private key
-    const privateKeyBuffer = ethereumjs_util.toBuffer( ensure_starts_with_0x(keyPrivate) );
-    const wallet = ethereumjs_wallet.fromPrivateKey( privateKeyBuffer );
-    // get a public key
-    const keyPublic = wallet.getPublicKeyString();
-    return remove_starting_0x( keyPublic );
-}
-function public_key_2_account_address( w3, keyPublic ) {
-    if( w3 == null || w3 == undefined || keyPublic == null || keyPublic == undefined )
-        return "";
-    const hash = w3.utils.sha3( ensure_starts_with_0x(keyPublic) );
-    const strAddress = ensure_starts_with_0x( hash.substr( hash.length - 40 ) );
-    return strAddress;
-}
-function private_key_2_account_address( w3, keyPrivate ) {
-    const keyPublic = private_key_2_public_key( w3, keyPrivate );
-    const strAddress = public_key_2_account_address( w3, keyPublic );
-    return strAddress;
-}
-
-// // test:
-// var w3 = g_w3_main_net;
-// var joAcc = g_joAccount_main_net;
-// //
-// var strAddressExpected = .......
-// var keyPrivate         = .......
-// console.log( "private key = " + keyPrivate );
-// var keyPublic = private_key_2_public_key( w3, keyPrivate );
-// console.log( "public  key = " + keyPublic );
-// var strAddressComputed = public_key_2_account_address( w3, keyPublic )
-// console.log( "address expected = " + strAddressExpected );
-// console.log( "address computed = " + strAddressComputed );
-// console.log( "match = " + ( ( strAddressComputed === strAddressExpected ) ? true : false ) );
-// return 0;
-
-//
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
 // register S-Chain 1 on main net
 //
 async function do_the_job() {
     let idxAction, cntActions = g_arrActions.length, cntFalse = 0, cntTrue = 0;
     for( idxAction = 0; idxAction < cntActions; ++ idxAction ) {
-        if( g_nVerbose >= RV_VERBOSE.information )
-            log.write( cc.debug(g_strLongSeparator) + "\n" );
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.information )
+            log.write( cc.debug(MTA.longSeparator) + "\n" );
         var joAction = g_arrActions[ idxAction ], bOK = false;
-        if( g_nVerbose >= RV_VERBOSE.debug )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.debug )
             log.write( cc.notice("Will execute action:") + " " + cc.info(joAction.name) + cc.debug(" (") + cc.info(idxAction+1) + cc.debug(" of ") + cc.info(cntActions) + cc.debug(")") + "\n" );
         try {
             if( await joAction.fn() ) {
                 ++ cntTrue;
-                if( g_nVerbose >= RV_VERBOSE.information )
+                if( MTA.verbose_get() >= MTA.RV_VERBOSE.information )
                     log.write( cc.success("Succeeded action:") + " " + cc.info(joAction.name) + "\n" );
             } else {
                 ++ cntFalse;
-                if( g_nVerbose >= RV_VERBOSE.error )
+                if( MTA.verbose_get() >= MTA.RV_VERBOSE.error )
                     log.write( cc.warn("Failed action:") + " " + cc.info(joAction.name) + "\n" );
             }
         } catch( e ) {
             ++ cntFalse;
-            if( g_nVerbose >= RV_VERBOSE.fatal )
+            if( MTA.verbose_get() >= MTA.RV_VERBOSE.fatal )
                 log.write( cc.fatal("Exception occurred while executing action:") + " " + cc.info(joAction.name) + cc.error(", error description: ") + cc.warn(e) + "\n" );
         }
     } // for( idxAction = 0; idxAction < cntActions; ++ idxAction )
-    if( g_nVerbose >= RV_VERBOSE.information ) {
-        log.write( cc.debug(g_strLongSeparator) + "\n" );
+    if( MTA.verbose_get() >= MTA.RV_VERBOSE.information ) {
+        log.write( cc.debug(MTA.longSeparator) + "\n" );
         log.write( cc.info("FINISH:") + "\n" );
         log.write( cc.info(cntActions) + cc.notice( " task(s) executed") + "\n" );
         log.write( cc.info(cntTrue)    + cc.success(" task(s) succeeded") + "\n" );
         log.write( cc.info(cntFalse)   + cc.error  (" task(s) failed") + "\n" );
-        log.write( cc.debug(g_strLongSeparator) + "\n" );
+        log.write( cc.debug(MTA.longSeparator) + "\n" );
     }
 }
 do_the_job();
 return 0; // FINISH
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// register S-Chain 1 on main net
-//
-async function register_s_chain_on_main_net(
-    w3_main_net,
-    jo_message_proxy_main_net,
-    joAccount_main_net,
-    chain_id_s_chain
-    ) {
-    if( g_nVerbose >= RV_VERBOSE.debug ) {
-        log.write( cc.debug(g_strLongSeparator) + "\n" );
-        log.write( cc.bright("register_s_chain_on_main_net") + "\n" );
-        log.write( cc.debug(g_strLongSeparator) + "\n" );
-    }
-    let r, strActionName = "";
-    try {
-        strActionName = "w3_main_net.eth.getTransactionCount()";
-        if( g_nVerbose >= RV_VERBOSE.trace )
-            log.write( cc.debug("Will call ") + cc.notice(strActionName) + cc.debug("...") + "\n" );
-        let tcnt = await w3_main_net.eth.getTransactionCount( joAccount_main_net.address(w3_main_net), null );
-        if( g_nVerbose >= RV_VERBOSE.debug )
-            log.write( cc.debug("Got ") + cc.info(tcnt) + cc.debug(" from ") + cc.notice(strActionName) + "\n" );
-        //
-        //
-        // based on:
-        // https://ethereum.stackexchange.com/questions/47426/call-contract-function-signed-on-client-side-web3-js-1-0
-        // https://ethereum.stackexchange.com/questions/25839/how-to-make-transactions-using-private-key-in-web3
-        let dataTx = jo_message_proxy_main_net.methods.addConnectedChain(
-            chain_id_s_chain, [0,0,0,0] // call params
-            ).encodeABI(); // the encoded ABI of the method
-        let rawTx = {
-            "nonce": tcnt, // 0x00, ...
-            "gasPrice": w3_main_net.eth.gasPrice,
-            "gasLimit": 3000000,
-            "to": jo_message_proxy_main_net.options.address, // cantract address
-            "data": dataTx
-        };
-        if( g_nVerbose >= RV_VERBOSE.trace )
-            log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );
-        let tx = new ethereumjs_tx( rawTx );
-        var key = new Buffer( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
-        strActionName = "w3_main_net.eth.sendSignedTransaction(()";
-        let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString("hex") );
-        if( g_nVerbose >= RV_VERBOSE.information )
-            log.write( cc.success("Result receipt: ") + cc.j(joReceipt) + "\n" );
-    } catch( e ) {
-        if( g_nVerbose >= RV_VERBOSE.fatal )
-            log.write( cc.fatal("Error in register_s_chain_on_main_net() during " + strActionName + ": ") + cc.error(e) + "\n" );
-        return false;
-    }
-    return true;
-} // async function register_s_chain(...
-
-
-//
-// register direction for money transfer
-// main-net.DepositBox call: function addSchain(uint64 schainID, address tokenManagerAddress)
-//
-async function register_s_chain_in_deposit_box(
-    w3_main_net,
-    jo_deposit_box, // only main net
-    joAccount_main_net,
-    jo_token_manager, // only s-chain
-    chain_id_s_chain
-    ) {
-    if( g_nVerbose >= RV_VERBOSE.debug ) {
-        log.write( cc.debug(g_strLongSeparator) + "\n" );
-        log.write( cc.bright("register_s_chain_in_deposit_box") + "\n" );
-        log.write( cc.debug(g_strLongSeparator) + "\n" );
-    }
-    let r, strActionName = "";
-    try {
-        strActionName = "w3_main_net.eth.getTransactionCount()";
-        if( g_nVerbose >= RV_VERBOSE.trace )
-            log.write( cc.debug("Will call ") + cc.notice(strActionName) + cc.debug("...") + "\n" );
-        let tcnt = await w3_main_net.eth.getTransactionCount( joAccount_main_net.address(w3_main_net), null );
-        if( g_nVerbose >= RV_VERBOSE.debug )
-            log.write( cc.debug("Got ") + cc.info(tcnt) + cc.debug(" from ") + cc.notice(strActionName) + "\n" );
-        //
-        //
-        let dataTx = jo_deposit_box.methods.addSchain(
-            chain_id_s_chain, jo_token_manager.options.address // call params
-            ).encodeABI(); // the encoded ABI of the method
-        let rawTx = {
-            "nonce": tcnt, // 0x00, ...
-            "gasPrice": w3_main_net.eth.gasPrice,
-            "gasLimit": 3000000,
-            "to": jo_deposit_box.options.address, // cantract address
-            "data": dataTx
-        };
-        if( g_nVerbose >= RV_VERBOSE.trace )
-            log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );
-        let tx = new ethereumjs_tx( rawTx );
-        var key = new Buffer( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
-        strActionName = "w3_main_net.eth.sendSignedTransaction()";
-        let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString("hex") );
-        if( g_nVerbose >= RV_VERBOSE.information )
-            log.write( cc.success("Result receipt: ") + cc.j(joReceipt) + "\n" );
-    } catch( e ) {
-        if( g_nVerbose >= RV_VERBOSE.fatal )
-            log.write( cc.fatal("Error in register_s_chain_in_deposit_box() during " + strActionName + ": ") + cc.error(e) + "\n" );
-        return false;
-    }
-    return true;
-} // async function register_deposit_box_on_s_chain(...
-
-async function reister_main_net_depositBox_on_s_chain(
-    w3_s_chain,
-    jo_token_manager,
-    jo_deposit_box_main_net,
-    joAccount
-    ) {
-    if( g_nVerbose >= RV_VERBOSE.debug ) {
-        log.write( cc.debug(g_strLongSeparator) + "\n" );
-        log.write( cc.bright("reister_main_net_depositBox_on_s_chain") + "\n" );
-        log.write( cc.debug(g_strLongSeparator) + "\n" );
-    }
-    let r, strActionName = "";
-    try {
-        strActionName = "w3_s_chain.eth.getTransactionCount()";
-        if( g_nVerbose >= RV_VERBOSE.trace )
-            log.write( cc.debug("Will call ") + cc.notice(strActionName) + cc.debug("...") + "\n" );
-        let tcnt = await w3_s_chain.eth.getTransactionCount( joAccount.address(w3_s_chain), null );
-        if( g_nVerbose >= RV_VERBOSE.debug )
-            log.write( cc.debug("Got ") + cc.info(tcnt) + cc.debug(" from ") + cc.notice(strActionName) + "\n" );
-        //
-        //
-        let dataTx = jo_token_manager.methods.addDepositBox(
-            jo_deposit_box_main_net.options.address // call params
-            ).encodeABI(); // the encoded ABI of the method
-        let rawTx = {
-            "nonce": tcnt, // 0x00, ...
-            "gasPrice": w3_s_chain.eth.gasPrice,
-            "gasLimit": 3000000,
-            "to": jo_token_manager.options.address, // cantract address
-            "data": dataTx
-        };
-        if( g_nVerbose >= RV_VERBOSE.trace )
-            log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );
-        let tx = new ethereumjs_tx( rawTx );
-        var key = new Buffer( joAccount.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
-        strActionName = "w3_s_chain.eth.sendSignedTransaction()";
-        let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString("hex") );
-        if( g_nVerbose >= RV_VERBOSE.information )
-            log.write( cc.success("Result receipt: ") + cc.j(joReceipt) + "\n" );
-    } catch( e ) {
-        if( g_nVerbose >= RV_VERBOSE.fatal )
-            log.write( cc.fatal("Error in reister_main_net_depositBox_on_s_chain() during " + strActionName + ": ") + cc.error(e) + "\n" );
-        return false;
-    }
-    return true;
-}
-
 async function register_all() {
-    var b1 = await register_s_chain_on_main_net(
+    var b1 = await MTA.register_s_chain_on_main_net(
         g_w3_main_net,
         g_jo_message_proxy_main_net,
         g_joAccount_main_net,
         g_chain_id_s_chain
         );
-    var b2 = await register_s_chain_in_deposit_box(
+    var b2 = await MTA.register_s_chain_in_deposit_box(
         g_w3_main_net,
         g_jo_deposit_box, // only main net
         g_joAccount_main_net,
         g_jo_token_manager, // only s-chain
         g_chain_id_s_chain
         );
-    var b3 = await reister_main_net_depositBox_on_s_chain(
+    var b3 = await MTA.reister_main_net_depositBox_on_s_chain(
         g_w3_s_chain,
         g_jo_token_manager, // only s-chain
         g_jo_deposit_box, // only main net
@@ -1011,358 +648,6 @@ async function register_all() {
     return b4;
 }
 
-// register_all();
-
-
-
-
-//
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// transfer money from main-net to S-chain
-// main-net.DepositBox call: function deposit(uint64 schainID, address to) public payable
-// Where:
-//   schainID...obvious
-//   to.........address in S-chain
-// Notice:
-//   this function is available for everyone in main-net
-//   money is sent from caller
-//   "value" JSON arg is used to specify amount of money to sent
-//
-async function do_payment_from_main_net(
-    w3_main_net,
-    joAccountSrc,
-    joAccountDst,
-    jo_deposit_box,
-    chain_id_s_chain,
-    wei_how_much // how much money to send
-    ) {
-    let r, strActionName = "";
-    try {
-        strActionName = "w3_main_net.eth.getTransactionCount()";
-        if( g_nVerbose >= RV_VERBOSE.trace )
-            log.write( cc.debug("Will call ") + cc.notice(strActionName) + cc.debug("...") + "\n" );
-        let tcnt = await w3_main_net.eth.getTransactionCount( joAccountSrc.address(w3_main_net), null  );
-        if( g_nVerbose >= RV_VERBOSE.debug )
-            log.write( cc.debug("Got ") + cc.info(tcnt) + cc.debug(" from ") + cc.notice(strActionName) + "\n" );
-        //
-        //
-        let dataTx = jo_deposit_box.methods.deposit(
-            chain_id_s_chain, joAccountDst.address(w3_main_net) // call params, last is destination account on S-chain
-            ).encodeABI(); // the encoded ABI of the method
-        let rawTx = {
-            "nonce": tcnt, // 0x00, ...
-            "gas"  : 2100000,
-            "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
-            "gasLimit": 3000000,
-            "to": jo_deposit_box.options.address, // cantract address
-            "data": dataTx,
-            "value": wei_how_much // how much money to send
-        };
-        if( g_nVerbose >= RV_VERBOSE.trace )
-            log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );
-        let tx = new ethereumjs_tx( rawTx );
-        var key = new Buffer( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
-        strActionName = "w3_main_net.eth.sendSignedTransaction()";
-        let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString("hex") );
-        if( g_nVerbose >= RV_VERBOSE.information )
-            log.write( cc.success("Result receipt: ") + cc.j(joReceipt) + "\n" );
-    } catch( e ) {
-        if( g_nVerbose >= RV_VERBOSE.fatal )
-            log.write( cc.fatal("Error in do_payment() during " + strActionName + ": ") + cc.error(e) + "\n" );
-        return false;
-    }
-    return true;
-} // async function do_payment_from_main_net(...
-// do_payment_from_main_net(
-//     g_w3_main_net,
-//     g_joAccount_main_net,
-//     g_joAccount_s_chain,
-//     g_jo_deposit_box, // only main net
-//     g_chain_id_s_chain,
-//     g_wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
-//     );
-
-
-
-//
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// transfer money from S-chain to main-net
-// S-chain.TokenManager call: function exitToMain(address to) public payable
-// Where:
-//   to.........address in main-net
-// Notice:
-//   this function is available for everyone in S-chain
-//   money is sent from caller
-//   "value" JSON arg is used to specify amount of money to sent
-//
-async function do_payment_from_s_chain(
-    w3_s_chain,
-    joAccountSrc,
-    joAccountDst,
-    jo_token_manager,
-    wei_how_much // how much money to send
-    ) {
-    let r, strActionName = "";
-    try {
-        strActionName = "w3_s_chain.eth.getTransactionCount()";
-        if( g_nVerbose >= RV_VERBOSE.trace )
-            log.write( cc.debug("Will call ") + cc.notice(strActionName) + cc.debug("...") + "\n" );
-        let tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address(w3_s_chain), null  );
-        if( g_nVerbose >= RV_VERBOSE.debug )
-            log.write( cc.debug("Got ") + cc.info(tcnt) + cc.debug(" from ") + cc.notice(strActionName) + "\n" );
-        //
-        //
-        let dataTx = jo_token_manager.methods.exitToMain(
-            joAccountDst.address(w3_s_chain) // call params, last is destination account on S-chain
-            ).encodeABI(); // the encoded ABI of the method
-        let rawTx = {
-            "nonce": tcnt, // 0x00, ...
-            "gas"  : 2100000,
-            "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
-            "gasLimit": 3000000,
-            "to": jo_token_manager.options.address, // cantract address
-            "data": dataTx,
-            "value": wei_how_much // how much money to send
-        };
-        if( g_nVerbose >= RV_VERBOSE.trace )
-            log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );
-        let tx = new ethereumjs_tx( rawTx );
-        var key = new Buffer( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
-        strActionName = "w3_s_chain.eth.sendSignedTransaction()";
-        let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString("hex") );
-        if( g_nVerbose >= RV_VERBOSE.information )
-            log.write( cc.success("Result receipt: ") + cc.j(joReceipt) + "\n" );
-    } catch( e ) {
-        if( g_nVerbose >= RV_VERBOSE.fatal )
-            log.write( cc.fatal("Error in do_payment() during " + strActionName + ": ") + cc.error(e) + "\n" );
-        return false;
-    }
-    return true;
-} // async function do_payment_from_s_chain(...
-// do_payment_from_s_chain(
-//     g_w3_s_chain,
-//     g_joAccount_s_chain,
-//     g_joAccount_main_net,
-//     g_jo_token_manager, // only s-chain
-//     g_wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
-//     );
-
-
-
-//
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// Do real money movement from main-net to S-chain by sniffing events
-// 1) main-net.MessageProxy.getOutgoingMessagesCounter -> save to nOutMsgCnt
-// 2) S-chain.MessageProxy.getIncomingMessagesCounter -> save to nIncMsgCnt
-// 3) Will transfer all in range from [ nIncMsgCnt ... (nOutMsgCnt-1) ] ... assume current counter index is nIdxCurrentMsg
-//
-// One transaction transfer is:
-// 1) Find events main-net.MessageProxy.OutgoingMessage where msgCounter member is in range
-// 2) Publish it to S-chain.MessageProxy.postIncomingMessages(
-//            main-net chain id   // uint64 srcChainID
-//            nIdxCurrentMsg // uint64 startingCounter
-//            [srcContract]  // address[] memory senders
-//            [dstContract]  // address[] memory dstContracts
-//            [to]           // address[] memory to
-//            [amount]       // uint[] memory amount / *uint[2] memory blsSignature* /
-//            )
-//
-async function do_transfer(
-    /**/ w3_src,
-    jo_message_proxy_src,
-    joAccountSrc,
-    //
-    w3_dst,
-    jo_message_proxy_dst,
-    /**/ joAccountDst,
-    //
-    chain_id_src,
-    chain_id_dst,
-    //
-    nTransactionsCountInBlock,
-    nMaxTransactionsCount
-    ) {
-    nTransactionsCountInBlock = nTransactionsCountInBlock || 5;
-    nMaxTransactionsCount = nMaxTransactionsCount || 100;
-    if( nTransactionsCountInBlock < 1 )
-        nTransactionsCountInBlock = 1;
-    let r, strActionName = "", nIdxCurrentMsg = 0, nOutMsgCnt = 0, nIncMsgCnt = 0;
-    try {
-        strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
-        if( g_nVerbose >= RV_VERBOSE.trace )
-            log.write( cc.debug("Will call ") + cc.notice(strActionName) + cc.debug("...") + "\n" );
-        nOutMsgCnt = parseInt( await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( { "from": joAccountSrc.address(w3_src) } ) );
-        if( g_nVerbose >= RV_VERBOSE.debug )
-            log.write( cc.debug("Result of ") + cc.notice(strActionName) + cc.debug(" call: ") + cc.info(nOutMsgCnt) + "\n" );
-        //
-        strActionName = "dst-chain.MessageProxy.getIncomingMessagesCounter()";
-        if( g_nVerbose >= RV_VERBOSE.trace )
-            log.write( cc.debug("Will call ") + cc.notice(strActionName) + cc.debug("...") + "\n" );
-        nIncMsgCnt = parseInt( await jo_message_proxy_dst.methods.getIncomingMessagesCounter( chain_id_src ).call( { "from": joAccountDst.address(w3_dst) } ) );
-        if( g_nVerbose >= RV_VERBOSE.debug )
-            log.write( cc.debug("Result of ") + cc.notice(strActionName) + cc.debug(" call: ") + cc.info(nIncMsgCnt) + "\n" );
-        //
-        //
-        // outer loop is block former, then transfer
-        nIdxCurrentMsg = nIncMsgCnt;
-        var cntProcessed = 0;
-        while( nIdxCurrentMsg < nOutMsgCnt ) {
-            if( g_nVerbose >= RV_VERBOSE.trace )
-                log.write( cc.debug("Entering block former iteration with ") + cc.notice("message counter") + cc.debug(" set to ") + cc.info(nIdxCurrentMsg) + "\n" );
-            var arrMessageCounters = [];
-            var arrSrc = [];
-            var arrDst = [];
-            var arrTo = [];
-            var arrAmount = [];
-            var nIdxCurrentMsgBlockStart = 0 + nIdxCurrentMsg;
-            //
-            //
-            // inner loop wil create block of transactions
-            var cntAccumulatedForBlock = 0;
-            for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock ) {
-                var idxProcessing = cntProcessed + idxInBlock;
-                if( idxProcessing > nMaxTransactionsCount )
-                    break;
-                //
-                //
-                strActionName = "src-chain.MessageProxy.getPastEvents()";
-                if( g_nVerbose >= RV_VERBOSE.trace )
-                    log.write( cc.debug("Will call ") + cc.notice(strActionName) + cc.debug(" for ") + cc.info("OutgoingMessage") + cc.debug(" event now...") + "\n" );
-                r = await jo_message_proxy_src.getPastEvents( "OutgoingMessage", {
-                        "filter": { "msgCounter": [ nIdxCurrentMsg ] },
-                        "fromBlock": 0,
-                        "toBlock": "latest"
-                    } );
-                let joValues = r[0].returnValues;
-                if( g_nVerbose >= RV_VERBOSE.debug )
-                    log.write(
-                        cc.success("Got event details from ") + cc.notice("getPastEvents()")
-                        + cc.success(" event invoked with ") + cc.notice("msgCounter") + cc.success(" set to ") + cc.info(nIdxCurrentMsg)
-                        + cc.success(", event description: ") + cc.j(joValues) // + cc.j(evs)
-                        + "\n"
-                        );
-                //
-                //
-                if( g_nVerbose >= RV_VERBOSE.trace )
-                    log.write( cc.debug("Will process message counter value ") + cc.info(nIdxCurrentMsg) + "\n" );
-                arrMessageCounters.push( nIdxCurrentMsg );
-                arrSrc.push( joValues.srcContract );
-                arrDst.push( joValues.dstContract );
-                arrTo.push( joValues.to );
-                arrAmount.push( joValues.amount );
-            } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
-            if( cntAccumulatedForBlock == 0 )
-                break;
-            //
-            //
-            strActionName = "dst-chain.getTransactionCount()";
-            let tcnt = await w3_dst.eth.getTransactionCount( joAccountDst.address(w3_dst), null );
-            if( g_nVerbose >= RV_VERBOSE.debug )
-                log.write( cc.debug("Got ") + cc.info(tcnt) + cc.debug(" from ") + cc.notice(strActionName) + "\n" );
-            //
-            //
-            var nBlockSize = arrMessageCounters.length;
-            strActionName = "dst-chain.MessageProxy.postIncomingMessages()";
-            if( g_nVerbose >= RV_VERBOSE.trace )
-                log.write(
-                    cc.debug("Will call ") + cc.notice(strActionName) + cc.debug(" for ")
-                    + cc.notice("block size") + cc.debug(" set to ") + cc.info(nBlockSize)
-                    + cc.debug(", ") + cc.notice("message counters =") + cc.debug(" are ") + cc.info(JSON.stringify(arrMessageCounters))
-                    + cc.debug("...") + "\n"
-                    );
-            let dataTx = jo_message_proxy_dst.methods.postIncomingMessages(
-                // call params
-                chain_id_src,
-                nIdxCurrentMsgBlockStart,
-                arrSrc,   // address[] memory senders
-                arrDst,   // address[] memory dstContracts
-                arrTo,    // address[] memory to
-                arrAmount // uint[] memory amount / *uint[2] memory blsSignature* /
-                ).encodeABI(); // the encoded ABI of the method
-            //
-            if( g_nVerbose >= RV_VERBOSE.trace ) {
-                            let joDebugArgs = [
-                                chain_id_src,
-                                chain_id_dst,
-                                nIdxCurrentMsgBlockStart,
-                                arrSrc,   // address[] memory senders
-                                arrDst,   // address[] memory dstContracts
-                                arrTo,    // address[] memory to
-                                arrAmount // uint[] memory amount / *uint[2] memory blsSignature* /
-                            ];
-                            log.write(
-                                cc.debug("....debug args for ")
-                                + cc.notice("msgCounter") + cc.debug(" set to ") + cc.info(nIdxCurrentMsgBlockStart) + cc.debug(": ")
-                                + cc.j(joDebugArgs) + "\n" );
-            }
-            //
-            let rawTx = {
-                "nonce": tcnt, // 0x00, ...
-                "gas"  : 2100000,
-                "gasPrice": 10000000000, // not w3_dst.eth.gasPrice ... got from truffle.js network_name gasPrice
-                "gasLimit": 3000000,
-                "to": jo_message_proxy_dst.options.address, // cantract address
-                "data": dataTx //,
-                //"value": g_wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
-            };
-            if( g_nVerbose >= RV_VERBOSE.trace )
-                log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );
-            let tx = new ethereumjs_tx( rawTx );
-            var key = new Buffer( joAccountDst.privateKey, "hex" ); // convert private key to buffer ??????????????????????????????????
-            tx.sign( key ); // arg is privateKey as buffer
-            var serializedTx = tx.serialize();
-            strActionName = "w3_dst.eth.sendSignedTransaction()";
-            let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx.toString("hex") ) ;
-            if( g_nVerbose >= RV_VERBOSE.information )
-                log.write( cc.success("Result receipt: ") + cc.j(joReceipt) + "\n" );
-            cntProcessed += cntAccumulatedForBlock;
-        } // while( nIdxCurrentMsg < nOutMsgCnt )
-    } catch( e ) {
-        if( g_nVerbose >= RV_VERBOSE.fatal )
-            log.write( cc.fatal("Error in do_transfer() during " + strActionName + ": ") + cc.error(e) + "\n" );
-        return false;
-    }
-    return true;
-} // async function do_transfer( ...
-// do_transfer( // main-net --> s-chain
-//     /**/ g_w3_main_net,
-//     g_jo_message_proxy_main_net,
-//     g_joAccount_main_net,
-//     g_w3_s_chain,
-//     g_jo_message_proxy_s_chain,
-//     /**/ g_joAccount_s_chain,
-//     g_chain_id_main_net,
-//     g_chain_id_s_chain,
-//     g_nTransferBlockSizeM2S,
-//     g_nMaxTransactionsM2S
-//     );
-// do_transfer( // s-chain --> main-net
-//     /**/ g_w3_s_chain,
-//     g_jo_message_proxy_s_chain,
-//     g_joAccount_s_chain,
-//     g_w3_main_net,
-//     g_jo_message_proxy_main_net,
-//     /**/ g_joAccount_main_net,
-//     g_chain_id_s_chain,
-//     g_chain_id_main_net,
-//     g_nTransferBlockSizeS2M,
-//     g_nMaxTransactionsS2M
-//     );
-
-
-
-
-
 
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1371,14 +656,14 @@ async function do_transfer(
 // Run transfer loop
 //
 async function single_transfer_loop() {
-    if( g_nVerbose >= RV_VERBOSE.debug )
-        log.write( cc.debug(g_strLongSeparator) + "\n" );
+    if( MTA.verbose_get() >= MTA.RV_VERBOSE.debug )
+        log.write( cc.debug(MTA.longSeparator) + "\n" );
     if( ! check_time_framing() ) {
-        if( g_nVerbose >= RV_VERBOSE.debug )
+        if( MTA.verbose_get() >= MTA.RV_VERBOSE.debug )
             log.write( cc.warn("Skipped due to time framing") + "\n" );
         return true;
     }
-    var b1 = await do_transfer( // main-net --> s-chain
+    var b1 = await MTA.do_transfer( // main-net --> s-chain
         /**/ g_w3_main_net,
         g_jo_message_proxy_main_net,
         g_joAccount_main_net,
@@ -1390,7 +675,7 @@ async function single_transfer_loop() {
         g_nTransferBlockSizeM2S,
         g_nMaxTransactionsM2S
         );
-    var b2 = await do_transfer( // s-chain --> main-net
+    var b2 = await MTA.do_transfer( // s-chain --> main-net
         /**/ g_w3_s_chain,
         g_jo_message_proxy_s_chain,
         g_joAccount_s_chain,

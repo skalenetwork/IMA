@@ -7,12 +7,6 @@ interface Proxy {
     function postOutgoingMessage(string dstChainID, address dstContract, uint amount, address to, bytes data) external;
 }
 
-
-interface MessageReceiver {
-    function postMessage(address sender, string schainID, address to, uint amount, bytes data) external;
-}
-
-
 interface ERC20 {
     function transfer(address to, uint256 value) external returns (bool);
     function approve(address spender, uint256 value) external returns (bool);

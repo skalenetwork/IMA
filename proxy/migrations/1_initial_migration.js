@@ -10,6 +10,8 @@ const privateKey = process.env.ETH_PRIVATE_KEY;
 let networks = require("../truffle.js");
 let currentNetwork = networks['networks'][networkName];
 
+let schainName = process.env.SCHAIN_NAME;
+
 const LINE = '======================================';
 
 const Web3 = require('web3');
@@ -38,7 +40,7 @@ async function deploy(deployer) {
     let messageProxyResult1 = await deployContract(MessageProxy, {gas: 8000000, 'account': account, 'arguments': ["Artem's Schain"]});
     let depositBoxResult = await deployContract(DepositBox, {gas: 8000000, 'account': account, 'arguments': [messageProxyResult0.address]});
     //let tokenManagerResult = await deployContract(TokenManager, {gas: 5000000, 'account': account, 'arguments': ["Artem's Schain", depositBoxResult.address, messageProxyResult1.address], 'value': web3.toWei(102000000, "ether")});
-    let tokenManagerResult = await deployContract(TokenManager, {gas: 5000000, 'account': account, 'arguments': ["Artem's Schain", depositBoxResult.address, messageProxyResult1.address], 'value': web3.toWei(100, "ether")});
+    let tokenManagerResult = await deployContract(TokenManager, {gas: 8000000, 'account': account, 'arguments': ["Artem's Schain", depositBoxResult.address, messageProxyResult1.address], 'value': web3.toWei(100, "ether")});
 
     let jsonObject = {
         deposit_box_address: depositBoxResult.address,
@@ -51,11 +53,13 @@ async function deploy(deployer) {
         message_proxy_chain_abi: MessageProxy.abi
     }
 
-    fs.writeFile('proxy.json', JSON.stringify(jsonObject), function (err) {
+    let filename = schainName ? `${networkName}_${schainName}_proxy.json` : `${networkName}_proxy.json`;
+
+    fs.writeFile(`data/${filename}`, JSON.stringify(jsonObject), function (err) {
         if (err) {
             return console.log(err);
         }
-        console.log(`Done, check ${networkName}.json file in data folder.`);
+        console.log(`Done, check ${filename} file in data folder.`);
         process.exit(0);
     });
 }

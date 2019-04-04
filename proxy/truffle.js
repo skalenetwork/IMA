@@ -12,6 +12,10 @@
  *   },
  */
 
+let schainRpcIp = process.env.SCHAIN_RPC_IP;
+let schainRpcPort = process.env.SCHAIN_RPC_PORT;
+let schainName = process.env.SCHAIN_NAME;
+
 module.exports = {
   networks: {
     server: {
@@ -36,8 +40,21 @@ module.exports = {
       network_id: "*",
       "from": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
     },
+    do: {
+      host: "134.209.56.46",
+      port: 1919,
+      gasPrice: 10000000000,
+      network_id: "*",
+      from: "0x5112ce768917e907191557d7e9521c2590cdd3a0"
+    },
     aws: {
       host: "13.59.228.21",
+      port: 1919,
+      gasPrice: 10000000000,
+      network_id: "*",
+    },
+    aws2: {
+      host: "18.218.24.50",
       port: 1919,
       gasPrice: 10000000000,
       network_id: "*",
@@ -51,8 +68,8 @@ module.exports = {
       network_id: "*"
     },
     schain: {
-      host: "167.99.167.78",
-      port: 8003,
+      host: schainRpcIp,
+      port: schainRpcPort,
       gasPrice: 10000000000,
       gas: 8000000,
       from: "0x5112ce768917e907191557d7e9521c2590cdd3a0",

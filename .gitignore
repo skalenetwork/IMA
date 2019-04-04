@@ -88,3 +88,23 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+
+wallet*.json
+*_ktm_info.tar.gz
+
+__pycache__/
+
+
+agent/abi_main_net.json.bak
+agent/abi_s_chain.json.bak
+agent/node_modules/
+agent/package-lock.json
+proxy/build/
+proxy/node_modules/
+proxy/package-lock.json
+proxy/proxy.json
+npms/skale-mta/node_modules/
+npms/skale-mta/package-lock.json
+proxy/data/*.json
+agent/package-lock.json

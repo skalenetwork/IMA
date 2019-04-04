@@ -2,10 +2,9 @@
 
 ## Overview
 
-**SKALE Money Transfer Agent** is also known as **KTM**(*Kavoon Transfer Manager*).
-This article refers to it as **KTM**.
+This article refers to **SKALE Money Transfer Agent** as **MTA**.
 
-**KTM** consists of the following parts:
+**MTA** consists of the following parts:
 
 - Contracts on Main-net
 - Contracts on S-Chain
@@ -17,12 +16,14 @@ This article refers to it as **KTM**.
 
 First of all, we need special truffle version **4.1.13** (notice, the *-g* option of *npm* may require *sudo*):
 
-    npm install -g truffle@4.1.13
+    sudo npm uninstall -g truffle
+    sudo npm install -g truffle@4.1.13
+    truffle --version
 
 Second, get source code of Solidity contracts and install dependecies:
 
-    git clone git@github.com:GalacticExchange/skale_blockchain_tools.git
-    cd skale_blockchain_tools/Proxy/
+    git clone git@github.com:GalacticExchange/KTM.git
+    cd KTM/proxy/
     npm install
 
 Third edit the *./truffle.js* and specify needed networks (Main-net and S-Chain) and account addresses which will own contracts on these blockchains:
@@ -53,7 +54,6 @@ Fourth, rebuild all the contracts once to ensure everything initialized OK:
     rm -rf ./build
     truffle complile
 
-
 ### Contracts installation on Main-net
 
 First, execute truffle migration for Main-net:
@@ -78,28 +78,29 @@ Second, save generated **proxy.json** file with ABI of all the migrated contract
 
     cp ./proxy.json ...some_folder.../abi_s_chain.json
 
-## KTM installation
+## MTA installation
 
-### KTM prerequisites
+### MTA prerequisites
 
-First, get source code of **KTM**:
+First, get source code of **MTA**:
 
-    git clone git@github.com:GalacticExchange/SkaleExperimental.git
-    cd SkaleExperimental/skaled-tests/test-artem-cross-chain-contracts/
+    cd KTM/agent/
 
 Second, install dependecies:
 
-    npm install colors
     npm install web3@1.0.0-beta.35
+    npm install colors
     npm install ethereumjs-tx
     npm install ethereumjs-wallet
     npm install ethereumjs-util
+    npm install --save @babel/core@^7.0.0-0
     npm install --save-dev @babel/plugin-transform-runtime
     npm install --save @babel/runtime
 
-### Bind KTM to Main-net
 
-**KTM** works as S-Chain extension. It should be registered on Main-net before performing any money transfers between blockchains:
+### Bind MTA to Main-net
+
+**MTA** works as S-Chain extension. It should be registered on Main-net before performing any money transfers between blockchains:
 
     node ./main.js \
         --register \
@@ -112,7 +113,7 @@ Second, install dependecies:
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
 
-### Run KTM for particular S-Chain
+### Run MTA for particular S-Chain
 
 Performed with the **--loop** command line option:
 
@@ -129,7 +130,7 @@ Performed with the **--loop** command line option:
 
 Notice: the command above can be run in forever while loop of shell script or became a part of daemon service file.
 
-## Other KTM tasks
+## Other MTA tasks
 
 ### Getting command line help
 
@@ -262,4 +263,4 @@ Performed with the **--transfer** command line option:
 
 ### S-Chain specific configuration for more then one node S-Chains
 
-The **--node-number** and **--nodes-count** must me used for **KTM** instances running on S-Chain nodes which are part of multi-node S-Chain.
+The **--node-number** and **--nodes-count** must me used for **MTA** instances running on S-Chain nodes which are part of multi-node S-Chain.
