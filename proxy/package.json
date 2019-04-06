@@ -4,5 +4,8 @@
     "truffle-privatekey-provider": "1.0.0",
     "web3": "1.0.0-beta.36"
   },
-  "license": "LGPL-3.0"
+  "license": "LGPL-3.0",
+  "devDependencies": {
+    "openzeppelin-solidity": "^2.0.1"
+  }
 }
