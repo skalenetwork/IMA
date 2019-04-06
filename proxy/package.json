@@ -1,11 +1,12 @@
 {
   "dependencies": {
-    "solc": "^0.4.25",
+    "solc": "0.4.25",
     "truffle-privatekey-provider": "1.0.0",
-    "web3": "1.0.0-beta.36"
+    "web3": "1.0.0-beta.35"
   },
   "license": "LGPL-3.0",
   "devDependencies": {
-    "openzeppelin-solidity": "^2.0.1"
+    "dotenv": "^7.0.0",
+    "openzeppelin-solidity": "2.0.1"
   }
 }

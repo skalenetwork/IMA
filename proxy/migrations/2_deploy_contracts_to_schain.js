@@ -1,17 +1,21 @@
 const fs = require("fs");
 const path = require("path");
 const solc = require("solc");
+require('dotenv').config();
 
 //let MessageProxy = artifacts.require("./MessageProxy.sol");
 //let DepositBox = artifacts.require("./DepositBox.sol");
 //let TokenManager = artifacts.require("./TokenManager.sol");
-let Ownable = path.resolve(__dirname, '../contracts', 'Ownable.sol');
-let MessageProxy = path.resolve(__dirname, '../contracts', 'MessageProxy.sol');
-let TokenManager = path.resolve(__dirname, '../contracts', 'TokenManager.sol');
-let ERC20Manager = path.resolve(__dirname, '../contracts', 'ERC20Manager.sol');
+let contracts = '../contracts';
+let opernzeppelin_contracts_ERC20 = '../node_modules/openzeppelin-solidity/contracts/token/ERC20';
+let Ownable = path.resolve(__dirname, contracts, 'Ownable.sol');
+let MessageProxy = path.resolve(__dirname, contracts, 'MessageProxy.sol');
+let TokenManager = path.resolve(__dirname, contracts, 'TokenManager.sol');
+let ERC20Capped = path.resolve(__dirname, opernzeppelin_contracts_ERC20, 'ERC20Capped.sol');
+let ERC20Detailed = path.resolve(__dirname, opernzeppelin_contracts_ERC20, 'ERC20Detailed.sol');
 
-const networkName = process.env.NETWORK;
-const privateKey = process.env.ETH_PRIVATE_KEY;
+const networkName = process.env.NETWORK_FOR_SCHAIN;
+const privateKey = process.env.ETH_PRIVATE_KEY_FOR_SCHAIN;
 const schainName = process.env.SCHAIN_NAME;
 
 let networks = require("../truffle.js");
@@ -47,23 +51,17 @@ async function deploy() {
         'MessageProxy.sol': fs.readFileSync(MessageProxy, 'UTF-8')
     }
     let messageProxyResult1 = await deployContract("MessageProxy.sol:MessageProxy", {sources: messageProxy}, {gas: 8000000, 'account': account, 'arguments': [schainName]});
-    /*let tokenManager = {
+    let tokenManager = {
         'Ownable.sol': fs.readFileSync(Ownable, 'UTF-8'),
+        'ERC20Capped.sol': fs.readFileSync(ERC20Capped, 'UTF-8'),
+        'ERC20Detailed.sol': fs.readFileSync(ERC20Detailed, 'UTF-8'),
         'TokenManager.sol': fs.readFileSync(TokenManager, 'UTF-8')
     }
-    let tokenManagerResult = await deployContract("TokenManager.sol:TokenManager", {sources: tokenManager}, {gas: 5000000, 'account': account, 'arguments': [schainName, proxyMainnet['deposit_box_address'], messageProxyResult1.address], 'value': web3beta.utils.toWei("100", "ether")});*/
-
-    let erc20Manager = {
-        'Ownable.sol': fs.readFileSync(Ownable, 'UTF-8'),
-        'ERC20Manager.sol': fs.readFileSync(ERC20Manager, 'UTF-8')
-    }
-    let erc20ManagerResult = await deployContract("ERC20Manager.sol:ERC20Manager", {sources: erc20Manager}, {gas: 5000000, 'account': account, 'arguments': [schainName, messageProxyResult1.address]});
+    let tokenManagerResult = await deployContract("TokenManager.sol:TokenManager", {sources: tokenManager}, {gas: 5000000, 'account': account, 'arguments': [schainName, proxyMainnet['deposit_box_address'], messageProxyResult1.address], 'value': web3beta.utils.toWei("10", "ether")});
 
     let jsonObject = {
-        //token_manager_address: tokenManagerResult.address,
-        //token_manager_abi: tokenManagerResult.abi,
-        erc20_manager_address: erc20ManagerResult.address,
-        erc20_manager_abi: erc20ManagerResult.abi,
+        token_manager_address: tokenManagerResult.address,
+        token_manager_abi: tokenManagerResult.abi,
         message_proxy_chain_address: messageProxyResult1.address,
         message_proxy_chain_abi: messageProxyResult1.abi
     }

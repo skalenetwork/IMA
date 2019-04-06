@@ -58,7 +58,7 @@ contract TokenManager is Ownable {
     // TODO: TOKEN_RESERVE = 102000000 * (10 ** 18);
 
     //uint public TOKEN_RESERVE = 102000000 * (10 ** 18); //ether
-    uint public TOKEN_RESERVE = 100 * (10 ** 18); //ether
+    uint public TOKEN_RESERVE = 10 * (10 ** 18); //ether
 
     uint public constant GAS_AMOUNT_POST_MESSAGE = 55000;
 
@@ -104,7 +104,7 @@ contract TokenManager is Ownable {
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage("Mainnet", tokenManagerAddresses[keccak256(abi.encodePacked("Mainnet"))], msg.value, to, data);
     }
 
-    function exitToMainERC20OnChain(address contractHere, address to, uint amount) public {
+    function exitToMainERC20(address contractHere, address to, uint amount) public {
         require(tokens[keccak256(abi.encodePacked("Mainnet"))][contractHere].created);
         require(tokens[keccak256(abi.encodePacked("Mainnet"))][contractHere].contractOnSchain != address(0));
         require(ERC20OnChain(contractHere).allowance(msg.sender, address(this)) >= amount);
@@ -121,6 +121,28 @@ contract TokenManager is Ownable {
         require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0));
         require(msg.value > 0);
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], msg.value, to, data);
+    }
+
+    function transferToSchainERC20(string schainID, address contractHere, address to, uint amount) public {
+        require(keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")));
+        require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0));
+        require(ERC20(contractHere).allowance(msg.sender, address(this)) >= amount);
+        require(ERC20(contractHere).transferFrom(msg.sender, address(this), amount));
+
+        bytes memory data;
+
+        if (!tokens[keccak256(abi.encodePacked(schainID))][contractHere].created) {
+            string memory name = ERC20OnChain(contractHere).name();
+            uint8 decimals = ERC20OnChain(contractHere).decimals();
+            string memory symbol = ERC20OnChain(contractHere).symbol();
+            uint totalSupply = ERC20OnChain(contractHere).totalSupply();
+            data = abi.encodePacked(byte(2), bytes32(contractHere), bytes(name).length, name, bytes(symbol).length, symbol, decimals, totalSupply);
+            ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, address(0), data);
+            tokens[keccak256(abi.encodePacked(schainID))][contractHere].created = true;
+        }
+
+        data = abi.encodePacked(byte(3), bytes32(contractHere), bytes32(to), bytes32(amount));
+        ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, tokens[keccak256(abi.encodePacked(schainID))][contractHere].contractOnSchain, data);
     }
 
     // Receive money from main net and Schain
