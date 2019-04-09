@@ -1,35 +1,28 @@
 pragma solidity ^0.4.24;
 
 import "./Ownable.sol";
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Capped.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
+
+interface TokenFactory {
+    function createERC20(bytes data) external returns (address);
+}
 
 interface ProxyForSchain {
     function postOutgoingMessage(string dstChainID, address dstContract, uint amount, address to, bytes data) external;
 }
 
-contract ERC20OnChain is ERC20Detailed, ERC20Capped {
-    constructor(string memory name, string memory symbol, uint8 decimals, uint256 cap) 
-        ERC20Detailed(name, symbol, decimals)
-        ERC20Capped(cap)
-        public 
-    {
-
-    }
-}
-
-/*interface ERC20 {
+interface StandartERC20 {
     function transfer(address to, uint256 value) external returns (bool);
     function approve(address spender, uint256 value) external returns (bool);
     function transferFrom(address from, address to, uint256 value) external returns (bool);
     function mint(address to, uint256 amount) external returns (bool);
+    function cap() external returns (uint256);
     function totalSupply() external view returns (uint256);
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
     function decimals() external view returns (uint8);
     function balanceOf(address who) external view returns (uint256);
     function allowance(address owner, address spender) external view returns (uint256);
-}*/
+}
 
 // This contract runs on schains and accepts messages from main net creates ETH clones.
 // When the user exits, it burns them
@@ -47,6 +40,8 @@ contract TokenManager is Ownable {
     string public chainID;
 
     address public proxyForSchainAddress;
+
+    address public tokenFactoryAddress;
 
     mapping(bytes32 => address) public tokenManagerAddresses;
 
@@ -97,6 +92,10 @@ contract TokenManager is Ownable {
         tokenManagerAddresses[keccak256(abi.encodePacked("Mainnet"))] = depositBoxAddress;
     }
 
+    function setTokenFactory(address newTokenFactoryAddress) public onlyOwner {
+        tokenFactoryAddress = newTokenFactoryAddress;
+    }
+
     // This is called by schain owner.
     // Exit to main net
     function exitToMain(address to, bytes data) public payable {
@@ -107,8 +106,8 @@ contract TokenManager is Ownable {
     function exitToMainERC20(address contractHere, address to, uint amount) public {
         require(tokens[keccak256(abi.encodePacked("Mainnet"))][contractHere].created);
         require(tokens[keccak256(abi.encodePacked("Mainnet"))][contractHere].contractOnSchain != address(0));
-        require(ERC20OnChain(contractHere).allowance(msg.sender, address(this)) >= amount);
-        require(ERC20OnChain(contractHere).transferFrom(msg.sender, address(this), amount));
+        require(StandartERC20(contractHere).allowance(msg.sender, address(this)) >= amount);
+        require(StandartERC20(contractHere).transferFrom(msg.sender, address(this), amount));
 
         bytes memory data;
 
@@ -126,16 +125,16 @@ contract TokenManager is Ownable {
     function transferToSchainERC20(string schainID, address contractHere, address to, uint amount) public {
         require(keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")));
         require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0));
-        require(ERC20(contractHere).allowance(msg.sender, address(this)) >= amount);
-        require(ERC20(contractHere).transferFrom(msg.sender, address(this), amount));
+        require(StandartERC20(contractHere).allowance(msg.sender, address(this)) >= amount);
+        require(StandartERC20(contractHere).transferFrom(msg.sender, address(this), amount));
 
         bytes memory data;
 
         if (!tokens[keccak256(abi.encodePacked(schainID))][contractHere].created) {
-            string memory name = ERC20OnChain(contractHere).name();
-            uint8 decimals = ERC20OnChain(contractHere).decimals();
-            string memory symbol = ERC20OnChain(contractHere).symbol();
-            uint totalSupply = ERC20OnChain(contractHere).totalSupply();
+            string memory name = StandartERC20(contractHere).name();
+            uint8 decimals = StandartERC20(contractHere).decimals();
+            string memory symbol = StandartERC20(contractHere).symbol();
+            uint totalSupply = StandartERC20(contractHere).totalSupply();
             data = abi.encodePacked(byte(2), bytes32(contractHere), bytes(name).length, name, bytes(symbol).length, symbol, decimals, totalSupply);
             ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, address(0), data);
             tokens[keccak256(abi.encodePacked(schainID))][contractHere].created = true;
@@ -157,9 +156,9 @@ contract TokenManager is Ownable {
             emit Error(sender, fromSchainID, to, amount, data, "Invalid data");
             return;
         }
-        address contractThere;
         emit MoneyReceivedMessage(sender, fromSchainID, to, amount, data);
         TransactionOperation operation = fallbackOperationTypeConvert(data);
+        address contractThere = fallbackContractThereParser(data);
         if (operation == TransactionOperation.transferETH) {
             require(address(to).send(amount));
             return;
@@ -167,22 +166,22 @@ contract TokenManager is Ownable {
             //address contractThere;
             address receiver;
             uint amountOfTokens;
-            (contractThere, receiver, amountOfTokens) = fallbackDataTransferParser(data);
+            (receiver, amountOfTokens) = fallbackDataTransferParser(data);
             require(tokens[keccak256(abi.encodePacked(fromSchainID))][to].created);
             if (tokens[keccak256(abi.encodePacked(fromSchainID))][to].contractOnSchain == address(0)) {
                 tokens[keccak256(abi.encodePacked(fromSchainID))][to].contractOnSchain = contractThere;
             }
             require(tokens[keccak256(abi.encodePacked(fromSchainID))][to].contractOnSchain == contractThere);
-            if (ERC20OnChain(to).balanceOf(address(this)) >= amountOfTokens) {
-                require(ERC20OnChain(to).transfer(receiver, amountOfTokens));
+            if (StandartERC20(to).balanceOf(address(this)) >= amountOfTokens) {
+                require(StandartERC20(to).transfer(receiver, amountOfTokens));
             } else {
-                require(ERC20OnChain(to).mint(receiver, amountOfTokens));
+                require(StandartERC20(to).mint(receiver, amountOfTokens));
             }
             return;
         } else if (operation == TransactionOperation.createERC20) {
             require(to == address(0));
             //address contractThere;
-            (to, contractThere) = createERC20(data);
+            to = TokenFactory(tokenFactoryAddress).createERC20(data);
             tokens[keccak256(abi.encodePacked(fromSchainID))][to].created = true;
             tokens[keccak256(abi.encodePacked(fromSchainID))][to].contractOnSchain = contractThere;
 
@@ -191,17 +190,6 @@ contract TokenManager is Ownable {
         } else if (operation == TransactionOperation.createERC721) {
 
         }
-    }
-
-    function createERC20(bytes data) internal returns (address, address) {
-        address contractThere;
-        string memory name;
-        string memory symbol;
-        uint8 decimals;
-        uint256 totalSupply;
-        (contractThere, name, symbol, decimals, totalSupply) = fallbackDataCreateERC20Parser(data);
-        ERC20OnChain newERC20 = new ERC20OnChain(name, symbol, decimals, totalSupply);
-        return (address(newERC20), contractThere);
     }
 
     function fallbackOperationTypeConvert(bytes data) internal pure returns (TransactionOperation) {
@@ -222,47 +210,23 @@ contract TokenManager is Ownable {
             return TransactionOperation.transferERC721;
         }
     }
-
-    function fallbackDataTransferParser(bytes data) internal pure returns (address, address, uint) {
+    
+    function fallbackContractThereParser(bytes data) internal pure returns (address) {
         bytes32 contractThere;
+        assembly {
+            contractThere := mload(add(data, 33))
+        }
+        return (address(contractThere));
+    }
+
+    function fallbackDataTransferParser(bytes data) internal pure returns (address, uint) {
         bytes32 to;
         bytes32 amount;
         assembly {
-            contractThere := mload(add(data, 33))
             to := mload(add(data, 65))
             amount := mload(add(data, 97))
         }
-        return (address(contractThere), address(to), uint(amount));
+        return (address(to), uint(amount));
     }
 
-    function fallbackDataCreateERC20Parser(bytes data) internal pure returns (address, string memory name, string memory symbol, uint8, uint256) {
-        bytes32 contractThere;
-        bytes1 decimals;
-        bytes32 totalSupply;
-        bytes32 nameLength;
-        bytes32 symbolLength;
-        assembly {
-            contractThere := mload(add(data, 33))
-            nameLength := mload(add(data, 65))
-        }
-        name = new string(uint(nameLength));
-        for (uint i = 0; i < uint(nameLength); i++) {
-            bytes(name)[i] = data[65 + i];
-        }
-        uint lengthOfName = uint(nameLength);
-        assembly {
-            symbolLength := mload(add(data, add(97, lengthOfName)))
-
-        }
-        symbol = new string(uint(symbolLength));
-        for (i = 0; i < uint(symbolLength); i++) {
-            bytes(symbol)[i] = data[97 + lengthOfName + i];
-        }
-        uint lengthOfSymbol = uint(symbolLength);
-        assembly {
-            decimals := mload(add(data, add(129, add(lengthOfName, lengthOfSymbol))))
-            totalSupply := mload(add(data, add(130, add(lengthOfName, lengthOfSymbol))))
-        }
-        return (address(contractThere), name, symbol, uint8(decimals), uint256(totalSupply));
-    }
 }

@@ -27,10 +27,10 @@ module.exports = {
     local: {
       gasPrice: 10000000000,
       host: "127.0.0.1",
-      port: 2231,
+      port: 8545,
       gas: 8000000,
-      network_id: "*",
-      "from": "0x6196d135CdDb9d73A0756C1E44b5b02B11acf594"
+      network_id: "*"
+      //"from": "0x6196d135CdDb9d73A0756C1E44b5b02B11acf594"
     },
     pseudo_main_net: {
       gasPrice: 10000000000,

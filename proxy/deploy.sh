@@ -7,6 +7,6 @@
 #: "${ETH_PRIVATE_KEY_FOR_SCHAIN:?Provide ETH_PRIVATE_KEY_FOR_SCHAIN to deploy}"
 
 #NETWORK=${NETWORK_FOR_MAINNET} ETH_PRIVATE_KEY=${ETH_PRIVATE_KEY_FOR_MAINNET} node migrations/1_deploy_contracts_to_mainnet.js
-node migrations/1_deploy_contracts_to_mainnet.js
+node scripts/1_deploy_contracts_to_mainnet.js
 #NETWORK=${NETWORK_FOR_SCHAIN} ETH_PRIVATE_KEY=${ETH_PRIVATE_KEY_FOR_SCHAIN} node migrations/2_deploy_contracts_to_schain.js
-node migrations/2_deploy_contracts_to_schain.js
+node scripts/2_deploy_contracts_to_schain.js
