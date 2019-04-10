@@ -1,6 +1,5 @@
 pragma solidity ^0.4.24;
 
-import "./Ownable.sol";
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Capped.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
 
@@ -19,10 +18,22 @@ contract ERC20OnChain is ERC20Detailed, ERC20Capped {
     }
 }
 
-contract TokenFactory is Ownable {
+contract TokenFactory {
 
-    constructor() Ownable() public {
+    address public owner;
 
+    constructor() public {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+
+    function transferOwnership(address newOwner) public onlyOwner {
+        require(newOwner != address(0));
+        owner = newOwner;
     }
 
     function createERC20(bytes data) public onlyOwner returns (address) {
@@ -32,6 +43,7 @@ contract TokenFactory is Ownable {
         uint256 totalSupply;
         (name, symbol, decimals, totalSupply) = fallbackDataCreateERC20Parser(data);
         ERC20OnChain newERC20 = new ERC20OnChain(name, symbol, decimals, totalSupply);
+        newERC20.mint(msg.sender, totalSupply);
         return address(newERC20);
     }
 

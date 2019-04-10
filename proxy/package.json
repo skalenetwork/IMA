@@ -5,8 +5,14 @@
     "web3": "1.0.0-beta.35"
   },
   "license": "LGPL-3.0",
+  "scripts": {
+    "start": "./node_modules/.bin/truffle compile",
+    "deploy-to-mainnet": "node scripts/1_deploy_contracts_to_mainnet.js",
+    "deploy-to-schain": "./scripts/deploy.sh"
+  },
   "devDependencies": {
     "dotenv": "^7.0.0",
-    "openzeppelin-solidity": "2.0.1"
+    "openzeppelin-solidity": "2.0.1",
+    "truffle": "^4.1.13"
   }
 }

@@ -15,8 +15,7 @@ const privateKey = process.env.ETH_PRIVATE_KEY_FOR_MAINNET;
 
 let networks = require("../truffle.js");
 let currentNetwork = networks['networks'][networkName];
-console.log(networkName);
-console.log(currentNetwork);
+
 
 const LINE = '======================================';
 

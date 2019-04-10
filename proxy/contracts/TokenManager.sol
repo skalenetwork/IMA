@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import "./Ownable.sol";
 
-interface TokenFactory {
+interface TokenFactoryForSchain {
     function createERC20(bytes data) external returns (address);
 }
 
@@ -181,7 +181,7 @@ contract TokenManager is Ownable {
         } else if (operation == TransactionOperation.createERC20) {
             require(to == address(0));
             //address contractThere;
-            to = TokenFactory(tokenFactoryAddress).createERC20(data);
+            to = TokenFactoryForSchain(tokenFactoryAddress).createERC20(data);
             tokens[keccak256(abi.encodePacked(fromSchainID))][to].created = true;
             tokens[keccak256(abi.encodePacked(fromSchainID))][to].contractOnSchain = contractThere;
 

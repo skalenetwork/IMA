@@ -44,17 +44,26 @@ async function deploy(deployer) {
         gas: 200000
     });
 
-    let tokenManager = TokenManager;
-    tokenManager._address = proxySchain['token_manager_address'];
-    tokenManager.methods.setTokenFactory(tokenFactoryResult.address).send({
+    let tokenManager = new web3beta.eth.Contract(proxySchain['token_manager_abi'], proxySchain['token_manager_address']);
+    let result = await tokenManager.methods.setTokenFactory(tokenFactoryResult.address).send({
         from: account,
         gas: 200000
     });
+
+    console.log(result);
     
     let jsonObject = {
         token_factory_address: tokenFactoryResult.address,
         token_factory_abi: TokenFactory.abi
     }
+
+    fs.writeFile('data/tokenFactorySchain.json', JSON.stringify(jsonObject), function (err) {
+        if (err) {
+          return console.log(err);
+        }
+        console.log('Done, check tokenFactorySchain.json file in data folder.');
+        process.exit(0);
+      });
 }
 
 module.exports = deploy;
