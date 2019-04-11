@@ -1,10 +1,10 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "./Ownable.sol";
 
 
 interface Proxy {
-    function postOutgoingMessage(string dstChainID, address dstContract, uint amount, address to, bytes data) external;
+    function postOutgoingMessage(string calldata dstChainID, address dstContract, uint amount, address to, bytes calldata data) external;
 }
 
 interface ERC20 {
@@ -52,18 +52,18 @@ contract DepositBox is Ownable {
         proxyAddress = newProxyAddress;
     }
 
-    function() public {
+    function() external {
         revert();
     }
 
-    function addSchain(string schainID, address tokenManagerAddress) public {
+    function addSchain(string memory schainID, address tokenManagerAddress) public {
         //require(msg.sender == owner);
         require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] == address(0));
         require(tokenManagerAddress != address(0));
         tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] = tokenManagerAddress;
     }
 
-    function depositERC20(string schainID, address contractHere, address to, uint amount) public payable {
+    function depositERC20(string memory schainID, address contractHere, address to, uint amount) public payable {
         require(keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")));
         require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0));
         require(msg.value >= GAS_AMOUNT_POST_MESSAGE * 1000000000); // average tx.gasprice
@@ -77,12 +77,12 @@ contract DepositBox is Ownable {
             uint8 decimals = ERC20(contractHere).decimals();
             string memory symbol = ERC20(contractHere).symbol();
             uint totalSupply = ERC20(contractHere).totalSupply();
-            data = abi.encodePacked(byte(2), bytes32(contractHere), bytes(name).length, name, bytes(symbol).length, symbol, decimals, totalSupply);
+            data = abi.encodePacked(bytes1(uint8(2)), bytes32(bytes20(contractHere)), bytes(name).length, name, bytes(symbol).length, symbol, decimals, totalSupply);
             Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, address(0), data);
             tokens[keccak256(abi.encodePacked(schainID))][contractHere].created = true;
         }
 
-        data = abi.encodePacked(byte(3), bytes32(contractHere), bytes32(to), bytes32(amount));
+        data = abi.encodePacked(bytes1(uint8(3)), bytes32(bytes20(contractHere)), bytes32(bytes20(to)), bytes32(amount));
         Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, tokens[keccak256(abi.encodePacked(schainID))][contractHere].contractOnSchain, data);
 
         // if (!(contractMpper[contractHere][keccak256(abi.encodePacked(schainID))].contractOnSchain == address(0))) {
@@ -103,20 +103,20 @@ contract DepositBox is Ownable {
         // Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, contractThere, data);
     }
 
-    function deposit(string schainID, address to) public payable {
+    function deposit(string memory schainID, address to) public payable {
         bytes memory empty;
         deposit(schainID, to, empty);
     }
 
-    function deposit(string schainID, address to, bytes data) public payable {
+    function deposit(string memory schainID, address to, bytes memory data) public payable {
         require(keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")));
         require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0));
         require(msg.value >= GAS_AMOUNT_POST_MESSAGE * 1000000000); //average tx.gasprice
-        data = abi.encodePacked(byte(1), data);
+        data = abi.encodePacked(bytes1(uint8(1)), data);
         Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], msg.value, to, data);
     }
 
-    function postMessage(address sender, string fromSchainID, address to, uint amount, bytes data) public {
+    function postMessage(address sender, string memory fromSchainID, address payable to, uint amount, bytes memory data) public {
         //require(msg.sender == proxyAddress);
         require(keccak256(abi.encodePacked(fromSchainID)) != keccak256(abi.encodePacked("Mainnet")));
         require(sender == tokenManagerAddresses[keccak256(abi.encodePacked(fromSchainID))]);
@@ -165,7 +165,7 @@ contract DepositBox is Ownable {
         }
     }
 
-    function fallbackOperationTypeConvert(bytes data) internal pure returns (TransactionOperation) {
+    function fallbackOperationTypeConvert(bytes memory data) internal pure returns (TransactionOperation) {
         bytes1 operationType;
         assembly {
             operationType := mload(add(data, 0x20))
@@ -180,7 +180,7 @@ contract DepositBox is Ownable {
         }
     }
 
-    function fallbackDataParser(bytes data) internal pure returns (address, address, uint) {
+    function fallbackDataParser(bytes memory data) internal pure returns (address, address, uint) {
         bytes32 contractThere;
         bytes32 to;
         bytes32 amount;
@@ -189,6 +189,6 @@ contract DepositBox is Ownable {
             to := mload(add(data, 65))
             amount := mload(add(data, 97))
         }
-        return (address(contractThere), address(to), uint(amount));
+        return (address(bytes20(contractThere)), address(bytes20(to)), uint(amount));
     }
 }

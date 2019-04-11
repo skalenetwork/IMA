@@ -8,9 +8,9 @@ let TokenManager = artifacts.require("./TokenManager.sol");
 const networkName = process.env.NETWORK_FOR_SCHAIN;
 const privateKey = process.env.ETH_PRIVATE_KEY_FOR_SCHAIN;
 
-let networks = require("../truffle.js");
+let networks = require("../truffle-config.js");
 let currentNetwork = networks['networks'][networkName];
-let proxyMainnet = require("../proxyMainnet.json");
+let proxyMainnet = require("../data/proxyMainnet.json");
 
 let schainName = process.env.SCHAIN_NAME;
 
@@ -41,7 +41,7 @@ async function deploy(deployer) {
     //let messageProxyResult0 = await deployContract(MessageProxy, {gas: 8000000, 'account': account, 'arguments': ["Mainnet"]});
     let messageProxyResult1 = await deployContract(MessageProxy, {gas: 8000000, 'account': account, 'arguments': [schainName]});
     //let depositBoxResult = await deployContract(DepositBox, {gas: 8000000, 'account': account, 'arguments': [messageProxyResult0.address]});
-    let tokenManagerResult = await deployContract(TokenManager, {gas: 8000000, 'account': account, 'arguments': [schainName, proxyMainnet['deposit_box_address'], messageProxyResult1.address], 'value': web3.toWei(10, "ether")});
+    let tokenManagerResult = await deployContract(TokenManager, {gas: 8000000, 'account': account, 'arguments': [schainName, proxyMainnet['deposit_box_address'], messageProxyResult1.address], 'value': web3beta.utils.toWei("10", "ether")});
     //let tokenManagerResult = await deployContract(TokenManager, {gas: 8000000, 'account': account, 'arguments': ["Artem's Schain", depositBoxResult.address, messageProxyResult1.address], 'value': web3.toWei(100, "ether")});
 
     let jsonObject = {

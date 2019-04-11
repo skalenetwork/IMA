@@ -8,7 +8,7 @@ let DepositBox = artifacts.require("./DepositBox.sol");
 const networkName = process.env.NETWORK_FOR_MAINNET;
 const privateKey = process.env.ETH_PRIVATE_KEY_FOR_MAINNET;
 
-let networks = require("../truffle.js");
+let networks = require("../truffle-config.js");
 let currentNetwork = networks['networks'][networkName];
 
 console.log(privateKey);

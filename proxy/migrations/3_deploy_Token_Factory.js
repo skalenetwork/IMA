@@ -7,9 +7,9 @@ let TokenManager = artifacts.require("./TokenManager.sol");
 const networkName = process.env.NETWORK_FOR_SCHAIN;
 const privateKey = process.env.ETH_PRIVATE_KEY_FOR_SCHAIN;
 
-let networks = require("../truffle.js");
+let networks = require("../truffle-config.js");
 let currentNetwork = networks['networks'][networkName];
-let proxySchain = require("../proxySchain.json");
+let proxySchain = require("../data/proxySchain.json");
 
 const LINE = '======================================';
 

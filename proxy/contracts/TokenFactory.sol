@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Capped.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
@@ -36,7 +36,7 @@ contract TokenFactory {
         owner = newOwner;
     }
 
-    function createERC20(bytes data) public onlyOwner returns (address) {
+    function createERC20(bytes memory data) public onlyOwner returns (address) {
         string memory name;
         string memory symbol;
         uint8 decimals;
@@ -47,7 +47,7 @@ contract TokenFactory {
         return address(newERC20);
     }
 
-    function fallbackDataCreateERC20Parser(bytes data) 
+    function fallbackDataCreateERC20Parser(bytes memory data) 
         internal 
         pure 
         returns (
@@ -73,7 +73,7 @@ contract TokenFactory {
             symbolLength := mload(add(data, add(97, lengthOfName)))
         }
         symbol = new string(uint(symbolLength));
-        for (i = 0; i < uint(symbolLength); i++) {
+        for (uint i = 0; i < uint(symbolLength); i++) {
             bytes(symbol)[i] = data[97 + lengthOfName + i];
         }
         uint lengthOfSymbol = uint(symbolLength);
