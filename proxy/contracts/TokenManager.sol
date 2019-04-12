@@ -46,6 +46,7 @@ contract TokenManager is Ownable {
     mapping(bytes32 => address) public tokenManagerAddresses;
 
     mapping(bytes32 => mapping(address => ContractOnSchain)) public tokens;
+    mapping(bytes32 => mapping(address => address)) public tokensFrom;
 
     // The maximum amount of ETH clones this contract can create
     // It is 102000000 which is the current total ETH supply
@@ -152,7 +153,6 @@ contract TokenManager is Ownable {
         require(msg.sender == proxyForSchainAddress);
         require(keccak256(abi.encodePacked(fromSchainID)) != keccak256(abi.encodePacked(chainID)));
         require(sender == tokenManagerAddresses[keccak256(abi.encodePacked(fromSchainID))]);
-        require(to != address(0));
         
         if (data.length == 0) {
             emit Error(sender, fromSchainID, to, amount, data, "Invalid data");
@@ -162,22 +162,25 @@ contract TokenManager is Ownable {
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         address contractThere = fallbackContractThereParser(data);
         if (operation == TransactionOperation.transferETH) {
+            require(to != address(0));
             require(address(to).send(amount));
             return;
         } else if (operation == TransactionOperation.transferERC20) {
+            //require(to != address(0));
             //address contractThere;
             address receiver;
             uint amountOfTokens;
             (receiver, amountOfTokens) = fallbackDataTransferParser(data);
-            require(tokens[keccak256(abi.encodePacked(fromSchainID))][to].created);
-            if (tokens[keccak256(abi.encodePacked(fromSchainID))][to].contractOnSchain == address(0)) {
-                tokens[keccak256(abi.encodePacked(fromSchainID))][to].contractOnSchain = contractThere;
+            require(tokensFrom[keccak256(abi.encodePacked(fromSchainID))][contractThere] != address(0));
+            address receiverContract = tokensFrom[keccak256(abi.encodePacked(fromSchainID))][contractThere];
+            if (tokens[keccak256(abi.encodePacked(fromSchainID))][receiverContract].contractOnSchain == address(0)) {
+                tokens[keccak256(abi.encodePacked(fromSchainID))][receiverContract].contractOnSchain = contractThere;
             }
-            require(tokens[keccak256(abi.encodePacked(fromSchainID))][to].contractOnSchain == contractThere);
-            if (StandartERC20(to).balanceOf(address(this)) >= amountOfTokens) {
-                require(StandartERC20(to).transfer(receiver, amountOfTokens));
+            require(tokens[keccak256(abi.encodePacked(fromSchainID))][receiverContract].contractOnSchain == contractThere);
+            if (StandartERC20(receiverContract).balanceOf(address(this)) >= amountOfTokens) {
+                require(StandartERC20(receiverContract).transfer(receiver, amountOfTokens));
             } else {
-                require(StandartERC20(to).mint(receiver, amountOfTokens));
+                require(StandartERC20(receiverContract).mint(receiver, amountOfTokens));
             }
             return;
         } else if (operation == TransactionOperation.createERC20) {
@@ -186,6 +189,7 @@ contract TokenManager is Ownable {
             to = TokenFactoryForSchain(tokenFactoryAddress).createERC20(data);
             tokens[keccak256(abi.encodePacked(fromSchainID))][to].created = true;
             tokens[keccak256(abi.encodePacked(fromSchainID))][to].contractOnSchain = contractThere;
+            tokensFrom[keccak256(abi.encodePacked(fromSchainID))][contractThere] = to;
             emit ERC20TokenCreated(fromSchainID, contractThere, to);
         } else if (operation == TransactionOperation.transferERC721) {
             
@@ -199,7 +203,7 @@ contract TokenManager is Ownable {
         assembly {
             operationType := mload(add(data, 0x20))
         }
-        require(operationType == 0x01 || operationType == 0x03 || operationType == 0x05, "Operation type is not identified");
+        require(operationType == 0x01 || operationType == 0x02 || operationType == 0x03 || operationType == 0x04 || operationType == 0x05, "Operation type is not identified");
         if (operationType == 0x01) {
             return TransactionOperation.transferETH;
         } else if (operationType == 0x02) {
