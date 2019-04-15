@@ -437,14 +437,11 @@ let TokenABI = [
   ];
 
 const TokenAddress = "0xdB9F899B313d22e9C13e499c86c1d73dae2A7cf3";
-//const TokenOnSchainAddress = "0x3fe75c61b338c5cf6e9e086288acba44f55929ee";
 
 const DepositBox = new web3.eth.Contract(jsonDataMainnet['deposit_box_abi'], jsonDataMainnet['deposit_box_address']);
 const TokenManager = new web3.eth.Contract(jsonDataSchain['token_manager_abi'], jsonDataSchain['token_manager_address']);
 
 const TokenOnMainnet = new web3.eth.Contract(TokenABI, TokenAddress);
-
-//let account = "0x6d806d42a3233336c108cece6bfa277f9a25c1d9";
 
 async function connectChain(ChainID) {
     let res = await MessageProxy.methods.addConnectedChain(ChainID, [1, 1, 1, 1]).send({from: account, gas: 1000000});
