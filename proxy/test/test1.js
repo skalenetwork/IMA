@@ -20,6 +20,7 @@ const account = web3['_provider']['address'];
 ////const web3 = new Web3(new Web3.providers.HttpProvider("http://51.0.1.99:8545"));
 ////const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 //
+
 const jsonDataMainnet = require("../data/proxyMainnet.json");
 const jsonDataSchain = require("../data/proxySchain.json");
 const MessageProxy = new web3.eth.Contract(jsonDataMainnet['message_proxy_mainnet_abi'], jsonDataMainnet['message_proxy_mainnet_address']);
