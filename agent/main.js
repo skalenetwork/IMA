@@ -1,72 +1,6 @@
 /*
-=== contract deploy ===
-# Notice: we need special truffle version
-npm install -g truffle@4.1.13
+# Notice: we need special truffle version: npm install -g truffle@4.1.13
 
-# Notice: this tutorial uses "local" network profile of truffle, and the following joAccount_main_net address/privateKey account:
-////let g_joAccount_main_net = { "name": "Stan", "privateKey": "621761908cc4fba5f92e694e0e4a912aa9a12258a597a06783713a04610fad59", "address": fn_address_impl_ }; // "address": "0x6196d135CdDb9d73A0756C1E44b5b02B11acf594"
-let g_joAccount_main_net = { "name": "g3",  "privateKey": "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc", "address": fn_address_impl_ }; // "address": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
-let g_joAccount_s_chain  = { "name": "Bob",  "privateKey": "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e", "address": fn_address_impl_ }; // "address": "0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852"
-
-# 1) get latest version, export settings env vars
-cd /home/serge/Work/skale_blockchain_tools/Proxy
-reset; git reset --hard; git fetch; git pull; git branch; git status
-#
-export NETWORK=pseudo_main_net
-export ETH_PRIVATE_KEY=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc
-#
-export NETWORK=local
-export ETH_PRIVATE_KEY=621761908cc4fba5f92e694e0e4a912aa9a12258a597a06783713a04610fad59
-#
-reset; npm install
-
-# 2) edit ./truffle.js for "local" network definition, check "host", "port", "from"
-nano ./truffle.js
-
-local: {
-    gasPrice: 10000000000,
-    host: "127.0.0.1",
-    port: 2231,
-    gas: 8000000,
-    network_id: "*",
-    "from": "0x6196d135CdDb9d73A0756C1E44b5b02B11acf594"
-},
-pseudo_main_net: {
-    gasPrice: 10000000000,
-    host: "127.0.0.1",
-    port: 8545,
-    gas: 8000000,
-    network_id: "*",
-    "from": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
-},
-
-# 3) compile contracts, check if no errors
-reset; rm -rf ./build; truffle complile
-
-#4) deploy/migrate contracts to main-net/S-chain;
-#   if no errors then copy content of ./proxy.json (truffle calls it local.json) into
-#   initialization JSON of the joTrufflePublishResult_*** variable in this app's code
-#
-export NETWORK=pseudo_main_net
-export ETH_PRIVATE_KEY=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc
-reset; truffle migrate --network $NETWORK --compile-all --reset
-#
-export NETWORK=local
-export ETH_PRIVATE_KEY=621761908cc4fba5f92e694e0e4a912aa9a12258a597a06783713a04610fad59
-reset; truffle migrate --network $NETWORK --compile-all --reset
-
-=== this app ===
-npm install colors
-#npm install web3
-npm install web3@1.0.0-beta.35
-npm uninstall web3
-npm -g uninstall web3 --save
-npm install ethereumjs-tx
-npm install ethereumjs-wallet
-npm install ethereumjs-util
-#
-npm install --save-dev @babel/plugin-transform-runtime
-npm install --save @babel/runtime
 #
 #
 // register: node ./main.js --register ........
@@ -124,10 +58,8 @@ function print_about( isLog ) {
         console.log(  strMsg );
 }
 
-// let g_str_url_main_net = "http://127.0.0.1:8545";
-// let g_str_url_s_chain  = "http://127.0.0.1:2231";
-let g_str_url_main_net = "";
-let g_str_url_s_chain  = "";
+let g_str_url_main_net = ""; // example: "http://127.0.0.1:8545"
+let g_str_url_s_chain  = ""; // example: "http://127.0.0.1:2231"
 
 let g_chain_id_main_net = "Mainnet";    // 0;
 let g_chain_id_s_chain  = "id-S-chain"; // 1;
@@ -168,12 +100,6 @@ let g_nTimeFrameSeconds = 0; // 0-disable, 60-recommended
 let g_nNextFrameGap = 10;
 
 let g_arrActions = []; // array of actions to run
-
-
-
-
-
-
 
 
 //
@@ -473,14 +399,6 @@ function load_json( strPath ) {
     return JSON.parse( fs.readFileSync( strPath, "utf8") );
 }
 
-
-
-
-
-
-
-
-
 //
 //
 //
@@ -525,13 +443,6 @@ function load_node_config( strPath ) {
             log.write( cc.fatal("Exception in load_node_config():") + cc.error(e) + "\n" );
     }
 }
-
-
-
-
-
-
-
 
 //
 //
@@ -578,13 +489,6 @@ function check_time_framing( d ) {
     }
     return true;
 }
-
-
-
-
-
-
-
 
 
 //
@@ -677,21 +581,6 @@ if( g_bShowConfigMode ) {
     return true;
 }
 
-// // test:
-// var w3 = g_w3_main_net;
-// var joAcc = g_joAccount_main_net;
-// //
-// var strAddressExpected = .......
-// var keyPrivate         = .......
-// console.log( "private key = " + keyPrivate );
-// var keyPublic = MTA.private_key_2_public_key( w3, keyPrivate );
-// console.log( "public  key = " + keyPublic );
-// var strAddressComputed = MTA.public_key_2_account_address( w3, keyPublic )
-// console.log( "address expected = " + strAddressExpected );
-// console.log( "address computed = " + strAddressComputed );
-// console.log( "match = " + ( ( strAddressComputed === strAddressExpected ) ? true : false ) );
-// return 0;
-
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -735,9 +624,6 @@ do_the_job();
 return 0; // FINISH
 
 
-
-
-
 async function register_all() {
     var b1 = await MTA.register_s_chain_on_main_net(
         g_w3_main_net,
@@ -761,15 +647,6 @@ async function register_all() {
     var b4 = b1 && b2 && b3;
     return b4;
 }
-
-
-
-
-
-
-
-
-
 
 
 //
