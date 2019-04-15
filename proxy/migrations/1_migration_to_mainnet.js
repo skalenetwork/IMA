@@ -1,16 +1,19 @@
 let fs = require("fs");
+require('dotenv').config();
 
 let MessageProxy = artifacts.require("./MessageProxy.sol");
 let DepositBox = artifacts.require("./DepositBox.sol");
-let TokenManager = artifacts.require("./TokenManager.sol");
+//let TokenManager = artifacts.require("./TokenManager.sol");
 
-const networkName = process.env.NETWORK;
-const privateKey = process.env.ETH_PRIVATE_KEY;
+const networkName = process.env.NETWORK_FOR_MAINNET;
+const privateKey = process.env.ETH_PRIVATE_KEY_FOR_MAINNET;
 
-let networks = require("../truffle.js");
+let networks = require("../truffle-config.js");
 let currentNetwork = networks['networks'][networkName];
 
-let schainName = process.env.SCHAIN_NAME;
+console.log(privateKey);
+
+//let schainName = process.env.SCHAIN_NAME;
 
 const LINE = '======================================';
 
@@ -37,29 +40,27 @@ async function deploy(deployer) {
     console.log('Attempting to deploy from account: ', account);
 
     let messageProxyResult0 = await deployContract(MessageProxy, {gas: 8000000, 'account': account, 'arguments': ["Mainnet"]});
-    let messageProxyResult1 = await deployContract(MessageProxy, {gas: 8000000, 'account': account, 'arguments': ["Artem's Schain"]});
+    //let messageProxyResult1 = await deployContract(MessageProxy, {gas: 8000000, 'account': account, 'arguments': ["Artem's Schain"]});
     let depositBoxResult = await deployContract(DepositBox, {gas: 8000000, 'account': account, 'arguments': [messageProxyResult0.address]});
     //let tokenManagerResult = await deployContract(TokenManager, {gas: 5000000, 'account': account, 'arguments': ["Artem's Schain", depositBoxResult.address, messageProxyResult1.address], 'value': web3.toWei(102000000, "ether")});
-    let tokenManagerResult = await deployContract(TokenManager, {gas: 5000000, 'account': account, 'arguments': ["Artem's Schain", depositBoxResult.address, messageProxyResult1.address], 'value': web3.toWei(990, "ether")});
+    //let tokenManagerResult = await deployContract(TokenManager, {gas: 8000000, 'account': account, 'arguments': ["Artem's Schain", depositBoxResult.address, messageProxyResult1.address], 'value': web3.toWei(100, "ether")});
 
     let jsonObject = {
         deposit_box_address: depositBoxResult.address,
         deposit_box_abi: DepositBox.abi,
-        token_manager_address: tokenManagerResult.address,
-        token_manager_abi: TokenManager.abi,
+        //token_manager_address: tokenManagerResult.address,
+        //token_manager_abi: TokenManager.abi,
         message_proxy_mainnet_address: messageProxyResult0.address,
-        message_proxy_mainnet_abi: MessageProxy.abi,
-        message_proxy_chain_address: messageProxyResult1.address,
-        message_proxy_chain_abi: MessageProxy.abi
+        message_proxy_mainnet_abi: MessageProxy.abi
+        //message_proxy_chain_address: messageProxyResult1.address,
+        //message_proxy_chain_abi: MessageProxy.abi
     }
 
-    let filename = schainName ? `${networkName}_${schainName}_proxy.json` : `${networkName}_proxy.json`;
-
-    fs.writeFile(`data/${filename}`, JSON.stringify(jsonObject), function (err) {
+    fs.writeFile('data/proxyMainnet.json', JSON.stringify(jsonObject), function (err) {
         if (err) {
             return console.log(err);
         }
-        console.log(`Done, check ${filename} file in data folder.`);
+        console.log('Done, check proxyMainnet file in data folder.');
         process.exit(0);
     });
 }
