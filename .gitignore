@@ -106,3 +106,5 @@ proxy/package-lock.json
 proxy/proxy.json
 npms/skale-mta/node_modules/
 npms/skale-mta/package-lock.json
+proxy/data/*.json
+agent/package-lock.json

@@ -314,7 +314,10 @@ async function do_payment_from_main_net(
         //
         //
         let dataTx = jo_deposit_box.methods.deposit(
-            chain_id_s_chain, joAccountDst.address(w3_main_net) // call params, last is destination account on S-chain
+            // call params, last is destination account on S-chain
+            chain_id_s_chain
+            , joAccountDst.address(w3_main_net)
+            , w3_main_net.utils.fromAscii("") // TO-DO: string is "data" parameter, we need to allow user to specify it
             ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
             "nonce": tcnt, // 0x00, ...
@@ -376,7 +379,9 @@ async function do_payment_from_s_chain(
         //
         //
         let dataTx = jo_token_manager.methods.exitToMain(
-            joAccountDst.address(w3_s_chain) // call params, last is destination account on S-chain
+            // call params, last is destination account on S-chain
+            joAccountDst.address(w3_s_chain)
+            , w3_s_chain.utils.fromAscii("") // TO-DO: string is "data" parameter, we need to allow user to specify it
             ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
             "nonce": tcnt, // 0x00, ...
@@ -474,6 +479,8 @@ async function do_transfer(
             var arrDst = [];
             var arrTo = [];
             var arrAmount = [];
+            var strDataAll = "";
+            var arrLengths = [];
             var nIdxCurrentMsgBlockStart = 0 + nIdxCurrentMsg;
             //
             //
@@ -510,6 +517,8 @@ async function do_transfer(
                 arrDst.push( joValues.dstContract );
                 arrTo.push( joValues.to );
                 arrAmount.push( joValues.amount );
+                strDataAll += w3_dst.utils.hexToAscii(joValues.data);
+                arrLengths.push( joValues.length );
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
             if( cntAccumulatedForBlock == 0 )
                 break;
@@ -537,7 +546,9 @@ async function do_transfer(
                 arrSrc,   // address[] memory senders
                 arrDst,   // address[] memory dstContracts
                 arrTo,    // address[] memory to
-                arrAmount // uint[] memory amount / *uint[2] memory blsSignature* /
+                arrAmount, // uint[] memory amount / *uint[2] memory blsSignature* /
+                w3_dst.utils.asciiToHex(strDataAll),
+                arrLengths
                 ).encodeABI(); // the encoded ABI of the method
             //
             if(verbose_get() >= RV_VERBOSE.trace ) {

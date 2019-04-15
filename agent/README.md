@@ -93,8 +93,10 @@ Second, install dependecies:
     npm install ethereumjs-tx
     npm install ethereumjs-wallet
     npm install ethereumjs-util
+    npm install --save @babel/core@^7.0.0-0
     npm install --save-dev @babel/plugin-transform-runtime
     npm install --save @babel/runtime
+
 
 ### Bind MTA to Main-net
 
