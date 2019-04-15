@@ -23,7 +23,6 @@ const jsonData = require("../proxy.json");
 const MessageProxy = new web3.eth.Contract(jsonData['message_proxy_mainnet_abi'], jsonData['message_proxy_mainnet_address']);
 const MessageProxyChain = new web3.eth.Contract(jsonData['message_proxy_chain_abi'], jsonData['message_proxy_chain_address']);
 const DepositBox = new web3.eth.Contract(jsonData['deposit_box_abi'], jsonData['deposit_box_address']);
-//let account = "0x6d806d42a3233336c108cece6bfa277f9a25c1d9";
 
 async function connectChain(ChainID) {
     let res = await MessageProxy.methods.addConnectedChain(ChainID, [1, 1, 1, 1]).send({from: account, gas: 1000000});
