@@ -1,6 +1,7 @@
 pragma solidity ^0.5.0;
 
 import "./Ownable.sol";
+import 'openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol';
 
 interface TokenFactoryForSchain {
     function createERC20(bytes calldata data) external returns (address payable);
@@ -118,6 +119,18 @@ contract TokenManager is Ownable {
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage("Mainnet", tokenManagerAddresses[keccak256(abi.encodePacked("Mainnet"))], 0, tokens[keccak256(abi.encodePacked("Mainnet"))][contractHere].contractOnSchain, data);
     }
 
+    function exitToMainERC721(address contractHere, address to, uint tokenId) public {
+        require(tokens[keccak256(abi.encodePacked("Mainnet"))][contractHere].created);
+        require(tokens[keccak256(abi.encodePacked("Mainnet"))][contractHere].contractOnSchain != address(0));
+        require(IERC721Full(contractHere).getApproved(tokenId) == address(this));
+        IERC721(contractHere).transferFrom(msg.sender, address(this), tokenId);
+
+        bytes memory data;
+
+        data = abi.encodePacked(bytes1(uint8(5)), bytes32(bytes20(contractHere)), bytes32(bytes20(to)), bytes32(tokenId));
+        ProxyForSchain(proxyForSchainAddress).postOutgoingMessage("Mainnet", tokenManagerAddresses[keccak256(abi.encodePacked("Mainnet"))], 0, tokens[keccak256(abi.encodePacked("Mainnet"))][contractHere].contractOnSchain, data);
+    }
+
     function transferToSchain(string memory schainID, address to, bytes memory data) public payable {
         require(keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")));
         require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0));
@@ -144,6 +157,33 @@ contract TokenManager is Ownable {
         }
 
         data = abi.encodePacked(bytes1(uint8(3)), bytes32(bytes20(contractHere)), bytes32(bytes20(to)), bytes32(amount));
+        ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, tokens[keccak256(abi.encodePacked(schainID))][contractHere].contractOnSchain, data);
+    }
+
+    function transferToSchainERC721(string memory schainID, address contractHere, address to, uint tokenId) public {
+        require(keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")));
+        require(IERC721Full(contractHere).getApproved(tokenId) == address(this));
+        require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0));
+        IERC721Full(contractHere).transferFrom(msg.sender, address(this), tokenId);
+
+        bytes memory data;
+
+        if (!tokens[keccak256(abi.encodePacked(schainID))][contractHere].created) {
+            string memory name = IERC721Full(contractHere).name();
+            string memory symbol = IERC721Full(contractHere).symbol();
+            data = abi.encodePacked(
+                bytes1(uint8(5)), 
+                bytes32(bytes20(contractHere)), 
+                bytes(name).length, 
+                name, 
+                bytes(symbol).length, 
+                symbol
+            );
+            ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, address(0), data);
+            tokens[keccak256(abi.encodePacked(schainID))][contractHere].created = true;
+        }
+
+        data = abi.encodePacked(bytes1(uint8(4)), bytes32(bytes20(contractHere)), bytes32(bytes20(to)), bytes32(tokenId));
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, tokens[keccak256(abi.encodePacked(schainID))][contractHere].contractOnSchain, data);
     }
 

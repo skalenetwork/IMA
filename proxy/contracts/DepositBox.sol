@@ -1,23 +1,19 @@
 pragma solidity ^0.5.0;
 
 import "./Ownable.sol";
+import 'openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
 
 
 interface Proxy {
-    function postOutgoingMessage(string calldata dstChainID, address dstContract, uint amount, address to, bytes calldata data) external;
-}
-
-interface ERC20 {
-    function transfer(address to, uint256 value) external returns (bool);
-    function approve(address spender, uint256 value) external returns (bool);
-    function transferFrom(address from, address to, uint256 value) external returns (bool);
-    function mint(address to, uint256 amount) external returns (bool);
-    function totalSupply() external view returns (uint256);
-    function name() external view returns (string memory);
-    function symbol() external view returns (string memory);
-    function decimals() external view returns (uint8);
-    function balanceOf(address who) external view returns (uint256);
-    function allowance(address owner, address spender) external view returns (uint256);
+    function postOutgoingMessage(
+        string calldata dstChainID, 
+        address dstContract, 
+        uint amount, 
+        address to, 
+        bytes calldata data
+        ) 
+        external;
 }
 
 // This contract runs on the main net and accepts deposits
@@ -43,9 +39,22 @@ contract DepositBox is Ownable {
 
     //mapping(address => mapping(address => uint)) public allowed;
 
-    event MoneyReceivedMessage(address sender, string fromSchainID, address to, uint amount, bytes data);
+    event MoneyReceivedMessage(
+        address sender, 
+        string fromSchainID, 
+        address to, 
+        uint amount, 
+        bytes data
+    );
 
-    event Error(address sender, string fromSchainID, address to, uint amount, bytes data, string message);
+    event Error(
+        address sender, 
+        string fromSchainID, 
+        address to, 
+        uint amount, 
+        bytes data, 
+        string message
+    );
 
     /// Create a new deposit box
     constructor(address newProxyAddress) public {
@@ -67,40 +76,87 @@ contract DepositBox is Ownable {
         require(keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")));
         require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0));
         require(msg.value >= GAS_AMOUNT_POST_MESSAGE * 1000000000); // average tx.gasprice
-        require(ERC20(contractHere).allowance(msg.sender, address(this)) >= amount);
-        require(ERC20(contractHere).transferFrom(msg.sender, address(this), amount));
+        require(ERC20Detailed(contractHere).allowance(msg.sender, address(this)) >= amount);
+        require(ERC20Detailed(contractHere).transferFrom(msg.sender, address(this), amount));
 
         bytes memory data;
 
         if (!tokens[keccak256(abi.encodePacked(schainID))][contractHere].created) {
-            string memory name = ERC20(contractHere).name();
-            uint8 decimals = ERC20(contractHere).decimals();
-            string memory symbol = ERC20(contractHere).symbol();
-            uint totalSupply = ERC20(contractHere).totalSupply();
-            data = abi.encodePacked(bytes1(uint8(2)), bytes32(bytes20(contractHere)), bytes(name).length, name, bytes(symbol).length, symbol, decimals, totalSupply);
+            string memory name = ERC20Detailed(contractHere).name();
+            uint8 decimals = ERC20Detailed(contractHere).decimals();
+            string memory symbol = ERC20Detailed(contractHere).symbol();
+            uint totalSupply = ERC20Detailed(contractHere).totalSupply();
+            data = abi.encodePacked(
+                bytes1(uint8(2)), 
+                bytes32(bytes20(contractHere)), 
+                bytes(name).length, 
+                name, 
+                bytes(symbol).length, 
+                symbol, 
+                decimals, 
+                totalSupply
+            );
             Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, address(0), data);
             tokens[keccak256(abi.encodePacked(schainID))][contractHere].created = true;
         }
 
         data = abi.encodePacked(bytes1(uint8(3)), bytes32(bytes20(contractHere)), bytes32(bytes20(to)), bytes32(amount));
         Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, tokens[keccak256(abi.encodePacked(schainID))][contractHere].contractOnSchain, data);
+    }
 
-        // if (!(contractMpper[contractHere][keccak256(abi.encodePacked(schainID))].contractOnSchain == address(0))) {
-        //     bytes memory data = abi.encodePacked(bytes4(keccak256(abi.encodePacked("transfer(address,uint256)"))), bytes32(to), bytes32(amount));
-        //     Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, contractThere, data);
-        // }
-        // if (!contractMapper[contractHere][keccak256(abi.encodePacked(schainID))].created) {
-        //     string memory name = ERC20(contractHere).name();
-        //     uint8 decimals = ERC20(contractHere).decimals();
-        //     string memory symbol = ERC20(contractHere).symbol();
-        //     bytes memory data = abi.encodePacked(0x01, name.length, name, symbol.length, symbol, decimals);
-        //     Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, address(0), data);
-        //     //Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, address(0))
-        // } else if (contractMapper[contractHere][keccak256(abi.encodePacked(schainID))].contractOnSchain == address(0)) {
-            
-        // }
-        // bytes memory data = abi.encodePacked(bytes4(keccak256(abi.encodePacked("transfer(address,uint256)"))), bytes32(to), bytes32(amount));
-        // Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, contractThere, data);
+    function rawDepositERC20(string memory schainID, address contractHere, address contractThere, address to, uint amount) public payable {
+        require(keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")));
+        require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0));
+        require(msg.value >= GAS_AMOUNT_POST_MESSAGE * 1000000000); // average tx.gasprice
+        require(ERC20Detailed(contractHere).allowance(msg.sender, address(this)) >= amount);
+        require(ERC20Detailed(contractHere).transferFrom(msg.sender, address(this), amount));
+
+        bytes memory data;
+
+        data = abi.encodePacked(bytes1(uint8(3)), bytes32(bytes20(contractHere)), bytes32(bytes20(to)), bytes32(amount));
+        Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, tokens[keccak256(abi.encodePacked(schainID))][contractHere].contractOnSchain, data);
+
+    }
+
+    function depositERC721(string memory schainID, address contractHere, address to, uint tokenId) public payable {
+        require(keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")));
+        require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0));
+        require(msg.value >= GAS_AMOUNT_POST_MESSAGE * 1000000000); // average tx.gasprice
+        require(IERC721Full(contractHere).getApproved(tokenId) == address(this));
+        IERC721Full(contractHere).transferFrom(msg.sender, address(this), tokenId);
+
+        bytes memory data;
+
+        if (!tokens[keccak256(abi.encodePacked(schainID))][contractHere].created) {
+            string memory name = IERC721Full(contractHere).name();
+            string memory symbol = IERC721Full(contractHere).symbol();
+            data = abi.encodePacked(
+                bytes1(uint8(5)), 
+                bytes32(bytes20(contractHere)), 
+                bytes(name).length, 
+                name, 
+                bytes(symbol).length, 
+                symbol
+            );
+            Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, address(0), data);
+            tokens[keccak256(abi.encodePacked(schainID))][contractHere].created = true;
+        }
+
+        data = abi.encodePacked(bytes1(uint8(4)), bytes32(bytes20(contractHere)), bytes32(bytes20(to)), bytes32(tokenId));
+        Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, tokens[keccak256(abi.encodePacked(schainID))][contractHere].contractOnSchain, data);
+    }
+
+    function rawDepositERC721(string memory schainID, address contractHere, address contractThere, address to, uint tokenId) public payable {
+        require(keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")));
+        require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0));
+        require(msg.value >= GAS_AMOUNT_POST_MESSAGE * 1000000000); // average tx.gasprice
+        require(IERC721Full(contractHere).getApproved(tokenId) == address(this));
+        IERC721Full(contractHere).transferFrom(msg.sender, address(this), tokenId);
+
+        bytes memory data;
+
+        data = abi.encodePacked(bytes1(uint8(5)), bytes32(bytes20(contractHere)), bytes32(bytes20(to)), bytes32(tokenId));
+        Proxy(proxyAddress).postOutgoingMessage(schainID, tokenManagerAddresses[keccak256(abi.encodePacked(schainID))], 0, tokens[keccak256(abi.encodePacked(schainID))][contractHere].contractOnSchain, data);
     }
 
     function deposit(string memory schainID, address to) public payable {
@@ -153,11 +209,11 @@ contract DepositBox is Ownable {
                 tokens[keccak256(abi.encodePacked(fromSchainID))][to].contractOnSchain = contractThere;
             }
             require(tokens[keccak256(abi.encodePacked(fromSchainID))][to].contractOnSchain == contractThere);
-            if (ERC20(to).balanceOf(address(this)) >= amountOfTokens) {
-                require(ERC20(to).transfer(receiver, amountOfTokens));
-            } else {
-                require(ERC20(to).mint(receiver, amountOfTokens));
-            }
+            if (ERC20Detailed(to).balanceOf(address(this)) >= amountOfTokens) {
+                require(ERC20Detailed(to).transfer(receiver, amountOfTokens));
+            } /*else {
+                require(ERC20Detailed(to).mint(receiver, amountOfTokens));
+            }*/
             require(address(owner).send(GAS_AMOUNT_POST_MESSAGE * 1000000000));
             return;
         } else if (operation == TransactionOperation.transferERC721) {
