@@ -31,12 +31,19 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
 
     }
 
-    function mint(address to, uint256 tokenId) public onlyMinter returns (bool) {
+    function mint(address to, uint256 tokenId) 
+        public 
+        onlyMinter 
+        returns (bool) 
+    {
         _mint(to, tokenId);
         return true;
     }
 
-    function setTokenURI(uint256 tokenId, string memory tokenURI) public returns (bool) {
+    function setTokenURI(uint256 tokenId, string memory tokenURI) 
+        public 
+        returns (bool) 
+    {
         require(_exists(tokenId));
         require(_isApprovedOrOwner(msg.sender, tokenId));
         _setTokenURI(tokenId, tokenURI);
@@ -62,20 +69,34 @@ contract TokenFactory {
         owner = newOwner;
     }
 
-    function createERC20(bytes memory data) public onlyOwner returns (address) {
+    function createERC20(bytes memory data) 
+        public 
+        onlyOwner 
+        returns (address) 
+    {
         string memory name;
         string memory symbol;
         uint8 decimals;
         uint256 totalSupply;
-        (name, symbol, decimals, totalSupply) = fallbackDataCreateERC20Parser(data);
-        ERC20OnChain newERC20 = new ERC20OnChain(name, symbol, decimals, totalSupply);
+        (name, symbol, decimals, totalSupply) = 
+            fallbackDataCreateERC20Parser(data);
+        ERC20OnChain newERC20 = new ERC20OnChain(
+            name, 
+            symbol, 
+            decimals, 
+            totalSupply
+        );
         newERC20.mint(msg.sender, totalSupply);
         newERC20.addMinter(msg.sender);
         newERC20.renounceMinter();
         return address(newERC20);
     }
 
-    function createERC721(bytes memory data) public onlyOwner returns (address) {
+    function createERC721(bytes memory data) 
+        public 
+        onlyOwner 
+        returns (address) 
+    {
         string memory name;
         string memory symbol;
         (name, symbol) = fallbackDataCreateERC721Parser(data);
