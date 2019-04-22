@@ -27,6 +27,8 @@
 let schainRpcIp = process.env.SCHAIN_RPC_IP;
 let schainRpcPort = process.env.SCHAIN_RPC_PORT;
 let schainName = process.env.SCHAIN_NAME;
+let privateKeyForSchain = process.env.ETH_PRIVATE_KEY_FOR_SCHAIN;
+let privateKeyForMainnet = process.env.ETH_PRIVATE_KEY_FOR_MAINNET;
 
 module.exports = {
     /**
@@ -63,16 +65,16 @@ module.exports = {
         host: "127.0.0.1",
         port: 8545,
         gas: 8000000,
-        network_id: "*"
-        //"from": "0x6196d135CdDb9d73A0756C1E44b5b02B11acf594"
+        network_id: "*",
+        from: "0xb4f9e4e7fa7e8d18cdf9d41b5ceaf2c21271bbc8"
       },
-      pseudo_main_net: {
+      pseudo_mainnet: {
         gasPrice: 10000000000,
         host: "127.0.0.1",
         port: 8545,
         gas: 8000000,
         network_id: "*",
-        "from": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
+        from: "0xb4f9e4e7fa7e8d18cdf9d41b5ceaf2c21271bbc8"
       },
       do: {
         host: "134.209.56.46",
@@ -102,12 +104,13 @@ module.exports = {
         network_id: "*"
       },
       schain: {
-        host: schainRpcIp,
-        port: schainRpcPort,
         gasPrice: 10000000000,
+        host: "127.0.0.1",
+        port: 8545,
         gas: 8000000,
-        from: "0x5112ce768917e907191557d7e9521c2590cdd3a0",
-        network_id: "*"
+        network_id: "*",
+        name: "New Schain",
+        from: "0xb4f9e4e7fa7e8d18cdf9d41b5ceaf2c21271bbc8"
       }
   
       // Another network with more advanced options...

@@ -10,6 +10,5 @@
 #node scripts/1_deploy_contracts_to_mainnet.js
 #NETWORK=${NETWORK_FOR_SCHAIN} ETH_PRIVATE_KEY=${ETH_PRIVATE_KEY_FOR_SCHAIN} node migrations/2_deploy_contracts_to_schain.js
 #node scripts/2_deploy_contracts_to_schain.js
-truffle deploy
-truffle deploy -f 2
-truffle deploy -f 3
+truffle deploy -f 1 --network pseudo_mainnet
+truffle deploy -f 2 --network schain
