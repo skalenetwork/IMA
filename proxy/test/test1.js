@@ -436,7 +436,7 @@ let TokenABI = [
     }
   ];
 
-const TokenAddress = "0xdB9F899B313d22e9C13e499c86c1d73dae2A7cf3";
+const TokenAddress = "0x2Cefc8668887eCAd7297F53fC3Ce740eD1D25782";
 //const TokenOnSchainAddress = "0x3fe75c61b338c5cf6e9e086288acba44f55929ee";
 
 const DepositBox = new web3.eth.Contract(jsonDataMainnet['deposit_box_abi'], jsonDataMainnet['deposit_box_address']);
@@ -466,14 +466,14 @@ async function connectChain(ChainID) {
     let result = eventOutgoingMessage[0].returnValues;
     console.log("Result of Event", result);
 
-    let eventOutgoingMessageTransfer = await MessageProxy.getPastEvents("OutgoingMessage", {
-        "filter": {"msgCounter": [1]},
-        "fromBlock": 0,
-        "toBlock": "latest"
-    });
-    console.log(eventOutgoingMessageTransfer);
-    let resultTransfer = eventOutgoingMessageTransfer[0].returnValues;
-    console.log("Result of Event", resultTransfer);
+    // let eventOutgoingMessageTransfer = await MessageProxy.getPastEvents("OutgoingMessage", {
+    //     "filter": {"msgCounter": [1]},
+    //     "fromBlock": 0,
+    //     "toBlock": "latest"
+    // });
+    // console.log(eventOutgoingMessageTransfer);
+    // let resultTransfer = eventOutgoingMessageTransfer[0].returnValues;
+    // console.log("Result of Event", resultTransfer);
 
     // let data = TokenOnSchain.methods.transfer(account, web3.utils.toBN('1000000000000000000').toString());
     // let dataToDeposit = data.encodeABI();
@@ -501,17 +501,17 @@ async function connectChain(ChainID) {
     let resultContract = eventERC20ContractCreated[0].returnValues;
     console.log("Result of Event", resultContract);
 
-    let res5 = await MessageProxyChain.methods.postIncomingMessages(
-        "Mainnet", 
-        1, 
-        [resultTransfer.srcContract], 
-        [resultTransfer.dstContract], 
-        [resultTransfer.to], 
-        [resultTransfer.amount], 
-        resultTransfer.data, 
-        [resultTransfer.length]
-    ).send({from: account, gas: 8000000});
-    console.log(res5);
+    // let res5 = await MessageProxyChain.methods.postIncomingMessages(
+    //     "Mainnet", 
+    //     1, 
+    //     [resultTransfer.srcContract], 
+    //     [resultTransfer.dstContract], 
+    //     [resultTransfer.to], 
+    //     [resultTransfer.amount], 
+    //     resultTransfer.data, 
+    //     [resultTransfer.length]
+    // ).send({from: account, gas: 8000000});
+    // console.log(res5);
 
     
 }

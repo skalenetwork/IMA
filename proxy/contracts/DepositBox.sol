@@ -42,13 +42,13 @@ contract DepositBox is Ownable {
     uint public constant GAS_AMOUNT_POST_MESSAGE = 55000; // 0;
     uint public constant AVERAGE_TX_PRICE = 1000000000;
 
-    address[] public ERC20Tokens;
-    mapping(address => Clone) public isERC20Tokens;
-    mapping(bytes32 => mapping(address => bool)) isERC20Offside;
+    mapping(uint => address) public ERC20Tokens;
+    mapping(address => uint) public ERC20Mapper;
+    uint newIndexERC20 = 1;
 
-    address[] public ERC721Tokens;
-    mapping(address => Clone) public isERC721Tokens;
-    mapping(bytes32 => mapping(address => bool)) isERC721Offside;
+    mapping(uint => address) public ERC721Tokens;
+    mapping(address => uint) public ERC721Mapper;
+    uint newIndexERC721 = 1;
 
     //mapping(address => mapping(address => uint)) public allowed;
 
@@ -117,45 +117,34 @@ contract DepositBox is Ownable {
                 amount
             )
         );
-
-        if (!isERC20Tokens[contractHere].created) {
-            ERC20Tokens.push(contractHere);
-            isERC20Tokens[contractHere].created = true;
-            isERC20Tokens[contractHere].index = ERC20Tokens.length - 1;
+        uint contractPosition;
+        if (ERC20Mapper[contractHere] == 0) {
+            contractPosition = newIndexERC20;
+            ERC20Mapper[contractHere] = contractPosition;
+            newIndexERC20++;
+            ERC20Tokens[contractPosition] = contractHere;
+        } else {
+            contractPosition = ERC20Mapper[contractHere];
         }
 
         bytes memory data;
 
-        if (!isERC20Offside[schainHash][contractHere]) {
-            string memory name = ERC20Detailed(contractHere).name();
-            uint8 decimals = ERC20Detailed(contractHere).decimals();
-            string memory symbol = ERC20Detailed(contractHere).symbol();
-            uint totalSupply = ERC20Detailed(contractHere).totalSupply();
-            data = abi.encodePacked(
-                bytes1(uint8(2)), 
-                bytes32(uint256(isERC20Tokens[contractHere].index)), 
-                bytes(name).length, 
-                name, 
-                bytes(symbol).length, 
-                symbol, 
-                decimals, 
-                totalSupply
-            );
-            Proxy(proxyAddress).postOutgoingMessage(
-                schainID, 
-                tokenManagerAddresses[schainHash], 
-                0, 
-                address(0), 
-                data
-            );
-            isERC20Offside[schainHash][contractHere] = true;
-        }
+        string memory name = ERC20Detailed(contractHere).name();
+        uint8 decimals = ERC20Detailed(contractHere).decimals();
+        string memory symbol = ERC20Detailed(contractHere).symbol();
+        uint totalSupply = ERC20Detailed(contractHere).totalSupply();        
 
         data = abi.encodePacked(
             bytes1(uint8(3)), 
-            bytes32(isERC20Tokens[contractHere].index), 
+            bytes32(contractPosition), 
             bytes32(bytes20(to)), 
-            bytes32(amount)
+            bytes32(amount),
+            bytes(name).length, 
+            name, 
+            bytes(symbol).length, 
+            symbol, 
+            decimals, 
+            totalSupply
         );
         Proxy(proxyAddress).postOutgoingMessage(
             schainID, 
@@ -234,40 +223,30 @@ contract DepositBox is Ownable {
         );
         require(IERC721Full(contractHere).ownerOf(tokenId) == address(this));
 
-        if (!isERC721Tokens[contractHere].created) {
-            ERC721Tokens.push(contractHere);
-            isERC721Tokens[contractHere].created = true;
-            isERC721Tokens[contractHere].index = ERC721Tokens.length - 1;
+        uint contractPosition;
+        if (ERC721Mapper[contractHere] == 0) {
+            contractPosition = newIndexERC721;
+            ERC721Mapper[contractHere] = contractPosition;
+            newIndexERC721++;
+            ERC721Tokens[contractPosition] = contractHere;
+        } else {
+            contractPosition = ERC721Mapper[contractHere];
         }
 
         bytes memory data;
 
-        if (!isERC721Offside[schainHash][contractHere]) {
-            string memory name = IERC721Full(contractHere).name();
-            string memory symbol = IERC721Full(contractHere).symbol();
-            data = abi.encodePacked(
-                bytes1(uint8(5)), 
-                bytes32(uint256(isERC721Tokens[contractHere].index)), 
-                bytes(name).length, 
-                name, 
-                bytes(symbol).length, 
-                symbol
-            );
-            Proxy(proxyAddress).postOutgoingMessage(
-                schainID, 
-                tokenManagerAddresses[schainHash], 
-                0, 
-                address(0), 
-                data
-            );
-            isERC721Offside[schainHash][contractHere] = true;
-        }
+        string memory name = IERC721Full(contractHere).name();
+        string memory symbol = IERC721Full(contractHere).symbol();   
 
         data = abi.encodePacked(
-            bytes1(uint8(4)), 
-            bytes32(isERC721Tokens[contractHere].index), 
+            bytes1(uint8(5)), 
+            bytes32(contractPosition), 
             bytes32(bytes20(to)), 
-            bytes32(tokenId)
+            bytes32(tokenId),
+            bytes(name).length, 
+            name, 
+            bytes(symbol).length, 
+            symbol
         );
         Proxy(proxyAddress).postOutgoingMessage(
             schainID, 
@@ -411,10 +390,7 @@ contract DepositBox is Ownable {
             uint amountOfTokens;
             (contractIndex, receiver, amountOfTokens) 
                 = fallbackDataParser(data);
-            require(contractIndex < ERC20Tokens.length);
             require(ERC20Tokens[contractIndex] != address(0));
-            require(isERC20Tokens[ERC20Tokens[contractIndex]].created);
-            require(isERC20Offside[schainHash][ERC20Tokens[contractIndex]]);
             if (ERC20Detailed(ERC20Tokens[contractIndex]).balanceOf(address(this)) >= amountOfTokens) {
                 require(ERC20Detailed(ERC20Tokens[contractIndex]).transfer(receiver, amountOfTokens));
             } /*else {
@@ -430,10 +406,7 @@ contract DepositBox is Ownable {
             address receiver;
             uint tokenId;
             (contractIndex, receiver, tokenId) = fallbackDataParser(data);
-            require(contractIndex < ERC721Tokens.length);
-            require(ERC721Tokens[contractIndex] != address(0));
-            require(isERC721Tokens[ERC721Tokens[contractIndex]].created);
-            require(isERC721Offside[schainHash][ERC721Tokens[contractIndex]]);
+            require(ERC20Tokens[contractIndex] != address(0));
             if (IERC721Full(ERC721Tokens[contractIndex]).ownerOf(tokenId) == address(this)) {
                 IERC721Full(ERC721Tokens[contractIndex]).transferFrom(address(this), receiver, tokenId);
                 require(IERC721Full(ERC721Tokens[contractIndex]).ownerOf(tokenId) == receiver);

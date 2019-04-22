@@ -121,19 +121,19 @@ contract TokenFactory {
         bytes32 nameLength;
         bytes32 symbolLength;
         assembly {
-            nameLength := mload(add(data, 65))
+            nameLength := mload(add(data, 129))
         }
         name = new string(uint(nameLength));
         for (uint i = 0; i < uint(nameLength); i++) {
-            bytes(name)[i] = data[65 + i];
+            bytes(name)[i] = data[129 + i];
         }
         uint lengthOfName = uint(nameLength);
         assembly {
-            symbolLength := mload(add(data, add(97, lengthOfName)))
+            symbolLength := mload(add(data, add(161, lengthOfName)))
         }
         symbol = new string(uint(symbolLength));
         for (uint i = 0; i < uint(symbolLength); i++) {
-            bytes(symbol)[i] = data[97 + lengthOfName + i];
+            bytes(symbol)[i] = data[161 + lengthOfName + i];
         }
         uint lengthOfSymbol = uint(symbolLength);
         assembly {
@@ -161,19 +161,19 @@ contract TokenFactory {
         bytes32 nameLength;
         bytes32 symbolLength;
         assembly {
-            nameLength := mload(add(data, 65))
+            nameLength := mload(add(data, 129))
         }
         name = new string(uint(nameLength));
         for (uint i = 0; i < uint(nameLength); i++) {
-            bytes(name)[i] = data[65 + i];
+            bytes(name)[i] = data[129 + i];
         }
         uint lengthOfName = uint(nameLength);
         assembly {
-            symbolLength := mload(add(data, add(97, lengthOfName)))
+            symbolLength := mload(add(data, add(161, lengthOfName)))
         }
         symbol = new string(uint(symbolLength));
         for (uint i = 0; i < uint(symbolLength); i++) {
-            bytes(symbol)[i] = data[97 + lengthOfName + i];
+            bytes(symbol)[i] = data[161 + lengthOfName + i];
         }
     }
 }
