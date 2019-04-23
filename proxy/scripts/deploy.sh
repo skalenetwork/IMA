@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#: "${NETWORK_FOR_MAINNET:?Provide NETWORK_FOR_MAINNET to deploy}"
+: "${DIRECTION:?Provide DIRECTION to deploy}"
 #: "${ETH_PRIVATE_KEY_FOR_MAINNET:?Provide ETH_PRIVATE_KEY_FOR_MAINNET to deploy}"
 #: "${SCHAIN_NAME:?Provide SCHAIN_NAME to deploy}"
 #: "${NETWORK_FOR_SCHAIN:?Provide NETWORK_FOR_SCHAIN to deploy}"
@@ -10,6 +10,33 @@
 #node scripts/1_deploy_contracts_to_mainnet.js
 #NETWORK=${NETWORK_FOR_SCHAIN} ETH_PRIVATE_KEY=${ETH_PRIVATE_KEY_FOR_SCHAIN} node migrations/2_deploy_contracts_to_schain.js
 #node scripts/2_deploy_contracts_to_schain.js
-truffle deploy
-truffle deploy -f 2
-truffle deploy -f 3
+
+if [[ ! ${DIRECTION} =~ ^(main|schain|both)$ ]]; then
+    echo "DIRECTION variable proper values: ( main | schain | both )"
+    exit 1
+fi
+export $(cat .env | xargs) 
+if [ "${DIRECTION}" = main ]; then
+    if [[ -z "${NETWORK_FOR_MAINNET}" ]]; then
+        echo "Please set NETWORK_FOR_MAINNET to .env file"
+        exit 1
+    fi
+    truffle deploy -f 1 --network ${NETWORK_FOR_MAINNET}
+elif [ "${DIRECTION}" = schain ]; then
+    if [[ -z "${NETWORK_FOR_SCHAIN}" ]]; then
+        echo "Please set NETWORK_FOR_SCHAIN to .env file"
+        exit 1
+    fi
+    truffle deploy -f 2 --network ${NETWORK_FOR_SCHAIN}
+elif [ "${DIRECTION}" = both ]; then
+    if [[ -z "${NETWORK_FOR_MAINNET}" ]]; then
+        echo "Please set NETWORK_FOR_MAINNET to .env file"
+        exit 1
+    fi
+    if [[ -z "${NETWORK_FOR_SCHAIN}" ]]; then
+        echo "Please set NETWORK_FOR_SCHAIN to .env file"
+        exit 1
+    fi
+    truffle deploy -f 1 --network ${NETWORK_FOR_MAINNET}
+    truffle deploy -f 2 --network ${NETWORK_FOR_SCHAIN}
+fi

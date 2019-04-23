@@ -1,18 +1,19 @@
 {
   "dependencies": {
-    "solc": "0.4.25",
+    "solc": "0.5.7",
     "truffle-privatekey-provider": "1.0.0",
     "web3": "1.0.0-beta.35"
   },
   "license": "LGPL-3.0",
   "scripts": {
-    "start": "./node_modules/.bin/truffle compile",
-    "deploy-to-mainnet": "node scripts/1_deploy_contracts_to_mainnet.js",
-    "deploy-to-schain": "./scripts/deploy.sh"
+    "start": "rm -rf ./build && ./node_modules/.bin/truffle compile",
+    "deploy-to-mainnet": "DIRECTION=main bash ./scripts/deploy.sh",
+    "deploy-to-schain": "DIRECTION=schain bash ./scripts/deploy.sh",
+    "deploy-to-both-chains": "DIRECTION=both bash ./scripts/deploy.sh"
   },
   "devDependencies": {
     "dotenv": "^7.0.0",
     "openzeppelin-solidity": "^2.2.0",
-    "truffle": "^4.1.13"
+    "truffle": "^5.0.12"
   }
 }
