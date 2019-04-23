@@ -12,6 +12,10 @@ async function deploy(deployer, network) {
         console.log("Please use network with name 'schain'");
         process.exit(0);
     }
+    if (networks['networks'][network]['name'] == undefined || networks['networks'][network]['name'] == "") {
+        console.log("Please set SCHAIN_NAME to .env file");
+        process.exit(0);
+    }
     let schainName = networks['networks'][network]['name'];
     await deployer.deploy(MessageProxy, schainName, {gas: 8000000}).then(async function() {
         return await deployer.deploy(TokenManager, schainName, proxyMainnet['deposit_box_address'], MessageProxy.address, {gas: 8000000, value: "10000000000000000000"});
