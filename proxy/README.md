@@ -51,6 +51,12 @@ It combined of 3 additional smart contract not including MessageProxy contract:
 2) `TokenManager.sol`
 3) `TokenFactory.sol`
 
+## Install
+
+1) Clone this repo
+2) run `npm install`
+3) run `npm start` , this command will compile contracts
+
 ## Deployment
 
 Need to create your networks for schain and your mainnet
