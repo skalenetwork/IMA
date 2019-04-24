@@ -1,5 +1,6 @@
 # Proxy
-## SKALE Money Transfer Smart Contracts
+
+SKALE Money Transfer Smart Contracts
 
 Proxy is a library with smart contracts for SKALE Money Transfer Agent. It is a system which allow you transfer ETH, ERC20 and ERC721, based on Message Proxy system.
 Smart contract language - Solidity 0.5.7
@@ -19,7 +20,7 @@ interface Proxy {
         uint amount, 
         address to, 
         bytes calldata data
-        ) 
+    ) 
         external;
 }
 ```

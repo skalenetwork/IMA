@@ -74,7 +74,7 @@ module.exports = {
         port: 8545,
         gas: 8000000,
         network_id: "*",
-        from: "0xb4f9e4e7fa7e8d18cdf9d41b5ceaf2c21271bbc8"
+        from: "0x765f224ea7cd6d84cf28bf76af025a5b9175ab07"
       },
       do: {
         host: "134.209.56.46",
@@ -110,7 +110,7 @@ module.exports = {
         gas: 8000000,
         network_id: "*",
         name: "New Schain",
-        from: "0xb4f9e4e7fa7e8d18cdf9d41b5ceaf2c21271bbc8"
+        from: "0x765f224ea7cd6d84cf28bf76af025a5b9175ab07"
       }
   
       // Another network with more advanced options...
