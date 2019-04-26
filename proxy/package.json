@@ -1,7 +1,11 @@
 {
   "dependencies": {
+    "openzeppelin-solidity": "^2.2.0",
     "solc": "0.5.7",
-    "truffle-privatekey-provider": "1.1.0",
+    "truffle": "5.0.12",
+    "truffle-hdwallet-provider": "^1.0.8",
+    "truffle-hdwallet-provider-privkey": "^0.3.0",
+    "truffle-privatekey-provider": "0.1.0",
     "web3": "1.0.0-beta.37"
   },
   "license": "LGPL-3.0",
@@ -12,8 +16,6 @@
     "deploy-to-both-chains": "DIRECTION=both bash ./scripts/deploy.sh"
   },
   "devDependencies": {
-    "dotenv": "^7.0.0",
-    "openzeppelin-solidity": "^2.2.0",
-    "truffle": "^5.0.12"
+    "dotenv": "^7.0.0"
   }
 }

@@ -23,12 +23,17 @@
 //
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
-
+require('dotenv').config();
+let privateKeyProvider = require('truffle-hdwallet-provider');
 let schainRpcIp = process.env.SCHAIN_RPC_IP;
 let schainRpcPort = process.env.SCHAIN_RPC_PORT;
 let schainName = process.env.SCHAIN_NAME;
-let privateKeyForSchain = process.env.ETH_PRIVATE_KEY_FOR_SCHAIN;
+let mainnetRpcUrl = process.env.MAINNET_RPC_URL;
+//let privateKeyForSchain = process.env.ETH_PRIVATE_KEY_FOR_SCHAIN;
 let privateKeyForMainnet = process.env.ETH_PRIVATE_KEY_FOR_MAINNET;
+console.log(privateKeyForMainnet, mainnetRpcUrl);
+
+let mnemonic = "sick economy invite crucial crumble sort field behind nut term machine battle";
 
 module.exports = {
     /**
@@ -48,18 +53,7 @@ module.exports = {
       // tab if you use this network and you must also set the `host`, `port` and `network_id`
       // options below to some value.
       //
-      development: {
-       host: "127.0.0.1",     // Localhost (default: none)
-       port: 8545,            // Standard Ethereum port (default: none)
-       network_id: "*"       // Any network (default: none)
-       //from: "0x5d07ae83e5de15891d804c3d55ebe1fb7d2585cc"
-      },
-      server: {
-        host: "51.0.1.99",
-        port: 8545,
-        gasPrice: 10000000000,
-        network_id: "*"
-      },
+      
       local: {
         gasPrice: 10000000000,
         host: "127.0.0.1",
@@ -95,22 +89,22 @@ module.exports = {
         gasPrice: 10000000000,
         network_id: "*",
       },
-      serge: {
-        host: "0.0.0.0",
-        port: 2231,
-        gasPrice: 10000000000,
+      mainnet: {
+        provider: () => { 
+          return new privateKeyProvider(mnemonic, mainnetRpcUrl); 
+        },
+        gasPrice: 1000000000,
         gas: 8000000,
-        from: "0x6196d135CdDb9d73A0756C1E44b5b02B11acf594",
         network_id: "*"
       },
       schain: {
-        gasPrice: 10000000000,
-        host: "127.0.0.1",
-        port: 8545,
+        gasPrice: 0,
+        host: schainRpcIp,
+        port: schainRpcPort,
         gas: 8000000,
         network_id: "*",
-        name: "New Schain",
-        from: "0x765f224ea7cd6d84cf28bf76af025a5b9175ab07"
+        name: schainName,
+        from: "0x5112ce768917e907191557d7e9521c2590cdd3a0"
       }
   
       // Another network with more advanced options...
