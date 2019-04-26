@@ -24,14 +24,13 @@
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 require('dotenv').config();
-let privateKeyProvider = require('truffle-hdwallet-provider');
-let schainRpcIp = process.env.SCHAIN_RPC_IP;
-let schainRpcPort = process.env.SCHAIN_RPC_PORT;
+let hdwalletProvider = require('truffle-hdwallet-provider');
 let schainName = process.env.SCHAIN_NAME;
 let mainnetRpcUrl = process.env.MAINNET_RPC_URL;
-//let privateKeyForSchain = process.env.ETH_PRIVATE_KEY_FOR_SCHAIN;
-let privateKeyForMainnet = process.env.ETH_PRIVATE_KEY_FOR_MAINNET;
-console.log(privateKeyForMainnet, mainnetRpcUrl);
+let schainRpcUrl = process.env.SCHAIN_RPC_URL;
+
+let mnemonicForMainnet = process.env.MNEMONIC_FOR_MAINNET;
+let mnemonicForSchain = process.env.MNEMONIC_FOR_SCHAIN;
 
 let mnemonic = "sick economy invite crucial crumble sort field behind nut term machine battle";
 
@@ -91,7 +90,7 @@ module.exports = {
       },
       mainnet: {
         provider: () => { 
-          return new privateKeyProvider(mnemonic, mainnetRpcUrl); 
+          return new hdwalletProvider(mnemonicForMainnet, mainnetRpcUrl); 
         },
         gasPrice: 1000000000,
         gas: 8000000,
@@ -99,12 +98,13 @@ module.exports = {
       },
       schain: {
         gasPrice: 0,
-        host: schainRpcIp,
-        port: schainRpcPort,
+        provider: () => { 
+          return new hdwalletProvider(mnemonic, schainRpcUrl); 
+        },
         gas: 8000000,
         network_id: "*",
         name: schainName,
-        from: "0x5112ce768917e907191557d7e9521c2590cdd3a0"
+        skipDryRun: true
       }
   
       // Another network with more advanced options...

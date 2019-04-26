@@ -35,11 +35,11 @@ contract MessageProxy {
 
     event OutgoingMessage(
         string dstChain,
-        uint64 indexed msgCounter,
+        uint indexed msgCounter,
         address indexed srcContract,
         address dstContract,
         //bytes4 functionSignature,
-        //uint32  maxGas,
+        //uint  maxGas,
         //bytes32[] concatenatedParameters
         address to,
         uint amount,
@@ -51,8 +51,8 @@ contract MessageProxy {
         // BLS key is null for main chain, and not null for schains
         uint[4] publicKey;
         // message counters start with 0
-        uint64 incomingMessageCounter;
-        uint64 outgoingMessageCounter;
+        uint incomingMessageCounter;
+        uint outgoingMessageCounter;
         bool inited;
     }
 
@@ -142,7 +142,7 @@ contract MessageProxy {
 
     function postIncomingMessages(
         string memory srcChainID, 
-        uint64 startingCounter, 
+        uint startingCounter, 
         address[] memory senders, 
         address[] memory dstContracts, 
         address[] memory to, 
@@ -222,13 +222,13 @@ contract MessageProxy {
             );
         }
         connectedChains[srcChainHash].incomingMessageCounter += 
-            uint64(senders.length);
+            uint(senders.length);
     }
 
     function getOutgoingMessagesCounter(string memory dstChainID) 
         public 
         view 
-        returns (uint64) 
+        returns (uint) 
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited);
@@ -238,7 +238,7 @@ contract MessageProxy {
     function getIncomingMessagesCounter(string memory srcChainID) 
         public 
         view 
-        returns (uint64) 
+        returns (uint) 
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(connectedChains[srcChainHash].inited);
