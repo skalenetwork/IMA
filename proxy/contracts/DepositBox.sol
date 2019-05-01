@@ -12,7 +12,7 @@ interface Proxy {
         uint amount, 
         address to, 
         bytes calldata data
-        ) 
+    ) 
         external;
 }
 

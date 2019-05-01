@@ -25,14 +25,13 @@
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 require('dotenv').config();
 let hdwalletProvider = require('truffle-hdwallet-provider');
+let privateKeyProvider = require('truffle-privatekey-provider');
 let schainName = process.env.SCHAIN_NAME;
 let mainnetRpcUrl = process.env.MAINNET_RPC_URL;
 let schainRpcUrl = process.env.SCHAIN_RPC_URL;
 
-let mnemonicForMainnet = process.env.MNEMONIC_FOR_MAINNET;
-let mnemonicForSchain = process.env.MNEMONIC_FOR_SCHAIN;
-
-let mnemonic = "sick economy invite crucial crumble sort field behind nut term machine battle";
+let privateKeyForMainnet = "5802355ed674cea3bbba0935238e6327275d070779664b9afb0664a32e698ccb";
+let privateKeyForSchain = "d98adda3a052bdffaf76e465063c221891eb1409d9bf4c8abb63091172b30a8c";
 
 module.exports = {
     /**
@@ -89,21 +88,21 @@ module.exports = {
         network_id: "*",
       },
       mainnet: {
-        provider: () => { 
-          return new hdwalletProvider(mnemonicForMainnet, mainnetRpcUrl); 
-        },
+        host: "localhost",
+        port: 8545,
         gasPrice: 1000000000,
         gas: 8000000,
+        from: "0x0cdded6b500186dff34270101b4f3debf944977b",
         network_id: "*"
       },
       schain: {
         gasPrice: 0,
-        provider: () => { 
-          return new hdwalletProvider(mnemonic, schainRpcUrl); 
-        },
+        host: "localhost",
+        port: 8546,
         gas: 8000000,
         network_id: "*",
         name: schainName,
+        from: "0x03676a7d813ce046cd4a4ee63480a4e22254b8ea",
         skipDryRun: true
       }
   

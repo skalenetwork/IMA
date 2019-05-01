@@ -145,8 +145,14 @@ contract TokenManager is Ownable {
 
     // This is called by schain owner.
     // Exit to main net
+    function exitToMain(address to) public payable {
+        bytes memory empty;
+        exitToMain(to, empty);
+    }
+
     function exitToMain(address to, bytes memory data) public payable {
         require(msg.value > 0);
+        data = abi.encodePacked(bytes1(uint8(1)), data);
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(
             "Mainnet", 
             tokenManagerAddresses[keccak256(abi.encodePacked("Mainnet"))], 
