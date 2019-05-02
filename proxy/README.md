@@ -60,16 +60,25 @@ It combined of 3 additional smart contract not including MessageProxy contract:
 
 ## Deployment
 
-Need to create your networks for schain and your mainnet
+Need to configure your networks for schain and your mainnet in `truffle-config.js`
 
-Need to create `.env` file with following data:
+You have several preconfigured networks in comments.
+
+**Important** your network names should be equal `mainnet` and `schain`
+Also you always need to create an `SCHAIN_NAME`, `MAINNET_RPC_URL`, `SCHAIN_RPC_URL` variables in your `.env` file
+
+Need to create `.env` file with following data for your configured network:
 
 ```
-NETWORK_FOR_MAINNET="your network for mainnet"
-ETH_PRIVATE_KEY_FOR_MAINNET="your private key for mainnet"
-NETWORK_FOR_SCHAIN="your network for schain"
-ETH_PRIVATE_KEY_FOR_SCHAIN="your private key for schain"
-SCHAIN_NAME="Your schain name"
+MAINNET_RPC_URL="your mainnet rpc url, it also can be an infura endpoint"
+SCHAIN_RPC_URL="your schain rpc url, it also can be an infura endpoint"
+SCHAIN_NAME="your schain name"
+PRIVATE_KEY_FOR_MAINNET="your private key for mainnet"
+PRIVATE_KEY_FOR_SCHAIN="your private key for schain"
+ACCOUNT_FOR_MAINNET="your account for mainnet"
+ACCOUNT_FOR_SCHAIN="your account for schain"
+MNEMONIC_FOR_MAINNET="your mnemonic for mainnet"
+MNEMONIC_FOR_SCHAIN="your mnemonic for schain"
 ```
 
  - deploy only to your mainnet:
