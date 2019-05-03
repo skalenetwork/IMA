@@ -6,7 +6,7 @@
     "truffle-hdwallet-provider": "^1.0.8",
     "truffle-hdwallet-provider-privkey": "^0.3.0",
     "truffle-privatekey-provider": "0.1.0",
-    "web3": "1.0.0-beta.37"
+    "web3": "1.0.0-beta.35"
   },
   "license": "LGPL-3.0",
   "scripts": {
