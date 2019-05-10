@@ -27,6 +27,8 @@ module.exports = {
         gas: 8000000,
         network_id: "*"
       },
+      */
+      /*
       mainnet: {
         provider: () => { 
           return new Web3.providers.HttpProvider(mainnetRpcUrl); 
@@ -37,6 +39,7 @@ module.exports = {
         network_id: "*"
       }, 
       */
+      // /*
       mainnet: {
         provider: () => { 
           return new hdwalletProvider(mnemonicForMainnet, mainnetRpcUrl); 
@@ -45,6 +48,17 @@ module.exports = {
         gas: 8000000,
         network_id: "*"
       },
+      // */
+      /*
+      mainnet: {
+        provider: () => { 
+          return new hdwalletProvider(privateKeyForMainnet, mainnetRpcUrl); 
+        },
+        gasPrice: 1000000000,
+        gas: 8000000,
+        network_id: "*"
+      },
+      */
       /*
       schain: {
         provider: () => { 
@@ -55,6 +69,8 @@ module.exports = {
         name: schainName,
         network_id: "*"
       },
+      */
+      /*
       schain: {
         provider: () => { 
           return new Web3.providers.HttpProvider(schainRpcUrl); 
@@ -65,7 +81,8 @@ module.exports = {
         name: schainName,
         network_id: "*"
       },
-       */
+      */
+      // /*
       schain: {
         gasPrice: 0,
         provider: () => { 
@@ -73,8 +90,22 @@ module.exports = {
         },
         gas: 8000000,
         network_id: "*",
-        name: schainName
+        name: schainName,
+        skipDryRun: true
+      },
+      // */
+      /*
+      schain: {
+        gasPrice: 0,
+        provider: () => { 
+          return new hdwalletProvider(privateKeyForSchain, schainRpcUrl); 
+        },
+        gas: 8000000,
+        network_id: "*",
+        name: schainName,
+        skipDryRun: true
       }
+      */
     },
     mocha: {
       // timeout: 100000
