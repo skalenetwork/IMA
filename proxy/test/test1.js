@@ -436,7 +436,7 @@ let TokenABI = [
     }
   ];
 
-const TokenAddress = "0x108e1730FA0527CE88Ac30D4aB2147B97883420b";
+const TokenAddress = "0xB40DEFEFc936840e90d9Ca27691b2D4209a58a5b";
 //const TokenOnSchainAddress = "0x3fe75c61b338c5cf6e9e086288acba44f55929ee";
 
 const DepositBox = new web3.eth.Contract(jsonDataMainnet['deposit_box_abi'], jsonDataMainnet['deposit_box_address']);

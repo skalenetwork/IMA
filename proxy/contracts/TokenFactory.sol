@@ -138,9 +138,9 @@ contract TokenFactory {
         uint lengthOfSymbol = uint(symbolLength);
         assembly {
             decimals := mload(add(data, 
-                add(129, add(lengthOfName, lengthOfSymbol))))
+                add(193, add(lengthOfName, lengthOfSymbol))))
             totalSupply := mload(add(data, 
-                add(130, add(lengthOfName, lengthOfSymbol))))
+                add(194, add(lengthOfName, lengthOfSymbol))))
         }
         return (
             name, 

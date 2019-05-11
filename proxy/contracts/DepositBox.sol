@@ -12,7 +12,7 @@ interface Proxy {
         uint amount, 
         address to, 
         bytes calldata data
-        ) 
+    ) 
         external;
 }
 
@@ -149,7 +149,7 @@ contract DepositBox is Ownable {
         Proxy(proxyAddress).postOutgoingMessage(
             schainID, 
             tokenManagerAddresses[schainHash], 
-            0, 
+            msg.value, 
             address(0), 
             data
         );
@@ -193,7 +193,7 @@ contract DepositBox is Ownable {
         Proxy(proxyAddress).postOutgoingMessage(
             schainID, 
             tokenManagerAddresses[schainHash], 
-            0, 
+            msg.value, 
             contractThere, 
             data
         );
@@ -251,7 +251,7 @@ contract DepositBox is Ownable {
         Proxy(proxyAddress).postOutgoingMessage(
             schainID, 
             tokenManagerAddresses[schainHash], 
-            0, 
+            msg.value, 
             address(0), 
             data
         );
@@ -291,7 +291,7 @@ contract DepositBox is Ownable {
         Proxy(proxyAddress).postOutgoingMessage(
             schainID, 
             tokenManagerAddresses[schainHash], 
-            0, 
+            msg.value, 
             contractThere, 
             data
         );
@@ -385,12 +385,35 @@ contract DepositBox is Ownable {
             return;
         } else if (operation == TransactionOperation.transferERC20) {
             require(to == address(0));
+            require(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
+            if (
+                !(amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE <= 
+                    address(this).balance
+                )
+            ) {
+                emit Error(
+                    sender, 
+                    fromSchainID, 
+                    to, 
+                    amount, 
+                    data, 
+                    "Not enough money to finish this transaction"
+                );
+                return;
+            }
             uint contractIndex;
-            address receiver;
+            address payable receiver;
             uint amountOfTokens;
             (contractIndex, receiver, amountOfTokens) 
                 = fallbackDataParser(data);
             require(ERC20Tokens[contractIndex] != address(0));
+            if (amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE > 0) {
+                require(
+                    address(receiver).send(
+                        amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE
+                    )
+                );
+            }
             if (ERC20Detailed(ERC20Tokens[contractIndex]).balanceOf(address(this)) >= amountOfTokens) {
                 require(ERC20Detailed(ERC20Tokens[contractIndex]).transfer(receiver, amountOfTokens));
             } /*else {
@@ -402,11 +425,34 @@ contract DepositBox is Ownable {
             return;
         } else if (operation == TransactionOperation.transferERC721) {
             require(to == address(0));
+            require(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
+            if (
+                !(amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE <= 
+                    address(this).balance
+                )
+            ) {
+                emit Error(
+                    sender, 
+                    fromSchainID, 
+                    to, 
+                    amount, 
+                    data, 
+                    "Not enough money to finish this transaction"
+                );
+                return;
+            }
             uint contractIndex;
-            address receiver;
+            address payable receiver;
             uint tokenId;
             (contractIndex, receiver, tokenId) = fallbackDataParser(data);
             require(ERC20Tokens[contractIndex] != address(0));
+            if (amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE > 0) {
+                require(
+                    address(receiver).send(
+                        amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE
+                    )
+                );
+            }
             if (IERC721Full(ERC721Tokens[contractIndex]).ownerOf(tokenId) == address(this)) {
                 IERC721Full(ERC721Tokens[contractIndex]).transferFrom(address(this), receiver, tokenId);
                 require(IERC721Full(ERC721Tokens[contractIndex]).ownerOf(tokenId) == receiver);
@@ -416,9 +462,32 @@ contract DepositBox is Ownable {
             );
             return;
         } else if (operation == TransactionOperation.rawTransferERC20) {
-            address receiver;
+            require(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
+            if (
+                !(amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE <= 
+                    address(this).balance
+                )
+            ) {
+                emit Error(
+                    sender, 
+                    fromSchainID, 
+                    to, 
+                    amount, 
+                    data, 
+                    "Not enough money to finish this transaction"
+                );
+                return;
+            }
+            address payable receiver;
             uint amountOfTokens;
             (receiver, amountOfTokens) = fallbackRawDataParser(data);
+            if (amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE > 0) {
+                require(
+                    address(receiver).send(
+                        amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE
+                    )
+                );
+            }
             if(ERC20Detailed(to).balanceOf(address(this)) >= amountOfTokens) {
                 require(ERC20Detailed(to).transfer(receiver, amountOfTokens));
             }
@@ -428,9 +497,32 @@ contract DepositBox is Ownable {
             );
             return;
         } else if (operation == TransactionOperation.rawTransferERC721) {
-            address receiver;
+            require(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
+            if (
+                !(amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE <= 
+                    address(this).balance
+                )
+            ) {
+                emit Error(
+                    sender, 
+                    fromSchainID, 
+                    to, 
+                    amount, 
+                    data, 
+                    "Not enough money to finish this transaction"
+                );
+                return;
+            }
+            address payable receiver;
             uint tokenId;
             (receiver, tokenId) = fallbackRawDataParser(data);
+            if (amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE > 0) {
+                require(
+                    address(receiver).send(
+                        amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE
+                    )
+                );
+            }
             if (IERC721Full(to).ownerOf(tokenId) == address(this)) {
                 IERC721Full(to).transferFrom(address(this), receiver, tokenId);
                 require(IERC721Full(to).ownerOf(tokenId) == receiver);
@@ -485,7 +577,7 @@ contract DepositBox is Ownable {
     function fallbackDataParser(bytes memory data) 
         internal 
         pure 
-        returns (uint, address, uint) 
+        returns (uint, address payable, uint) 
     {
         bytes32 contractIndex;
         bytes32 to;
@@ -503,7 +595,7 @@ contract DepositBox is Ownable {
     function fallbackRawDataParser(bytes memory data) 
         internal 
         pure 
-        returns (address, uint) 
+        returns (address payable, uint) 
     {
         bytes32 to;
         bytes32 token;

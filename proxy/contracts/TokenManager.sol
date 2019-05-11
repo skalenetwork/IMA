@@ -145,8 +145,14 @@ contract TokenManager is Ownable {
 
     // This is called by schain owner.
     // Exit to main net
+    function exitToMain(address to) public payable {
+        bytes memory empty;
+        exitToMain(to, empty);
+    }
+
     function exitToMain(address to, bytes memory data) public payable {
         require(msg.value > 0);
+        data = abi.encodePacked(bytes1(uint8(1)), data);
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(
             "Mainnet", 
             tokenManagerAddresses[keccak256(abi.encodePacked("Mainnet"))], 
@@ -157,7 +163,8 @@ contract TokenManager is Ownable {
     }
 
     function exitToMainERC20(address contractHere, address to, uint amount)
-        public 
+        public
+        payable
     {
         uint contractPosition = ERC20Mapper[contractHere];
         require(contractPosition != 0);
@@ -170,7 +177,7 @@ contract TokenManager is Ownable {
             bytes32(bytes20(to)), 
             bytes32(amount)
         );
-        rawTransferERC20("Mainnet", contractHere, address(0), msg.sender, amount, data);
+        rawTransferERC20("Mainnet", contractHere, address(0), msg.sender, amount, msg.value, data);
         
     }
 
@@ -180,7 +187,8 @@ contract TokenManager is Ownable {
         address to, 
         uint amount
     ) 
-        public 
+        public
+        payable
     {
         bytes memory data;
 
@@ -189,11 +197,12 @@ contract TokenManager is Ownable {
             bytes32(bytes20(to)), 
             bytes32(amount)
         );
-        rawTransferERC20("Mainnet", contractHere, contractThere, msg.sender, amount, data);
+        rawTransferERC20("Mainnet", contractHere, contractThere, msg.sender, amount, msg.value, data);
     }
 
     function exitToMainERC721(address contractHere, address to, uint tokenId)
-        public 
+        public
+        payable
     {
         uint contractPosition = ERC721Mapper[contractHere];
         require(contractPosition != 0);
@@ -206,7 +215,7 @@ contract TokenManager is Ownable {
             bytes32(bytes20(to)), 
             bytes32(tokenId)
         );
-        rawTransferERC721("Mainnet", contractHere, address(0), msg.sender, tokenId, data);
+        rawTransferERC721("Mainnet", contractHere, address(0), msg.sender, tokenId, msg.value, data);
     }
 
     function rawExitToMainERC721(
@@ -215,7 +224,8 @@ contract TokenManager is Ownable {
         address to, 
         uint tokenId
     ) 
-        public 
+        public
+        payable
     {
         bytes memory data;
 
@@ -224,7 +234,7 @@ contract TokenManager is Ownable {
             bytes32(bytes20(to)), 
             bytes32(tokenId)
         );
-        rawTransferERC721("Mainnet", contractHere, contractThere, msg.sender, tokenId, data);
+        rawTransferERC721("Mainnet", contractHere, contractThere, msg.sender, tokenId, msg.value, data);
     }
 
     function transferToSchain(
@@ -254,7 +264,8 @@ contract TokenManager is Ownable {
         address to, 
         uint amount
     ) 
-        public 
+        public
+        payable
     {
         
         require(keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")));
@@ -281,7 +292,7 @@ contract TokenManager is Ownable {
             totalSupply
         );
         
-        rawTransferERC20(schainID, contractHere, address(0), msg.sender, amount, data);
+        rawTransferERC20(schainID, contractHere, address(0), msg.sender, amount, msg.value, data);
     }
 
     function rawTransferToSchainERC20(
@@ -291,7 +302,8 @@ contract TokenManager is Ownable {
         address to, 
         uint amount
     ) 
-        public 
+        public
+        payable
     {
         require(keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")));
         require(tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0));
@@ -304,7 +316,7 @@ contract TokenManager is Ownable {
             bytes32(bytes20(to)), 
             bytes32(amount)
         );
-        rawTransferERC20(schainID, contractHere, contractThere, msg.sender, amount, data);
+        rawTransferERC20(schainID, contractHere, contractThere, msg.sender, amount, msg.value, data);
     }
 
     function transferToSchainERC721(
@@ -313,7 +325,8 @@ contract TokenManager is Ownable {
         address to, 
         uint tokenId
     ) 
-        public 
+        public
+        payable
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(schainHash != keccak256(abi.encodePacked("Mainnet")));
@@ -335,7 +348,7 @@ contract TokenManager is Ownable {
             bytes(symbol).length, 
             symbol
         );
-        rawTransferERC721(schainID, contractHere, address(0), msg.sender, tokenId, data);
+        rawTransferERC721(schainID, contractHere, address(0), msg.sender, tokenId, msg.value, data);
     }
 
     function rawTransferToSchainERC721(
@@ -345,7 +358,8 @@ contract TokenManager is Ownable {
         address to, 
         uint tokenId
     ) 
-        public 
+        public
+        payable
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(schainHash != keccak256(abi.encodePacked("Mainnet")));
@@ -358,7 +372,7 @@ contract TokenManager is Ownable {
             bytes32(bytes20(to)), 
             bytes32(tokenId)
         );
-        rawTransferERC721(schainID, contractHere, contractThere, msg.sender, tokenId, data);
+        rawTransferERC721(schainID, contractHere, contractThere, msg.sender, tokenId, msg.value, data);
     }
 
     // Receive money from main net and Schain
@@ -370,7 +384,7 @@ contract TokenManager is Ownable {
         uint amount, 
         bytes memory data
     ) 
-        public 
+        public
     {
         require(msg.sender == proxyForSchainAddress);
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
@@ -462,7 +476,7 @@ contract TokenManager is Ownable {
         }
     }
     
-    function rawTransferERC20(string memory toSchainID, address contractHere, address contractThere, address from, uint amount, bytes memory data) internal {
+    function rawTransferERC20(string memory toSchainID, address contractHere, address contractThere, address from, uint amount, uint amountOfEth, bytes memory data) internal {
         require(
             ERC20Detailed(contractHere).allowance(
                 from, 
@@ -479,13 +493,13 @@ contract TokenManager is Ownable {
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(
             toSchainID, 
             tokenManagerAddresses[keccak256(abi.encodePacked(toSchainID))], 
-            0, 
+            amountOfEth, 
             contractThere, 
             data
         );
     }
     
-    function rawTransferERC721(string memory toSchainID, address contractHere, address contractThere, address from, uint tokenId, bytes memory data) internal {
+    function rawTransferERC721(string memory toSchainID, address contractHere, address contractThere, address from, uint tokenId, uint amountOfEth, bytes memory data) internal {
         require(
             IERC721Full(contractHere).getApproved(tokenId) == address(this)
         );
@@ -498,7 +512,7 @@ contract TokenManager is Ownable {
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(
             toSchainID, 
             tokenManagerAddresses[keccak256(abi.encodePacked(toSchainID))], 
-            0, 
+            amountOfEth, 
             contractThere, 
             data
         );

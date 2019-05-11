@@ -33,13 +33,15 @@ async function deploy(deployer, network) {
         message_proxy_chain_abi: MessageProxy.abi
     }
 
-    fs.writeFile('data/proxySchain.json', JSON.stringify(jsonObject), function (err) {
+    await fs.writeFile('data/proxySchain.json', JSON.stringify(jsonObject), function (err) {
         if (err) {
             return console.log(err);
         }
         console.log('Done, check proxySchain file in data folder.');
         process.exit(0);
     });
+
+    console.log("Deployment done!");
 }
 
 module.exports = deploy;
