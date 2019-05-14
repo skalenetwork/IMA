@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "openzeppelin-solidity": "^2.2.0",
     "solc": "0.5.7",
     "dotenv": "^7.0.0",
     "openzeppelin-solidity": "^2.2.0",

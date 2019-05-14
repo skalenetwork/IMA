@@ -16,7 +16,7 @@ async function deploy(deployer) {
         message_proxy_mainnet_abi: MessageProxy.abi
     }
 
-    fs.writeFile('data/proxyMainnet.json', JSON.stringify(jsonObject), function (err) {
+    await fs.writeFile('data/proxyMainnet.json', JSON.stringify(jsonObject), function (err) {
         if (err) {
             return console.log(err);
         }

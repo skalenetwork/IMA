@@ -1,28 +1,13 @@
-/**
- * Use this file to configure your truffle project. It's seeded with some
- * common settings for different networks and features like migrations,
- * compilation and testing. Uncomment the ones you need or modify
- * them to suit your project as necessary.
- *
- * More information about configuration can be found at:
- *
- * truffleframework.com/docs/advanced/configuration
- *
- * To deploy via Infura you'll need a wallet provider (like truffle-hdwallet-provider)
- * to sign your transactions before they're sent to a remote public node. Infura API
- * keys are available for free at: infura.io/register
- *
- * You'll also need a mnemonic - the twelve word phrase the wallet uses to generate
- * public/private key pairs. If you're publishing your code to GitHub make sure you load this
- * phrase from a file you've .gitignored so it doesn't accidentally become public.
- *
- */
+require('dotenv').config();
+const Web3 = require('web3');
+let hdwalletProvider = require('truffle-hdwallet-provider');
+let privateKeyProvider = require('truffle-privatekey-provider');
+let schainName = process.env.SCHAIN_NAME;
+let schainRpcUrl = process.env.SCHAIN_RPC_URL;
+let mainnetRpcUrl = process.env.MAINNET_RPC_URL;
 
-// const HDWalletProvider = require('truffle-hdwallet-provider');
-// const infuraKey = "fj4jll3k.....";
-//
-// const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
+let privateKeyForMainnet = process.env.PRIVATE_KEY_FOR_MAINNET;
+let privateKeyForSchain = process.env.PRIVATE_KEY_FOR_SCHAIN;
 
 
 // var PrivateKeyProvider = require("truffle-privatekey-provider");
@@ -64,22 +49,13 @@ module.exports = {
      */
 
     networks: {
-      // Useful for testing. The `development` name is special - truffle uses it by default
-      // if it's defined here and no other network is specified at the command line.
-      // You should run a client (like ganache-cli, geth or parity) in a separate terminal
-      // tab if you use this network and you must also set the `host`, `port` and `network_id`
-      // options below to some value.
-      //
-      development: {
-       host: "127.0.0.1",     // Localhost (default: none)
-       port: 8545,            // Standard Ethereum port (default: none)
-       network_id: "*"       // Any network (default: none)
-       //from: "0x5d07ae83e5de15891d804c3d55ebe1fb7d2585cc"
-      },
-      server: {
-        host: "51.0.1.99",
-        port: 8545,
-        gasPrice: 10000000000,
+      /*
+      mainnet: {
+        provider: () => {
+          return new privateKeyProvider(privateKeyForMainnet, mainnetRpcUrl);
+        },
+        gasPrice: 1000000000,
+        gas: 8000000,
         network_id: "*"
       },
       local: {
@@ -96,27 +72,28 @@ module.exports = {
         host: "127.0.0.1",
         port: 8545,
         gas: 8000000,
-        network_id: "*",
-        from: "0xb4f9e4e7fa7e8d18cdf9d41b5ceaf2c21271bbc8"
+        network_id: "*"
       },
-      do: {
-        host: "134.209.56.46",
-        port: 1919,
-        gasPrice: 10000000000,
-        network_id: "*",
-        from: "0x5112ce768917e907191557d7e9521c2590cdd3a0"
+      // */
+      /*
+      mainnet: {
+        provider: () => {
+          return new hdwalletProvider(privateKeyForMainnet, mainnetRpcUrl);
+        },
+        gasPrice: 1000000000,
+        gas: 8000000,
+        network_id: "*"
       },
-      aws: {
-        host: "13.59.228.21",
-        port: 1919,
-        gasPrice: 10000000000,
-        network_id: "*",
-      },
-      aws2: {
-        host: "18.218.24.50",
-        port: 1919,
-        gasPrice: 10000000000,
-        network_id: "*",
+      */
+      /*
+      schain: {
+        provider: () => {
+          return new privateKeyProvider(privateKeyForSchain, schainRpcUrl);
+        },
+        gasPrice: 1000000000,
+        gas: 8000000,
+        name: schainName,
+        network_id: "*"
       },
       schain: {
         name: "Bob",
@@ -166,15 +143,7 @@ module.exports = {
     // Configure your compilers
     compilers: {
       solc: {
-        version: "0.5.7",    // Fetch exact version from solc-bin (default: truffle's version)
-        /*docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
-        settings: {          // See the solidity docs for advice about optimization and evmVersion
-         optimizer: {
-           enabled: false,
-           runs: 200
-         },
-         evmVersion: "byzantium"
-        }*/
+        version: "0.5.7",
       }
     }
   }
