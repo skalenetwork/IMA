@@ -24,11 +24,33 @@
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 
+
+// var PrivateKeyProvider = require("truffle-privatekey-provider");
+const HDWalletProvider = require("truffle-hdwallet-provider");
+//const Web3 = require("web3");
+
+var privateKey_main_net = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
+var privateKey_s_chain  = "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e";
+
+
+
+
 let schainRpcIp = process.env.SCHAIN_RPC_IP;
 let schainRpcPort = process.env.SCHAIN_RPC_PORT;
 let schainName = process.env.SCHAIN_NAME;
 let privateKeyForSchain = process.env.ETH_PRIVATE_KEY_FOR_SCHAIN;
 let privateKeyForMainnet = process.env.ETH_PRIVATE_KEY_FOR_MAINNET;
+
+/*
+
+export NETWORK_FOR_MAINNET="local"
+export ETH_PRIVATE_KEY_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
+export NETWORK_FOR_SCHAIN="serge"
+export ETH_PRIVATE_KEY_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
+export SCHAIN_NAME="Bob"
+
+*/
+
 
 module.exports = {
     /**
@@ -40,7 +62,7 @@ module.exports = {
      *
      * $ truffle test --network <network-name>
      */
-  
+
     networks: {
       // Useful for testing. The `development` name is special - truffle uses it by default
       // if it's defined here and no other network is specified at the command line.
@@ -62,11 +84,12 @@ module.exports = {
       },
       local: {
         gasPrice: 10000000000,
-        host: "127.0.0.1",
-        port: 8545,
         gas: 8000000,
         network_id: "*",
-        from: "0xb4f9e4e7fa7e8d18cdf9d41b5ceaf2c21271bbc8"
+        // from: "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f",
+        // provider: () => { return new PrivateKeyProvider( privateKey_main_net, "http://127.0.0.1:8545" ); },
+        provider: () => { return new HDWalletProvider( privateKey_main_net, "http://127.0.0.1:8545" ); },
+        skipDryRun: true
       },
       pseudo_mainnet: {
         gasPrice: 10000000000,
@@ -95,24 +118,17 @@ module.exports = {
         gasPrice: 10000000000,
         network_id: "*",
       },
-      serge: {
-        host: "0.0.0.0",
-        port: 2231,
-        gasPrice: 10000000000,
-        gas: 8000000,
-        from: "0x6196d135CdDb9d73A0756C1E44b5b02B11acf594",
-        network_id: "*"
-      },
       schain: {
+        name: "Bob",
         gasPrice: 10000000000,
-        host: "127.0.0.1",
-        port: 8545,
         gas: 8000000,
+        // from: "0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852",
         network_id: "*",
-        name: "New Schain",
-        from: "0xb4f9e4e7fa7e8d18cdf9d41b5ceaf2c21271bbc8"
+        // provider: () => { return new PrivateKeyProvider( privateKey_s_chain, "http://127.0.0.1:7000" ); },
+        provider: () => { return new HDWalletProvider( privateKey_s_chain, "http://127.0.0.1:7000" ); },
+        skipDryRun: true
       }
-  
+
       // Another network with more advanced options...
       // advanced: {
         // port: 8777,             // Custom port
@@ -122,7 +138,7 @@ module.exports = {
         // from: <address>,        // Account to send txs from (default: accounts[0])
         // websockets: true        // Enable EventEmitter interface for web3 (default: false)
       // },
-  
+
       // Useful for deploying to a public network.
       // NB: It's important to wrap the provider as a function.
       // ropsten: {
@@ -133,7 +149,7 @@ module.exports = {
         // timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
         // skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
       // },
-  
+
       // Useful for private networks
       // private: {
         // provider: () => new HDWalletProvider(mnemonic, `https://network.io`),
@@ -141,12 +157,12 @@ module.exports = {
         // production: true    // Treats this network as if it was a public net. (default: false)
       // }
     },
-  
+
     // Set default mocha options here, use special reporters etc.
     mocha: {
       // timeout: 100000
     },
-  
+
     // Configure your compilers
     compilers: {
       solc: {
@@ -162,4 +178,3 @@ module.exports = {
       }
     }
   }
-  

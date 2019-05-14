@@ -35,8 +35,8 @@ let joTrufflePublishResult_s_chain  = {};
 // message_proxy_mainnet_address --> message_proxy_mainnet_abi
 // message_proxy_chain_address   --> message_proxy_chain_abi
 
-let g_strPathAbiJson_main_net = normalize_path( "./abi_main_net.json" );
-let g_strPathAbiJson_s_chain  = normalize_path( "./abi_s_chain.json"  );
+let g_strPathAbiJson_main_net = normalize_path( "../proxy/data/proxyMainnet.json" ); // "./abi_main_net.json"
+let g_strPathAbiJson_s_chain  = normalize_path( "../proxy/data/proxySchain.json"  ); // "./abi_s_chain.json"
 
 //
 //

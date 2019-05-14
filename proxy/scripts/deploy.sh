@@ -15,19 +15,21 @@ if [[ ! ${DIRECTION} =~ ^(main|schain|both)$ ]]; then
     echo "DIRECTION variable proper values: ( main | schain | both )"
     exit 1
 fi
-export $(cat .env | xargs) 
+export $(cat .env | xargs)
 if [ "${DIRECTION}" = main ]; then
     if [[ -z "${NETWORK_FOR_MAINNET}" ]]; then
         echo "Please set NETWORK_FOR_MAINNET to .env file"
         exit 1
     fi
-    truffle deploy -f 1 --network ${NETWORK_FOR_MAINNET}
+    echo "NETWORK_FOR_MAINNET is" ${NETWORK_FOR_MAINNET}
+    ./node_modules/.bin/truffle deploy --network ${NETWORK_FOR_MAINNET}
 elif [ "${DIRECTION}" = schain ]; then
     if [[ -z "${NETWORK_FOR_SCHAIN}" ]]; then
         echo "Please set NETWORK_FOR_SCHAIN to .env file"
         exit 1
     fi
-    truffle deploy -f 2 --network ${NETWORK_FOR_SCHAIN}
+    echo "NETWORK_FOR_SCHAIN is" ${NETWORK_FOR_SCHAIN}
+    ./node_modules/.bin/truffle deploy -f 2 --network ${NETWORK_FOR_SCHAIN}
 elif [ "${DIRECTION}" = both ]; then
     if [[ -z "${NETWORK_FOR_MAINNET}" ]]; then
         echo "Please set NETWORK_FOR_MAINNET to .env file"
@@ -37,6 +39,8 @@ elif [ "${DIRECTION}" = both ]; then
         echo "Please set NETWORK_FOR_SCHAIN to .env file"
         exit 1
     fi
+    echo "NETWORK_FOR_MAINNET is" ${NETWORK_FOR_MAINNET}
+    echo "NETWORK_FOR_SCHAIN is" ${NETWORK_FOR_SCHAIN}
     truffle deploy -f 1 --network ${NETWORK_FOR_MAINNET}
     truffle deploy -f 2 --network ${NETWORK_FOR_SCHAIN}
 fi
