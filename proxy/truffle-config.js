@@ -22,9 +22,6 @@ var privateKey_s_chain  = "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb
 
 let schainRpcIp = process.env.SCHAIN_RPC_IP;
 let schainRpcPort = process.env.SCHAIN_RPC_PORT;
-let schainName = process.env.SCHAIN_NAME;
-let privateKeyForSchain = process.env.ETH_PRIVATE_KEY_FOR_SCHAIN;
-let privateKeyForMainnet = process.env.ETH_PRIVATE_KEY_FOR_MAINNET;
 
 /*
 
@@ -58,6 +55,7 @@ module.exports = {
         gas: 8000000,
         network_id: "*"
       },
+      */
       local: {
         gasPrice: 10000000000,
         gas: 8000000,
@@ -67,6 +65,7 @@ module.exports = {
         provider: () => { return new HDWalletProvider( privateKey_main_net, "http://127.0.0.1:8545" ); },
         skipDryRun: true
       },
+      /*
       pseudo_mainnet: {
         gasPrice: 10000000000,
         host: "127.0.0.1",
@@ -85,7 +84,7 @@ module.exports = {
         network_id: "*"
       },
       */
-      /*
+
       schain: {
         provider: () => {
           return new privateKeyProvider(privateKeyForSchain, schainRpcUrl);

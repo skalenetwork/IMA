@@ -35,7 +35,7 @@ We will use networks called **pseudo_main_net** and **local** in this documentat
     local: {
         gasPrice: 10000000000,
         host: "127.0.0.1",
-        port: 2231,
+        port: 7000,
         gas: 8000000,
         network_id: "*",
         "from": "0x6196d135CdDb9d73A0756C1E44b5b02B11acf594"
@@ -64,7 +64,7 @@ First, execute truffle migration for Main-net:
 
 Second, save generated **proxy.json** file with ABI of all the migrated contracts for further usages:
 
-    cp ./proxy.json ...some_folder.../abi_main_net.json
+    cp ./proxy.json ...some_folder..../proxy/data/proxyMainnet.json
 
 ### Contracts installation on S-Chain
 
@@ -76,7 +76,7 @@ First, execute truffle migration for S-Chain:
 
 Second, save generated **proxy.json** file with ABI of all the migrated contracts for further usages:
 
-    cp ./proxy.json ...some_folder.../abi_s_chain.json
+    cp ./proxy.json ...some_folder..../proxy/data/proxySchain.json
 
 ## MTA installation
 
@@ -102,14 +102,14 @@ Second, install dependecies:
 
 **MTA** works as S-Chain extension. It should be registered on Main-net before performing any money transfers between blockchains:
 
-    node ./main.js \
+    node ./main.js --verbose=9 \
         --register \
         --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:2231 \
+        --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
-        --id-s-chain=id-S-chain \
-        --abi-main-net=./abi_main_net.json \
-        --abi-s-chain=./abi_s_chain.json \
+        --id-s-chain=Bob \
+        --abi-main-net=../proxy/data/proxyMainnet.json \
+        --abi-s-chain=../proxy/data/proxySchain.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
 
@@ -117,14 +117,14 @@ Second, install dependecies:
 
 Performed with the **--loop** command line option:
 
-    node ./main.js \
+    node ./main.js --verbose=9 \
         --loop \
         --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:2231 \
+        --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
-        --id-s-chain=id-S-chain \
-        --abi-main-net=./abi_main_net.json \
-        --abi-s-chain=./abi_s_chain.json \
+        --id-s-chain=Bob \
+        --abi-main-net=../proxy/data/proxyMainnet.json \
+        --abi-s-chain=../proxy/data/proxySchain.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
 
@@ -154,15 +154,15 @@ By default mirrored log file grows with no limit and no log rotation is performe
 
 Performed with the **--m2s-payment** command line option:
 
-    node ./main.js \
+    node ./main.js --verbose=9 \
         --m2s-payment \
-        --ether=50 \
+        --ether=1 \
         --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:2231 \
+        --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
-        --id-s-chain=id-S-chain \
-        --abi-main-net=./abi_main_net.json \
-        --abi-s-chain=./abi_s_chain.json \
+        --id-s-chain=Bob \
+        --abi-main-net=../proxy/data/proxyMainnet.json \
+        --abi-s-chain=../proxy/data/proxySchain.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
         --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852
 
@@ -172,15 +172,15 @@ Notice: The command above does payment from Main-net and that is why we need to 
 
 Performed with the **--s2m-payment** command line option:
 
-    node ./main.js \
+    node ./main.js --verbose=9 \
         --s2m-payment \
-        --ether=10 \
+        --ether=1 \
         --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:2231 \
+        --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
-        --id-s-chain=id-S-chain \
-        --abi-main-net=./abi_main_net.json \
-        --abi-s-chain=./abi_s_chain.json \
+        --id-s-chain=Bob \
+        --abi-main-net=../proxy/data/proxyMainnet.json \
+        --abi-s-chain=../proxy/data/proxySchain.json \
         --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
 
@@ -206,14 +206,14 @@ Single transfer operations are similar to the **--loop** normal mode but perform
 
 Performed with the **--m2s-transfer** command line option:
 
-    node ./main.js \
+    node ./main.js --verbose=9 \
         --m2s-transfer \
         --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:2231 \
+        --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
-        --id-s-chain=id-S-chain \
-        --abi-main-net=./abi_main_net.json \
-        --abi-s-chain=./abi_s_chain.json \
+        --id-s-chain=Bob \
+        --abi-main-net=../proxy/data/proxyMainnet.json \
+        --abi-s-chain=../proxy/data/proxySchain.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
 
@@ -221,14 +221,14 @@ Performed with the **--m2s-transfer** command line option:
 
 Performed with the **--s2m-transfer** command line option:
 
-    node ./main.js \
+    node ./main.js --verbose=9 \
         --s2m-transfer \
         --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:2231 \
+        --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
-        --id-s-chain=id-S-chain \
-        --abi-main-net=./abi_main_net.json \
-        --abi-s-chain=./abi_s_chain.json \
+        --id-s-chain=Bob \
+        --abi-main-net=../proxy/data/proxyMainnet.json \
+        --abi-s-chain=../proxy/data/proxySchain.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
 
@@ -236,14 +236,14 @@ Performed with the **--s2m-transfer** command line option:
 
 Performed with the **--transfer** command line option:
 
-    node ./main.js \
+    node ./main.js --verbose=9 \
         --transfer \
         --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:2231 \
+        --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
-        --id-s-chain=id-S-chain \
-        --abi-main-net=./abi_main_net.json \
-        --abi-s-chain=./abi_s_chain.json \
+        --id-s-chain=Bob \
+        --abi-main-net=../proxy/data/proxyMainnet.json \
+        --abi-s-chain=../proxy/data/proxySchain.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
 
