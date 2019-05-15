@@ -14,89 +14,112 @@ This article refers to **SKALE Money Transfer Agent** as **MTA**.
 
 ### Contracts prerequisites
 
-First of all, we need special truffle version **4.1.13** (notice, the *-g* option of *npm* may require *sudo*):
+First of all, we need special truffle version **5.0.12** (notice, the *-g* option of *npm* may require *sudo*):
 
     sudo npm uninstall -g truffle
-    sudo npm install -g truffle@4.1.13
+    sudo npm install -g truffle@5.0.12
     truffle --version
 
 Second, get source code of Solidity contracts and install dependecies:
 
-    git clone git@github.com:GalacticExchange/KTM.git
-    cd KTM/proxy/
+    git clone git@github.com:skalenetwork/MTA.git
+    cd ./MTA
+
+### Node JS prerequisites
+
+Third, install required **Node JS** everywhere they needed:
+
+    export MTA_ROOT=.....
+    #
+    cd $MTA_ROOT/proxy
+    rm -rf ./node_modules &> /dev/null
+    npm install
+    #
+    cd $MTA_ROOT/npms/skale-mta
+    rm -rf ./node_modules &> /dev/null
+    npm install
+    #
+    cd $MTA_ROOT/agent
+    rm -rf ./node_modules &> /dev/null
     npm install
 
-Third edit the *./truffle.js* and specify needed networks (Main-net and S-Chain) and account addresses which will own contracts on these blockchains:
 
-    nano ./truffle.js
+Fourth, edit the *$MTA_ROOT/proxy/truffle-config.js* and specify needed networks (Main-net and S-Chain) and account addresses which will own contracts on these blockchains:
 
-We will use networks called **pseudo_main_net** and **local** in this documentation:
+    cd $MTA_ROOT/proxy
+    nano ./truffle-config.js
 
-    local: {
+We will use networks called **local** and **schain** in this documentation:
+
+    var privateKey_main_net = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
+    var privateKey_s_chain  = "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e";
+
+...
+
+    local: { # for Main-net
         gasPrice: 10000000000,
-        host: "127.0.0.1",
-        port: 7000,
         gas: 8000000,
         network_id: "*",
-        "from": "0x6196d135CdDb9d73A0756C1E44b5b02B11acf594"
+        provider: () => { return new HDWalletProvider( privateKey_main_net, "http://127.0.0.1:8545" ); },
+        skipDryRun: true
     },
-    pseudo_main_net: {
-        gasPrice: 10000000000,
-        host: "127.0.0.1",
-        port: 8545,
+    schain: { # for S-Chain
+        provider: () => { return new privateKeyProvider(privateKeyForSchain, schainRpcUrl); },
+        gasPrice: 1000000000,
         gas: 8000000,
-        network_id: "*",
-        "from": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
+        name: schainName,
+        network_id: "*"
     },
 
-Fourth, rebuild all the contracts once to ensure everything initialized OK:
+Fourth, export required environment variables:
 
+    export NETWORK_FOR_MAINNET="local"
+    export ETH_PRIVATE_KEY_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
+    export NETWORK_FOR_SCHAIN="schain"
+    export ETH_PRIVATE_KEY_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
+    export SCHAIN_NAME="Bob"
+
+    export MAINNET_RPC_URL="http://127.0.0.1:8545"
+    export SCHAIN_RPC_URL="http://127.0.0.1:7000"
+    export SCHAIN_NAME="Bob"
+    export PRIVATE_KEY_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
+    export PRIVATE_KEY_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
+    export ACCOUNT_FOR_MAINNET="0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
+    export ACCOUNT_FOR_SCHAIN="0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852"
+    export MNEMONIC_FOR_MAINNET="your mnemonic for mainnet"
+    export MNEMONIC_FOR_SCHAIN="your mnemonic for schain"
+
+
+Fifth, try rebuild all the contracts once to ensure everything initialized OK:
+
+    cd $MTA_ROOT/proxy
     rm -rf ./build
     truffle complile
 
-### Contracts installation on Main-net
+### Contracts pre-installation on Main-net and S-Chain
 
-First, execute truffle migration for Main-net:
+Pre-clean previous version of contract ABI JSON files:
 
-    export NETWORK=pseudo_main_net
-    export ETH_PRIVATE_KEY=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc
-    truffle migrate --network $NETWORK --compile-all --reset
+    cd $MTA_ROOT/proxy
+    ./clean.sh
 
-Second, save generated **proxy.json** file with ABI of all the migrated contracts for further usages:
+For main net, invoke:
 
-    cp ./proxy.json ...some_folder..../proxy/data/proxyMainnet.json
+    cd $MTA_ROOT/proxy
+    npm run deploy-to-mainnet
+    ls -1 ./data/
 
-### Contracts installation on S-Chain
+You should see **proxyMainnet.json** file listed.
 
-First, execute truffle migration for S-Chain:
+For S-Chain, invoke:
 
-    export NETWORK=local
-    export ETH_PRIVATE_KEY=621761908cc4fba5f92e694e0e4a912aa9a12258a597a06783713a04610fad59
-    truffle migrate --network $NETWORK --compile-all --reset
+    cd $MTA_ROOT/proxy
+    npm run deploy-to-schain
+    ls -1 ./data/
 
-Second, save generated **proxy.json** file with ABI of all the migrated contracts for further usages:
-
-    cp ./proxy.json ...some_folder..../proxy/data/proxySchain.json
+You should see **proxySchain.json** file listed.
 
 ## MTA installation
-
-### MTA prerequisites
-
-First, get source code of **MTA**:
-
-    cd KTM/agent/
-
-Second, install dependecies:
-
-    npm install web3@1.0.0-beta.35
-    npm install colors
-    npm install ethereumjs-tx
-    npm install ethereumjs-wallet
-    npm install ethereumjs-util
-    npm install --save @babel/core@^7.0.0-0
-    npm install --save-dev @babel/plugin-transform-runtime
-    npm install --save @babel/runtime
-
 
 ### Bind MTA to Main-net
 
