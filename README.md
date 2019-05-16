@@ -1,5 +1,5 @@
-# KTM
-SKALE Money Transfer Agent
+# MTA
+SKALE Money Transfer Agent (MTA)
 
 
 #### Steps to run KTM on the sChain
@@ -8,7 +8,7 @@ SKALE Money Transfer Agent
 ##### Preparations
 
 1) Deploy contracts on the `mainnet`
-2) Create Skale nodes 
+2) Create Skale nodes
 3) Create sChain
 4) Wait till sChain will be up and running
 5) Deploy contracts on the sChain
