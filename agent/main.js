@@ -289,40 +289,42 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         continue;
     }
     if( joArg.name == "m2s-payment" ) {
-        if( strCoinNameErc20_main_net.length > 0 && strCoinNameErc20_s_chain.length > 0 )
-            g_arrActions.push( { "name": "one M->S single ERC20 payment", "fn": async function() {
+        g_arrActions.push( { "name": "one M->S single payment", "fn": async function() {
+            if( strCoinNameErc20_main_net.length > 0 && strCoinNameErc20_s_chain.length > 0 ) {
+                // ERC20 payment
                 log.write( cc.info("one M->S single ERC20 payment: ") + cc.sunny(g_token_amount) + "\n" ); // just print value
                 return true;
-            } } );
-        else
-            g_arrActions.push( { "name": "one M->S single ETH payment", "fn": async function() {
-                return await MTA.do_payment_from_main_net(
-                    g_w3_main_net,
-                    g_joAccount_main_net,
-                    g_joAccount_s_chain,
-                    g_jo_deposit_box, // only main net
-                    g_chain_id_s_chain,
-                    g_wei_amount // how much money to send
-                    );
-            } } );
+            }
+            // ETH payment
+            log.write( cc.info("one M->S single ETH payment: ") + cc.sunny(g_wei_amount) + "\n" ); // just print value
+            return await MTA.do_payment_from_main_net(
+                g_w3_main_net,
+                g_joAccount_main_net,
+                g_joAccount_s_chain,
+                g_jo_deposit_box, // only main net
+                g_chain_id_s_chain,
+                g_wei_amount // how much money to send
+                );
+        } } );
         continue;
     }
     if( joArg.name == "s2m-payment" ) {
-        if( strCoinNameErc20_main_net.length > 0 && strCoinNameErc20_s_chain.length > 0 )
-            g_arrActions.push( { "name": "one S->M single ERC20 payment", "fn": async function() {
+        g_arrActions.push( { "name": "one S->M single payment", "fn": async function() {
+            if( strCoinNameErc20_main_net.length > 0 && strCoinNameErc20_s_chain.length > 0 ) {
+                // ERC20 payment
                 log.write( cc.info("one S->M single ERC20 payment: ") + cc.sunny(g_token_amount) + "\n" ); // just print value
                 return true;
-            } } );
-        else
-            g_arrActions.push( { "name": "one S->M single ETH payment", "fn": async function() {
-                return await MTA.do_payment_from_s_chain(
-                    g_w3_s_chain,
-                    g_joAccount_s_chain,
-                    g_joAccount_main_net,
-                    g_jo_token_manager, // only s-chain
-                    g_wei_amount // how much money to send
-                    );
-            } } );
+            }
+            // ETH payment
+            log.write( cc.info("one S->M single ETH payment: ") + cc.sunny(g_wei_amount) + "\n" ); // just print value
+            return await MTA.do_payment_from_s_chain(
+                g_w3_s_chain,
+                g_joAccount_s_chain,
+                g_joAccount_main_net,
+                g_jo_token_manager, // only s-chain
+                g_wei_amount // how much money to send
+                );
+        } } );
         continue;
     }
     if( joArg.name == "m2s-transfer" ) {
@@ -607,8 +609,8 @@ if( g_str_path_json_erc20_main_net.length > 0 && g_str_path_json_erc20_s_chain.l
     joErc20_s_chain  = load_json( g_str_path_json_erc20_s_chain );
     var n1 = Object.keys( joErc20_main_net ).length, n2 = Object.keys( joErc20_s_chain ).length;
     if( n1 > 0 && n2 > 0 ) {
-        strCoinNameErc20_main_net = disconver_in_json_coin_name( g_str_path_json_erc20_main_net );
-        strCoinNameErc20_s_chain  = disconver_in_json_coin_name( g_str_path_json_erc20_s_chain );
+        strCoinNameErc20_main_net = disconver_in_json_coin_name( joErc20_main_net );
+        strCoinNameErc20_s_chain  = disconver_in_json_coin_name( joErc20_s_chain );
         n1 = strCoinNameErc20_main_net.length;
         n2 = strCoinNameErc20_s_chain.length;
         if( n1 > 0 && n2 > 0 ) {
@@ -673,8 +675,8 @@ if( MTA.verbose_get() > MTA.RV_VERBOSE.information || g_bShowConfigMode ) {
         ensure_have_value( "Max rotated count of log files", g_log_nMaxFilesCount, false, true, null, (x) => { return ( x <= 1 ) ? cc.warn("not set") : cc.note( x ); } );
     }
     if( strCoinNameErc20_main_net.length > 0 && strCoinNameErc20_s_chain.length > 0 ) {
-        log.write( cc.info("Loaded Main-net ERC20 ABI ") + cc.attention(strCoinNameErc20_main_net) + "\n" );
-        log.write( cc.info("Loaded S-Chain  ERC20 ABI ") + cc.attention(strCoinNameErc20_s_chain) + "\n" );
+        ensure_have_value( "Loaded Main-net ERC20 ABI ", strCoinNameErc20_main_net, false, true, null, (x) => { return cc.attention( x ); } );
+        ensure_have_value( "Loaded S-Chain  ERC20 ABI ", strCoinNameErc20_s_chain, false, true, null, (x) => { return cc.attention( x ); } );
         ensure_have_value( "Amount of tokens to transfer", g_token_amount, false, true, null, (x) => { return cc.info( x ); } );
     }
 }
