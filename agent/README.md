@@ -287,3 +287,43 @@ Performed with the **--transfer** command line option:
 ### S-Chain specific configuration for more then one node S-Chains
 
 The **--node-number** and **--nodes-count** must me used for **MTA** instances running on S-Chain nodes which are part of multi-node S-Chain.
+
+### ERC20 transfer from Main-net account to S-Chain
+
+Performed with the **--m2s-payment** command line option:
+
+    node ./main.js --verbose=9 \
+        --m2s-payment \
+        --amount=1 \
+        --url-main-net=http://127.0.0.1:8545 \
+        --url-s-chain=http://127.0.0.1:7000 \
+        --id-main-net=Mainnet \
+        --id-s-chain=Bob \
+        --abi-main-net=../proxy/data/proxyMainnet.json \
+        --abi-s-chain=../proxy/data/proxySchain.json \
+        --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
+        --erc20-s-chain=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
+        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852
+
+Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside Main-net blockchain using the **--key-main-net** command line argument. Target S-chain account is specified as address with the **--address-s-chain** command line argument. We don't need to specify private key for target account.
+
+### ERC20 transfer from S-Chain account to Main-net
+
+Performed with the **--s2m-payment** command line option:
+
+    node ./main.js --verbose=9 \
+        --s2m-payment \
+        --amount=1 \
+        --url-main-net=http://127.0.0.1:8545 \
+        --url-s-chain=http://127.0.0.1:7000 \
+        --id-main-net=Mainnet \
+        --id-s-chain=Bob \
+        --abi-main-net=../proxy/data/proxyMainnet.json \
+        --abi-s-chain=../proxy/data/proxySchain.json \
+        --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
+        --erc20-s-chain=./../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
+        --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
+        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+
+Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
