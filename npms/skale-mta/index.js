@@ -420,7 +420,7 @@ async function do_erc20_payment_from_main_net(
     jo_deposit_box,
     chain_id_s_chain,
     token_amount, // how much ERC20 tokens to send
-    jo_token_manager,
+    jo_token_manager, // only s-chain
     strCoinNameErc20_main_net,
     erc20PrivateTestnetJson
     ) {
@@ -434,7 +434,7 @@ async function do_erc20_payment_from_main_net(
             log.write( cc.debug("Got ") + cc.info(tcnt) + cc.debug(" from ") + cc.notice(strActionName) + "\n" );
         //
         //
-        strActionName = "ERC20 prepare";
+        strActionName = "ERC20 prepare M->S";
         const erc20ABI = erc20PrivateTestnetJson[ strCoinNameErc20_main_net + "_abi" ];
         const erc20Address = erc20PrivateTestnetJson[ strCoinNameErc20_main_net + "_address" ];
         let contractERC20 = new w3_main_net.eth.Contract(erc20ABI, erc20Address);
@@ -447,7 +447,7 @@ async function do_erc20_payment_from_main_net(
         //
         // create raw transactions
         //
-        strActionName = "create raw transactions";
+        strActionName = "create raw transactions M->S";
         const rawTxApprove = {
           "from": joAccountSrc.address(w3_main_net), // accountForMainnet
           "nonce": "0x" + tcnt.toString(16),
@@ -464,13 +464,13 @@ async function do_erc20_payment_from_main_net(
             "to": depositBoxAddress,
             "gasPrice": 0,
             "gas": 8000000,
-            "value": w3_main_net.utils.toHex(w3_main_net.utils.toWei(/*"1"*/token_amount, "ether"))
+            "value": w3_main_net.utils.toHex(w3_main_net.utils.toWei( /*"1"*/token_amount, "ether" ) )
         }
         //
         //
         // sign transactions
         //
-        strActionName = "sign transactions";
+        strActionName = "sign transactions M->S";
         var privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         const txApprove = new ethereumjs_tx( rawTxApprove );
         const txDeposit = new ethereumjs_tx( rawTxDeposit );
@@ -486,7 +486,7 @@ async function do_erc20_payment_from_main_net(
         let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString("hex") );
         if(verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success("Result receipt for Approve: ") + cc.j(joReceiptApprove) + "\n" );
-            strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
+        strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
         let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString("hex") );
         if(verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success("Result receipt for Deposit: ") + cc.j(joReceiptDeposit) + "\n" );
@@ -513,11 +513,15 @@ async function do_erc20_payment_from_main_net(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 async function do_erc20_payment_from_s_chain(
+    w3_main_net,
     w3_s_chain,
     joAccountSrc,
     joAccountDst,
-    jo_token_manager,
-    token_amount // how much ERC20 tokens to send
+    jo_token_manager, // only s-chain
+    jo_deposit_box, // only main net
+    token_amount, // how much ERC20 tokens to send
+    strCoinNameErc20_s_chain,
+    joErc20_s_chain
     ) {
     let r, strActionName = "";
     try {
@@ -529,6 +533,66 @@ async function do_erc20_payment_from_s_chain(
             log.write( cc.debug("Got ") + cc.info(tcnt) + cc.debug(" from ") + cc.notice(strActionName) + "\n" );
         //
         //
+        strActionName = "ERC20 prepare S->M";
+        let accountForMainnet = joAccountDst.address(w3_main_net);
+        let accountForSchain = joAccountSrc.address(w3_s_chain);
+        const erc20ABI = joErc20_s_chain[ strCoinNameErc20_s_chain + "_abi" ];
+        const erc20Address = joErc20_s_chain[ strCoinNameErc20_s_chain + "_address" ];
+        let tokenManagerAddress = jo_token_manager.options.address;
+        let contractERC20 = new w3_s_chain.eth.Contract(erc20ABI, erc20Address);
+        //prepare the smart contract function deposit(string schainID, address to)
+        let depositBoxAddress = jo_deposit_box.options.address;
+        let approve = contractERC20.methods.approve(tokenManagerAddress, w3_s_chain.utils.toBN("1000000000000000000")).encodeABI();
+        let deposit = jo_token_manager.methods.exitToMainERC20(erc20Address, accountForMainnet, w3_s_chain.utils.toBN("1000000000000000000")).encodeABI();
+        //
+        //
+        // create raw transactions
+        //
+        //
+        strActionName = "create raw transactions S->M";
+        const rawTxApprove = {
+          "from": accountForSchain,
+          "nonce": "0x" + tcnt.toString(16),
+          "data": approve,
+          "to": erc20Address,
+          "gasPrice": 0,
+          "gas": 8000000
+        }
+        tcnt += 1;
+        const rawTxDeposit = {
+            "from": accountForSchain,
+            "nonce": "0x" + tcnt.toString(16),
+            "data": deposit,
+            "to": tokenManagerAddress,
+            "gasPrice": 0,
+            "gas": 8000000,
+            "value": w3_s_chain.utils.toHex(w3_s_chain.utils.toWei( /*"1"*/token_amount, "ether" ) )
+        }
+        //
+        //
+        // sign transactions
+        //
+        //
+        strActionName = "sign transactions S->M";
+        var privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        const txApprove = new ethereumjs_tx( rawTxApprove );
+        const txDeposit = new ethereumjs_tx( rawTxDeposit );
+        txApprove.sign( privateKeyForSchain );
+        txDeposit.sign( privateKeyForSchain );
+        const serializedTxApprove = txApprove.serialize();
+        const serializedTxDeposit = txDeposit.serialize();
+        //
+        //
+        // send transactions
+        //
+        strActionName = "w3_s_chain.eth.sendSignedTransaction()/Approve";
+        let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString("hex") );
+        if(verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.success("Result receipt for Approve: ") + cc.j(joReceiptApprove) + "\n" );
+        strActionName = "w3_s_chain.eth.sendSignedTransaction()/Approve";
+        let joReceiptDeposit = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString("hex") );
+        if(verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.success("Result receipt for Deposit: ") + cc.j(joReceiptDeposit) + "\n" );
     } catch( e ) {
         if(verbose_get() >= RV_VERBOSE.fatal )
             log.write( cc.fatal("Payment error in " + strActionName + ": ") + cc.error(e) + "\n" );

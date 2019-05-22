@@ -322,7 +322,7 @@ Performed with the **--s2m-payment** command line option:
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
-        --erc20-s-chain=./../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
+        --erc20-s-chain=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
         --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
 

@@ -325,11 +325,15 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                 // ERC20 payment
                 log.write( cc.info("one S->M single ERC20 payment: ") + cc.sunny(g_token_amount) + "\n" ); // just print value
                 return await MTA.do_erc20_payment_from_s_chain(
+                    g_w3_main_net,
                     g_w3_s_chain,
                     g_joAccount_s_chain,
                     g_joAccount_main_net,
                     g_jo_token_manager, // only s-chain
-                    g_token_amount // how ERC20 tokens money to send
+                    g_jo_deposit_box, // only main net
+                    g_token_amount,// how ERC20 tokens money to send
+                    strCoinNameErc20_s_chain,
+                    joErc20_s_chain
                     );
             }
             // ETH payment
