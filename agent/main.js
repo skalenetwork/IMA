@@ -30,13 +30,19 @@ let ethereumjs_util   = MTA.ethereumjs_util;
 let joTrufflePublishResult_main_net = {};
 let joTrufflePublishResult_s_chain  = {};
 
+let joErc20_main_net = null;
+let joErc20_s_chain  = null;
+let g_str_addr_erc20_explicit = "";
+let strCoinNameErc20_main_net = ""; // in-JSON coin name
+let strCoinNameErc20_s_chain  = ""; // in-JSON coin name
+
 // deposit_box_address           --> deposit_box_abi
 // token_manager_address         --> token_manager_abi
 // message_proxy_mainnet_address --> message_proxy_mainnet_abi
 // message_proxy_chain_address   --> message_proxy_chain_abi
 
-let g_strPathAbiJson_main_net = normalize_path( "./abi_main_net.json" );
-let g_strPathAbiJson_s_chain  = normalize_path( "./abi_s_chain.json"  );
+let g_strPathAbiJson_main_net = normalize_path( "../proxy/data/proxyMainnet.json" ); // "./abi_main_net.json"
+let g_strPathAbiJson_s_chain  = normalize_path( "../proxy/data/proxySchain.json"  ); // "./abi_s_chain.json"
 
 //
 //
@@ -64,6 +70,9 @@ let g_str_url_s_chain  = ""; // example: "http://127.0.0.1:2231"
 let g_chain_id_main_net = "Mainnet";    // 0;
 let g_chain_id_s_chain  = "id-S-chain"; // 1;
 
+let g_str_path_json_erc20_main_net = "";
+let g_str_path_json_erc20_s_chain  = "";
+
 //
 ////let g_joAccount_main_net = { "name": "Stan", "privateKey": "621761908cc4fba5f92e694e0e4a912aa9a12258a597a06783713a04610fad59", "address": fn_address_impl_ }; // "address": "0x6196d135CdDb9d73A0756C1E44b5b02B11acf594"
 // let g_joAccount_main_net = { "name": "g3",   "privateKey": "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc", "address": fn_address_impl_ }; // "address": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
@@ -86,6 +95,8 @@ function fn_address_impl_( w3 ) {
 }
 
 let g_wei_amount = 0; // 1000000000000000000
+let g_token_amount = 0;
+let g_isRawTokenTransfer = true;
 
 let g_nTransferBlockSizeM2S = 10;
 let g_nTransferBlockSizeS2M = 10;
@@ -201,20 +212,27 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         console.log( soi + cc.debug("--") + cc.bright("id-main-net") + cc.sunny("=") + cc.success("number") + cc.debug("............") + cc.note("Main-net") + cc.notice(" Ethereum ") + cc.note("network ID.") );
         console.log( soi + cc.debug("--") + cc.bright("id-s-chain") + cc.sunny("=") + cc.success("number") + cc.debug(".............") + cc.note("S-chain") + cc.notice(" Ethereum ") + cc.note("network ID.") );
         console.log( cc.sunny("BLOCKCHAIN INTERFACE") + cc.info(" options:") );
-        console.log( soi + cc.debug("--") + cc.bright("abi-main-net") + cc.sunny("=") + cc.attention("path") + cc.debug(".............") + cc.notice("Path to JSON file containing ABI of ") + cc.note("Main-net") + cc.notice(" for Web3.") );
-        console.log( soi + cc.debug("--") + cc.bright("abi-s-chain") + cc.sunny("=") + cc.attention("path") + cc.debug("..............") + cc.notice("Path to JSON file containing ABI of ") + cc.note("S-chain") + cc.notice(" for Web3.") );
+        console.log( soi + cc.debug("--") + cc.bright("abi-main-net") + cc.sunny("=") + cc.attention("path") + cc.debug(".............") + cc.notice("Path to JSON file containing MTA ABI of ") + cc.note("Main-net") + cc.notice(" for Web3.") );
+        console.log( soi + cc.debug("--") + cc.bright("abi-s-chain") + cc.sunny("=") + cc.attention("path") + cc.debug("..............") + cc.notice("Path to JSON file containing MTA ABI of ") + cc.note("S-chain") + cc.notice(" for Web3.") );
+        console.log( cc.sunny("ERC20 INTERFACE") + cc.info(" options:") );
+        console.log( soi + cc.debug("--") + cc.bright("erc20-main-net") + cc.sunny("=") + cc.attention("path") + cc.debug("...........") + cc.notice("Path to JSON file containing ERC20 ABI of ") + cc.note("Main-net") + cc.notice(" for Web3.") );
+        console.log( soi + cc.debug("--") + cc.bright("erc20-s-chain") + cc.sunny("=") + cc.attention("path") + cc.debug("............") + cc.notice("Path to JSON file containing ERC20 ABI of ") + cc.note("S-chain") + cc.notice(" for Web3.") );
+        console.log( soi + cc.debug("--") + cc.bright("addr-erc20-s-chain") + cc.sunny("=") + cc.attention("address") + cc.debug("....") + cc.notice("Explict ERC20 address in ") + cc.note("S-chain") + cc.notice(" for Web3.") );
         console.log( cc.sunny("USER ACCOUNT") + cc.info(" options:") );
         /**/ console.log( soi + cc.debug("--") + cc.bright("address-main-net") + cc.sunny("=") + cc.warn("value") + cc.debug("........") + cc.notice("Main-net user account address.") );
         /**/ console.log( soi + cc.debug("--") + cc.bright("address-s-chain") + cc.sunny("=") + cc.warn("value") + cc.debug(".........") + cc.notice("S-chain user account address.") );
         console.log( soi + cc.debug("--") + cc.bright("key-main-net") + cc.sunny("=") + cc.error("value") + cc.debug("............") + cc.notice("Private key for ") + cc.note("main-net user") + cc.notice(" account address.") );
         console.log( soi + cc.debug("--") + cc.bright("key-s-chain") + cc.sunny("=") + cc.error("value") + cc.debug(".............") + cc.notice("Private key for ") + cc.note("S-Chain") + cc.notice(" user account address.") );
-        console.log( soi + cc.debug("--") + cc.bright("wei") + cc.sunny("=") + cc.bright("number") + cc.debug("...................") + cc.note("Amount of wei") + cc.notice(" to transfer.") );
-        console.log( soi + cc.debug("--") + cc.bright("babbage") + cc.sunny("=") + cc.bright("number") + cc.debug("...............") + cc.note("Amount of babbage(wei*1000)") + cc.notice(" to transfer.") );
-        console.log( soi + cc.debug("--") + cc.bright("lovelace") + cc.sunny("=") + cc.bright("number") + cc.debug("..............") + cc.note("Amount of lovelace(wei*1000*1000)") + cc.notice(" to transfer.") );
-        console.log( soi + cc.debug("--") + cc.bright("shannon") + cc.sunny("=") + cc.bright("number") + cc.debug("...............") + cc.note("Amount of shannon(wei*1000*1000*1000)") + cc.notice(" to transfer.") );
-        console.log( soi + cc.debug("--") + cc.bright("szabo") + cc.sunny("=") + cc.bright("number") + cc.debug(".................") + cc.note("Amount of szabo(wei*1000*1000*1000*1000)") + cc.notice(" to transfer.") );
-        console.log( soi + cc.debug("--") + cc.bright("finney") + cc.sunny("=") + cc.bright("number") + cc.debug("................") + cc.note("Amount of finney(wei*1000*1000*1000*1000*1000)") + cc.notice(" to transfer.") );
-        console.log( soi + cc.debug("--") + cc.bright("ether") + cc.sunny("=") + cc.bright("number") + cc.debug(".................") + cc.note("Amount of ether(wei*1000*1000*1000*1000*1000*1000)") + cc.notice(" to transfer.") );
+        console.log( soi + cc.debug("--") + cc.bright("wei") + cc.sunny("=") + cc.attention("number") + cc.debug("....................") + cc.notice("Amount of ") + cc.attention("wei") + cc.notice(" to transfer.") );
+        console.log( soi + cc.debug("--") + cc.bright("babbage") + cc.sunny("=") + cc.attention("number") + cc.debug("................") + cc.notice("Amount of ") + cc.attention("babbage") + cc.info("(wei*1000)") + cc.notice(" to transfer.") );
+        console.log( soi + cc.debug("--") + cc.bright("lovelace") + cc.sunny("=") + cc.attention("number") + cc.debug("...............") + cc.notice("Amount of ") + cc.attention("lovelace") + cc.info("(wei*1000*1000)") + cc.notice(" to transfer.") );
+        console.log( soi + cc.debug("--") + cc.bright("shannon") + cc.sunny("=") + cc.attention("number") + cc.debug("................") + cc.notice("Amount of ") + cc.attention("shannon") + cc.info("(wei*1000*1000*1000)") + cc.notice(" to transfer.") );
+        console.log( soi + cc.debug("--") + cc.bright("szabo") + cc.sunny("=") + cc.attention("number") + cc.debug("..................") + cc.notice("Amount of ") + cc.attention("szabo") + cc.info("(wei*1000*1000*1000*1000)") + cc.notice(" to transfer.") );
+        console.log( soi + cc.debug("--") + cc.bright("finney") + cc.sunny("=") + cc.attention("number") + cc.debug(".................") + cc.notice("Amount of ") + cc.attention("finney") + cc.info("(wei*1000*1000*1000*1000*1000)") + cc.notice(" to transfer.") );
+        console.log( soi + cc.debug("--") + cc.bright("ether") + cc.sunny("=") + cc.attention("number") + cc.debug("..................") + cc.notice("Amount of ") + cc.attention("ether") + cc.info("(wei*1000*1000*1000*1000*1000*1000)") + cc.notice(" to transfer.") );
+        console.log( soi + cc.debug("--") + cc.bright("amount") + cc.sunny("=") + cc.attention("number") + cc.debug(".................") + cc.notice("Amount of ") + cc.attention("tokens") + cc.notice(" to transfer.") );
+        console.log( soi + cc.debug("--") + cc.bright("raw-transfer") + cc.debug("..................") + cc.notice("Perform raw ERC20 token transfer to pre-deployed contract on S-Chain(do not instantiate new contract).") );
+        console.log( soi + cc.debug("--") + cc.bright("no-raw-transfer") + cc.debug("...............") + cc.notice("Perform ERC20 token transfer to auto instantiated contract on S-Chain.") );
         console.log( cc.sunny("ACTION") + cc.info(" commands:") );
         console.log( soi + cc.debug("--") + cc.bright("show-config") + cc.debug("...................") + cc.notice("Show ") + cc.note("onfiguration values") + cc.notice(" and exit.") );
         console.log( soi + cc.debug("--") + cc.bright("register") + cc.debug("......................") + cc.note("Register") + cc.notice(" S-chain on Main-net.") );
@@ -245,27 +263,33 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         console.log( soi + cc.debug("--") + cc.bright("log-files") + cc.sunny("=") + cc.note("value") + cc.debug("...............") + cc.notice("Maximum number of log files for log rotation.") );
         return 0;
     }
-    if( joArg.name == "version"          ) { print_about(); return 0; }
-    if( joArg.name == "verbose"          ) { MTA.verbose_set( MTA.verbose_parse( joArg.value ) ); continue; }
-    if( joArg.name == "verbose-list"     ) { MTA.verbose_list(); return 0; }
-    if( joArg.name == "url-main-net"     ) { veryify_url_arg( joArg ); g_str_url_main_net  = joArg.value; continue; }
-    if( joArg.name == "url-s-chain"      ) { veryify_url_arg( joArg ); g_str_url_s_chain   = joArg.value; continue; }
-    if( joArg.name == "id-s-chain"       ) { verify_arg_with_non_empty_value( joArg ); g_chain_id_s_chain  = joArg.value; continue; }
-    if( joArg.name == "id-main-net"      ) { verify_arg_with_non_empty_value( joArg ); g_chain_id_main_net = joArg.value; continue; }
+    if( joArg.name == "version"               ) { print_about(); return 0; }
+    if( joArg.name == "verbose"               ) { MTA.verbose_set( MTA.verbose_parse( joArg.value ) ); continue; }
+    if( joArg.name == "verbose-list"          ) { MTA.verbose_list(); return 0; }
+    if( joArg.name == "url-main-net"          ) { veryify_url_arg( joArg ); g_str_url_main_net  = joArg.value; continue; }
+    if( joArg.name == "url-s-chain"           ) { veryify_url_arg( joArg ); g_str_url_s_chain   = joArg.value; continue; }
+    if( joArg.name == "id-s-chain"            ) { verify_arg_with_non_empty_value( joArg ); g_chain_id_s_chain  = joArg.value; continue; }
+    if( joArg.name == "id-main-net"           ) { verify_arg_with_non_empty_value( joArg ); g_chain_id_main_net = joArg.value; continue; }
     /**/ if( joArg.name == "address-main-net" ) { verify_arg_with_non_empty_value( joArg ); g_joAccount_main_net.address_ = joArg.value; continue; }
     /**/ if( joArg.name == "address-s-chain"  ) { verify_arg_with_non_empty_value( joArg ); g_joAccount_s_chain .address_ = joArg.value; continue; }
-    if( joArg.name == "abi-main-net"     ) { veryify_arg_path_to_existing_file( joArg ); g_strPathAbiJson_main_net = normalize_path( joArg.value ); continue; }
-    if( joArg.name == "abi-s-chain"      ) { veryify_arg_path_to_existing_file( joArg ); g_strPathAbiJson_s_chain  = normalize_path( joArg.value ); continue; }
-    if( joArg.name == "key-main-net"     ) { verify_arg_with_non_empty_value( joArg ); g_joAccount_main_net.privateKey = joArg.value; continue; }
-    if( joArg.name == "key-s-chain"      ) { verify_arg_with_non_empty_value( joArg ); g_joAccount_s_chain .privateKey = joArg.value; continue; }
-    if( joArg.name == "wei"              ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value; continue; }
-    if( joArg.name == "babbage"          ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value*1000; continue; }
-    if( joArg.name == "lovelace"         ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value*1000*1000; continue; }
-    if( joArg.name == "shannon"          ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value*1000*1000*1000; continue; }
-    if( joArg.name == "szabo"            ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value*1000*1000*1000*1000; continue; }
-    if( joArg.name == "finney"           ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value*1000*1000*1000*1000*1000; continue; }
-    if( joArg.name == "ether"            ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value*1000*1000*1000*1000*1000*1000; continue; }
-    if( joArg.name == "show-config"      ) { g_bShowConfigMode = true; continue; }
+    if( joArg.name == "abi-main-net"          ) { veryify_arg_path_to_existing_file( joArg ); g_strPathAbiJson_main_net = normalize_path( joArg.value ); continue; }
+    if( joArg.name == "abi-s-chain"           ) { veryify_arg_path_to_existing_file( joArg ); g_strPathAbiJson_s_chain  = normalize_path( joArg.value ); continue; }
+    if( joArg.name == "erc20-main-net"        ) { veryify_arg_path_to_existing_file( joArg ); g_str_path_json_erc20_main_net = normalize_path( joArg.value ); continue; }
+    if( joArg.name == "erc20-s-chain"         ) { veryify_arg_path_to_existing_file( joArg ); g_str_path_json_erc20_s_chain  = normalize_path( joArg.value ); continue; }
+    if( joArg.name == "addr-erc20-s-chain"    ) { verify_arg_with_non_empty_value( joArg ); g_str_addr_erc20_explicit = joArg.value; continue; }
+    if( joArg.name == "key-main-net"          ) { verify_arg_with_non_empty_value( joArg ); g_joAccount_main_net.privateKey = joArg.value; continue; }
+    if( joArg.name == "key-s-chain"           ) { verify_arg_with_non_empty_value( joArg ); g_joAccount_s_chain .privateKey = joArg.value; continue; }
+    if( joArg.name == "wei"                   ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value; continue; }
+    if( joArg.name == "babbage"               ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value*1000; continue; }
+    if( joArg.name == "lovelace"              ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value*1000*1000; continue; }
+    if( joArg.name == "shannon"               ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value*1000*1000*1000; continue; }
+    if( joArg.name == "szabo"                 ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value*1000*1000*1000*1000; continue; }
+    if( joArg.name == "finney"                ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value*1000*1000*1000*1000*1000; continue; }
+    if( joArg.name == "ether"                 ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value*1000*1000*1000*1000*1000*1000; continue; }
+    if( joArg.name == "amount"                ) { verify_arg_with_non_empty_value( joArg ); g_token_amount = joArg.value; continue; }
+    if( joArg.name == "raw-transfer"          ) { g_isRawTokenTransfer = true; continue; }
+    if( joArg.name == "no-raw-transfer"       ) { g_isRawTokenTransfer = false; continue; }
+    if( joArg.name == "show-config"           ) { g_bShowConfigMode = true; continue; }
     if( joArg.name == "register" ) {
         g_arrActions.push( { "name": "Register S-chain on main net", "fn": async function() {
             return await register_all();
@@ -274,25 +298,66 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
     }
     if( joArg.name == "m2s-payment" ) {
         g_arrActions.push( { "name": "one M->S single payment", "fn": async function() {
-            return await MTA.do_payment_from_main_net(
+            if( strCoinNameErc20_main_net.length > 0 /*&& strCoinNameErc20_s_chain.length > 0*/ ) {
+                // ERC20 payment
+                log.write( cc.info("one M->S single ERC20 payment: ") + cc.sunny(g_token_amount) + "\n" ); // just print value
+                return await MTA.do_erc20_payment_from_main_net(
+                    g_w3_main_net,
+                    g_w3_s_chain,
+                    g_joAccount_main_net,
+                    g_joAccount_s_chain,
+                    g_jo_deposit_box, // only main net
+                    g_chain_id_s_chain,
+                    g_token_amount, // how much ERC20 tokens to send
+                    g_jo_token_manager, // only s-chain
+                    strCoinNameErc20_main_net,
+                    joErc20_main_net,
+                    strCoinNameErc20_s_chain,
+                    joErc20_s_chain,
+                    g_isRawTokenTransfer
+                    );
+            }
+            // ETH payment
+            log.write( cc.info("one M->S single ETH payment: ") + cc.sunny(g_wei_amount) + "\n" ); // just print value
+            return await MTA.do_eth_payment_from_main_net(
                 g_w3_main_net,
                 g_joAccount_main_net,
                 g_joAccount_s_chain,
                 g_jo_deposit_box, // only main net
                 g_chain_id_s_chain,
-                g_wei_amount // how much money to send
+                g_wei_amount // how much WEI money to send
                 );
         } } );
         continue;
     }
     if( joArg.name == "s2m-payment" ) {
         g_arrActions.push( { "name": "one S->M single payment", "fn": async function() {
-            return await MTA.do_payment_from_s_chain(
+            if( strCoinNameErc20_main_net.length > 0 /*&& strCoinNameErc20_s_chain.length > 0*/ ) {
+                // ERC20 payment
+                log.write( cc.info("one S->M single ERC20 payment: ") + cc.sunny(g_token_amount) + "\n" ); // just print value
+                return await MTA.do_erc20_payment_from_s_chain(
+                    g_w3_main_net,
+                    g_w3_s_chain,
+                    g_joAccount_s_chain,
+                    g_joAccount_main_net,
+                    g_jo_token_manager, // only s-chain
+                    g_jo_deposit_box, // only main net
+                    g_token_amount,// how ERC20 tokens money to send
+                    strCoinNameErc20_main_net,
+                    joErc20_main_net,
+                    strCoinNameErc20_s_chain,
+                    joErc20_s_chain,
+                    g_isRawTokenTransfer
+                    );
+            }
+            // ETH payment
+            log.write( cc.info("one S->M single ETH payment: ") + cc.sunny(g_wei_amount) + "\n" ); // just print value
+            return await MTA.do_eth_payment_from_s_chain(
                 g_w3_s_chain,
                 g_joAccount_s_chain,
                 g_joAccount_main_net,
                 g_jo_token_manager, // only s-chain
-                g_wei_amount // how much money to send
+                g_wei_amount // how much WEI money to send
                 );
         } } );
         continue;
@@ -397,6 +462,33 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
 
 function load_json( strPath ) {
     return JSON.parse( fs.readFileSync( strPath, "utf8") );
+}
+
+function disconver_in_json_coin_name( jo ) {
+    if( typeof jo !== "object" )
+        return "";
+    var arrKeys = Object.keys( jo ), s1 = "", s2 = "";
+    var i, cnt = arrKeys.length, j;
+    for( i = 0; i < cnt; ++ i ) {
+        if( s1.length > 0 && s2.length > 0 )
+            break;
+        var k = arrKeys[ i ];
+        j = k.indexOf( "_address" )
+        if( j > 0 ) {
+            s1 = k.substring( 0, j );
+            continue;
+        }
+        j = k.indexOf( "_abi" )
+        if( j > 0 ) {
+            s2 = k.substring( 0, j );
+            continue;
+        }
+    }
+    if( s1.length == 0 || s2.length == 0 )
+        return "";
+    if( s1 !== s2 )
+        return "";
+    return s1;
 }
 
 //
@@ -543,21 +635,95 @@ let g_jo_token_manager          = new g_w3_s_chain .eth.Contract( joTrufflePubli
 let g_jo_message_proxy_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.message_proxy_mainnet_abi, joTrufflePublishResult_main_net.message_proxy_mainnet_address );
 let g_jo_message_proxy_s_chain  = new g_w3_s_chain .eth.Contract( joTrufflePublishResult_s_chain .message_proxy_chain_abi,   joTrufflePublishResult_s_chain .message_proxy_chain_address   );
 
+if( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chain.length > 0*/ ) {
+    var n1 = 0, n2 = 0;
+    if( MTA.verbose_get() > MTA.RV_VERBOSE.information )
+        log.write( cc.info("Loading Main-net ERC20 ABI from ") + cc.info(g_str_path_json_erc20_main_net) + "\n" );
+    joErc20_main_net = load_json( g_str_path_json_erc20_main_net );
+    n1 = Object.keys( joErc20_main_net ).length;
+    if( g_str_path_json_erc20_s_chain.length > 0 ) {
+        if( MTA.verbose_get() > MTA.RV_VERBOSE.information )
+            log.write( cc.info("Loading S-Chain ERC20 ABI from ") + cc.info(g_str_path_json_erc20_s_chain) + "\n" );
+        joErc20_s_chain  = load_json( g_str_path_json_erc20_s_chain );
+        n2 = Object.keys( joErc20_s_chain ).length;
+    }
+    if( n1 > 0 /*&& n2 > 0*/ ) {
+        strCoinNameErc20_main_net = disconver_in_json_coin_name( joErc20_main_net );
+        if( n2 > 0 )
+            strCoinNameErc20_s_chain  = disconver_in_json_coin_name( joErc20_s_chain );
+        n1 = strCoinNameErc20_main_net.length;
+        if( n2 > 0 )
+            n2 = strCoinNameErc20_s_chain.length;
+        if( n1 > 0 /*&& n2 > 0*/ ) {
+            if( MTA.verbose_get() >= MTA.RV_VERBOSE.information && (!g_bShowConfigMode) ) {
+                log.write( cc.info("Loaded Main-net ERC20 ABI ") + cc.attention(strCoinNameErc20_main_net) + "\n" );
+                if( n2 > 0 )
+                    log.write( cc.info("Loaded S-Chain  ERC20 ABI ") + cc.attention(strCoinNameErc20_s_chain) + "\n" );
+            }
+        } else {
+            if( n1 == 0 )
+                log.write( cc.fatal("FATAL:") + cc.error("Main-net ERC20 token name is not discovered (malformed JSON)") + "\n" );
+            if( n2 == 0 && g_str_path_json_erc20_s_chain.length > 0 )
+                log.write( cc.fatal("FATAL:") + cc.error("S-Chain ERC20 token name is not discovered (malformed JSON)") + "\n" );
+            joErc20_main_net = null;
+            joErc20_s_chain  = null;
+            strCoinNameErc20_main_net = "";
+            strCoinNameErc20_s_chain  = "";
+            process.exit( 666 );
+        }
+    } else {
+        if( n1 == 0 )
+            log.write( cc.fatal("FATAL:") + cc.error("Main-net ERC20 JSON is invalid") + "\n" );
+        if( n2 == 0 && g_str_path_json_erc20_s_chain.length > 0 )
+            log.write( cc.fatal("FATAL:") + cc.error("S-Chain ERC20 JSON is invalid") + "\n" );
+        joErc20_main_net = null;
+        joErc20_s_chain  = null;
+        strCoinNameErc20_main_net = "";
+        strCoinNameErc20_s_chain  = "";
+        process.exit( 666 );
+    }
+} // if( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chain.length > 0*/ )
+
+if( n1 != 0 && n2 == 0 ) {
+    if( g_str_addr_erc20_explicit.length == 0 ) {
+        log.write( cc.fatal("IMPORTANT NOTICE:") + " " + cc.error("Both S-Chain ERC20 JSON and explicit ERC20 address are not specified") + "\n" );
+    } else {
+        log.write( cc.attention("IMPORTANT NOTICE:") + " " + cc.note("S-Chain ERC20 ABI will be auto-generated") + "\n" );
+        strCoinNameErc20_s_chain = "" + strCoinNameErc20_main_net; // assume same
+        joErc20_s_chain = JSON.parse( JSON.stringify(joErc20_main_net) ); // clone
+        joErc20_s_chain[ strCoinNameErc20_s_chain + "_address" ] = "" + g_str_addr_erc20_explicit; // set explicit address
+        if( g_isRawTokenTransfer ) {
+            g_isRawTokenTransfer = false;
+            if( MTA.verbose_get() > MTA.RV_VERBOSE.information )
+                log.write( cc.warning("ERC20 raw transfer is force ") + cc.success("OFF") + "\n" );
+        }
+        // if( MTA.verbose_get() > MTA.RV_VERBOSE.information )
+        //     log.write( cc.info("Auto-generated S-Chain ERC20 JSON is ") + cc.j(joErc20_s_chain) + "\n" );
+    }
+} else {
+    if( ! g_isRawTokenTransfer ) {
+        g_isRawTokenTransfer = true;
+        if( MTA.verbose_get() > MTA.RV_VERBOSE.information )
+            log.write( cc.warning("ERC20 raw transfer is force ") + cc.error("ON") + "\n" );
+    }
+}
+
+
 if( MTA.verbose_get() > MTA.RV_VERBOSE.information || g_bShowConfigMode ) {
     print_about( true );
-    ensure_have_value( "app path", __filename, false, true, null, (x) => { return cc.normal( x ); } );
-    ensure_have_value( "verbose level", MTA.VERBOSE[MTA.verbose_get()], false, true, null, (x) => { return cc.sunny( x ); } );
-    ensure_have_value( "main-net URL", g_str_url_main_net, false, true, null, (x) => { return cc.u( x ); } );
+    ensure_have_value( "App path", __filename, false, true, null, (x) => { return cc.normal( x ); } );
+    ensure_have_value( "Verbose level", MTA.VERBOSE[MTA.verbose_get()], false, true, null, (x) => { return cc.sunny( x ); } );
+    ensure_have_value( "Main-net URL", g_str_url_main_net, false, true, null, (x) => { return cc.u( x ); } );
     ensure_have_value( "S-chain URL", g_str_url_s_chain, false, true, null, (x) => { return cc.u( x ); } );
-    ensure_have_value( "main-net Ethereum network ID", g_chain_id_main_net, false, true, null, (x) => { return cc.note( x ); } );
+    ensure_have_value( "Main-net Ethereum network ID", g_chain_id_main_net, false, true, null, (x) => { return cc.note( x ); } );
     ensure_have_value( "S-Chain Ethereum network ID", g_chain_id_s_chain, false, true, null, (x) => { return cc.note( x ); } );
-    ensure_have_value( "main-net ABI JSON file path", g_strPathAbiJson_main_net, false, true, null, (x) => { return cc.warning( x ); } );
+    ensure_have_value( "Main-net ABI JSON file path", g_strPathAbiJson_main_net, false, true, null, (x) => { return cc.warning( x ); } );
     ensure_have_value( "S-Chain ABI JSON file path", g_strPathAbiJson_s_chain, false, true, null, (x) => { return cc.warning( x ); } );
-    ensure_have_value( "main-net user account address", g_joAccount_main_net.address(g_w3_main_net), false, true );
+    ensure_have_value( "Main-net user account address", g_joAccount_main_net.address(g_w3_main_net), false, true );
     ensure_have_value( "S-chain user account address",  g_joAccount_s_chain .address(g_w3_s_chain), false, true );
-    ensure_have_value( "private key for main-net user account address", g_joAccount_main_net.privateKey, false, true, null, (x) => { return cc.attention( x ); } );
-    ensure_have_value( "private key for S-Chain user account address",  g_joAccount_s_chain .privateKey, false, true, null, (x) => { return cc.attention( x ); } );
-    ensure_have_value( "amount of wei to transfer", g_wei_amount, false, true, null, (x) => { return cc.info( x ); } );
+    ensure_have_value( "Private key for main-net user account address", g_joAccount_main_net.privateKey, false, true, null, (x) => { return cc.attention( x ); } );
+    ensure_have_value( "Private key for S-Chain user account address",  g_joAccount_s_chain .privateKey, false, true, null, (x) => { return cc.attention( x ); } );
+    ensure_have_value( "Amount of wei to transfer", g_wei_amount, false, true, null, (x) => { return cc.info( x ); } );
     ensure_have_value( "M->S transfer block size", g_nTransferBlockSizeM2S, false, true, null, (x) => { return cc.note( x ); } );
     ensure_have_value( "S->M transfer block size", g_nTransferBlockSizeS2M, false, true, null, (x) => { return cc.note( x ); } );
     ensure_have_value( "M->S transactions limit", g_nMaxTransactionsM2S, false, true, null, (x) => { return cc.note( x ); } );
@@ -574,6 +740,14 @@ if( MTA.verbose_get() > MTA.RV_VERBOSE.information || g_bShowConfigMode ) {
         ensure_have_value( "Log file path", g_log_strFilePath, false, true, null, (x) => { return cc.info( x ); } );
         ensure_have_value( "Max size of log file path", g_log_nMaxSizeBeforeRotation, false, true, null, (x) => { return ( x <= 0 ) ? cc.warn("unlimited") : cc.note( x ); } );
         ensure_have_value( "Max rotated count of log files", g_log_nMaxFilesCount, false, true, null, (x) => { return ( x <= 1 ) ? cc.warn("not set") : cc.note( x ); } );
+    }
+    if( strCoinNameErc20_main_net.length > 0 /*&& strCoinNameErc20_s_chain.length > 0*/ ) {
+        ensure_have_value( "Loaded Main-net ERC20 ABI ", strCoinNameErc20_main_net, false, true, null, (x) => { return cc.attention( x ); } );
+        ensure_have_value( "Loaded S-Chain  ERC20 ABI ", strCoinNameErc20_s_chain, false, true, null, (x) => { return cc.attention( x ); } );
+        ensure_have_value( "Amount of tokens to transfer", g_token_amount, false, true, null, (x) => { return cc.info( x ); } );
+        if( MTA.verbose_get() > MTA.RV_VERBOSE.information )
+            log.write( cc.info("ERC20 raw transfer is ") + cc.yn(g_isRawTokenTransfer) + "\n" );
+        log.write( cc.info("ERC20 explicit S-Chain address is ") + cc.attention(g_str_addr_erc20_explicit) + "\n" );
     }
 }
 if( g_bShowConfigMode ) {
