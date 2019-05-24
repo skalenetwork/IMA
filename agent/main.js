@@ -95,6 +95,7 @@ function fn_address_impl_( w3 ) {
 
 let g_wei_amount = 0; // 1000000000000000000
 let g_token_amount = 0;
+let g_isRawTokenTransfer = true;
 
 let g_nTransferBlockSizeM2S = 10;
 let g_nTransferBlockSizeS2M = 10;
@@ -228,6 +229,8 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         console.log( soi + cc.debug("--") + cc.bright("finney") + cc.sunny("=") + cc.attention("number") + cc.debug(".................") + cc.notice("Amount of ") + cc.attention("finney") + cc.info("(wei*1000*1000*1000*1000*1000)") + cc.notice(" to transfer.") );
         console.log( soi + cc.debug("--") + cc.bright("ether") + cc.sunny("=") + cc.attention("number") + cc.debug("..................") + cc.notice("Amount of ") + cc.attention("ether") + cc.info("(wei*1000*1000*1000*1000*1000*1000)") + cc.notice(" to transfer.") );
         console.log( soi + cc.debug("--") + cc.bright("amount") + cc.sunny("=") + cc.attention("number") + cc.debug(".................") + cc.notice("Amount of ") + cc.attention("tokens") + cc.notice(" to transfer.") );
+        console.log( soi + cc.debug("--") + cc.bright("raw-transfer") + cc.debug("..................") + cc.notice("Perform raw ERC20 token transfer to pre-deployed contract on S-Chain(do not instantiate new contract).") );
+        console.log( soi + cc.debug("--") + cc.bright("no-raw-transfer") + cc.debug("...............") + cc.notice("Perform ERC20 token transfer to auto instantiated contract on S-Chain.") );
         console.log( cc.sunny("ACTION") + cc.info(" commands:") );
         console.log( soi + cc.debug("--") + cc.bright("show-config") + cc.debug("...................") + cc.notice("Show ") + cc.note("onfiguration values") + cc.notice(" and exit.") );
         console.log( soi + cc.debug("--") + cc.bright("register") + cc.debug("......................") + cc.note("Register") + cc.notice(" S-chain on Main-net.") );
@@ -281,6 +284,8 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
     if( joArg.name == "finney"           ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value*1000*1000*1000*1000*1000; continue; }
     if( joArg.name == "ether"            ) { verify_arg_with_non_empty_value( joArg ); g_wei_amount = joArg.value*1000*1000*1000*1000*1000*1000; continue; }
     if( joArg.name == "amount"           ) { verify_arg_with_non_empty_value( joArg ); g_token_amount = joArg.value; continue; }
+    if( joArg.name == "raw-transfer"     ) { g_isRawTokenTransfer = true; continue; }
+    if( joArg.name == "raw-transfer"     ) { g_isRawTokenTransfer = false; continue; }
     if( joArg.name == "show-config"      ) { g_bShowConfigMode = true; continue; }
     if( joArg.name == "register" ) {
         g_arrActions.push( { "name": "Register S-chain on main net", "fn": async function() {
@@ -305,7 +310,8 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                     strCoinNameErc20_main_net,
                     joErc20_main_net,
                     strCoinNameErc20_s_chain,
-                    joErc20_s_chain
+                    joErc20_s_chain,
+                    g_isRawTokenTransfer
                     );
             }
             // ETH payment
@@ -337,7 +343,8 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                     strCoinNameErc20_main_net,
                     joErc20_main_net,
                     strCoinNameErc20_s_chain,
-                    joErc20_s_chain
+                    joErc20_s_chain,
+                    g_isRawTokenTransfer
                     );
             }
             // ETH payment
@@ -703,6 +710,7 @@ if( MTA.verbose_get() > MTA.RV_VERBOSE.information || g_bShowConfigMode ) {
         ensure_have_value( "Loaded Main-net ERC20 ABI ", strCoinNameErc20_main_net, false, true, null, (x) => { return cc.attention( x ); } );
         ensure_have_value( "Loaded S-Chain  ERC20 ABI ", strCoinNameErc20_s_chain, false, true, null, (x) => { return cc.attention( x ); } );
         ensure_have_value( "Amount of tokens to transfer", g_token_amount, false, true, null, (x) => { return cc.info( x ); } );
+        //g_isRawTokenTransfer
     }
 }
 if( g_bShowConfigMode ) {

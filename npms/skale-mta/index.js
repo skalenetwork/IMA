@@ -424,7 +424,8 @@ async function do_erc20_payment_from_main_net(
     strCoinNameErc20_main_net,
     erc20PrivateTestnetJson_main_net,
     strCoinNameErc20_s_chain,
-    erc20PrivateTestnetJson_s_chain
+    erc20PrivateTestnetJson_s_chain,
+    isRawTokenTransfer
 ) {
     let r, strActionName = "";
     try {
@@ -451,14 +452,24 @@ async function do_erc20_payment_from_main_net(
                 depositBoxAddress
                 , w3_main_net.utils.toBN( ""+token_amount+"000000000000000000" )
                 ).encodeABI();
-        let deposit =
-            jo_deposit_box.methods.rawDepositERC20(
-                chain_id_s_chain
-                , erc20Address_main_net
-                , erc20Address_s_chain // specific for rawDepositERC20() only
-                , accountForSchain
-                , w3_main_net.utils.toBN( ""+token_amount+"000000000000000000" )
-                ).encodeABI();
+        let deposit = null;
+        if( isRawTokenTransfer )
+            deposit =
+                jo_deposit_box.methods.rawDepositERC20(
+                    chain_id_s_chain
+                    , erc20Address_main_net
+                    , erc20Address_s_chain // specific for rawDepositERC20() only
+                    , accountForSchain
+                    , w3_main_net.utils.toBN( ""+token_amount+"000000000000000000" )
+                    ).encodeABI();
+        else
+            deposit = // beta version
+                jo_deposit_box.methods.depositERC20(
+                    chain_id_s_chain
+                    , erc20Address_main_net
+                    , accountForSchain
+                    , w3_main_net.utils.toBN( ""+token_amount+"000000000000000000" )
+                    ).encodeABI();
         //
         //
         // create raw transactions
@@ -539,7 +550,8 @@ async function do_erc20_payment_from_s_chain(
     strCoinNameErc20_main_net,
     joErc20_main_net,
     strCoinNameErc20_s_chain,
-    joErc20_s_chain
+    joErc20_s_chain,
+    isRawTokenTransfer
     ) {
     let r, strActionName = "";
     try {
@@ -568,12 +580,20 @@ async function do_erc20_payment_from_s_chain(
                 tokenManagerAddress
                 , w3_s_chain.utils.toBN( ""+token_amount+"000000000000000000" )
                 ).encodeABI();
-        let deposit =
-            jo_token_manager.methods.rawExitToMainERC20(
-                erc20Address_s_chain
-                , erc20Address_main_net // specific for rawExitToMainERC20() only
-                , accountForMainnet, w3_s_chain.utils.toBN( ""+token_amount+"000000000000000000" )
-                ).encodeABI();
+        let deposit = null;
+        if( isRawTokenTransfer )
+            deposit =
+                jo_token_manager.methods.rawExitToMainERC20(
+                    erc20Address_s_chain
+                    , erc20Address_main_net // specific for rawExitToMainERC20() only
+                    , accountForMainnet, w3_s_chain.utils.toBN( ""+token_amount+"000000000000000000" )
+                    ).encodeABI();
+        else
+            deposit = // beta version
+                jo_token_manager.methods.exitToMainERC20(
+                    erc20Address_s_chain
+                    , accountForMainnet, w3_s_chain.utils.toBN( ""+token_amount+"000000000000000000" )
+                    ).encodeABI();
         //
         //
         // create raw transactions
