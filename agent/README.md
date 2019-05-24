@@ -290,7 +290,7 @@ The **--node-number** and **--nodes-count** must me used for **MTA** instances r
 
 ### ERC20 default transfer from Main-net account to S-Chain
 
-Performed with the **--m2s-payment**, **--no-raw-transfer** and **--addr-erc20-s-chain** command line options:
+Performed with the **--m2s-payment** and **--no-raw-transfer** command line options:
 
     node ./main.js --verbose=9 \
         --m2s-payment \
@@ -302,7 +302,6 @@ Performed with the **--m2s-payment**, **--no-raw-transfer** and **--addr-erc20-s
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
-        --addr-erc20-s-chain=?????????????????????? \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
         --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852 \
         --no-raw-transfer
@@ -323,7 +322,7 @@ Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
-        --addr-erc20-s-chain=?????????????????????? \
+        --addr-erc20-s-chain=0xFB1c9F1141eCF906b90a06469DC1fad82470cb73 \
         --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
         --no-raw-transfer

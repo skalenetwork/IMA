@@ -686,19 +686,26 @@ if( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chain
 
 if( n1 != 0 && n2 == 0 ) {
     if( g_str_addr_erc20_explicit.length == 0 ) {
-        log.write( cc.fatal("FATAL:") + cc.error("If S-Chain ERC20 JSON is not specified, then explicit ERC20 address should be provided") + "\n" );
-        process.exit( 666 );
+        log.write( cc.fatal("IMPORTANT NOTICE:") + " " + cc.error("Both S-Chain ERC20 JSON and explicit ERC20 address are not specified") + "\n" );
+    } else {
+        log.write( cc.attention("IMPORTANT NOTICE:") + " " + cc.note("S-Chain ERC20 ABI will be auto-generated") + "\n" );
+        strCoinNameErc20_s_chain = "" + strCoinNameErc20_main_net; // assume same
+        joErc20_s_chain = JSON.parse( JSON.stringify(joErc20_main_net) ); // clone
+        joErc20_s_chain[ strCoinNameErc20_s_chain + "_address" ] = "" + g_str_addr_erc20_explicit; // set explicit address
+        if( g_isRawTokenTransfer ) {
+            g_isRawTokenTransfer = false;
+            if( MTA.verbose_get() > MTA.RV_VERBOSE.information )
+                log.write( cc.warning("ERC20 raw transfer is force ") + cc.success("OFF") + "\n" );
+        }
+        // if( MTA.verbose_get() > MTA.RV_VERBOSE.information )
+        //     log.write( cc.info("Auto-generated S-Chain ERC20 JSON is ") + cc.j(joErc20_s_chain) + "\n" );
     }
-    strCoinNameErc20_s_chain = "" + strCoinNameErc20_main_net; // assume same
-    joErc20_s_chain = JSON.parse( JSON.stringify(strCoinNameErc20_main_net) ); // clone
-    joErc20_s_chain[ strCoinNameErc20_s_chain + "_address" ] = "" + g_str_addr_erc20_explicit; // set explicit address
-    g_isRawTokenTransfer = false;
-    if( MTA.verbose_get() > MTA.RV_VERBOSE.information )
-        log.write( cc.warning("ERC20 raw transfer is force ") + cc.success("ON") + "\n" );
 } else {
-    g_isRawTokenTransfer = true;
-    if( MTA.verbose_get() > MTA.RV_VERBOSE.information )
-        log.write( cc.warning("ERC20 raw transfer is force ") + cc.error("OFF") + "\n" );
+    if( ! g_isRawTokenTransfer ) {
+        g_isRawTokenTransfer = true;
+        if( MTA.verbose_get() > MTA.RV_VERBOSE.information )
+            log.write( cc.warning("ERC20 raw transfer is force ") + cc.error("ON") + "\n" );
+    }
 }
 
 
