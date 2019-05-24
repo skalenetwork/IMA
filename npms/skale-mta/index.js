@@ -422,8 +422,10 @@ async function do_erc20_payment_from_main_net(
     token_amount, // how much ERC20 tokens to send
     jo_token_manager, // only s-chain
     strCoinNameErc20_main_net,
-    erc20PrivateTestnetJson
-    ) {
+    erc20PrivateTestnetJson_main_net,
+    strCoinNameErc20_s_chain,
+    erc20PrivateTestnetJson_s_chain
+) {
     let r, strActionName = "";
     try {
         strActionName = "w3_main_net.eth.getTransactionCount()/do_erc20_payment_from_main_net";
@@ -435,14 +437,28 @@ async function do_erc20_payment_from_main_net(
         //
         //
         strActionName = "ERC20 prepare M->S";
-        const erc20ABI = erc20PrivateTestnetJson[ strCoinNameErc20_main_net + "_abi" ];
-        const erc20Address = erc20PrivateTestnetJson[ strCoinNameErc20_main_net + "_address" ];
-        let contractERC20 = new w3_main_net.eth.Contract(erc20ABI, erc20Address);
+        //
+        let erc20Address_s_chain = erc20PrivateTestnetJson_s_chain[ strCoinNameErc20_s_chain + "_address" ];
+        //
+        const erc20ABI = erc20PrivateTestnetJson_main_net[ strCoinNameErc20_main_net + "_abi" ];
+        const erc20Address_main_net= erc20PrivateTestnetJson_main_net[ strCoinNameErc20_main_net + "_address" ];
+        let contractERC20 = new w3_main_net.eth.Contract( erc20ABI, erc20Address_main_net );
         //prepare the smart contract function deposit(string schainID, address to)
         let depositBoxAddress = jo_deposit_box.options.address;
         let accountForSchain = joAccountDst.address(w3_s_chain);
-        let approve = contractERC20.methods.approve(depositBoxAddress, w3_main_net.utils.toBN("1000000000000000000")).encodeABI();
-        let deposit = jo_deposit_box.methods.depositERC20(chain_id_s_chain, erc20Address, accountForSchain, w3_main_net.utils.toBN("1000000000000000000")).encodeABI();
+        let approve =
+            contractERC20.methods.approve(
+                depositBoxAddress
+                , w3_main_net.utils.toBN( ""+token_amount+"000000000000000000" )
+                ).encodeABI();
+        let deposit =
+            jo_deposit_box.methods.rawDepositERC20(
+                chain_id_s_chain
+                , erc20Address_main_net
+                , erc20Address_s_chain // specific for rawDepositERC20() only
+                , accountForSchain
+                , w3_main_net.utils.toBN( ""+token_amount+"000000000000000000" )
+                ).encodeABI();
         //
         //
         // create raw transactions
@@ -452,7 +468,7 @@ async function do_erc20_payment_from_main_net(
           "from": joAccountSrc.address(w3_main_net), // accountForMainnet
           "nonce": "0x" + tcnt.toString(16),
           "data": approve,
-          "to": erc20Address,
+          "to": erc20Address_main_net,
           "gasPrice": 0,
           "gas": 8000000
         }
@@ -464,7 +480,7 @@ async function do_erc20_payment_from_main_net(
             "to": depositBoxAddress,
             "gasPrice": 0,
             "gas": 8000000,
-            "value": w3_main_net.utils.toHex(w3_main_net.utils.toWei( /*"1"*/token_amount, "ether" ) )
+            "value": w3_main_net.utils.toHex(w3_main_net.utils.toWei( "1", "ether" ) )
         }
         //
         //
@@ -492,14 +508,14 @@ async function do_erc20_payment_from_main_net(
             log.write( cc.success("Result receipt for Deposit: ") + cc.j(joReceiptDeposit) + "\n" );
         //
         //
-        strActionName = "getPastEvents/ERC20TokenCreated";
-        let joEvents = await jo_token_manager.getPastEvents("ERC20TokenCreated", {
-            "filter": {"contractThere": [erc20Address]},
-            "fromBlock": 0,
-            "toBlock": "latest"
-        } );
-        if(verbose_get() >= RV_VERBOSE.information )
-            log.write( cc.success("Got events for ERC20TokenCreated: ") + cc.j(joEvents) + "\n" );
+        // strActionName = "getPastEvents/ERC20TokenCreated";
+        // let joEvents = await jo_token_manager.getPastEvents("ERC20TokenCreated", {
+        //     "filter": {"contractThere": [erc20Address]},
+        //     "fromBlock": 0,
+        //     "toBlock": "latest"
+        // } );
+        // if(verbose_get() >= RV_VERBOSE.information )
+        //     log.write( cc.success("Got events for ERC20TokenCreated: ") + cc.j(joEvents) + "\n" );
     } catch( e ) {
         if(verbose_get() >= RV_VERBOSE.fatal )
             log.write( cc.fatal("Payment error in " + strActionName + ": ") + cc.error(e) + "\n" );
@@ -520,6 +536,8 @@ async function do_erc20_payment_from_s_chain(
     jo_token_manager, // only s-chain
     jo_deposit_box, // only main net
     token_amount, // how much ERC20 tokens to send
+    strCoinNameErc20_main_net,
+    joErc20_main_net,
     strCoinNameErc20_s_chain,
     joErc20_s_chain
     ) {
@@ -534,16 +552,28 @@ async function do_erc20_payment_from_s_chain(
         //
         //
         strActionName = "ERC20 prepare S->M";
+        //
+        const erc20Address_main_net = joErc20_main_net[ strCoinNameErc20_main_net + "_address" ];
+        //
         let accountForMainnet = joAccountDst.address(w3_main_net);
         let accountForSchain = joAccountSrc.address(w3_s_chain);
         const erc20ABI = joErc20_s_chain[ strCoinNameErc20_s_chain + "_abi" ];
-        const erc20Address = joErc20_s_chain[ strCoinNameErc20_s_chain + "_address" ];
+        const erc20Address_s_chain = joErc20_s_chain[ strCoinNameErc20_s_chain + "_address" ];
         let tokenManagerAddress = jo_token_manager.options.address;
-        let contractERC20 = new w3_s_chain.eth.Contract(erc20ABI, erc20Address);
+        let contractERC20 = new w3_s_chain.eth.Contract( erc20ABI, erc20Address_s_chain );
         //prepare the smart contract function deposit(string schainID, address to)
         let depositBoxAddress = jo_deposit_box.options.address;
-        let approve = contractERC20.methods.approve(tokenManagerAddress, w3_s_chain.utils.toBN("1000000000000000000")).encodeABI();
-        let deposit = jo_token_manager.methods.exitToMainERC20(erc20Address, accountForMainnet, w3_s_chain.utils.toBN("1000000000000000000")).encodeABI();
+        let approve =
+            contractERC20.methods.approve(
+                tokenManagerAddress
+                , w3_s_chain.utils.toBN( ""+token_amount+"000000000000000000" )
+                ).encodeABI();
+        let deposit =
+            jo_token_manager.methods.rawExitToMainERC20(
+                erc20Address_s_chain
+                , erc20Address_main_net // specific for rawExitToMainERC20() only
+                , accountForMainnet, w3_s_chain.utils.toBN( ""+token_amount+"000000000000000000" )
+                ).encodeABI();
         //
         //
         // create raw transactions
@@ -554,7 +584,7 @@ async function do_erc20_payment_from_s_chain(
           "from": accountForSchain,
           "nonce": "0x" + tcnt.toString(16),
           "data": approve,
-          "to": erc20Address,
+          "to": erc20Address_s_chain,
           "gasPrice": 0,
           "gas": 8000000
         }
@@ -566,7 +596,7 @@ async function do_erc20_payment_from_s_chain(
             "to": tokenManagerAddress,
             "gasPrice": 0,
             "gas": 8000000,
-            "value": w3_s_chain.utils.toHex(w3_s_chain.utils.toWei( /*"1"*/token_amount, "ether" ) )
+            "value": w3_s_chain.utils.toHex(w3_s_chain.utils.toWei( "1", "ether" ) )
         }
         //
         //

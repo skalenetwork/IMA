@@ -303,7 +303,9 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                     g_token_amount, // how much ERC20 tokens to send
                     g_jo_token_manager, // only s-chain
                     strCoinNameErc20_main_net,
-                    joErc20_main_net
+                    joErc20_main_net,
+                    strCoinNameErc20_s_chain,
+                    joErc20_s_chain
                     );
             }
             // ETH payment
@@ -332,6 +334,8 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                     g_jo_token_manager, // only s-chain
                     g_jo_deposit_box, // only main net
                     g_token_amount,// how ERC20 tokens money to send
+                    strCoinNameErc20_main_net,
+                    joErc20_main_net,
                     strCoinNameErc20_s_chain,
                     joErc20_s_chain
                     );
