@@ -1,9 +1,6 @@
 pragma solidity ^0.5.0;
 
 import "./Ownable.sol";
-import 'openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
-
 
 interface Proxy {
     function postOutgoingMessage(
@@ -16,16 +13,17 @@ interface Proxy {
         external;
 }
 
+interface LockAndData {
+    function setContract(string calldata contractName, address newContract) external;
+    function tokenManagerAddresses(bytes32 schainHash) external returns (address);
+    function sendEth(address to, uint amount) external returns (bool);
+}
+
 // This contract runs on the main net and accepts deposits
 
 contract DepositBox is Ownable {
 
     //address public skaleManagerAddress;
-
-    struct Clone { 
-        bool created;
-        uint256 index;
-    }
 
     enum TransactionOperation {
         transferETH, 
@@ -36,19 +34,10 @@ contract DepositBox is Ownable {
     }
 
     address public proxyAddress;
-
-    mapping(bytes32 => address) public tokenManagerAddresses;
+    address payable escrowAndDataAddress;
 
     uint public constant GAS_AMOUNT_POST_MESSAGE = 55000; // 0;
     uint public constant AVERAGE_TX_PRICE = 1000000000;
-
-    mapping(uint => address) public ERC20Tokens;
-    mapping(address => uint) public ERC20Mapper;
-    uint newIndexERC20 = 1;
-
-    mapping(uint => address) public ERC721Tokens;
-    mapping(address => uint) public ERC721Mapper;
-    uint newIndexERC721 = 1;
 
     //mapping(address => mapping(address => uint)) public allowed;
 
@@ -70,28 +59,16 @@ contract DepositBox is Ownable {
     );
 
     /// Create a new deposit box
-    constructor(address newProxyAddress) public {
+    constructor(address newProxyAddress, address payable newEscrowAndDataAddress) public {
         proxyAddress = newProxyAddress;
+        escrowAndDataAddress = newEscrowAndDataAddress;
     }
 
     function() external payable {
         revert();
     }
 
-    function addSchain(
-        string memory schainID, 
-        address tokenManagerAddress
-    ) 
-        public 
-    {
-        //require(msg.sender == owner);
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerAddresses[schainHash] == address(0));
-        require(tokenManagerAddress != address(0));
-        tokenManagerAddresses[schainHash] = tokenManagerAddress;
-    }
-
-    function depositERC20(
+    /*function depositERC20(
         string memory schainID, 
         address contractHere, 
         address to, 
@@ -153,9 +130,9 @@ contract DepositBox is Ownable {
             address(0), 
             data
         );
-    }
+    }*/
 
-    function rawDepositERC20(
+    /*function rawDepositERC20(
         string memory schainID, 
         address contractHere, 
         address contractThere, 
@@ -198,9 +175,9 @@ contract DepositBox is Ownable {
             data
         );
 
-    }
+    }*/
 
-    function depositERC721(
+    /*function depositERC721(
         string memory schainID, 
         address contractHere, 
         address to, 
@@ -255,9 +232,9 @@ contract DepositBox is Ownable {
             address(0), 
             data
         );
-    }
+    }*/
 
-    function rawDepositERC721(
+    /*function rawDepositERC721(
         string memory schainID, 
         address contractHere, 
         address contractThere, 
@@ -295,7 +272,7 @@ contract DepositBox is Ownable {
             contractThere, 
             data
         );
-    }
+    }*/
 
     function deposit(string memory schainID, address to) public payable {
         bytes memory empty;
@@ -311,17 +288,19 @@ contract DepositBox is Ownable {
         payable 
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        address tokenManagerAddress = LockAndData(escrowAndDataAddress).tokenManagerAddresses(schainHash);
         require(schainHash != keccak256(abi.encodePacked("Mainnet")));
-        require(tokenManagerAddresses[schainHash] != address(0));
+        require(tokenManagerAddress != address(0));
         require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE); //average tx.gasprice
         data = abi.encodePacked(bytes1(uint8(1)), data);
         Proxy(proxyAddress).postOutgoingMessage(
             schainID, 
-            tokenManagerAddresses[schainHash], 
+            tokenManagerAddress, 
             msg.value, 
             to, 
             data
         );
+        escrowAndDataAddress.transfer(msg.value);
     }
 
     function postMessage(
@@ -336,9 +315,9 @@ contract DepositBox is Ownable {
         //require(msg.sender == proxyAddress);
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(schainHash != keccak256(abi.encodePacked("Mainnet")));
-        require(sender == tokenManagerAddresses[schainHash]);
+        require(sender == LockAndData(escrowAndDataAddress).tokenManagerAddresses(schainHash));
         
-        if (!(GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE <= address(this).balance)) {
+        if (!(GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE <= address(escrowAndDataAddress).balance)) {
             emit Error(
                 sender, 
                 fromSchainID, 
@@ -358,32 +337,27 @@ contract DepositBox is Ownable {
         emit MoneyReceivedMessage(sender, fromSchainID, to, amount, data);
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
-            require(amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
-            if (
-                !(amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE <= 
-                    address(this).balance
-                )
-            ) {
+            if (!LockAndData(escrowAndDataAddress).sendEth(owner, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
                 emit Error(
                     sender, 
                     fromSchainID, 
                     to, 
                     amount, 
                     data, 
-                    "Not enough money to finish this transaction"
+                    "Could not send money to owner"
                 );
-                return;
             }
-            require(
-                address(to).send(
-                    amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE
-                )
-            );
-            require(
-                address(owner).send(GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)
-            );
-            return;
-        } else if (operation == TransactionOperation.transferERC20) {
+            if (!LockAndData(escrowAndDataAddress).sendEth(to, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
+                emit Error(
+                    sender, 
+                    fromSchainID, 
+                    to, 
+                    amount, 
+                    data, 
+                    "Could not send money to receiver"
+                );
+            }
+        } /*else if (operation == TransactionOperation.transferERC20) {
             require(to == address(0));
             require(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
             if (
@@ -416,14 +390,14 @@ contract DepositBox is Ownable {
             }
             if (ERC20Detailed(ERC20Tokens[contractIndex]).balanceOf(address(this)) >= amountOfTokens) {
                 require(ERC20Detailed(ERC20Tokens[contractIndex]).transfer(receiver, amountOfTokens));
-            } /*else {
-                require(ERC20Detailed(to).mint(receiver, amountOfTokens));    // need to add mint support
-            }*/
+            } // else {
+                //require(ERC20Detailed(to).mint(receiver, amountOfTokens));    // need to add mint support
+            // }
             require(
                 address(owner).send(GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)
             );
             return;
-        } else if (operation == TransactionOperation.transferERC721) {
+    }*/ /*else if (operation == TransactionOperation.transferERC721) {
             require(to == address(0));
             require(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
             if (
@@ -461,7 +435,7 @@ contract DepositBox is Ownable {
                 address(owner).send(GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)
             );
             return;
-        } else if (operation == TransactionOperation.rawTransferERC20) {
+    }*/ /*else if (operation == TransactionOperation.rawTransferERC20) {
             require(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
             if (
                 !(amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE <= 
@@ -496,7 +470,7 @@ contract DepositBox is Ownable {
                 address(owner).send(GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)
             );
             return;
-        } else if (operation == TransactionOperation.rawTransferERC721) {
+    }*/ /*else if (operation == TransactionOperation.rawTransferERC721) {
             require(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
             if (
                 !(amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE <= 
@@ -531,7 +505,7 @@ contract DepositBox is Ownable {
                 address(owner).send(GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)
             );
             return;
-        }
+        }*/
     }
 
     /**
