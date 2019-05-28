@@ -37,6 +37,18 @@ contract LockAndData is Ownable {
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
     }
 
+    function approveTransfer(address to, uint amount) public allow("DepositBox") {
+        approveTransfers[to] += amount;
+    }
+
+    function getMyEth() public {
+        require(address(this).balance >= approveTransfers[msg.sender], "Not enough money");
+        require(approveTransfers[msg.sender] > 0, "User has not money");
+        uint amount = approveTransfers[msg.sender];
+        approveTransfers[msg.sender] = 0;
+        msg.sender.transfer(amount);
+    }
+
     function sendEth(address payable to, uint amount) public allow("DepositBox") returns (bool) {
         require(address(this).balance >= amount, "Not enough money");
         to.transfer(amount);
