@@ -35,7 +35,7 @@ contract DepositBox is Ownable {
     }
 
     address public proxyAddress;
-    address payable escrowAndDataAddress;
+    address payable lockAndDataAddress;
 
     uint public constant GAS_AMOUNT_POST_MESSAGE = 55000; // 0;
     uint public constant AVERAGE_TX_PRICE = 1000000000;
@@ -60,9 +60,9 @@ contract DepositBox is Ownable {
     );
 
     /// Create a new deposit box
-    constructor(address newProxyAddress, address payable newEscrowAndDataAddress) public {
+    constructor(address newProxyAddress, address payable newLockAndDataAddress) public {
         proxyAddress = newProxyAddress;
-        escrowAndDataAddress = newEscrowAndDataAddress;
+        lockAndDataAddress = newLockAndDataAddress;
     }
 
     function() external payable {
@@ -83,7 +83,7 @@ contract DepositBox is Ownable {
         payable 
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = LockAndData(escrowAndDataAddress).tokenManagerAddresses(schainHash);
+        address tokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
         require(schainHash != keccak256(abi.encodePacked("Mainnet")));
         require(tokenManagerAddress != address(0));
         require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE); //average tx.gasprice
@@ -95,7 +95,7 @@ contract DepositBox is Ownable {
             to, 
             data
         );
-        escrowAndDataAddress.transfer(msg.value);
+        lockAndDataAddress.transfer(msg.value);
     }
 
     function postMessage(
@@ -107,9 +107,9 @@ contract DepositBox is Ownable {
     ) 
         public 
     {
-        //require(msg.sender == proxyAddress);
+        require(msg.sender == proxyAddress);
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
-        if (schainHash == keccak256(abi.encodePacked("Mainnet") || sender != LockAndData(escrowAndDataAddress).tokenManagerAddresses(schainHash)) {
+        if (schainHash == keccak256(abi.encodePacked("Mainnet")) || sender != LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash)) {
             emit Error(
                 sender, 
                 fromSchainID, 
@@ -119,8 +119,7 @@ contract DepositBox is Ownable {
                 "Receiver chain is incorrect"
             );
         }
-        
-        if (!(GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE <= address(escrowAndDataAddress).balance)) {
+        if (!(GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE <= address(lockAndDataAddress).balance)) {
             emit Error(
                 sender, 
                 fromSchainID, 
@@ -139,7 +138,7 @@ contract DepositBox is Ownable {
 
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
-            if (!LockAndData(escrowAndDataAddress).sendEth(owner, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
+            if (!LockAndData(lockAndDataAddress).sendEth(owner, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
                 emit Error(
                     sender, 
                     fromSchainID, 
@@ -149,7 +148,7 @@ contract DepositBox is Ownable {
                     "Could not send money to owner"
                 );
             }
-            LockAndData(escrowAndDataAddress).approveTransfer(to, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
+            LockAndData(lockAndDataAddress).approveTransfer(to, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
         }
     }
 

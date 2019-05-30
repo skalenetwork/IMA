@@ -1,0 +1,57 @@
+pragma solidity ^0.5.7;
+
+import "./Ownable.sol";
+
+contract LockAndData is Ownable {
+
+    mapping(bytes32 => address) permitted;
+
+    mapping(bytes32 => address) public tokenManagerAddresses;
+
+    mapping(address => uint) public approveTransfers;
+
+    modifier allow(string memory contractName) {
+        require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender, "Not allowed");
+        _;
+    }
+
+    constructor() public payable {
+    }
+
+    function setContract(string memory contractName, address newContract) public onlyOwner {
+        require(newContract != address(0), "New address is equal zero");
+        bytes32 contractId = keccak256(abi.encodePacked(contractName));
+        require(permitted[contractId] != newContract, "Contract is already added");
+        uint length;
+        assembly {
+            length := extcodesize(newContract)
+        }
+        require(length > 0, "Given contracts address is not contain code");
+        permitted[contractId] = newContract;
+    }
+
+    function addSchain(string memory schainID, address tokenManagerAddress) public onlyOwner {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        require(tokenManagerAddresses[schainHash] == address(0));
+        require(tokenManagerAddress != address(0));
+        tokenManagerAddresses[schainHash] = tokenManagerAddress;
+    }
+
+    function approveTransfer(address to, uint amount) public allow("DepositBox") {
+        approveTransfers[to] += amount;
+    }
+
+    function getMyEth() public {
+        require(address(this).balance >= approveTransfers[msg.sender], "Not enough money");
+        require(approveTransfers[msg.sender] > 0, "User has not money");
+        uint amount = approveTransfers[msg.sender];
+        approveTransfers[msg.sender] = 0;
+        msg.sender.transfer(amount);
+    }
+
+    function sendEth(address payable to, uint amount) public allow("DepositBox") returns (bool) {
+        require(address(this).balance >= amount, "Not enough money");
+        to.transfer(amount);
+        return true;
+    }
+}

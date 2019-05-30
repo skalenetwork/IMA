@@ -14,6 +14,13 @@ interface ProxyForSchain {
         external;
 }
 
+interface LockAndData {
+    function setContract(string calldata contractName, address newContract) external;
+    function tokenManagerAddresses(bytes32 schainHash) external returns (address);
+    function sendEth(address to, uint amount) external returns (bool);
+    function approveTransfer(address to, uint amount) external;
+}
+
 // This contract runs on schains and accepts messages from main net creates ETH clones.
 // When the user exits, it burns them
 
@@ -33,7 +40,7 @@ contract TokenManager is Ownable {
 
     address public proxyForSchainAddress;
 
-    address
+    address public lockAndDataAddress;
 
     // The maximum amount of ETH clones this contract can create
     // It is 102000000 which is the current total ETH supply
@@ -41,7 +48,7 @@ contract TokenManager is Ownable {
     // TODO: TOKEN_RESERVE = 102000000 * (10 ** 18);
 
     //uint public TOKEN_RESERVE = 102000000 * (10 ** 18); //ether
-    uint public TOKEN_RESERVE = 10 * (10 ** 18); //ether
+    //uint public TOKEN_RESERVE = 10 * (10 ** 18); //ether
 
     uint public constant GAS_AMOUNT_POST_MESSAGE = 55000;
 
@@ -62,19 +69,12 @@ contract TokenManager is Ownable {
 
     constructor(
         string memory newChainID, 
-        address depositBox, 
-        address newProxyAddress,
-        address newEthERC20Address
+        address newProxyAddress
     ) 
         public 
         payable 
     {
-        require(msg.value == TOKEN_RESERVE);
-        //require(address(this).balance < TOKEN_RESERVE + 0.01 ether);
         chainID = newChainID;
-        tokenManagerAddresses[
-            keccak256(abi.encodePacked("Mainnet"))
-        ] = depositBox;
         proxyForSchainAddress = newProxyAddress;
     }
 
@@ -105,7 +105,7 @@ contract TokenManager is Ownable {
 
     // This is called by schain owner.
     // Exit to main net
-    function exitToMain(address to) public payable {
+    function exitToMain(address to) public {
         bytes memory empty;
         exitToMain(to, empty);
     }
@@ -156,8 +156,16 @@ contract TokenManager is Ownable {
     {
         require(msg.sender == proxyForSchainAddress);
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
-        require(schainHash != keccak256(abi.encodePacked(chainID)));
-        require(sender == tokenManagerAddresses[schainHash]);
+        if (schainHash != keccak256(abi.encodePacked(chainID)) && sender == LockAndData(lockAndDataAddress).tokenManagerAddresses[schainHash]) {
+            emit Error(
+                sender, 
+                fromSchainID, 
+                to, 
+                amount, 
+                data, 
+                "Receiver chain is incorrect"
+            );
+        }
         
         if (data.length == 0) {
             emit Error(sender, fromSchainID, to, amount, data, "Invalid data");
