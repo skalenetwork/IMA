@@ -3,19 +3,19 @@ pragma solidity ^0.5.7;
 import "./Ownable.sol";
 
 interface ETHERC20 {
+    function allowance(address from, address to) external returns (uint);
     function mint(address account, uint256 amount) external returns (bool);
     function burn(uint256 amount) external;
+    function burnFrom(address from, uint256 amount) external;
 }
 
-contract LockAndData is Ownable {
+contract LockAndDataForSchain is Ownable {
 
     address public ethERC20Address;
 
     mapping(bytes32 => address) permitted;
 
     mapping(bytes32 => address) public tokenManagerAddresses;
-
-    mapping(address => uint) public approveTransfers;
 
     modifier allow(string memory contractName) {
         require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender, "Not allowed");
@@ -61,15 +61,17 @@ contract LockAndData is Ownable {
         ] = depositBoxAddress;
     }
 
-    function approveTransfer(address to, uint amount) public allow("DepositBox") {
-        approveTransfers[to] += amount;
-    }
-
-    function sendEth(address to, uint amount) public allow("DepositBox") returns (bool) {
+    function sendEth(address to, uint amount) public allow("TokenManager") returns (bool) {
         require(ETHERC20(ethERC20Address).mint(to, amount), "Mint error");
+        return true;
     }
 
-    function receiveEth(address sender, uint amount) {
-        require(ETHERC20(ethERC20Address).allowance(msg.sender, address(this)) >= amount);
+    function receiveEth(address sender, uint amount) public allow("TokenManager") returns (bool) {
+        uint approvedAmount = ETHERC20(ethERC20Address).allowance(msg.sender, address(this));
+        require(approvedAmount >= amount, "Not approved");
+        ETHERC20(ethERC20Address).burnFrom(sender, amount);
+        uint approvedAmountAfter = ETHERC20(ethERC20Address).allowance(msg.sender, address(this));
+        require(approvedAmount - amount == approvedAmountAfter, "Not burned");
+        return true;
     }
 }

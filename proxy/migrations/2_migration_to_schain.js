@@ -1,7 +1,8 @@
 let fs = require("fs");
 let MessageProxy = artifacts.require("./MessageProxy.sol");
 let TokenManager = artifacts.require("./TokenManager.sol");
-let TokenFactory = artifacts.require("./TokenFactory.sol");
+let LockAndDataForSchain = artifacts.require("./LockAndDataForSchain.sol");
+let EthERC20 = artifacts.require("./EthERC20.sol");
 
 let networks = require("../truffle-config.js");
 let proxyMainnet = require("../data/proxyMainnet.json");
@@ -18,15 +19,19 @@ async function deploy(deployer, network) {
     }
     let schainName = networks['networks'][network]['name'];
     await deployer.deploy(MessageProxy, schainName, {gas: 8000000}).then(async function() {
-        return await deployer.deploy(TokenManager, schainName, proxyMainnet['deposit_box_address'], MessageProxy.address, {gas: 8000000, value: "10000000000000000000"});
+        return await deployer.deploy(LockAndDataForSchain, {gas: 8000000});
     }).then(async function(inst) {
-        await deployer.deploy(TokenFactory).then(function(res) {
-            return res.transferOwnership(TokenManager.address);
-        });
-        return await inst.setTokenFactory(TokenFactory.address);
+        await deployer.deploy(TokenManager, schainName, MessageProxy.address, inst.address, {gas: 8000000});
+        await deployer.deploy(EthERC20, {gas: 8000000});
+        await inst.setContract("TokenManager", TokenManager.address);
+        await inst.setEthERC20Address(EthERC20.address);
     });
 
     let jsonObject = {
+        lock_and_data_for_schain_address: LockAndDataForSchain.address,
+        lock_and_data_for_schain_abi: LockAndDataForSchain.abi,
+        eth_erc20_address: EthERC20.address,
+        eth_erc20_abi: EthERC20.abi,
         token_manager_address: TokenManager.address,
         token_manager_abi: TokenManager.abi,
         message_proxy_chain_address: MessageProxy.address,

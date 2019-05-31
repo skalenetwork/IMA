@@ -2,7 +2,7 @@ pragma solidity ^0.5.7;
 
 import "./Ownable.sol";
 
-contract LockAndData is Ownable {
+contract LockAndDataForMainnet is Ownable {
 
     mapping(bytes32 => address) permitted;
 

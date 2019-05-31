@@ -18,6 +18,7 @@ interface LockAndData {
     function setContract(string calldata contractName, address newContract) external;
     function tokenManagerAddresses(bytes32 schainHash) external returns (address);
     function sendEth(address to, uint amount) external returns (bool);
+    function receiveEth(address sender, uint amount) external returns (bool);
     function approveTransfer(address to, uint amount) external;
 }
 
@@ -69,54 +70,36 @@ contract TokenManager is Ownable {
 
     constructor(
         string memory newChainID, 
-        address newProxyAddress
+        address newProxyAddress,
+        address newLockAndDataAddress
     ) 
         public 
         payable 
     {
         chainID = newChainID;
         proxyForSchainAddress = newProxyAddress;
+        lockAndDataAddress = newLockAndDataAddress;
     }
 
     function() external {
         revert();
     }
 
-    function addSchain(string memory schainID, address tokenManagerAddress)
-        public 
-    {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerAddresses[schainHash] == address(0));
-        require(tokenManagerAddress != address(0));
-        tokenManagerAddresses[schainHash] = tokenManagerAddress;
-    }
-
-    function addDepositBox(address depositBoxAddress) public {
-        require(depositBoxAddress != address(0));
-        require(
-            tokenManagerAddresses[
-                keccak256(abi.encodePacked("Mainnet"))
-            ] != depositBoxAddress
-        );
-        tokenManagerAddresses[
-            keccak256(abi.encodePacked("Mainnet"))
-        ] = depositBoxAddress;
-    }
-
     // This is called by schain owner.
     // Exit to main net
-    function exitToMain(address to) public {
+    function exitToMain(address to, uint amount) public {
         bytes memory empty;
-        exitToMain(to, empty);
+        exitToMain(to, amount, empty);
     }
 
-    function exitToMain(address to, bytes memory data) public payable {
-        require(msg.value > 0);
+    function exitToMain(address to, uint amount, bytes memory data) public {
+        require(amount > 0);
+        require(LockAndData(lockAndDataAddress).receiveEth(msg.sender, amount));
         data = abi.encodePacked(bytes1(uint8(1)), data);
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(
             "Mainnet", 
-            tokenManagerAddresses[keccak256(abi.encodePacked("Mainnet"))], 
-            msg.value, 
+            LockAndData(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))), 
+            amount, 
             to, 
             data
         );
@@ -125,19 +108,22 @@ contract TokenManager is Ownable {
     function transferToSchain(
         string memory schainID, 
         address to, 
+        uint amount,
         bytes memory data
     ) 
         public 
         payable 
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        address schainTokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
         require(schainHash != keccak256(abi.encodePacked("Mainnet")));
-        require(tokenManagerAddresses[schainHash] != address(0));
-        require(msg.value > 0);
+        require(schainTokenManagerAddress != address(0));
+        require(amount > 0);
+        require(LockAndData(lockAndDataAddress).receiveEth(msg.sender, amount));
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(
             schainID, 
-            tokenManagerAddresses[schainHash], 
-            msg.value, 
+            schainTokenManagerAddress, 
+            amount, 
             to, 
             data
         );
@@ -156,7 +142,7 @@ contract TokenManager is Ownable {
     {
         require(msg.sender == proxyForSchainAddress);
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
-        if (schainHash != keccak256(abi.encodePacked(chainID)) && sender == LockAndData(lockAndDataAddress).tokenManagerAddresses[schainHash]) {
+        if (schainHash != keccak256(abi.encodePacked(chainID)) && sender == LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash)) {
             emit Error(
                 sender, 
                 fromSchainID, 
@@ -175,7 +161,7 @@ contract TokenManager is Ownable {
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
             require(to != address(0));
-            require(address(to).send(amount));
+            require(LockAndData(lockAndDataAddress).sendEth(to, amount));
             return;
         }
     }

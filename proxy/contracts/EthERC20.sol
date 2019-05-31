@@ -8,7 +8,7 @@ contract EthERC20 is Ownable, ERC20Detailed, ERC20 {
 
     uint private cap = 120 * (10 ** 6) * (10 ** 18);
 
-    constructor() ERC20Detailed("ERC20 Ether Clone", "ETHC", 18) {
+    constructor() ERC20Detailed("ERC20 Ether Clone", "ETHC", 18) public {
 
     }
 
