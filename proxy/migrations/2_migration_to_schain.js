@@ -22,7 +22,10 @@ async function deploy(deployer, network) {
         return await deployer.deploy(LockAndDataForSchain, {gas: 8000000});
     }).then(async function(inst) {
         await deployer.deploy(TokenManager, schainName, MessageProxy.address, inst.address, {gas: 8000000});
-        await deployer.deploy(EthERC20, {gas: 8000000});
+        await deployer.deploy(EthERC20, {gas: 8000000}).then(async function(inst) {
+            await inst.transferOwnership(inst.address, {gas: 200000});
+        });
+        console.log(TokenManager.address);
         await inst.setContract("TokenManager", TokenManager.address);
         await inst.setEthERC20Address(EthERC20.address);
     });

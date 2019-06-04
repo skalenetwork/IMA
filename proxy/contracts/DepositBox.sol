@@ -18,6 +18,8 @@ interface LockAndData {
     function tokenManagerAddresses(bytes32 schainHash) external returns (address);
     function sendEth(address to, uint amount) external returns (bool);
     function approveTransfer(address to, uint amount) external;
+    function addSchain(string calldata schainID, address tokenManagerAddress) external;
+    function receiveEth() external payable;
 }
 
 // This contract runs on the main net and accepts deposits
@@ -68,7 +70,7 @@ contract DepositBox is Ownable {
     function() external payable {
         revert();
     }
-
+    
     function deposit(string memory schainID, address to) public payable {
         bytes memory empty;
         deposit(schainID, to, empty);
@@ -95,7 +97,7 @@ contract DepositBox is Ownable {
             to, 
             data
         );
-        lockAndDataAddress.transfer(msg.value);
+        LockAndData(lockAndDataAddress).receiveEth.value(msg.value);
     }
 
     function postMessage(

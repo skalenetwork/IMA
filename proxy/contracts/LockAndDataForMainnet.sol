@@ -16,6 +16,11 @@ contract LockAndDataForMainnet is Ownable {
     }
 
     constructor() public payable {
+        
+    }
+    
+    function receiveEth() external payable {
+        
     }
 
     function setContract(string memory contractName, address newContract) public onlyOwner {

@@ -74,7 +74,6 @@ contract TokenManager is Ownable {
         address newLockAndDataAddress
     ) 
         public 
-        payable 
     {
         chainID = newChainID;
         proxyForSchainAddress = newProxyAddress;
@@ -112,7 +111,6 @@ contract TokenManager is Ownable {
         bytes memory data
     ) 
         public 
-        payable 
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address schainTokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
@@ -134,7 +132,7 @@ contract TokenManager is Ownable {
     function postMessage(
         address sender, 
         string memory fromSchainID, 
-        address payable to, 
+        address to, 
         uint amount, 
         bytes memory data
     ) 
@@ -142,7 +140,7 @@ contract TokenManager is Ownable {
     {
         require(msg.sender == proxyForSchainAddress);
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
-        if (schainHash != keccak256(abi.encodePacked(chainID)) && sender == LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash)) {
+        if (schainHash == keccak256(abi.encodePacked(chainID)) || sender != LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash)) {
             emit Error(
                 sender, 
                 fromSchainID, 
@@ -151,6 +149,7 @@ contract TokenManager is Ownable {
                 data, 
                 "Receiver chain is incorrect"
             );
+            return;
         }
         
         if (data.length == 0) {
@@ -161,7 +160,16 @@ contract TokenManager is Ownable {
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
             require(to != address(0));
-            require(LockAndData(lockAndDataAddress).sendEth(to, amount));
+            if (!LockAndData(lockAndDataAddress).sendEth(to, amount)) {
+                emit Error(
+                    sender, 
+                    fromSchainID, 
+                    to, 
+                    amount, 
+                    data, 
+                    "Could not transfer eth clone"
+                );
+            }
             return;
         }
     }

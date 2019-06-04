@@ -61,7 +61,7 @@ contract LockAndDataForSchain is Ownable {
         ] = depositBoxAddress;
     }
 
-    function sendEth(address to, uint amount) public allow("TokenManager") returns (bool) {
+    function sendEth(address to, uint amount) external allow("TokenManager") returns (bool) {
         require(ETHERC20(ethERC20Address).mint(to, amount), "Mint error");
         return true;
     }
