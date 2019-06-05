@@ -24,6 +24,12 @@ let lockAndDataForMainnetABI = mainnetData.lock_and_data_for_mainnet_abi;
 let lockAndDataForSchainAddress = schainData.lock_and_data_for_schain_address;
 let lockAndDataForSchainABI = schainData.lock_and_data_for_schain_abi;
 
+let ethERC20Address = schainData.eth_erc20_address;
+let ethERC20ABI = schainData.eth_erc20_abi;
+
+let tokenManagerAddress = schainData.token_manager_address;
+let tokenManagerABI = schainData.token_manager_abi;
+
 let web3Mainnet = new Web3(new Web3.providers.HttpProvider(mainnetRPC));
 let web3Schain = new Web3(new Web3.providers.HttpProvider(schainRPC));
 
@@ -34,8 +40,13 @@ let DepositBox = new web3Mainnet.eth.Contract(depositBoxABI, depositBoxAddress);
 let LockAndDataForMainnet = new web3Mainnet.eth.Contract(lockAndDataForMainnetABI, lockAndDataForMainnetAddress);
 let MessageProxyMainnet = new web3Mainnet.eth.Contract(messageProxyMainnetABI, messageProxyMainnetAddress);
 let LockAndDataForSchain = new web3Schain.eth.Contract(lockAndDataForSchainABI, lockAndDataForSchainAddress);
+let EthERC20 = new web3Schain.eth.Contract(ethERC20ABI, ethERC20Address);
+let TokenManager = new web3Schain.eth.Contract(tokenManagerABI, tokenManagerAddress);
+
 
 let deposit = DepositBox.methods.deposit(schainName, accountMainnet).encodeABI();
+
+let exitToMain = TokenManager.methods.exitToMain(accountMainnet, "1000000000000000000").encodeABI();
 
 async function sendTransaction(web3Inst, account, privateKey, data, receiverContract, amount) {
     await web3Inst.eth.getTransactionCount(account).then(nonce => {
@@ -62,8 +73,12 @@ async function sendTransaction(web3Inst, account, privateKey, data, receiverCont
     console.log("Transaction done!");
 }
 
-async function sendMoney() {
+async function sendMoneyToSchain() {
     await sendTransaction(web3Mainnet, accountMainnet, privateKeyMainnetBuffer, deposit, depositBoxAddress, "1000000000000000000");
 }
 
-sendMoney();
+async function sendMoneyToMainnet() {
+    await sendTransaction(web3Schain, accountMainnet, privateKeyMainnetBuffer, exitToMain, tokenManagerAddress, 0);
+}
+
+sendMoneyToMainnet();

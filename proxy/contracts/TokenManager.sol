@@ -138,7 +138,7 @@ contract TokenManager is Ownable {
     ) 
         public
     {
-        require(msg.sender == proxyForSchainAddress);
+        require(msg.sender == proxyForSchainAddress, "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         if (schainHash == keccak256(abi.encodePacked(chainID)) || sender != LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash)) {
             emit Error(
@@ -160,16 +160,7 @@ contract TokenManager is Ownable {
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
             require(to != address(0));
-            if (!LockAndData(lockAndDataAddress).sendEth(to, amount)) {
-                emit Error(
-                    sender, 
-                    fromSchainID, 
-                    to, 
-                    amount, 
-                    data, 
-                    "Could not transfer eth clone"
-                );
-            }
+            require(LockAndData(lockAndDataAddress).sendEth(to, amount), "Not Send");
             return;
         }
     }

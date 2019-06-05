@@ -22,7 +22,7 @@ contract EthERC20 is Ownable, ERC20Detailed, ERC20 {
         _burn(msg.sender, amount);
     }
 
-    function burnFrom(address account, uint256 amount) public {
-        _burnFrom(account, amount);
+    function burnFrom(address account, uint256 amount) onlyOwner public {
+        _burn(account, amount);
     }
 }

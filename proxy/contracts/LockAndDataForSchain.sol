@@ -61,17 +61,13 @@ contract LockAndDataForSchain is Ownable {
         ] = depositBoxAddress;
     }
 
-    function sendEth(address to, uint amount) external allow("TokenManager") returns (bool) {
+    function sendEth(address to, uint amount) public allow("TokenManager") returns (bool) {
         require(ETHERC20(ethERC20Address).mint(to, amount), "Mint error");
         return true;
     }
 
     function receiveEth(address sender, uint amount) public allow("TokenManager") returns (bool) {
-        uint approvedAmount = ETHERC20(ethERC20Address).allowance(msg.sender, address(this));
-        require(approvedAmount >= amount, "Not approved");
         ETHERC20(ethERC20Address).burnFrom(sender, amount);
-        uint approvedAmountAfter = ETHERC20(ethERC20Address).allowance(msg.sender, address(this));
-        require(approvedAmount - amount == approvedAmountAfter, "Not burned");
         return true;
     }
 }
