@@ -17,6 +17,8 @@ contract LockAndDataForSchain is Ownable {
 
     mapping(bytes32 => address) public tokenManagerAddresses;
 
+    mapping(address => uint) public ethCosts;
+
     modifier allow(string memory contractName) {
         require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender, "Not allowed");
         _;
@@ -59,6 +61,21 @@ contract LockAndDataForSchain is Ownable {
         tokenManagerAddresses[
             keccak256(abi.encodePacked("Mainnet"))
         ] = depositBoxAddress;
+    }
+
+    function addGasCosts(address to, uint amount) public allow("TokenManager") {
+        ethCosts[to] += amount;
+    }
+
+    function reduceGasCosts(address to, uint amount) public allow("TokenManager") returns (bool) {
+        if (ethCosts[to] >= amount) {
+            ethCosts[to] -= amount;
+            return true;
+        } else if (ethCosts[address(0)] >= amount) {
+            ethCosts[address(0)] -= amount;
+            return true;
+        }
+        return false;
     }
 
     function sendEth(address to, uint amount) public allow("TokenManager") returns (bool) {

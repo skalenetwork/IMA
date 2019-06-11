@@ -1,6 +1,6 @@
 pragma solidity ^0.5.0;
 
-import "./Ownable.sol";
+import "./Permissions.sol";
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
 
 interface ProxyForSchain {
@@ -20,12 +20,20 @@ interface LockAndData {
     function sendEth(address to, uint amount) external returns (bool);
     function receiveEth(address sender, uint amount) external returns (bool);
     function approveTransfer(address to, uint amount) external;
+    function ethCosts(address to) external returns (uint);
+    function addCosts(address to, uint amount) external;
+    function reduceCosts(address to, uint amount) external returns (bool);
+}
+
+interface ERC20Module {
+    function receiveERC20(address contractHere, address to, uint amount, bool isRaw) external returns (bytes memory);
+    function sendERC20(address to, bytes calldata data) external returns (bool);
 }
 
 // This contract runs on schains and accepts messages from main net creates ETH clones.
 // When the user exits, it burns them
 
-contract TokenManager is Ownable {
+contract TokenManager is Permissions {
 
 
     enum TransactionOperation {
@@ -52,6 +60,7 @@ contract TokenManager is Ownable {
     //uint public TOKEN_RESERVE = 10 * (10 ** 18); //ether
 
     uint public constant GAS_AMOUNT_POST_MESSAGE = 55000;
+    uint public constant AVERAGE_TX_PRICE = 1000000000;
 
     // Owner of this schain. For mainnet
     //address public owner;
@@ -64,6 +73,20 @@ contract TokenManager is Ownable {
         bytes data, 
         string message
     );
+
+    modifier rightTransaction(string memory schainID) {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        address schainTokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
+        require(schainHash != keccak256(abi.encodePacked("Mainnet")));
+        require(schainTokenManagerAddress != address(0));
+        _;
+    }
+
+    modifier receivedEth(uint amount) {
+        require(amount > 0);
+        require(LockAndData(lockAndDataAddress).receiveEth(msg.sender, amount));
+        _;
+    }
 
 
     /// Create a new token manager
@@ -91,9 +114,7 @@ contract TokenManager is Ownable {
         exitToMain(to, amount, empty);
     }
 
-    function exitToMain(address to, uint amount, bytes memory data) public {
-        require(amount > 0);
-        require(LockAndData(lockAndDataAddress).receiveEth(msg.sender, amount));
+    function exitToMain(address to, uint amount, bytes memory data) public receivedEth(amount) {
         data = abi.encodePacked(bytes1(uint8(1)), data);
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(
             "Mainnet", 
@@ -104,6 +125,11 @@ contract TokenManager is Ownable {
         );
     }
 
+    function transferToSchain(string memory schainID, address to, uint amount) public {
+        bytes memory data;
+        transferToSchain(schainID, to, amount, data);
+    }
+
     function transferToSchain(
         string memory schainID, 
         address to, 
@@ -111,18 +137,41 @@ contract TokenManager is Ownable {
         bytes memory data
     ) 
         public 
+        rightTransaction(schainID)
+        receivedEth(amount)
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address schainTokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
-        require(schainHash != keccak256(abi.encodePacked("Mainnet")));
-        require(schainTokenManagerAddress != address(0));
-        require(amount > 0);
-        require(LockAndData(lockAndDataAddress).receiveEth(msg.sender, amount));
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(
             schainID, 
-            schainTokenManagerAddress, 
+            LockAndData(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))), 
             amount, 
             to, 
+            data
+        );
+    }
+
+    function exitToMainERC20(address contractHere, address to, uint amount) public {
+        address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        require(
+            ERC20Detailed(contractHere).allowance(
+                msg.sender, 
+                address(this)
+            ) >= amount
+        );
+        require(
+            ERC20Detailed(contractHere).transferFrom(
+                msg.sender, 
+                lockAndDataERC20, 
+                amount
+            )
+        );
+        require(LockAndData(lockAndDataAddress).reduceCosts(msg.sender, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE), "Not enough gas sent");
+        bytes memory data = ERC20Module(erc20Module).receiveERC20(contractHere, to, amount, false);
+        ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(
+            "Mainnet", 
+            LockAndData(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))), 
+            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, 
+            address(0), 
             data
         );
     }
@@ -162,6 +211,9 @@ contract TokenManager is Ownable {
             require(to != address(0));
             require(LockAndData(lockAndDataAddress).sendEth(to, amount), "Not Send");
             return;
+        } else if (operation == TransactionOperation.transferERC20 || operation == TransactionOperation.rawTransferERC20) {
+            address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
+            ERC20Module(erc20Module).sendERC20(to, data);
         }
     }
 

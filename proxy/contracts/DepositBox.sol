@@ -1,6 +1,8 @@
 pragma solidity ^0.5.0;
 
 import "./Ownable.sol";
+import "./Permissions.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 
 interface Proxy {
     function postOutgoingMessage(
@@ -14,6 +16,7 @@ interface Proxy {
 }
 
 interface LockAndData {
+    function permitted(string calldata contractName) external view returns (address);
     function setContract(string calldata contractName, address newContract) external;
     function tokenManagerAddresses(bytes32 schainHash) external returns (address);
     function sendEth(address to, uint amount) external returns (bool);
@@ -22,9 +25,14 @@ interface LockAndData {
     function receiveEth() external payable;
 }
 
+interface ERC20Module {
+    function receiveERC20(address contractHere, address to, uint amount, bool isRaw) external returns (bytes memory);
+    function sendERC20(address to, bytes calldata data) external returns (bool);
+}
+
 // This contract runs on the main net and accepts deposits
 
-contract DepositBox is Ownable {
+contract DepositBox is Permissions {
 
     //address public skaleManagerAddress;
 
@@ -37,7 +45,6 @@ contract DepositBox is Ownable {
     }
 
     address public proxyAddress;
-    address payable lockAndDataAddress;
 
     uint public constant GAS_AMOUNT_POST_MESSAGE = 55000; // 0;
     uint public constant AVERAGE_TX_PRICE = 1000000000;
@@ -61,8 +68,17 @@ contract DepositBox is Ownable {
         string message
     );
 
+    modifier rightTransaction(string memory schainID) {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        address tokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
+        require(schainHash != keccak256(abi.encodePacked("Mainnet")), "Schain name is incorrect");
+        require(tokenManagerAddress != address(0), "Unconnected chain");
+        require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Not enough money");
+        _;
+    }
+
     /// Create a new deposit box
-    constructor(address newProxyAddress, address payable newLockAndDataAddress) public {
+    constructor(address newProxyAddress, address payable newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
         proxyAddress = newProxyAddress;
         lockAndDataAddress = newLockAndDataAddress;
     }
@@ -83,12 +99,10 @@ contract DepositBox is Ownable {
     ) 
         public 
         payable 
+        rightTransaction(schainID)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
-        require(schainHash != keccak256(abi.encodePacked("Mainnet")));
-        require(tokenManagerAddress != address(0));
-        require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE); //average tx.gasprice
         data = abi.encodePacked(bytes1(uint8(1)), data);
         Proxy(proxyAddress).postOutgoingMessage(
             schainID, 
@@ -98,6 +112,80 @@ contract DepositBox is Ownable {
             data
         );
         LockAndData(lockAndDataAddress).receiveEth.value(msg.value);
+    }
+
+    function depositERC20(
+        string memory schainID, 
+        address contractHere, 
+        address to, 
+        uint amount
+    )
+        public
+        payable
+        rightTransaction(schainID)
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        address tokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
+        address lockAndDataERC20 = LockAndData(lockAndDataAddress).permitted("LockAndDataERC20");
+        address erc20Module = LockAndData(lockAndDataAddress).permitted("ERC20Module");
+        require(
+            IERC20(contractHere).allowance(
+                msg.sender, 
+                address(this)
+            ) >= amount
+        );
+        require(
+            IERC20(contractHere).transferFrom(
+                msg.sender, 
+                lockAndDataERC20, 
+                amount
+            )
+        );
+        bytes memory data = ERC20Module(erc20Module).receiveERC20(contractHere, to, amount, false);
+        Proxy(proxyAddress).postOutgoingMessage(
+            schainID, 
+            tokenManagerAddress, 
+            msg.value, 
+            address(0), 
+            data
+        );
+    }
+
+    function rawDepositERC20(
+        string memory schainID, 
+        address contractHere, 
+        address contractThere, 
+        address to, 
+        uint amount
+    )
+        public
+        payable
+        rightTransaction(schainID)
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        address tokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
+        address lockAndDataERC20 = LockAndData(lockAndDataAddress).permitted("LockAndDataERC20");
+        require(
+            IERC20(contractHere).allowance(
+                msg.sender, 
+                address(this)
+            ) >= amount
+        );
+        require(
+            IERC20(contractHere).transferFrom(
+                msg.sender, 
+                lockAndDataERC20, 
+                amount
+            )
+        );
+        bytes memory data = ERC20Module(lockAndDataERC20).receiveERC20(contractHere, to, amount, true);
+        Proxy(proxyAddress).postOutgoingMessage(
+            schainID, 
+            tokenManagerAddress, 
+            msg.value, 
+            contractThere, 
+            data
+        );
     }
 
     function postMessage(
@@ -121,7 +209,7 @@ contract DepositBox is Ownable {
                 "Receiver chain is incorrect"
             );
         }
-        if (!(GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE <= address(lockAndDataAddress).balance)) {
+        if (!(amount <= address(lockAndDataAddress).balance) && !(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
             emit Error(
                 sender, 
                 fromSchainID, 
@@ -151,6 +239,9 @@ contract DepositBox is Ownable {
                 );
             }
             LockAndData(lockAndDataAddress).approveTransfer(to, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
+        } else if (operation == TransactionOperation.transferERC20 || operation == TransactionOperation.rawTransferERC20) {
+            address erc20Module = LockAndData(lockAndDataAddress).permitted("ERC20Module");
+            ERC20Module(erc20Module).sendERC20(to, data);
         }
     }
 
@@ -194,35 +285,7 @@ contract DepositBox is Ownable {
         }
     }
 
-    function fallbackDataParser(bytes memory data) 
-        internal 
-        pure 
-        returns (uint, address payable, uint) 
-    {
-        bytes32 contractIndex;
-        bytes32 to;
-        bytes32 token;
-        assembly {
-            contractIndex := mload(add(data, 33))
-            to := mload(add(data, 65))
-            token := mload(add(data, 97))
-        }
-        return (
-            uint(contractIndex), address(bytes20(to)), uint(token)
-        );
-    }
+    
 
-    function fallbackRawDataParser(bytes memory data) 
-        internal 
-        pure 
-        returns (address payable, uint) 
-    {
-        bytes32 to;
-        bytes32 token;
-        assembly {
-            to := mload(add(data, 33))
-            token := mload(add(data, 65))
-        }
-        return (address(bytes20(to)), uint(token));
-    }
+    
 }
