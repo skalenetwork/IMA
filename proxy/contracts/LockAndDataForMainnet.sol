@@ -15,8 +15,10 @@ contract LockAndDataForMainnet is Ownable {
         _;
     }
 
-    function receiveEth() external payable {
-        
+    event MoneyReceived(address from, uint amount);
+
+    function receiveEth(address from) public allow("DepositBox") payable {
+        emit MoneyReceived(from, msg.value);
     }
 
     function setContract(string memory contractName, address newContract) public onlyOwner {

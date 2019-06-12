@@ -11,17 +11,20 @@ interface ContractManager {
  * @author Artem Payvin
  */
 contract Permissions is Ownable {
-    
+
     // address of ContractManager
     address lockAndDataAddress;
 
     /**
-     * @dev allow - throws if called by any account and contract other than the owner 
+     * @dev allow - throws if called by any account and contract other than the owner
      * or `contractName` contract
      * @param contractName - human readable name of contract
      */
     modifier allow(string memory contractName) {
-        require(ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender || owner == msg.sender, "Message sender is invalid");
+        require(
+            ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
+            owner == msg.sender, "Message sender is invalid"
+        );
         _;
     }
 

@@ -5,12 +5,12 @@ import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
 
 interface ProxyForSchain {
     function postOutgoingMessage(
-        string calldata dstChainID, 
-        address dstContract, 
-        uint amount, 
-        address to, 
+        string calldata dstChainID,
+        address dstContract,
+        uint amount,
+        address to,
         bytes calldata data
-    ) 
+    )
         external;
 }
 
@@ -37,10 +37,10 @@ contract TokenManager is Permissions {
 
 
     enum TransactionOperation {
-        transferETH, 
-        transferERC20, 
-        transferERC721, 
-        rawTransferERC20, 
+        transferETH,
+        transferERC20,
+        transferERC721,
+        rawTransferERC20,
         rawTransferERC721
     }
 
@@ -66,25 +66,25 @@ contract TokenManager is Permissions {
     //address public owner;
 
     event Error(
-        address sender, 
-        string fromSchainID, 
-        address to, 
-        uint amount, 
-        bytes data, 
+        address sender,
+        string fromSchainID,
+        address to,
+        uint amount,
+        bytes data,
         string message
     );
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address schainTokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
-        require(schainHash != keccak256(abi.encodePacked("Mainnet")));
-        require(schainTokenManagerAddress != address(0));
+        require(schainHash != keccak256(abi.encodePacked("Mainnet")), "This function is not for transfering to Mainnet");
+        require(schainTokenManagerAddress != address(0), "Incorrect Token Manager address");
         _;
     }
 
     modifier receivedEth(uint amount) {
-        require(amount > 0);
-        require(LockAndData(lockAndDataAddress).receiveEth(msg.sender, amount));
+        require(amount > 0, "Null Amount");
+        require(LockAndData(lockAndDataAddress).receiveEth(msg.sender, amount), "Could not receive ETH Clone");
         _;
     }
 
@@ -92,12 +92,12 @@ contract TokenManager is Permissions {
     /// Create a new token manager
 
     constructor(
-        string memory newChainID, 
+        string memory newChainID,
         address newProxyAddress,
         address newLockAndDataAddress
     )
         Permissions(newLockAndDataAddress)
-        public 
+        public
     {
         chainID = newChainID;
         proxyForSchainAddress = newProxyAddress;
@@ -105,7 +105,7 @@ contract TokenManager is Permissions {
     }
 
     function() external {
-        revert();
+        revert("Not allowed");
     }
 
     // This is called by schain owner.
@@ -116,13 +116,14 @@ contract TokenManager is Permissions {
     }
 
     function exitToMain(address to, uint amount, bytes memory data) public receivedEth(amount) {
-        data = abi.encodePacked(bytes1(uint8(1)), data);
+        bytes memory newData;
+        newData = abi.encodePacked(bytes1(uint8(1)), data);
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(
-            "Mainnet", 
-            LockAndData(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))), 
-            amount, 
-            to, 
-            data
+            "Mainnet",
+            LockAndData(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            amount,
+            to,
+            newData
         );
     }
 
@@ -132,20 +133,20 @@ contract TokenManager is Permissions {
     }
 
     function transferToSchain(
-        string memory schainID, 
-        address to, 
+        string memory schainID,
+        address to,
         uint amount,
         bytes memory data
-    ) 
-        public 
+    )
+        public
         rightTransaction(schainID)
         receivedEth(amount)
     {
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(
-            schainID, 
-            LockAndData(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))), 
-            amount, 
-            to, 
+            schainID,
+            LockAndData(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))),
+            amount,
+            to,
             data
         );
     }
@@ -155,24 +156,26 @@ contract TokenManager is Permissions {
         address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
             ERC20Detailed(contractHere).allowance(
-                msg.sender, 
+                msg.sender,
                 address(this)
-            ) >= amount
+            ) >= amount,
+            "Not allowed ERC20 Token"
         );
         require(
             ERC20Detailed(contractHere).transferFrom(
-                msg.sender, 
-                lockAndDataERC20, 
+                msg.sender,
+                lockAndDataERC20,
                 amount
-            )
+            ),
+            "Could not transfer ERC20 Token"
         );
         require(LockAndData(lockAndDataAddress).reduceCosts(msg.sender, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE), "Not enough gas sent");
         bytes memory data = ERC20Module(erc20Module).receiveERC20(contractHere, to, amount, false);
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(
-            "Mainnet", 
-            LockAndData(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))), 
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, 
-            address(0), 
+            "Mainnet",
+            LockAndData(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            address(0),
             data
         );
     }
@@ -180,28 +183,28 @@ contract TokenManager is Permissions {
     // Receive money from main net and Schain
 
     function postMessage(
-        address sender, 
-        string memory fromSchainID, 
-        address to, 
-        uint amount, 
+        address sender,
+        string memory fromSchainID,
+        address to,
+        uint amount,
         bytes memory data
-    ) 
+    )
         public
     {
         require(msg.sender == proxyForSchainAddress, "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         if (schainHash == keccak256(abi.encodePacked(chainID)) || sender != LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash)) {
             emit Error(
-                sender, 
-                fromSchainID, 
-                to, 
-                amount, 
-                data, 
+                sender,
+                fromSchainID,
+                to,
+                amount,
+                data,
                 "Receiver chain is incorrect"
             );
             return;
         }
-        
+
         if (data.length == 0) {
             emit Error(sender, fromSchainID, to, amount, data, "Invalid data");
             return;
@@ -209,7 +212,7 @@ contract TokenManager is Permissions {
 
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
-            require(to != address(0));
+            require(to != address(0), "Incorrect receiver");
             require(LockAndData(lockAndDataAddress).sendEth(to, amount), "Not Send");
             return;
         } else if (operation == TransactionOperation.transferERC20 || operation == TransactionOperation.rawTransferERC20) {
@@ -228,18 +231,18 @@ contract TokenManager is Permissions {
      * @param data - received data
      * @return operation
      */
-    function fallbackOperationTypeConvert(bytes memory data) 
-        internal 
-        pure 
-        returns (TransactionOperation) 
+    function fallbackOperationTypeConvert(bytes memory data)
+        internal
+        pure
+        returns (TransactionOperation)
     {
         bytes1 operationType;
         assembly {
             operationType := mload(add(data, 0x20))
         }
         require(
-            operationType == 0x01 || 
-            operationType == 0x03 ||  
+            operationType == 0x01 ||
+            operationType == 0x03 ||
             operationType == 0x05 ||
             operationType == 0x13 ||
             operationType == 0x15,
@@ -257,11 +260,11 @@ contract TokenManager is Permissions {
             return TransactionOperation.rawTransferERC721;
         }
     }
-    
-    function fallbackDataParser(bytes memory data) 
-        internal 
-        pure 
-        returns (uint, address, uint) 
+
+    function fallbackDataParser(bytes memory data)
+        internal
+        pure
+        returns (uint, address, uint)
     {
         bytes32 contractIndex;
         bytes32 to;
@@ -288,10 +291,10 @@ contract TokenManager is Permissions {
         return uint(contractIndex);
     }
 
-    function fallbackRawDataParser(bytes memory data) 
-        internal 
-        pure 
-        returns (address, uint) 
+    function fallbackRawDataParser(bytes memory data)
+        internal
+        pure
+        returns (address, uint)
     {
         bytes32 to;
         bytes32 amount;
@@ -301,5 +304,4 @@ contract TokenManager is Permissions {
         }
         return (address(bytes20(to)), uint(amount));
     }
-
 }

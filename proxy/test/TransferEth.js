@@ -48,6 +48,8 @@ let deposit = DepositBox.methods.deposit(schainName, accountMainnet).encodeABI()
 
 let exitToMain = TokenManager.methods.exitToMain(accountMainnet, "1000000000000000000").encodeABI();
 
+let getMyEth = LockAndDataForMainnet.methods.getMyEth().encodeABI();
+
 async function sendTransaction(web3Inst, account, privateKey, data, receiverContract, amount) {
     await web3Inst.eth.getTransactionCount(account).then(nonce => {
         const rawTx = {
@@ -81,4 +83,10 @@ async function sendMoneyToMainnet() {
     await sendTransaction(web3Schain, accountMainnet, privateKeyMainnetBuffer, exitToMain, tokenManagerAddress, 0);
 }
 
-sendMoneyToMainnet();
+async function getMyETH() {
+    await sendTransaction(web3Mainnet, accountMainnet, privateKeyMainnetBuffer, getMyEth, lockAndDataForMainnetAddress, 0);
+}
+
+//sendMoneyToMainnet();
+//sendMoneyToSchain();
+getMyETH();

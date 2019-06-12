@@ -22,7 +22,7 @@ interface LockAndData {
     function sendEth(address to, uint amount) external returns (bool);
     function approveTransfer(address to, uint amount) external;
     function addSchain(string calldata schainID, address tokenManagerAddress) external;
-    function receiveEth() external payable;
+    function receiveEth(address from) external payable;
 }
 
 interface ERC20Module {
@@ -108,7 +108,7 @@ contract DepositBox is Permissions {
             to,
             newData
         );
-        LockAndData(lockAndDataAddress).receiveEth.value(msg.value);
+        LockAndData(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
     }
 
     function depositERC20(
