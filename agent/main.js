@@ -630,10 +630,12 @@ const g_w3_main_net = new w3mod( g_w3http_main_net );
 const g_w3http_s_chain = new w3mod.providers.HttpProvider( g_str_url_s_chain );
 const g_w3_s_chain = new w3mod( g_w3http_s_chain );
 
-let g_jo_deposit_box            = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.deposit_box_abi,           joTrufflePublishResult_main_net.deposit_box_address           ); // only main net
-let g_jo_token_manager          = new g_w3_s_chain .eth.Contract( joTrufflePublishResult_s_chain .token_manager_abi,         joTrufflePublishResult_s_chain .token_manager_address         ); // only s-chain
-let g_jo_message_proxy_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.message_proxy_mainnet_abi, joTrufflePublishResult_main_net.message_proxy_mainnet_address );
-let g_jo_message_proxy_s_chain  = new g_w3_s_chain .eth.Contract( joTrufflePublishResult_s_chain .message_proxy_chain_abi,   joTrufflePublishResult_s_chain .message_proxy_chain_address   );
+let g_jo_deposit_box            = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.deposit_box_abi,               joTrufflePublishResult_main_net.deposit_box_address               ); // only main net
+let g_jo_token_manager          = new g_w3_s_chain .eth.Contract( joTrufflePublishResult_s_chain .token_manager_abi,             joTrufflePublishResult_s_chain .token_manager_address             ); // only s-chain
+let g_jo_message_proxy_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.message_proxy_mainnet_abi,     joTrufflePublishResult_main_net.message_proxy_mainnet_address     );
+let g_jo_message_proxy_s_chain  = new g_w3_s_chain .eth.Contract( joTrufflePublishResult_s_chain .message_proxy_chain_abi,       joTrufflePublishResult_s_chain .message_proxy_chain_address       );
+let g_jo_lock_and_data_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.lock_and_data_for_mainnet_abi, joTrufflePublishResult_main_net.lock_and_data_for_mainnet_address );
+let g_jo_lock_and_data_s_chain  = new g_w3_s_chain .eth.Contract( joTrufflePublishResult_s_chain .lock_and_data_for_chain_abi,   joTrufflePublishResult_s_chain .lock_and_data_for_chain_address   );
 
 if( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chain.length > 0*/ ) {
     var n1 = 0, n2 = 0;
@@ -807,15 +809,17 @@ async function register_all() {
         );
     var b2 = await MTA.register_s_chain_in_deposit_box(
         g_w3_main_net,
-        g_jo_deposit_box, // only main net
+        //g_jo_deposit_box, // only main net
+        g_jo_lock_and_data_main_net,
         g_joAccount_main_net,
         g_jo_token_manager, // only s-chain
         g_chain_id_s_chain
         );
     var b3 = await MTA.reister_main_net_depositBox_on_s_chain(
         g_w3_s_chain,
-        g_jo_token_manager, // only s-chain
+        //g_jo_token_manager, // only s-chain
         g_jo_deposit_box, // only main net
+        g_jo_lock_and_data_s_chain,
         g_joAccount_s_chain
         );
     var b4 = b1 && b2 && b3;
