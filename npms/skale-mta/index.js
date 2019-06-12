@@ -385,6 +385,7 @@ async function do_eth_payment_from_s_chain(
         let dataTx = jo_token_manager.methods.exitToMain(
             // call params, last is destination account on S-chain
             joAccountDst.address(w3_s_chain)
+            , wei_how_much
             , w3_s_chain.utils.fromAscii("") // TO-DO: string is "data" parameter, we need to allow user to specify it
             ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
@@ -394,7 +395,7 @@ async function do_eth_payment_from_s_chain(
             "gasLimit": 3000000,
             "to": jo_token_manager.options.address, // cantract address
             "data": dataTx,
-            "value": wei_how_much // how much money to send
+            "value": 0 // how much money to send
         };
         if(verbose_get() >= RV_VERBOSE.trace )
             log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );
