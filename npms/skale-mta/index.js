@@ -146,6 +146,7 @@ async function register_s_chain_on_main_net(
             log.write( cc.debug("Got ") + cc.info(tcnt) + cc.debug(" from ") + cc.notice(strActionName) + "\n" );
         //
         //
+        //
         // based on:
         // https://ethereum.stackexchange.com/questions/47426/call-contract-function-signed-on-client-side-web3-js-1-0
         // https://ethereum.stackexchange.com/questions/25839/how-to-make-transactions-using-private-key-in-web3
@@ -184,7 +185,8 @@ async function register_s_chain_on_main_net(
 //
 async function register_s_chain_in_deposit_box(
     w3_main_net,
-    jo_deposit_box, // only main net
+    //jo_deposit_box, // only main net
+    jo_lock_and_data_main_net,
     joAccount_main_net,
     jo_token_manager, // only s-chain
     chain_id_s_chain
@@ -204,14 +206,17 @@ async function register_s_chain_in_deposit_box(
             log.write( cc.debug("Got ") + cc.info(tcnt) + cc.debug(" from ") + cc.notice(strActionName) + "\n" );
         //
         //
-        let dataTx = jo_deposit_box.methods.addSchain(
+        //
+        if(verbose_get() >= RV_VERBOSE.trace )
+            log.write( cc.debug("Will register S-Chain in lock_and_data on Main-net") + "\n" );
+        let dataTx = jo_lock_and_data_main_net.methods.addSchain(
             chain_id_s_chain, jo_token_manager.options.address // call params
             ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
             "nonce": tcnt, // 0x00, ...
             "gasPrice": w3_main_net.eth.gasPrice,
             "gasLimit": 3000000,
-            "to": jo_deposit_box.options.address, // cantract address
+            "to": jo_lock_and_data_main_net.options.address, // cantract address
             "data": dataTx
         };
         if(verbose_get() >= RV_VERBOSE.trace )
@@ -234,8 +239,9 @@ async function register_s_chain_in_deposit_box(
 
 async function reister_main_net_depositBox_on_s_chain(
     w3_s_chain,
-    jo_token_manager,
+    //jo_token_manager,
     jo_deposit_box_main_net,
+    jo_lock_and_data_s_chain,
     joAccount
     ) {
     if(verbose_get() >= RV_VERBOSE.debug ) {
@@ -253,14 +259,14 @@ async function reister_main_net_depositBox_on_s_chain(
             log.write( cc.debug("Got ") + cc.info(tcnt) + cc.debug(" from ") + cc.notice(strActionName) + "\n" );
         //
         //
-        let dataTx = jo_token_manager.methods.addDepositBox(
+        let dataTx = jo_lock_and_data_s_chain.methods.addDepositBox(
             jo_deposit_box_main_net.options.address // call params
             ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
             "nonce": tcnt, // 0x00, ...
             "gasPrice": w3_s_chain.eth.gasPrice,
             "gasLimit": 3000000,
-            "to": jo_token_manager.options.address, // cantract address
+            "to": jo_lock_and_data_s_chain.options.address, // cantract address
             "data": dataTx
         };
         if(verbose_get() >= RV_VERBOSE.trace )
@@ -379,6 +385,7 @@ async function do_eth_payment_from_s_chain(
         let dataTx = jo_token_manager.methods.exitToMain(
             // call params, last is destination account on S-chain
             joAccountDst.address(w3_s_chain)
+            , wei_how_much
             , w3_s_chain.utils.fromAscii("") // TO-DO: string is "data" parameter, we need to allow user to specify it
             ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
@@ -388,7 +395,7 @@ async function do_eth_payment_from_s_chain(
             "gasLimit": 3000000,
             "to": jo_token_manager.options.address, // cantract address
             "data": dataTx,
-            "value": wei_how_much // how much money to send
+            "value": 0 // how much money to send
         };
         if(verbose_get() >= RV_VERBOSE.trace )
             log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );

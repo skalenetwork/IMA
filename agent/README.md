@@ -49,14 +49,14 @@ Fourth, edit the *$MTA_ROOT/proxy/truffle-config.js* and specify needed networks
     cd $MTA_ROOT/proxy
     nano ./truffle-config.js
 
-We will use networks called **local** and **schain** in this documentation:
+We will use networks called **mainnet** and **schain** in this documentation:
 
     var privateKey_main_net = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
     var privateKey_s_chain  = "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e";
 
 ...
 
-    local: { # for Main-net
+    mainnet: { # for Main-net
         gasPrice: 10000000000,
         gas: 8000000,
         network_id: "*",
@@ -73,7 +73,7 @@ We will use networks called **local** and **schain** in this documentation:
 
 Fourth, export required environment variables:
 
-    export NETWORK_FOR_MAINNET="local"
+    export NETWORK_FOR_MAINNET="mainnet"
     export ETH_PRIVATE_KEY_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
     export NETWORK_FOR_SCHAIN="schain"
     export ETH_PRIVATE_KEY_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
@@ -86,8 +86,8 @@ Fourth, export required environment variables:
     export PRIVATE_KEY_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
     export ACCOUNT_FOR_MAINNET="0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
     export ACCOUNT_FOR_SCHAIN="0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852"
-    export MNEMONIC_FOR_MAINNET="your mnemonic for mainnet"
-    export MNEMONIC_FOR_SCHAIN="your mnemonic for schain"
+    export MNEMONIC_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
+    export MNEMONIC_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
 
 
 Fifth, try rebuild all the contracts once to ensure everything initialized OK:
