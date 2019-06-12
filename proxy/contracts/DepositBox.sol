@@ -6,12 +6,12 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 
 interface Proxy {
     function postOutgoingMessage(
-        string calldata dstChainID, 
-        address dstContract, 
-        uint amount, 
-        address to, 
+        string calldata dstChainID,
+        address dstContract,
+        uint amount,
+        address to,
         bytes calldata data
-    ) 
+    )
         external;
 }
 
@@ -37,10 +37,10 @@ contract DepositBox is Permissions {
     //address public skaleManagerAddress;
 
     enum TransactionOperation {
-        transferETH, 
-        transferERC20, 
-        transferERC721, 
-        rawTransferERC20, 
+        transferETH,
+        transferERC20,
+        transferERC721,
+        rawTransferERC20,
         rawTransferERC721
     }
 
@@ -52,19 +52,19 @@ contract DepositBox is Permissions {
     //mapping(address => mapping(address => uint)) public allowed;
 
     event MoneyReceivedMessage(
-        address sender, 
-        string fromSchainID, 
-        address to, 
-        uint amount, 
+        address sender,
+        string fromSchainID,
+        address to,
+        uint amount,
         bytes data
     );
 
     event Error(
-        address sender, 
-        string fromSchainID, 
-        address to, 
-        uint amount, 
-        bytes data, 
+        address sender,
+        string fromSchainID,
+        address to,
+        uint amount,
+        bytes data,
         string message
     );
 
@@ -84,40 +84,37 @@ contract DepositBox is Permissions {
     }
 
     function() external payable {
-        revert();
+        revert("Not allowed");
     }
-    
+
     function deposit(string memory schainID, address to) public payable {
         bytes memory empty;
         deposit(schainID, to, empty);
     }
 
-    function deposit(
-        string memory schainID, 
-        address to, 
-        bytes memory data
-    ) 
-        public 
-        payable 
+    function deposit(string memory schainID, address to, bytes memory data)
+        public
+        payable
         rightTransaction(schainID)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
-        data = abi.encodePacked(bytes1(uint8(1)), data);
+        bytes memory newData;
+        newData = abi.encodePacked(bytes1(uint8(1)), data);
         Proxy(proxyAddress).postOutgoingMessage(
-            schainID, 
-            tokenManagerAddress, 
-            msg.value, 
-            to, 
-            data
+            schainID,
+            tokenManagerAddress,
+            msg.value,
+            to,
+            newData
         );
         LockAndData(lockAndDataAddress).receiveEth.value(msg.value);
     }
 
     function depositERC20(
-        string memory schainID, 
-        address contractHere, 
-        address to, 
+        string memory schainID,
+        address contractHere,
+        address to,
         uint amount
     )
         public
@@ -130,32 +127,34 @@ contract DepositBox is Permissions {
         address erc20Module = LockAndData(lockAndDataAddress).permitted("ERC20Module");
         require(
             IERC20(contractHere).allowance(
-                msg.sender, 
+                msg.sender,
                 address(this)
-            ) >= amount
+            ) >= amount,
+            "Not allowed ERC20 Token"
         );
         require(
             IERC20(contractHere).transferFrom(
-                msg.sender, 
-                lockAndDataERC20, 
+                msg.sender,
+                lockAndDataERC20,
                 amount
-            )
+            ),
+            "Could not transfer ERC20 Token"
         );
         bytes memory data = ERC20Module(erc20Module).receiveERC20(contractHere, to, amount, false);
         Proxy(proxyAddress).postOutgoingMessage(
-            schainID, 
-            tokenManagerAddress, 
-            msg.value, 
-            address(0), 
+            schainID,
+            tokenManagerAddress,
+            msg.value,
+            address(0),
             data
         );
     }
 
     function rawDepositERC20(
-        string memory schainID, 
-        address contractHere, 
-        address contractThere, 
-        address to, 
+        string memory schainID,
+        address contractHere,
+        address contractThere,
+        address to,
         uint amount
     )
         public
@@ -167,55 +166,60 @@ contract DepositBox is Permissions {
         address lockAndDataERC20 = LockAndData(lockAndDataAddress).permitted("LockAndDataERC20");
         require(
             IERC20(contractHere).allowance(
-                msg.sender, 
+                msg.sender,
                 address(this)
-            ) >= amount
+            ) >= amount,
+            "Not allowed ERC20 Token"
         );
         require(
             IERC20(contractHere).transferFrom(
-                msg.sender, 
-                lockAndDataERC20, 
+                msg.sender,
+                lockAndDataERC20,
                 amount
-            )
+            ),
+            "Could not transfer ERC20 Token"
         );
         bytes memory data = ERC20Module(lockAndDataERC20).receiveERC20(contractHere, to, amount, true);
         Proxy(proxyAddress).postOutgoingMessage(
-            schainID, 
-            tokenManagerAddress, 
-            msg.value, 
-            contractThere, 
+            schainID,
+            tokenManagerAddress,
+            msg.value,
+            contractThere,
             data
         );
     }
 
     function postMessage(
-        address sender, 
-        string memory fromSchainID, 
-        address payable to, 
-        uint amount, 
+        address sender,
+        string memory fromSchainID,
+        address payable to,
+        uint amount,
         bytes memory data
-    ) 
-        public 
+    )
+        public
     {
-        require(msg.sender == proxyAddress);
+        require(msg.sender == proxyAddress, "Incorrect sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
-        if (schainHash == keccak256(abi.encodePacked("Mainnet")) || sender != LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash)) {
+        if (
+            schainHash == keccak256(abi.encodePacked("Mainnet")) ||
+            sender != LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash)
+        ) {
             emit Error(
-                sender, 
-                fromSchainID, 
-                to, 
-                amount, 
-                data, 
+                sender,
+                fromSchainID,
+                to,
+                amount,
+                data,
                 "Receiver chain is incorrect"
             );
         }
         if (!(amount <= address(lockAndDataAddress).balance) && !(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
             emit Error(
-                sender, 
-                fromSchainID, 
-                to, 
-                amount, 
-                data, 
+                sender,
+                fromSchainID,
+                to,
+                amount,
+                data,
                 "Not enough money to finish this transaction"
             );
             return;
@@ -230,11 +234,11 @@ contract DepositBox is Permissions {
         if (operation == TransactionOperation.transferETH) {
             if (!LockAndData(lockAndDataAddress).sendEth(owner, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
                 emit Error(
-                    sender, 
-                    fromSchainID, 
-                    to, 
-                    amount, 
-                    data, 
+                    sender,
+                    fromSchainID,
+                    to,
+                    amount,
+                    data,
                     "Could not send money to owner"
                 );
             }
@@ -255,18 +259,18 @@ contract DepositBox is Permissions {
      * @param data - received data
      * @return operation
      */
-    function fallbackOperationTypeConvert(bytes memory data) 
-        internal 
-        pure 
-        returns (TransactionOperation) 
+    function fallbackOperationTypeConvert(bytes memory data)
+        internal
+        pure
+        returns (TransactionOperation)
     {
         bytes1 operationType;
         assembly {
             operationType := mload(add(data, 0x20))
         }
         require(
-            operationType == 0x01 || 
-            operationType == 0x03 || 
+            operationType == 0x01 ||
+            operationType == 0x03 ||
             operationType == 0x05 ||
             operationType == 0x13 ||
             operationType == 0x15,
@@ -284,8 +288,4 @@ contract DepositBox is Permissions {
             return TransactionOperation.rawTransferERC721;
         }
     }
-
-    
-
-    
 }

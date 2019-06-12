@@ -15,10 +15,6 @@ contract LockAndDataForMainnet is Ownable {
         _;
     }
 
-    constructor() public payable {
-        
-    }
-    
     function receiveEth() external payable {
         
     }
@@ -37,8 +33,8 @@ contract LockAndDataForMainnet is Ownable {
 
     function addSchain(string memory schainID, address tokenManagerAddress) public onlyOwner {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerAddresses[schainHash] == address(0));
-        require(tokenManagerAddress != address(0));
+        require(tokenManagerAddresses[schainHash] == address(0), "Schain is already set");
+        require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
     }
 
@@ -59,6 +55,4 @@ contract LockAndDataForMainnet is Ownable {
         to.transfer(amount);
         return true;
     }
-
-
 }

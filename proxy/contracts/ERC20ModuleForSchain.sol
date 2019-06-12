@@ -4,8 +4,8 @@ import "./Permissions.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 
 interface TokenFactoryForSchain {
-    function createERC20(bytes calldata data) 
-        external 
+    function createERC20(bytes calldata data)
+        external
         returns (address payable);
 }
 
@@ -18,9 +18,7 @@ interface LockAndDataERC20 {
 
 contract ERC20Module is Permissions {
 
-    constructor(address payable newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
-
-    }
+    constructor(address payable newLockAndDataAddress) Permissions(newLockAndDataAddress) public;
 
     function receiveERC20(address contractHere, address to, uint amount, bool isRAW) public returns (bytes memory data) {
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
@@ -39,23 +37,23 @@ contract ERC20Module is Permissions {
         string memory symbol = ERC20Detailed(contractHere).symbol();
         uint totalSupply = ERC20Detailed(contractHere).totalSupply();
         data = abi.encodePacked(
-            bytes1(uint8(2)), 
-            bytes32(contractPosition), 
-            bytes32(bytes20(to)), 
+            bytes1(uint8(2)),
+            bytes32(contractPosition),
+            bytes32(bytes20(to)),
             bytes32(amount),
-            bytes(name).length, 
-            name, 
-            bytes(symbol).length, 
-            symbol, 
-            decimals, 
+            bytes(name).length,
+            name,
+            bytes(symbol).length,
+            symbol,
+            decimals,
             totalSupply
         );
     }
 
     function encodeRawData(address to, uint amount) internal pure returns (bytes memory data) {
         data = abi.encodePacked(
-            bytes1(uint8(21)), 
-            bytes32(bytes20(to)), 
+            bytes1(uint8(21)),
+            bytes32(bytes20(to)),
             bytes32(amount)
         );
     }
@@ -80,10 +78,10 @@ contract ERC20Module is Permissions {
         return LockAndDataERC20(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
     }
 
-    function fallbackDataParser(bytes memory data) 
-        internal 
-        pure 
-        returns (uint, address payable, uint) 
+    function fallbackDataParser(bytes memory data)
+        internal
+        pure
+        returns (uint, address payable, uint)
     {
         bytes32 contractIndex;
         bytes32 to;
@@ -98,10 +96,10 @@ contract ERC20Module is Permissions {
         );
     }
 
-    function fallbackRawDataParser(bytes memory data) 
-        internal 
-        pure 
-        returns (address payable, uint) 
+    function fallbackRawDataParser(bytes memory data)
+        internal
+        pure
+        returns (address payable, uint)
     {
         bytes32 to;
         bytes32 token;
@@ -111,5 +109,4 @@ contract ERC20Module is Permissions {
         }
         return (address(bytes20(to)), uint(token));
     }
-
 }

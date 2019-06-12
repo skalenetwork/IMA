@@ -46,17 +46,18 @@ contract LockAndDataForSchain is Ownable {
 
     function addSchain(string memory schainID, address tokenManagerAddress) public onlyOwner {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerAddresses[schainHash] == address(0));
-        require(tokenManagerAddress != address(0));
+        require(tokenManagerAddresses[schainHash] == address(0), "Schain is already set");
+        require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
     }
 
     function addDepositBox(address depositBoxAddress) public {
-        require(depositBoxAddress != address(0));
+        require(depositBoxAddress != address(0), "Incorrect Deposit Box address");
         require(
             tokenManagerAddresses[
                 keccak256(abi.encodePacked("Mainnet"))
-            ] != depositBoxAddress
+            ] != depositBoxAddress,
+            "Deposit Box is already set"
         );
         tokenManagerAddresses[
             keccak256(abi.encodePacked("Mainnet"))
