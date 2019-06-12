@@ -635,7 +635,7 @@ let g_jo_token_manager          = new g_w3_s_chain .eth.Contract( joTrufflePubli
 let g_jo_message_proxy_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.message_proxy_mainnet_abi,     joTrufflePublishResult_main_net.message_proxy_mainnet_address     );
 let g_jo_message_proxy_s_chain  = new g_w3_s_chain .eth.Contract( joTrufflePublishResult_s_chain .message_proxy_chain_abi,       joTrufflePublishResult_s_chain .message_proxy_chain_address       );
 let g_jo_lock_and_data_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.lock_and_data_for_mainnet_abi, joTrufflePublishResult_main_net.lock_and_data_for_mainnet_address );
-let g_jo_lock_and_data_s_chain  = new g_w3_s_chain .eth.Contract( joTrufflePublishResult_s_chain .lock_and_data_for_chain_abi,   joTrufflePublishResult_s_chain .lock_and_data_for_chain_address   );
+let g_jo_lock_and_data_s_chain  = new g_w3_s_chain .eth.Contract( joTrufflePublishResult_s_chain .lock_and_data_for_schain_abi,  joTrufflePublishResult_s_chain .lock_and_data_for_schain_address  );
 
 if( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chain.length > 0*/ ) {
     var n1 = 0, n2 = 0;
