@@ -95,7 +95,8 @@ contract TokenManager is Permissions {
         string memory newChainID, 
         address newProxyAddress,
         address newLockAndDataAddress
-    ) 
+    )
+        Permissions(newLockAndDataAddress)
         public 
     {
         chainID = newChainID;

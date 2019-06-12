@@ -16,9 +16,11 @@ interface LockAndDataERC20 {
     function sendERC20(address contractHere, address to, uint amount) external returns (bool);
 }
 
-contract ERC20Module is Permissions {
+contract ERC20ModuleForSchain is Permissions {
 
-    constructor(address payable newLockAndDataAddress) Permissions(newLockAndDataAddress) public;
+    constructor(address payable newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
+
+    }
 
     function receiveERC20(address contractHere, address to, uint amount, bool isRAW) public returns (bytes memory data) {
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));

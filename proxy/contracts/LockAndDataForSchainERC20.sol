@@ -8,7 +8,9 @@ contract LockAndDataForSchainERC20 is Permissions {
     mapping(uint => address) public ERC20Tokens;
     mapping(address => uint) public ERC20Mapper;
 
-    constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public;
+    constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
+        
+    }
 
     function sendERC20(address contractHere, address to, uint amount) public allow("ERC20Module") returns (bool) {
         require(IERC20(contractHere).balanceOf(address(this)) >= amount, "Not enough money");

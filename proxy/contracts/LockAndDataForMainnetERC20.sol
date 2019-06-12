@@ -9,7 +9,9 @@ contract LockAndDataForMainnetERC20 is Permissions {
     mapping(address => uint) public ERC20Mapper;
     uint newIndexERC20 = 1;
 
-    constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public;
+    constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
+        
+    }
 
     function sendERC20(address contractHere, address to, uint amount) public allow("ERC20Module") returns (bool) {
         require(IERC20(contractHere).balanceOf(address(this)) >= amount, "Not enough money");
