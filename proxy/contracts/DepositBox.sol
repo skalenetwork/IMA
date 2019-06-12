@@ -123,8 +123,8 @@ contract DepositBox is Permissions {
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
-        address lockAndDataERC20 = LockAndData(lockAndDataAddress).permitted("LockAndDataERC20");
-        address erc20Module = LockAndData(lockAndDataAddress).permitted("ERC20Module");
+        address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
             IERC20(contractHere).allowance(
                 msg.sender,
@@ -163,7 +163,7 @@ contract DepositBox is Permissions {
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
-        address lockAndDataERC20 = LockAndData(lockAndDataAddress).permitted("LockAndDataERC20");
+        address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         require(
             IERC20(contractHere).allowance(
                 msg.sender,

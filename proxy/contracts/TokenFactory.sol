@@ -57,11 +57,6 @@ contract TokenFactory is Permissions{
     constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
-    }
-
     function createERC20(bytes memory data) 
         public 
         onlyOwner 
@@ -79,8 +74,9 @@ contract TokenFactory is Permissions{
             decimals, 
             totalSupply
         );
-        newERC20.mint(msg.sender, totalSupply);
-        newERC20.addMinter(msg.sender);
+        address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        newERC20.mint(lockAndDataERC20, totalSupply);
+        newERC20.addMinter(lockAndDataERC20);
         newERC20.renounceMinter();
         return address(newERC20);
     }

@@ -18,7 +18,7 @@ contract LockAndDataForSchainERC20 is Permissions {
         return true;
     }
 
-    function addERC20Token(address addressERC20, uint contractPosition) public allow("ERC20Module") {
+    function addERC20Token(address addressERC20, uint contractPosition) public {
         ERC20Tokens[contractPosition] = addressERC20;
         ERC20Mapper[addressERC20] = contractPosition;
     }
