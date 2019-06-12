@@ -1,5 +1,6 @@
 pragma solidity ^0.5.0;
 
+import "./Permissions.sol";
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Capped.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
 import 'openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol';
@@ -51,22 +52,14 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
     }
 }
 
-contract TokenFactory {
+contract TokenFactory is Permissions{
 
-    address public owner;
-
-    constructor() public {
-        owner = msg.sender;
+    constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
     }
 
     modifier onlyOwner() {
         require(msg.sender == owner);
         _;
-    }
-
-    function transferOwnership(address newOwner) public onlyOwner {
-        require(newOwner != address(0));
-        owner = newOwner;
     }
 
     function createERC20(bytes memory data) 
