@@ -415,6 +415,90 @@ async function do_eth_payment_from_s_chain(
     return true;
 } // async function do_eth_payment_from_s_chain(...
 
+
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+async function receive_eth_payment_from_s_chain_on_main_net(
+    w3_main_net,
+    joAccount_main_net,
+    jo_lock_and_data_main_net
+    ) {
+    let r, strActionName = "";
+    try {
+        strActionName = "w3_main_net.eth.getTransactionCount()/receive_eth_payment_from_s_chain_on_main_net";
+        if(verbose_get() >= RV_VERBOSE.trace )
+            log.write( cc.debug("Will call ") + cc.notice(strActionName) + cc.debug("...") + "\n" );
+        let tcnt = await w3_main_net.eth.getTransactionCount( joAccount_main_net.address(w3_main_net), null  );
+        if(verbose_get() >= RV_VERBOSE.debug )
+            log.write( cc.debug("Got ") + cc.info(tcnt) + cc.debug(" from ") + cc.notice(strActionName) + "\n" );
+        //
+        //
+        let dataTx = jo_lock_and_data_main_net.methods.getMyEth(
+            // call params(empty)
+            ).encodeABI(); // the encoded ABI of the method
+        let rawTx = {
+            "nonce": tcnt, // 0x00, ...
+            "gas"  : 2100000,
+            "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
+            "gasLimit": 3000000,
+            "to": jo_lock_and_data_main_net.options.address, // cantract address
+            "data": dataTx,
+            "value": 0 // how much money to send
+        };
+        if(verbose_get() >= RV_VERBOSE.trace )
+            log.write( cc.debug("....composed ") + cc.j(rawTx) + "\n" );
+        let tx = new ethereumjs_tx( rawTx );
+        var key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
+        tx.sign( key ); // arg is privateKey as buffer
+        var serializedTx = tx.serialize();
+        strActionName = "w3_main_net.eth.sendSignedTransaction()";
+        let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString("hex") );
+        if(verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.success("Result receipt: ") + cc.j(joReceipt) + "\n" );
+    } catch( e ) {
+        if(verbose_get() >= RV_VERBOSE.fatal )
+            log.write( cc.fatal("Receive payment error in " + strActionName + ": ") + cc.error(e) + "\n" );
+        return false;
+    }
+    return true;
+}
+
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+async function view_eth_payment_from_s_chain_on_main_net(
+    w3_main_net,
+    joAccount_main_net,
+    jo_lock_and_data_main_net
+    ) {
+    let r, strActionName = "";
+    try {
+        strActionName = "w3_main_net.eth.getTransactionCount()/view_eth_payment_from_s_chain_on_main_net";
+        if(verbose_get() >= RV_VERBOSE.trace )
+            log.write( cc.debug("Will call ") + cc.notice(strActionName) + cc.debug("...") + "\n" );
+        let tcnt = await w3_main_net.eth.getTransactionCount( joAccount_main_net.address(w3_main_net), null  );
+        if(verbose_get() >= RV_VERBOSE.debug )
+            log.write( cc.debug("Got ") + cc.info(tcnt) + cc.debug(" from ") + cc.notice(strActionName) + "\n" );
+        //
+        //
+        let addr = joAccount_main_net.address(w3_main_net);
+        let xWei = await jo_lock_and_data_main_net.methods.approveTransfers( addr ).call( { "from": addr } );
+        if(verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.success("You can receive(wei): ") + cc.attention(xWei) + "\n" );
+        let xEth = w3_main_net.utils.fromWei( xWei, "ether" );
+        if(verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.success("You can receive(eth): ") + cc.attention(xEth) + "\n" );
+        return xWei;
+    } catch( e ) {
+        if(verbose_get() >= RV_VERBOSE.fatal )
+            log.write( cc.fatal("View payment error in " + strActionName + ": ") + cc.error(e) + "\n" );
+        return null;
+    }
+}
+
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -864,17 +948,19 @@ module.exports.verbose_set   = verbose_set;
 module.exports.verbose_parse = verbose_parse;
 module.exports.verbose_list  = verbose_list;
 
-module.exports.ensure_starts_with_0x          = ensure_starts_with_0x;
-module.exports.remove_starting_0x             = remove_starting_0x;
-module.exports.private_key_2_public_key       = private_key_2_public_key;
-module.exports.public_key_2_account_address   = public_key_2_account_address;
-module.exports.private_key_2_account_address  = private_key_2_account_address;
+module.exports.ensure_starts_with_0x                        = ensure_starts_with_0x;
+module.exports.remove_starting_0x                           = remove_starting_0x;
+module.exports.private_key_2_public_key                     = private_key_2_public_key;
+module.exports.public_key_2_account_address                 = public_key_2_account_address;
+module.exports.private_key_2_account_address                = private_key_2_account_address;
 
-module.exports.register_s_chain_on_main_net           = register_s_chain_on_main_net;
-module.exports.register_s_chain_in_deposit_box        = register_s_chain_in_deposit_box;
-module.exports.reister_main_net_depositBox_on_s_chain = reister_main_net_depositBox_on_s_chain;
-module.exports.do_eth_payment_from_main_net   = do_eth_payment_from_main_net;
-module.exports.do_eth_payment_from_s_chain    = do_eth_payment_from_s_chain;
-module.exports.do_erc20_payment_from_main_net = do_erc20_payment_from_main_net;
-module.exports.do_erc20_payment_from_s_chain  = do_erc20_payment_from_s_chain;
-module.exports.do_transfer                    = do_transfer;
+module.exports.register_s_chain_on_main_net                 = register_s_chain_on_main_net;
+module.exports.register_s_chain_in_deposit_box              = register_s_chain_in_deposit_box;
+module.exports.reister_main_net_depositBox_on_s_chain       = reister_main_net_depositBox_on_s_chain;
+module.exports.do_eth_payment_from_main_net                 = do_eth_payment_from_main_net;
+module.exports.do_eth_payment_from_s_chain                  = do_eth_payment_from_s_chain;
+module.exports.receive_eth_payment_from_s_chain_on_main_net = receive_eth_payment_from_s_chain_on_main_net;
+module.exports.view_eth_payment_from_s_chain_on_main_net    = view_eth_payment_from_s_chain_on_main_net;
+module.exports.do_erc20_payment_from_main_net               = do_erc20_payment_from_main_net;
+module.exports.do_erc20_payment_from_s_chain                = do_erc20_payment_from_s_chain;
+module.exports.do_transfer                                  = do_transfer;

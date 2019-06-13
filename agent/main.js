@@ -238,6 +238,8 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         console.log( soi + cc.debug("--") + cc.bright("register") + cc.debug("......................") + cc.note("Register") + cc.notice(" S-chain on Main-net.") );
         console.log( soi + cc.debug("--") + cc.bright("m2s-payment") + cc.debug("...................") + cc.notice("Do one ") + cc.note("payment from Main-net user account to S-chain") + cc.notice(" user account.") );
         console.log( soi + cc.debug("--") + cc.bright("s2m-payment") + cc.debug("...................") + cc.notice("Do one ") + cc.note("payment from S-chain user account to Main-net") + cc.notice(" user account.") );
+        console.log( soi + cc.debug("--") + cc.bright("s2m-receive") + cc.debug("...................") + cc.notice("Receive one ") + cc.note("payment from S-chain user account to Main-net") + cc.notice(" user account(ETH only, receives all the ETH pending in transfer).") );
+        console.log( soi + cc.debug("--") + cc.bright("s2m-view") + cc.debug("......................") + cc.notice("View money amount user can receive as ") + cc.note("payment from S-chain user account to Main-net") + cc.notice(" user account(ETH only, receives all the ETH pending in transfer).") );
         console.log( soi + cc.debug("--") + cc.bright("m2s-transfer") + cc.debug("..................") + cc.notice("Do single money ") + cc.note("transfer loop from Main-net to S-chain.") );
         console.log( soi + cc.debug("--") + cc.bright("s2m-transfer") + cc.debug("..................") + cc.notice("Do single money ") + cc.note("transfer loop from S-chain to Main-net.") );
         console.log( soi + cc.debug("--") + cc.bright("transfer") + cc.debug("......................") + cc.notice("Run ") + cc.note("single M<->S transfer loop iteration.") );
@@ -359,6 +361,33 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                 g_jo_token_manager, // only s-chain
                 g_wei_amount // how much WEI money to send
                 );
+        } } );
+        continue;
+    }
+    if( joArg.name == "s2m-receive" ) {
+        g_arrActions.push( { "name": "receive one S->M single ETH payment", "fn": async function() {
+            log.write( cc.info("receive one S->M single ETH payment: ") + "\n" ); // just print value
+            return await MTA.receive_eth_payment_from_s_chain_on_main_net(
+                g_w3_main_net,
+                g_joAccount_main_net,
+                g_jo_lock_and_data_main_net
+                );
+        } } );
+        continue;
+    }
+    if( joArg.name == "s2m-view" ) {
+        g_arrActions.push( { "name": "view one S->M single ETH payment", "fn": async function() {
+            log.write( cc.info("view one S->M single ETH payment: ") + "\n" ); // just print value
+            let xWei = await MTA.view_eth_payment_from_s_chain_on_main_net(
+                g_w3_main_net,
+                g_joAccount_main_net,
+                g_jo_lock_and_data_main_net
+                );
+            if( xWei === null || xWei === undefined )
+                return false;
+            let xEth = g_w3_main_net.utils.fromWei( xWei, "ether" );
+            log.write( cc.success("Main-net user can receive: ") + cc.attention(xWei) + cc.success(" wei = ") + cc.attention(xEth) + cc.success(" eth") + "\n" );
+            return true;
         } } );
         continue;
     }
@@ -722,8 +751,8 @@ if( MTA.verbose_get() > MTA.RV_VERBOSE.information || g_bShowConfigMode ) {
     ensure_have_value( "S-Chain Ethereum network ID", g_chain_id_s_chain, false, true, null, (x) => { return cc.note( x ); } );
     ensure_have_value( "Main-net ABI JSON file path", g_strPathAbiJson_main_net, false, true, null, (x) => { return cc.warning( x ); } );
     ensure_have_value( "S-Chain ABI JSON file path", g_strPathAbiJson_s_chain, false, true, null, (x) => { return cc.warning( x ); } );
-    ensure_have_value( "Main-net user account address", g_joAccount_main_net.address(g_w3_main_net), false, true );
-    ensure_have_value( "S-chain user account address",  g_joAccount_s_chain .address(g_w3_s_chain), false, true );
+    try { ensure_have_value( "Main-net user account address", g_joAccount_main_net.address(g_w3_main_net), false, true ); } catch( err ) { }
+    try { ensure_have_value( "S-chain user account address",  g_joAccount_s_chain .address(g_w3_s_chain), false, true ); } catch( err ) { }
     ensure_have_value( "Private key for main-net user account address", g_joAccount_main_net.privateKey, false, true, null, (x) => { return cc.attention( x ); } );
     ensure_have_value( "Private key for S-Chain user account address",  g_joAccount_s_chain .privateKey, false, true, null, (x) => { return cc.attention( x ); } );
     ensure_have_value( "Amount of wei to transfer", g_wei_amount, false, true, null, (x) => { return cc.info( x ); } );
