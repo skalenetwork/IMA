@@ -18,6 +18,8 @@ interface LockAndDataERC20 {
 
 contract ERC20ModuleForSchain is Permissions {
 
+    event ERC20TokenCreated(address contractAddress);
+
     constructor(address payable newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
 
     }
@@ -39,7 +41,7 @@ contract ERC20ModuleForSchain is Permissions {
         string memory symbol = ERC20Detailed(contractHere).symbol();
         uint totalSupply = ERC20Detailed(contractHere).totalSupply();
         data = abi.encodePacked(
-            bytes1(uint8(2)),
+            bytes1(uint8(3)),
             bytes32(contractPosition),
             bytes32(bytes20(to)),
             bytes32(amount),
@@ -68,9 +70,11 @@ contract ERC20ModuleForSchain is Permissions {
         uint amount;
         if (to == address(0)) {
             (contractPosition, receiver, amount) = fallbackDataParser(data);
-            if (LockAndDataERC20(lockAndDataERC20).ERC20Tokens(contractPosition) == address(0)) {
+            contractAddress = LockAndDataERC20(lockAndDataERC20).ERC20Tokens(contractPosition);
+            if (contractAddress == address(0)) {
                 address tokenFactoryAddress = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("TokenFactory")));
                 contractAddress = TokenFactoryForSchain(tokenFactoryAddress).createERC20(data);
+                emit ERC20TokenCreated(contractAddress);
                 LockAndDataERC20(lockAndDataERC20).addERC20Token(contractAddress, contractPosition);
             }
         } else {
@@ -78,6 +82,16 @@ contract ERC20ModuleForSchain is Permissions {
             contractAddress = to;
         }
         return LockAndDataERC20(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
+    }
+
+    function getReceiver(address to, bytes memory data) public pure returns (address receiver) {
+        uint contractPosition;
+        uint amount;
+        if (to == address(0)) {
+            (contractPosition, receiver, amount) = fallbackDataParser(data);
+        } else {
+            (receiver, amount) = fallbackRawDataParser(data);
+        }
     }
 
     function fallbackDataParser(bytes memory data)

@@ -4,7 +4,7 @@ import "./Ownable.sol";
 
 contract LockAndDataForMainnet is Ownable {
 
-    mapping(bytes32 => address) permitted;
+    mapping(bytes32 => address) public permitted;
 
     mapping(bytes32 => address) public tokenManagerAddresses;
 

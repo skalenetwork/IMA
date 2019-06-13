@@ -34,7 +34,9 @@ async function deploy(deployer, network) {
         await inst.setContract("ERC20Module", ERC20ModuleForSchain.address);
         await deployer.deploy(LockAndDataForSchainERC20, inst.address, {gas: 8000000});
         await inst.setContract("LockAndDataERC20", LockAndDataForSchainERC20.address);
-        await deployer.deploy(TokenFactory, inst.address, {gas: 8000000});
+        await deployer.deploy(TokenFactory, inst.address, {gas: 8000000}).then(async function(tokenFactoryInst) {
+            await tokenFactoryInst.transferOwnership(ERC20ModuleForSchain.address);
+        });
         await inst.setContract("TokenFactory", TokenFactory.address);
     });
 

@@ -13,7 +13,7 @@ contract LockAndDataForSchain is Ownable {
 
     address public ethERC20Address;
 
-    mapping(bytes32 => address) permitted;
+    mapping(bytes32 => address) public permitted;
 
     mapping(bytes32 => address) public tokenManagerAddresses;
 

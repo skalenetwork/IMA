@@ -35,7 +35,7 @@ contract ERC20ModuleForMainnet is Permissions {
         string memory symbol = ERC20Detailed(contractHere).symbol();
         uint totalSupply = ERC20Detailed(contractHere).totalSupply();
         data = abi.encodePacked(
-            bytes1(uint8(2)),
+            bytes1(uint8(3)),
             bytes32(contractPosition),
             bytes32(bytes20(to)),
             bytes32(amount),
