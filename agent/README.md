@@ -209,6 +209,38 @@ Performed with the **--s2m-payment** command line option:
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
 
+### View how much ETHH you can receive from S-Chain account to Main-net
+
+Performed with the **--s2m-view** command line option:
+
+    node ./main.js --verbose=9 \
+        --s2m-view \
+        --url-main-net=http://127.0.0.1:8545 \
+        --url-s-chain=http://127.0.0.1:7000 \
+        --id-main-net=Mainnet \
+        --id-s-chain=Bob \
+        --abi-main-net=../proxy/data/proxyMainnet.json \
+        --abi-s-chain=../proxy/data/proxySchain.json \
+        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc
+
+Notice: this operation is related to ETH transfers only.
+
+### Receive money transfer from S-Chain account to Main-net
+
+Performed with the **--s2m-receive** command line option:
+
+    node ./main.js --verbose=9 \
+        --s2m-receive \
+        --url-main-net=http://127.0.0.1:8545 \
+        --url-s-chain=http://127.0.0.1:7000 \
+        --id-main-net=Mainnet \
+        --id-s-chain=Bob \
+        --abi-main-net=../proxy/data/proxyMainnet.json \
+        --abi-s-chain=../proxy/data/proxySchain.json \
+        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc
+
+Notice: this operation is related to ETH transfers only.
+
 ### Money amount specification for transfer operations
 
 Amount of money should be specified with one of the following command line options
