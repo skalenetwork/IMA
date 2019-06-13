@@ -21,13 +21,14 @@ interface LockAndData {
     function receiveEth(address sender, uint amount) external returns (bool);
     function approveTransfer(address to, uint amount) external;
     function ethCosts(address to) external returns (uint);
-    function addCosts(address to, uint amount) external;
-    function reduceCosts(address to, uint amount) external returns (bool);
+    function addGasCosts(address to, uint amount) external;
+    function reduceGasCosts(address to, uint amount) external returns (bool);
 }
 
 interface ERC20Module {
     function receiveERC20(address contractHere, address to, uint amount, bool isRaw) external returns (bytes memory);
     function sendERC20(address to, bytes calldata data) external returns (bool);
+    function getReceiver(address to, bytes calldata data) external pure returns (address);
 }
 
 // This contract runs on schains and accepts messages from main net creates ETH clones.
@@ -151,6 +152,10 @@ contract TokenManager is Permissions {
         );
     }
 
+    function addEthCost(uint amount) public receivedEth(amount) {
+        LockAndData(lockAndDataAddress).addGasCosts(msg.sender, amount);
+    }
+
     function exitToMainERC20(address contractHere, address to, uint amount) public {
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
@@ -169,7 +174,7 @@ contract TokenManager is Permissions {
             ),
             "Could not transfer ERC20 Token"
         );
-        require(LockAndData(lockAndDataAddress).reduceCosts(msg.sender, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE), "Not enough gas sent");
+        require(LockAndData(lockAndDataAddress).reduceGasCosts(msg.sender, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE), "Not enough gas sent");
         bytes memory data = ERC20Module(erc20Module).receiveERC20(contractHere, to, amount, false);
         ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(
             "Mainnet",
@@ -218,6 +223,8 @@ contract TokenManager is Permissions {
         } else if (operation == TransactionOperation.transferERC20 || operation == TransactionOperation.rawTransferERC20) {
             address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
             ERC20Module(erc20Module).sendERC20(to, data);
+            address receiver = ERC20Module(erc20Module).getReceiver(to, data);
+            require(LockAndData(lockAndDataAddress).sendEth(receiver, amount), "Not Send");
         }
     }
 

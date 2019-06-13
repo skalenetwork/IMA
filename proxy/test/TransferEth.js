@@ -33,6 +33,11 @@ let tokenManagerABI = schainData.token_manager_abi;
 let erc20ModuleForSchainAddress = schainData.erc20_module_for_schain_address;
 let erc20ModuleForSchainABI = schainData.erc20_module_for_schain_abi;
 
+let lockAndDataERC20ForMainnetAddress = mainnetData.lock_and_data_for_mainnet_erc20_address;
+let lockAndDataERC20ForMainnetABI = mainnetData.lock_and_data_for_mainnet_erc20_abi;
+
+let lockAndDataERC20ForSchainAddress = schainData.lock_and_data_for_schain_erc20_address;
+let lockAndDataERC20ForSchainABI = schainData.lock_and_data_for_schain_erc20_abi;
 
 let web3Mainnet = new Web3(new Web3.providers.HttpProvider(mainnetRPC));
 let web3Schain = new Web3(new Web3.providers.HttpProvider(schainRPC));
@@ -47,8 +52,12 @@ let LockAndDataForSchain = new web3Schain.eth.Contract(lockAndDataForSchainABI, 
 let EthERC20 = new web3Schain.eth.Contract(ethERC20ABI, ethERC20Address);
 let TokenManager = new web3Schain.eth.Contract(tokenManagerABI, tokenManagerAddress);
 let ERC20ModuleForSchain = new web3Schain.eth.Contract(erc20ModuleForSchainABI, erc20ModuleForSchainAddress);
+let LockAndDataForMainnetERC20 = new web3Mainnet.eth.Contract(lockAndDataERC20ForMainnetABI, lockAndDataERC20ForMainnetAddress);
+let LockAndDataForSchainERC20 = new web3Schain.eth.Contract(lockAndDataERC20ForSchainABI, lockAndDataERC20ForSchainAddress);
 
 let erc20Address = "0x3a5bdd7447D4948a88B09456A161C5c06555381e"; 
+
+let erc20AddressOnSchain = "0xbe693468734455c80c6bc0db66e20da49cc626c8";
 
 let TokenABI = [
     {
@@ -462,6 +471,7 @@ let TokenABI = [
   ];
 
 let erc20Contract = new web3Mainnet.eth.Contract(TokenABI, erc20Address);
+let erc20ContractOnSchain = new web3Schain.eth.Contract(TokenABI, erc20AddressOnSchain);
 
 let deposit = DepositBox.methods.deposit(schainName, accountMainnet).encodeABI();
 
@@ -472,6 +482,12 @@ let getMyEth = LockAndDataForMainnet.methods.getMyEth().encodeABI();
 let approve = erc20Contract.methods.approve(depositBoxAddress, "10000000000000000000").encodeABI();
 
 let depositERC20 = DepositBox.methods.depositERC20(schainName, erc20Address, accountMainnet, "10000000000000000000").encodeABI();
+
+let addEthCosts = TokenManager.methods.addEthCost("1000000000000000000").encodeABI();
+
+let approveOnSchain = erc20ContractOnSchain.methods.approve(tokenManagerAddress, "10000000000000000000").encodeABI();
+
+let exitToMainERC20 = TokenManager.methods.exitToMainERC20(erc20AddressOnSchain, accountMainnet, "10000000000000000000").encodeABI();
 
 async function sendTransaction(web3Inst, account, privateKey, data, receiverContract, amount) {
     await web3Inst.eth.getTransactionCount(account).then(nonce => {
@@ -513,17 +529,30 @@ async function getMyETH() {
 async function sendERC20ToSchain() {
     await sendTransaction(web3Mainnet, accountMainnet, privateKeyMainnetBuffer, approve, erc20Address, 0);
     await sendTransaction(web3Mainnet, accountMainnet, privateKeyMainnetBuffer, depositERC20, depositBoxAddress, "1000000000000000000");
-    let eventERC20ContractCreated = await ERC20ModuleForSchain.getPastEvents("ERC20TokenCreated", {
-        "filter": {"contractAddress": [TokenAddress]},
-        "fromBlock": 0,
-        "toBlock": "latest"
-    });
-    console.log("Contract Address:", eventERC20ContractCreated);
+    
+    let balanceLockAndDataOnMainnet = await erc20Contract.methods.balanceOf(lockAndDataERC20ForMainnetAddress).call();
+    console.log("Balance ERC20 Token Lock And Data ERC20 On Mainnet", balanceLockAndDataOnMainnet);
+
+    let balanceLockAndDataOnSchain = await erc20ContractOnSchain.methods.balanceOf(lockAndDataERC20ForSchainAddress).call();
+    console.log("Balance ERC20 Token Lock And Data ERC20 On Schain", balanceLockAndDataOnSchain);
+}
+
+async function sendERC20ToMainnet() {
+    await sendTransaction(web3Schain, accountMainnet, privateKeyMainnetBuffer, addEthCosts, tokenManagerAddress, 0)
+    await sendTransaction(web3Schain, accountMainnet, privateKeyMainnetBuffer, approveOnSchain, erc20AddressOnSchain, 0);
+    await sendTransaction(web3Schain, accountMainnet, privateKeyMainnetBuffer, exitToMainERC20, tokenManagerAddress, 0);
+
+    let balanceLockAndDataOnMainnet = await erc20Contract.methods.balanceOf(lockAndDataERC20ForMainnetAddress).call();
+    console.log("Balance ERC20 Token Lock And Data ERC20 On Mainnet", balanceLockAndDataOnMainnet);
+
+    let balanceLockAndDataOnSchain = await erc20ContractOnSchain.methods.balanceOf(lockAndDataERC20ForSchainAddress).call();
+    console.log("Balance ERC20 Token Lock And Data ERC20 On Schain", balanceLockAndDataOnSchain);
 }
 
 
 
-//sendMoneyToMainnet();
-//sendMoneyToSchain();
-//getMyETH();
-sendERC20ToSchain();
+// sendMoneyToMainnet();
+// sendMoneyToSchain();
+// getMyETH();
+// sendERC20ToSchain();
+sendERC20ToMainnet();

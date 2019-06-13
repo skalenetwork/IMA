@@ -16,7 +16,6 @@ interface Proxy {
 }
 
 interface LockAndData {
-    function permitted(string calldata contractName) external view returns (address);
     function setContract(string calldata contractName, address newContract) external;
     function tokenManagerAddresses(bytes32 schainHash) external returns (address);
     function sendEth(address to, uint amount) external returns (bool);
@@ -244,7 +243,7 @@ contract DepositBox is Permissions {
             }
             LockAndData(lockAndDataAddress).approveTransfer(to, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
         } else if (operation == TransactionOperation.transferERC20 || operation == TransactionOperation.rawTransferERC20) {
-            address erc20Module = LockAndData(lockAndDataAddress).permitted("ERC20Module");
+            address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
             ERC20Module(erc20Module).sendERC20(to, data);
         }
     }
