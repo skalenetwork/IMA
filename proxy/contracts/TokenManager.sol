@@ -2,6 +2,7 @@ pragma solidity ^0.5.0;
 
 import "./Permissions.sol";
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
+import 'openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol';
 
 interface ProxyForSchain {
     function postOutgoingMessage(
@@ -28,6 +29,12 @@ interface LockAndData {
 interface ERC20Module {
     function receiveERC20(address contractHere, address to, uint amount, bool isRaw) external returns (bytes memory);
     function sendERC20(address to, bytes calldata data) external returns (bool);
+    function getReceiver(address to, bytes calldata data) external pure returns (address);
+}
+
+interface ERC721Module {
+    function receiveERC721(address contractHere, address to, uint tokenId, bool isRaw) external returns (bytes memory);
+    function sendERC721(address to, bytes calldata data) external returns (bool);
     function getReceiver(address to, bytes calldata data) external pure returns (address);
 }
 
@@ -185,6 +192,23 @@ contract TokenManager is Permissions {
         );
     }
 
+    function exitToMainERC721(address contractHere, address to, uint tokenId) public {
+        address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
+        require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
+        IERC721Full(contractHere).transferFrom(msg.sender, lockAndDataERC721, tokenId);
+        require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
+        require(LockAndData(lockAndDataAddress).reduceGasCosts(msg.sender, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE), "Not enough gas sent");
+        bytes memory data = ERC721Module(erc721Module).receiveERC721(contractHere, to, tokenId, false);
+        ProxyForSchain(proxyForSchainAddress).postOutgoingMessage(
+            "Mainnet",
+            LockAndData(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            address(0),
+            data
+        );
+    }
+
     // Receive money from main net and Schain
 
     function postMessage(
@@ -224,6 +248,11 @@ contract TokenManager is Permissions {
             address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
             ERC20Module(erc20Module).sendERC20(to, data);
             address receiver = ERC20Module(erc20Module).getReceiver(to, data);
+            require(LockAndData(lockAndDataAddress).sendEth(receiver, amount), "Not Send");
+        } else if (operation == TransactionOperation.transferERC721 || operation == TransactionOperation.rawTransferERC721) {
+            address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
+            ERC721Module(erc721Module).sendERC721(to, data);
+            address receiver = ERC721Module(erc721Module).getReceiver(to, data);
             require(LockAndData(lockAndDataAddress).sendEth(receiver, amount), "Not Send");
         }
     }

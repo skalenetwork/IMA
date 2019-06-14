@@ -50,7 +50,7 @@ contract ERC20ModuleForMainnet is Permissions {
 
     function encodeRawData(address to, uint amount) internal pure returns (bytes memory data) {
         data = abi.encodePacked(
-            bytes1(uint8(21)),
+            bytes1(uint8(19)),
             bytes32(bytes20(to)),
             bytes32(amount)
         );

@@ -3,6 +3,7 @@ pragma solidity ^0.5.0;
 import "./Ownable.sol";
 import "./Permissions.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
 
 interface Proxy {
     function postOutgoingMessage(
@@ -27,6 +28,11 @@ interface LockAndData {
 interface ERC20Module {
     function receiveERC20(address contractHere, address to, uint amount, bool isRaw) external returns (bytes memory);
     function sendERC20(address to, bytes calldata data) external returns (bool);
+}
+
+interface ERC721Module {
+    function receiveERC721(address contractHere, address to, uint tokenId, bool isRaw) external returns (bytes memory);
+    function sendERC721(address to, bytes calldata data) external returns (bool);
 }
 
 // This contract runs on the main net and accepts deposits
@@ -163,6 +169,7 @@ contract DepositBox is Permissions {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
             IERC20(contractHere).allowance(
                 msg.sender,
@@ -178,12 +185,29 @@ contract DepositBox is Permissions {
             ),
             "Could not transfer ERC20 Token"
         );
-        bytes memory data = ERC20Module(lockAndDataERC20).receiveERC20(contractHere, to, amount, true);
+        bytes memory data = ERC20Module(erc20Module).receiveERC20(contractHere, to, amount, true);
         Proxy(proxyAddress).postOutgoingMessage(
             schainID,
             tokenManagerAddress,
             msg.value,
             contractThere,
+            data
+        );
+    }
+
+    function depositERC721(string memory schainID, address contractHere, address to, uint tokenId) public payable rightTransaction(schainID) {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
+        require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
+        IERC721Full(contractHere).transferFrom(msg.sender, lockAndDataERC721, tokenId);
+        require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
+        bytes memory data = ERC721Module(erc721Module).receiveERC721(contractHere, to, tokenId, true);
+        Proxy(proxyAddress).postOutgoingMessage(
+            schainID,
+            LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash),
+            msg.value,
+            address(0),
             data
         );
     }
@@ -245,6 +269,9 @@ contract DepositBox is Permissions {
         } else if (operation == TransactionOperation.transferERC20 || operation == TransactionOperation.rawTransferERC20) {
             address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
             ERC20Module(erc20Module).sendERC20(to, data);
+        } else if (operation == TransactionOperation.transferERC721 || operation == TransactionOperation.rawTransferERC721) {
+            address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
+            ERC721Module(erc721Module).sendERC721(to, data);
         }
     }
 

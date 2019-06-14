@@ -8,14 +8,14 @@ import 'openzeppelin-solidity/contracts/token/ERC721/ERC721MetadataMintable.sol'
 
 contract ERC20OnChain is ERC20Detailed, ERC20Capped {
     constructor(
-        string memory name, 
-        string memory symbol, 
-        uint8 decimals, 
+        string memory name,
+        string memory symbol,
+        uint8 decimals,
         uint256 cap
-        ) 
+        )
         ERC20Detailed(name, symbol, decimals)
         ERC20Capped(cap)
-        public 
+        public
     {
 
     }
@@ -23,7 +23,7 @@ contract ERC20OnChain is ERC20Detailed, ERC20Capped {
 
 contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
     constructor(
-        string memory name, 
+        string memory name,
         string memory symbol
         )
         ERC721Full(name, symbol)
@@ -32,18 +32,18 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
 
     }
 
-    function mint(address to, uint256 tokenId) 
-        public 
-        onlyMinter 
-        returns (bool) 
+    function mint(address to, uint256 tokenId)
+        public
+        onlyMinter
+        returns (bool)
     {
         _mint(to, tokenId);
         return true;
     }
 
-    function setTokenURI(uint256 tokenId, string memory tokenURI) 
-        public 
-        returns (bool) 
+    function setTokenURI(uint256 tokenId, string memory tokenURI)
+        public
+        returns (bool)
     {
         require(_exists(tokenId));
         require(_isApprovedOrOwner(msg.sender, tokenId));
@@ -57,21 +57,21 @@ contract TokenFactory is Permissions{
     constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
     }
 
-    function createERC20(bytes memory data) 
-        public 
-        onlyOwner 
-        returns (address) 
+    function createERC20(bytes memory data)
+        public
+        allow("ERC20Module")
+        returns (address)
     {
         string memory name;
         string memory symbol;
         uint8 decimals;
         uint256 totalSupply;
-        (name, symbol, decimals, totalSupply) = 
+        (name, symbol, decimals, totalSupply) =
             fallbackDataCreateERC20Parser(data);
         ERC20OnChain newERC20 = new ERC20OnChain(
-            name, 
-            symbol, 
-            decimals, 
+            name,
+            symbol,
+            decimals,
             totalSupply
         );
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
@@ -81,29 +81,30 @@ contract TokenFactory is Permissions{
         return address(newERC20);
     }
 
-    function createERC721(bytes memory data) 
-        public 
-        onlyOwner 
-        returns (address) 
+    function createERC721(bytes memory data)
+        public
+        allow("ERC721Module")
+        returns (address)
     {
         string memory name;
         string memory symbol;
         (name, symbol) = fallbackDataCreateERC721Parser(data);
         ERC721OnChain newERC721 = new ERC721OnChain(name, symbol);
-        newERC721.addMinter(msg.sender);
+        address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        newERC721.addMinter(lockAndDataERC721);
         newERC721.renounceMinter();
         return address(newERC721);
     }
 
-    function fallbackDataCreateERC20Parser(bytes memory data) 
-        internal 
-        pure 
+    function fallbackDataCreateERC20Parser(bytes memory data)
+        internal
+        pure
         returns (
-            string memory name, 
-            string memory symbol, 
-            uint8, 
+            string memory name,
+            string memory symbol,
+            uint8,
             uint256
-        ) 
+        )
     {
         bytes1 decimals;
         bytes32 totalSupply;
@@ -126,26 +127,26 @@ contract TokenFactory is Permissions{
         }
         uint lengthOfSymbol = uint(symbolLength);
         assembly {
-            decimals := mload(add(data, 
+            decimals := mload(add(data,
                 add(193, add(lengthOfName, lengthOfSymbol))))
-            totalSupply := mload(add(data, 
+            totalSupply := mload(add(data,
                 add(194, add(lengthOfName, lengthOfSymbol))))
         }
         return (
-            name, 
-            symbol, 
-            uint8(decimals), 
+            name,
+            symbol,
+            uint8(decimals),
             uint256(totalSupply)
             );
     }
 
-    function fallbackDataCreateERC721Parser(bytes memory data) 
-        internal 
-        pure 
+    function fallbackDataCreateERC721Parser(bytes memory data)
+        internal
+        pure
         returns (
-            string memory name, 
+            string memory name,
             string memory symbol
-        ) 
+        )
     {
         bytes32 nameLength;
         bytes32 symbolLength;
