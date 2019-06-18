@@ -52,7 +52,7 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
     }
 }
 
-contract TokenFactory is Permissions{
+contract TokenFactory is Permissions {
 
     constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
     }
@@ -66,8 +66,12 @@ contract TokenFactory is Permissions{
         string memory symbol;
         uint8 decimals;
         uint256 totalSupply;
-        (name, symbol, decimals, totalSupply) =
-            fallbackDataCreateERC20Parser(data);
+        (
+            name,
+            symbol,
+            decimals,
+            totalSupply
+        ) = fallbackDataCreateERC20Parser(data);
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
             symbol,

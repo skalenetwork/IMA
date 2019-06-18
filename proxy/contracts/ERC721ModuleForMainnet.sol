@@ -16,7 +16,7 @@ contract ERC721ModuleForMainnet is Permissions {
         
     }
 
-    function receiveERC721(address contractHere, address to, uint tokenId, bool isRAW) public returns (bytes memory data) {
+    function receiveERC721(address contractHere, address to, uint tokenId, bool isRAW) public allow("DepositBox") returns (bytes memory data) {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         if (!isRAW) {
             uint contractPosition = LockAndDataERC721(lockAndDataERC721).ERC721Mapper(contractHere);
@@ -26,6 +26,32 @@ contract ERC721ModuleForMainnet is Permissions {
             return encodeData(contractHere, contractPosition, to, tokenId);
         } else {
             return encodeRawData(to, tokenId);
+        }
+    }
+
+    function sendERC721(address to, bytes memory data) public allow("DepositBox") returns (bool) {
+        address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        uint contractPosition;
+        address contractAddress;
+        address receiver;
+        uint tokenId;
+        if (to == address(0)) {
+            (contractPosition, receiver, tokenId) = fallbackDataParser(data);
+            contractAddress = LockAndDataERC721(lockAndDataERC721).ERC721Tokens(contractPosition);
+        } else {
+            (receiver, tokenId) = fallbackRawDataParser(data);
+            contractAddress = to;
+        }
+        return LockAndDataERC721(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
+    }
+
+    function getReceiver(address to, bytes memory data) public pure returns (address receiver) {
+        uint contractPosition;
+        uint amount;
+        if (to == address(0)) {
+            (contractPosition, receiver, amount) = fallbackDataParser(data);
+        } else {
+            (receiver, amount) = fallbackRawDataParser(data);
         }
     }
 
@@ -50,22 +76,6 @@ contract ERC721ModuleForMainnet is Permissions {
             bytes32(bytes20(to)),
             bytes32(tokenId)
         );
-    }
-
-    function sendERC721(address to, bytes memory data) public returns (bool) {
-        address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
-        uint contractPosition;
-        address contractAddress;
-        address receiver;
-        uint tokenId;
-        if (to == address(0)) {
-            (contractPosition, receiver, tokenId) = fallbackDataParser(data);
-            contractAddress = LockAndDataERC721(lockAndDataERC721).ERC721Tokens(contractPosition);
-        } else {
-            (receiver, tokenId) = fallbackRawDataParser(data);
-            contractAddress = to;
-        }
-        return LockAndDataERC721(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
     }
 
     function fallbackDataParser(bytes memory data)

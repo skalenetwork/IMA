@@ -51,7 +51,7 @@ contract LockAndDataForSchain is Ownable {
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
     }
 
-    function addDepositBox(address depositBoxAddress) public {
+    function addDepositBox(address depositBoxAddress) public onlyOwner {
         require(depositBoxAddress != address(0), "Incorrect Deposit Box address");
         require(
             tokenManagerAddresses[

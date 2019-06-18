@@ -5,6 +5,8 @@ let LockAndDataForSchain = artifacts.require("./LockAndDataForSchain.sol");
 let EthERC20 = artifacts.require("./EthERC20.sol");
 let ERC20ModuleForSchain = artifacts.require("./ERC20ModuleForSchain.sol");
 let LockAndDataForSchainERC20 = artifacts.require("./LockAndDataForSchainERC20.sol");
+let ERC721ModuleForSchain = artifacts.require("./ERC721ModuleForSchain.sol");
+let LockAndDataForSchainERC721 = artifacts.require("./LockAndDataForSchainERC721.sol");
 let TokenFactory = artifacts.require("./TokenFactory.sol");
 
 let networks = require("../truffle-config.js");
@@ -34,9 +36,11 @@ async function deploy(deployer, network) {
         await inst.setContract("ERC20Module", ERC20ModuleForSchain.address);
         await deployer.deploy(LockAndDataForSchainERC20, inst.address, {gas: 8000000});
         await inst.setContract("LockAndDataERC20", LockAndDataForSchainERC20.address);
-        await deployer.deploy(TokenFactory, inst.address, {gas: 8000000}).then(async function(tokenFactoryInst) {
-            await tokenFactoryInst.transferOwnership(ERC20ModuleForSchain.address);
-        });
+        await deployer.deploy(ERC721ModuleForSchain, inst.address, {gas: 8000000});
+        await inst.setContract("ERC721Module", ERC721ModuleForSchain.address);
+        await deployer.deploy(LockAndDataForSchainERC721, inst.address, {gas: 8000000});
+        await inst.setContract("LockAndDataERC721", LockAndDataForSchainERC721.address);
+        await deployer.deploy(TokenFactory, inst.address, {gas: 8000000});
         await inst.setContract("TokenFactory", TokenFactory.address);
     });
 
@@ -51,6 +55,10 @@ async function deploy(deployer, network) {
         lock_and_data_for_schain_erc20_abi: LockAndDataForSchainERC20.abi,
         erc20_module_for_schain_address: ERC20ModuleForSchain.address,
         erc20_module_for_schain_abi: ERC20ModuleForSchain.abi,
+        lock_and_data_for_schain_erc721_address: LockAndDataForSchainERC721.address,
+        lock_and_data_for_schain_erc721_abi: LockAndDataForSchainERC721.abi,
+        erc721_module_for_schain_address: ERC721ModuleForSchain.address,
+        erc721_module_for_schain_abi: ERC721ModuleForSchain.abi,
         token_factory_address: TokenFactory.address,
         token_factory_abi: TokenFactory.abi,
         message_proxy_chain_address: MessageProxy.address,

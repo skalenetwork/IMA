@@ -28,11 +28,13 @@ interface LockAndData {
 interface ERC20Module {
     function receiveERC20(address contractHere, address to, uint amount, bool isRaw) external returns (bytes memory);
     function sendERC20(address to, bytes calldata data) external returns (bool);
+    function getReceiver(address to, bytes calldata data) external pure returns (address);
 }
 
 interface ERC721Module {
     function receiveERC721(address contractHere, address to, uint tokenId, bool isRaw) external returns (bytes memory);
     function sendERC721(address to, bytes calldata data) external returns (bool);
+    function getReceiver(address to, bytes calldata data) external pure returns (address);
 }
 
 // This contract runs on the main net and accepts deposits
@@ -153,6 +155,7 @@ contract DepositBox is Permissions {
             address(0),
             data
         );
+        LockAndData(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
     }
 
     function rawDepositERC20(
@@ -193,9 +196,38 @@ contract DepositBox is Permissions {
             contractThere,
             data
         );
+        LockAndData(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
     }
 
     function depositERC721(string memory schainID, address contractHere, address to, uint tokenId) public payable rightTransaction(schainID) {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
+        require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
+        IERC721Full(contractHere).transferFrom(msg.sender, lockAndDataERC721, tokenId);
+        require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
+        bytes memory data = ERC721Module(erc721Module).receiveERC721(contractHere, to, tokenId, false);
+        Proxy(proxyAddress).postOutgoingMessage(
+            schainID,
+            LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash),
+            msg.value,
+            address(0),
+            data
+        );
+        LockAndData(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+    }
+
+    function rawDepositERC721(
+        string memory schainID,
+        address contractHere,
+        address contractThere,
+        address to,
+        uint tokenId
+    )
+        public
+        payable
+        rightTransaction(schainID)
+    {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
@@ -207,9 +239,10 @@ contract DepositBox is Permissions {
             schainID,
             LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash),
             msg.value,
-            address(0),
+            contractThere,
             data
         );
+        LockAndData(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
     }
 
     function postMessage(
@@ -253,25 +286,36 @@ contract DepositBox is Permissions {
             return;
         }
 
+        if (!LockAndData(lockAndDataAddress).sendEth(owner, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
+            emit Error(
+                sender,
+                fromSchainID,
+                to,
+                amount,
+                data,
+                "Could not send money to owner"
+            );
+        }
+
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
-            if (!LockAndData(lockAndDataAddress).sendEth(owner, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
-                emit Error(
-                    sender,
-                    fromSchainID,
-                    to,
-                    amount,
-                    data,
-                    "Could not send money to owner"
-                );
+            if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
+                LockAndData(lockAndDataAddress).approveTransfer(to, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
             }
-            LockAndData(lockAndDataAddress).approveTransfer(to, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
         } else if (operation == TransactionOperation.transferERC20 || operation == TransactionOperation.rawTransferERC20) {
             address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
             ERC20Module(erc20Module).sendERC20(to, data);
+            address receiver = ERC20Module(erc20Module).getReceiver(to, data);
+            if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
+                LockAndData(lockAndDataAddress).approveTransfer(receiver, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
+            }
         } else if (operation == TransactionOperation.transferERC721 || operation == TransactionOperation.rawTransferERC721) {
             address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
             ERC721Module(erc721Module).sendERC721(to, data);
+            address receiver = ERC721Module(erc721Module).getReceiver(to, data);
+            if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
+                LockAndData(lockAndDataAddress).approveTransfer(receiver, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
+            }
         }
     }
 

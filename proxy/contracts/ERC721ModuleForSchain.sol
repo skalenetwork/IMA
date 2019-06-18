@@ -24,7 +24,7 @@ contract ERC721ModuleForSchain is Permissions {
 
     }
 
-    function receiveERC721(address contractHere, address to, uint tokenId, bool isRAW) public returns (bytes memory data) {
+    function receiveERC721(address contractHere, address to, uint tokenId, bool isRAW) public allow("TokenManager") returns (bytes memory data) {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         if (!isRAW) {
             uint contractPosition = LockAndDataERC721(lockAndDataERC721).ERC721Mapper(contractHere);
@@ -35,30 +35,7 @@ contract ERC721ModuleForSchain is Permissions {
         }
     }
 
-    function encodeData(address contractHere, uint contractPosition, address to, uint tokenId) internal view returns (bytes memory data) {
-        string memory name = IERC721Full(contractHere).name();
-        string memory symbol = IERC721Full(contractHere).symbol();
-        data = abi.encodePacked(
-            bytes1(uint8(5)),
-            bytes32(contractPosition),
-            bytes32(bytes20(to)),
-            bytes32(tokenId),
-            bytes(name).length,
-            name,
-            bytes(symbol).length,
-            symbol
-        );
-    }
-
-    function encodeRawData(address to, uint tokenId) internal pure returns (bytes memory data) {
-        data = abi.encodePacked(
-            bytes1(uint8(21)),
-            bytes32(bytes20(to)),
-            bytes32(tokenId)
-        );
-    }
-
-    function sendERC721(address to, bytes memory data) public returns (bool) {
+    function sendERC721(address to, bytes memory data) public allow("TokenManager") returns (bool) {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         uint contractPosition;
         address contractAddress;
@@ -88,6 +65,29 @@ contract ERC721ModuleForSchain is Permissions {
         } else {
             (receiver, tokenId) = fallbackRawDataParser(data);
         }
+    }
+
+    function encodeData(address contractHere, uint contractPosition, address to, uint tokenId) internal view returns (bytes memory data) {
+        string memory name = IERC721Full(contractHere).name();
+        string memory symbol = IERC721Full(contractHere).symbol();
+        data = abi.encodePacked(
+            bytes1(uint8(5)),
+            bytes32(contractPosition),
+            bytes32(bytes20(to)),
+            bytes32(tokenId),
+            bytes(name).length,
+            name,
+            bytes(symbol).length,
+            symbol
+        );
+    }
+
+    function encodeRawData(address to, uint tokenId) internal pure returns (bytes memory data) {
+        data = abi.encodePacked(
+            bytes1(uint8(21)),
+            bytes32(bytes20(to)),
+            bytes32(tokenId)
+        );
     }
 
     function fallbackDataParser(bytes memory data)
