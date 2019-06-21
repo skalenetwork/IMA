@@ -774,12 +774,15 @@ async function do_transfer(
     chain_id_dst,
     //
     nTransactionsCountInBlock,
-    nMaxTransactionsCount
+    nMaxTransactionsCount,
+    nBlockAwaitDepth
     ) {
     nTransactionsCountInBlock = nTransactionsCountInBlock || 5;
     nMaxTransactionsCount = nMaxTransactionsCount || 100;
     if( nTransactionsCountInBlock < 1 )
         nTransactionsCountInBlock = 1;
+    if( nBlockAwaitDepth < 0 )
+        nBlockAwaitDepth = 0;
     let r, strActionName = "", nIdxCurrentMsg = 0, nOutMsgCnt = 0, nIncMsgCnt = 0;
     try {
         strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
@@ -837,6 +840,11 @@ async function do_transfer(
                         + cc.success(", event description: ") + cc.j(joValues) // + cc.j(evs)
                         + "\n"
                         );
+// nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
+// nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
+// nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
+// nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
+// nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
                 //
                 //
                 if(verbose_get() >= RV_VERBOSE.trace )

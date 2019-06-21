@@ -102,6 +102,8 @@ let g_nTransferBlockSizeM2S = 10;
 let g_nTransferBlockSizeS2M = 10;
 let g_nMaxTransactionsM2S = 0;
 let g_nMaxTransactionsS2M = 0;
+let g_nBlockAwaitDepthM2S = 0;
+let g_nBlockAwaitDepthS2M = 0;
 
 let g_nLoopPeriodSeconds = 10;
 
@@ -252,6 +254,9 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         console.log( soi + cc.debug("--") + cc.bright("m2s-max-transactions") + cc.debug("..........") + cc.notice("Maximal number of transactions to do in money transfer loop from Main-net to S-chain (0 is unlimited).") );
         console.log( soi + cc.debug("--") + cc.bright("s2m-max-transactions") + cc.debug("..........") + cc.notice("Maximal number of transactions to do in money transfer loop from S-chain to Main-net (0 is unlimited).") );
         console.log( soi + cc.debug("--") + cc.bright("max-transactions") + cc.debug("..............") + cc.notice("Maximal number of transactions to do in both money transfer loops (0 is unlimited).") );
+        console.log( soi + cc.debug("--") + cc.bright("m2s-await-blocks") + cc.debug("..............") + cc.notice("Maximal number of blocks to wait to appear in blockchain before transaction from Main-net to S-chain (0 is no wait).") );
+        console.log( soi + cc.debug("--") + cc.bright("s2m-await-blocks") + cc.debug("..............") + cc.notice("Maximal number of blocks to wait to appear in blockchain before transaction from S-chain to Main-net (0 is no wait).") );
+        console.log( soi + cc.debug("--") + cc.bright("await-blocks") + cc.debug("..................") + cc.notice("Maximal number of blocks to wait to appear in blockchain before transaction between both S-chain and Main-net (0 is no wait).") );
         console.log( soi + cc.debug("--") + cc.bright("period") + cc.debug("........................") + cc.notice("Transfer ") + cc.note("loop period") + cc.notice("(seconds).") );
         console.log( soi + cc.debug("--") + cc.bright("node-number") + cc.sunny("=") + cc.info("value") + cc.debug(".............") + cc.notice("S-Chain ") + cc.note("node number") + cc.notice("(zero based).") );
         console.log( soi + cc.debug("--") + cc.bright("nodes-count") + cc.sunny("=") + cc.info("value") + cc.debug(".............") + cc.notice("S-Chain ") + cc.note("nodes count") + cc.notice(".") );
@@ -403,7 +408,8 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                 g_chain_id_main_net,
                 g_chain_id_s_chain,
                 g_nTransferBlockSizeM2S,
-                g_nMaxTransactionsM2S
+                g_nMaxTransactionsM2S,
+                g_nBlockAwaitDepthM2S
                 );
         } } );
         continue;
@@ -420,7 +426,8 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                 g_chain_id_s_chain,
                 g_chain_id_main_net,
                 g_nTransferBlockSizeS2M,
-                g_nMaxTransactionsS2M
+                g_nMaxTransactionsS2M,
+                g_nBlockAwaitDepthS2M
                 );
         } } );
         continue;
@@ -448,6 +455,9 @@ for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
     if( joArg.name == "m2s-max-transactions"    ) { veryify_int_arg( joArg ); g_nMaxTransactionsM2S = parseInt( joArg.value ); continue; }
     if( joArg.name == "s2m-max-transactions"    ) { veryify_int_arg( joArg ); g_nMaxTransactionsS2M = parseInt( joArg.value ); continue; }
     if( joArg.name ==     "max-transactions"    ) { veryify_int_arg( joArg ); g_nMaxTransactionsM2S = g_nMaxTransactionsS2M = parseInt( joArg.value ); continue; }
+    if( joArg.name == "m2s-await-blocks"        ) { veryify_int_arg( joArg ); g_nBlockAwaitDepthM2S = parseInt( joArg.value ); continue; }
+    if( joArg.name == "s2m-await-blocks"        ) { veryify_int_arg( joArg ); g_nBlockAwaitDepthS2M = parseInt( joArg.value ); continue; }
+    if( joArg.name ==     "await-blocks"        ) { veryify_int_arg( joArg ); g_nBlockAwaitDepthM2S = g_nBlockAwaitDepthS2M = parseInt( joArg.value ); continue; }
     if( joArg.name == "period"                  ) { veryify_int_arg( joArg ); g_nLoopPeriodSeconds = parseInt( joArg.value ); continue; }
     if( joArg.name == "node-number"             ) { veryify_int_arg( joArg ); g_nNodeNumber = parseInt( joArg.value ); continue; }
     if( joArg.name == "nodes-count"             ) { veryify_int_arg( joArg ); g_nNodesCount = parseInt( joArg.value ); continue; }
@@ -760,6 +770,8 @@ if( MTA.verbose_get() > MTA.RV_VERBOSE.information || g_bShowConfigMode ) {
     ensure_have_value( "S->M transfer block size", g_nTransferBlockSizeS2M, false, true, null, (x) => { return cc.note( x ); } );
     ensure_have_value( "M->S transactions limit", g_nMaxTransactionsM2S, false, true, null, (x) => { return cc.note( x ); } );
     ensure_have_value( "S->M transactions limit", g_nMaxTransactionsS2M, false, true, null, (x) => { return cc.note( x ); } );
+    ensure_have_value( "M->S await blocks", g_nBlockAwaitDepthM2S, false, true, null, (x) => { return cc.note( x ); } );
+    ensure_have_value( "S->M await blocks", g_nBlockAwaitDepthS2M, false, true, null, (x) => { return cc.note( x ); } );
     ensure_have_value( "Transfer loop period(seconds)", g_nLoopPeriodSeconds, false, true, null, (x) => { return cc.success( x ); } );
     if( g_nTimeFrameSeconds > 0 ) {
         ensure_have_value( "Time framing(seconds)", g_nTimeFrameSeconds, false, true );
@@ -881,7 +893,8 @@ async function single_transfer_loop() {
         g_chain_id_main_net,
         g_chain_id_s_chain,
         g_nTransferBlockSizeM2S,
-        g_nMaxTransactionsM2S
+        g_nMaxTransactionsM2S,
+        g_nBlockAwaitDepthM2S
         );
     var b2 = await MTA.do_transfer( // s-chain --> main-net
         /**/ g_w3_s_chain,
@@ -893,7 +906,8 @@ async function single_transfer_loop() {
         g_chain_id_s_chain,
         g_chain_id_main_net,
         g_nTransferBlockSizeS2M,
-        g_nMaxTransactionsS2M
+        g_nMaxTransactionsS2M,
+        g_nBlockAwaitDepthS2M
         );
     var b3 = b1 && b2;
     return b3;
