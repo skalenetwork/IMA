@@ -89,7 +89,6 @@ Fourth, export required environment variables:
     export MNEMONIC_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
     export MNEMONIC_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
 
-
 Fifth, try rebuild all the contracts once to ensure everything initialized OK:
 
     cd $MTA_ROOT/proxy
@@ -307,9 +306,15 @@ Performed with the **--transfer** command line option:
     --m2s-transfer-block-size.......Number of transactions in one block to use in money transfer loop from Main-net to S-chain.
     --s2m-transfer-block-size.......Number of transactions in one block to use in money transfer loop from S-chain to Main-net.
     --transfer-block-size...........Number of transactions in one block to use in both money transfer loops.
+
     --m2s-max-transactions..........Maximal number of transactions to do in money transfer loop from Main-net to S-chain (0 is unlimited).
     --s2m-max-transactions..........Maximal number of transactions to do in money transfer loop from S-chain to Main-net (0 is unlimited).
     --max-transactions..............Maximal number of transactions to do in both money transfer loops (0 is unlimited).
+
+    --m2s-await-blocks..............Maximal number of blocks to wait to appear in blockchain before transaction from Main-net to S-chain (0 is no wait).
+    --s2m-await-blocks..............Maximal number of blocks to wait to appear in blockchain before transaction from S-chain to Main-net (0 is no wait).
+    --await-blocks..................Maximal number of blocks to wait to appear in blockchain before transaction between both S-chain and Main-net (0 is no wait).
+
     --period........................Transfer loop period(seconds).
     --node-number=value.............S-Chain node number(zero based).
     --nodes-count=value.............S-Chain nodes count.

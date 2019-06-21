@@ -4,7 +4,6 @@
     "openzeppelin-solidity": "^2.2.0",
     "solc": "0.5.7",
     "dotenv": "^7.0.0",
-    "openzeppelin-solidity": "^2.2.0",
     "truffle-hdwallet-provider": "^1.0.9",
     "truffle-privatekey-provider": "^0.1.0",
     "truffle": "5.0.12",
