@@ -3,13 +3,13 @@ pragma solidity ^0.5.0;
 import "./Permissions.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
 
-interface TokenFactoryForSchain {
+interface ITokenFactoryForERC721 {
     function createERC721(bytes calldata data)
         external
         returns (address payable);
 }
 
-interface LockAndDataERC721 {
+interface ILockAndDataERC721S {
     function ERC721Tokens(uint index) external returns (address);
     function ERC721Mapper(address contractERC721) external returns (uint);
     function addERC721Token(address contractERC721, uint contractPosition) external;
@@ -20,14 +20,14 @@ contract ERC721ModuleForSchain is Permissions {
 
     event ERC721TokenCreated(address contractAddress);
 
-    constructor(address payable newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
+    constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
 
     }
 
     function receiveERC721(address contractHere, address to, uint tokenId, bool isRAW) public allow("TokenManager") returns (bytes memory data) {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         if (!isRAW) {
-            uint contractPosition = LockAndDataERC721(lockAndDataERC721).ERC721Mapper(contractHere);
+            uint contractPosition = ILockAndDataERC721S(lockAndDataERC721).ERC721Mapper(contractHere);
             require(contractPosition > 0, "Not existing ERC-721 contract");
             return encodeData(contractHere, contractPosition, to, tokenId);
         } else {
@@ -43,18 +43,18 @@ contract ERC721ModuleForSchain is Permissions {
         uint tokenId;
         if (to == address(0)) {
             (contractPosition, receiver, tokenId) = fallbackDataParser(data);
-            contractAddress = LockAndDataERC721(lockAndDataERC721).ERC721Tokens(contractPosition);
+            contractAddress = ILockAndDataERC721S(lockAndDataERC721).ERC721Tokens(contractPosition);
             if (contractAddress == address(0)) {
                 address tokenFactoryAddress = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("TokenFactory")));
-                contractAddress = TokenFactoryForSchain(tokenFactoryAddress).createERC721(data);
+                contractAddress = ITokenFactoryForERC721(tokenFactoryAddress).createERC721(data);
                 emit ERC721TokenCreated(contractAddress);
-                LockAndDataERC721(lockAndDataERC721).addERC721Token(contractAddress, contractPosition);
+                ILockAndDataERC721S(lockAndDataERC721).addERC721Token(contractAddress, contractPosition);
             }
         } else {
             (receiver, tokenId) = fallbackRawDataParser(data);
             contractAddress = to;
         }
-        return LockAndDataERC721(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
+        return ILockAndDataERC721S(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
     }
 
     function getReceiver(address to, bytes memory data) public pure returns (address receiver) {

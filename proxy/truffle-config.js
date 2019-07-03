@@ -1,7 +1,6 @@
 require('dotenv').config();
 const Web3 = require('web3');
 let hdwalletProvider = require('truffle-hdwallet-provider');
-let privateKeyProvider = require('truffle-privatekey-provider');
 let schainName = process.env.SCHAIN_NAME;
 let schainRpcUrl = process.env.SCHAIN_RPC_URL;
 let mainnetRpcUrl = process.env.MAINNET_RPC_URL;
@@ -112,7 +111,12 @@ module.exports = {
     },
     compilers: {
       solc: {
-        version: "0.5.9",
+        version: "0.5.10",
+        settings: {
+          optimizer: {
+            enabled: true
+          }
+        }
       }
     }
   }

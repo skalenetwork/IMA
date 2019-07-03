@@ -1,4 +1,4 @@
-pragma solidity ^0.5.7;
+pragma solidity ^0.5.0;
 
 import "./Permissions.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";

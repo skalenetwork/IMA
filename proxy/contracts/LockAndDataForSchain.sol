@@ -1,8 +1,8 @@
-pragma solidity ^0.5.7;
+pragma solidity ^0.5.0;
 
 import "./Ownable.sol";
 
-interface ETHERC20 {
+interface IETHERC20 {
     function allowance(address from, address to) external returns (uint);
     function mint(address account, uint256 amount) external returns (bool);
     function burn(uint256 amount) external;
@@ -80,12 +80,12 @@ contract LockAndDataForSchain is Ownable {
     }
 
     function sendEth(address to, uint amount) public allow("TokenManager") returns (bool) {
-        require(ETHERC20(ethERC20Address).mint(to, amount), "Mint error");
+        require(IETHERC20(ethERC20Address).mint(to, amount), "Mint error");
         return true;
     }
 
     function receiveEth(address sender, uint amount) public allow("TokenManager") returns (bool) {
-        ETHERC20(ethERC20Address).burnFrom(sender, amount);
+        IETHERC20(ethERC20Address).burnFrom(sender, amount);
         return true;
     }
 }

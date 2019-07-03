@@ -3,7 +3,7 @@ pragma solidity ^0.5.0;
 import "./Permissions.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
 
-interface LockAndDataERC721 {
+interface ILockAndDataERC721M {
     function ERC721Tokens(uint index) external returns (address);
     function ERC721Mapper(address contractERC721) external returns (uint);
     function addERC721Token(address contractERC721) external returns (uint);
@@ -12,16 +12,16 @@ interface LockAndDataERC721 {
 
 contract ERC721ModuleForMainnet is Permissions {
 
-    constructor(address payable newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
+    constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
         
     }
 
     function receiveERC721(address contractHere, address to, uint tokenId, bool isRAW) public allow("DepositBox") returns (bytes memory data) {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         if (!isRAW) {
-            uint contractPosition = LockAndDataERC721(lockAndDataERC721).ERC721Mapper(contractHere);
+            uint contractPosition = ILockAndDataERC721M(lockAndDataERC721).ERC721Mapper(contractHere);
             if (contractPosition == 0) {
-                contractPosition = LockAndDataERC721(lockAndDataERC721).addERC721Token(contractHere);
+                contractPosition = ILockAndDataERC721M(lockAndDataERC721).addERC721Token(contractHere);
             }
             return encodeData(contractHere, contractPosition, to, tokenId);
         } else {
@@ -37,12 +37,12 @@ contract ERC721ModuleForMainnet is Permissions {
         uint tokenId;
         if (to == address(0)) {
             (contractPosition, receiver, tokenId) = fallbackDataParser(data);
-            contractAddress = LockAndDataERC721(lockAndDataERC721).ERC721Tokens(contractPosition);
+            contractAddress = ILockAndDataERC721M(lockAndDataERC721).ERC721Tokens(contractPosition);
         } else {
             (receiver, tokenId) = fallbackRawDataParser(data);
             contractAddress = to;
         }
-        return LockAndDataERC721(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
+        return ILockAndDataERC721M(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
     }
 
     function getReceiver(address to, bytes memory data) public pure returns (address receiver) {
