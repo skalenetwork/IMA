@@ -95,8 +95,8 @@ contract MessageProxy {
     }
 
     // This is called by  schain owner.
-    // On mainnet, SkaleManager will call it every time an
-    // schain is created.  Therefore, any schain is always connected to the main chain.
+    // On mainnet, SkaleManager will call it every time a SKALE chain is
+    // created. Therefore, any SKALE chain is always connected to the main chain.
     // To connect to other chains, the owner needs to explicitely call this function
     function addConnectedChain(
         string memory newChainID, 
@@ -127,7 +127,7 @@ contract MessageProxy {
         require(
             keccak256(abi.encodePacked(newChainID)) != 
             keccak256(abi.encodePacked("Mainnet"))
-        ); // you cant remove a connection to main net
+        ); // you cannot remove a connection to main net
         require(
             connectedChains[keccak256(abi.encodePacked(newChainID))].inited
         );

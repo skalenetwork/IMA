@@ -9,7 +9,7 @@
     "truffle": "5.0.12",
     "web3": "1.0.0-beta.35"
   },
-  "license": "LGPL-3.0",
+  "license": "AGPL-3.0",
   "scripts": {
     "start": "rm -rf ./build && ./node_modules/.bin/truffle compile",
     "deploy-to-mainnet": "DIRECTION=main bash ./scripts/deploy.sh",
