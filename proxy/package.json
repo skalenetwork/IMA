@@ -11,9 +11,13 @@
   },
   "license": "AGPL-3.0",
   "scripts": {
+    "lint": "npx solium --no-soliumignore --dir contracts",
     "start": "rm -rf ./build && ./node_modules/.bin/truffle compile",
     "deploy-to-mainnet": "DIRECTION=main bash ./scripts/deploy.sh",
     "deploy-to-schain": "DIRECTION=schain bash ./scripts/deploy.sh",
     "deploy-to-both-chains": "DIRECTION=both bash ./scripts/deploy.sh"
+  },
+  "devDependencies": {
+    "ethlint": "^1.2.4"
   }
 }

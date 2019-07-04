@@ -21,6 +21,7 @@ pragma solidity ^0.5.7;
 
 import "./Ownable.sol";
 
+
 contract LockAndDataForMainnet is Ownable {
 
     mapping(bytes32 => address) public permitted;
@@ -45,10 +46,11 @@ contract LockAndDataForMainnet is Ownable {
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(permitted[contractId] != newContract, "Contract is already added");
         uint length;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             length := extcodesize(newContract)
         }
-        require(length > 0, "Given contracts address does not contain code");
+        require(length > 0, "Given contract address does not contain code");
         permitted[contractId] = newContract;
     }
 

@@ -50,6 +50,7 @@ interface ERC20Module {
 
 // This contract runs on the main net and accepts deposits
 
+
 contract DepositBox is Permissions {
 
     //address public skaleManagerAddress;
@@ -89,7 +90,7 @@ contract DepositBox is Permissions {
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
-        require(schainHash != keccak256(abi.encodePacked("Mainnet")), "Schain name is incorrect");
+        require(schainHash != keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect");
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Not enough money");
         _;
@@ -283,6 +284,7 @@ contract DepositBox is Permissions {
         returns (TransactionOperation)
     {
         bytes1 operationType;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             operationType := mload(add(data, 0x20))
         }

@@ -23,12 +23,13 @@ import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
 import "./Ownable.sol";
 
+
 contract EthERC20 is Ownable, ERC20Detailed, ERC20 {
 
     uint private cap = 120 * (10 ** 6) * (10 ** 18);
 
     constructor() ERC20Detailed("ERC20 Ether Clone", "ETHC", 18) public {
-
+        // solium-disable-previous-line no-empty-blocks
     }
 
     function mint(address account, uint256 amount) public onlyOwner returns (bool) {
@@ -41,7 +42,7 @@ contract EthERC20 is Ownable, ERC20Detailed, ERC20 {
         _burn(msg.sender, amount);
     }
 
-    function burnFrom(address account, uint256 amount) onlyOwner public {
+    function burnFrom(address account, uint256 amount) public onlyOwner {
         _burn(account, amount);
     }
 }
