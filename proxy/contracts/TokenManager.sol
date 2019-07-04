@@ -1,9 +1,9 @@
 pragma solidity ^0.5.0;
 
-import "./Permissions.sol";
-import "./IMessageProxy.sol";
-import "./IERC20Module.sol";
-import "./IERC721Module.sol";
+import './Permissions.sol';
+import './IMessageProxy.sol';
+import './IERC20Module.sol';
+import './IERC721Module.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
 import 'openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol';
 

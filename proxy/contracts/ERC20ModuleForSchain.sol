@@ -14,6 +14,12 @@ interface ILockAndDataERC20S {
     function ERC20Mapper(address contractERC20) external returns (uint);
     function addERC20Token(address contractERC20, uint contractPosition) external;
     function sendERC20(address contractHere, address to, uint amount) external returns (bool);
+    function receiveERC20(address contractHere, uint amount) external returns (bool);
+}
+
+interface ERC20Clone {
+    function totalSupplyOnMainnet() external view returns (uint);
+    function setTotalSupplyOnMainnet(uint newTotalSupply) external;
 }
 
 contract ERC20ModuleForSchain is Permissions {
@@ -29,6 +35,7 @@ contract ERC20ModuleForSchain is Permissions {
         if (!isRAW) {
             uint contractPosition = ILockAndDataERC20S(lockAndDataERC20).ERC20Mapper(contractHere);
             require(contractPosition > 0, "Not existing ERC-20 contract");
+            require(ILockAndDataERC20S(lockAndDataERC20).receiveERC20(contractHere, amount), "Cound not receive ERC20 Token");
             return encodeData(contractHere, contractPosition, to, amount);
         } else {
             return encodeRawData(to, amount);
@@ -49,6 +56,11 @@ contract ERC20ModuleForSchain is Permissions {
                 contractAddress = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(data);
                 emit ERC20TokenCreated(contractAddress);
                 ILockAndDataERC20S(lockAndDataERC20).addERC20Token(contractAddress, contractPosition);
+            } else {
+                uint totalSupply = fallbackTotalSupplyParser(data);
+                if (totalSupply > ERC20Clone(contractAddress).totalSupplyOnMainnet()) {
+                    ERC20Clone(contractAddress).setTotalSupplyOnMainnet(totalSupply);
+                }
             }
         } else {
             (receiver, amount) = fallbackRawDataParser(data);
@@ -92,6 +104,29 @@ contract ERC20ModuleForSchain is Permissions {
             bytes32(bytes20(to)),
             bytes32(amount)
         );
+    }
+
+    function fallbackTotalSupplyParser(bytes memory data)
+        internal
+        pure
+        returns (uint)
+    {
+        bytes32 totalSupply;
+        bytes32 nameLength;
+        bytes32 symbolLength;
+        assembly {
+            nameLength := mload(add(data, 129))
+        }
+        uint lengthOfName = uint(nameLength);
+        assembly {
+            symbolLength := mload(add(data, add(161, lengthOfName)))
+        }
+        uint lengthOfSymbol = uint(symbolLength);
+        assembly {
+            totalSupply := mload(add(data,
+                add(194, add(lengthOfName, lengthOfSymbol))))
+        }
+        return uint(totalSupply);
     }
 
     function fallbackDataParser(bytes memory data)

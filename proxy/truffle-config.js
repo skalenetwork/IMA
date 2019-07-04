@@ -114,8 +114,10 @@ module.exports = {
         version: "0.5.10",
         settings: {
           optimizer: {
-            enabled: true
-          }
+            enabled: true,
+            runs: 200
+          },
+          evmVersion: "byzantium"
         }
       }
     }
