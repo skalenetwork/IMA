@@ -28,6 +28,7 @@ interface ETHERC20 {
     function burnFrom(address from, uint256 amount) external;
 }
 
+
 contract LockAndDataForSchain is Ownable {
 
     address public ethERC20Address;
@@ -56,16 +57,17 @@ contract LockAndDataForSchain is Ownable {
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(permitted[contractId] != newContract, "Contract is already added");
         uint length;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             length := extcodesize(newContract)
         }
-        require(length > 0, "Given contracts address is not contain code");
+        require(length > 0, "Given contract address does not contain code");
         permitted[contractId] = newContract;
     }
 
     function addSchain(string memory schainID, address tokenManagerAddress) public onlyOwner {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerAddresses[schainHash] == address(0), "Schain is already set");
+        require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
     }

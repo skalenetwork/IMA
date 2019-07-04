@@ -22,6 +22,7 @@ pragma solidity ^0.5.7;
 import "./Permissions.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 
+
 contract LockAndDataForMainnetERC20 is Permissions {
 
     mapping(uint => address) public ERC20Tokens;
@@ -29,7 +30,7 @@ contract LockAndDataForMainnetERC20 is Permissions {
     uint newIndexERC20 = 1;
 
     constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
-        
+        // solium-disable-previous-line no-empty-blocks
     }
 
     function sendERC20(address contractHere, address to, uint amount) public allow("ERC20Module") returns (bool) {

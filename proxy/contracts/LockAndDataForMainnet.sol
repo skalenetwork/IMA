@@ -21,6 +21,7 @@ pragma solidity ^0.5.7;
 
 import "./Ownable.sol";
 
+
 contract LockAndDataForMainnet is Ownable {
 
     mapping(bytes32 => address) public permitted;
@@ -45,16 +46,17 @@ contract LockAndDataForMainnet is Ownable {
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(permitted[contractId] != newContract, "Contract is already added");
         uint length;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             length := extcodesize(newContract)
         }
-        require(length > 0, "Given contracts address is not contain code");
+        require(length > 0, "Given contract address does not contain code");
         permitted[contractId] = newContract;
     }
 
     function addSchain(string memory schainID, address tokenManagerAddress) public onlyOwner {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerAddresses[schainHash] == address(0), "Schain is already set");
+        require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
     }
@@ -64,15 +66,15 @@ contract LockAndDataForMainnet is Ownable {
     }
 
     function getMyEth() public {
-        require(address(this).balance >= approveTransfers[msg.sender], "Not enough money");
-        require(approveTransfers[msg.sender] > 0, "User has not money");
+        require(address(this).balance >= approveTransfers[msg.sender], "Not enough ETH");
+        require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
         uint amount = approveTransfers[msg.sender];
         approveTransfers[msg.sender] = 0;
         msg.sender.transfer(amount);
     }
 
     function sendEth(address payable to, uint amount) public allow("DepositBox") returns (bool) {
-        require(address(this).balance >= amount, "Not enough money");
+        require(address(this).balance >= amount, "Not enough ETH");
         to.transfer(amount);
         return true;
     }

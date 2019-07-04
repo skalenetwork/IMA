@@ -35,12 +35,13 @@ interface LockAndDataERC20 {
     function sendERC20(address contractHere, address to, uint amount) external returns (bool);
 }
 
+
 contract ERC20ModuleForSchain is Permissions {
 
     event ERC20TokenCreated(address contractAddress);
 
     constructor(address payable newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
-
+        // solium-disable-previous-line no-empty-blocks
     }
 
     function receiveERC20(address contractHere, address to, uint amount, bool isRAW) public returns (bytes memory data) {
@@ -121,6 +122,7 @@ contract ERC20ModuleForSchain is Permissions {
         bytes32 contractIndex;
         bytes32 to;
         bytes32 token;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             contractIndex := mload(add(data, 33))
             to := mload(add(data, 65))
@@ -138,6 +140,7 @@ contract ERC20ModuleForSchain is Permissions {
     {
         bytes32 to;
         bytes32 token;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             to := mload(add(data, 33))
             token := mload(add(data, 65))

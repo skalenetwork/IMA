@@ -53,6 +53,7 @@ interface ERC20Module {
 // This contract runs on schains and accepts messages from main net creates ETH clones.
 // When the user exits, it burns them
 
+
 contract TokenManager is Permissions {
 
 
@@ -237,13 +238,13 @@ contract TokenManager is Permissions {
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
             require(to != address(0), "Incorrect receiver");
-            require(LockAndData(lockAndDataAddress).sendEth(to, amount), "Not Send");
+            require(LockAndData(lockAndDataAddress).sendEth(to, amount), "Not Sent");
             return;
         } else if (operation == TransactionOperation.transferERC20 || operation == TransactionOperation.rawTransferERC20) {
             address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
             ERC20Module(erc20Module).sendERC20(to, data);
             address receiver = ERC20Module(erc20Module).getReceiver(to, data);
-            require(LockAndData(lockAndDataAddress).sendEth(receiver, amount), "Not Send");
+            require(LockAndData(lockAndDataAddress).sendEth(receiver, amount), "Not Sent");
         }
     }
 
@@ -263,6 +264,7 @@ contract TokenManager is Permissions {
         returns (TransactionOperation)
     {
         bytes1 operationType;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             operationType := mload(add(data, 0x20))
         }
@@ -295,6 +297,7 @@ contract TokenManager is Permissions {
         bytes32 contractIndex;
         bytes32 to;
         bytes32 token;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             contractIndex := mload(add(data, 33))
             to := mload(add(data, 65))
@@ -311,6 +314,7 @@ contract TokenManager is Permissions {
         returns (uint)
     {
         bytes32 contractIndex;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             contractIndex := mload(add(data, 33))
         }
@@ -324,6 +328,7 @@ contract TokenManager is Permissions {
     {
         bytes32 to;
         bytes32 amount;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             to := mload(add(data, 33))
             amount := mload(add(data, 65))

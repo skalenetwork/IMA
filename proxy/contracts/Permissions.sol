@@ -25,6 +25,7 @@ interface ContractManager {
     function permitted(bytes32 contractName) external view returns (address);
 }
 
+
 /**
  * @title Permissions - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
