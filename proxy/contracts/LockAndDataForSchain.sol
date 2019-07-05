@@ -1,3 +1,22 @@
+/**
+ *   LockAndDataForSchain.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2019-Present SKALE Labs
+ *   @author Artem Payvin
+ *
+ *   SKALE-IMA is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as published
+ *   by the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   SKALE-IMA is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Affero General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Affero General Public License
+ *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 pragma solidity ^0.5.0;
 
 import "./Ownable.sol";
@@ -8,6 +27,7 @@ interface IETHERC20 {
     function burn(uint256 amount) external;
     function burnFrom(address from, uint256 amount) external;
 }
+
 
 contract LockAndDataForSchain is Ownable {
 
@@ -37,16 +57,17 @@ contract LockAndDataForSchain is Ownable {
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(permitted[contractId] != newContract, "Contract is already added");
         uint length;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             length := extcodesize(newContract)
         }
-        require(length > 0, "Given contracts address is not contain code");
+        require(length > 0, "Given contract address does not contain code");
         permitted[contractId] = newContract;
     }
 
     function addSchain(string memory schainID, address tokenManagerAddress) public onlyOwner {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerAddresses[schainHash] == address(0), "Schain is already set");
+        require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
     }

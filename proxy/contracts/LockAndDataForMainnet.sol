@@ -1,6 +1,26 @@
+/**
+ *   LockAndDataForMainnet.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2019-Present SKALE Labs
+ *   @author Artem Payvin
+ *
+ *   SKALE-IMA is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as published
+ *   by the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   SKALE-IMA is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Affero General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Affero General Public License
+ *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 pragma solidity ^0.5.0;
 
 import "./Ownable.sol";
+
 
 contract LockAndDataForMainnet is Ownable {
 
@@ -30,16 +50,17 @@ contract LockAndDataForMainnet is Ownable {
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(permitted[contractId] != newContract, "Contract is already added");
         uint length;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             length := extcodesize(newContract)
         }
-        require(length > 0, "Given contracts address is not contain code");
+        require(length > 0, "Given contract address does not contain code");
         permitted[contractId] = newContract;
     }
 
     function addSchain(string memory schainID, address tokenManagerAddress) public onlyOwner {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerAddresses[schainHash] == address(0), "Schain is already set");
+        require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
     }
@@ -49,15 +70,15 @@ contract LockAndDataForMainnet is Ownable {
     }
 
     function getMyEth() public {
-        require(address(this).balance >= approveTransfers[msg.sender], "Not enough money");
-        require(approveTransfers[msg.sender] > 0, "User has not money");
+        require(address(this).balance >= approveTransfers[msg.sender], "Not enough ETH");
+        require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
         uint amount = approveTransfers[msg.sender];
         approveTransfers[msg.sender] = 0;
         msg.sender.transfer(amount);
     }
 
     function sendEth(address payable to, uint amount) public allow("DepositBox") returns (bool) {
-        require(address(this).balance >= amount, "Not enough money");
+        require(address(this).balance >= amount, "Not enough ETH");
         to.transfer(amount);
         return true;
     }

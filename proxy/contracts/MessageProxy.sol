@@ -1,15 +1,35 @@
+/**
+ *   MessageProxy.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2019-Present SKALE Labs
+ *   @author Artem Payvin
+ *
+ *   SKALE-IMA is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as published
+ *   by the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   SKALE-IMA is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Affero General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Affero General Public License
+ *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 pragma solidity ^0.5.0;
 
 interface ContractReceiver {
     function postMessage(
-        address sender, 
-        string calldata schainID, 
-        address to, 
-        uint amount, 
+        address sender,
+        string calldata schainID,
+        address to,
+        uint amount,
         bytes calldata data
-    ) 
+    )
         external;
 }
+
 
 contract MessageProxy {
 
@@ -63,7 +83,7 @@ contract MessageProxy {
     constructor(string memory newChainID) public {
         owner = msg.sender;
         chainID = newChainID;
-        if (keccak256(abi.encodePacked(newChainID)) != 
+        if (keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet"))
         ) {
             // connect to mainnet by default
@@ -76,18 +96,18 @@ contract MessageProxy {
     }
 
     // This is called by  schain owner.
-    // On mainnet, SkaleManager will call it every time an
-    // schain is created.  Therefore, any schain is always connected to the main chain.
+    // On mainnet, SkaleManager will call it every time a SKALE chain is
+    // created. Therefore, any SKALE chain is always connected to the main chain.
     // To connect to other chains, the owner needs to explicitely call this function
     function addConnectedChain(
-        string memory newChainID, 
+        string memory newChainID,
         uint[4] memory newPublicKey
-    ) 
-        public 
+    )
+        public
     {
         //require(msg.sender == owner); // todo: tmp!!!!!
         require(
-            keccak256(abi.encodePacked(newChainID)) != 
+            keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet"))
         ); // main net does not have a public key and is implicitely connected
         require(
@@ -106,9 +126,9 @@ contract MessageProxy {
     function removeConnectedChain(string memory newChainID) public {
         require(msg.sender == owner);
         require(
-            keccak256(abi.encodePacked(newChainID)) != 
+            keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet"))
-        ); // you cant remove a connection to main net
+        ); // you cannot remove a connection to main net
         require(
             connectedChains[keccak256(abi.encodePacked(newChainID))].inited
         );
@@ -117,41 +137,41 @@ contract MessageProxy {
 
     // This is called by a smart contract that wants to make a cross-chain call
     function postOutgoingMessage(
-        string memory dstChainID, 
-        address dstContract, 
-        uint amount, 
-        address to, 
+        string memory dstChainID,
+        address dstContract,
+        uint amount,
+        address to,
         bytes memory data
-    ) 
-        public 
+    )
+        public
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited);
         connectedChains[dstChainHash].outgoingMessageCounter++;
         emit OutgoingMessage(
-            dstChainID, 
-            connectedChains[dstChainHash].outgoingMessageCounter - 1, 
-            msg.sender, 
-            dstContract, 
-            to, 
-            amount, 
-            data, 
+            dstChainID,
+            connectedChains[dstChainHash].outgoingMessageCounter - 1,
+            msg.sender,
+            dstContract,
+            to,
+            amount,
+            data,
             data.length
         );
     }
 
     function postIncomingMessages(
-        string memory srcChainID, 
-        uint startingCounter, 
-        address[] memory senders, 
-        address[] memory dstContracts, 
-        address[] memory to, 
-        uint[] memory amount, 
-        bytes memory data, 
+        string memory srcChainID,
+        uint startingCounter,
+        address[] memory senders,
+        address[] memory dstContracts,
+        address[] memory to,
+        uint[] memory amount,
+        bytes memory data,
         uint[] memory lengthOfData
         /*uint[2] memory blsSignature*/
-    ) 
-        public 
+    )
+        public
     {
         //require(msg.sender == owner);
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
@@ -161,7 +181,7 @@ contract MessageProxy {
         require(to.length == amount.length);
         require(lengthOfData.length == amount.length);
         require(
-            startingCounter == 
+            startingCounter ==
             connectedChains[srcChainHash].incomingMessageCounter
         );
 
@@ -171,6 +191,7 @@ contract MessageProxy {
         for (uint i = 0; i < senders.length; i++) {
             bytes memory newData;
             uint currentLength = lengthOfData[i];
+            // solium-disable-next-line security/no-inline-assembly
             assembly {
                 switch iszero(currentLength)
                 case 0 {
@@ -185,14 +206,14 @@ contract MessageProxy {
                         let cc := add(
                             add(
                                 add(
-                                    data, 
+                                    data,
                                     lengthmod
-                                ), 
+                                ),
                                 mul(
-                                    0x20, 
+                                    0x20,
                                     iszero(lengthmod)
                                 )
-                            ), 
+                            ),
                             index
                         )
                     } lt(mc, end) {
@@ -214,31 +235,31 @@ contract MessageProxy {
             index += currentLength;
 
             ContractReceiver(dstContracts[i]).postMessage(
-                senders[i], 
-                srcChainID, 
-                to[i], 
-                amount[i], 
+                senders[i],
+                srcChainID,
+                to[i],
+                amount[i],
                 newData
             );
         }
-        connectedChains[srcChainHash].incomingMessageCounter += 
+        connectedChains[srcChainHash].incomingMessageCounter +=
             uint(senders.length);
     }
 
-    function getOutgoingMessagesCounter(string memory dstChainID) 
-        public 
-        view 
-        returns (uint) 
+    function getOutgoingMessagesCounter(string memory dstChainID)
+        public
+        view
+        returns (uint)
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited);
         return connectedChains[dstChainHash].outgoingMessageCounter;
     }
 
-    function getIncomingMessagesCounter(string memory srcChainID) 
-        public 
-        view 
-        returns (uint) 
+    function getIncomingMessagesCounter(string memory srcChainID)
+        public
+        view
+        returns (uint)
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(connectedChains[srcChainHash].inited);

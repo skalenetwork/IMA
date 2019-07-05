@@ -1,3 +1,22 @@
+/**
+ *   TokenManager.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2019-Present SKALE Labs
+ *   @author Artem Payvin
+ *
+ *   SKALE-IMA is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as published
+ *   by the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   SKALE-IMA is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Affero General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Affero General Public License
+ *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 pragma solidity ^0.5.0;
 
 import './Permissions.sol';
@@ -20,6 +39,7 @@ interface ILockAndDataTM {
 
 // This contract runs on schains and accepts messages from main net creates ETH clones.
 // When the user exits, it burns them
+
 
 contract TokenManager is Permissions {
 
@@ -353,6 +373,7 @@ contract TokenManager is Permissions {
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
             require(to != address(0), "Incorrect receiver");
+<<<<<<< HEAD
             require(ILockAndDataTM(lockAndDataAddress).sendEth(to, amount), "Not Send");
             return;
         } else if (operation == TransactionOperation.transferERC20 || operation == TransactionOperation.rawTransferERC20) {
@@ -365,6 +386,15 @@ contract TokenManager is Permissions {
             IERC721Module(erc721Module).sendERC721(to, data);
             address receiver = IERC721Module(erc721Module).getReceiver(to, data);
             require(ILockAndDataTM(lockAndDataAddress).sendEth(receiver, amount), "Not Send");
+=======
+            require(LockAndData(lockAndDataAddress).sendEth(to, amount), "Not Sent");
+            return;
+        } else if (operation == TransactionOperation.transferERC20 || operation == TransactionOperation.rawTransferERC20) {
+            address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
+            ERC20Module(erc20Module).sendERC20(to, data);
+            address receiver = ERC20Module(erc20Module).getReceiver(to, data);
+            require(LockAndData(lockAndDataAddress).sendEth(receiver, amount), "Not Sent");
+>>>>>>> origin/develop
         }
     }
 
@@ -384,6 +414,7 @@ contract TokenManager is Permissions {
         returns (TransactionOperation)
     {
         bytes1 operationType;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             operationType := mload(add(data, 0x20))
         }
@@ -416,6 +447,7 @@ contract TokenManager is Permissions {
         bytes32 contractIndex;
         bytes32 to;
         bytes32 token;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             contractIndex := mload(add(data, 33))
             to := mload(add(data, 65))
@@ -432,6 +464,7 @@ contract TokenManager is Permissions {
         returns (uint)
     {
         bytes32 contractIndex;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             contractIndex := mload(add(data, 33))
         }
@@ -445,6 +478,7 @@ contract TokenManager is Permissions {
     {
         bytes32 to;
         bytes32 amount;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             to := mload(add(data, 33))
             amount := mload(add(data, 65))

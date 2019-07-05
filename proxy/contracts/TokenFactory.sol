@@ -1,3 +1,22 @@
+/**
+ *   TokenFactory.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2019-Present SKALE Labs
+ *   @author Artem Payvin
+ *
+ *   SKALE-IMA is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as published
+ *   by the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   SKALE-IMA is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Affero General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Affero General Public License
+ *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 pragma solidity ^0.5.0;
 
 import './Permissions.sol';
@@ -5,6 +24,7 @@ import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Capped.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
 import 'openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol';
 import 'openzeppelin-solidity/contracts/token/ERC721/ERC721MetadataMintable.sol';
+
 
 contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
 
@@ -49,6 +69,7 @@ contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
     }
 }
 
+
 contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
     constructor(
         string memory name,
@@ -57,7 +78,7 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
         ERC721Full(name, symbol)
         public
     {
-
+        // solium-disable-previous-line no-empty-blocks
     }
 
     function mint(address to, uint256 tokenId)
@@ -88,7 +109,7 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
 contract TokenFactory is Permissions {
 
     constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
-
+        // solium-disable-previous-line no-empty-blocks
     }
 
     function createERC20(bytes memory data)
@@ -100,7 +121,8 @@ contract TokenFactory is Permissions {
         string memory symbol;
         uint8 decimals;
         uint256 totalSupply;
-        (
+        (name, symbol, decimals, totalSupply) = fallbackDataCreateERC20Parser(data);
+        ERC20OnChain newERC20 = new ERC20OnChain(
             name,
             symbol,
             decimals,
@@ -149,6 +171,7 @@ contract TokenFactory is Permissions {
         bytes32 totalSupply;
         bytes32 nameLength;
         bytes32 symbolLength;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             nameLength := mload(add(data, 129))
         }
@@ -157,6 +180,7 @@ contract TokenFactory is Permissions {
             bytes(name)[i] = data[129 + i];
         }
         uint lengthOfName = uint(nameLength);
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             symbolLength := mload(add(data, add(161, lengthOfName)))
         }
@@ -165,6 +189,7 @@ contract TokenFactory is Permissions {
             bytes(symbol)[i] = data[161 + lengthOfName + i];
         }
         uint lengthOfSymbol = uint(symbolLength);
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             decimals := mload(add(data,
                 add(193, add(lengthOfName, lengthOfSymbol))))
@@ -189,6 +214,7 @@ contract TokenFactory is Permissions {
     {
         bytes32 nameLength;
         bytes32 symbolLength;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             nameLength := mload(add(data, 129))
         }
@@ -197,6 +223,7 @@ contract TokenFactory is Permissions {
             bytes(name)[i] = data[129 + i];
         }
         uint lengthOfName = uint(nameLength);
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             symbolLength := mload(add(data, add(161, lengthOfName)))
         }

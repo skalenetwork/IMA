@@ -1,3 +1,22 @@
+/**
+ *   DepositBox.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2019-Present SKALE Labs
+ *   @author Artem Payvin
+ *
+ *   SKALE-IMA is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as published
+ *   by the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   SKALE-IMA is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Affero General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Affero General Public License
+ *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 pragma solidity ^0.5.0;
 
 import "./Permissions.sol";
@@ -18,6 +37,7 @@ interface ILockAndDataDB {
 }
 
 // This contract runs on the main net and accepts deposits
+
 
 contract DepositBox is Permissions {
 
@@ -57,8 +77,13 @@ contract DepositBox is Permissions {
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+<<<<<<< HEAD
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
         require(schainHash != keccak256(abi.encodePacked("Mainnet")), "Schain name is incorrect");
+=======
+        address tokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
+        require(schainHash != keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect");
+>>>>>>> origin/develop
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Not enough money");
         _;
@@ -314,6 +339,7 @@ contract DepositBox is Permissions {
         returns (TransactionOperation)
     {
         bytes1 operationType;
+        // solium-disable-next-line security/no-inline-assembly
         assembly {
             operationType := mload(add(data, 0x20))
         }
