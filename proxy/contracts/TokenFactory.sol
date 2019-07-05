@@ -122,12 +122,6 @@ contract TokenFactory is Permissions {
         uint8 decimals;
         uint256 totalSupply;
         (name, symbol, decimals, totalSupply) = fallbackDataCreateERC20Parser(data);
-        ERC20OnChain newERC20 = new ERC20OnChain(
-            name,
-            symbol,
-            decimals,
-            totalSupply
-        ) = fallbackDataCreateERC20Parser(data);
         address ERC20ModuleAddress = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
