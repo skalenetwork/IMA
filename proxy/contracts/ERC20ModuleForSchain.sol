@@ -22,17 +22,23 @@ pragma solidity ^0.5.0;
 import "./Permissions.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 
-interface TokenFactoryForSchain {
+interface ITokenFactoryForERC20 {
     function createERC20(bytes calldata data)
         external
         returns (address payable);
 }
 
-interface LockAndDataERC20 {
+interface ILockAndDataERC20S {
     function ERC20Tokens(uint index) external returns (address);
     function ERC20Mapper(address contractERC20) external returns (uint);
     function addERC20Token(address contractERC20, uint contractPosition) external;
     function sendERC20(address contractHere, address to, uint amount) external returns (bool);
+    function receiveERC20(address contractHere, uint amount) external returns (bool);
+}
+
+interface ERC20Clone {
+    function totalSupplyOnMainnet() external view returns (uint);
+    function setTotalSupplyOnMainnet(uint newTotalSupply) external;
 }
 
 
@@ -40,18 +46,56 @@ contract ERC20ModuleForSchain is Permissions {
 
     event ERC20TokenCreated(address contractAddress);
 
-    constructor(address payable newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
+    constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function receiveERC20(address contractHere, address to, uint amount, bool isRAW) public returns (bytes memory data) {
+    function receiveERC20(address contractHere, address to, uint amount, bool isRAW) public allow("TokenManager") returns (bytes memory data) {
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         if (!isRAW) {
-            uint contractPosition = LockAndDataERC20(lockAndDataERC20).ERC20Mapper(contractHere);
+            uint contractPosition = ILockAndDataERC20S(lockAndDataERC20).ERC20Mapper(contractHere);
             require(contractPosition > 0, "Not existing ERC-20 contract");
+            require(ILockAndDataERC20S(lockAndDataERC20).receiveERC20(contractHere, amount), "Cound not receive ERC20 Token");
             return encodeData(contractHere, contractPosition, to, amount);
         } else {
             return encodeRawData(to, amount);
+        }
+    }
+
+    function sendERC20(address to, bytes memory data) public allow("TokenManager") returns (bool) {
+        address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        uint contractPosition;
+        address contractAddress;
+        address receiver;
+        uint amount;
+        if (to == address(0)) {
+            (contractPosition, receiver, amount) = fallbackDataParser(data);
+            contractAddress = ILockAndDataERC20S(lockAndDataERC20).ERC20Tokens(contractPosition);
+            if (contractAddress == address(0)) {
+                address tokenFactoryAddress = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("TokenFactory")));
+                contractAddress = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(data);
+                emit ERC20TokenCreated(contractAddress);
+                ILockAndDataERC20S(lockAndDataERC20).addERC20Token(contractAddress, contractPosition);
+            } else {
+                uint totalSupply = fallbackTotalSupplyParser(data);
+                if (totalSupply > ERC20Clone(contractAddress).totalSupplyOnMainnet()) {
+                    ERC20Clone(contractAddress).setTotalSupplyOnMainnet(totalSupply);
+                }
+            }
+        } else {
+            (receiver, amount) = fallbackRawDataParser(data);
+            contractAddress = to;
+        }
+        return ILockAndDataERC20S(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
+    }
+
+    function getReceiver(address to, bytes memory data) public pure returns (address receiver) {
+        uint contractPosition;
+        uint amount;
+        if (to == address(0)) {
+            (contractPosition, receiver, amount) = fallbackDataParser(data);
+        } else {
+            (receiver, amount) = fallbackRawDataParser(data);
         }
     }
 
@@ -76,42 +120,33 @@ contract ERC20ModuleForSchain is Permissions {
 
     function encodeRawData(address to, uint amount) internal pure returns (bytes memory data) {
         data = abi.encodePacked(
-            bytes1(uint8(21)),
+            bytes1(uint8(19)),
             bytes32(bytes20(to)),
             bytes32(amount)
         );
     }
 
-    function sendERC20(address to, bytes memory data) public returns (bool) {
-        address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        uint contractPosition;
-        address contractAddress;
-        address receiver;
-        uint amount;
-        if (to == address(0)) {
-            (contractPosition, receiver, amount) = fallbackDataParser(data);
-            contractAddress = LockAndDataERC20(lockAndDataERC20).ERC20Tokens(contractPosition);
-            if (contractAddress == address(0)) {
-                address tokenFactoryAddress = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("TokenFactory")));
-                contractAddress = TokenFactoryForSchain(tokenFactoryAddress).createERC20(data);
-                emit ERC20TokenCreated(contractAddress);
-                LockAndDataERC20(lockAndDataERC20).addERC20Token(contractAddress, contractPosition);
-            }
-        } else {
-            (receiver, amount) = fallbackRawDataParser(data);
-            contractAddress = to;
+    function fallbackTotalSupplyParser(bytes memory data)
+        internal
+        pure
+        returns (uint)
+    {
+        bytes32 totalSupply;
+        bytes32 nameLength;
+        bytes32 symbolLength;
+        assembly {
+            nameLength := mload(add(data, 129))
         }
-        return LockAndDataERC20(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
-    }
-
-    function getReceiver(address to, bytes memory data) public pure returns (address receiver) {
-        uint contractPosition;
-        uint amount;
-        if (to == address(0)) {
-            (contractPosition, receiver, amount) = fallbackDataParser(data);
-        } else {
-            (receiver, amount) = fallbackRawDataParser(data);
+        uint lengthOfName = uint(nameLength);
+        assembly {
+            symbolLength := mload(add(data, add(161, lengthOfName)))
         }
+        uint lengthOfSymbol = uint(symbolLength);
+        assembly {
+            totalSupply := mload(add(data,
+                add(194, add(lengthOfName, lengthOfSymbol))))
+        }
+        return uint(totalSupply);
     }
 
     function fallbackDataParser(bytes memory data)

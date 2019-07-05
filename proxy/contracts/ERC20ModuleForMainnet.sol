@@ -22,7 +22,7 @@ pragma solidity ^0.5.0;
 import "./Permissions.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 
-interface LockAndDataERC20 {
+interface ILockAndDataERC20M {
     function ERC20Tokens(uint index) external returns (address);
     function ERC20Mapper(address contractERC20) external returns (uint);
     function addERC20Token(address contractERC20) external returns (uint);
@@ -32,20 +32,46 @@ interface LockAndDataERC20 {
 
 contract ERC20ModuleForMainnet is Permissions {
 
-    constructor(address payable newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
+    constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function receiveERC20(address contractHere, address to, uint amount, bool isRAW) public returns (bytes memory data) {
+    function receiveERC20(address contractHere, address to, uint amount, bool isRAW) public allow("DepositBox") returns (bytes memory data) {
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         if (!isRAW) {
-            uint contractPosition = LockAndDataERC20(lockAndDataERC20).ERC20Mapper(contractHere);
+            uint contractPosition = ILockAndDataERC20M(lockAndDataERC20).ERC20Mapper(contractHere);
             if (contractPosition == 0) {
-                contractPosition = LockAndDataERC20(lockAndDataERC20).addERC20Token(contractHere);
+                contractPosition = ILockAndDataERC20M(lockAndDataERC20).addERC20Token(contractHere);
             }
             return encodeData(contractHere, contractPosition, to, amount);
         } else {
             return encodeRawData(to, amount);
+        }
+    }
+
+    function sendERC20(address to, bytes memory data) public allow("DepositBox") returns (bool) {
+        address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        uint contractPosition;
+        address contractAddress;
+        address receiver;
+        uint amount;
+        if (to == address(0)) {
+            (contractPosition, receiver, amount) = fallbackDataParser(data);
+            contractAddress = ILockAndDataERC20M(lockAndDataERC20).ERC20Tokens(contractPosition);
+        } else {
+            (receiver, amount) = fallbackRawDataParser(data);
+            contractAddress = to;
+        }
+        return ILockAndDataERC20M(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
+    }
+
+    function getReceiver(address to, bytes memory data) public pure returns (address receiver) {
+        uint contractPosition;
+        uint amount;
+        if (to == address(0)) {
+            (contractPosition, receiver, amount) = fallbackDataParser(data);
+        } else {
+            (receiver, amount) = fallbackRawDataParser(data);
         }
     }
 
@@ -70,26 +96,10 @@ contract ERC20ModuleForMainnet is Permissions {
 
     function encodeRawData(address to, uint amount) internal pure returns (bytes memory data) {
         data = abi.encodePacked(
-            bytes1(uint8(21)),
+            bytes1(uint8(19)),
             bytes32(bytes20(to)),
             bytes32(amount)
         );
-    }
-
-    function sendERC20(address to, bytes memory data) public returns (bool) {
-        address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        uint contractPosition;
-        address contractAddress;
-        address receiver;
-        uint amount;
-        if (to == address(0)) {
-            (contractPosition, receiver, amount) = fallbackDataParser(data);
-            contractAddress = LockAndDataERC20(lockAndDataERC20).ERC20Tokens(contractPosition);
-        } else {
-            (receiver, amount) = fallbackRawDataParser(data);
-            contractAddress = to;
-        }
-        return LockAndDataERC20(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
     }
 
     function fallbackDataParser(bytes memory data)

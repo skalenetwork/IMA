@@ -17,7 +17,7 @@
  *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.7;
+pragma solidity ^0.5.0;
 
 import "./Ownable.sol";
 
@@ -36,6 +36,10 @@ contract LockAndDataForMainnet is Ownable {
     }
 
     event MoneyReceived(address from, uint amount);
+
+    constructor() Ownable() public {
+
+    }
 
     function receiveEth(address from) public allow("DepositBox") payable {
         emit MoneyReceived(from, msg.value);

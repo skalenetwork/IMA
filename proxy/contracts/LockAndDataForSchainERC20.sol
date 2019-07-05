@@ -17,10 +17,15 @@
  *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.7;
+pragma solidity ^0.5.0;
 
 import "./Permissions.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+
+interface ERC20MintAndBurn {
+    function balanceOf(address to) external view returns (uint);
+    function mint(address to, uint amount) external returns (bool);
+    function burn(uint amount) external;
+}
 
 
 contract LockAndDataForSchainERC20 is Permissions {
@@ -33,12 +38,17 @@ contract LockAndDataForSchainERC20 is Permissions {
     }
 
     function sendERC20(address contractHere, address to, uint amount) public allow("ERC20Module") returns (bool) {
-        require(IERC20(contractHere).balanceOf(address(this)) >= amount, "Not enough money");
-        require(IERC20(contractHere).transfer(to, amount), "Could not transfer ERC20 Token");
+        require(ERC20MintAndBurn(contractHere).mint(to, amount), "Could not mint ERC20 Token");
         return true;
     }
 
-    function addERC20Token(address addressERC20, uint contractPosition) public {
+    function receiveERC20(address contractHere, uint amount) public allow("ERC20Module") returns (bool) {
+        require(ERC20MintAndBurn(contractHere).balanceOf(address(this)) >= amount, "Amount not transfered");
+        ERC20MintAndBurn(contractHere).burn(amount);
+        return true;
+    }
+
+    function addERC20Token(address addressERC20, uint contractPosition) public allow("ERC20Module") {
         ERC20Tokens[contractPosition] = addressERC20;
         ERC20Mapper[addressERC20] = contractPosition;
     }

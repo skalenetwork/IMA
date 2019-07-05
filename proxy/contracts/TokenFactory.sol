@@ -19,25 +19,53 @@
 
 pragma solidity ^0.5.0;
 
-import "./Permissions.sol";
+import './Permissions.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Capped.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
 import 'openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol';
 import 'openzeppelin-solidity/contracts/token/ERC721/ERC721MetadataMintable.sol';
 
 
-contract ERC20OnChain is ERC20Detailed, ERC20Capped {
+contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
+
+    uint private _totalSupplyOnMainnet;
+
+    address private AddressOfERC20Module;
+
     constructor(
         string memory name,
         string memory symbol,
         uint8 decimals,
-        uint256 cap
+        uint256 newTotalSupply,
+        address erc20Module
         )
         ERC20Detailed(name, symbol, decimals)
-        ERC20Capped(cap)
         public
     {
-        // solium-disable-previous-line no-empty-blocks
+        _totalSupplyOnMainnet = newTotalSupply;
+        AddressOfERC20Module = erc20Module;
+    }
+
+    function totalSupplyOnMainnet() public view returns (uint) {
+        return _totalSupplyOnMainnet;
+    }
+
+    function setTotalSupplyOnMainnet(uint newTotalSupply) public {
+        require(AddressOfERC20Module == msg.sender, "Call does not go from ERC20Module");
+        _totalSupplyOnMainnet = newTotalSupply;
+    }
+
+    function burn(uint256 amount) public {
+        _burn(msg.sender, amount);
+    }
+
+    function burnFrom(address account, uint256 amount) public {
+        _burnFrom(account, amount);
+    }
+
+    function _mint(address account, uint value) internal {
+        require(totalSupply().add(value) <= _totalSupplyOnMainnet, "Total supply on mainnet exceeded");
+        super._mint(account, value);
     }
 }
 
@@ -62,6 +90,11 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
         return true;
     }
 
+    function burn(uint256 tokenId) public {
+        require(_isApprovedOrOwner(msg.sender, tokenId), "ERC721Burnable: caller is not owner nor approved");
+        _burn(tokenId);
+    }
+
     function setTokenURI(uint256 tokenId, string memory tokenURI)
         public
         returns (bool)
@@ -73,7 +106,6 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
     }
 }
 
-
 contract TokenFactory is Permissions {
 
     constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
@@ -82,7 +114,7 @@ contract TokenFactory is Permissions {
 
     function createERC20(bytes memory data)
         public
-        onlyOwner
+        allow("ERC20Module")
         returns (address)
     {
         string memory name;
@@ -95,9 +127,16 @@ contract TokenFactory is Permissions {
             symbol,
             decimals,
             totalSupply
+        ) = fallbackDataCreateERC20Parser(data);
+        address ERC20ModuleAddress = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        ERC20OnChain newERC20 = new ERC20OnChain(
+            name,
+            symbol,
+            decimals,
+            totalSupply,
+            ERC20ModuleAddress
         );
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        newERC20.mint(lockAndDataERC20, totalSupply);
         newERC20.addMinter(lockAndDataERC20);
         newERC20.renounceMinter();
         return address(newERC20);
@@ -105,14 +144,15 @@ contract TokenFactory is Permissions {
 
     function createERC721(bytes memory data)
         public
-        onlyOwner
+        allow("ERC721Module")
         returns (address)
     {
         string memory name;
         string memory symbol;
         (name, symbol) = fallbackDataCreateERC721Parser(data);
         ERC721OnChain newERC721 = new ERC721OnChain(name, symbol);
-        newERC721.addMinter(msg.sender);
+        address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        newERC721.addMinter(lockAndDataERC721);
         newERC721.renounceMinter();
         return address(newERC721);
     }
