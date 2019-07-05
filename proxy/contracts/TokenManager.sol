@@ -220,7 +220,7 @@ contract TokenManager is Permissions {
         IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
             schainID,
             ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            0,
             address(0),
             data
         );
@@ -248,7 +248,7 @@ contract TokenManager is Permissions {
         IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
             schainID,
             ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            0,
             contractThere,
             data
         );
@@ -298,7 +298,7 @@ contract TokenManager is Permissions {
         IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
             schainID,
             ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            0,
             address(0),
             data
         );
@@ -314,7 +314,7 @@ contract TokenManager is Permissions {
         IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
             schainID,
             ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            0,
             contractThere,
             data
         );
