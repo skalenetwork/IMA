@@ -77,13 +77,8 @@ contract DepositBox is Permissions {
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-<<<<<<< HEAD
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
-        require(schainHash != keccak256(abi.encodePacked("Mainnet")), "Schain name is incorrect");
-=======
-        address tokenManagerAddress = LockAndData(lockAndDataAddress).tokenManagerAddresses(schainHash);
         require(schainHash != keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect");
->>>>>>> origin/develop
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Not enough money");
         _;
