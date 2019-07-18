@@ -1,4 +1,5 @@
 require('dotenv').config();
+require("ts-node/register");
 const Web3 = require('web3');
 let hdwalletProvider = require('truffle-hdwallet-provider');
 let schainName = process.env.SCHAIN_NAME;
@@ -15,7 +16,8 @@ let accountForMainnet = process.env.ACCOUNT_FOR_MAINNET;
 let accountForSchain = process.env.ACCOUNT_FOR_SCHAIN;
 
 module.exports = {
-  
+    test_file_extension_regexp: /.*\.ts$/,
+
     networks: {
       /*
       mainnet: {
@@ -91,6 +93,13 @@ module.exports = {
         network_id: "*",
         name: schainName,
         skipDryRun: true
+      },
+      test: {    
+        name: "test",        
+        host: "127.0.0.1",
+        port: 8545,
+        gas: 8000000,
+        network_id: "*"
       },
       // */
       /*

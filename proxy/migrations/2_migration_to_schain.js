@@ -14,13 +14,15 @@ let proxyMainnet = require("../data/proxyMainnet.json");
 
 async function deploy(deployer, network) {
     
-    if (network != "schain") {
-        console.log("Please use network with name 'schain'");
-        process.exit(0);
-    }
-    if (networks['networks'][network]['name'] == undefined || networks['networks'][network]['name'] == "") {
-        console.log("Please set SCHAIN_NAME to .env file");
-        process.exit(0);
+    if (network != "test") {
+        if (network != "schain") {
+            console.log("Please use network with name 'schain'");
+            process.exit(0);
+        }
+        if (networks['networks'][network]['name'] == undefined || networks['networks'][network]['name'] == "") {
+            console.log("Please set SCHAIN_NAME to .env file");
+            process.exit(0);
+        }
     }
     let schainName = networks['networks'][network]['name'];
     await deployer.deploy(MessageProxy, schainName, {gas: 8000000}).then(async function() {
@@ -70,7 +72,6 @@ async function deploy(deployer, network) {
             return console.log(err);
         }
         console.log('Done, check proxySchain file in data folder.');
-        process.exit(0);
     });
 
     console.log("Deployment done!");
