@@ -1,5 +1,7 @@
 # truffle build
 proxy/build/
+proxy/types/
+
 
 # idea
 .DS_Store
