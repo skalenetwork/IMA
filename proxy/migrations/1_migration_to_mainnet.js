@@ -47,7 +47,6 @@ async function deploy(deployer) {
             return console.log(err);
         }
         console.log('Done, check proxyMainnet file in data folder.');
-        process.exit(0);
     });
 }
 
