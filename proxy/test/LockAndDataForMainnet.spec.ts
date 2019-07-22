@@ -35,7 +35,7 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     // preparation
     const wei = "10000";
     const lockAndDataBalanceBefore = await web3.eth.getBalance(lockAndDataForMainnet.address);
-        // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
     await lockAndDataForMainnet
       .receiveEth(invoker, {value: wei, from: deployer});
     const lockAndDataBalanceAfter = await web3.eth.getBalance(lockAndDataForMainnet.address);
@@ -48,7 +48,7 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     // preparation
     const wei = "1000";
     const error = "Not enough ETH";
-        // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
     // execution
     await lockAndDataForMainnet
       .receiveEth(invoker, {value: wei, from: deployer});
@@ -63,7 +63,7 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     // preparation
     const addWeiToContract = "1000";
     const sendWeiFromContract = 100;
-        // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
     await lockAndDataForMainnet
       .receiveEth(invoker, {value: addWeiToContract, from: deployer});
     // execution
@@ -80,7 +80,7 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     // preparation
     const addWeiToContract = "1000";
     const sendWeiFromContract = 100;
-        // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
     await lockAndDataForMainnet
       .receiveEth(invoker, {value: addWeiToContract, from: deployer});
     // execution
@@ -137,10 +137,71 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
       .should.be.eventually.rejectedWith(error);
   });
 
-  // it("should invoke setContract", async () => {
-  //   const bn = await lockAndDataForMainnet
-  //     .setContract(deployer, {from: deployer});
-  //   console.log("bn", bn);
-  // });
+  it("should invoke setContract without mistakes", async () => {
+    await lockAndDataForMainnet
+      .setContract("DepositBox", DepositBox.address, {from: deployer});
+    const getMapping = await lockAndDataForMainnet.permitted(web3.utils.soliditySha3("DepositBox"));
+    // expectation
+    expect(getMapping).to.equal(DepositBox.address);
+  });
+
+  it("should rejected with `New address is equal zero` when invoke `getMyEth`", async () => {
+    const error = "New address is equal zero";
+    // execution/expectation
+    await lockAndDataForMainnet
+      .setContract("DepositBox", "0x0000000000000000000000000000000000000000", {from: deployer})
+      .should.be.eventually.rejectedWith(error);
+  });
+
+  it("should rejected with `Contract is already added` when invoke `setContract`", async () => {
+    // preparation
+    const error = "Contract is already added";
+    await lockAndDataForMainnet
+    .setContract("DepositBox", DepositBox.address, {from: deployer});
+    // execution/expectation
+    await lockAndDataForMainnet
+      .setContract("DepositBox", DepositBox.address, {from: deployer})
+      .should.be.eventually.rejectedWith(error);
+  });
+
+  it("should rejected with `Given contract address does not contain code` when invoke `setContract`", async () => {
+    const error = "Given contract address does not contain code";
+    // execution/expectation
+    await lockAndDataForMainnet
+      .setContract("DepositBox", deployer, {from: deployer})
+      .should.be.eventually.rejectedWith(error);
+  });
+
+  it("should invoke addSchain without mistakes", async () => {
+    const schainName = "someName";
+    // execution
+    const chain = await lockAndDataForMainnet
+      .addSchain(schainName, deployer, {from: deployer});
+    const getMapping = await lockAndDataForMainnet.tokenManagerAddresses(web3.utils.soliditySha3(schainName));
+    // expectation
+    expect(getMapping).to.equal(deployer);
+  });
+
+  it("should rejected with `SKALE chain is already set` when invoke `addSchain`", async () => {
+    // preparation
+    const error = "SKALE chain is already set";
+    const schainName = "someName";
+    await lockAndDataForMainnet
+      .addSchain(schainName, deployer, {from: deployer});
+    // execution/expectation
+    await lockAndDataForMainnet
+      .addSchain(schainName, deployer, {from: deployer})
+      .should.be.eventually.rejectedWith(error);
+  });
+
+  it("should rejected with `Incorrect Token Manager address` when invoke `addSchain`", async () => {
+    // preparation
+    const error = "Incorrect Token Manager address";
+    const schainName = "someName";
+    // execution/expectation
+    await lockAndDataForMainnet
+      .addSchain(schainName, "0x0000000000000000000000000000000000000000", {from: deployer})
+      .should.be.eventually.rejectedWith(error);
+  });
 
 });
