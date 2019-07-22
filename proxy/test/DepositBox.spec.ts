@@ -38,35 +38,35 @@ contract("DepositBox", ([deployer, user]) => {
   //     {from: deployer}).should.be.eventually.rejectedWith(error);
   // });
 
-  it("should ...", async () => {
-    const blabla = await depositBox
-      .postMessage(messageProxy.address, "vasya", deployer, 10, "0x0",
-      {from: deployer});
-    console.log("blabla", blabla);
-  });
+  // it("should ...", async () => {
+  //   const blabla = await depositBox
+  //     .postMessage(messageProxy.address, "vasya", deployer, 10, "0x0",
+  //     {from: deployer});
+  //   console.log("blabla", blabla);
+  // });
 
-  it("should ...", async () => {
-    const userBalance = await web3.eth.getBalance(user);
-    const deployerBalance = await web3.eth.getBalance(deployer);
-    const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
-    //
-    console.log("proxyAddress", await depositBox.proxyAddress());
-    console.log("messageProxy", messageProxy.address);
-    console.log("lockAndDataForMainnet", lockAndDataForMainnet.address);
-    console.log("LockAndDataForMainnet", LockAndDataForMainnet.address);
-    console.log("deployerBalance", await web3.utils.fromWei(deployerBalance));
-    console.log("userBalance", await web3.utils.fromWei(userBalance));
-    console.log("lockAndDataBalance", await web3.utils.fromWei(lockAndDataBalance));
-    // send wei to contract from deployer
-    const sendBabki = await web3.eth
-    .sendTransaction({
-      from: deployer,
-      to: lockAndDataForMainnet.address,
-      value: 1000,
-      gas: 8000000 * gasMultiplier});
-    const contractBalanceAfter = await web3.eth.getBalance(lockAndDataForMainnet.address);
-    console.log("contractBalanceAfter", await web3.utils.fromWei(contractBalanceAfter));
+  // it("should ...", async () => {
+  //   const userBalance = await web3.eth.getBalance(user);
+  //   const deployerBalance = await web3.eth.getBalance(deployer);
+  //   const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
+  //   //
+  //   console.log("proxyAddress", await depositBox.proxyAddress());
+  //   console.log("messageProxy", messageProxy.address);
+  //   console.log("lockAndDataForMainnet", lockAndDataForMainnet.address);
+  //   console.log("LockAndDataForMainnet", LockAndDataForMainnet.address);
+  //   console.log("deployerBalance", await web3.utils.fromWei(deployerBalance));
+  //   console.log("userBalance", await web3.utils.fromWei(userBalance));
+  //   console.log("lockAndDataBalance", await web3.utils.fromWei(lockAndDataBalance));
+  //   // send wei to contract from deployer
+  //   const sendBabki = await web3.eth
+  //   .sendTransaction({
+  //     from: deployer,
+  //     to: lockAndDataForMainnet.address,
+  //     value: 1000,
+  //     gas: 8000000 * gasMultiplier});
+  //   const contractBalanceAfter = await web3.eth.getBalance(lockAndDataForMainnet.address);
+  //   console.log("contractBalanceAfter", await web3.utils.fromWei(contractBalanceAfter));
 
-  });
+  // });
 
 });
