@@ -31,7 +31,8 @@ contract LockAndDataForMainnet is Ownable {
     mapping(address => uint) public approveTransfers;
 
     modifier allow(string memory contractName) {
-        require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender, "Not allowed");
+        require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
+        owner == msg.sender, "Not allowed");
         _;
     }
 

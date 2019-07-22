@@ -1,4 +1,9 @@
 let fs = require("fs");
+
+const gasMultiplierParameter = 'gas_multiplier';
+const argv = require('minimist')(process.argv.slice(2), {string: [gasMultiplierParameter]});
+const gasMultiplier = argv[gasMultiplierParameter] === undefined ? 1 : Number(argv[gasMultiplierParameter])
+
 let MessageProxy = artifacts.require("./MessageProxy.sol");
 let TokenManager = artifacts.require("./TokenManager.sol");
 let LockAndDataForSchain = artifacts.require("./LockAndDataForSchain.sol");
@@ -14,7 +19,7 @@ let proxyMainnet = require("../data/proxyMainnet.json");
 
 async function deploy(deployer, network) {
     
-    if (network != "test") {
+    if (network != "test" && network != "coverage") {
         if (network != "schain") {
             console.log("Please use network with name 'schain'");
             process.exit(0);
@@ -23,26 +28,26 @@ async function deploy(deployer, network) {
             console.log("Please set SCHAIN_NAME to .env file");
             process.exit(0);
         }
-    }
+    } 
     let schainName = networks['networks'][network]['name'];
     await deployer.deploy(MessageProxy, schainName, {gas: 8000000}).then(async function() {
         return await deployer.deploy(LockAndDataForSchain, {gas: 8000000});
     }).then(async function(inst) {
-        await deployer.deploy(TokenManager, schainName, MessageProxy.address, inst.address, {gas: 8000000});
-        await deployer.deploy(EthERC20, {gas: 8000000}).then(async function(EthERC20Inst) {
+        await deployer.deploy(TokenManager, schainName, MessageProxy.address, inst.address, {gas: 8000000 * gasMultiplier});
+        await deployer.deploy(EthERC20, {gas: 8000000 * gasMultiplier}).then(async function(EthERC20Inst) {
             await EthERC20Inst.transferOwnership(inst.address, {gas: 200000});
         });
         await inst.setContract("TokenManager", TokenManager.address);
         await inst.setEthERC20Address(EthERC20.address);
-        await deployer.deploy(ERC20ModuleForSchain, inst.address, {gas: 8000000});
+        await deployer.deploy(ERC20ModuleForSchain, inst.address, {gas: 8000000 * gasMultiplier});
         await inst.setContract("ERC20Module", ERC20ModuleForSchain.address);
-        await deployer.deploy(LockAndDataForSchainERC20, inst.address, {gas: 8000000});
+        await deployer.deploy(LockAndDataForSchainERC20, inst.address, {gas: 8000000 * gasMultiplier});
         await inst.setContract("LockAndDataERC20", LockAndDataForSchainERC20.address);
-        await deployer.deploy(ERC721ModuleForSchain, inst.address, {gas: 8000000});
+        await deployer.deploy(ERC721ModuleForSchain, inst.address, {gas: 8000000 * gasMultiplier});
         await inst.setContract("ERC721Module", ERC721ModuleForSchain.address);
-        await deployer.deploy(LockAndDataForSchainERC721, inst.address, {gas: 8000000});
+        await deployer.deploy(LockAndDataForSchainERC721, inst.address, {gas: 8000000 * gasMultiplier});
         await inst.setContract("LockAndDataERC721", LockAndDataForSchainERC721.address);
-        await deployer.deploy(TokenFactory, inst.address, {gas: 8000000});
+        await deployer.deploy(TokenFactory, inst.address, {gas: 8000000 * gasMultiplier});
         await inst.setContract("TokenFactory", TokenFactory.address);
     });
 

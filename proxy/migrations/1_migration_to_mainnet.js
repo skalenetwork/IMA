@@ -1,5 +1,9 @@
 let fs = require("fs");
 
+const gasMultiplierParameter = 'gas_multiplier';
+const argv = require('minimist')(process.argv.slice(2), {string: [gasMultiplierParameter]});
+const gasMultiplier = argv[gasMultiplierParameter] === undefined ? 1 : Number(argv[gasMultiplierParameter])
+
 let MessageProxy = artifacts.require("./MessageProxy.sol");
 let DepositBox = artifacts.require("./DepositBox.sol");
 let LockAndDataForMainnet = artifacts.require("./LockAndDataForMainnet.sol");
@@ -13,15 +17,15 @@ async function deploy(deployer) {
     await deployer.deploy(MessageProxy, "Mainnet", {gas: 8000000}).then(async function() {
         return await deployer.deploy(LockAndDataForMainnet, {gas: 8000000});
     }).then(async function(inst) {
-        await deployer.deploy(DepositBox, MessageProxy.address, inst.address, {gas: 8000000});
+        await deployer.deploy(DepositBox, MessageProxy.address, inst.address, {gas: 8000000 * gasMultiplier});
         await inst.setContract("DepositBox", DepositBox.address);
-        await deployer.deploy(ERC20ModuleForMainnet, inst.address, {gas: 8000000});
+        await deployer.deploy(ERC20ModuleForMainnet, inst.address, {gas: 8000000 * gasMultiplier});
         await inst.setContract("ERC20Module", ERC20ModuleForMainnet.address);
-        await deployer.deploy(LockAndDataForMainnetERC20, inst.address, {gas: 8000000});
+        await deployer.deploy(LockAndDataForMainnetERC20, inst.address, {gas: 8000000 * gasMultiplier});
         await inst.setContract("LockAndDataERC20", LockAndDataForMainnetERC20.address);
-        await deployer.deploy(ERC721ModuleForMainnet, inst.address, {gas: 8000000});
+        await deployer.deploy(ERC721ModuleForMainnet, inst.address, {gas: 8000000 * gasMultiplier});
         await inst.setContract("ERC721Module", ERC721ModuleForMainnet.address);
-        await deployer.deploy(LockAndDataForMainnetERC721, inst.address, {gas: 8000000});
+        await deployer.deploy(LockAndDataForMainnetERC721, inst.address, {gas: 8000000 * gasMultiplier});
         await inst.setContract("LockAndDataERC721", LockAndDataForMainnetERC721.address);
     });
 

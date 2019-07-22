@@ -94,6 +94,14 @@ module.exports = {
         name: schainName,
         skipDryRun: true
       },
+      coverage: {
+        name: "test",        
+        host: "127.0.0.1",
+        port: "8555",
+        gas: 0xfffffffffff,
+        gasPrice: 0x01,
+        network_id: "*"
+      },
       test: {    
         name: "test",        
         host: "127.0.0.1",
