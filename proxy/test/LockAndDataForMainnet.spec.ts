@@ -44,10 +44,10 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
       parseInt(lockAndDataBalanceBefore, 10)).to.be.equal(parseInt(wei, 10));
   });
 
-  it("should rejected with `Not enough ETH` when invoke sendEth", async () => {
+  it("should rejected with `Not enough ETH. in `LockAndDataForMainnet.sendEth`` when invoke sendEth", async () => {
     // preparation
     const wei = "1000";
-    const error = "Not enough ETH";
+    const error = "Not enough ETH. in `LockAndDataForMainnet.sendEth`";
     // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
     await lockAndDataForMainnet
       .receiveEth(invoker, {value: wei, from: deployer});
@@ -119,9 +119,9 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
       .should.be.eventually.rejectedWith(error);
   });
 
-  it("should rejected with `Not enough ETH` when invoke `getMyEth`", async () => {
+  it("should rejected with `Not enough ETH. in `LockAndDataForMainnet.getMyEth`` when invoke `getMyEth`", async () => {
     // preparation
-    const error = "Not enough ETH";
+    const error = "Not enough ETH. in `LockAndDataForMainnet.getMyEth`";
     const addWeiToContract = "1";
     const setWeiToApproveTransfers = 100;
     // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter

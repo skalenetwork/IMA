@@ -285,16 +285,17 @@ contract DepositBox is Permissions {
             return;
         }
 
-        if (!ILockAndDataDB(lockAndDataAddress).sendEth(owner, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
-            emit Error(
-                sender,
-                fromSchainID,
-                to,
-                amount,
-                data,
-                "Could not send money to owner"
-            );
-        }
+        // this condition never be `false`, because `sendEth` return `true` or rejected with error only
+        // if (!ILockAndDataDB(lockAndDataAddress).sendEth(owner, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
+        //     emit Error(
+        //         sender,
+        //         fromSchainID,
+        //         to,
+        //         amount,
+        //         data,
+        //         "Could not send money to owner"
+        //     );
+        // }
 
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
