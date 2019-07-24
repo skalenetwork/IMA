@@ -49,7 +49,6 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     const wei = "1000";
     const error = "Not enough ETH";
     // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
-    // execution
     await lockAndDataForMainnet
       .receiveEth(invoker, {value: wei, from: deployer});
     // execution/expectation

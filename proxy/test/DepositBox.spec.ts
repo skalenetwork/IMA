@@ -248,7 +248,7 @@ contract("DepositBox", ([deployer, user]) => {
   // });
 
   describe("tests for `postMessage` function", async () => {
-    it("should rejected with `Incorrect sender` when invoke `postMessage`", async () => {
+    it("should rejected with `Incorrect sender`", async () => {
       //  preparation
       const error = "Incorrect sender";
       const schainID = randomString(10);
@@ -261,28 +261,28 @@ contract("DepositBox", ([deployer, user]) => {
         .should.be.eventually.rejectedWith(error);
     });
 
-    it("should invoke `postMessage` without mistakes", async () => {
+    it("should be Error event with message `Receiver chain is incorrect` when schainID=`mainnet`", async () => {
       //  preparation
-      // const error = "Incorrect sender";
-      const schainID = randomString(10);
+      const error = "Receiver chain is incorrect";
+      // for `Receiver chain is incorrect` message schainID should be `Mainnet`
+      const schainID = "Mainnet";
       const amount = 10;
       const bytesData = "0x0";
       const sender = deployer;
       // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
-      // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
-      await lockAndDataForMainnet
-        .setContract("DepositBox", depositBox.address, {from: deployer});
-      // execution/expectation
-      await depositBox
+      // execution
+      const {logs} = await depositBox
         .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
-        // .should.be.eventually.rejectedWith(error);
+      // expectation
+      expect(logs[0].args.message).to.be.equal(error);
     });
 
-    it("should invoke `postMessage` without mistakes", async () => {
+    it("should be Error event with message `Receiver chain is incorrect` when "
+        + "`sender != ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash)`", async () => {
       //  preparation
-      // const error = "Incorrect sender";
+      const error = "Receiver chain is incorrect";
       const schainID = randomString(10);
       const amount = 10;
       const bytesData = "0x0";
@@ -290,14 +290,95 @@ contract("DepositBox", ([deployer, user]) => {
       // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
+      // execution
+      const {logs} = await depositBox
+        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
+      // expectation
+      expect(logs[0].args.message).to.be.equal(error);
+    });
+
+    it("should be Error event with message `Not enough money to finish this transaction`", async () => {
+      //  preparation
+      const error = "Not enough money to finish this transaction";
+      const schainID = randomString(10);
+      const amount = 10;
+      const bytesData = "0x0";
+      const sender = deployer;
+      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
+        {from: deployer, gas: 8000000 * gasMultiplier});
+      // add schain to avoid the `Receiver chain is incorrect` error
+      await lockAndDataForMainnet
+        .addSchain(schainID, deployer, {from: deployer});
+      // execution
+      const {logs} = await depositBox
+        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
+      // expectation
+      expect(logs[0].args.message).to.be.equal(error);
+    });
+
+    it("should be Error event with message `Invalid data`", async () => {
+      //  preparation
+      const error = "Invalid data";
+      const schainID = randomString(10);
+      const amount = 10;
+      // for `Invalid data` message bytesData should be `0x`
+      const bytesData = "0x";
+      const sender = deployer;
+      const wei = "100000";
+      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
+        {from: deployer, gas: 8000000 * gasMultiplier});
       // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
       await lockAndDataForMainnet
         .setContract("DepositBox", depositBox.address, {from: deployer});
-      // execution/expectation
-      await depositBox
+      // add schain to avoid the `Receiver chain is incorrect` error
+      await lockAndDataForMainnet
+        .addSchain(schainID, deployer, {from: deployer});
+      // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+      await lockAndDataForMainnet
+        .receiveEth(deployer, {value: wei, from: deployer});
+      // execution
+      const {logs} = await depositBox
         .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
-        // .should.be.eventually.rejectedWith(error);
+      // expectation
+      expect(logs[0].args.message).to.be.equal(error);
     });
+
+    it("should be Error event with message `Could not send money to owner`", async () => {
+      //  preparation
+      const error = "Could not send money to owner";
+      const schainID = randomString(10);
+      const amount = 1;
+      const bytesData = "0x01";
+      const sender = deployer;
+      const wei = "900000000000000";
+      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
+        {from: deployer, gas: 8000000 * gasMultiplier});
+      // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
+      await lockAndDataForMainnet
+        .setContract("DepositBox", depositBox.address, {from: deployer});
+      // add schain to avoid the `Receiver chain is incorrect` error
+      await lockAndDataForMainnet
+        .addSchain(schainID, deployer, {from: deployer});
+      // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+      await lockAndDataForMainnet
+        .receiveEth(deployer, {value: wei, from: deployer});
+      // // add connected chain to avoid the `Receiver chain is incorrect` error
+      // await messageProxy
+      //   .addConnectedChain(schainID, publicKeyArray, {from: deployer});
+      // // set `DepositBox` contract to avoid the `Receiver chain is incorrect`
+      // await lockAndDataForMainnet
+      //   .setContract("DepositBox", depositBox.address, {from: deployer});
+      // execution
+      const vasya = await depositBox
+        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
+      // expectation
+      console.log(vasya);
+      // expect(logs[0].args.message).to.be.equal(error);
+    });
+
 
   });
 

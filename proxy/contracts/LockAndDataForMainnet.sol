@@ -71,7 +71,7 @@ contract LockAndDataForMainnet is Ownable {
     }
 
     function getMyEth() public {
-        require(address(this).balance >= approveTransfers[msg.sender], "Not enough ETH");
+        require(address(this).balance >= approveTransfers[msg.sender], "Not enough ETH. in `LockAndDataForMainnet.getMyEth`");
         require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
         uint amount = approveTransfers[msg.sender];
         approveTransfers[msg.sender] = 0;
@@ -79,7 +79,7 @@ contract LockAndDataForMainnet is Ownable {
     }
 
     function sendEth(address payable to, uint amount) public allow("DepositBox") returns (bool) {
-        require(address(this).balance >= amount, "Not enough ETH");
+        require(address(this).balance >= amount, "Not enough ETH. in `LockAndDataForMainnet.sendEth`");
         to.transfer(amount);
         return true;
     }

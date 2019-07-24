@@ -90,7 +90,7 @@ contract DepositBox is Permissions {
     }
 
     function() external payable {
-        revert("Not allowed");
+        revert("Not allowed. in DepositBox");
     }
 
     function deposit(string memory schainID, address to) public payable {
