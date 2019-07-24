@@ -2,11 +2,18 @@ import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import { DepositBoxContract,
   DepositBoxInstance,
+  ERC20ModuleForMainnetContract,
+  ERC20ModuleForMainnetInstance,
+  EthERC20Contract,
+  EthERC20Instance,
   LockAndDataForMainnetContract,
+  LockAndDataForMainnetERC20Contract,
+  LockAndDataForMainnetERC20Instance,
   LockAndDataForMainnetInstance,
   MessageProxyContract,
   MessageProxyInstance,
   } from "../types/truffle-contracts";
+import { randomString } from "./utils/generator";
 import { skipTime } from "./utils/time";
 
 import chai = require("chai");
@@ -18,90 +25,280 @@ chai.use((chaiAsPromised as any));
 const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const DepositBox: DepositBoxContract = artifacts.require("./DepositBox");
+const ERC20ModuleForMainnet: ERC20ModuleForMainnetContract = artifacts.require("./ERC20ModuleForMainnet");
+const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
+const LockAndDataForMainnetERC20: LockAndDataForMainnetERC20Contract = artifacts
+  .require("./LockAndDataForMainnetERC20");
 
 contract("DepositBox", ([deployer, user]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let depositBox: DepositBoxInstance;
 
-  before(async () => {
+  beforeEach(async () => {
     messageProxy = await MessageProxy.new("Mainnet", {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
     depositBox = await DepositBox.new(messageProxy.address, lockAndDataForMainnet.address,
-       {from: deployer, gas: 8000000 * gasMultiplier});
+      {from: deployer, gas: 8000000 * gasMultiplier});
   });
 
-  it("should rejected with `Unconnected chain` when invoke `deposit`", async () => {
-    // preparation
-    const error = "Unconnected chain";
-    const schainID = "someName";
-    // execution/expectation
-    await depositBox
-      .deposit(schainID, user, {from: deployer})
-      .should.be.eventually.rejectedWith(error);
+  // for messageProxy.addConnectedChain function
+  const publicKeyArray = [
+    "1122334455667788990011223344556677889900112233445566778899001122",
+    "1122334455667788990011223344556677889900112233445566778899001122",
+    "1122334455667788990011223344556677889900112233445566778899001122",
+    "1122334455667788990011223344556677889900112233445566778899001122",
+  ];
+
+  describe("tests for `deposit` function", async () => {
+
+    it("should rejected with `Unconnected chain` when invoke `deposit`", async () => {
+      // preparation
+      const error = "Unconnected chain";
+      const schainID = randomString(10);
+      // execution/expectation
+      await depositBox
+        .deposit(schainID, user, {from: deployer})
+        .should.be.eventually.rejectedWith(error);
+    });
+
+    it("should rejected with `SKALE chain name is incorrect` when invoke `deposit`", async () => {
+      // preparation
+      const error = "SKALE chain name is incorrect";
+      const schainID = "Mainnet";
+      // execution/expectation
+      await depositBox
+        .deposit(schainID, user, {from: deployer})
+        .should.be.eventually.rejectedWith(error);
+    });
+
+    it("should rejected with `Not enough money` when invoke `deposit`", async () => {
+      // preparation
+      const schainID = randomString(10);
+      const error = "Not enough money";
+      // the wei for this error should be LESS than (55000 * 1000000000)
+      // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
+      const wei = "10000";
+      // add schain
+      await lockAndDataForMainnet
+        .addSchain(schainID, deployer, {from: deployer});
+      // execution/expectation
+      await depositBox
+        .deposit(schainID, user, {value: wei, from: deployer})
+        .should.be.eventually.rejectedWith(error);
+    });
+
+    it("should invoke `deposit` without mistakes", async () => {
+      // preparation
+      const schainID = randomString(10);
+      // the wei should be MORE than (55000 * 1000000000)
+      // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
+      // to avoid the `Not enough money` error
+      const wei = "900000000000000";
+      // add schain to avoid the `Unconnected chain` error
+      const chain = await lockAndDataForMainnet
+        .addSchain(schainID, deployer, {from: deployer});
+      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
+      await messageProxy
+        .addConnectedChain(schainID, publicKeyArray, {from: deployer});
+      // set contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
+      await lockAndDataForMainnet
+        .setContract("DepositBox", depositBox.address, {from: deployer});
+      // execution
+      await depositBox
+        .deposit(schainID, deployer, {value: wei, from: deployer});
+      const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
+      // expectation
+      expect(lockAndDataBalance).to.equal(wei);
+    });
   });
 
-  it("should rejected with `SKALE chain name is incorrect` when invoke `deposit`", async () => {
-    // preparation
-    const error = "SKALE chain name is incorrect";
-    const schainID = "Mainnet";
-    // execution/expectation
-    await depositBox
-      .deposit(schainID, user, {from: deployer})
-      .should.be.eventually.rejectedWith(error);
+  describe("tests with `ERC20`", async () => {
+    let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
+    let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
+    let ethERC20: EthERC20Instance;
+
+    beforeEach(async () => {
+      eRC20ModuleForMainnet = await ERC20ModuleForMainnet.new(lockAndDataForMainnet.address,
+        {from: deployer, gas: 8000000 * gasMultiplier});
+      lockAndDataForMainnetERC20 = await LockAndDataForMainnetERC20.new(lockAndDataForMainnet.address,
+        {from: deployer, gas: 8000000 * gasMultiplier});
+      ethERC20 = await EthERC20.new({from: deployer, gas: 8000000 * gasMultiplier});
+    });
+
+    describe("tests for `depositERC20` function", async () => {
+      it("should rejected with `Not allowed ERC20 Token` when invoke `depositERC20`", async () => {
+        // preparation
+        const error = "Not allowed ERC20 Token";
+        const schainID = randomString(10);
+        // the wei should be MORE than (55000 * 1000000000)
+        // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
+        const wei = "900000000000000";
+        // add schain to avoid the `Unconnected chain` error
+        const chain = await lockAndDataForMainnet
+          .addSchain(schainID, deployer, {from: deployer});
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
+        await messageProxy
+          .addConnectedChain(schainID, publicKeyArray, {from: deployer});
+        // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
+        await lockAndDataForMainnet
+          .setContract("DepositBox", depositBox.address, {from: deployer});
+        // execution/expectation
+        await depositBox
+          .depositERC20(schainID, ethERC20.address, deployer, 100, {value: wei, from: deployer})
+          .should.be.eventually.rejectedWith(error);
+      });
+
+      it("should invoke `depositERC20` without mistakes", async () => {
+        // preparation
+        const schainID = randomString(10);
+        // the wei should be MORE than (55000 * 1000000000)
+        // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
+        const wei = "900000000000000";
+        // add schain to avoid the `Unconnected chain` error
+        const chain = await lockAndDataForMainnet
+          .addSchain(schainID, deployer, {from: deployer});
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
+        await messageProxy
+          .addConnectedChain(schainID, publicKeyArray, {from: deployer});
+        // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
+        await lockAndDataForMainnet
+          .setContract("DepositBox", depositBox.address, {from: deployer});
+        // set `ERC20Module` contract before invoke `depositERC20`
+        await lockAndDataForMainnet
+          .setContract("ERC20Module", eRC20ModuleForMainnet.address, {from: deployer});
+        // set `LockAndDataERC20` contract before invoke `depositERC20`
+        await lockAndDataForMainnet
+          .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
+        // mint some quantity of ERC20 tokens for `deployer` address
+        await ethERC20.mint(deployer, "1000000000", {from: deployer});
+        // approve some quantity of ERC20 tokens for `depositBox` address
+        await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
+        // execution
+        await depositBox
+          .depositERC20(schainID, ethERC20.address, deployer, 1, {value: wei, from: deployer});
+        const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
+        // expectation
+        expect(lockAndDataBalance).to.equal(wei);
+      });
+    });
+
+    describe("tests for `rawDepositERC20` function", async () => {
+      it("should rejected with `Not allowed ERC20 Token` when invoke `rawDepositERC20`", async () => {
+        // preparation
+        const error = "Not allowed ERC20 Token";
+        const schainID = randomString(10);
+        // the wei should be MORE than (55000 * 1000000000)
+        // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
+        const wei = "900000000000000";
+        // add schain to avoid the `Unconnected chain` error
+        const chain = await lockAndDataForMainnet
+          .addSchain(schainID, deployer, {from: deployer});
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
+        await messageProxy
+          .addConnectedChain(schainID, publicKeyArray, {from: deployer});
+        // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
+        await lockAndDataForMainnet
+          .setContract("DepositBox", depositBox.address, {from: deployer});
+        // execution/expectation
+        await depositBox
+          .rawDepositERC20(schainID, ethERC20.address, user, deployer, 100, {value: wei, from: deployer})
+          .should.be.eventually.rejectedWith(error);
+      });
+
+      it("should invoke `rawDepositERC20` without mistakes", async () => {
+        // preparation
+        const schainID = randomString(10);
+        // the wei should be MORE than (55000 * 1000000000)
+        // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
+        const wei = "900000000000000";
+        // add schain to avoid the `Unconnected chain` error
+        const chain = await lockAndDataForMainnet
+          .addSchain(schainID, deployer, {from: deployer});
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
+        await messageProxy
+          .addConnectedChain(schainID, publicKeyArray, {from: deployer});
+        // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
+        await lockAndDataForMainnet
+          .setContract("DepositBox", depositBox.address, {from: deployer});
+        // set `ERC20Module` contract before invoke `rawDepositERC20`
+        await lockAndDataForMainnet
+          .setContract("ERC20Module", eRC20ModuleForMainnet.address, {from: deployer});
+        // set `LockAndDataERC20` contract before invoke `rawDepositERC20`
+        await lockAndDataForMainnet
+          .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
+        // mint some quantity of ERC20 tokens for `deployer` address
+        await ethERC20.mint(deployer, "1000000000", {from: deployer});
+        // approve some quantity of ERC20 tokens for `depositBox` address
+        await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
+        // execution
+        await depositBox
+          .rawDepositERC20(schainID, ethERC20.address, user, deployer, 1, {value: wei, from: deployer});
+        const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
+        // expectation
+        expect(lockAndDataBalance).to.equal(wei);
+      });
+    });
   });
 
-  it("should rejected with `Not enough money` when invoke `deposit`", async () => {
-    // preparation
-    const schainID = "someName";
-    const error = "Not enough money";
-    // the wei for this error should be LESS than (55000 * 1000000000)
-    // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-    const wei = "10000";
-    // add schain
-    await lockAndDataForMainnet
-      .addSchain(schainID, deployer, {from: deployer});
-    // execution/expectation
-    await depositBox
-      .deposit(schainID, user, {value: wei, from: deployer})
-      .should.be.eventually.rejectedWith(error);
-  });
-
-  it("should invoke `deposit` without mistakes", async () => {
-    // preparation
-    const schainID = "someAnotherName";
-    // the wei should be MORE than (55000 * 1000000000)
-    // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-    const wei = "900000000000000";
-    const publicKeyArray = [
-      "1122334455667788990011223344556677889900112233445566778899001122",
-      "1122334455667788990011223344556677889900112233445566778899001122",
-      "1122334455667788990011223344556677889900112233445566778899001122",
-      "1122334455667788990011223344556677889900112233445566778899001122",
-    ];
-    // add schain
-    const chain = await lockAndDataForMainnet
-      .addSchain(schainID, deployer, {from: deployer});
-    // add connected chain
-    await messageProxy
-      .addConnectedChain(schainID, publicKeyArray, {from: deployer});
-    // set contract before invoke `deposit`
-    await lockAndDataForMainnet
-      .setContract("DepositBox", depositBox.address, {from: deployer});
-    // execution
-    console.log("before `deposit` invoke");
-    await depositBox
-      .deposit(schainID, deployer, {value: wei, from: deployer});
-    const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
-    // expectation
-    expect(lockAndDataBalance).to.equal(wei);
-  });
-
-  // it("should rejected with `Incorrect sender` when invoke `postMessage`", async () => {
-  //   const error = "Incorrect sender";
-  //   await depositBox
-  //     .postMessage(deployer, "vasya", user, 10, "0x0",
-  //     {from: deployer}).should.be.eventually.rejectedWith(error);
+  // describe("tests for `ERC721` will be here in the future", async () => {
+  //   it("should invoke `depositERC721` without mistakes", async () => {
+  //     console.log("the tests will be wright soon");
+  //   });
   // });
+
+  describe("tests for `postMessage` function", async () => {
+    it("should rejected with `Incorrect sender` when invoke `postMessage`", async () => {
+      //  preparation
+      const error = "Incorrect sender";
+      const schainID = randomString(10);
+      const amount = 10;
+      const bytesData = "0x0";
+      const sender = deployer;
+      // execution/expectation
+      await depositBox
+        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer})
+        .should.be.eventually.rejectedWith(error);
+    });
+
+    it("should invoke `postMessage` without mistakes", async () => {
+      //  preparation
+      // const error = "Incorrect sender";
+      const schainID = randomString(10);
+      const amount = 10;
+      const bytesData = "0x0";
+      const sender = deployer;
+      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
+        {from: deployer, gas: 8000000 * gasMultiplier});
+      // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
+      await lockAndDataForMainnet
+        .setContract("DepositBox", depositBox.address, {from: deployer});
+      // execution/expectation
+      await depositBox
+        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
+        // .should.be.eventually.rejectedWith(error);
+    });
+
+    it("should invoke `postMessage` without mistakes", async () => {
+      //  preparation
+      // const error = "Incorrect sender";
+      const schainID = randomString(10);
+      const amount = 10;
+      const bytesData = "0x0";
+      const sender = deployer;
+      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
+        {from: deployer, gas: 8000000 * gasMultiplier});
+      // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
+      await lockAndDataForMainnet
+        .setContract("DepositBox", depositBox.address, {from: deployer});
+      // execution/expectation
+      await depositBox
+        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
+        // .should.be.eventually.rejectedWith(error);
+    });
+
+  });
 
 });
