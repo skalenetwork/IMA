@@ -379,7 +379,6 @@ contract("DepositBox", ([deployer, user]) => {
       // expect(logs[0].args.message).to.be.equal(error);
     });
 
-
   });
 
 });
