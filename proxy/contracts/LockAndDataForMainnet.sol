@@ -38,6 +38,12 @@ contract LockAndDataForMainnet is Ownable {
 
     event MoneyReceived(address from, uint amount);
 
+    event Error(
+        address to,
+        uint amount,
+        string message
+    );
+
     constructor() Ownable() public {
 
     }
@@ -79,7 +85,15 @@ contract LockAndDataForMainnet is Ownable {
     }
 
     function sendEth(address payable to, uint amount) public allow("DepositBox") returns (bool) {
-        require(address(this).balance >= amount, "Not enough ETH. in `LockAndDataForMainnet.sendEth`");
+        // require(address(this).balance >= amount, "Not enough ETH. in `LockAndDataForMainnet.sendEth`");
+        if (address(this).balance < amount) {
+            emit Error(
+                to,
+                amount,
+                "Not enough ETH. in `LockAndDataForMainnet.sendEth`"
+            );
+            return false;
+        }
         to.transfer(amount);
         return true;
     }
