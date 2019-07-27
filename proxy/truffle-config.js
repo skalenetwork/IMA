@@ -21,33 +21,33 @@ module.exports = {
     networks: {
       /*
       network-sample-1: {
-        provider: () => { 
-          return new hdwalletProvider(privateKeyForMainnet, mainnetRpcUrl); 
+        provider: () => {
+          return new hdwalletProvider(privateKeyForMainnet, mainnetRpcUrl);
         },
         gasPrice: 1000000000,
         gas: 8000000,
         network_id: "*"
       },
       network-sample-2: {
-        provider: () => { 
-          return new hdwalletProvider(mnemonicForMainnet, mainnetRpcUrl); 
+        provider: () => {
+          return new hdwalletProvider(mnemonicForMainnet, mainnetRpcUrl);
         },
         gasPrice: 1000000000,
         gas: 8000000,
         network_id: "*"
       },
       network-sample-3: {
-        provider: () => { 
-          return new Web3.providers.HttpProvider(mainnetRpcUrl); 
+        provider: () => {
+          return new Web3.providers.HttpProvider(mainnetRpcUrl);
         },
         gasPrice: 1000000000,
         gas: 8000000,
         from: accountForMainnet,
         network_id: "*"
-      }, 
+      },
       schain-network-sample: {
-        provider: () => { 
-          return new hdwalletProvider(privateKeyForSchain, schainRpcUrl); 
+        provider: () => {
+          return new hdwalletProvider(privateKeyForSchain, schainRpcUrl);
         },
         gasPrice: 0,
         gas: 8000000,
@@ -57,31 +57,42 @@ module.exports = {
       */
       schain: {
         gasPrice: 0,
-        provider: () => { 
-          return new hdwalletProvider(mnemonicForSchain, schainRpcUrl); 
+        provider: () => {
+          return new hdwalletProvider(mnemonicForSchain, schainRpcUrl);
         },
         gas: 8000000,
         network_id: "*",
-        name: schainName
+        name: schainName,
+        skipDryRun: true
       },
       coverage: {
-        name: "test",        
+        name: "test",
         host: "127.0.0.1",
         port: "8555",
         gas: 0xfffffffffff,
         gasPrice: 0x01,
         network_id: "*"
       },
-      test: {    
-        name: "test",        
+      mainnet: {
+        name: "mainnet",
+        host: "127.0.0.1",
+        port: 8545,
+        gas: 8000000,
+        network_id: "*",
+        provider: () => {
+            return new hdwalletProvider(mnemonicForMainnet, "http://127.0.0.1:8545");
+        }
+      },
+      test: {
+        name: "test",
         host: "127.0.0.1",
         port: 8545,
         gas: 8000000,
         network_id: "*"
       },
       rinkeby: {
-        provider: () => { 
-          return new hdwalletProvider(mnemonicForMainnet, "https://rinkeby.infura.io/v3/39613f7ae6584dd59741e4e78b652981"); 
+        provider: () => {
+          return new hdwalletProvider(mnemonicForMainnet, "https://rinkeby.infura.io/v3/39613f7ae6584dd59741e4e78b652981");
         },
         gasPrice: 10000000000,
         gas: 6900000,
@@ -104,4 +115,3 @@ module.exports = {
       }
     }
   }
-  

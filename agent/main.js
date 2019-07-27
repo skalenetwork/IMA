@@ -761,7 +761,7 @@ function load_json( strPath ) {
         log.write( cc.normal( "Will load JSON file " ) + cc.info( strPath ) + cc.normal( "..." ) + "\n" ); // just print value
         var strContent = fs.readFileSync( strPath, "utf8" );
         log.write( cc.normal( "Did loaded content JSON file " ) + cc.info( strPath ) + cc.normal( ", will parse it..." ) + "\n" ); // just print value
-        var jo = JSON.parse(  );
+        var jo = JSON.parse( strContent );
         return jo;
     } catch( err ) {
         console.log( cc.fatal( "Error:" ) + cc.error( "loading  JSON file " ) + cc.info( strPath ) + cc.error(": ") + cc.warn(err) );
@@ -900,8 +900,11 @@ function check_time_framing( d ) {
 //
 
 function check_key_exist_in_abi( strName, strFile, joABI, strKey ) {
-    if ( strKey in joABI )
-        return;
+    try {
+        if ( strKey in joABI )
+            return;
+    } catch( err ) {
+    }
     log.write( cc.fatal( "FATAL:" ) + cc.error( "Loaded " ) + cc.warning( strName ) + cc.error( " ABI JSON file " ) + cc.info( strFile ) + cc.error( " does not contain needed key " ) + cc.warning( strKey ) + "\n" );
     process.exit( 123 );
 }
@@ -1218,11 +1221,11 @@ async function register_step3() {
     return true;
 }
 async function register_all() {
-    if ( !register_step1() )
+    if ( ! await register_step1() )
         return false;
-    if ( !register_step2() )
+    if ( !await register_step2() )
         return false;
-    if ( !register_step3() )
+    if ( !await register_step3() )
         return false;
     return true;
 }
