@@ -20,17 +20,23 @@ module.exports = {
 
     networks: {
       /*
-      mainnet: {
+      network-sample-1: {
         provider: () => { 
-          return new privateKeyProvider(privateKeyForMainnet, mainnetRpcUrl); 
+          return new hdwalletProvider(privateKeyForMainnet, mainnetRpcUrl); 
         },
         gasPrice: 1000000000,
         gas: 8000000,
         network_id: "*"
       },
-      */
-      /*
-      mainnet: {
+      network-sample-2: {
+        provider: () => { 
+          return new hdwalletProvider(mnemonicForMainnet, mainnetRpcUrl); 
+        },
+        gasPrice: 1000000000,
+        gas: 8000000,
+        network_id: "*"
+      },
+      network-sample-3: {
         provider: () => { 
           return new Web3.providers.HttpProvider(mainnetRpcUrl); 
         },
@@ -39,51 +45,16 @@ module.exports = {
         from: accountForMainnet,
         network_id: "*"
       }, 
-      */
-      // /*
-      mainnet: {
+      schain-network-sample: {
         provider: () => { 
-          return new hdwalletProvider(mnemonicForMainnet, mainnetRpcUrl); 
+          return new hdwalletProvider(privateKeyForSchain, schainRpcUrl); 
         },
-        gasPrice: 1000000000,
-        gas: 8000000,
-        network_id: "*"
-      },
-      // */
-      /*
-      mainnet: {
-        provider: () => { 
-          return new hdwalletProvider(privateKeyForMainnet, mainnetRpcUrl); 
-        },
-        gasPrice: 1000000000,
-        gas: 8000000,
-        network_id: "*"
-      },
-      */
-      /*
-      schain: {
-        provider: () => { 
-          return new privateKeyProvider(privateKeyForSchain, schainRpcUrl); 
-        },
-        gasPrice: 1000000000,
+        gasPrice: 0,
         gas: 8000000,
         name: schainName,
         network_id: "*"
       },
       */
-      /*
-      schain: {
-        provider: () => { 
-          return new Web3.providers.HttpProvider(schainRpcUrl); 
-        },
-        gasPrice: 1000000000,
-        gas: 8000000,
-        from: accountForSchain,
-        name: schainName,
-        network_id: "*"
-      },
-      */
-      // /*
       schain: {
         gasPrice: 0,
         provider: () => { 
@@ -91,8 +62,7 @@ module.exports = {
         },
         gas: 8000000,
         network_id: "*",
-        name: schainName,
-        skipDryRun: true
+        name: schainName
       },
       coverage: {
         name: "test",        
@@ -109,19 +79,14 @@ module.exports = {
         gas: 8000000,
         network_id: "*"
       },
-      // */
-      /*
-      schain: {
-        gasPrice: 0,
+      rinkeby: {
         provider: () => { 
-          return new hdwalletProvider(privateKeyForSchain, schainRpcUrl); 
+          return new hdwalletProvider(mnemonicForMainnet, "https://rinkeby.infura.io/v3/39613f7ae6584dd59741e4e78b652981"); 
         },
-        gas: 8000000,
-        network_id: "*",
-        name: schainName,
-        skipDryRun: true
+        gasPrice: 10000000000,
+        gas: 6900000,
+        network_id: "4"
       }
-      */
     },
     mocha: {
       // timeout: 100000
