@@ -81,7 +81,7 @@ module.exports = {
       },
       rinkeby: {
         provider: () => { 
-          return new hdwalletProvider(mnemonicForMainnet, "https://rinkeby.infura.io/v3/39613f7ae6584dd59741e4e78b652981"); 
+          return new hdwalletProvider(mnemonicForMainnet, mainnetRpcUrl); 
         },
         gasPrice: 10000000000,
         gas: 6900000,
