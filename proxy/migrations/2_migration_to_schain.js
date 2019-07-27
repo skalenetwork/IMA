@@ -73,7 +73,7 @@ async function deploy(deployer, network) {
             message_proxy_chain_abi: MessageProxy.abi
         }
     
-        await fs.writeFile(`data/proxySchain_${schainName}.json`, JSON.stringify(jsonObject));
+        await fsPromises.writeFile(`data/proxySchain_${schainName}.json`, JSON.stringify(jsonObject));
         await sleep(10000);
         console.log(`Done, check proxySchain_${schainName}.json file in data folder.`);
     });
