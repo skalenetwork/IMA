@@ -1,4 +1,5 @@
 let fs = require("fs");
+require('dotenv').config();
 const fsPromises = fs.promises;
 
 const gasMultiplierParameter = 'gas_multiplier';
@@ -21,17 +22,13 @@ let gasLimit = 8000000;
 
 async function deploy(deployer, network) {
     
-    if (network != "test" && network != "coverage") {
-        if (network != "schain") {
-            console.log("Please use network with name 'schain'");
-            process.exit(0);
-        }
-        if (networks['networks'][network]['name'] == undefined || networks['networks'][network]['name'] == "") {
-            console.log("Please set SCHAIN_NAME to .env file");
-            process.exit(0);
-        }
-    } 
-    let schainName = networks['networks'][network]['name'];
+    if (process.env.SCHAIN_NAME == undefined || process.env.SCHAIN_NAME == "") {
+        console.log(network);
+        console.log(networks['networks'][network]);
+        console.log("Please set SCHAIN_NAME to .env file");
+        process.exit(0);
+    }
+    let schainName = process.env.SCHAIN_NAME;
     await deployer.deploy(MessageProxy, schainName, {gas: gasLimit}).then(async function() {
         return await deployer.deploy(LockAndDataForSchain, {gas: gasLimit});
     }).then(async function(inst) {
