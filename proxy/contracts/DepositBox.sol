@@ -285,6 +285,7 @@ contract DepositBox is Permissions {
             return;
         }
 
+        // this condition never be `false`, because `sendEth` return `true` or rejected with error only
         if (!ILockAndDataDB(lockAndDataAddress).sendEth(owner, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
             emit Error(
                 sender,

@@ -110,7 +110,7 @@ contract TokenManager is Permissions {
     }
 
     function() external {
-        revert("Not allowed");
+        revert("Not allowed. in TokenManager");
     }
 
     // This is called by schain owner.

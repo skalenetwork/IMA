@@ -4,16 +4,21 @@ import { DepositBoxContract,
   DepositBoxInstance,
   ERC20ModuleForMainnetContract,
   ERC20ModuleForMainnetInstance,
+  ERC721ModuleForMainnetContract,
+  ERC721ModuleForMainnetInstance,
   EthERC20Contract,
   EthERC20Instance,
   LockAndDataForMainnetContract,
   LockAndDataForMainnetERC20Contract,
   LockAndDataForMainnetERC20Instance,
+  LockAndDataForMainnetERC721Contract,
+  LockAndDataForMainnetERC721Instance,
   LockAndDataForMainnetInstance,
   MessageProxyContract,
   MessageProxyInstance,
   } from "../types/truffle-contracts";
-import { randomString } from "./utils/generator";
+import { randomString } from "./utils/helper";
+import { createBytes32 } from "./utils/helper";
 import { skipTime } from "./utils/time";
 
 import chai = require("chai");
@@ -26,9 +31,12 @@ const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const DepositBox: DepositBoxContract = artifacts.require("./DepositBox");
 const ERC20ModuleForMainnet: ERC20ModuleForMainnetContract = artifacts.require("./ERC20ModuleForMainnet");
+const ERC721ModuleForMainnet: ERC721ModuleForMainnetContract = artifacts.require("./ERC721ModuleForMainnet");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 const LockAndDataForMainnetERC20: LockAndDataForMainnetERC20Contract = artifacts
   .require("./LockAndDataForMainnetERC20");
+const LockAndDataForMainnetERC721: LockAndDataForMainnetERC721Contract = artifacts
+  .require("./LockAndDataForMainnetERC721");
 
 contract("DepositBox", ([deployer, user]) => {
   let messageProxy: MessageProxyInstance;
@@ -127,7 +135,7 @@ contract("DepositBox", ([deployer, user]) => {
     });
 
     describe("tests for `depositERC20` function", async () => {
-      it("should rejected with `Not allowed ERC20 Token` when invoke `depositERC20`", async () => {
+      it("should rejected with `Not allowed ERC20 Token`", async () => {
         // preparation
         const error = "Not allowed ERC20 Token";
         const schainID = randomString(10);
@@ -241,11 +249,53 @@ contract("DepositBox", ([deployer, user]) => {
     });
   });
 
-/*   describe("tests for `ERC721` will be here in the future", async () => {
-    it("should invoke `depositERC721` without mistakes", async () => {
-      console.log("the tests will be wright soon");
+  describe("tests with `ERC721`", async () => {
+    let eRC721ModuleForMainnet: ERC721ModuleForMainnetInstance;
+    let lockAndDataForMainnetERC721: LockAndDataForMainnetERC721Instance;
+
+    beforeEach(async () => {
+      eRC721ModuleForMainnet = await ERC721ModuleForMainnet.new(lockAndDataForMainnet.address,
+        {from: deployer, gas: 8000000 * gasMultiplier});
+      lockAndDataForMainnetERC721 = await LockAndDataForMainnetERC721.new(lockAndDataForMainnet.address,
+        {from: deployer, gas: 8000000 * gasMultiplier});
     });
-  }); */
+
+/*    describe("tests for `depositERC721` function", async () => {
+      it("should invoke `depositERC721` without mistakes", async () => {
+        // preparation
+        const schainID = randomString(10);
+        // the wei should be MORE than (55000 * 1000000000)
+        // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
+        const wei = "900000000000000";
+        // add schain to avoid the `Unconnected chain` error
+        const chain = await lockAndDataForMainnet
+          .addSchain(schainID, deployer, {from: deployer});
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
+        await messageProxy
+          .addConnectedChain(schainID, publicKeyArray, {from: deployer});
+        // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
+        await lockAndDataForMainnet
+          .setContract("DepositBox", depositBox.address, {from: deployer});
+        // set `ERC20Module` contract before invoke `depositERC20`
+        await lockAndDataForMainnet
+          .setContract("ERC721Module", eRC721ModuleForMainnet.address, {from: deployer});
+        // set `LockAndDataERC20` contract before invoke `depositERC20`
+        await lockAndDataForMainnet
+          .setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address, {from: deployer});
+        // execution
+        await depositBox
+          .depositERC721(schainID, eRC721ModuleForMainnet.address, deployer, 1, {value: wei, from: deployer});
+        const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
+        // expectation
+        expect(lockAndDataBalance).to.equal(wei);
+      });
+    });
+
+     describe("tests for `rawDepositERC721` function", async () => {
+      it("should invoke `rawDepositERC721` without mistakes", async () => {
+      });
+    }); */
+  });
 
   describe("tests for `postMessage` function", async () => {
     let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
@@ -414,16 +464,17 @@ contract("DepositBox", ([deployer, user]) => {
       // expect(logs[0].args.message).to.be.equal(error);
     });
 
-    it("should transfer ERC20 token", async () => {
+/*     it("should transfer ERC20 token", async () => {
       //  preparation
       const schainID = randomString(10);
-      const amount = 700000000000000;
+      const amount = 700;
       const to = user;
+      const contractIndex = new BigNumber(await lockAndDataForMainnetERC20.ERC20Mapper(ethERC20.address));
       // for transfer ERC20 token bytesData should be equal `0x03`. See the `.fallbackOperationTypeConvert` function
       const bytesData = "0x03" +
-                        depositBox.address.substr(2) +
-                        to.substr(2) +
-                        ethERC20.address.substr(2);
+        createBytes32(contractIndex.toString()) +
+        createBytes32("") +
+        createBytes32(amount.toString(16));
       const sender = deployer;
       const wei = "900000000000000";
       // add schain to avoid the `Unconnected chain` error
@@ -435,144 +486,30 @@ contract("DepositBox", ([deployer, user]) => {
       // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
       await lockAndDataForMainnet
         .setContract("DepositBox", depositBox.address, {from: deployer});
-      // set `ERC20Module` contract before invoke `depositERC20`
+      // set `ERC20Module` contract before invoke `postMessage`
       await lockAndDataForMainnet
         .setContract("ERC20Module", eRC20ModuleForMainnet.address, {from: deployer});
-      // set `LockAndDataERC20` contract before invoke `depositERC20`
+      // set `LockAndDataERC20` contract before invoke `postMessage`
       await lockAndDataForMainnet
         .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
       // mint some quantity of ERC20 tokens for `deployer` address
       await ethERC20.mint(deployer, "1000000000", {from: deployer});
       // approve some quantity of ERC20 tokens for `depositBox` address
       await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
+      await depositBox
+        .depositERC20(schainID, ethERC20.address, deployer, amount, {value: wei, from: deployer});
       // execution
-      const {logs} = await depositBox
-        .depositERC20(schainID, ethERC20.address, deployer, 1, {value: wei, from: deployer});
-      // console.log("logs", logs);
-      // get events from messageProxy
-      // await messageProxy.getPastEvents("OutgoingMessage");
-/*       // execution
       // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
       .receiveEth(deployer, {value: wei, from: deployer});
       // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
+      // set `DepositBox` contract before invoke `postMessage`
+      await lockAndDataForMainnet
+      .setContract("DepositBox", depositBox.address, {from: deployer});
       const vasya = await depositBox
         .postMessage(sender, schainID, to, amount, bytesData, {from: deployer});
-      // expectation
-      // expect(logs[0].args.message).to.be.equal(error); */
-    });
-
-/*     it("should transfer ERC721 token", async () => {
-      //  preparation
-      const error = "Could not send money to owner";
-      const schainID = randomString(10);
-      const amount = 700000000000000;
-      // for transfer ERC721 token bytesData should be equal `0x05`. See the `.fallbackOperationTypeConvert` function
-      const bytesData = "0x05";
-      const sender = deployer;
-      const wei = "900000000000000";
-      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
-      depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
-      // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
-      await lockAndDataForMainnet
-        .setContract("DepositBox", depositBox.address, {from: deployer});
-      // add schain to avoid the `Receiver chain is incorrect` error
-      await lockAndDataForMainnet
-        .addSchain(schainID, deployer, {from: deployer});
-      // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
-      await lockAndDataForMainnet
-        .receiveEth(deployer, {value: wei, from: deployer});
-      // execution
-      const vasya = await depositBox
-        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
-      // expectation
-      // expect(logs[0].args.message).to.be.equal(error);
-    }); */
-
-/*     it("should transfer ERC20 token - raw mode", async () => {
-      //  preparation
-      const error = "Could not send money to owner";
-      const schainID = randomString(10);
-      const amount = 700000000000000;
-      // for transfer ERC20 token - raw mode bytesData should be equal `0x13`.
-      // See the `.fallbackOperationTypeConvert` function
-      const bytesData = "0x13";
-      const sender = deployer;
-      const wei = "900000000000000";
-      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
-      depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
-      // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
-      await lockAndDataForMainnet
-        .setContract("DepositBox", depositBox.address, {from: deployer});
-      // add schain to avoid the `Receiver chain is incorrect` error
-      await lockAndDataForMainnet
-        .addSchain(schainID, deployer, {from: deployer});
-      // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
-      await lockAndDataForMainnet
-        .receiveEth(deployer, {value: wei, from: deployer});
-      // execution
-      const vasya = await depositBox
-        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
-      // expectation
-      // expect(logs[0].args.message).to.be.equal(error);
-    }); */
-
-/*     it("should transfer ERC721 token - raw mode", async () => {
-      //  preparation
-      const error = "Could not send money to owner";
-      const schainID = randomString(10);
-      const amount = 700000000000000;
-      // for transfer ERC721 token - raw mode bytesData should be equal `0x15`.
-      // See the `.fallbackOperationTypeConvert` function
-      const bytesData = "0x15";
-      const sender = deployer;
-      const wei = "900000000000000";
-      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
-      depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
-      // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
-      await lockAndDataForMainnet
-        .setContract("DepositBox", depositBox.address, {from: deployer});
-      // add schain to avoid the `Receiver chain is incorrect` error
-      await lockAndDataForMainnet
-        .addSchain(schainID, deployer, {from: deployer});
-      // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
-      await lockAndDataForMainnet
-        .receiveEth(deployer, {value: wei, from: deployer});
-      // execution
-      const vasya = await depositBox
-        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
-      // expectation
-      // expect(logs[0].args.message).to.be.equal(error);
-    }); */
-
-/*     it("should be Error event with message `Could not send money to owner`", async () => {
-      //  preparation
-      const error = "Could not send money to owner";
-      const schainID = randomString(10);
-      const amount = 1;
-      const bytesData = "0x01";
-      const sender = deployer;
-      const wei = "900000000000000";
-      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
-      depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
-      // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
-      await lockAndDataForMainnet
-        .setContract("DepositBox", depositBox.address, {from: deployer});
-      // add schain to avoid the `Receiver chain is incorrect` error
-      await lockAndDataForMainnet
-        .addSchain(schainID, deployer, {from: deployer});
-      // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
-      await lockAndDataForMainnet
-        .receiveEth(deployer, {value: wei, from: deployer});
-      // execution
-      const vasya = await depositBox
-        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
       // expectation
       console.log(vasya);
       // expect(logs[0].args.message).to.be.equal(error);
