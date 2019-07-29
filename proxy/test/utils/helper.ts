@@ -13,6 +13,29 @@ export function createBytes32(str: string) {
     const lenght: number = str.length;
     const multiple: number = numberOfSymbolsInBytes32 - lenght;
     //
-    console.log("from createBytes32 in helper.ts", "0".repeat(multiple) + str);
+    // console.log("from createBytes32 in helper.ts", "0".repeat(multiple) + str);
     return "0".repeat(multiple) + str;
+}
+
+export function stringToHex(str: string, hex: any) {
+    try {
+      hex = unescape(encodeURIComponent(str))
+      .split("").map((v) => {
+        return v.charCodeAt(0).toString(16);
+      }).join("");
+    } catch (e) {
+      hex = str;
+      console.log("invalid text input: " + str);
+    }
+    return hex;
+}
+
+export function stringFromHex(hex: string, str: string) {
+    try {
+      str = decodeURIComponent(hex.replace(/(..)/g, "%$1"));
+    } catch (e) {
+      str = hex;
+      console.log("invalid hex input: " + hex);
+    }
+    return str;
 }
