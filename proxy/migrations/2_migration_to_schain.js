@@ -21,12 +21,17 @@ let proxyMainnet = require("../data/proxyMainnet.json");
 let gasLimit = 8000000;
 
 async function deploy(deployer, network) {
+
+    if (network == "test" || network == "coverage") {
+        // skip this part of deployment if we run tests
+        return;
+    }
     
     if (process.env.SCHAIN_NAME == undefined || process.env.SCHAIN_NAME == "") {
         console.log(network);
         console.log(networks['networks'][network]);
         console.log("Please set SCHAIN_NAME to .env file");
-        process.exit(0);
+        process.exit(1);
     }
     let schainName = process.env.SCHAIN_NAME;
     await deployer.deploy(MessageProxy, schainName, {gas: gasLimit}).then(async function() {
