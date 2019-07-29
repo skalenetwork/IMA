@@ -21,6 +21,11 @@ let proxyMainnet = require("../data/proxyMainnet.json");
 let gasLimit = 8000000;
 
 async function deploy(deployer, network) {
+
+    if (network == "test" || network == "coverage") {
+        // skip this part of deployment if we run tests
+        return;
+    }
     
     if (process.env.SCHAIN_NAME == undefined || process.env.SCHAIN_NAME == "") {
         console.log(network);
