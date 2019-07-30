@@ -54,16 +54,13 @@ jobs:
                                 ./calculate_version.sh develop $VERSION)
             - echo "Version $VERSION"            
             - echo "$DOCKER_PASSWORD" | USERNAME=$DOCKER_USERNAME ./build_image.sh
-          before_deploy:
+
             # Set up git user name and tag this commit
-            - (
-              test ! $TRAVIS_TAG &&
-              git config --local user.name "skale-jenkins" &&
-              git config --local user.email "$GITHUB_EMAIL" &&
-              export TRAVIS_TAG=v$VERSION &&
-              git tag "$TRAVIS_TAG" &&
-              git push https://$GITHUB_OAUTH_TOKEN@github.com/$TRAVIS_REPO_SLUG.git $TRAVIS_TAG
-              ) || true
+            - git config --local user.name "skale-jenkins"
+            - git config --local user.email "$GITHUB_EMAIL"
+            - export TRAVIS_TAG=v$VERSION
+            - git tag "$TRAVIS_TAG"
+            - git push https://$GITHUB_OAUTH_TOKEN@github.com/$TRAVIS_REPO_SLUG.git $TRAVIS_TAG
           deploy:
             - provider: releases
               api_key: "$GITHUB_OAUTH_TOKEN"
