@@ -519,6 +519,61 @@ contract("DepositBox", ([deployer, user]) => {
       // expect(logs[0].args.message).to.be.equal(error);
     });
 
+    it("should transfer ERC20 for RAW mode token", async () => {
+      //  preparation
+      const contractHere = ethERC20.address;
+      const schainID = randomString(10);
+      const amount = 10;
+      const amount0 = 700000000000000;
+      const to = user;
+      const to0 = ethERC20.address; // ERC20 address
+      const sender = deployer;
+      const wei = "900000000000000";
+      const isRaw = true;
+      // add schain to avoid the `Unconnected chain` error
+      await lockAndDataForMainnet
+        .addSchain(schainID, deployer, {from: deployer});
+      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
+      await messageProxy
+        .addConnectedChain(schainID, publicKeyArray, {from: deployer});
+      // set `ERC20Module` contract before invoke `postMessage`
+      await lockAndDataForMainnet
+        .setContract("ERC20Module", eRC20ModuleForMainnet.address, {from: deployer});
+      // set `LockAndDataERC20` contract before invoke `postMessage`
+      await lockAndDataForMainnet
+        .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
+      // mint some quantity of ERC20 tokens for `deployer` address
+      await ethERC20.mint(deployer, "1000000000", {from: deployer});
+      /**
+       * transfer more than `amount` qantity of ERC20 tokens
+       * for `lockAndDataForMainnetERC20` to avoid `Not enough money`
+       */
+      await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
+      // approve some quantity of ERC20 tokens for `depositBox` address
+      await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
+      // get data from `receiveERC20`
+      const getRes = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+      const data = getRes.logs[0].args.data;
+      // execution
+      // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+      await lockAndDataForMainnet
+        .receiveEth(deployer, {value: wei, from: deployer});
+      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
+        {from: deployer, gas: 8000000 * gasMultiplier});
+      // set `DepositBox` contract before invoke `postMessage`
+      await lockAndDataForMainnet
+        .setContract("DepositBox", depositBox.address, {from: deployer});
+      await depositBox
+        .postMessage(sender, schainID, to0, amount0, data, {from: deployer});
+      // expectation
+      const bn = new BigNumber(await lockAndDataForMainnet.approveTransfers(user));
+      console.log("bnbnbnbbnbn", parseInt(bn.toString(), 10));
+      parseInt(bn.toString(), 10).should.be.equal(parseInt(amount0.toString(), 10) - 55000 * 1000000000);
+
+      // expect(logs[0].args.message).to.be.equal(error);
+    });
+
   });
 
 });
