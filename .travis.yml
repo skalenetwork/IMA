@@ -43,7 +43,6 @@ jobs:
           after_script:
             - npx solidity-coverage || travis_terminate 4
             - cat coverage/lcov.info | npx codecov
-          after_success:
             - cd ..
 
         - stage: deploy
