@@ -93,7 +93,7 @@ contract("LockAndDataForMainnetERC20", ([deployer, user, invoker]) => {
         .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
     // mint some quantity of ERC20 tokens for `deployer` address
     await ethERC20.mint(deployer, "1000000000", {from: deployer});
-    // approve some quantity of ERC20 tokens for `lockAndDataForMainnetERC20` address
+    // transfer some quantity of ERC20 tokens for `lockAndDataForMainnetERC20` address
     await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
     // execution
     const res = await lockAndDataForMainnetERC20

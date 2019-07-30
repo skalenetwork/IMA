@@ -26,8 +26,8 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 
 contract LockAndDataForMainnetERC20 is Permissions {
 
-    event sendedERC20(bool result);
-    event addedERC20Token(uint index);
+    event SendedERC20(bool result);
+    event AddedERC20Token(uint index);
 
 
     mapping(uint => address) public ERC20Tokens;
@@ -41,7 +41,7 @@ contract LockAndDataForMainnetERC20 is Permissions {
     function sendERC20(address contractHere, address to, uint amount) public allow("ERC20Module") returns (bool) {
         require(IERC20(contractHere).balanceOf(address(this)) >= amount, "Not enough money");
         require(IERC20(contractHere).transfer(to, amount), "something went wrong with `transfer` in ERC20");
-        emit sendedERC20(bool(true));
+        emit SendedERC20(bool(true));
         return true;
     }
 
@@ -50,7 +50,7 @@ contract LockAndDataForMainnetERC20 is Permissions {
         ERC20Tokens[index] = addressERC20;
         ERC20Mapper[addressERC20] = index;
         newIndexERC20++;
-        emit addedERC20Token(uint(index));
+        emit AddedERC20Token(uint(index));
         return index;
     }
 }

@@ -260,7 +260,7 @@ contract("DepositBox", ([deployer, user]) => {
         {from: deployer, gas: 8000000 * gasMultiplier});
     });
 
-/*    describe("tests for `depositERC721` function", async () => {
+/*     describe("tests for `depositERC721` function", async () => {
       it("should invoke `depositERC721` without mistakes", async () => {
         // preparation
         const schainID = randomString(10);
@@ -268,7 +268,7 @@ contract("DepositBox", ([deployer, user]) => {
         // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
         const wei = "900000000000000";
         // add schain to avoid the `Unconnected chain` error
-        const chain = await lockAndDataForMainnet
+        await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
         // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
         await messageProxy
@@ -289,9 +289,9 @@ contract("DepositBox", ([deployer, user]) => {
         // expectation
         expect(lockAndDataBalance).to.equal(wei);
       });
-    });
+    }); */
 
-     describe("tests for `rawDepositERC721` function", async () => {
+/*      describe("tests for `rawDepositERC721` function", async () => {
       it("should invoke `rawDepositERC721` without mistakes", async () => {
       });
     }); */
@@ -464,7 +464,7 @@ contract("DepositBox", ([deployer, user]) => {
       // expect(logs[0].args.message).to.be.equal(error);
     });
 
-/*     it("should transfer ERC20 token", async () => {
+    it("should transfer ERC20 token", async () => {
       //  preparation
       const schainID = randomString(10);
       const amount = 700;
@@ -501,19 +501,19 @@ contract("DepositBox", ([deployer, user]) => {
       // execution
       // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
-      .receiveEth(deployer, {value: wei, from: deployer});
+        .receiveEth(deployer, {value: wei, from: deployer});
       // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
       // set `DepositBox` contract before invoke `postMessage`
       await lockAndDataForMainnet
-      .setContract("DepositBox", depositBox.address, {from: deployer});
+        .setContract("DepositBox", depositBox.address, {from: deployer});
       const vasya = await depositBox
         .postMessage(sender, schainID, to, amount, bytesData, {from: deployer});
       // expectation
       console.log(vasya);
       // expect(logs[0].args.message).to.be.equal(error);
-    }); */
+    });
 
   });
 
