@@ -464,7 +464,7 @@ contract("DepositBox", ([deployer, user]) => {
       // expect(logs[0].args.message).to.be.equal(error);
     });
 
-    it("should transfer ERC20 token", async () => {
+/*     it("should transfer ERC20 token", async () => {
       //  preparation
       const schainID = randomString(10);
       const amount = 700;
@@ -513,7 +513,7 @@ contract("DepositBox", ([deployer, user]) => {
       // expectation
       console.log(vasya);
       // expect(logs[0].args.message).to.be.equal(error);
-    });
+    }); */
 
   });
 
