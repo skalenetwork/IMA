@@ -54,7 +54,7 @@ jobs:
                                 ./calculate_version.sh develop $VERSION)
             - echo "Version $VERSION"
             - (test $TRAVIS_BRANCH = "master" && export RELEASE=true) || true
-            - echo "$DOCKER_PASSWORD" | USERNAME=$DOCKER_USERNAME ./build_image.sh
+            - ./build_image.sh
 
           before_deploy:
             # Set up git user name and tag this commit
