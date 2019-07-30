@@ -46,7 +46,7 @@ jobs:
             - cd ..
 
         - stage: deploy
-          if: branch IN (master, release-candidate, develop, feature/SKALE-1385-versions)
+          if: branch IN (master, release-candidate, develop)
           script:
             - export VERSION=$(cat VERSION)
             - export VERSION=$( (test $TRAVIS_BRANCH = "master" && echo $VERSION) ||
@@ -89,4 +89,3 @@ jobs:
                     - master
                     - release-candidate
                     - develop
-                    - feature/SKALE-1385-versions
