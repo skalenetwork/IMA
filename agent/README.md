@@ -122,6 +122,19 @@ You should see **proxySchain.json** file listed.
 
 ### Bind MTA to Main-net
 
+You can check whether **MTA** is already bound with:
+
+    node ./main.js --verbose=9 \
+        --check-registration \
+        --url-main-net=http://127.0.0.1:8545 \
+        --url-s-chain=http://127.0.0.1:7000 \
+        --id-main-net=Mainnet \
+        --id-s-chain=Bob \
+        --abi-main-net=../proxy/data/proxyMainnet.json \
+        --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+
 **MTA** works as S-Chain extension. It should be registered on Main-net before performing any money transfers between blockchains:
 
     node ./main.js --verbose=9 \

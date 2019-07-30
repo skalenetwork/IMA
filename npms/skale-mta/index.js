@@ -142,6 +142,35 @@ function private_key_2_account_address( w3, keyPrivate ) {
 //
 // register S-Chain 1 on main net
 //
+
+async function check_is_registered_s_chain_on_main_net( // step 1
+    w3_main_net,
+    jo_message_proxy_main_net,
+    joAccount_main_net,
+    chain_id_s_chain
+) {
+    if ( verbose_get() >= RV_VERBOSE.debug ) {
+        log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
+        log.write( cc.bright( "check_is_registered_s_chain_on_main_net(reg-step1)" ) + "\n" );
+        log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
+    }
+    let r, strActionName = "";
+    try {
+        strActionName = "check_is_registered_s_chain_on_main_net(reg-step1)";
+        let addr = joAccount_main_net.address( w3_main_net );
+        let bIsRegistered = await jo_message_proxy_main_net.methods.isConnectedChain( chain_id_s_chain ).call( {
+            "from": addr
+        } );
+        if ( verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.success( "check_is_registered_s_chain_on_main_net(reg-step1) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
+        return bIsRegistered;
+    } catch ( e ) {
+        if ( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( cc.fatal( "Error in check_is_registered_s_chain_on_main_net(reg-step1)() during " + strActionName + ": " ) + cc.error( e ) + "\n" );
+    }
+    return false;
+}
+
 async function register_s_chain_on_main_net( // step 1
     w3_main_net,
     jo_message_proxy_main_net,
@@ -200,6 +229,35 @@ async function register_s_chain_on_main_net( // step 1
 // register direction for money transfer
 // main-net.DepositBox call: function addSchain(uint64 schainID, address tokenManagerAddress)
 //
+
+async function check_is_registered_s_chain_in_deposit_box( // step 2
+    w3_main_net,
+    jo_lock_and_data_main_net,
+    joAccount_main_net,
+    chain_id_s_chain
+) {
+    if ( verbose_get() >= RV_VERBOSE.debug ) {
+        log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
+        log.write( cc.bright( "check_is_registered_s_chain_in_deposit_box(reg-step2)" ) + "\n" );
+        log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
+    }
+    let r, strActionName = "";
+    try {
+        strActionName = "check_is_registered_s_chain_in_deposit_box(reg-step2)";
+        let addr = joAccount_main_net.address( w3_main_net );
+        let bIsRegistered = await jo_lock_and_data_main_net.methods.hasSchain( chain_id_s_chain ).call( {
+            "from": addr
+        } );
+        if ( verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.success( "check_is_registered_s_chain_in_deposit_box(reg-step2) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
+        return bIsRegistered;
+    } catch ( e ) {
+        if ( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( cc.fatal( "Error in check_is_registered_s_chain_in_deposit_box(reg-step2)() during " + strActionName + ": " ) + cc.error( e ) + "\n" );
+    }
+    return false;
+}
+
 async function register_s_chain_in_deposit_box( // step 2
     w3_main_net,
     //jo_deposit_box, // only main net
@@ -254,7 +312,34 @@ async function register_s_chain_in_deposit_box( // step 2
     return true;
 } // async function register_deposit_box_on_s_chain(...
 
-async function reister_main_net_depositBox_on_s_chain( // step 3
+async function check_is_registered_main_net_depositBox_on_s_chain( // step 3
+    w3_s_chain,
+    jo_lock_and_data_s_chain,
+    joAccount
+) {
+    if ( verbose_get() >= RV_VERBOSE.debug ) {
+        log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
+        log.write( cc.bright( "check_is_registered_main_net_depositBox_on_s_chain(reg-step3)" ) + "\n" );
+        log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
+    }
+    let r, strActionName = "";
+    try {
+        strActionName = "check_is_registered_main_net_depositBox_on_s_chain(reg-step3)";
+        let addr = joAccount.address( w3_s_chain );
+        let bIsRegistered = await jo_lock_and_data_s_chain.methods.hasDepositBox().call( {
+            "from": addr
+        } );
+        if ( verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.success( "check_is_registered_main_net_depositBox_on_s_chain(reg-step3) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
+        return bIsRegistered;
+    } catch ( e ) {
+        if ( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( cc.fatal( "Error in check_is_registered_main_net_depositBox_on_s_chain(reg-step3)() during " + strActionName + ": " ) + cc.error( e ) + "\n" );
+    }
+    return false;
+}
+
+async function register_main_net_depositBox_on_s_chain( // step 3
     w3_s_chain,
     //jo_token_manager,
     jo_deposit_box_main_net,
@@ -263,12 +348,12 @@ async function reister_main_net_depositBox_on_s_chain( // step 3
 ) {
     if ( verbose_get() >= RV_VERBOSE.debug ) {
         log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( cc.bright( "reister_main_net_depositBox_on_s_chain" ) + "\n" );
+        log.write( cc.bright( "register_main_net_depositBox_on_s_chain" ) + "\n" );
         log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
     let r, strActionName = "";
     try {
-        strActionName = "reg-step3:w3_s_chain.eth.getTransactionCount()/reister_main_net_depositBox_on_s_chain";
+        strActionName = "reg-step3:w3_s_chain.eth.getTransactionCount()/register_main_net_depositBox_on_s_chain";
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         let tcnt = await w3_s_chain.eth.getTransactionCount( joAccount.address( w3_s_chain ), null );
@@ -298,7 +383,7 @@ async function reister_main_net_depositBox_on_s_chain( // step 3
             log.write( cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
     } catch ( e ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( cc.fatal( "Error in reister_main_net_depositBox_on_s_chain() during " + strActionName + ": " ) + cc.error( e ) + "\n" );
+            log.write( cc.fatal( "Error in register_main_net_depositBox_on_s_chain() during " + strActionName + ": " ) + cc.error( e ) + "\n" );
         return false;
     }
     return true;
@@ -1063,7 +1148,12 @@ module.exports.private_key_2_account_address = private_key_2_account_address;
 
 module.exports.register_s_chain_on_main_net = register_s_chain_on_main_net; // step 1
 module.exports.register_s_chain_in_deposit_box = register_s_chain_in_deposit_box; // step 2
-module.exports.reister_main_net_depositBox_on_s_chain = reister_main_net_depositBox_on_s_chain; // step 3
+module.exports.register_main_net_depositBox_on_s_chain = register_main_net_depositBox_on_s_chain; // step 3
+
+module.exports.check_is_registered_s_chain_on_main_net = check_is_registered_s_chain_on_main_net; // step 1
+module.exports.check_is_registered_s_chain_in_deposit_box = check_is_registered_s_chain_in_deposit_box; // step 2
+module.exports.check_is_registered_main_net_depositBox_on_s_chain = check_is_registered_main_net_depositBox_on_s_chain; // step 3
+
 module.exports.do_eth_payment_from_main_net = do_eth_payment_from_main_net;
 module.exports.do_eth_payment_from_s_chain = do_eth_payment_from_s_chain;
 module.exports.receive_eth_payment_from_s_chain_on_main_net = receive_eth_payment_from_s_chain_on_main_net;
