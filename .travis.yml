@@ -46,7 +46,7 @@ jobs:
             - cd ..
 
         - stage: deploy
-          if: branch IN (master, release-candidate, develop)
+          if: branch IN (master, release-candidate, develop, feature/SKALE-1385-versions)
           script:
             - export VERSION=$(cat VERSION)
             - export VERSION=$( (test $TRAVIS_BRANCH = "master" && echo $VERSION) ||
@@ -56,12 +56,17 @@ jobs:
             - (test $TRAVIS_BRANCH = "master" && export RELEASE=true) || true
             - echo "$DOCKER_PASSWORD" | USERNAME=$DOCKER_USERNAME ./build_image.sh
 
+          before_deploy:
             # Set up git user name and tag this commit
-            - git config --local user.name "skale-jenkins"
-            - git config --local user.email "$GITHUB_EMAIL"
-            - export TRAVIS_TAG=v$VERSION
-            - git tag "$TRAVIS_TAG"
-            - git push https://$GITHUB_OAUTH_TOKEN@github.com/$TRAVIS_REPO_SLUG.git $TRAVIS_TAG
+            - (
+              test ! $TRAVIS_TAG &&
+              git config --local user.name "skale-jenkins" &&
+              git config --local user.email "$GITHUB_EMAIL" &&
+              export TRAVIS_TAG=v$VERSION &&
+              git tag "$TRAVIS_TAG" &&
+              git push https://$GITHUB_OAUTH_TOKEN@github.com/$TRAVIS_REPO_SLUG.git $TRAVIS_TAG
+              ) || true
+            - export SKIP_BUILD=true
           deploy:
             - provider: releases
               api_key: "$GITHUB_OAUTH_TOKEN"
@@ -76,3 +81,12 @@ jobs:
               on:
                 repo: $TRAVIS_REPO_SLUG
                 branch: release-candidate
+            - provider: script
+              script: bash ./build_image.sh $DOCKER_USERNAME $DOCKER_PASSWORD
+              on:
+                repo: skalenetwork/skaled
+                branch:
+                    - master
+                    - release-candidate
+                    - develop
+                    - feature/SKALE-1385-versions
