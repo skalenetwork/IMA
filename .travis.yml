@@ -53,7 +53,7 @@ jobs:
                                 (test $TRAVIS_BRANCH = "release-candidate" && ./calculate_version.sh rc $VERSION) ||
                                 ./calculate_version.sh develop $VERSION)
             - echo "Version $VERSION"
-            - test $TRAVIS_BRANCH = "master" && export RELEASE=true
+            - (test $TRAVIS_BRANCH = "master" && export RELEASE=true) || true
             - echo "$DOCKER_PASSWORD" | USERNAME=$DOCKER_USERNAME ./build_image.sh
 
             # Set up git user name and tag this commit
