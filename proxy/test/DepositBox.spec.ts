@@ -464,28 +464,23 @@ contract("DepositBox", ([deployer, user]) => {
       // expect(logs[0].args.message).to.be.equal(error);
     });
 
-/*     it("should transfer ERC20 token", async () => {
+    it("should transfer ERC20 token", async () => {
       //  preparation
+      const contractHere = ethERC20.address;
       const schainID = randomString(10);
-      const amount = 700;
+      const amount = 10;
+      const amount0 = 700000000000000;
       const to = user;
-      const contractIndex = new BigNumber(await lockAndDataForMainnetERC20.ERC20Mapper(ethERC20.address));
-      // for transfer ERC20 token bytesData should be equal `0x03`. See the `.fallbackOperationTypeConvert` function
-      const bytesData = "0x03" +
-        createBytes32(contractIndex.toString()) +
-        createBytes32("") +
-        createBytes32(amount.toString(16));
+      const to0 = "0x0000000000000000000000000000000000000000"; // ERC20 address
       const sender = deployer;
       const wei = "900000000000000";
+      const isRaw = false;
       // add schain to avoid the `Unconnected chain` error
-      const chain = await lockAndDataForMainnet
+      await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
       // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
       await messageProxy
         .addConnectedChain(schainID, publicKeyArray, {from: deployer});
-      // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
-      await lockAndDataForMainnet
-        .setContract("DepositBox", depositBox.address, {from: deployer});
       // set `ERC20Module` contract before invoke `postMessage`
       await lockAndDataForMainnet
         .setContract("ERC20Module", eRC20ModuleForMainnet.address, {from: deployer});
@@ -494,10 +489,16 @@ contract("DepositBox", ([deployer, user]) => {
         .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
       // mint some quantity of ERC20 tokens for `deployer` address
       await ethERC20.mint(deployer, "1000000000", {from: deployer});
+      /**
+       * transfer more than `amount` qantity of ERC20 tokens
+       * for `lockAndDataForMainnetERC20` to avoid `Not enough money`
+       */
+      await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
       // approve some quantity of ERC20 tokens for `depositBox` address
       await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
-      await depositBox
-        .depositERC20(schainID, ethERC20.address, deployer, amount, {value: wei, from: deployer});
+      // get data from `receiveERC20`
+      const getRes = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+      const data = getRes.logs[0].args.data;
       // execution
       // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
@@ -508,12 +509,15 @@ contract("DepositBox", ([deployer, user]) => {
       // set `DepositBox` contract before invoke `postMessage`
       await lockAndDataForMainnet
         .setContract("DepositBox", depositBox.address, {from: deployer});
-      const vasya = await depositBox
-        .postMessage(sender, schainID, to, amount, bytesData, {from: deployer});
+      await depositBox
+        .postMessage(sender, schainID, to0, amount0, data, {from: deployer});
       // expectation
-      console.log(vasya);
+      const bn = new BigNumber(await lockAndDataForMainnet.approveTransfers(user));
+      console.log("bnbnbnbbnbn", parseInt(bn.toString(), 10));
+      parseInt(bn.toString(), 10).should.be.equal(parseInt(amount0.toString(), 10) - 55000 * 1000000000);
+
       // expect(logs[0].args.message).to.be.equal(error);
-    }); */
+    });
 
   });
 
