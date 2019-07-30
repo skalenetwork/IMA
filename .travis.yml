@@ -27,17 +27,55 @@ node_js:
   - "10"
 os: linux
 dist: xenial
+jobs:
+    include:
+        - stage: test
+            install:
+                - cd proxy    
+                - yarn install    
+            before_script:
+                - npx ganache-cli --gasLimit 8000000 --quiet &
+                - npx testrpc-sc --port 8555 --gasLimit 0xfffffffffff --quiet &    
+            script:
+                - yarn tslint || travis_terminate 2
+                - yarn generate    
+                - yarn test || travis_terminate 3
+            after_script:
+                - npx solidity-coverage || travis_terminate 4
+                - cat coverage/lcov.info | npx codecov
+            after_success:
+                - cd ..
 
-install:
-    - cd proxy    
-    - yarn install    
-before_script:
-    - npx ganache-cli --gasLimit 8000000 --quiet &
-    - npx testrpc-sc --port 8555 --gasLimit 0xfffffffffff --quiet &    
-script:
-    - yarn tslint || travis_terminate 2
-    - yarn generate    
-    - yarn test || travis_terminate 3
-after_script:
-    - npx solidity-coverage || travis_terminate 4
-    - cat coverage/lcov.info | npx codecov
+        - stage: deploy
+          if: branch IN (master, release-candidate, develop, feature/SKALE-1385-versions)
+          script:
+            - export VERSION=$(cat VERSION)
+            - export VERSION=$( (test $TRAVIS_BRANCH = "master" && echo $VERSION) ||
+                                (test $TRAVIS_BRANCH = "release-candidate" && ./calculate_version.sh rc $VERSION) ||
+                                ./calculate_version.sh develop $VERSION)
+            - echo "Version $VERSION"            
+            - ./build_image.sh
+          before_deploy:
+            # Set up git user name and tag this commit
+            - (
+              test ! $TRAVIS_TAG &&
+              git config --local user.name "skale-jenkins" &&
+              git config --local user.email "$GITHUB_EMAIL" &&
+              export TRAVIS_TAG=v$VERSION &&
+              git tag "$TRAVIS_TAG" &&
+              git push https://$GITHUB_OAUTH_TOKEN@github.com/$TRAVIS_REPO_SLUG.git $TRAVIS_TAG
+              ) || true
+          deploy:
+            - provider: releases
+              api_key: "$GITHUB_OAUTH_TOKEN"
+              skip_cleanup: true
+              on:
+                  repo: $TRAVIS_REPO_SLUG
+                  branch: master
+            - provider: releases
+              api_key: "$GITHUB_OAUTH_TOKEN"
+              skip_cleanup: true
+              prerelease: true
+              on:
+                repo: $TRAVIS_REPO_SLUG
+                branch: release-candidate

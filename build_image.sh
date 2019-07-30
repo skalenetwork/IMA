@@ -6,8 +6,16 @@ then
     exit 1
 fi
 
-docker build -t skalelabshub/ktm:latest .
-docker tag skalelabshub/ktm:latest skalelabshub/ktm:$VERSION
+NAME=ima
+REPO_NAME=skalelabshub/$NAME
+IMAGE_NAME=$REPO_NAME:$VERSION
 
-docker push skalelabshub/ktm:latest
-docker push skalelabshub/ktm:$VERSION
+docker build -t $IMAGE_NAME .
+
+if [ $RELEASE = true ] ; then
+    $LATEST_IMAGE_NAME=$REPO_NAME:latest
+    docker tag $IMAGE_NAME $LATEST_IMAGE_NAME
+    docker push $LATEST_IMAGE_NAME
+fi
+
+docker push $IMAGE_NAME
