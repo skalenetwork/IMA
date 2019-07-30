@@ -12,7 +12,13 @@ IMAGE_NAME=$REPO_NAME:$VERSION
 
 docker build -t $IMAGE_NAME .
 
-if [ $RELEASE = true ] ; then
+if [[ ! -z "$USERNAME" ]]
+then
+    docker login --username $USERNAME --password-stdin
+fi
+
+if [ "$RELEASE" = true ]
+then
     $LATEST_IMAGE_NAME=$REPO_NAME:latest
     docker tag $IMAGE_NAME $LATEST_IMAGE_NAME
     docker push $LATEST_IMAGE_NAME
