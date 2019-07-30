@@ -84,7 +84,7 @@ jobs:
             - provider: script
               script: bash ./build_image.sh $DOCKER_USERNAME $DOCKER_PASSWORD
               on:
-                repo: skalenetwork/skaled
+                repo: $TRAVIS_REPO_SLUG
                 branch:
                     - master
                     - release-candidate
