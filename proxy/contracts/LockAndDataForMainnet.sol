@@ -59,6 +59,14 @@ contract LockAndDataForMainnet is Ownable {
         permitted[contractId] = newContract;
     }
 
+    function hasSchain( string memory schainID ) public view returns (bool) {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        if( tokenManagerAddresses[schainHash] == address(0) ) {
+            return false;
+        }
+        return true;
+    }
+
     function addSchain(string memory schainID, address tokenManagerAddress) public onlyOwner {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");

@@ -95,6 +95,25 @@ contract MessageProxy {
         }
     }
 
+    // Registration state detection
+    function isConnectedChain(
+        string memory someChainID
+    )
+        public
+        view
+        returns (bool)
+    {
+        //require(msg.sender == owner); // todo: tmp!!!!!
+        require(
+            keccak256(abi.encodePacked(someChainID)) !=
+            keccak256(abi.encodePacked("Mainnet"))
+        ); // main net does not have a public key and is implicitely connected
+        if( ! connectedChains[keccak256(abi.encodePacked(someChainID))].inited ) {
+            return false;
+        }
+        return true;
+    }
+
     // This is called by  schain owner.
     // On mainnet, SkaleManager will call it every time a SKALE chain is
     // created. Therefore, any SKALE chain is always connected to the main chain.

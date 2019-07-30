@@ -1203,7 +1203,7 @@ do_the_job();
 return 0; // FINISH
 
 async function register_step1() {
-    var bRetVal = await MTA.register_s_chain_on_main_net(
+    var bRetVal = await MTA.register_s_chain_on_main_net( // step 1
         g_w3_main_net,
         g_jo_message_proxy_main_net,
         g_joAccount_main_net,
@@ -1217,7 +1217,7 @@ async function register_step1() {
     return true;
 }
 async function register_step2() {
-    var bRetVal = await MTA.register_s_chain_in_deposit_box(
+    var bRetVal = await MTA.register_s_chain_in_deposit_box( // step 2
         g_w3_main_net,
         //g_jo_deposit_box, // only main net
         g_jo_lock_and_data_main_net,
@@ -1233,7 +1233,7 @@ async function register_step2() {
     return true;
 }
 async function register_step3() {
-    var bRetVal = await MTA.reister_main_net_depositBox_on_s_chain(
+    var bRetVal = await MTA.reister_main_net_depositBox_on_s_chain( // step 3
         g_w3_s_chain,
         //g_jo_token_manager, // only s-chain
         g_jo_deposit_box, // only main net
