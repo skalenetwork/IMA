@@ -9,8 +9,6 @@ import {
     LockAndDataForMainnetERC721Contract,
     LockAndDataForMainnetERC721Instance,
     LockAndDataForMainnetInstance,
-    LockAndDataForSchainContract,
-    LockAndDataForSchainInstance,
     MessageProxyContract,
     MessageProxyInstance,
     } from "../types/truffle-contracts";
@@ -23,7 +21,6 @@ chai.use((chaiAsPromised as any));
 
 const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
-const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const LockAndDataForMainnetERC721: LockAndDataForMainnetERC721Contract =
     artifacts.require("./LockAndDataForMainnetERC721");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
@@ -32,7 +29,6 @@ const ERC721ModuleForMainnet: ERC721ModuleForMainnetContract = artifacts.require
 contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
-  let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForMainnetERC721: LockAndDataForMainnetERC721Instance;
   let eRC721OnChain: ERC721OnChainInstance;
   let eRC721ModuleForMainnet: ERC721ModuleForMainnetInstance;
@@ -40,11 +36,9 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
   beforeEach(async () => {
     messageProxy = await MessageProxy.new("Mainnet", {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnetERC721 =
         await LockAndDataForMainnetERC721.new(lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
-    await lockAndDataForSchain.setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address);
     eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
     eRC721ModuleForMainnet = await ERC721ModuleForMainnet.new(lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
@@ -83,7 +77,7 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     // preparation
     const contractHere = eRC721OnChain.address;
     const to = user;
-    const to0 = "0x0000000000000000000000000000000000000000"; // bytes721
+    const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const tokenId = 10;
     const isRaw = false;
     // set `ERC721Module` contract before invoke `receiveERC721`
