@@ -3,7 +3,10 @@
 SKALE Money Transfer Smart Contracts
 
 Proxy is a library with smart contracts for SKALE Money Transfer Agent. It is a system which allow you transfer ETH, ERC20 and ERC721, based on Message Proxy system.
-Smart contract language - Solidity 0.5.7
+Smart contract language - Solidity 0.5.10
+
+NodeJs version - 10.16.0
+NPM verion - 6.9.0
 
 ## Message Proxy system
 
@@ -62,9 +65,8 @@ It combined of 3 additional smart contract not including MessageProxy contract:
 
 Need to configure your networks for schain and your mainnet in `truffle-config.js`
 
-You have several preconfigured networks in comments.
+You have several sample networks in comments.
 
-**Important** your network names should be equal `mainnet` and `schain`
 Also you always need to create an `SCHAIN_NAME`, `MAINNET_RPC_URL`, `SCHAIN_RPC_URL` variables in your `.env` file
 
 Need to create `.env` file with following data for your configured network:
@@ -79,6 +81,8 @@ ACCOUNT_FOR_MAINNET="your account for mainnet"
 ACCOUNT_FOR_SCHAIN="your account for schain"
 MNEMONIC_FOR_MAINNET="your mnemonic for mainnet"
 MNEMONIC_FOR_SCHAIN="your mnemonic for schain"
+NETWORK_FOR_MAINNET="your created network for mainnet"
+NETWORK_FOR_SCHAIN="your created network for schain"
 ```
 
  - deploy only to your mainnet:

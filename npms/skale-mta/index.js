@@ -784,7 +784,8 @@ async function do_transfer(
     //
     nTransactionsCountInBlock,
     nMaxTransactionsCount,
-    nBlockAwaitDepth
+    nBlockAwaitDepth,
+    nBlockAge
 ) {
     nTransactionsCountInBlock = nTransactionsCountInBlock || 5;
     nMaxTransactionsCount = nMaxTransactionsCount || 100;
@@ -792,6 +793,8 @@ async function do_transfer(
         nTransactionsCountInBlock = 1;
     if ( nBlockAwaitDepth < 0 )
         nBlockAwaitDepth = 0;
+    if ( nBlockAge < 0 )
+        nBlockAge = 0;
     let r, strActionName = "",
         nIdxCurrentMsg = 0,
         nOutMsgCnt = 0,
@@ -855,9 +858,9 @@ async function do_transfer(
                 //
                 //
                 if ( nBlockAwaitDepth > 0 ) {
-                    let blockDepthCheckPassed = true;
+                    let bSecurityCheckPassed = true;
                     let strActionName_old = "" + strActionName;
-                    strActionName = "evaluate block depth"
+                    strActionName = "security check: evaluate block depth"
                     try {
                         let transactionHash = r[ 0 ].transactionHash;
                         if ( verbose_get() >= RV_VERBOSE.trace )
@@ -870,22 +873,64 @@ async function do_transfer(
                             log.write( cc.debug( "Latest blockNumber is " ) + cc.info( nLatestBlockNumber ) + "\n" );
                         let nDist = nLatestBlockNumber - blockNumber;
                         if ( nDist < nBlockAwaitDepth )
-                            blockDepthCheckPassed = false;
+                            bSecurityCheckPassed = false;
                         if ( verbose_get() >= RV_VERBOSE.trace )
-                            log.write( cc.debug( "Distance by blockNumber is " ) + cc.info( nDist ) + cc.debug( ", await chick is " ) + ( blockDepthCheckPassed ? cc.success( "PASSED" ) : cc.error( "FAILED" ) ) + "\n" );
+                            log.write( cc.debug( "Distance by blockNumber is " ) + cc.info( nDist ) + cc.debug( ", await check is " ) + ( bSecurityCheckPassed ? cc.success( "PASSED" ) : cc.error( "FAILED" ) ) + "\n" );
                     } catch ( err ) {
-                        blockDepthCheckPassed = false;
+                        bSecurityCheckPassed = false;
                         if ( verbose_get() >= RV_VERBOSE.fatal )
-                            log.write( cc.fatal( "Error in getting trasaction hash and block number during " + strActionName + ": " ) + cc.error( e ) + "\n" );
+                            log.write( cc.fatal( "Exception(evaluate block depth) while getting trasaction hash and block number during " + strActionName + ": " ) + cc.error( err ) + "\n" );
                         return false;
                     }
                     strActionName = "" + strActionName_old;
-                    if ( !blockDepthCheckPassed ) {
+                    if ( !bSecurityCheckPassed ) {
                         if ( verbose_get() >= RV_VERBOSE.trace )
                             log.write( cc.warning( "Block depth check was not passed, canceling search for transfer events" ) + "\n" );
                         break;
                     }
                 } // if( nBlockAwaitDepth > 0 )
+                if( nBlockAge > 0 ) {
+                    let bSecurityCheckPassed = true;
+                    let strActionName_old = "" + strActionName;
+                    strActionName = "security check: evaluate block age"
+                    try {
+                        let transactionHash = r[ 0 ].transactionHash;
+                        if ( verbose_get() >= RV_VERBOSE.trace )
+                            log.write( cc.debug( "Event transactionHash is " ) + cc.info( transactionHash ) + "\n" );
+                        let blockNumber = r[ 0 ].blockNumber;
+                        if ( verbose_get() >= RV_VERBOSE.trace )
+                            log.write( cc.debug( "Event blockNumber is " ) + cc.info( blockNumber ) + "\n" );
+                        //
+                        //
+                        const joBlock = await w3_src.eth.getBlock( blockNumber );
+                        const timestampBlock = parseInt( joBlock.timestamp );
+                        if ( verbose_get() >= RV_VERBOSE.trace )
+                            log.write( cc.debug( "Block   TS is " ) + cc.info( timestampBlock ) + "\n" );
+                        const timestampCurrent = parseInt( parseInt( Date.now().valueOf() ) / 1000 );
+                        if ( verbose_get() >= RV_VERBOSE.trace )
+                            log.write( cc.debug( "Current TS is " ) + cc.info( timestampCurrent ) + "\n" );
+                        const tsDiff = timestampCurrent - timestampBlock;
+                        if ( verbose_get() >= RV_VERBOSE.trace ) {
+                            log.write( cc.debug( "Diff    TS is " ) + cc.info( tsDiff ) + "\n" );
+                            log.write( cc.debug( "Expected diff " ) + cc.info( nBlockAge ) + "\n" );
+                        }
+                        if( tsDiff < nBlockAge )
+                            bSecurityCheckPassed = false;
+                        if ( verbose_get() >= RV_VERBOSE.trace )
+                            log.write( cc.debug( "Block age check is " ) + ( bSecurityCheckPassed ? cc.success( "PASSED" ) : cc.error( "FAILED" ) ) + "\n" );
+                    } catch ( err ) {
+                        bSecurityCheckPassed = false;
+                        if ( verbose_get() >= RV_VERBOSE.fatal )
+                            log.write( cc.fatal( "Exception(evaluate block age) while getting block number and timestamp during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+                        return false;
+                    }
+                    strActionName = "" + strActionName_old;
+                    if ( !bSecurityCheckPassed ) {
+                        if ( verbose_get() >= RV_VERBOSE.trace )
+                            log.write( cc.warning( "Block age check was not passed, canceling search for transfer events" ) + "\n" );
+                        break;
+                    }
+                } // if( nBlockAge > 0 )
                 //
                 //
                 //
@@ -897,11 +942,6 @@ async function do_transfer(
                         +
                         "\n"
                     );
-                // nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
-                // nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
-                // nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
-                // nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
-                // nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
                 //
                 //
                 if ( verbose_get() >= RV_VERBOSE.trace )

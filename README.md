@@ -1,8 +1,8 @@
-# MTA
-SKALE Money Transfer Agent (MTA)
+# IMA
+SKALE Interchain Message Agent (IMA)
 
 
-#### Steps to run KTM on the sChain
+#### Steps to run IMA on the sChain
 
 
 ##### Preparations
