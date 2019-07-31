@@ -457,11 +457,15 @@ contract("DepositBox", ([deployer, user]) => {
       await lockAndDataForMainnet
         .receiveEth(deployer, {value: wei, from: deployer});
       // execution
-      const vasya = await depositBox
+      await depositBox
         .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
-      // console.log("vasya", vasya);
+      // get constatnts
+      const gasAmountPostMessage = parseInt((new BigNumber(await depositBox.GAS_AMOUNT_POST_MESSAGE())).toString(), 10);
+      const averageTxPrise = parseInt((new BigNumber(await depositBox.AVERAGE_TX_PRICE())).toString(), 10);
       // expectation
-      // expect(logs[0].args.message).to.be.equal(error);
+      const bn = new BigNumber(await lockAndDataForMainnet.approveTransfers(user));
+      parseInt(bn.toString(), 10).should.be.
+        equal(parseInt(amount.toString(), 10) - gasAmountPostMessage * averageTxPrise);
     });
 
     it("should transfer ERC20 token", async () => {
@@ -511,12 +515,13 @@ contract("DepositBox", ([deployer, user]) => {
         .setContract("DepositBox", depositBox.address, {from: deployer});
       await depositBox
         .postMessage(sender, schainID, to0, amount0, data, {from: deployer});
+      // get constatnts
+      const gasAmountPostMessage = parseInt((new BigNumber(await depositBox.GAS_AMOUNT_POST_MESSAGE())).toString(), 10);
+      const averageTxPrise = parseInt((new BigNumber(await depositBox.AVERAGE_TX_PRICE())).toString(), 10);
       // expectation
       const bn = new BigNumber(await lockAndDataForMainnet.approveTransfers(user));
-      console.log("bnbnbnbbnbn", parseInt(bn.toString(), 10));
-      parseInt(bn.toString(), 10).should.be.equal(parseInt(amount0.toString(), 10) - 55000 * 1000000000);
-
-      // expect(logs[0].args.message).to.be.equal(error);
+      parseInt(bn.toString(), 10).should.be.
+        equal(parseInt(amount0.toString(), 10) - gasAmountPostMessage * averageTxPrise);
     });
 
     it("should transfer ERC20 for RAW mode token", async () => {
@@ -566,12 +571,13 @@ contract("DepositBox", ([deployer, user]) => {
         .setContract("DepositBox", depositBox.address, {from: deployer});
       await depositBox
         .postMessage(sender, schainID, to0, amount0, data, {from: deployer});
+      // get constatnts
+      const gasAmountPostMessage = parseInt((new BigNumber(await depositBox.GAS_AMOUNT_POST_MESSAGE())).toString(), 10);
+      const averageTxPrise = parseInt((new BigNumber(await depositBox.AVERAGE_TX_PRICE())).toString(), 10);
       // expectation
       const bn = new BigNumber(await lockAndDataForMainnet.approveTransfers(user));
-      console.log("bnbnbnbbnbn", parseInt(bn.toString(), 10));
-      parseInt(bn.toString(), 10).should.be.equal(parseInt(amount0.toString(), 10) - 55000 * 1000000000);
-
-      // expect(logs[0].args.message).to.be.equal(error);
+      parseInt(bn.toString(), 10).should.be.
+        equal(parseInt(amount0.toString(), 10) - gasAmountPostMessage * averageTxPrise);
     });
 
   });

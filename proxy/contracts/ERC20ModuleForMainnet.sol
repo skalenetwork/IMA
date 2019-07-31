@@ -34,7 +34,7 @@ contract ERC20ModuleForMainnet is Permissions {
 
     event EncodedData(bytes data);
     event EncodedRawData(bytes data);
-    event SendedERC20(bool result);
+    event SentERC20(bool result);
 
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
@@ -71,7 +71,7 @@ contract ERC20ModuleForMainnet is Permissions {
             contractAddress = to;
         }
         bool variable = ILockAndDataERC20M(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
-        emit SendedERC20(bool(variable));
+        emit SentERC20(bool(variable));
         return variable;
     }
 
