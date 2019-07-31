@@ -3,6 +3,8 @@ import * as chaiAsPromised from "chai-as-promised";
 import {
     ERC721ModuleForMainnetContract,
     ERC721ModuleForMainnetInstance,
+    ERC721OnChainContract,
+    ERC721OnChainInstance,
     LockAndDataForMainnetContract,
     LockAndDataForMainnetERC721Contract,
     LockAndDataForMainnetERC721Instance,
@@ -11,8 +13,6 @@ import {
     LockAndDataForSchainInstance,
     MessageProxyContract,
     MessageProxyInstance,
-    ERC721OnChainContract,
-    ERC721OnChainInstance,
     } from "../types/truffle-contracts";
 
 import chai = require("chai");
