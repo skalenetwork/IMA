@@ -310,7 +310,8 @@ contract DepositBox is Permissions {
             if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
                 ILockAndDataDB(lockAndDataAddress).approveTransfer(receiver, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
             }
-        } else if (operation == TransactionOperation.transferERC721 || operation == TransactionOperation.rawTransferERC721) {
+        } else if ((operation == TransactionOperation.transferERC721 && to==address(0)) ||
+                  (operation == TransactionOperation.rawTransferERC721 && to!=address(0))) {
             address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
             IERC721Module(erc721Module).sendERC721(to, data);
             address receiver = IERC721Module(erc721Module).getReceiver(to, data);
