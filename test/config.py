@@ -2,6 +2,8 @@ from os import environ
 import json
 
 class Config:
+    agent_root = 'agent'
+    skale_ima_root = 'npms/skale-mta'
     proxy_root = 'proxy'
     network_for_mainnet = 'mainnet'
     network_for_schain = 'schain'
@@ -13,6 +15,8 @@ class Config:
 
     def __init__(self, src_root, config_filename):
         self.proxy_root = src_root + '/' + self.proxy_root
+        self.agent_root = src_root + '/' + self.agent_root
+        self.skale_ima_root = src_root + '/' + self.skale_ima_root
         with open(config_filename, 'r') as config_file:
             config_json = json.load(config_file)
             self.network_for_mainnet = config_json['NETWORK_FOR_MAINNET']
