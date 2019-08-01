@@ -67,11 +67,27 @@ contract LockAndDataForSchain is Ownable {
         permitted[contractId] = newContract;
     }
 
+    function hasSchain( string memory schainID ) public view returns (bool) {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        if( tokenManagerAddresses[schainHash] == address(0) ) {
+            return false;
+        }
+        return true;
+    }
+
     function addSchain(string memory schainID, address tokenManagerAddress) public onlyOwner {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
+    }
+
+    function hasDepositBox() public view returns(bool) {
+        bytes32 depositBoxHash = keccak256(abi.encodePacked("Mainnet"));
+        if( tokenManagerAddresses[depositBoxHash] == address(0) ) {
+            return false;
+        }
+        return true;
     }
 
     function addDepositBox(address depositBoxAddress) public onlyOwner {

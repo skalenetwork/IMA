@@ -9,6 +9,7 @@ import { EthERC20Contract,
   MessageProxyContract,
   MessageProxyInstance} from "../types/truffle-contracts";
 import { gasMultiplier } from "./utils/command_line";
+import { randomString } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -98,8 +99,8 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await lockAndDataForSchain.addDepositBox(depositBoxAddress, {from: user}).should.be.rejected;
 
     // deposit box address shouldn't be equal zero:
-    await lockAndDataForSchain.addDepositBox(nullAddress, {from: deployer}).
-    should.be.rejectedWith("Incorrect Deposit Box address");
+    await lockAndDataForSchain.addDepositBox(nullAddress, {from: deployer})
+      .should.be.rejectedWith("Incorrect Deposit Box address");
 
     // add deposit box:
     await lockAndDataForSchain.addDepositBox(depositBoxAddress, {from: deployer});
@@ -212,4 +213,50 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     const balanceAfter = new BigNumber(await ethERC20.balanceOf(address));
     balanceAfter.should.be.deep.equal(amountZero);
   });
+
+  it("should return true when invoke `hasSchain`", async () => {
+    // preparation
+    const schainID = randomString(10);
+    // add schain for return `true` after `hasSchain` invoke
+    await lockAndDataForSchain
+      .addSchain(schainID, deployer, {from: deployer});
+    // execution
+    const res = await lockAndDataForSchain
+      .hasSchain(schainID, {from: deployer});
+    // expectation
+    expect(res).to.be.true;
+  });
+
+  it("should return false when invoke `hasSchain`", async () => {
+    // preparation
+    const schainID = randomString(10);
+    // execution
+    const res = await lockAndDataForSchain
+      .hasSchain(schainID, {from: deployer});
+    // expectation
+    expect(res).to.be.false;
+  });
+
+  it("should return true when invoke `hasDepositBox`", async () => {
+    // preparation
+    const depositBoxAddress = user;
+    // add schain for return `true` after `hasDepositBox` invoke
+    await lockAndDataForSchain.addDepositBox(depositBoxAddress, {from: deployer});
+    // execution
+    const res = await lockAndDataForSchain
+      .hasDepositBox({from: deployer});
+    // expectation
+    expect(res).to.be.true;
+  });
+
+  it("should return false when invoke `hasDepositBox`", async () => {
+    // preparation
+    const depositBoxAddress = user;
+    // execution
+    const res = await lockAndDataForSchain
+      .hasDepositBox({from: deployer});
+    // expectation
+    expect(res).to.be.false;
+  });
+
 });
