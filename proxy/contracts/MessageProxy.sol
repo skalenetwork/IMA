@@ -117,7 +117,7 @@ contract MessageProxy {
     // This is called by  schain owner.
     // On mainnet, SkaleManager will call it every time a SKALE chain is
     // created. Therefore, any SKALE chain is always connected to the main chain.
-    // To connect to other chains, the owner needs to explicitely call this function
+    // To connect to other chains, the owner needs to explicitly call this function
     function addConnectedChain(
         string memory newChainID,
         uint[4] memory newPublicKey
@@ -127,10 +127,11 @@ contract MessageProxy {
         //require(msg.sender == owner); // todo: tmp!!!!!
         require(
             keccak256(abi.encodePacked(newChainID)) !=
-            keccak256(abi.encodePacked("Mainnet"))
-        ); // main net does not have a public key and is implicitely connected
+            keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
+        // main net does not have a public key and is implicitly connected
         require(
-            !connectedChains[keccak256(abi.encodePacked(newChainID))].inited
+            !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
+            "Chain is aready connected"
         );
         connectedChains[
             keccak256(abi.encodePacked(newChainID))
@@ -165,7 +166,7 @@ contract MessageProxy {
         public
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
-        require(connectedChains[dstChainHash].inited);
+        require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         connectedChains[dstChainHash].outgoingMessageCounter++;
         emit OutgoingMessage(
             dstChainID,
