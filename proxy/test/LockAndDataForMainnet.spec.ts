@@ -7,6 +7,7 @@ import { DepositBoxContract,
   MessageProxyContract,
   MessageProxyInstance,
   } from "../types/truffle-contracts";
+import { randomString } from "./utils/helper";
 import { skipTime } from "./utils/time";
 
 import chai = require("chai");
@@ -202,6 +203,29 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     await lockAndDataForMainnet
       .addSchain(schainName, "0x0000000000000000000000000000000000000000", {from: deployer})
       .should.be.eventually.rejectedWith(error);
+  });
+
+  it("should return true when invoke `hasSchain`", async () => {
+    // preparation
+    const schainID = randomString(10);
+    // add schain for return `true` after `hasSchain` invoke
+    await lockAndDataForMainnet
+      .addSchain(schainID, deployer, {from: deployer});
+    // execution
+    const res = await lockAndDataForMainnet
+      .hasSchain(schainID, {from: deployer});
+    // expectation
+    expect(res).to.be.true;
+  });
+
+  it("should return false when invoke `hasSchain`", async () => {
+    // preparation
+    const schainID = randomString(10);
+    // execution
+    const res = await lockAndDataForMainnet
+      .hasSchain(schainID, {from: deployer});
+    // expectation
+    expect(res).to.be.false;
   });
 
 });
