@@ -40,7 +40,9 @@ contract LockAndDataForSchain is Ownable {
     mapping(address => uint) public ethCosts;
 
     modifier allow(string memory contractName) {
-        require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender, "Not allowed. in LockAndDataForSchain");
+        require(
+            permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
+            owner == msg.sender, "Not allowed");
         _;
     }
 

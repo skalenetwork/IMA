@@ -208,7 +208,7 @@ Performed with the **--s2m-payment** command line option:
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
 
-### View how much ETHH you can receive from S-Chain account to Main-net
+### View how much ETH you can receive from S-Chain account to Main-net
 
 Performed with the **--s2m-view** command line option:
 
