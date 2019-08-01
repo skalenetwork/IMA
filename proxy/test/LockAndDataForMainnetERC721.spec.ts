@@ -54,59 +54,40 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
 
   });
 
-  it("should rejected with `Not enough money`", async () => {
+  it("should NOT to send ERC721 to `to` when invoke `sendERC721`", async () => {
     // preparation
     const contractHere = eRC721OnChain.address;
     const to = user;
     const tokenId = 1;
+    // mint some ERC721 of  for `deployer` address
+    await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
     // execution/expectation
     const res = await lockAndDataForMainnetERC721
         .sendERC721(contractHere, to, tokenId, {from: deployer});
-    console.log("transaction", res);
+    // expectation
+    expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(deployer);
   });
 
-/*   it("should return `true` after invoke `sendERC721`", async () => {
+  it("should to send ERC721 to `to` when invoke `sendERC721`", async () => {
     // preparation
     const contractHere = eRC721OnChain.address;
     const to = user;
-    const amount = 10;
-    // set `LockAndDataERC721` contract before invoke `depositERC721`
-    await lockAndDataForMainnet
-        .setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address, {from: deployer});
-    // mint some quantity of ERC721 tokens for `deployer` address
-    await eRC721OnChain.mint(deployer, "1000000000", {from: deployer});
-    // transfer some quantity of ERC721 tokens for `lockAndDataForMainnetERC721` address
-    await eRC721OnChain.transferFrom(lockAndDataForMainnetERC721.address, "1000000", {from: deployer});
+    const tokenId = 1;
+    // mint some ERC721 of  for `deployer` address
+    await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
+    // transfer tokenId from `deployer` to `lockAndDataForMainnetERC721`
+    await eRC721OnChain.transferFrom(deployer,
+        lockAndDataForMainnetERC721.address, tokenId, {from: deployer});
     // execution
     const res = await lockAndDataForMainnetERC721
-        .sendERC721(contractHere, to, amount, {from: deployer});
+        .sendERC721(contractHere, to, tokenId, {from: deployer});
     // expectation
-    expect(res.logs[0].args.result).to.be.true;
+    expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(user);
   });
 
-  it("should return `token index` after invoke `addERC721Token`", async () => {
+  it("should add ERC721 token when invoke `sendERC721`", async () => {
     // preparation
-    const decimals = 18;
-    const name = "elvis";
-    const tokenName = "ELV";
-    const sopply = 1000000 * 10 ** 18;
-    const data = "0x" + // create data for create ERC721 trought tokenFactory (see ERC721ModuleForSchain.encodeData)
-        "01" + // bytes1(uint8(3))
-        createBytes32("0") + // bytes32(contractPosition)
-        createBytes32("0") + // bytes32(bytes20(to))
-        createBytes32("0") + // bytes32(amount)
-        createBytes32(name.length.toString()) + // bytes(name).length
-        stringToHex(name, 1) + // name
-        createBytes32(tokenName.length.toString()) + // bytes(symbol).length
-        stringToHex(tokenName, 1) + // symbol
-        decimals.toString(16) + // decimals
-        createBytes32(sopply.toString(16)); // totalSupply
-    // create ERC721 token
-    // const erc721TokenAddress = await tokenFactory.createERC721(data, {from: deployer});
-    const {logs} = await tokenFactory.createERC721(data, {from: deployer});
-    const contractHere = logs[0].args.contractAddress;
-    // for execution#2
-    const contractHer = eRC721OnChain.address;
+    const contractHere = eRC721OnChain.address;
     // execution#1
     const res = await lockAndDataForMainnetERC721
         .addERC721Token(contractHere, {from: deployer});
@@ -115,10 +96,10 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
         .should.be.equal(1);
     // execution#2
     const res1 = await lockAndDataForMainnetERC721
-        .addERC721Token(contractHer, {from: deployer});
+        .addERC721Token(contractHere, {from: deployer});
     // expectation#2
     parseInt(new BigNumber(res1.logs[0].args.index).toString(), 10)
         .should.be.equal(2);
-  }); */
+  });
 
 });
