@@ -1,6 +1,8 @@
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
+    ERC721OnChainContract,
+    ERC721OnChainInstance,
     LockAndDataForMainnetContract,
     LockAndDataForMainnetERC721Contract,
     LockAndDataForMainnetERC721Instance,
@@ -11,8 +13,6 @@ import {
     MessageProxyInstance,
     TokenFactoryContract,
     TokenFactoryInstance,
-    ERC721OnChainInstance,
-    ERC721OnChainContract,
     } from "../types/truffle-contracts";
 
 import { createBytes32 } from "./utils/helper";
