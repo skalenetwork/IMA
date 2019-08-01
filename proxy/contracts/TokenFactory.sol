@@ -108,6 +108,9 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
 
 contract TokenFactory is Permissions {
 
+    event ERC20TokenCreated(address contractAddress);
+    event ERC721TokenCreated(address contractAddress);
+
     constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
@@ -133,6 +136,7 @@ contract TokenFactory is Permissions {
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         newERC20.addMinter(lockAndDataERC20);
         newERC20.renounceMinter();
+        emit ERC20TokenCreated(address(newERC20));
         return address(newERC20);
     }
 
@@ -148,6 +152,7 @@ contract TokenFactory is Permissions {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         newERC721.addMinter(lockAndDataERC721);
         newERC721.renounceMinter();
+        emit ERC721TokenCreated(address(newERC721));
         return address(newERC721);
     }
 

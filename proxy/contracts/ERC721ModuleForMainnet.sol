@@ -12,6 +12,10 @@ interface ILockAndDataERC721M {
 
 contract ERC721ModuleForMainnet is Permissions {
 
+    event EncodedData(bytes data);
+    event EncodedRawData(bytes data);
+    event SentERC721(bool result);
+
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
         
     }
@@ -23,9 +27,13 @@ contract ERC721ModuleForMainnet is Permissions {
             if (contractPosition == 0) {
                 contractPosition = ILockAndDataERC721M(lockAndDataERC721).addERC721Token(contractHere);
             }
-            return encodeData(contractHere, contractPosition, to, tokenId);
+            data = encodeData(contractHere, contractPosition, to, tokenId);
+            emit EncodedData(bytes(data));
+            return data;
         } else {
-            return encodeRawData(to, tokenId);
+            data = encodeRawData(to, tokenId);
+            emit EncodedRawData(bytes(data));
+            return data;
         }
     }
 
@@ -42,7 +50,9 @@ contract ERC721ModuleForMainnet is Permissions {
             (receiver, tokenId) = fallbackRawDataParser(data);
             contractAddress = to;
         }
-        return ILockAndDataERC721M(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
+        bool variable = ILockAndDataERC721M(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);   
+        emit SentERC721(bool(variable));
+        return variable;
     }
 
     function getReceiver(address to, bytes memory data) public pure returns (address receiver) {
