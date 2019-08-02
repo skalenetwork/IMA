@@ -1,5 +1,6 @@
 from tools.test_case import TestCase
 from time import sleep
+from tools.test_pool import test_pool
 
 
 class SendEtherToSchain(TestCase):
@@ -24,3 +25,4 @@ class SendEtherToSchain(TestCase):
 
         self._mark_passed()
 
+test_pool.register_test(SendEtherToSchain)

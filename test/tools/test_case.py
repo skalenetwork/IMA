@@ -40,6 +40,9 @@ class TestCase:
     def is_passed(self):
         return self.passed
 
+    def get_name(self):
+        return self.name
+
     # protected
 
     def _prepare(self):
