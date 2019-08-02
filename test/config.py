@@ -12,6 +12,8 @@ class Config:
     schain_key = ''
     schain_rpc_url = 'http://localhost:8545'
     schain_name = 'd2'
+    abi_mainnet = 'data/proxyMainnet.json'
+    abi_schain = 'data/proxySchain_'
 
     def __init__(self, src_root, config_filename):
         self.proxy_root = src_root + '/' + self.proxy_root
@@ -26,4 +28,7 @@ class Config:
             self.schain_key = config_json['ETH_PRIVATE_KEY_FOR_SCHAIN']
             self.schain_rpc_url = config_json['SCHAIN_RPC_URL']
             self.schain_name = config_json['SCHAIN_NAME']
+        self.abi_mainnet = self.proxy_root + '/' + self.abi_mainnet
+        self.abi_schain = self.proxy_root + '/' + self.abi_schain + self.schain_name + '.json'
+
 

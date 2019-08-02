@@ -25,22 +25,28 @@ class Agent:
 
     # private
 
-    def _execute_command(self, command):
-        execute(self._format_command(command))
+    def _execute_command(self, command, flags={}):
+        execute(self._format_command(command, flags))
 
-    def _construct_command(self, command):
+    def _construct_command(self, command, flags={}):
+        flags = {**self._get_default_flags(), command: None, **flags}
+
         return ['node',
-                f'{self.config.agent_root}/main.js',
-                '--verbose=9',
-                f'--{command}',
-                f'--url-main-net={self.config.mainnet_rpc_url}',
-                f'--url-s-chain={self.config.schain_rpc_url}',
-                f'--id-main-net=Mainnet',
-                f'--id-s-chain={self.config.schain_name}',
-                f'--abi-main-net={self.config.proxy_root}/data/proxyMainnet.json',
-                f'--abi-s-chain={self.config.proxy_root}/data/proxySchain_{self.config.schain_name}.json',
-                f'--key-main-net={self.config.mainnet_key}',
-                f'--key-s-chain={self.config.schain_key}']
+                f'{self.config.agent_root}/main.js'] + \
+               [f'--{key}' + (f'={str(value)}' if value is not None else '') for key, value in flags.items() ]
 
-    def _format_command(self, command):
-        return ' '.join(self._construct_command(command))
+    def _format_command(self, command, flags={}):
+        return ' '.join(self._construct_command(command, flags))
+
+    def _get_default_flags(self):
+        return {
+            'verbose': 9,
+            'url-main-net': self.config.mainnet_rpc_url,
+            'url-s-chain': self.config.schain_rpc_url,
+            'id-main-net': 'Mainnet',
+            'id-s-chain': self.config.schain_name,
+            'abi-main-net': self.config.abi_mainnet,
+            'abi-s-chain': self.config.abi_schain,
+            'key-main-net': self.config.mainnet_key,
+            'key-s-chain': self.config.schain_key
+        }

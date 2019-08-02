@@ -7,6 +7,8 @@ from agent.agent_environment import AgentEnvironment
 from proxy.deployer import Deployer
 from proxy.proxy_environment import ProxyEnvironment
 from agent.agent import Agent
+from test_cases.send_ether_to_schain import SendEtherToSchain
+from blockchain import BlockChain
 
 def main():
     if len(sys.argv) < 2:
@@ -23,14 +25,28 @@ def main():
     # agentEnvironment.prepare()
 
     deployer = Deployer(config)
-    deployer.deploy()
+    # deployer.deploy()
 
     agent = Agent(config)
-    agent.register()
+    # agent.register()
 
-    agent.start()
+    # agent.start()
 
-    time.sleep(10)
+    # time.sleep(10)
+
+    test = SendEtherToSchain(config)
+    test.prepare()
+    test.execute()
+    test.clean_up()
+
+    if test.is_passed():
+        print('Test passed')
+    else:
+        print('Test failed')
+
+    # blockchain = BlockChain(config)
+    # print(blockchain.key_to_address(config.schain_key))
+    # blockchain.get_balance_on_schain(blockchain.key_to_address(config.schain_key))
 
 
 if __name__ == '__main__':
