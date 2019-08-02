@@ -1,6 +1,6 @@
-from os import system, chdir
-from environment import Environment
-from utils import execute
+from os import chdir
+from tools.environment import Environment
+from tools.utils import execute
 
 class ProxyEnvironment(Environment):
     config = None

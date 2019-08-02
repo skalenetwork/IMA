@@ -1,6 +1,6 @@
-from environment import Environment
+from tools.environment import Environment
 from os import chdir
-from utils import execute
+from tools.utils import execute
 
 class AgentEnvironment(Environment):
     config = None

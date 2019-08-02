@@ -1,4 +1,4 @@
-from test_case import TestCase
+from tools.test_case import TestCase
 from time import sleep
 
 
