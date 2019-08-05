@@ -3,11 +3,11 @@ FROM node:10.15.1
 RUN mkdir /ima
 WORKDIR /ima
 
-RUN cd proxy && npm i
+COPY agent agent
+COPY npms npms
+
 RUN cd agent && npm i
 RUN cd npms/skale-mta && npm i
-
-COPY . .
 
 
 CMD ["node", "/ima/agent/run.js"]
