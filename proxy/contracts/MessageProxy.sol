@@ -107,7 +107,7 @@ contract MessageProxy {
         require(
             keccak256(abi.encodePacked(someChainID)) !=
             keccak256(abi.encodePacked("Mainnet"))
-        ); // main net does not have a public key and is implicitely connected
+        ); // main net does not have a public key and is implicitly connected
         if( ! connectedChains[keccak256(abi.encodePacked(someChainID))].inited ) {
             return false;
         }
