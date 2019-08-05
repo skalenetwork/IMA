@@ -6,14 +6,13 @@
     "solc": "^0.5.4",
     "truffle": "^5.0.12",
     "truffle-hdwallet-provider": "^1.0.9",
-    "truffle-hdwallet-provider-privkey": "^0.3.0",
     "typescript": "^3.5.2",
-    "web3": "1.0.0-beta.37"
+    "web3": "^1.0.0-beta.37"
   },
   "license": "AGPL-3.0",
   "scripts": {
     "lint": "npx solium --no-soliumignore --dir contracts",
-    "start": "rm -rf ./build && ./node_modules/.bin/truffle compile",
+    "compile": "rm -rf ./build && ./node_modules/.bin/truffle compile",
     "deploy-to-mainnet": "DIRECTION=main bash ./scripts/deploy.sh",
     "deploy-to-schain": "DIRECTION=schain bash ./scripts/deploy.sh",
     "deploy-to-both-chains": "DIRECTION=both bash ./scripts/deploy.sh",

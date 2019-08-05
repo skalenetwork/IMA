@@ -105,7 +105,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // the wei should be MORE than (55000 * 1000000000)
       // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
       // to avoid the `Not enough money` error
-      const wei = "900000000000000";
+      const wei = "20000000000000000";
       // add schain to avoid the `Unconnected chain` error
       const chain = await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
@@ -144,7 +144,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         const schainID = randomString(10);
         // the wei should be MORE than (55000 * 1000000000)
         // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-        const wei = "900000000000000";
+        const wei = "20000000000000000";
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
@@ -165,7 +165,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         const schainID = randomString(10);
         // the wei should be MORE than (55000 * 1000000000)
         // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-        const wei = "900000000000000";
+        const wei = "20000000000000000";
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
@@ -201,7 +201,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         const schainID = randomString(10);
         // the wei should be MORE than (55000 * 1000000000)
         // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-        const wei = "900000000000000";
+        const wei = "20000000000000000";
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
@@ -222,7 +222,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         const schainID = randomString(10);
         // the wei should be MORE than (55000 * 1000000000)
         // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-        const wei = "900000000000000";
+        const wei = "20000000000000000";
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
@@ -276,7 +276,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         const tokenId = 10;
         // the wei should be MORE than (55000 * 1000000000)
         // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-        const wei = "900000000000000";
+        const wei = "20000000000000000";
         // add schain to avoid the `Unconnected chain` error
         await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
@@ -308,7 +308,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         const tokenId = 10;
         // the wei should be MORE than (55000 * 1000000000)
         // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-        const wei = "900000000000000";
+        const wei = "20000000000000000";
         // add schain to avoid the `Unconnected chain` error
         await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
@@ -349,7 +349,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         const tokenId = 10;
         // the wei should be MORE than (55000 * 1000000000)
         // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-        const wei = "900000000000000";
+        const wei = "20000000000000000";
         // add schain to avoid the `Unconnected chain` error
         await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
@@ -382,7 +382,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         const tokenId = 10;
         // the wei should be MORE than (55000 * 1000000000)
         // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-        const wei = "900000000000000";
+        const wei = "20000000000000000";
         // add schain to avoid the `Unconnected chain` error
         await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
@@ -535,12 +535,12 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       //  preparation
       const error = "Could not send money to owner";
       const schainID = randomString(10);
-      const amount = 700000000000000;
+      const amount = "30000000000000000";
       // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
       const bytesData = "0x01";
       const sender = deployer;
       // add less then `GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE` to `lockAndDataForMainnet` for invoke error
-      const wei = "900000000000";
+      const wei = "200000000000000";
       // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
@@ -563,11 +563,11 @@ contract("DepositBox", ([deployer, user, invoker]) => {
     it("should transfer eth", async () => {
       //  preparation
       const schainID = randomString(10);
-      const amount = 700000000000000;
+      const amount = "30000000000000000";
       // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
       const bytesData = "0x01";
       const sender = deployer;
-      const wei = "900000000000000";
+      const wei = "20000000000000000";
       // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
@@ -597,11 +597,11 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const contractHere = ethERC20.address;
       const schainID = randomString(10);
       const amount = 10;
-      const amount0 = 700000000000000;
+      const amount0 = "30000000000000000";
       const to = user;
       const to0 = "0x0000000000000000000000000000000000000000"; // ERC20 address
       const sender = deployer;
-      const wei = "900000000000000";
+      const wei = "20000000000000000";
       const isRaw = false;
       // add schain to avoid the `Unconnected chain` error
       await lockAndDataForMainnet
@@ -653,11 +653,11 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const contractHere = ethERC20.address;
       const schainID = randomString(10);
       const amount = 10;
-      const amount0 = 700000000000000;
+      const amount0 = "30000000000000000";
       const to = user;
       const to0 = ethERC20.address; // ERC20 address
       const sender = deployer;
-      const wei = "900000000000000";
+      const wei = "20000000000000000";
       const isRaw = true;
       // add schain to avoid the `Unconnected chain` error
       await lockAndDataForMainnet
@@ -709,11 +709,11 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const contractHere = eRC721OnChain.address;
       const schainID = randomString(10);
       const tokenId = 10;
-      const amount0 = 700000000000000;
+      const amount0 = "30000000000000000";
       const to = user;
       const to0 = "0x0000000000000000000000000000000000000000"; // ERC721 address
       const sender = deployer;
-      const wei = "900000000000000";
+      const wei = "20000000000000000";
       const isRaw = false;
       // add schain to avoid the `Unconnected chain` error
       await lockAndDataForMainnet
@@ -761,11 +761,11 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const contractHere = eRC721OnChain.address;
       const schainID = randomString(10);
       const tokenId = 10;
-      const amount0 = 700000000000000;
+      const amount0 = "30000000000000000";
       const to = user;
       const to0 = eRC721OnChain.address; // ERC721 address
       const sender = deployer;
-      const wei = "900000000000000";
+      const wei = "20000000000000000";
       const isRaw = true;
       // add schain to avoid the `Unconnected chain` error
       await lockAndDataForMainnet

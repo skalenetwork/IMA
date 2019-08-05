@@ -29,7 +29,7 @@ elif [ "${DIRECTION}" = schain ]; then
         exit 1
     fi
     echo "NETWORK_FOR_SCHAIN is" ${NETWORK_FOR_SCHAIN}
-    ./node_modules/.bin/truffle deploy -f 2 --to 2 --network ${NETWORK_FOR_SCHAIN}
+    ./node_modules/.bin/truffle deploy --f 2 --to 2 --network ${NETWORK_FOR_SCHAIN}
 elif [ "${DIRECTION}" = both ]; then
     if [[ -z "${NETWORK_FOR_MAINNET}" ]]; then
         echo "Please set NETWORK_FOR_MAINNET to .env file"
