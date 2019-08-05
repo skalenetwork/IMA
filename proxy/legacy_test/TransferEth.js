@@ -2,7 +2,8 @@ require('dotenv').config();
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 let mainnetData = require("../data/proxyMainnet.json");
-let schainData = require("../data/proxySchain.json");
+let schainData = require("../data/proxySchain_MySchain.json");
+let erc721Data = require("../data/erc721.json");
 
 let mainnetRPC = process.env.MAINNET_RPC_URL;
 let schainRPC = process.env.SCHAIN_RPC_URL;
@@ -39,6 +40,9 @@ let lockAndDataERC20ForMainnetABI = mainnetData.lock_and_data_for_mainnet_erc20_
 let lockAndDataERC20ForSchainAddress = schainData.lock_and_data_for_schain_erc20_address;
 let lockAndDataERC20ForSchainABI = schainData.lock_and_data_for_schain_erc20_abi;
 
+let erc721TokenAddress = erc721Data.erc721_address;
+let erc721TokenABI = erc721Data.erc721_abi;
+
 let web3Mainnet = new Web3(new Web3.providers.HttpProvider(mainnetRPC));
 let web3Schain = new Web3(new Web3.providers.HttpProvider(schainRPC));
 
@@ -58,6 +62,8 @@ let LockAndDataForSchainERC20 = new web3Schain.eth.Contract(lockAndDataERC20ForS
 let erc20Address = "0x3a5bdd7447D4948a88B09456A161C5c06555381e"; 
 
 let erc20AddressOnSchain = "0xbe693468734455c80c6bc0db66e20da49cc626c8";
+
+let erc721AddressOnSchain ="0xc3f5ab555587741a7ff089e6c60d4eb7297e298c";
 
 let TokenABI = [
     {
@@ -473,6 +479,9 @@ let TokenABI = [
 let erc20Contract = new web3Mainnet.eth.Contract(TokenABI, erc20Address);
 let erc20ContractOnSchain = new web3Schain.eth.Contract(TokenABI, erc20AddressOnSchain);
 
+let erc721Contract = new web3Mainnet.eth.Contract(erc721TokenABI, erc721TokenAddress);
+let erc721ContractOnSchain = new web3Schain.eth.Contract(erc721TokenABI, erc721AddressOnSchain);
+
 let deposit = DepositBox.methods.deposit(schainName, accountMainnet).encodeABI();
 
 let exitToMain = TokenManager.methods.exitToMain(accountMainnet, "1000000000000000000").encodeABI();
@@ -488,6 +497,16 @@ let addEthCosts = TokenManager.methods.addEthCost("1000000000000000000").encodeA
 let approveOnSchain = erc20ContractOnSchain.methods.approve(tokenManagerAddress, "10000000000000000000").encodeABI();
 
 let exitToMainERC20 = TokenManager.methods.exitToMainERC20(erc20AddressOnSchain, accountMainnet, "10000000000000000000").encodeABI();
+
+let mintERC721 = erc721Contract.methods.mint(accountMainnet, 1).encodeABI();
+
+let transferERC721 = erc721Contract.methods.transferFrom(accountMainnet, depositBoxAddress, 1).encodeABI();
+
+let transferERC721OnSchain = erc721ContractOnSchain.methods.transferFrom(accountMainnet, tokenManagerAddress, 1).encodeABI();
+
+let depositERC721 = DepositBox.methods.depositERC721(schainName, erc721TokenAddress, accountSchain, 1).encodeABI();
+
+let exitToMainERC721 = TokenManager.methods.exitToMainERC721(erc721AddressOnSchain, accountMainnet, 1).encodeABI();
 
 async function sendTransaction(web3Inst, account, privateKey, data, receiverContract, amount) {
     await web3Inst.eth.getTransactionCount(account).then(nonce => {
@@ -549,10 +568,24 @@ async function sendERC20ToMainnet() {
     console.log("Balance ERC20 Token Lock And Data ERC20 On Schain", balanceLockAndDataOnSchain);
 }
 
+async function sendERC721ToSchain() {
+    await sendTransaction(web3Mainnet, accountMainnet, privateKeyMainnetBuffer, mintERC721, erc721TokenAddress, 0);
+    await sendTransaction(web3Mainnet, accountMainnet, privateKeyMainnetBuffer, transferERC721, erc721TokenAddress, 0);
+    await sendTransaction(web3Mainnet, accountMainnet, privateKeyMainnetBuffer, depositERC721, depositBoxAddress, "1000000000000000000");
+}
+
+async function sendERC721ToMainnet() {
+  await sendTransaction(web3Schain, accountMainnet, privateKeyMainnetBuffer, addEthCosts, tokenManagerAddress, 0);
+  await sendTransaction(web3Schain, accountMainnet, privateKeyMainnetBuffer, transferERC721OnSchain, erc721AddressOnSchain, 0);
+  await sendTransaction(web3Schain, accountMainnet, privateKeyMainnetBuffer, exitToMainERC721, tokenManagerAddress, 0);
+}
+
 
 
 // sendMoneyToMainnet();
 // sendMoneyToSchain();
 // getMyETH();
 // sendERC20ToSchain();
-sendERC20ToMainnet();
+// sendERC20ToMainnet();
+// sendERC721ToSchain();
+sendERC721ToMainnet();
