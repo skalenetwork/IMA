@@ -67,27 +67,6 @@ contract("LockAndDataForMainnetERC20", ([deployer, user, invoker]) => {
     const contractHere = ethERC20.address;
     const to = user;
     const amount = 10;
-    /* const decimals = 18;
-    const name = "elvis";
-    const tokenName = "ELV";
-    const sopply = 1000000 * 10 ** 18;
-    const data = "0x" + // create data for create ERC20 trought tokenFactory (see ERC20ModuleForSchain.encodeData)
-        "01" + // bytes1(uint8(3))
-        createBytes32("0") + // bytes32(contractPosition)
-        createBytes32("0") + // bytes32(bytes20(to))
-        createBytes32("0") + // bytes32(amount)
-        createBytes32(name.length.toString()) + // bytes(name).length
-        stringToHex(name, 1) + // name
-        createBytes32(tokenName.length.toString()) + // bytes(symbol).length
-        stringToHex(tokenName, 1) + // symbol
-        decimals.toString(16) + // decimals
-        createBytes32(sopply.toString(16)); // totalSupply
-    // create ERC20 token
-    // const erc20TokenAddress = await tokenFactory.createERC20(data, {from: deployer});
-    const {logs} = await tokenFactory.createERC20(data, {from: deployer});
-    const contractHere = logs[0].args.contractAddress;
-    console.log("tokenfactory", logs[0].args.contractAddress);
-    console.log("contractHere", contractHere); */
     // set `LockAndDataERC20` contract before invoke `depositERC20`
     await lockAndDataForMainnet
         .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
