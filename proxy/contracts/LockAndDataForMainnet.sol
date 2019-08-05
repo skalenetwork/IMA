@@ -38,6 +38,12 @@ contract LockAndDataForMainnet is Ownable {
 
     event MoneyReceived(address from, uint amount);
 
+    event Error(
+        address to,
+        uint amount,
+        string message
+    );
+
     constructor() Ownable() public {
 
     }
@@ -59,6 +65,14 @@ contract LockAndDataForMainnet is Ownable {
         permitted[contractId] = newContract;
     }
 
+    function hasSchain( string memory schainID ) public view returns (bool) {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        if( tokenManagerAddresses[schainHash] == address(0) ) {
+            return false;
+        }
+        return true;
+    }
+
     function addSchain(string memory schainID, address tokenManagerAddress) public onlyOwner {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
@@ -71,7 +85,7 @@ contract LockAndDataForMainnet is Ownable {
     }
 
     function getMyEth() public {
-        require(address(this).balance >= approveTransfers[msg.sender], "Not enough ETH");
+        require(address(this).balance >= approveTransfers[msg.sender], "Not enough ETH. in `LockAndDataForMainnet.getMyEth`");
         require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
         uint amount = approveTransfers[msg.sender];
         approveTransfers[msg.sender] = 0;
@@ -79,7 +93,15 @@ contract LockAndDataForMainnet is Ownable {
     }
 
     function sendEth(address payable to, uint amount) public allow("DepositBox") returns (bool) {
-        require(address(this).balance >= amount, "Not enough ETH");
+        // require(address(this).balance >= amount, "Not enough ETH. in `LockAndDataForMainnet.sendEth`");
+        if (address(this).balance < amount) {
+            emit Error(
+                to,
+                amount,
+                "Not enough ETH. in `LockAndDataForMainnet.sendEth`"
+            );
+            return false;
+        }
         to.transfer(amount);
         return true;
     }

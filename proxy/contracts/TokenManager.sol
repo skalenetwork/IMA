@@ -65,8 +65,8 @@ contract TokenManager is Permissions {
     //uint public TOKEN_RESERVE = 102000000 * (10 ** 18); //ether
     //uint public TOKEN_RESERVE = 10 * (10 ** 18); //ether
 
-    uint public constant GAS_AMOUNT_POST_MESSAGE = 55000;
-    uint public constant AVERAGE_TX_PRICE = 1000000000;
+    uint public constant GAS_AMOUNT_POST_MESSAGE = 200000;
+    uint public constant AVERAGE_TX_PRICE = 10000000000;
 
     // Owner of this schain. For mainnet
     //address public owner;
@@ -110,7 +110,7 @@ contract TokenManager is Permissions {
     }
 
     function() external {
-        revert("Not allowed");
+        revert("Not allowed. in TokenManager");
     }
 
     // This is called by schain owner.
@@ -278,7 +278,7 @@ contract TokenManager is Permissions {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
         require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721Full(contractHere).transferFrom(msg.sender, lockAndDataERC721, tokenId);
+        IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         require(ILockAndDataTM(lockAndDataAddress).reduceGasCosts(msg.sender, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE), "Not enough gas sent");
         bytes memory data = IERC721Module(erc721Module).receiveERC721(contractHere, to, tokenId, false);
@@ -295,7 +295,7 @@ contract TokenManager is Permissions {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
         require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721Full(contractHere).transferFrom(msg.sender, lockAndDataERC721, tokenId);
+        IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         require(ILockAndDataTM(lockAndDataAddress).reduceGasCosts(msg.sender, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE), "Not enough gas sent");
         bytes memory data = IERC721Module(erc721Module).receiveERC721(contractHere, to, tokenId, false);
@@ -312,7 +312,7 @@ contract TokenManager is Permissions {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
         require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721Full(contractHere).transferFrom(msg.sender, lockAndDataERC721, tokenId);
+        IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         bytes memory data = IERC721Module(erc721Module).receiveERC721(contractHere, to, tokenId, false);
         IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
@@ -328,7 +328,7 @@ contract TokenManager is Permissions {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
         require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721Full(contractHere).transferFrom(msg.sender, lockAndDataERC721, tokenId);
+        IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         bytes memory data = IERC721Module(erc721Module).receiveERC721(contractHere, to, tokenId, false);
         IMessageProxy(proxyForSchainAddress).postOutgoingMessage(

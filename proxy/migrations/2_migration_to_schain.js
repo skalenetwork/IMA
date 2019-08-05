@@ -71,6 +71,8 @@ async function deploy(deployer, network) {
             erc721_module_for_schain_abi: ERC721ModuleForSchain.abi,
             token_factory_address: TokenFactory.address,
             token_factory_abi: TokenFactory.abi,
+            // erc721_on_chain_address: ERC721OnChain.address,
+            // erc721_on_chain_abi: ERC721OnChain.abi,
             message_proxy_chain_address: MessageProxy.address,
             message_proxy_chain_abi: MessageProxy.abi
         }

@@ -8,8 +8,6 @@
 node ./main.js --load-node-config=~/Work/SkaleExperimental/skaled-tests/single-node/run-skaled/config0.json --loop --time-framing=10 --time-gap=3 --period=2
 */
 
-
-
 //
 //
 // init very basics
@@ -110,8 +108,11 @@ let g_nTransferBlockSizeM2S = 10;
 let g_nTransferBlockSizeS2M = 10;
 let g_nMaxTransactionsM2S = 0;
 let g_nMaxTransactionsS2M = 0;
+
 let g_nBlockAwaitDepthM2S = 0;
 let g_nBlockAwaitDepthS2M = 0;
+let g_nBlockAgeM2S = 0;
+let g_nBlockAgeS2M = 0;
 
 let g_nLoopPeriodSeconds = 10;
 
@@ -254,12 +255,17 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         console.log( soi + cc.debug( "--" ) + cc.bright( "amount" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "................." ) + cc.notice( "Amount of " ) + cc.attention( "tokens" ) + cc.notice( " to transfer." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "raw-transfer" ) + cc.debug( ".................." ) + cc.notice( "Perform raw ERC20 token transfer to pre-deployed contract on S-Chain(do not instantiate new contract)." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "no-raw-transfer" ) + cc.debug( "..............." ) + cc.notice( "Perform ERC20 token transfer to auto instantiated contract on S-Chain." ) );
-        console.log( cc.sunny( "ACTION" ) + cc.info( " commands:" ) );
-        console.log( soi + cc.debug( "--" ) + cc.bright( "show-config" ) + cc.debug( "..................." ) + cc.notice( "Show " ) + cc.note( "onfiguration values" ) + cc.notice( " and exit." ) );
+        console.log( cc.sunny( "REGISTRATION" ) + cc.info( " commands:" ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "register" ) + cc.debug( "......................" ) + cc.note( "Register" ) + cc.notice( "(peform all steps)" ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "register1" ) + cc.debug( "....................." ) + cc.note( "Perorm registration step 1" ) + cc.notice( " - register S-Chain on Main-net." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "register2" ) + cc.debug( "....................." ) + cc.note( "Perorm registration step 2" ) + cc.notice( " - register S-Chain in deposit box." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "register3" ) + cc.debug( "....................." ) + cc.note( "Perorm registration step 3" ) + cc.notice( " - register Main-net deposit box on S-Chain." ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration" ) + cc.debug( "............" ) + cc.note( "Registeration status check" ) + cc.notice( "(peform all steps)" ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration1" ) + cc.debug( "..........." ) + cc.note( "Perorm registration status check step 1" ) + cc.notice( " - register S-Chain on Main-net." ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration2" ) + cc.debug( "..........." ) + cc.note( "Perorm registration status check step 2" ) + cc.notice( " - register S-Chain in deposit box." ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration3" ) + cc.debug( "..........." ) + cc.note( "Perorm registration status check step 3" ) + cc.notice( " - register Main-net deposit box on S-Chain." ) );
+        console.log( cc.sunny( "ACTION" ) + cc.info( " commands:" ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "show-config" ) + cc.debug( "..................." ) + cc.notice( "Show " ) + cc.note( "onfiguration values" ) + cc.notice( " and exit." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-payment" ) + cc.debug( "..................." ) + cc.notice( "Do one " ) + cc.note( "payment from Main-net user account to S-chain" ) + cc.notice( " user account." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-payment" ) + cc.debug( "..................." ) + cc.notice( "Do one " ) + cc.note( "payment from S-chain user account to Main-net" ) + cc.notice( " user account." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-receive" ) + cc.debug( "..................." ) + cc.notice( "Receive one " ) + cc.note( "payment from S-chain user account to Main-net" ) + cc.notice( " user account(ETH only, receives all the ETH pending in transfer)." ) );
@@ -279,6 +285,9 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-await-blocks" ) + cc.debug( ".............." ) + cc.notice( "Maximal number of blocks to wait to appear in blockchain before transaction from Main-net to S-chain (0 is no wait)." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-await-blocks" ) + cc.debug( ".............." ) + cc.notice( "Maximal number of blocks to wait to appear in blockchain before transaction from S-chain to Main-net (0 is no wait)." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "await-blocks" ) + cc.debug( ".................." ) + cc.notice( "Maximal number of blocks to wait to appear in blockchain before transaction between both S-chain and Main-net (0 is no wait)." ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-await-time" ) + cc.debug( "................" ) + cc.notice( "Minimal age of transaction message in seconds before it will be trasferred from Main-net to S-chain (0 is no wait)." ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-await-time" ) + cc.debug( "................" ) + cc.notice( "Minimal age of transaction message in seconds before it will be trasferred from S-chain to Main-net (0 is no wait)." ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "await-time" ) + cc.debug( "...................." ) + cc.notice( "Minimal age of transaction message in seconds before it will be trasferred between both S-chain and Main-net (0 is no wait)." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "period" ) + cc.debug( "........................" ) + cc.notice( "Transfer " ) + cc.note( "loop period" ) + cc.notice( "(seconds)." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "node-number" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.notice( "S-Chain " ) + cc.note( "node number" ) + cc.notice( "(zero based)." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "nodes-count" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.notice( "S-Chain " ) + cc.note( "nodes count" ) + cc.notice( "." ) );
@@ -459,6 +468,54 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         } );
         continue;
     }
+    if ( joArg.name == "check-registration" ) {
+        g_arrActions.push( {
+            "name": "Full registration status check(all steps)",
+            "fn": async function() {
+                const b = await check_registeration_all();
+                const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
+                log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
+                process.exit( nExitCode );
+            }
+        } );
+        continue;
+    }
+    if ( joArg.name == "check-registration1" ) {
+        g_arrActions.push( {
+            "name": "Registration status check for step 1, register S-Chain on Main-net",
+            "fn": async function() {
+                const b = await check_registeration_step1();
+                const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
+                log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
+                process.exit( nExitCode );
+            }
+        } );
+        continue;
+    }
+    if ( joArg.name == "check-registration2" ) {
+        g_arrActions.push( {
+            "name": "Registration status check step 2, register S-Chain in deposit box",
+            "fn": async function() {
+                const b = await check_registeration_step2();
+                const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
+                log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
+                process.exit( nExitCode );
+            }
+        } );
+        continue;
+    }
+    if ( joArg.name == "check-registration3" ) {
+        g_arrActions.push( {
+            "name": "Registration status check step 3, register Main-net deposit box on S-Chain",
+            "fn": async function() {
+                const b = await check_registeration_step3();
+                const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
+                log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
+                process.exit( nExitCode );
+            }
+        } );
+        continue;
+    }
     if ( joArg.name == "m2s-payment" ) {
         g_arrActions.push( {
             "name": "one M->S single payment",
@@ -581,7 +638,8 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                     g_chain_id_s_chain,
                     g_nTransferBlockSizeM2S,
                     g_nMaxTransactionsM2S,
-                    g_nBlockAwaitDepthM2S
+                    g_nBlockAwaitDepthM2S,
+                    g_nBlockAgeM2S
                 );
             }
         } );
@@ -604,7 +662,8 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                     g_chain_id_main_net,
                     g_nTransferBlockSizeS2M,
                     g_nMaxTransactionsS2M,
-                    g_nBlockAwaitDepthS2M
+                    g_nBlockAwaitDepthS2M,
+                    g_nBlockAgeS2M
                 );
             }
         } );
@@ -623,6 +682,18 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         g_arrActions.push( {
             "name": "M<->S transfer loop",
             "fn": async function() {
+                if( ! await check_registeration_step1() ) {
+                    if( ! await register_step1() )
+                        return false;
+                }
+                if( ! await check_registeration_step2() ) {
+                    if( ! await register_step2() )
+                        return false;
+                }
+                if( ! await check_registeration_step3() ) {
+                    if( ! await register_step3() )
+                        return false;
+                }
                 return await run_transfer_loop();
             }
         } );
@@ -676,6 +747,21 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
     if ( joArg.name == "await-blocks" ) {
         veryify_int_arg( joArg );
         g_nBlockAwaitDepthM2S = g_nBlockAwaitDepthS2M = parseInt( joArg.value );
+        continue;
+    }
+    if ( joArg.name == "m2s-await-time" ) {
+        veryify_int_arg( joArg );
+        g_nBlockAgeM2S = parseInt( joArg.value );
+        continue;
+    }
+    if ( joArg.name == "s2m-await-time" ) {
+        veryify_int_arg( joArg );
+        g_nBlockAgeS2M = parseInt( joArg.value );
+        continue;
+    }
+    if ( joArg.name == "await-time" ) {
+        veryify_int_arg( joArg );
+        g_nBlockAgeM2S = g_nBlockAgeS2M = parseInt( joArg.value );
         continue;
     }
     if ( joArg.name == "period" ) {
@@ -1085,6 +1171,12 @@ if ( MTA.verbose_get() > MTA.RV_VERBOSE.information || g_bShowConfigMode ) {
     ensure_have_value( "S->M await blocks", g_nBlockAwaitDepthS2M, false, true, null, ( x ) => {
         return cc.note( x );
     } );
+    ensure_have_value( "M->S minimal block age", g_nBlockAgeM2S, false, true, null, ( x ) => {
+        return cc.note( x );
+    } );
+    ensure_have_value( "S->M minimal block age", g_nBlockAgeS2M, false, true, null, ( x ) => {
+        return cc.note( x );
+    } );
     ensure_have_value( "Transfer loop period(seconds)", g_nLoopPeriodSeconds, false, true, null, ( x ) => {
         return cc.success( x );
     } );
@@ -1176,7 +1268,7 @@ do_the_job();
 return 0; // FINISH
 
 async function register_step1() {
-    var bRetVal = await MTA.register_s_chain_on_main_net(
+    var bRetVal = await MTA.register_s_chain_on_main_net( // step 1
         g_w3_main_net,
         g_jo_message_proxy_main_net,
         g_joAccount_main_net,
@@ -1190,7 +1282,7 @@ async function register_step1() {
     return true;
 }
 async function register_step2() {
-    var bRetVal = await MTA.register_s_chain_in_deposit_box(
+    var bRetVal = await MTA.register_s_chain_in_deposit_box( // step 2
         g_w3_main_net,
         //g_jo_deposit_box, // only main net
         g_jo_lock_and_data_main_net,
@@ -1206,7 +1298,7 @@ async function register_step2() {
     return true;
 }
 async function register_step3() {
-    var bRetVal = await MTA.reister_main_net_depositBox_on_s_chain(
+    var bRetVal = await MTA.register_main_net_depositBox_on_s_chain( // step 3
         g_w3_s_chain,
         //g_jo_token_manager, // only s-chain
         g_jo_deposit_box, // only main net
@@ -1230,6 +1322,40 @@ async function register_all() {
     return true;
 }
 
+async function check_registeration_all() {
+    const b1 = await check_registeration_step1();
+    const b2 = await check_registeration_step2();
+    const b3 = await check_registeration_step3();
+    if( ! (b1 && b2 && b3) )
+        return false;
+    return true;
+}
+async function check_registeration_step1() {
+    var bRetVal = await MTA.check_is_registered_s_chain_on_main_net( // step 1
+        g_w3_main_net,
+        g_jo_message_proxy_main_net,
+        g_joAccount_main_net,
+        g_chain_id_s_chain
+    );
+    return bRetVal;
+}
+async function check_registeration_step2() {
+    var bRetVal = await MTA.check_is_registered_s_chain_in_deposit_box( // step 2
+        g_w3_main_net,
+        g_jo_lock_and_data_main_net,
+        g_joAccount_main_net,
+        g_chain_id_s_chain
+    );
+    return bRetVal;
+}
+async function check_registeration_step3() {
+    var bRetVal = await MTA.check_is_registered_main_net_depositBox_on_s_chain( // step 3
+        g_w3_s_chain,
+        g_jo_lock_and_data_s_chain,
+        g_joAccount_s_chain
+    );
+    return bRetVal;
+}
 
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1258,7 +1384,8 @@ async function single_transfer_loop() {
         g_chain_id_s_chain,
         g_nTransferBlockSizeM2S,
         g_nMaxTransactionsM2S,
-        g_nBlockAwaitDepthM2S
+        g_nBlockAwaitDepthM2S,
+        g_nBlockAgeM2S
     );
     var b2 = await MTA.do_transfer( // s-chain --> main-net
         /**/
@@ -1273,7 +1400,8 @@ async function single_transfer_loop() {
         g_chain_id_main_net,
         g_nTransferBlockSizeS2M,
         g_nMaxTransactionsS2M,
-        g_nBlockAwaitDepthS2M
+        g_nBlockAwaitDepthS2M,
+        g_nBlockAgeS2M
     );
     var b3 = b1 && b2;
     return b3;

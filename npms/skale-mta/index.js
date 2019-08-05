@@ -142,7 +142,36 @@ function private_key_2_account_address( w3, keyPrivate ) {
 //
 // register S-Chain 1 on main net
 //
-async function register_s_chain_on_main_net(
+
+async function check_is_registered_s_chain_on_main_net( // step 1
+    w3_main_net,
+    jo_message_proxy_main_net,
+    joAccount_main_net,
+    chain_id_s_chain
+) {
+    if ( verbose_get() >= RV_VERBOSE.debug ) {
+        log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
+        log.write( cc.bright( "check_is_registered_s_chain_on_main_net(reg-step1)" ) + "\n" );
+        log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
+    }
+    let r, strActionName = "";
+    try {
+        strActionName = "check_is_registered_s_chain_on_main_net(reg-step1)";
+        let addr = joAccount_main_net.address( w3_main_net );
+        let bIsRegistered = await jo_message_proxy_main_net.methods.isConnectedChain( chain_id_s_chain ).call( {
+            "from": addr
+        } );
+        if ( verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.success( "check_is_registered_s_chain_on_main_net(reg-step1) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
+        return bIsRegistered;
+    } catch ( e ) {
+        if ( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( cc.fatal( "Error in check_is_registered_s_chain_on_main_net(reg-step1)() during " + strActionName + ": " ) + cc.error( e ) + "\n" );
+    }
+    return false;
+}
+
+async function register_s_chain_on_main_net( // step 1
     w3_main_net,
     jo_message_proxy_main_net,
     joAccount_main_net,
@@ -155,7 +184,7 @@ async function register_s_chain_on_main_net(
     }
     let r, strActionName = "";
     try {
-        strActionName = "w3_main_net.eth.getTransactionCount()";
+        strActionName = "reg-step1:w3_main_net.eth.getTransactionCount()";
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         let tcnt = await w3_main_net.eth.getTransactionCount( joAccount_main_net.address( w3_main_net ), null );
@@ -183,7 +212,7 @@ async function register_s_chain_on_main_net(
         var key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
-        strActionName = "w3_main_net.eth.sendSignedTransaction()";
+        strActionName = "reg-step1:w3_main_net.eth.sendSignedTransaction()";
         let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
@@ -200,7 +229,36 @@ async function register_s_chain_on_main_net(
 // register direction for money transfer
 // main-net.DepositBox call: function addSchain(uint64 schainID, address tokenManagerAddress)
 //
-async function register_s_chain_in_deposit_box(
+
+async function check_is_registered_s_chain_in_deposit_box( // step 2
+    w3_main_net,
+    jo_lock_and_data_main_net,
+    joAccount_main_net,
+    chain_id_s_chain
+) {
+    if ( verbose_get() >= RV_VERBOSE.debug ) {
+        log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
+        log.write( cc.bright( "check_is_registered_s_chain_in_deposit_box(reg-step2)" ) + "\n" );
+        log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
+    }
+    let r, strActionName = "";
+    try {
+        strActionName = "check_is_registered_s_chain_in_deposit_box(reg-step2)";
+        let addr = joAccount_main_net.address( w3_main_net );
+        let bIsRegistered = await jo_lock_and_data_main_net.methods.hasSchain( chain_id_s_chain ).call( {
+            "from": addr
+        } );
+        if ( verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.success( "check_is_registered_s_chain_in_deposit_box(reg-step2) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
+        return bIsRegistered;
+    } catch ( e ) {
+        if ( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( cc.fatal( "Error in check_is_registered_s_chain_in_deposit_box(reg-step2)() during " + strActionName + ": " ) + cc.error( e ) + "\n" );
+    }
+    return false;
+}
+
+async function register_s_chain_in_deposit_box( // step 2
     w3_main_net,
     //jo_deposit_box, // only main net
     jo_lock_and_data_main_net,
@@ -210,12 +268,12 @@ async function register_s_chain_in_deposit_box(
 ) {
     if ( verbose_get() >= RV_VERBOSE.debug ) {
         log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( cc.bright( "register_s_chain_in_deposit_box" ) + "\n" );
+        log.write( cc.bright( "reg-step2:register_s_chain_in_deposit_box" ) + "\n" );
         log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
     let r, strActionName = "";
     try {
-        strActionName = "w3_main_net.eth.getTransactionCount()";
+        strActionName = "reg-step2:w3_main_net.eth.getTransactionCount()";
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         let tcnt = await w3_main_net.eth.getTransactionCount( joAccount_main_net.address( w3_main_net ), null );
@@ -242,7 +300,7 @@ async function register_s_chain_in_deposit_box(
         var key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
-        strActionName = "w3_main_net.eth.sendSignedTransaction()";
+        strActionName = "reg-step2:w3_main_net.eth.sendSignedTransaction()";
         let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
@@ -254,7 +312,34 @@ async function register_s_chain_in_deposit_box(
     return true;
 } // async function register_deposit_box_on_s_chain(...
 
-async function reister_main_net_depositBox_on_s_chain(
+async function check_is_registered_main_net_depositBox_on_s_chain( // step 3
+    w3_s_chain,
+    jo_lock_and_data_s_chain,
+    joAccount
+) {
+    if ( verbose_get() >= RV_VERBOSE.debug ) {
+        log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
+        log.write( cc.bright( "check_is_registered_main_net_depositBox_on_s_chain(reg-step3)" ) + "\n" );
+        log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
+    }
+    let r, strActionName = "";
+    try {
+        strActionName = "check_is_registered_main_net_depositBox_on_s_chain(reg-step3)";
+        let addr = joAccount.address( w3_s_chain );
+        let bIsRegistered = await jo_lock_and_data_s_chain.methods.hasDepositBox().call( {
+            "from": addr
+        } );
+        if ( verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.success( "check_is_registered_main_net_depositBox_on_s_chain(reg-step3) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
+        return bIsRegistered;
+    } catch ( e ) {
+        if ( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( cc.fatal( "Error in check_is_registered_main_net_depositBox_on_s_chain(reg-step3)() during " + strActionName + ": " ) + cc.error( e ) + "\n" );
+    }
+    return false;
+}
+
+async function register_main_net_depositBox_on_s_chain( // step 3
     w3_s_chain,
     //jo_token_manager,
     jo_deposit_box_main_net,
@@ -263,12 +348,12 @@ async function reister_main_net_depositBox_on_s_chain(
 ) {
     if ( verbose_get() >= RV_VERBOSE.debug ) {
         log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( cc.bright( "reister_main_net_depositBox_on_s_chain" ) + "\n" );
+        log.write( cc.bright( "register_main_net_depositBox_on_s_chain" ) + "\n" );
         log.write( cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
     let r, strActionName = "";
     try {
-        strActionName = "w3_s_chain.eth.getTransactionCount()/reister_main_net_depositBox_on_s_chain";
+        strActionName = "reg-step3:w3_s_chain.eth.getTransactionCount()/register_main_net_depositBox_on_s_chain";
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         let tcnt = await w3_s_chain.eth.getTransactionCount( joAccount.address( w3_s_chain ), null );
@@ -292,13 +377,13 @@ async function reister_main_net_depositBox_on_s_chain(
         var key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
-        strActionName = "w3_s_chain.eth.sendSignedTransaction()";
+        strActionName = "reg-step3:w3_s_chain.eth.sendSignedTransaction()";
         let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
     } catch ( e ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( cc.fatal( "Error in reister_main_net_depositBox_on_s_chain() during " + strActionName + ": " ) + cc.error( e ) + "\n" );
+            log.write( cc.fatal( "Error in register_main_net_depositBox_on_s_chain() during " + strActionName + ": " ) + cc.error( e ) + "\n" );
         return false;
     }
     return true;
@@ -784,7 +869,8 @@ async function do_transfer(
     //
     nTransactionsCountInBlock,
     nMaxTransactionsCount,
-    nBlockAwaitDepth
+    nBlockAwaitDepth,
+    nBlockAge
 ) {
     nTransactionsCountInBlock = nTransactionsCountInBlock || 5;
     nMaxTransactionsCount = nMaxTransactionsCount || 100;
@@ -792,6 +878,8 @@ async function do_transfer(
         nTransactionsCountInBlock = 1;
     if ( nBlockAwaitDepth < 0 )
         nBlockAwaitDepth = 0;
+    if ( nBlockAge < 0 )
+        nBlockAge = 0;
     let r, strActionName = "",
         nIdxCurrentMsg = 0,
         nOutMsgCnt = 0,
@@ -855,9 +943,9 @@ async function do_transfer(
                 //
                 //
                 if ( nBlockAwaitDepth > 0 ) {
-                    let blockDepthCheckPassed = true;
+                    let bSecurityCheckPassed = true;
                     let strActionName_old = "" + strActionName;
-                    strActionName = "evaluate block depth"
+                    strActionName = "security check: evaluate block depth"
                     try {
                         let transactionHash = r[ 0 ].transactionHash;
                         if ( verbose_get() >= RV_VERBOSE.trace )
@@ -870,22 +958,64 @@ async function do_transfer(
                             log.write( cc.debug( "Latest blockNumber is " ) + cc.info( nLatestBlockNumber ) + "\n" );
                         let nDist = nLatestBlockNumber - blockNumber;
                         if ( nDist < nBlockAwaitDepth )
-                            blockDepthCheckPassed = false;
+                            bSecurityCheckPassed = false;
                         if ( verbose_get() >= RV_VERBOSE.trace )
-                            log.write( cc.debug( "Distance by blockNumber is " ) + cc.info( nDist ) + cc.debug( ", await chick is " ) + ( blockDepthCheckPassed ? cc.success( "PASSED" ) : cc.error( "FAILED" ) ) + "\n" );
+                            log.write( cc.debug( "Distance by blockNumber is " ) + cc.info( nDist ) + cc.debug( ", await check is " ) + ( bSecurityCheckPassed ? cc.success( "PASSED" ) : cc.error( "FAILED" ) ) + "\n" );
                     } catch ( err ) {
-                        blockDepthCheckPassed = false;
+                        bSecurityCheckPassed = false;
                         if ( verbose_get() >= RV_VERBOSE.fatal )
-                            log.write( cc.fatal( "Error in getting trasaction hash and block number during " + strActionName + ": " ) + cc.error( e ) + "\n" );
+                            log.write( cc.fatal( "Exception(evaluate block depth) while getting trasaction hash and block number during " + strActionName + ": " ) + cc.error( err ) + "\n" );
                         return false;
                     }
                     strActionName = "" + strActionName_old;
-                    if ( !blockDepthCheckPassed ) {
+                    if ( !bSecurityCheckPassed ) {
                         if ( verbose_get() >= RV_VERBOSE.trace )
                             log.write( cc.warning( "Block depth check was not passed, canceling search for transfer events" ) + "\n" );
                         break;
                     }
                 } // if( nBlockAwaitDepth > 0 )
+                if( nBlockAge > 0 ) {
+                    let bSecurityCheckPassed = true;
+                    let strActionName_old = "" + strActionName;
+                    strActionName = "security check: evaluate block age"
+                    try {
+                        let transactionHash = r[ 0 ].transactionHash;
+                        if ( verbose_get() >= RV_VERBOSE.trace )
+                            log.write( cc.debug( "Event transactionHash is " ) + cc.info( transactionHash ) + "\n" );
+                        let blockNumber = r[ 0 ].blockNumber;
+                        if ( verbose_get() >= RV_VERBOSE.trace )
+                            log.write( cc.debug( "Event blockNumber is " ) + cc.info( blockNumber ) + "\n" );
+                        //
+                        //
+                        const joBlock = await w3_src.eth.getBlock( blockNumber );
+                        const timestampBlock = parseInt( joBlock.timestamp );
+                        if ( verbose_get() >= RV_VERBOSE.trace )
+                            log.write( cc.debug( "Block   TS is " ) + cc.info( timestampBlock ) + "\n" );
+                        const timestampCurrent = parseInt( parseInt( Date.now().valueOf() ) / 1000 );
+                        if ( verbose_get() >= RV_VERBOSE.trace )
+                            log.write( cc.debug( "Current TS is " ) + cc.info( timestampCurrent ) + "\n" );
+                        const tsDiff = timestampCurrent - timestampBlock;
+                        if ( verbose_get() >= RV_VERBOSE.trace ) {
+                            log.write( cc.debug( "Diff    TS is " ) + cc.info( tsDiff ) + "\n" );
+                            log.write( cc.debug( "Expected diff " ) + cc.info( nBlockAge ) + "\n" );
+                        }
+                        if( tsDiff < nBlockAge )
+                            bSecurityCheckPassed = false;
+                        if ( verbose_get() >= RV_VERBOSE.trace )
+                            log.write( cc.debug( "Block age check is " ) + ( bSecurityCheckPassed ? cc.success( "PASSED" ) : cc.error( "FAILED" ) ) + "\n" );
+                    } catch ( err ) {
+                        bSecurityCheckPassed = false;
+                        if ( verbose_get() >= RV_VERBOSE.fatal )
+                            log.write( cc.fatal( "Exception(evaluate block age) while getting block number and timestamp during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+                        return false;
+                    }
+                    strActionName = "" + strActionName_old;
+                    if ( !bSecurityCheckPassed ) {
+                        if ( verbose_get() >= RV_VERBOSE.trace )
+                            log.write( cc.warning( "Block age check was not passed, canceling search for transfer events" ) + "\n" );
+                        break;
+                    }
+                } // if( nBlockAge > 0 )
                 //
                 //
                 //
@@ -897,11 +1027,6 @@ async function do_transfer(
                         +
                         "\n"
                     );
-                // nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
-                // nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
-                // nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
-                // nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
-                // nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth nBlockAwaitDepth
                 //
                 //
                 if ( verbose_get() >= RV_VERBOSE.trace )
@@ -1021,9 +1146,14 @@ module.exports.private_key_2_public_key = private_key_2_public_key;
 module.exports.public_key_2_account_address = public_key_2_account_address;
 module.exports.private_key_2_account_address = private_key_2_account_address;
 
-module.exports.register_s_chain_on_main_net = register_s_chain_on_main_net;
-module.exports.register_s_chain_in_deposit_box = register_s_chain_in_deposit_box;
-module.exports.reister_main_net_depositBox_on_s_chain = reister_main_net_depositBox_on_s_chain;
+module.exports.register_s_chain_on_main_net = register_s_chain_on_main_net; // step 1
+module.exports.register_s_chain_in_deposit_box = register_s_chain_in_deposit_box; // step 2
+module.exports.register_main_net_depositBox_on_s_chain = register_main_net_depositBox_on_s_chain; // step 3
+
+module.exports.check_is_registered_s_chain_on_main_net = check_is_registered_s_chain_on_main_net; // step 1
+module.exports.check_is_registered_s_chain_in_deposit_box = check_is_registered_s_chain_in_deposit_box; // step 2
+module.exports.check_is_registered_main_net_depositBox_on_s_chain = check_is_registered_main_net_depositBox_on_s_chain; // step 3
+
 module.exports.do_eth_payment_from_main_net = do_eth_payment_from_main_net;
 module.exports.do_eth_payment_from_s_chain = do_eth_payment_from_s_chain;
 module.exports.receive_eth_payment_from_s_chain_on_main_net = receive_eth_payment_from_s_chain_on_main_net;
