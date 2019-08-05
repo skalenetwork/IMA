@@ -2,12 +2,12 @@ import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 
 import chai = require("chai");
-import { MessageProxyContract,
+import { LockAndDataForMainnetContract,
+    LockAndDataForMainnetInstance,
+    MessageProxyContract,
     MessageProxyInstance,
     TokenManagerContract,
     TokenManagerInstance,
-    LockAndDataForMainnetContract,
-    LockAndDataForMainnetInstance,
 } from "../types/truffle-contracts";
 import { gasMultiplier } from "./utils/command_line";
 import { randomString } from "./utils/helper";
