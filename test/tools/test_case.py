@@ -35,6 +35,7 @@ class TestCase:
             self.passed = False
 
     def clean_up(self):
+        self.agent.stop()
         self._clean_up()
 
     def is_passed(self):
