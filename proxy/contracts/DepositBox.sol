@@ -53,8 +53,8 @@ contract DepositBox is Permissions {
 
     address public proxyAddress;
 
-    uint public constant GAS_AMOUNT_POST_MESSAGE = 55000; // 0;
-    uint public constant AVERAGE_TX_PRICE = 1000000000;
+    uint public constant GAS_AMOUNT_POST_MESSAGE = 200000; // 0;
+    uint public constant AVERAGE_TX_PRICE = 10000000000;
 
     //mapping(address => mapping(address => uint)) public allowed;
 
