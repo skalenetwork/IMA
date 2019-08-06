@@ -56,7 +56,7 @@ contract("LockAndDataForSchainERC721", ([deployer, user, invoker]) => {
     expect(res.logs[0].args.result).to.be.true;
   });
 
-  it("should rejected with `Token not transfered`", async () => {
+  it("should rejected with `Token not transfered` after invoke `receiveERC721`", async () => {
     // preparation
     const error = "Token not transfered";
     const contractHere = eRC721OnChain.address;
@@ -73,7 +73,7 @@ contract("LockAndDataForSchainERC721", ([deployer, user, invoker]) => {
     // preparation
     const contractHere = eRC721OnChain.address;
     const tokenId = 10;
-    // mint some quantity of ERC721 tokens for `deployer` address
+    // mint ERC721 token for `deployer` address
     await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
     // transfer ERC721 token to `lockAndDataForMainnetERC721` address
     await eRC721OnChain.transferFrom(deployer, lockAndDataForSchainERC721.address, tokenId, {from: deployer});

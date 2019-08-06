@@ -70,6 +70,7 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     // execution
     const res = await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
     // expectation
+    console.log("data", res.logs[0].args.data);
     (res.logs[0].event).should.be.equal("EncodedData");
   });
 
