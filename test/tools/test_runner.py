@@ -15,8 +15,6 @@ class TestRunner:
         self.config_filename = config_filename
 
     def run(self):
-        print(TestCase.__subclasses__())
-
         for config in config_generator(self.src_root, self.config_filename):
             for test in test_pool.get_tests(config):
                 test_name = test.get_name()

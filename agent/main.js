@@ -1263,6 +1263,9 @@ async function do_the_job() {
         log.write( cc.info( cntFalse ) + cc.error( " task(s) failed" ) + "\n" );
         log.write( cc.debug( MTA.longSeparator ) + "\n" );
     }
+    if (cntFalse > 0) {
+        process.exitCode = cntFalse;
+    }
 }
 do_the_job();
 return 0; // FINISH
