@@ -20,6 +20,10 @@ interface ILockAndDataERC721S {
 contract ERC721ModuleForSchain is Permissions {
 
     event ERC721TokenCreated(address contractAddress);
+    event EncodedData(bytes data);
+    event EncodedRawData(bytes data);
+    event SentERC721(bool result);
+
 
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
 
@@ -31,9 +35,13 @@ contract ERC721ModuleForSchain is Permissions {
             uint contractPosition = ILockAndDataERC721S(lockAndDataERC721).ERC721Mapper(contractHere);
             require(contractPosition > 0, "Not existing ERC-721 contract");
             require(ILockAndDataERC721S(lockAndDataERC721).receiveERC721(contractHere, tokenId), "Cound not receive ERC721 Token");
-            return encodeData(contractHere, contractPosition, to, tokenId);
+            data = encodeData(contractHere, contractPosition, to, tokenId);
+            emit EncodedData(bytes(data));
+            return data;
         } else {
-            return encodeRawData(to, tokenId);
+            data = encodeRawData(to, tokenId);
+            emit EncodedRawData(bytes(data));
+            return data;
         }
     }
 
@@ -56,7 +64,9 @@ contract ERC721ModuleForSchain is Permissions {
             (receiver, tokenId) = fallbackRawDataParser(data);
             contractAddress = to;
         }
-        return ILockAndDataERC721S(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
+        bool variable = ILockAndDataERC721S(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
+        emit SentERC721(bool(variable));
+        return variable;
     }
 
     function getReceiver(address to, bytes memory data) public pure returns (address receiver) {
