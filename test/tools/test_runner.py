@@ -1,6 +1,7 @@
+from logging import info, error
+
 from tools.config_generator import config_generator
 from tools.test_pool import test_pool
-from tools.test_case import TestCase
 
 from test_cases import *
 # Do not remove this unused import. It is needed for tests registration
@@ -24,8 +25,8 @@ class TestRunner:
                 test.clean_up()
 
                 if test.is_passed():
-                    print(f'Test "{test_name}" passed')
+                    info(f'Test "{test_name}" passed')
                 else:
-                    print(f'Test "{test_name}" failed')
+                    error(f'Test "{test_name}" failed')
                     exit(1)
-        print('All tests passed')
+        info('All tests passed')

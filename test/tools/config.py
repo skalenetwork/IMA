@@ -1,6 +1,3 @@
-from os import environ
-import json
-
 class Config:
     agent_root = 'agent'
     skale_ima_root = 'npms/skale-mta'
@@ -14,6 +11,7 @@ class Config:
     schain_name = 'd2'
     abi_mainnet = 'data/proxyMainnet.json'
     abi_schain = 'data/proxySchain_'
+    user_key = ''
 
     def __init__(self, src_root, config_json):
         self.proxy_root = src_root + '/' + self.proxy_root
@@ -27,6 +25,7 @@ class Config:
         self.schain_key = config_json['ETH_PRIVATE_KEY_FOR_SCHAIN']
         self.schain_rpc_url = config_json['SCHAIN_RPC_URL']
         self.schain_name = config_json['SCHAIN_NAME']
+        self.user_key = config_json['user_key']
 
         self.abi_mainnet = self.proxy_root + '/' + self.abi_mainnet
         self.abi_schain = self.proxy_root + '/' + self.abi_schain + self.schain_name + '.json'

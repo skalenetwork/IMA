@@ -1,5 +1,6 @@
 import sys
 import os
+import logging
 
 from tools.test_runner import TestRunner
 
@@ -15,4 +16,7 @@ def main():
 
 
 if __name__ == '__main__':
+    level = logging.INFO
+    # level = logging.DEBUG
+    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=level)
     main()
