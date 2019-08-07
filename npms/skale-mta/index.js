@@ -1088,7 +1088,7 @@ async function do_transfer(
             //
             let rawTx = {
                 "nonce": tcnt, // 0x00, ...
-                "gas": 2100000,
+                "gas": 3000000,
                 "gasPrice": 10000000000, // not w3_dst.eth.gasPrice ... got from truffle.js network_name gasPrice
                 "gasLimit": 3000000,
                 "to": jo_message_proxy_dst.options.address, // cantract address
