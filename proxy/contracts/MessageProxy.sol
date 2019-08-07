@@ -84,6 +84,7 @@ contract MessageProxy {
 
     constructor(string memory newChainID) public {
         owner = msg.sender;
+        authorizedCaller[msg.sender] = true;
         chainID = newChainID;
         if (keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet"))

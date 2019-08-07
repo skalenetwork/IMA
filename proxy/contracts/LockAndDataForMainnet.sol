@@ -47,7 +47,7 @@ contract LockAndDataForMainnet is Ownable {
     );
 
     constructor() Ownable() public {
-
+        authorizedCaller[msg.sender] = true;
     }
 
     function receiveEth(address from) public allow("DepositBox") payable {

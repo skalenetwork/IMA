@@ -48,8 +48,8 @@ contract LockAndDataForSchain is Ownable {
         _;
     }
 
-    constructor() public payable {
-
+    constructor() public {
+        authorizedCaller[msg.sender] = true;
     }
 
     function setEthERC20Address(address newEthERC20Address) public onlyOwner {
