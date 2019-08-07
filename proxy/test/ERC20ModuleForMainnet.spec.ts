@@ -72,7 +72,7 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     // preparation
     const contractHere = ethERC20.address;
     const to = user;
-    const amount = 10;
+    const amount = 6;
     const isRaw = false;
     // set `ERC20Module` contract before invoke `receiveERC20`
     await lockAndDataForMainnet
@@ -83,6 +83,7 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     // execution
     const res = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // expectation
+    console.log("data", res.logs[0].args.data);
     (res.logs[0].event).should.be.equal("EncodedData");
   });
 
