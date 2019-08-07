@@ -47,6 +47,7 @@ contract ERC20ModuleForSchain is Permissions {
     event ERC20TokenCreated(address contractAddress);
     event EncodedData(bytes data);
     event EncodedRawData(bytes data);
+    event Data(address contractAddress);
 
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
@@ -92,6 +93,7 @@ contract ERC20ModuleForSchain is Permissions {
             (receiver, amount) = fallbackRawDataParser(data);
             contractAddress = to;
         }
+        emit Data(contractAddress);
         return ILockAndDataERC20S(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
     }
 
