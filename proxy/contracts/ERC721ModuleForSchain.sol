@@ -22,12 +22,7 @@ contract ERC721ModuleForSchain is Permissions {
     event ERC721TokenCreated(address contractAddress);
     event EncodedData(bytes data);
     event EncodedRawData(bytes data);
-    event Data(
-        uint contractPosition, 
-        address receiver, 
-        uint tokenId,
-        address contractAddress
-        );
+    event Data(address contractAddress);
 
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
 
@@ -68,7 +63,7 @@ contract ERC721ModuleForSchain is Permissions {
             (receiver, tokenId) = fallbackRawDataParser(data);
             contractAddress = to;
         }
-        emit Data(contractPosition, receiver, tokenId, contractAddress);
+        emit Data(contractAddress);
         return ILockAndDataERC721S(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
     }
 

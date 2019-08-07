@@ -2,15 +2,10 @@ import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
     ERC721ModuleForMainnetContract,
-    ERC721ModuleForMainnetInstance,
     ERC721ModuleForSchainContract,
     ERC721ModuleForSchainInstance,
     ERC721OnChainContract,
     ERC721OnChainInstance,
-    LockAndDataForMainnetContract,
-    LockAndDataForMainnetERC721Contract,
-    LockAndDataForMainnetERC721Instance,
-    LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainERC721Contract,
     LockAndDataForSchainERC721Instance,
@@ -39,22 +34,13 @@ const TokenFactory: TokenFactoryContract =
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 const ERC721ModuleForSchain: ERC721ModuleForSchainContract = artifacts.require("./ERC721ModuleForSchain");
 
-const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
-const LockAndDataForMainnetERC721: LockAndDataForMainnetERC721Contract =
-    artifacts.require("./LockAndDataForMainnetERC721");
-const ERC721ModuleForMainnet: ERC721ModuleForMainnetContract = artifacts.require("./ERC721ModuleForMainnet");
-
 contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
   let messageProxy: MessageProxyInstance;
-  let messageProxyM: MessageProxyInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForSchainERC721: LockAndDataForSchainERC721Instance;
   let tokenFactory: TokenFactoryInstance;
   let eRC721OnChain: ERC721OnChainInstance;
   let eRC721ModuleForSchain: ERC721ModuleForSchainInstance;
-  let lockAndDataForMainnet: LockAndDataForMainnetInstance;
-  let lockAndDataForMainnetERC721: LockAndDataForMainnetERC721Instance;
-  let eRC721ModuleForMainnet: ERC721ModuleForMainnetInstance;
 
   beforeEach(async () => {
     messageProxy = await MessageProxy.new("Schain", {from: deployer, gas: 8000000 * gasMultiplier});
@@ -67,14 +53,6 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
         {from: deployer, gas: 8000000 * gasMultiplier});
     eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
     eRC721ModuleForSchain = await ERC721ModuleForSchain.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
-    // mainnet
-    messageProxyM = await MessageProxy.new("Mainnet", {from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForMainnetERC721 =
-        await LockAndDataForMainnetERC721.new(lockAndDataForMainnet.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
-    eRC721ModuleForMainnet = await ERC721ModuleForMainnet.new(lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
   });
 
