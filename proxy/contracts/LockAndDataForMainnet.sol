@@ -30,6 +30,8 @@ contract LockAndDataForMainnet is Ownable {
 
     mapping(address => uint) public approveTransfers;
 
+    mapping (address => bool) public authorizedCaller;
+
     modifier allow(string memory contractName) {
         require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
         owner == msg.sender, "Not allowed");
@@ -45,7 +47,7 @@ contract LockAndDataForMainnet is Ownable {
     );
 
     constructor() Ownable() public {
-
+        authorizedCaller[msg.sender] = true;
     }
 
     function receiveEth(address from) public allow("DepositBox") payable {
@@ -73,11 +75,26 @@ contract LockAndDataForMainnet is Ownable {
         return true;
     }
 
-    function addSchain(string memory schainID, address tokenManagerAddress) public onlyOwner {
+    function addSchain(string memory schainID, address tokenManagerAddress) public {
+        require(authorizedCaller[msg.sender], "Not authorized caller");
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
+    }
+
+    function removeSchain(string memory schainID) public onlyOwner {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        require(tokenManagerAddresses[schainHash] != address(0), "SKALE chain is not set");
+        delete tokenManagerAddresses[schainHash];
+    }
+
+    function addAuthorizedCaller(address caller) public onlyOwner {
+        authorizedCaller[caller] = true;
+    }
+
+    function removeAuthorizedCaller(address caller) public onlyOwner {
+        authorizedCaller[caller] = false;
     }
 
     function approveTransfer(address to, uint amount) public allow("DepositBox") {

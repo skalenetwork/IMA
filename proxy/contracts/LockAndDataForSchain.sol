@@ -39,6 +39,8 @@ contract LockAndDataForSchain is Ownable {
 
     mapping(address => uint) public ethCosts;
 
+    mapping (address => bool) public authorizedCaller;
+
     modifier allow(string memory contractName) {
         require(
             permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
@@ -46,8 +48,8 @@ contract LockAndDataForSchain is Ownable {
         _;
     }
 
-    constructor() public payable {
-
+    constructor() public {
+        authorizedCaller[msg.sender] = true;
     }
 
     function setEthERC20Address(address newEthERC20Address) public onlyOwner {
@@ -75,11 +77,18 @@ contract LockAndDataForSchain is Ownable {
         return true;
     }
 
-    function addSchain(string memory schainID, address tokenManagerAddress) public onlyOwner {
+    function addSchain(string memory schainID, address tokenManagerAddress) public {
+        require(authorizedCaller[msg.sender], "Not authorized caller");
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
+    }
+
+    function removeSchain(string memory schainID) public onlyOwner {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        require(tokenManagerAddresses[schainHash] != address(0), "SKALE chain is not set");
+        delete tokenManagerAddresses[schainHash];
     }
 
     function hasDepositBox() public view returns(bool) {
@@ -90,7 +99,8 @@ contract LockAndDataForSchain is Ownable {
         return true;
     }
 
-    function addDepositBox(address depositBoxAddress) public onlyOwner {
+    function addDepositBox(address depositBoxAddress) public {
+        require(authorizedCaller[msg.sender], "Not authorized caller");
         require(depositBoxAddress != address(0), "Incorrect Deposit Box address");
         require(
             tokenManagerAddresses[
@@ -101,6 +111,24 @@ contract LockAndDataForSchain is Ownable {
         tokenManagerAddresses[
             keccak256(abi.encodePacked("Mainnet"))
         ] = depositBoxAddress;
+    }
+
+    function removeDepositBox() public onlyOwner {
+        require(
+            tokenManagerAddresses[
+                keccak256(abi.encodePacked("Mainnet"))
+            ] != address(0),
+            "Deposit Box is not set"
+        );
+        delete tokenManagerAddresses[keccak256(abi.encodePacked("Mainnet"))];
+    }
+
+    function addAuthorizedCaller(address caller) public onlyOwner {
+        authorizedCaller[caller] = true;
+    }
+
+    function removeAuthorizedCaller(address caller) public onlyOwner {
+        authorizedCaller[caller] = false;
     }
 
     function addGasCosts(address to, uint amount) public allow("TokenManager") {
