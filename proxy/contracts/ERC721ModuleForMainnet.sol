@@ -14,7 +14,6 @@ contract ERC721ModuleForMainnet is Permissions {
 
     event EncodedData(bytes data);
     event EncodedRawData(bytes data);
-    event SentERC721(bool result);
 
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
         
@@ -50,9 +49,7 @@ contract ERC721ModuleForMainnet is Permissions {
             (receiver, tokenId) = fallbackRawDataParser(data);
             contractAddress = to;
         }
-        bool variable = ILockAndDataERC721M(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);   
-        emit SentERC721(bool(variable));
-        return variable;
+        return ILockAndDataERC721M(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);   
     }
 
     function getReceiver(address to, bytes memory data) public pure returns (address receiver) {
