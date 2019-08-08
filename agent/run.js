@@ -59,13 +59,13 @@ async function run() {
       let registerCmd = `${baseCmd} --register ${baseArgs}`;
       let loopCmd = `${baseCmd} --loop ${baseArgs}`;
 
-      console.log(registerCmd); // todo: rm, tmp!
+      // console.log(registerCmd); // todo: rm, tmp!
       console.log(loopCmd); // todo: rm, tmp!
 
-      child_process.execSync(
-        registerCmd,
-        {stdio: 'inherit'}
-      );
+      // child_process.execSync(
+      //   registerCmd,
+      //   {stdio: 'inherit'}
+      // );
 
       child_process.execSync(
         loopCmd,

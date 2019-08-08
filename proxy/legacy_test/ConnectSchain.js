@@ -2,7 +2,7 @@ require('dotenv').config();
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 let mainnetData = require("../data/proxyMainnet.json");
-let schainData = require("../data/proxySchain.json");
+let schainData = require("../data/proxySchain_MySchain.json");
 
 let mainnetRPC = process.env.MAINNET_RPC_URL;
 let schainRPC = process.env.SCHAIN_RPC_URL;

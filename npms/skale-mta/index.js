@@ -201,7 +201,7 @@ async function register_s_chain_on_main_net( // step 1
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
             "nonce": tcnt, // 0x00, ...
-            "gasPrice": w3_main_net.eth.gasPrice,
+            "gasPrice": 10000000000,
             "gasLimit": 3000000,
             "to": jo_message_proxy_main_net.options.address, // cantract address
             "data": dataTx
@@ -289,7 +289,7 @@ async function register_s_chain_in_deposit_box( // step 2
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
             "nonce": tcnt, // 0x00, ...
-            "gasPrice": w3_main_net.eth.gasPrice,
+            "gasPrice": 10000000000,
             "gasLimit": 3000000,
             "to": jo_lock_and_data_main_net.options.address, // cantract address
             "data": dataTx
@@ -366,7 +366,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
             "nonce": tcnt, // 0x00, ...
-            "gasPrice": w3_s_chain.eth.gasPrice,
+            "gasPrice": 10000000000,
             "gasLimit": 3000000,
             "to": jo_lock_and_data_s_chain.options.address, // cantract address
             "data": dataTx
