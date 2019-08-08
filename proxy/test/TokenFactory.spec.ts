@@ -5,10 +5,10 @@ import chai = require("chai");
 import {
     ERC20ModuleForSchainContract,
     ERC20ModuleForSchainInstance,
+    ERC20OnChainContract,
+    ERC20OnChainInstance,
     ERC721ModuleForSchainContract,
     ERC721ModuleForSchainInstance,
-    EthERC20Contract,
-    EthERC20Instance,
     LockAndDataForSchainContract,
     LockAndDataForSchainERC20Contract,
     LockAndDataForSchainERC20Instance,
@@ -31,7 +31,6 @@ const ABIERC20OnChain = require("../build/contracts/ERC20OnChain.json");
 
 const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
-const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const LockAndDataForSchainERC20: LockAndDataForSchainERC20Contract =
     artifacts.require("./LockAndDataForSchainERC20");
@@ -39,11 +38,11 @@ const ERC20ModuleForSchain: ERC20ModuleForSchainContract = artifacts.require("./
 const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract =
     artifacts.require("./LockAndDataForSchainERC721");
 const ERC721ModuleForSchain: ERC721ModuleForSchainContract = artifacts.require("./ERC721ModuleForSchain");
+const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 
 contract("TokenFactory", ([user, deployer]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
-  let ethERC20: EthERC20Instance;
   let tokenFactory: TokenFactoryInstance;
   let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
   let lockAndDataForSchainERC20: LockAndDataForSchainERC20Instance;
@@ -53,7 +52,6 @@ contract("TokenFactory", ([user, deployer]) => {
   beforeEach(async () => {
     messageProxy = await MessageProxy.new("Mainnet", {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
-    ethERC20 = await EthERC20.new({from: deployer, gas: 8000000 * gasMultiplier});
     tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
       {from: deployer, gas: 8000000 * gasMultiplier});
     eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
@@ -114,6 +112,86 @@ contract("TokenFactory", ([user, deployer]) => {
     // expectation
     expect(logs[0].event).to.be.equal("ERC721TokenCreated");
     expect(logs[0].args.contractAddress).to.include("0x");
+  });
+
+});
+
+contract("ERC20OnChain", ([user, deployer]) => {
+  let messageProxy: MessageProxyInstance;
+  let lockAndDataForSchain: LockAndDataForSchainInstance;
+  let eRC20OnChain: ERC20OnChainInstance;
+
+  beforeEach(async () => {
+    messageProxy = await MessageProxy.new("Mainnet", {from: deployer, gas: 8000000 * gasMultiplier});
+    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
+    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20", 18,
+        ((1000000000).toString()), deployer, {from: deployer});
+  });
+
+  it("should invoke `totalSupplyOnMainnet`", async () => {
+    // execution
+    const totalSupply = await eRC20OnChain.totalSupplyOnMainnet({from: deployer});
+    // expectation
+    parseInt(new BigNumber(totalSupply).toString(), 10).should.be.equal(1000000000);
+  });
+
+  it("should rejected with `Call does not go from ERC20Module` when invoke `setTotalSupplyOnMainnet`", async () => {
+    // preparation
+    const error = "Call does not go from ERC20Module";
+    const newTotalSupply = 500;
+    // execution
+    await eRC20OnChain.setTotalSupplyOnMainnet(newTotalSupply, {from: user})
+      .should.be.eventually.rejectedWith(error);
+  });
+
+  it("should invoke `setTotalSupplyOnMainnet`", async () => {
+    // preparation
+    const newTotalSupply = 500;
+    // execution
+    await eRC20OnChain.setTotalSupplyOnMainnet(newTotalSupply, {from: deployer});
+    // expectation
+    const totalSupply = await eRC20OnChain.totalSupplyOnMainnet({from: deployer});
+    parseInt(new BigNumber(totalSupply).toString(), 10).should.be.equal(newTotalSupply);
+  });
+
+  it("should invoke `_mint` as internal", async () => {
+    // preparation
+    const account = user;
+    const value = 500;
+    // execution
+    await eRC20OnChain.mint(account, value, {from: deployer});
+    // expectation
+    const balance = await eRC20OnChain.balanceOf(account);
+    parseInt(new BigNumber(balance).toString(), 10).should.be.equal(value);
+  });
+
+  it("should invoke `burn`", async () => {
+    // preparation
+    const amount = 500;
+    const mintAmount = 1500;
+    // mint to avoid `SafeMath: subtraction overflow` error
+    await eRC20OnChain.mint(deployer, mintAmount, {from: deployer});
+    // execution
+    await eRC20OnChain.burn(amount, {from: deployer});
+    // expectation
+    const balance = await eRC20OnChain.balanceOf(deployer);
+    parseInt(new BigNumber(balance).toString(), 10).should.be.equal(mintAmount - amount);
+  });
+
+  it("should invoke `burnFrom`", async () => {
+    // preparation
+    const account = user;
+    const amount = 100;
+    const mintAmount = 200;
+    // mint to avoid `SafeMath: subtraction overflow` error
+    await eRC20OnChain.mint(account, mintAmount, {from: deployer});
+    // approve to avoid `SafeMath: subtraction overflow` error
+    await eRC20OnChain.approve(deployer, 100, {from: account});
+    // execution
+    await eRC20OnChain.burnFrom(account, amount, {from: deployer});
+    // expectation
+    const balance = await eRC20OnChain.balanceOf(account);
+    parseInt(new BigNumber(balance).toString(), 10).should.be.equal(mintAmount - amount);
   });
 
 });
