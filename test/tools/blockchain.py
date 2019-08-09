@@ -21,7 +21,8 @@ class BlockChain:
     def get_balance_on_mainnet(self, address):
         return self.web3_mainnet.eth.getBalance(address)
 
-    def key_to_address(self, key):
+    @staticmethod
+    def key_to_address(key):
         return Account.privateKeyToAccount(key).address
 
     def wei_to_bigger(self, amount):
@@ -59,6 +60,23 @@ class BlockChain:
 
         self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
+    def deploy_erc20_on_mainnet(self, private_key, name, symbol, decimals):
+        return self._deploy_contract_to_mainnet(self.config.test_root + '/resources/ERC20MintableDetailed.json',
+                                                [name, symbol, decimals],
+                                                private_key)
+
+    def get_transactions_count_on_mainnet(self, address):
+        return self.web3_mainnet.eth.getTransactionCount(address)
+
+    def get_erc20_on_schain(self, index):
+        lockERC20 = self._get_contract_on_schain('lock_and_data_for_schain_erc20')
+        erc20_address = lockERC20.functions.ERC20Tokens(index).call()
+        if erc20_address == '0x0000000000000000000000000000000000000000':
+            raise ValueError('No such token')
+        with open(self.config.proxy_root + '/build/contracts/ERC20OnChain.json') as erc20_on_chain_file:
+            erc20_on_chain_json = json.load(erc20_on_chain_file)
+            return self.web3_schain.eth.contract(address=erc20_address, abi=erc20_on_chain_json['abi'])
+
     # private
 
     def _get_contact(self, web3, json_filename, name):
@@ -75,3 +93,30 @@ class BlockChain:
 
     def _get_contract_on_mainnet(self, name):
         return self._get_contact(self.web3_mainnet, self.config.abi_mainnet, name)
+
+    @staticmethod
+    def _deploy_contract_from_json(web3, json_filename, constructor_arguments, private_key):
+        with open(json_filename) as json_file:
+            address = BlockChain.key_to_address(private_key)
+
+            json_contract = json.load(json_file)
+            abi = json_contract['abi']
+            bytecode = json_contract['bytecode']
+            contract = web3.eth.contract(abi=abi, bytecode=bytecode)
+
+            nonce = web3.eth.getTransactionCount(address)
+
+            deploy_txn = contract.constructor(*constructor_arguments).buildTransaction({
+                'gas': 4712388,
+                'gasPrice': web3.toWei('1', 'gwei'),
+                'nonce': nonce,
+            })
+            signed_txn = web3.eth.account.signTransaction(deploy_txn, private_key=private_key)
+            transaction_hash = web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+            receipt = web3.eth.getTransactionReceipt(transaction_hash)
+
+            contract = web3.eth.contract(address=receipt.contractAddress, abi=abi)
+            return contract
+
+    def _deploy_contract_to_mainnet(self, json_filename, constructor_arguments, private_key):
+        return self._deploy_contract_from_json(self.web3_mainnet, json_filename, constructor_arguments, private_key)

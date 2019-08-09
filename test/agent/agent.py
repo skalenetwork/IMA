@@ -1,6 +1,8 @@
 from time import time, sleep
 from subprocess import Popen
 from logging import debug
+import json
+import os
 
 from tools.blockchain import BlockChain
 from tools.utils import execute
@@ -87,6 +89,24 @@ class Agent:
                     return
                 else:
                     sleep(1)
+
+    def transfer_erc20_from_mainnet_to_schain(self, token_contract, from_key, to_key, amount, timeout=0):
+        config_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
+        erc20_config_filename = self.config.test_working_dir +  '/erc20.json'
+        if not os.path.exists(os.path.dirname(erc20_config_filename)):
+            try:
+                os.makedirs(os.path.dirname(erc20_config_filename))
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != os.errno.EEXIST:
+                    raise
+        with open(erc20_config_filename, 'w') as erc20_file:
+            json.dump(config_json, erc20_file)
+
+        self._execute_command('m2s-payment', {'no-raw-transfer': None,
+                                              'amount': amount,
+                                              'key-main-net': from_key,
+                                              'key-s-chain': to_key,
+                                              'erc20-main-net': erc20_config_filename})
 
     # private
 

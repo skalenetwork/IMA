@@ -637,7 +637,7 @@ async function do_erc20_payment_from_main_net(
         let accountForSchain = joAccountDst.address( w3_s_chain );
         let approve =
             contractERC20.methods.approve(
-                depositBoxAddress, w3_main_net.utils.toBN( "" + token_amount + "000000000000000000" )
+                depositBoxAddress, w3_main_net.utils.toBN( token_amount )
             ).encodeABI();
         let deposit = null;
         if ( isRawTokenTransfer ) {
@@ -645,12 +645,12 @@ async function do_erc20_payment_from_main_net(
             deposit =
                 jo_deposit_box.methods.rawDepositERC20(
                     chain_id_s_chain, erc20Address_main_net, erc20Address_s_chain // specific for rawDepositERC20() only
-                    , accountForSchain, w3_main_net.utils.toBN( "" + token_amount + "000000000000000000" )
+                    , accountForSchain, w3_main_net.utils.toBN( token_amount )
                 ).encodeABI();
         } else
             deposit = // beta version
             jo_deposit_box.methods.depositERC20(
-                chain_id_s_chain, erc20Address_main_net, accountForSchain, w3_main_net.utils.toBN( "" + token_amount + "000000000000000000" )
+                chain_id_s_chain, erc20Address_main_net, accountForSchain, w3_main_net.utils.toBN( token_amount )
             ).encodeABI();
         //
         //
@@ -672,8 +672,7 @@ async function do_erc20_payment_from_main_net(
             "data": deposit,
             "to": depositBoxAddress,
             "gasPrice": 0,
-            "gas": 8000000,
-            "value": w3_main_net.utils.toHex( w3_main_net.utils.toWei( "1", "ether" ) )
+            "gas": 8000000
         }
         //
         //
@@ -695,24 +694,27 @@ async function do_erc20_payment_from_main_net(
         let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
-        strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
+        strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
         let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
         //
         //
-        if ( !isRawTokenTransfer ) {
-            strActionName = "getPastEvents/ERC20TokenCreated";
-            let joEvents = await jo_token_manager.getPastEvents( "ERC20TokenCreated", {
-                "filter": {
-                    "contractThere": [ erc20Address_main_net ]
-                },
-                "fromBlock": 0,
-                "toBlock": "latest"
-            } );
-            if ( verbose_get() >= RV_VERBOSE.information )
-                log.write( cc.success( "Got events for ERC20TokenCreated: " ) + cc.j( joEvents ) + "\n" );
-        } // if( ! isRawTokenTransfer )
+
+        // TODO: Fix event getting
+        // if ( !isRawTokenTransfer ) {
+        //     strActionName = "getPastEvents/ERC20TokenCreated";
+        //     let joEvents = await jo_token_manager.getPastEvents( "ERC20TokenCreated", {
+        //         "filter": {
+        //             "contractThere": [ erc20Address_main_net ]
+        //         },
+        //         "fromBlock": 0,
+        //         "toBlock": "latest"
+        //     } );
+        //     if ( verbose_get() >= RV_VERBOSE.information )
+        //         log.write( cc.success( "Got events for ERC20TokenCreated: " ) + cc.j( joEvents ) + "\n" );
+        // } // if( ! isRawTokenTransfer )
+
     } catch ( e ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
             log.write( cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( e ) + "\n" );
