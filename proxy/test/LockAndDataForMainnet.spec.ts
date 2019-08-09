@@ -174,7 +174,7 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
   });
 
   it("should invoke addSchain without mistakes", async () => {
-    const schainName = "someName";
+    const schainName = randomString(10);
     // execution
     const chain = await lockAndDataForMainnet
       .addSchain(schainName, deployer, {from: deployer});
@@ -186,7 +186,7 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
   it("should rejected with `SKALE chain is already set` when invoke `addSchain`", async () => {
     // preparation
     const error = "SKALE chain is already set";
-    const schainName = "someName";
+    const schainName = randomString(10);
     await lockAndDataForMainnet
       .addSchain(schainName, deployer, {from: deployer});
     // execution/expectation
@@ -198,7 +198,7 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
   it("should rejected with `Incorrect Token Manager address` when invoke `addSchain`", async () => {
     // preparation
     const error = "Incorrect Token Manager address";
-    const schainName = "someName";
+    const schainName = randomString(10);
     // execution/expectation
     await lockAndDataForMainnet
       .addSchain(schainName, "0x0000000000000000000000000000000000000000", {from: deployer})
@@ -226,6 +226,54 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
       .hasSchain(schainID, {from: deployer});
     // expectation
     expect(res).to.be.false;
+  });
+
+  it("should invoke `removeSchain` without mistakes", async () => {
+    const schainID = randomString(10);
+    await lockAndDataForMainnet
+      .addSchain(schainID, deployer, {from: deployer});
+    // execution
+    await lockAndDataForMainnet
+      .removeSchain(schainID, {from: deployer});
+    // expectation
+    const getMapping = await lockAndDataForMainnet.tokenManagerAddresses(web3.utils.soliditySha3(schainID));
+    expect(getMapping).to.equal("0x0000000000000000000000000000000000000000");
+  });
+
+  it("should rejected with `SKALE chain is not set` when invoke `removeSchain`", async () => {
+    const error = "SKALE chain is not set";
+    const schainID = randomString(10);
+    const anotherSchainID = randomString(10);
+    await lockAndDataForMainnet
+      .addSchain(schainID, deployer, {from: deployer});
+    // execution/expectation
+    await lockAndDataForMainnet
+      .removeSchain(anotherSchainID, {from: deployer})
+      .should.be.eventually.rejectedWith(error);
+  });
+
+  it("should work `addAuthorizedCaller`", async () => {
+    // preparation
+    const caller = user;
+    // execution
+    await lockAndDataForMainnet
+      .addAuthorizedCaller(caller, {from: deployer});
+    // expectation
+    const res = await lockAndDataForMainnet.addAuthorizedCaller(caller);
+    // console.log("res", res);
+    // expect(res).to.be.true;
+  });
+
+  it("should work `removeAuthorizedCaller`", async () => {
+    // preparation
+    const caller = user;
+    // execution
+    await lockAndDataForMainnet
+      .removeAuthorizedCaller(caller, {from: deployer});
+    // expectation
+    const res = await lockAndDataForMainnet.addAuthorizedCaller(caller);
+    // console.log("res", res);
+    // expect(res).to.be.true;
   });
 
 });
