@@ -80,8 +80,14 @@ contract DepositBox is Permissions {
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
         require(schainHash != keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect");
         require(tokenManagerAddress != address(0), "Unconnected chain");
+        // require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Not enough money");
+        _;
+    }
+
+    modifier receiveEth() {
         require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Not enough money");
         _;
+        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
     }
 
     /// Create a new deposit box
@@ -102,6 +108,7 @@ contract DepositBox is Permissions {
         public
         payable
         rightTransaction(schainID)
+        receiveEth()
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
@@ -114,7 +121,6 @@ contract DepositBox is Permissions {
             to,
             newData
         );
-        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
     }
 
     function depositERC20(
@@ -154,7 +160,9 @@ contract DepositBox is Permissions {
             address(0),
             data
         );
-        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        if (msg.value > 0) {
+            ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        }
     }
 
     function rawDepositERC20(
@@ -195,7 +203,9 @@ contract DepositBox is Permissions {
             contractThere,
             data
         );
-        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        if (msg.value > 0) {
+            ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        }
     }
 
     function depositERC721(string memory schainID, address contractHere, address to, uint tokenId) public payable rightTransaction(schainID) {
@@ -213,7 +223,9 @@ contract DepositBox is Permissions {
             address(0),
             data
         );
-        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        if (msg.value > 0) {
+            ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        }
     }
 
     function rawDepositERC721(
@@ -241,7 +253,9 @@ contract DepositBox is Permissions {
             contractThere,
             data
         );
-        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        if (msg.value > 0) {
+            ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        }
     }
 
     function postMessage(
