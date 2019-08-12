@@ -56,7 +56,7 @@ contract MessageProxy {
     mapping(address => bool) public authorizedCaller;
 
     event OutgoingMessage(
-        string dstChain,
+        string indexed dstChain,
         uint indexed msgCounter,
         address indexed srcContract,
         address dstContract,
