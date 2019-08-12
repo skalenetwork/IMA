@@ -290,9 +290,9 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await lockAndDataForSchain
       .addAuthorizedCaller(caller, {from: deployer});
     // expectation
-    const res = await lockAndDataForSchain.addAuthorizedCaller(caller, {from: deployer});
+    const res = await lockAndDataForSchain.authorizedCaller(caller, {from: deployer});
     // console.log("res", res);
-    // expect(res).to.be.true;
+    expect(res).to.be.true;
   });
 
   it("should work `removeAuthorizedCaller`", async () => {
@@ -302,9 +302,9 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await lockAndDataForSchain
       .removeAuthorizedCaller(caller, {from: deployer});
     // expectation
-    const res = await lockAndDataForSchain.removeAuthorizedCaller(caller, {from: deployer});
+    const res = await lockAndDataForSchain.authorizedCaller(caller, {from: deployer});
     // console.log("res", res);
-    // expect(res).to.be.true;
+    expect(res).to.be.false;
   });
 
   it("should invoke `removeDepositBox` without mistakes", async () => {

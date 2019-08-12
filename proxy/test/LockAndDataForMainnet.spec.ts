@@ -259,9 +259,8 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     await lockAndDataForMainnet
       .addAuthorizedCaller(caller, {from: deployer});
     // expectation
-    const res = await lockAndDataForMainnet.addAuthorizedCaller(caller);
-    // console.log("res", res);
-    // expect(res).to.be.true;
+    const res = await lockAndDataForMainnet.authorizedCaller(caller);
+    expect(res).to.be.true;
   });
 
   it("should work `removeAuthorizedCaller`", async () => {
@@ -271,9 +270,8 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     await lockAndDataForMainnet
       .removeAuthorizedCaller(caller, {from: deployer});
     // expectation
-    const res = await lockAndDataForMainnet.addAuthorizedCaller(caller);
-    // console.log("res", res);
-    // expect(res).to.be.true;
+    const res = await lockAndDataForMainnet.authorizedCaller(caller);
+    expect(res).to.be.false;
   });
 
 });
