@@ -933,12 +933,19 @@ async function do_transfer(
                     log.write( cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event now..." ) + "\n" );
                 r = await jo_message_proxy_src.getPastEvents( "OutgoingMessage", {
                     "filter": {
+                        "dstChain": [ chain_id_dst ],
                         "msgCounter": [ nIdxCurrentMsg ]
                     },
                     "fromBlock": 0,
                     "toBlock": "latest"
                 } );
-                let joValues = r[ 0 ].returnValues;
+                let joValues = "";
+                for (let i = r.length - 1; i >= 0; i--) {
+                    if (r[ i ].returnValues['dstChain'] == chain_id_dst) {
+                        joValues = r[ i ].returnValues;
+                        break;
+                    }
+                }
                 //
                 //
                 //
@@ -1023,6 +1030,7 @@ async function do_transfer(
                     log.write(
                         cc.success( "Got event details from " ) + cc.notice( "getPastEvents()" ) +
                         cc.success( " event invoked with " ) + cc.notice( "msgCounter" ) + cc.success( " set to " ) + cc.info( nIdxCurrentMsg ) +
+                        cc.success( " and " ) + cc.notice( "dstChain" ) + cc.success( " set to " ) + cc.info( chain_id_dst ) +
                         cc.success( ", event description: " ) + cc.j( joValues ) // + cc.j(evs)
                         +
                         "\n"
