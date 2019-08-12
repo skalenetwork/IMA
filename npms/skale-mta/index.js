@@ -762,7 +762,7 @@ async function do_erc20_payment_from_s_chain(
         let depositBoxAddress = jo_deposit_box.options.address;
         let approve =
             contractERC20.methods.approve(
-                tokenManagerAddress, w3_s_chain.utils.toBN( "" + token_amount + "000000000000000000" )
+                tokenManagerAddress, w3_s_chain.utils.toBN( token_amount )
             ).encodeABI();
         let deposit = null;
         if ( isRawTokenTransfer ) {
@@ -770,13 +770,18 @@ async function do_erc20_payment_from_s_chain(
             deposit =
                 jo_token_manager.methods.rawExitToMainERC20(
                     erc20Address_s_chain, erc20Address_main_net // specific for rawExitToMainERC20() only
-                    , accountForMainnet, w3_s_chain.utils.toBN( "" + token_amount + "000000000000000000" )
+                    , accountForMainnet, w3_s_chain.utils.toBN( token_amount )
                 ).encodeABI();
-        } else
+        } else {            
+            var function_call_trace = "exitToMainERC20(" + 
+                erc20Address_s_chain + ", " + 
+                accountForMainnet + ", " + 
+                w3_s_chain.utils.toBN( token_amount ).toString(10) + ")"
             deposit = // beta version
             jo_token_manager.methods.exitToMainERC20(
-                erc20Address_s_chain, accountForMainnet, w3_s_chain.utils.toBN( "" + token_amount + "000000000000000000" )
+                erc20Address_s_chain, accountForMainnet, w3_s_chain.utils.toBN( token_amount )
             ).encodeABI();
+        }
         //
         //
         // create raw transactions
@@ -798,8 +803,7 @@ async function do_erc20_payment_from_s_chain(
             "data": deposit,
             "to": tokenManagerAddress,
             "gasPrice": 0,
-            "gas": 8000000,
-            "value": w3_s_chain.utils.toHex( w3_s_chain.utils.toWei( "1", "ether" ) )
+            "gas": 8000000
         }
         //
         //
@@ -822,7 +826,7 @@ async function do_erc20_payment_from_s_chain(
         let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
-        strActionName = "w3_s_chain.eth.sendSignedTransaction()/Approve";
+        strActionName = "w3_s_chain.eth.sendSignedTransaction()/Deposit";
         let joReceiptDeposit = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );

@@ -1,3 +1,4 @@
+import errno
 from time import time, sleep
 from subprocess import Popen
 from logging import debug
@@ -93,12 +94,7 @@ class Agent:
     def transfer_erc20_from_mainnet_to_schain(self, token_contract, from_key, to_key, amount, timeout=0):
         config_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
         erc20_config_filename = self.config.test_working_dir +  '/erc20.json'
-        if not os.path.exists(os.path.dirname(erc20_config_filename)):
-            try:
-                os.makedirs(os.path.dirname(erc20_config_filename))
-            except OSError as exc:  # Guard against race condition
-                if exc.errno != os.errno.EEXIST:
-                    raise
+        self._create_path(erc20_config_filename)
         with open(erc20_config_filename, 'w') as erc20_file:
             json.dump(config_json, erc20_file)
 
@@ -107,6 +103,38 @@ class Agent:
                                               'key-main-net': from_key,
                                               'key-s-chain': to_key,
                                               'erc20-main-net': erc20_config_filename})
+
+        start = time()
+        while time() < start + timeout if timeout > 0 else True:
+            try:
+                self.blockchain.get_erc20_on_schain(1)
+                return
+            except ValueError:
+                debug('Wait for erc20 deployment')
+                sleep(1)
+
+    def transfer_erc20_from_schain_to_mainnet(self, token_contract, from_key, to_key, amount, timeout=0):
+        config_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
+        erc20_clone_config_filename = self.config.test_working_dir +  '/erc20_clone.json'
+        self._create_path(erc20_clone_config_filename)
+        with open(erc20_clone_config_filename, 'w') as erc20_file:
+            json.dump(config_json, erc20_file)
+
+        destination_address = self.blockchain.key_to_address(to_key)
+        erc20 = self.blockchain.get_erc20_on_mainnet(1)
+        balance = erc20.functions.balanceOf(destination_address).call()
+
+        self._execute_command('s2m-payment', {'no-raw-transfer': None,
+                                              'amount': amount,
+                                              'key-main-net': to_key,
+                                              'key-s-chain': from_key,
+                                              'erc20-s-chain': erc20_clone_config_filename})
+
+        start = time()
+        while (time() < start + timeout if timeout > 0 else True) and \
+                balance == erc20.functions.balanceOf(destination_address).call():
+            debug('Wait for erc20 payment')
+            sleep(1)
 
     # private
 
@@ -145,3 +173,12 @@ class Agent:
     def _wei_to_bigger(self, amount):
         new_amount, unit = self.blockchain.wei_to_bigger(amount)
         return {unit: new_amount}
+
+    @staticmethod
+    def _create_path(filename):
+        if not os.path.exists(os.path.dirname(filename)):
+            try:
+                os.makedirs(os.path.dirname(filename))
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise

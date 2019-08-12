@@ -5,6 +5,7 @@ class Config:
     proxy_root = 'proxy'
     test_root = 'test'
     test_working_dir = 'working'
+    test_resource_dir = 'resources'
     network_for_mainnet = 'mainnet'
     network_for_schain = 'schain'
     mainnet_key=''
@@ -23,6 +24,7 @@ class Config:
         self.skale_ima_root = src_root + '/' + self.skale_ima_root
         self.test_root = src_root + '/' + self.test_root
         self.test_working_dir = self.test_root + '/' + self.test_working_dir
+        self.test_resource_dir = self.test_root + '/' + self.test_resource_dir
 
         self.network_for_mainnet = config_json['NETWORK_FOR_MAINNET']
         self.network_for_schain = config_json['NETWORK_FOR_SCHAIN']
