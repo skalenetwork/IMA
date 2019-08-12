@@ -16,7 +16,7 @@ LATEST_IMAGE_NAME=$REPO_NAME:latest
 if [ -z "$SKIP_BUILD" ]
 then   
 
-    docker build -t $IMAGE_NAME .
+    docker build -t $IMAGE_NAME . || exit $?
 
     if [ "$RELEASE" = true ]
     then
@@ -27,9 +27,9 @@ fi
 if [[ ! -z "$USERNAME" ]]
 then
     echo "$PASSWORD" | docker login --username $USERNAME --password-stdin
-    docker push $IMAGE_NAME
+    docker push $IMAGE_NAME || exit $?
     if [ "$RELEASE" = true ]
     then
-        docker push $LATEST_IMAGE_NAME
+        docker push $LATEST_IMAGE_NAME || exit $?
     fi
 fi

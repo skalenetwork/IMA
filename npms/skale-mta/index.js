@@ -201,7 +201,7 @@ async function register_s_chain_on_main_net( // step 1
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
             "nonce": tcnt, // 0x00, ...
-            "gasPrice": w3_main_net.eth.gasPrice,
+            "gasPrice": 10000000000,
             "gasLimit": 3000000,
             "to": jo_message_proxy_main_net.options.address, // cantract address
             "data": dataTx
@@ -289,7 +289,7 @@ async function register_s_chain_in_deposit_box( // step 2
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
             "nonce": tcnt, // 0x00, ...
-            "gasPrice": w3_main_net.eth.gasPrice,
+            "gasPrice": 10000000000,
             "gasLimit": 3000000,
             "to": jo_lock_and_data_main_net.options.address, // cantract address
             "data": dataTx
@@ -366,7 +366,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
             "nonce": tcnt, // 0x00, ...
-            "gasPrice": w3_s_chain.eth.gasPrice,
+            "gasPrice": 10000000000,
             "gasLimit": 3000000,
             "to": jo_lock_and_data_s_chain.options.address, // cantract address
             "data": dataTx
@@ -939,12 +939,19 @@ async function do_transfer(
                     log.write( cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event now..." ) + "\n" );
                 r = await jo_message_proxy_src.getPastEvents( "OutgoingMessage", {
                     "filter": {
+                        "dstChain": [ chain_id_dst ],
                         "msgCounter": [ nIdxCurrentMsg ]
                     },
                     "fromBlock": 0,
                     "toBlock": "latest"
                 } );
-                let joValues = r[ 0 ].returnValues;
+                let joValues = "";
+                for (let i = r.length - 1; i >= 0; i--) {
+                    if (r[ i ].returnValues['dstChain'] == chain_id_dst) {
+                        joValues = r[ i ].returnValues;
+                        break;
+                    }
+                }
                 //
                 //
                 //
@@ -1029,6 +1036,7 @@ async function do_transfer(
                     log.write(
                         cc.success( "Got event details from " ) + cc.notice( "getPastEvents()" ) +
                         cc.success( " event invoked with " ) + cc.notice( "msgCounter" ) + cc.success( " set to " ) + cc.info( nIdxCurrentMsg ) +
+                        cc.success( " and " ) + cc.notice( "dstChain" ) + cc.success( " set to " ) + cc.info( chain_id_dst ) +
                         cc.success( ", event description: " ) + cc.j( joValues ) // + cc.j(evs)
                         +
                         "\n"
@@ -1094,7 +1102,7 @@ async function do_transfer(
             //
             let rawTx = {
                 "nonce": tcnt, // 0x00, ...
-                "gas": 2100000,
+                "gas": 3000000,
                 "gasPrice": 10000000000, // not w3_dst.eth.gasPrice ... got from truffle.js network_name gasPrice
                 "gasLimit": 3000000,
                 "to": jo_message_proxy_dst.options.address, // cantract address
