@@ -39,7 +39,7 @@ contract LockAndDataForSchain is Ownable {
 
     mapping(address => uint) public ethCosts;
 
-    mapping (address => bool) public authorizedCaller;
+    mapping(address => bool) public authorizedCaller;
 
     modifier allow(string memory contractName) {
         require(
