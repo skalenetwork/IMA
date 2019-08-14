@@ -939,7 +939,7 @@ async function do_transfer(
                     log.write( cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event now..." ) + "\n" );
                 r = await jo_message_proxy_src.getPastEvents( "OutgoingMessage", {
                     "filter": {
-                        "dstChain": [ chain_id_dst ],
+                        "dstChainHash": [ w3_src.utils.soliditySha3(chain_id_dst) ],
                         "msgCounter": [ nIdxCurrentMsg ]
                     },
                     "fromBlock": 0,
@@ -951,6 +951,10 @@ async function do_transfer(
                         joValues = r[ i ].returnValues;
                         break;
                     }
+                }
+                if (joValues == "") {
+                    log.error(cc.error("Can't get events from MessageProxy") + '\n');
+                    process.exit(1);
                 }
                 //
                 //
@@ -1049,7 +1053,7 @@ async function do_transfer(
                 arrSrc.push( joValues.srcContract );
                 arrDst.push( joValues.dstContract );
                 arrTo.push( joValues.to );
-                arrAmount.push( joValues.amount );
+                arrAmount.push( joValues.amount );                
                 strDataAll += w3_dst.utils.hexToAscii( joValues.data );
                 arrLengths.push( joValues.length );
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )

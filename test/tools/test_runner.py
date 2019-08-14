@@ -10,15 +10,19 @@ from test_cases import *
 class TestRunner:
     src_root = None
     config_filename = 'config.json'
+    tests = None
 
-    def __init__(self, src_root, config_filename):
+    def __init__(self, src_root, config_filename, tests):
         self.src_root = src_root
         self.config_filename = config_filename
+        self.tests = tests
 
     def run(self):
         for config in config_generator(self.src_root, self.config_filename):
             for test in test_pool.get_tests(config):
                 test_name = test.get_name()
+                if self.tests is not None and test_name not in self.tests:
+                    info(f'Skip test {test_name}')
 
                 test.prepare()
                 test.execute()

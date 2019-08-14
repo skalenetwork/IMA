@@ -6,12 +6,19 @@ from tools.test_runner import TestRunner
 
 
 def main():
-    if len(sys.argv) < 2:
+    argv, tests, prefix = [], None, 'tests='
+    for argument in sys.argv:
+        if argument.startswith(prefix):
+            tests = argument[len(prefix):].split(',')
+        else:
+            argv.append(argument)
+
+    if len(argv) < 2:
         src_root = os.path.abspath(os.pardir)
     else:
-        src_root = sys.argv[1]
+        src_root = argv[1]
 
-    test_runner = TestRunner(src_root, 'config.json')
+    test_runner = TestRunner(src_root, 'config.json', tests)
     test_runner.run()
 
 
