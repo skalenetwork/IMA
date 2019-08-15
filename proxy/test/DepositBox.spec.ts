@@ -626,7 +626,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
       // get data from `receiveERC20`
       const getRes = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-      const data = getRes.logs[0].args.data;
+      const data = getRes.logs[1].args.data;
       // execution
       // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
@@ -734,7 +734,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         lockAndDataForMainnetERC721.address, tokenId, {from: deployer});
       // get data from `receiveERC721`
       const getRes = await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
-      const data = getRes.logs[0].args.data;
+      const data = getRes.logs[1].args.data;
       // execution
       // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet

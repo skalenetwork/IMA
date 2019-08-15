@@ -175,7 +175,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
         .setContract("TokenFactory", tokenFactory.address, {from: deployer});
     // execution
     const res = await eRC20ModuleForSchain.sendERC20(to0, data, {from: deployer});
-    const newAddress = res.logs[2].args.contractAddress;
+    const newAddress = res.logs[1].args.contractAddress;
     // expectation
     const newERC20Contract = new web3.eth.Contract(ABIERC20OnChain.abi, newAddress);
     const balance = await newERC20Contract.methods.balanceOf(to).call();
