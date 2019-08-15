@@ -1113,7 +1113,6 @@ if ( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chai
     }
 }
 
-console.log('Debug: n1 =', n1, 'n2 =', n2)
 if ( n1 != 0 && n2 == 0 ) {
     if ( g_str_addr_erc20_explicit.length == 0 ) {
         log.write( cc.fatal( "IMPORTANT NOTICE:" ) + " " + cc.error( "Both S-Chain ERC20 JSON and explicit ERC20 address are not specified" ) + "\n" );
