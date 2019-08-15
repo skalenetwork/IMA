@@ -69,7 +69,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
   });
 
   it("should add schain", async () => {
-    const schainID = "schainID";
+    const schainID = randomString(10);
     const tokenManagerAddress = user;
     const nullAddress = "0x0000000000000000000000000000000000000000";
 
@@ -257,6 +257,75 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
       .hasDepositBox({from: deployer});
     // expectation
     expect(res).to.be.false;
+  });
+
+  it("should invoke `removeSchain` without mistakes", async () => {
+    const schainID = randomString(10);
+    await lockAndDataForSchain
+      .addSchain(schainID, deployer, {from: deployer});
+    // execution
+    await lockAndDataForSchain
+      .removeSchain(schainID, {from: deployer});
+    // expectation
+    const getMapping = await lockAndDataForSchain.tokenManagerAddresses(web3.utils.soliditySha3(schainID));
+    expect(getMapping).to.equal("0x0000000000000000000000000000000000000000");
+  });
+
+  it("should rejected with `SKALE chain is not set` when invoke `removeSchain`", async () => {
+    const error = "SKALE chain is not set";
+    const schainID = randomString(10);
+    const anotherSchainID = randomString(10);
+    await lockAndDataForSchain
+      .addSchain(schainID, deployer, {from: deployer});
+    // execution/expectation
+    await lockAndDataForSchain
+      .removeSchain(anotherSchainID, {from: deployer})
+      .should.be.eventually.rejectedWith(error);
+  });
+
+  it("should work `addAuthorizedCaller`", async () => {
+    // preparation
+    const caller = user;
+    // execution
+    await lockAndDataForSchain
+      .addAuthorizedCaller(caller, {from: deployer});
+    // expectation
+    const res = await lockAndDataForSchain.authorizedCaller(caller, {from: deployer});
+    // console.log("res", res);
+    expect(res).to.be.true;
+  });
+
+  it("should work `removeAuthorizedCaller`", async () => {
+    // preparation
+    const caller = user;
+    // execution
+    await lockAndDataForSchain
+      .removeAuthorizedCaller(caller, {from: deployer});
+    // expectation
+    const res = await lockAndDataForSchain.authorizedCaller(caller, {from: deployer});
+    // console.log("res", res);
+    expect(res).to.be.false;
+  });
+
+  it("should invoke `removeDepositBox` without mistakes", async () => {
+    // preparation
+    const depositBoxAddress = user;
+    const nullAddress = "0x0000000000000000000000000000000000000000";
+    // add deposit box:
+    await lockAndDataForSchain.addDepositBox(depositBoxAddress, {from: deployer});
+    // execution
+    await lockAndDataForSchain.removeDepositBox({from: deployer});
+    // expectation
+    const getMapping = await lockAndDataForSchain.tokenManagerAddresses(web3.utils.soliditySha3("Mainnet"));
+    expect(getMapping).to.equal(nullAddress);
+  });
+
+  it("should rejected with `Deposit Box is not set` when invoke `removeDepositBox`", async () => {
+    // preparation
+    const error = "Deposit Box is not set";
+    // execution/expectation
+    await lockAndDataForSchain.removeDepositBox({from: deployer})
+      .should.be.eventually.rejectedWith(error);
   });
 
 });
