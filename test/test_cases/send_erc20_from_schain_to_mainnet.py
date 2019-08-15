@@ -11,7 +11,7 @@ class SendERC20ToMainnet(TestCase):
     amount = 1
 
     def __init__(self, config):
-        super().__init__('Send ERC20 to schain', config)
+        super().__init__('Send ERC20 from schain to mainnet', config)
 
     def _prepare(self):
 
@@ -40,14 +40,17 @@ class SendERC20ToMainnet(TestCase):
         self.erc20_clone = self.blockchain.get_erc20_on_schain(1)
 
     def _execute(self):
-        destination_address = self.blockchain.key_to_address(self.config.schain_key)
+        source_address = self.blockchain.key_to_address(self.config.schain_key)
+        destination_address = self.blockchain.key_to_address(self.config.mainnet_key)
+
+        if self.erc20_clone.functions.balanceOf(source_address).call() < self.amount:
+            error("Not enough tokens to send")
+            return
         balance = self.erc20.functions.balanceOf(destination_address).call()
 
-        print('Send from schain to mainnet')
-
         self.agent.transfer_erc20_from_schain_to_mainnet(self.erc20_clone,
-                                                         self.config.mainnet_key,
                                                          self.config.schain_key,
+                                                         self.config.mainnet_key,
                                                          self.amount,
                                                          self.timeout)
 

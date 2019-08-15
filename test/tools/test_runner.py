@@ -23,6 +23,9 @@ class TestRunner:
                 test_name = test.get_name()
                 if self.tests is not None and test_name not in self.tests:
                     info(f'Skip test {test_name}')
+                    continue
+                else:
+                    info(f'Execute test {test_name}')
 
                 test.prepare()
                 test.execute()
