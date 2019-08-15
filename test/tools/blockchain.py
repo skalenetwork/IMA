@@ -13,6 +13,8 @@ class BlockChain:
         self.config = config
         self.web3_mainnet = Web3(HTTPProvider(self.config.mainnet_rpc_url))
         self.web3_schain = Web3(HTTPProvider(self.config.schain_rpc_url))
+        if not self.config.user_key:
+            self.config.user_key = Account.create().privateKey.hex()[2:]
 
     def get_balance_on_schain(self, address):
         eth_token = self._get_contract_on_schain('eth_erc20')

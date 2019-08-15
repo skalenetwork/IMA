@@ -26,14 +26,20 @@ class Config:
         self.test_working_dir = self.test_root + '/' + self.test_working_dir
         self.test_resource_dir = self.test_root + '/' + self.test_resource_dir
 
-        self.network_for_mainnet = config_json['NETWORK_FOR_MAINNET']
-        self.network_for_schain = config_json['NETWORK_FOR_SCHAIN']
+        if 'NETWORK_FOR_MAINNET' in config_json:
+            self.network_for_mainnet = config_json['NETWORK_FOR_MAINNET']
+        if 'NETWORK_FOR_SCHAIN' in config_json:
+            self.network_for_schain = config_json['NETWORK_FOR_SCHAIN']
         self.mainnet_key = config_json['ETH_PRIVATE_KEY_FOR_MAINNET']
-        self.mainnet_rpc_url = config_json['MAINNET_RPC_URL']
+        if 'MAINNET_RPC_URL' in config_json:
+            self.mainnet_rpc_url = config_json['MAINNET_RPC_URL']
         self.schain_key = config_json['ETH_PRIVATE_KEY_FOR_SCHAIN']
-        self.schain_rpc_url = config_json['SCHAIN_RPC_URL']
-        self.schain_name = config_json['SCHAIN_NAME']
-        self.user_key = config_json['user_key']
+        if 'SCHAIN_RPC_URL' in config_json:
+            self.schain_rpc_url = config_json['SCHAIN_RPC_URL']
+        if 'SCHAIN_NAME' in config_json:
+            self.schain_name = config_json['SCHAIN_NAME']
+        if 'user_key' in config_json:
+            self.user_key = config_json['user_key']
 
         self.abi_mainnet = self.proxy_root + '/' + self.abi_mainnet
         self.abi_schain = self.proxy_root + '/' + self.abi_schain + self.schain_name + '.json'
