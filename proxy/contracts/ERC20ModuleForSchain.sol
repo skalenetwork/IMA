@@ -44,7 +44,7 @@ interface ERC20Clone {
 
 contract ERC20ModuleForSchain is Permissions {
 
-    event ERC20TokenCreated(address contractAddress);
+    event ERC20TokenCreated(uint indexed contractPosition, address tokenThere);
     event EncodedData(bytes data);
     event EncodedRawData(bytes data);
     event Data(address contractAddress);
@@ -81,7 +81,7 @@ contract ERC20ModuleForSchain is Permissions {
             if (contractAddress == address(0)) {
                 address tokenFactoryAddress = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("TokenFactory")));
                 contractAddress = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(data);
-                emit ERC20TokenCreated(contractAddress);
+                emit ERC20TokenCreated(contractPosition, contractAddress);
                 ILockAndDataERC20S(lockAndDataERC20).addERC20Token(contractAddress, contractPosition);
             } else {
                 uint totalSupply = fallbackTotalSupplyParser(data);

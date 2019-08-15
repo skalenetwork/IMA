@@ -35,6 +35,7 @@ contract ERC20ModuleForMainnet is Permissions {
     event EncodedData(bytes data);
     event EncodedRawData(bytes data);
     event SentERC20(bool result);
+    event ERC20TokenAdded(address indexed tokenHere, uint contractPosition);
 
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
@@ -46,6 +47,7 @@ contract ERC20ModuleForMainnet is Permissions {
             uint contractPosition = ILockAndDataERC20M(lockAndDataERC20).ERC20Mapper(contractHere);
             if (contractPosition == 0) {
                 contractPosition = ILockAndDataERC20M(lockAndDataERC20).addERC20Token(contractHere);
+                emit ERC20TokenAdded(contractHere, contractPosition);
             }
             data = encodeData(contractHere, contractPosition, to, amount);
             emit EncodedData(bytes(data));
