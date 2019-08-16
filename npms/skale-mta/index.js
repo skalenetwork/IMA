@@ -933,7 +933,6 @@ async function do_transfer(
                     log.write( cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event now..." ) + "\n" );
                 r = await jo_message_proxy_src.getPastEvents( "OutgoingMessage", {
                     "filter": {
-                        "dstChain": [ chain_id_dst ],
                         "msgCounter": [ nIdxCurrentMsg ]
                     },
                     "fromBlock": 0,
