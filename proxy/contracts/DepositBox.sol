@@ -128,6 +128,7 @@ contract DepositBox is Permissions {
         uint amount
     )
         public
+        payable
         rightTransaction(schainID)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -153,11 +154,11 @@ contract DepositBox is Permissions {
         IMessageProxy(proxyAddress).postOutgoingMessage(
             schainID,
             tokenManagerAddress,
-            0,
+            msg.value,
             address(0),
             data
         );
-        // ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
     }
 
     function rawDepositERC20(
@@ -168,6 +169,7 @@ contract DepositBox is Permissions {
         uint amount
     )
         public
+        payable
         rightTransaction(schainID)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -193,11 +195,11 @@ contract DepositBox is Permissions {
         IMessageProxy(proxyAddress).postOutgoingMessage(
             schainID,
             tokenManagerAddress,
-            0,
+            msg.value,
             contractThere,
             data
         );
-        // ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
     }
 
     function depositERC721(string memory schainID, address contractHere, address to, uint tokenId) public payable rightTransaction(schainID) {
