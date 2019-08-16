@@ -2,8 +2,11 @@ import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 
 import chai = require("chai");
-import { LockAndDataForMainnetContract,
+import {
+    LockAndDataForMainnetContract,
     LockAndDataForMainnetInstance,
+    LockAndDataForSchainContract,
+    LockAndDataForSchainInstance,
     MessageProxyContract,
     MessageProxyInstance,
     TokenManagerContract,
@@ -18,12 +21,14 @@ chai.use((chaiAsPromised as any));
 const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
+const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 
 contract("MessageProxy", ([user, deployer, client, customer]) => {
     let messageProxy: MessageProxyInstance;
     let tokenManager1: TokenManagerInstance;
     let tokenManager2: TokenManagerInstance;
     let lockAndDataForMainnet: LockAndDataForMainnetInstance;
+    let lockAndDataForSchain: LockAndDataForSchainInstance;
 
     const publicKeyArray = [
         "1122334455667788990011223344556677889900112233445566778899001122",
@@ -216,12 +221,13 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             const incomingMessagesCounter = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
         });
+
     });
 
     describe("MessageProxy for schain", async () => {
         beforeEach(async () => {
             messageProxy = await MessageProxy.new("MyChain", {from: deployer, gas: 8000000 * gasMultiplier});
-            lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
+            lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -289,9 +295,9 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
         it("should post incoming messages", async () => {
             const chainID = randomString(10);
             tokenManager1 = await TokenManager.new(chainID, messageProxy.address,
-                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
             tokenManager2 = await TokenManager.new(chainID, messageProxy.address,
-                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
             const startingCounter = 0;
             const senders = [deployer, user];
             const contracts = [tokenManager1.address,
@@ -353,7 +359,7 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
 
         it("should get outgoing messages counter", async () => {
             const chainID = randomString(10);
-            const contractAddress = lockAndDataForMainnet.address;
+            const contractAddress = lockAndDataForSchain.address;
             const amount = 5;
             const addressTo = client;
             const bytesData = "0x0";
@@ -376,9 +382,9 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
         it("should get incoming messages counter", async () => {
             const chainID = randomString(10);
             tokenManager1 = await TokenManager.new(chainID, messageProxy.address,
-                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
             tokenManager2 = await TokenManager.new(chainID, messageProxy.address,
-                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
             const startingCounter = 0;
             const senders = [deployer, user];
             const contracts = [tokenManager1.address,
@@ -401,6 +407,52 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
                 addressTo, amount, data, lenthOfData, {from: deployer});
             const incomingMessagesCounter = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
+        });
+
+        it("should rejected with `Sender is not an owner` when invoke `addAuthorizedCaller`", async () => {
+            // preparation
+            const error = "Sender is not an owner";
+            const caller = user;
+            // execution/expectation
+            await messageProxy
+              .addAuthorizedCaller(caller, {from: caller})
+              .should.be.eventually.rejectedWith(error);
+        });
+
+        it("should rejected with `Sender is not an owner` when invoke `removeAuthorizedCaller`", async () => {
+            // preparation
+            const error = "Sender is not an owner";
+            const caller = user;
+            // execution/expectation
+            await messageProxy
+              .removeAuthorizedCaller(caller, {from: caller})
+              .should.be.eventually.rejectedWith(error);
+        });
+
+        it("should work `addAuthorizedCaller`", async () => {
+            // preparation
+            const caller = user;
+            // execution
+            await messageProxy
+              .addAuthorizedCaller(caller, {from: deployer});
+            // expectation
+            const res = await messageProxy.authorizedCaller(caller);
+            // console.log("res", res);
+            expect(res).to.be.true;
+        });
+
+        it("should work `removeAuthorizedCaller`", async () => {
+            // preparation
+            const caller = user;
+            await messageProxy
+              .addAuthorizedCaller(caller, {from: deployer});
+            // execution
+            await messageProxy
+              .removeAuthorizedCaller(caller, {from: deployer});
+            // expectation
+            const res = await messageProxy.authorizedCaller(caller);
+            // console.log("res", res);
+            expect(res).to.be.false;
         });
     });
 });

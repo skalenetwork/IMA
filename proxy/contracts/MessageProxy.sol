@@ -53,7 +53,7 @@ contract MessageProxy {
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public owner;
 
-    mapping (address => bool) public authorizedCaller;
+    mapping(address => bool) public authorizedCaller;
 
     event OutgoingMessage(
         string indexed dstChain,

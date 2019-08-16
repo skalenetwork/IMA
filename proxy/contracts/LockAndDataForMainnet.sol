@@ -30,7 +30,7 @@ contract LockAndDataForMainnet is Ownable {
 
     mapping(address => uint) public approveTransfers;
 
-    mapping (address => bool) public authorizedCaller;
+    mapping(address => bool) public authorizedCaller;
 
     modifier allow(string memory contractName) {
         require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
