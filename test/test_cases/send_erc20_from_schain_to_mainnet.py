@@ -45,7 +45,6 @@ class SendERC20ToMainnet(TestCase):
                                                        self.timeout)
                                                     
         self.blockchain.add_eth_cost(self.config.schain_key,
-                                    self.config.schain_key,
                                     amount)
 
         self.erc20_clone = self.blockchain.get_erc20_on_schain(1)
