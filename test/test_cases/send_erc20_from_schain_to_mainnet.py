@@ -37,6 +37,17 @@ class SendERC20ToMainnet(TestCase):
                                                          self.amount,
                                                          self.timeout)
 
+        amount = 21 * 10 ** 15
+
+        self.agent.transfer_eth_from_mainnet_to_schain(self.config.mainnet_key,
+                                                       self.config.schain_key,
+                                                       amount,
+                                                       self.timeout)
+                                                    
+        self.blockchain.add_eth_cost(self.config.schain_key,
+                                    self.config.schain_key,
+                                    amount)
+
         self.erc20_clone = self.blockchain.get_erc20_on_schain(1)
 
     def _execute(self):
