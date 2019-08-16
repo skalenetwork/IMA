@@ -56,7 +56,8 @@ contract MessageProxy {
     mapping(address => bool) public authorizedCaller;
 
     event OutgoingMessage(
-        string indexed dstChain,
+        string dstChain,
+        bytes32 indexed dstChainHash,
         uint indexed msgCounter,
         address indexed srcContract,
         address dstContract,
@@ -183,6 +184,7 @@ contract MessageProxy {
         connectedChains[dstChainHash].outgoingMessageCounter++;
         emit OutgoingMessage(
             dstChainID,
+            dstChainHash,
             connectedChains[dstChainHash].outgoingMessageCounter - 1,
             msg.sender,
             dstContract,

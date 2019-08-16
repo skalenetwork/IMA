@@ -178,7 +178,7 @@ contract TokenManager is Permissions {
             ),
             "Could not transfer ERC20 Token"
         );
-        require(ILockAndDataTM(lockAndDataAddress).reduceGasCosts(msg.sender, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE), "Not enough gas sent");
+        // require(ILockAndDataTM(lockAndDataAddress).reduceGasCosts(msg.sender, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE), "Not enough gas sent");
         bytes memory data = IERC20Module(erc20Module).receiveERC20(contractHere, to, amount, false);
         IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
             "Mainnet",
