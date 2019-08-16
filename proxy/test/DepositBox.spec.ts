@@ -86,7 +86,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
     it("should rejected with `Not enough money` when invoke `deposit`", async () => {
       // preparation
       const schainID = randomString(10);
-      const error = "Not enough money";
+      const error = "Gas was not paid";
       // the wei for this error should be LESS than (55000 * 1000000000)
       // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
       const wei = "10000";
@@ -142,9 +142,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // preparation
         const error = "Not allowed ERC20 Token";
         const schainID = randomString(10);
-        // the wei should be MORE than (55000 * 1000000000)
-        // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-        const wei = "20000000000000000";
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
@@ -156,16 +153,13 @@ contract("DepositBox", ([deployer, user, invoker]) => {
           .setContract("DepositBox", depositBox.address, {from: deployer});
         // execution/expectation
         await depositBox
-          .depositERC20(schainID, ethERC20.address, deployer, 100, {value: wei, from: deployer})
+          .depositERC20(schainID, ethERC20.address, deployer, 100, {from: deployer})
           .should.be.eventually.rejectedWith(error);
       });
 
       it("should invoke `depositERC20` without mistakes", async () => {
         // preparation
         const schainID = randomString(10);
-        // the wei should be MORE than (55000 * 1000000000)
-        // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-        const wei = "20000000000000000";
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
@@ -187,10 +181,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
         // execution
         await depositBox
-          .depositERC20(schainID, ethERC20.address, deployer, 1, {value: wei, from: deployer});
-        const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
-        // expectation
-        expect(lockAndDataBalance).to.equal(wei);
+          .depositERC20(schainID, ethERC20.address, deployer, 1, {from: deployer});
       });
     });
 
@@ -199,9 +190,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // preparation
         const error = "Not allowed ERC20 Token";
         const schainID = randomString(10);
-        // the wei should be MORE than (55000 * 1000000000)
-        // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-        const wei = "20000000000000000";
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
@@ -213,16 +201,13 @@ contract("DepositBox", ([deployer, user, invoker]) => {
           .setContract("DepositBox", depositBox.address, {from: deployer});
         // execution/expectation
         await depositBox
-          .rawDepositERC20(schainID, ethERC20.address, user, deployer, 100, {value: wei, from: deployer})
+          .rawDepositERC20(schainID, ethERC20.address, user, deployer, 100, {from: deployer})
           .should.be.eventually.rejectedWith(error);
       });
 
       it("should invoke `rawDepositERC20` without mistakes", async () => {
         // preparation
         const schainID = randomString(10);
-        // the wei should be MORE than (55000 * 1000000000)
-        // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-        const wei = "20000000000000000";
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
@@ -244,10 +229,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
         // execution
         await depositBox
-          .rawDepositERC20(schainID, ethERC20.address, user, deployer, 1, {value: wei, from: deployer});
-        const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
-        // expectation
-        expect(lockAndDataBalance).to.equal(wei);
+          .rawDepositERC20(schainID, ethERC20.address, user, deployer, 1, {from: deployer});
       });
     });
   });

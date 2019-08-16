@@ -637,7 +637,7 @@ async function do_erc20_payment_from_main_net(
         let accountForSchain = joAccountDst.address( w3_s_chain );
         let approve =
             contractERC20.methods.approve(
-                depositBoxAddress, w3_main_net.utils.toBN( "" + token_amount + "000000000000000000" )
+                depositBoxAddress, w3_main_net.utils.toBN( token_amount )
             ).encodeABI();
         let deposit = null;
         if ( isRawTokenTransfer ) {
@@ -645,12 +645,12 @@ async function do_erc20_payment_from_main_net(
             deposit =
                 jo_deposit_box.methods.rawDepositERC20(
                     chain_id_s_chain, erc20Address_main_net, erc20Address_s_chain // specific for rawDepositERC20() only
-                    , accountForSchain, w3_main_net.utils.toBN( "" + token_amount + "000000000000000000" )
+                    , accountForSchain, w3_main_net.utils.toBN( token_amount )
                 ).encodeABI();
         } else
             deposit = // beta version
             jo_deposit_box.methods.depositERC20(
-                chain_id_s_chain, erc20Address_main_net, accountForSchain, w3_main_net.utils.toBN( "" + token_amount + "000000000000000000" )
+                chain_id_s_chain, erc20Address_main_net, accountForSchain, w3_main_net.utils.toBN( token_amount )
             ).encodeABI();
         //
         //
@@ -672,8 +672,7 @@ async function do_erc20_payment_from_main_net(
             "data": deposit,
             "to": depositBoxAddress,
             "gasPrice": 0,
-            "gas": 8000000,
-            "value": w3_main_net.utils.toHex( w3_main_net.utils.toWei( "1", "ether" ) )
+            "gas": 8000000
         }
         //
         //
@@ -695,24 +694,27 @@ async function do_erc20_payment_from_main_net(
         let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
-        strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
+        strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
         let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
         //
         //
-        if ( !isRawTokenTransfer ) {
-            strActionName = "getPastEvents/ERC20TokenCreated";
-            let joEvents = await jo_token_manager.getPastEvents( "ERC20TokenCreated", {
-                "filter": {
-                    "contractThere": [ erc20Address_main_net ]
-                },
-                "fromBlock": 0,
-                "toBlock": "latest"
-            } );
-            if ( verbose_get() >= RV_VERBOSE.information )
-                log.write( cc.success( "Got events for ERC20TokenCreated: " ) + cc.j( joEvents ) + "\n" );
-        } // if( ! isRawTokenTransfer )
+
+        // TODO: Fix event getting
+        // if ( !isRawTokenTransfer ) {
+        //     strActionName = "getPastEvents/ERC20TokenCreated";
+        //     let joEvents = await jo_token_manager.getPastEvents( "ERC20TokenCreated", {
+        //         "filter": {
+        //             "contractThere": [ erc20Address_main_net ]
+        //         },
+        //         "fromBlock": 0,
+        //         "toBlock": "latest"
+        //     } );
+        //     if ( verbose_get() >= RV_VERBOSE.information )
+        //         log.write( cc.success( "Got events for ERC20TokenCreated: " ) + cc.j( joEvents ) + "\n" );
+        // } // if( ! isRawTokenTransfer )
+
     } catch ( e ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
             log.write( cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( e ) + "\n" );
@@ -760,7 +762,7 @@ async function do_erc20_payment_from_s_chain(
         let depositBoxAddress = jo_deposit_box.options.address;
         let approve =
             contractERC20.methods.approve(
-                tokenManagerAddress, w3_s_chain.utils.toBN( "" + token_amount + "000000000000000000" )
+                tokenManagerAddress, w3_s_chain.utils.toBN( token_amount )
             ).encodeABI();
         let deposit = null;
         if ( isRawTokenTransfer ) {
@@ -768,13 +770,18 @@ async function do_erc20_payment_from_s_chain(
             deposit =
                 jo_token_manager.methods.rawExitToMainERC20(
                     erc20Address_s_chain, erc20Address_main_net // specific for rawExitToMainERC20() only
-                    , accountForMainnet, w3_s_chain.utils.toBN( "" + token_amount + "000000000000000000" )
+                    , accountForMainnet, w3_s_chain.utils.toBN( token_amount )
                 ).encodeABI();
-        } else
+        } else {            
+            var function_call_trace = "exitToMainERC20(" + 
+                erc20Address_s_chain + ", " + 
+                accountForMainnet + ", " + 
+                w3_s_chain.utils.toBN( token_amount ).toString(10) + ")"
             deposit = // beta version
             jo_token_manager.methods.exitToMainERC20(
-                erc20Address_s_chain, accountForMainnet, w3_s_chain.utils.toBN( "" + token_amount + "000000000000000000" )
+                erc20Address_s_chain, accountForMainnet, w3_s_chain.utils.toBN( token_amount )
             ).encodeABI();
+        }
         //
         //
         // create raw transactions
@@ -796,8 +803,7 @@ async function do_erc20_payment_from_s_chain(
             "data": deposit,
             "to": tokenManagerAddress,
             "gasPrice": 0,
-            "gas": 8000000,
-            "value": w3_s_chain.utils.toHex( w3_s_chain.utils.toWei( "1", "ether" ) )
+            "gas": 8000000
         }
         //
         //
@@ -820,7 +826,7 @@ async function do_erc20_payment_from_s_chain(
         let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
-        strActionName = "w3_s_chain.eth.sendSignedTransaction()/Approve";
+        strActionName = "w3_s_chain.eth.sendSignedTransaction()/Deposit";
         let joReceiptDeposit = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
@@ -933,7 +939,7 @@ async function do_transfer(
                     log.write( cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event now..." ) + "\n" );
                 r = await jo_message_proxy_src.getPastEvents( "OutgoingMessage", {
                     "filter": {
-                        "dstChain": [ chain_id_dst ],
+                        "dstChainHash": [ w3_src.utils.soliditySha3(chain_id_dst) ],
                         "msgCounter": [ nIdxCurrentMsg ]
                     },
                     "fromBlock": 0,
@@ -945,6 +951,10 @@ async function do_transfer(
                         joValues = r[ i ].returnValues;
                         break;
                     }
+                }
+                if (joValues == "") {
+                    log.error(cc.error("Can't get events from MessageProxy") + '\n');
+                    process.exit(1);
                 }
                 //
                 //
@@ -1043,7 +1053,7 @@ async function do_transfer(
                 arrSrc.push( joValues.srcContract );
                 arrDst.push( joValues.dstContract );
                 arrTo.push( joValues.to );
-                arrAmount.push( joValues.amount );
+                arrAmount.push( joValues.amount );                
                 strDataAll += w3_dst.utils.hexToAscii( joValues.data );
                 arrLengths.push( joValues.length );
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
