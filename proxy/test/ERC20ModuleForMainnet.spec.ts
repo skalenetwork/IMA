@@ -83,7 +83,7 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     // execution
     const res = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // expectation
-    (res.logs[0].event).should.be.equal("EncodedData");
+    (res.logs[1].event).should.be.equal("EncodedData");
   });
 
   it("should return `true` when invoke `sendERC20` with `to0==address(0)`", async () => {
@@ -105,7 +105,7 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
     const getRes = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = getRes.logs[1].args.data;
     // execution
     const res = await eRC20ModuleForMainnet.sendERC20(to0, data, {from: deployer});
     // expectation
@@ -183,7 +183,7 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
     const getRes = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = getRes.logs[1].args.data;
     // execution
     const res = await eRC20ModuleForMainnet.getReceiver(to0, data, {from: deployer});
     // expectation

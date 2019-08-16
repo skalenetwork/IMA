@@ -19,7 +19,7 @@ interface ILockAndDataERC721S {
 
 contract ERC721ModuleForSchain is Permissions {
 
-    event ERC721TokenCreated(address contractAddress);
+    event ERC721TokenCreated(uint indexed contractPosition, address tokenAddress);
     event EncodedData(bytes data);
     event EncodedRawData(bytes data);
     event Data(address contractAddress);
@@ -56,7 +56,7 @@ contract ERC721ModuleForSchain is Permissions {
             if (contractAddress == address(0)) {
                 address tokenFactoryAddress = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("TokenFactory")));
                 contractAddress = ITokenFactoryForERC721(tokenFactoryAddress).createERC721(data);
-                emit ERC721TokenCreated(contractAddress);
+                emit ERC721TokenCreated(contractPosition, contractAddress);
                 ILockAndDataERC721S(lockAndDataERC721).addERC721Token(contractAddress, contractPosition);
             }
         } else {

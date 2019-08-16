@@ -14,9 +14,10 @@ contract ERC721ModuleForMainnet is Permissions {
 
     event EncodedData(bytes data);
     event EncodedRawData(bytes data);
+    event ERC721TokenAdded(address indexed tokenHere, uint contractPosition);
 
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
-        
+
     }
 
     function receiveERC721(address contractHere, address to, uint tokenId, bool isRAW) public allow("DepositBox") returns (bytes memory data) {
@@ -25,6 +26,7 @@ contract ERC721ModuleForMainnet is Permissions {
             uint contractPosition = ILockAndDataERC721M(lockAndDataERC721).ERC721Mapper(contractHere);
             if (contractPosition == 0) {
                 contractPosition = ILockAndDataERC721M(lockAndDataERC721).addERC721Token(contractHere);
+                emit ERC721TokenAdded(contractHere, contractPosition);
             }
             data = encodeData(contractHere, contractPosition, to, tokenId);
             emit EncodedData(bytes(data));
@@ -49,7 +51,7 @@ contract ERC721ModuleForMainnet is Permissions {
             (receiver, tokenId) = fallbackRawDataParser(data);
             contractAddress = to;
         }
-        return ILockAndDataERC721M(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);   
+        return ILockAndDataERC721M(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
     }
 
     function getReceiver(address to, bytes memory data) public pure returns (address receiver) {
