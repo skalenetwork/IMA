@@ -9,8 +9,9 @@ const w3mod = MTA.w3mod
 let chain_id_s_chain = "blah_blah_blah_schain_name"; // 1;
 
 // mockup for `w3_main_net`
-let w3_main_net = {eth: {sendSignedTransaction: sendSignedTransaction, 
-    getTransactionCount: getTransactionCount}, utils: {fromAscii: fromAscii, fromWei: fromWei}
+let w3_main_net = {eth: {sendSignedTransaction: sendSignedTransaction, Contract: Contract,
+    getTransactionCount: getTransactionCount}, 
+    utils: {fromAscii: fromAscii, fromWei: fromWei, toBN: toBN, toHex: toHex, toWei: toWei}
 };
 // mockup for `w3_s_chain`
 let w3_s_chain = {eth: {sendSignedTransaction: sendSignedTransaction, 
@@ -20,13 +21,28 @@ function sendSignedTransaction(string) {
     return true
 }
 function getTransactionCount(string) {
-    return "0"
+    return 1
 }
 function fromAscii(string) {
     return "0"
 }
 function fromWei(string, string) {
     return "0"
+}
+function toBN(string) {
+    return "0"
+}
+function Contract(string, string) {
+    return {methods: {approve: approve}}
+}
+function approve(string, string) {
+    return {encodeABI: encodeABI}
+}
+function toHex(string) {
+    return "0x9a"
+}
+function toWei(string, string) {
+    return 100
 }
 
 // mockup for `joAccountDst`
@@ -50,10 +66,17 @@ function fn_address_impl_( w3 ) {
 }
 
 // mockup for `jo_deposit_box`
-let jo_deposit_box = {methods: {deposit: deposit}, 
+let jo_deposit_box = {methods: {deposit: deposit, depositERC20: depositERC20,
+    rawDepositERC20: rawDepositERC20}, 
     options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
 function deposit(string, string, string) {
+    return {encodeABI: encodeABI}
+}
+function depositERC20(string, string, string, string) {
+    return {encodeABI: encodeABI}
+}
+function rawDepositERC20(string, string, string, string, string) {
     return {encodeABI: encodeABI}
 }
 
@@ -105,10 +128,14 @@ function encodeABI() {
 
 // mockup for `jo_token_manager`
 let jo_token_manager = {methods: {exitToMain: exitToMain}, 
-    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
+    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"},
+    getPastEvents: getPastEvents
 };
 function exitToMain(string) {
     return {encodeABI: encodeABI}
+}
+function getPastEvents(string, {}) {
+    return "events stub"
 }
 
 describe('tests for `npms/skale-mta`', function () {
@@ -430,7 +457,12 @@ describe('tests for `npms/skale-mta`', function () {
     });
 
     it('should return `false` invoke `do_erc20_payment_from_main_net`', async function () {
-        let joAccount_main_net; // for `false` output
+        let token_amount;
+        let strCoinNameErc20_main_net;
+        let erc20PrivateTestnetJson_main_net;
+        let strCoinNameErc20_s_chain;
+        let erc20PrivateTestnetJson_s_chain;
+        let isRawTokenTransfer = true;
         // 
         expect(await MTA.
             do_erc20_payment_from_main_net(
@@ -452,6 +484,14 @@ describe('tests for `npms/skale-mta`', function () {
     });
 
     it('should return `true` invoke `do_erc20_payment_from_main_net`', async function () {
+        let token_amount = "123";
+        let strCoinNameErc20_main_net = "test";
+        let erc20PrivateTestnetJson_main_net = {test_abi: "0x0", 
+            test_address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"};
+        let strCoinNameErc20_s_chain = "test";
+        let erc20PrivateTestnetJson_s_chain = {test_abi: "0x0", 
+            test_address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"};
+        let isRawTokenTransfer = false;
         // 
         expect(await MTA.
             do_erc20_payment_from_main_net(
