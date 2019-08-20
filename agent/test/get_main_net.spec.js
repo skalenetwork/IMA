@@ -8,6 +8,27 @@ const w3mod = MTA.w3mod
 // 
 let chain_id_s_chain = "blah_blah_blah_schain_name"; // 1;
 
+// mockup for `w3_src`
+let w3_src = {eth: {getBlockNumber: getBlockNumber, getBlock: getBlock}};
+function getBlockNumber(string) {
+    return 2
+}
+function getBlock(number) {
+    return {timestamp: "1469021581"}
+}
+
+// mockup for `w3_dst`
+let w3_dst = {eth: {sendSignedTransaction: sendSignedTransaction,
+    getTransactionCount: getTransactionCount}, 
+    utils: {hexToAscii: hexToAscii, asciiToHex: asciiToHex}
+};
+function hexToAscii(string) {
+    return "0"
+}
+function asciiToHex(string) {
+    return "0x0"
+}
+
 // mockup for `w3_main_net`
 let w3_main_net = {eth: {sendSignedTransaction: sendSignedTransaction, Contract: Contract,
     getTransactionCount: getTransactionCount}, 
@@ -125,6 +146,29 @@ function addDepositBox(string) {
 }
 function encodeABI() {
     return "0x0"
+}
+
+// mockup for `jo_message_proxy_dst`
+let jo_message_proxy_dst = {methods: {getIncomingMessagesCounter: getIncomingMessagesCounter,
+    postIncomingMessages: postIncomingMessages},
+    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
+};
+function getIncomingMessagesCounter(string) {
+    return {call: callNum}
+}
+function postIncomingMessages(string, {}) {
+    return {encodeABI: encodeABI}
+}
+
+// mockup for `jo_message_proxy_src`
+let jo_message_proxy_src = {methods: {getOutgoingMessagesCounter: getOutgoingMessagesCounter},
+    getPastEvents: getPastEvents
+};
+function getOutgoingMessagesCounter(string) {
+    return {call: callNum}
+}
+function callNum() {
+    return 3
 }
 
 // mockup for `jo_token_manager`
@@ -570,6 +614,67 @@ describe('tests for `npms/skale-mta`', function () {
                 strCoinNameErc20_s_chain,
                 joErc20_s_chain,
                 isRawTokenTransfer
+            )
+        ).to.be.true;
+    });
+
+    it('should return `false` invoke `do_transfer`', async function () {
+        let jo_message_proxy_src; // for `false` output
+        let chain_id_src = "test";
+        let chain_id_dst = "test";
+        let nTransactionsCountInBlock;
+        let nMaxTransactionsCount;
+        let nBlockAwaitDepth;
+        let nBlockAge;
+        // 
+        expect(await MTA.
+            do_transfer(
+                /**/
+                w3_src,
+                jo_message_proxy_src,
+                joAccountSrc,
+                //
+                w3_dst,
+                jo_message_proxy_dst,
+                joAccountDst,
+                //
+                chain_id_src,
+                chain_id_dst,
+                //
+                nTransactionsCountInBlock,
+                nMaxTransactionsCount,
+                nBlockAwaitDepth,
+                nBlockAge
+            )
+        ).to.be.false;
+    });
+
+    it('should return `true` invoke `do_transfer`', async function () {
+        let chain_id_src = "test";
+        let chain_id_dst = "test";
+        let nTransactionsCountInBlock;
+        let nMaxTransactionsCount;
+        let nBlockAwaitDepth;
+        let nBlockAge;
+        // 
+        expect(await MTA.
+            do_transfer(
+                /**/
+                w3_src,
+                jo_message_proxy_src,
+                joAccountSrc,
+                //
+                w3_dst,
+                jo_message_proxy_dst,
+                joAccountDst,
+                //
+                chain_id_src,
+                chain_id_dst,
+                //
+                nTransactionsCountInBlock,
+                nMaxTransactionsCount,
+                nBlockAwaitDepth,
+                nBlockAge
             )
         ).to.be.true;
     });
