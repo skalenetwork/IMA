@@ -80,7 +80,11 @@ contract DepositBox is Permissions {
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
         require(schainHash != keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect");
         require(tokenManagerAddress != address(0), "Unconnected chain");
-        require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Not enough money");
+        _;
+    }
+
+    modifier requireGasPayment() {
+        require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Gas was not paid");
         _;
     }
 
@@ -101,7 +105,7 @@ contract DepositBox is Permissions {
     function deposit(string memory schainID, address to, bytes memory data)
         public
         payable
-        rightTransaction(schainID)
+        rightTransaction(schainID) requireGasPayment
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);

@@ -135,7 +135,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // execution
     const res = await eRC721ModuleForSchain.sendERC721(to0, data, {from: deployer});
     // expectation
-    const newAddress = res.logs[2].args.contractAddress;
+    const newAddress = res.logs[1].args.contractAddress;
     const newERC721Contract = new web3.eth.Contract(ABIERC721OnChain.abi, newAddress);
     expect(await newERC721Contract.methods.ownerOf(tokenId).call()).to.be.equal(to);
   });

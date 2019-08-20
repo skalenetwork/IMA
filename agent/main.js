@@ -557,7 +557,7 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         g_arrActions.push( {
             "name": "one S->M single payment",
             "fn": async function() {
-                if ( strCoinNameErc20_main_net.length > 0 /*&& strCoinNameErc20_s_chain.length > 0*/ ) {
+                if ( strCoinNameErc20_s_chain.length > 0 ) {
                     // ERC20 payment
                     log.write( cc.info( "one S->M single ERC20 payment: " ) + cc.sunny( g_token_amount ) + "\n" ); // just print value
                     return await MTA.do_erc20_payment_from_s_chain(
@@ -1085,7 +1085,33 @@ if ( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chai
         strCoinNameErc20_s_chain = "";
         process.exit( 666 );
     }
-} // if( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chain.length > 0*/ )
+} else { // if( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chain.length > 0*/ )
+    if ( g_str_path_json_erc20_s_chain.length > 0 ) {
+        var n1 = 0,
+            n2 = 0;
+
+        if ( MTA.verbose_get() > MTA.RV_VERBOSE.information )
+            log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( g_str_path_json_erc20_s_chain ) + "\n" );
+        joErc20_s_chain = load_json( g_str_path_json_erc20_s_chain );
+        n2 = Object.keys( joErc20_s_chain ).length;
+
+        if ( n2 > 0 ) {
+            strCoinNameErc20_s_chain = disconver_in_json_coin_name( joErc20_s_chain );
+            n2 = strCoinNameErc20_s_chain.length;
+            if ( n2 > 0 )
+                log.write( cc.info( "Loaded S-Chain  ERC20 ABI " ) + cc.attention( strCoinNameErc20_s_chain ) + "\n" );
+            else {
+                if ( n2 == 0 && g_str_path_json_erc20_s_chain.length > 0 )
+                    log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
+                joErc20_main_net = null;
+                joErc20_s_chain = null;
+                strCoinNameErc20_main_net = "";
+                strCoinNameErc20_s_chain = "";
+                process.exit( 667 );
+            }
+        }
+    }
+}
 
 if ( n1 != 0 && n2 == 0 ) {
     if ( g_str_addr_erc20_explicit.length == 0 ) {
@@ -1104,10 +1130,12 @@ if ( n1 != 0 && n2 == 0 ) {
         //     log.write( cc.info("Auto-generated S-Chain ERC20 JSON is ") + cc.j(joErc20_s_chain) + "\n" );
     }
 } else {
-    if ( !g_isRawTokenTransfer ) {
-        g_isRawTokenTransfer = true;
-        if ( MTA.verbose_get() > MTA.RV_VERBOSE.information )
-            log.write( cc.warning( "ERC20 raw transfer is force " ) + cc.error( "ON" ) + "\n" );
+    if ( n1 != 0 && n2 != 0) {
+        if ( !g_isRawTokenTransfer ) {
+            g_isRawTokenTransfer = true;
+            if ( MTA.verbose_get() > MTA.RV_VERBOSE.information )
+                log.write( cc.warning( "ERC20 raw transfer is force " ) + cc.error( "ON" ) + "\n" );
+        }
     }
 }
 
@@ -1262,6 +1290,9 @@ async function do_the_job() {
         log.write( cc.info( cntTrue ) + cc.success( " task(s) succeeded" ) + "\n" );
         log.write( cc.info( cntFalse ) + cc.error( " task(s) failed" ) + "\n" );
         log.write( cc.debug( MTA.longSeparator ) + "\n" );
+    }
+    if (cntFalse > 0) {
+        process.exitCode = cntFalse;
     }
 }
 do_the_job();
