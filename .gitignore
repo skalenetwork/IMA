@@ -63,3 +63,4 @@ proxy/proxy.json
 proxy/data/*.json
 
 test/working
+test/config.json

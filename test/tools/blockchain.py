@@ -47,7 +47,7 @@ class BlockChain:
     def get_approved_amount(self, address):
         lock_and_data_for_mainnet = self._get_contract_on_mainnet('lock_and_data_for_mainnet')
         return lock_and_data_for_mainnet.functions.approveTransfers(address).call()
-    
+
     def add_eth_cost(self, from_key, amount):
         sender_address = self.key_to_address(from_key)
         token_manager = self._get_contract_on_schain('token_manager')
@@ -81,6 +81,10 @@ class BlockChain:
         return self._deploy_contract_to_mainnet(self.config.test_root + '/resources/ERC20MintableDetailed.json',
                                                 [name, symbol, decimals],
                                                 private_key)
+    def deploy_erc721_on_mainnet(self, private_key, name, symbol):
+        return self._deploy_contract_to_mainnet(self.config.test_root + '/resources/ERC721FullMetadataMintable.json',
+                                                [name, symbol],
+                                                private_key)
 
     def get_transactions_count_on_mainnet(self, address):
         return self.web3_mainnet.eth.getTransactionCount(address)
@@ -93,6 +97,15 @@ class BlockChain:
         with open(self.config.proxy_root + '/build/contracts/ERC20OnChain.json') as erc20_on_chain_file:
             erc20_on_chain_json = json.load(erc20_on_chain_file)
             return self.web3_schain.eth.contract(address=erc20_address, abi=erc20_on_chain_json['abi'])
+
+    def get_erc721_on_schain(self, index):
+        lock_erc721 = self._get_contract_on_schain('lock_and_data_for_schain_erc721')
+        erc721_address = lock_erc721.functions.ERC721Tokens(index).call()
+        if erc721_address == '0x0000000000000000000000000000000000000000':
+            raise ValueError('No such token')
+        with open(self.config.proxy_root + '/build/contracts/ERC721OnChain.json') as erc721_on_chain_file:
+            erc721_on_chain_json = json.load(erc721_on_chain_file)
+            return self.web3_schain.eth.contract(address=erc721_address, abi=erc721_on_chain_json['abi'])
 
     def get_erc20_on_mainnet(self, index):
         lock_erc20 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc20')
