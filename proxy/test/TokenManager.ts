@@ -799,33 +799,4 @@ contract("TokenManager", ([user, deployer, client]) => {
 
     });
 
-//     it("should send ERC20 token to somebody on Mainnet, closed to Mainnet, called by schain", async () => {
-//         const amount = new BigNumber(200);
-//         const amountTo = new BigNumber(20);
-//         const amountAfter = new BigNumber(180);
-
-//         // set EthERC20 address:
-//         await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
-
-//         // set contract TokenManager:
-//         await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
-
-//         await lockAndDataForSchain.setContract("ERC20ModuleForSchain", eRC20ModuleForSchain.address, {from: deployer});
-//         await lockAndDataForSchain
-//         .setContract("LockAndDataForSchainERC20", lockAndDataForSchainERC20.address, {from: deployer});
-
-//         // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
-//         await ethERC20.transferOwnership(lockAndDataForSchainERC20.address, {from: deployer});
-
-//         // send ERC20:
-//         await lockAndDataForSchainERC20.sendERC20(ethERC20.address, user, amount, {from: deployer});
-
-//         // await ethERC20.mint(client, amountTo, {from: user});
-//         await ethERC20.approve(tokenManager.address, amountTo, {from: user});         // "Not allowed ERC20 Token"
-
-// //        await tokenManager.rawExitToMainERC20(contractHere.address, contractThere.addrress, client, amountTo, {from: user});
-
-//         // const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
-//         // balanceAfter.should.be.deep.equal(amountAfter);
-//     });
 });

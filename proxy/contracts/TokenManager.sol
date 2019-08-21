@@ -113,6 +113,10 @@ contract TokenManager is Permissions {
         revert("Not allowed. in TokenManager");
     }
 
+    function exitToMainTS(address to, uint amount) public {
+        exitToMain(to, amount);
+    }
+
     // This is called by schain owner.
     // Exit to main net
     function exitToMain(address to, uint amount) public {
@@ -130,6 +134,10 @@ contract TokenManager is Permissions {
             to,
             newData
         );
+    }
+
+    function transferToSchainTS(string memory schainID, address to, uint amount) public {
+        transferToSchain(schainID, to, amount);
     }
 
     function transferToSchain(string memory schainID, address to, uint amount) public {
