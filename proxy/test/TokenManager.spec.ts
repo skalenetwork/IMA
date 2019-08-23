@@ -44,7 +44,6 @@ const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract = artifacts
     .require("./LockAndDataForSchainERC721");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 
-
 contract("TokenManager", ([user, deployer, client]) => {
     let tokenManager: TokenManagerInstance;
     let messageProxy: MessageProxyInstance;
