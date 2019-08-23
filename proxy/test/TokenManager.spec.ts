@@ -21,10 +21,10 @@ import { ERC20ModuleForSchainContract,
     LockAndDataForSchainInstance,
     MessageProxyContract,
     MessageProxyInstance,
-    TokenManagerContract,
-    TokenManagerInstance,
     TokenFactoryContract,
-    TokenFactoryInstance} from "../types/truffle-contracts";
+    TokenFactoryInstance,
+    TokenManagerContract,
+    TokenManagerInstance} from "../types/truffle-contracts";
 import { gasMultiplier } from "./utils/command_line";
 import { randomString } from "./utils/helper";
 
