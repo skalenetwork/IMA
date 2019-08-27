@@ -109,7 +109,7 @@ contract TokenManager is Permissions {
         proxyForSchainAddress = newProxyAddress;
     }
 
-    function() external {
+    function() external payable {
         revert("Not allowed. in TokenManager");
     }
 
