@@ -375,12 +375,14 @@ contract TokenManager is Permissions {
             require(to != address(0), "Incorrect receiver");
             require(ILockAndDataTM(lockAndDataAddress).sendEth(to, amount), "Not Sent");
             return;
-        } else if (operation == TransactionOperation.transferERC20 || operation == TransactionOperation.rawTransferERC20) {
+        } else if ((operation == TransactionOperation.transferERC20 && to==address(0)) ||
+                  (operation == TransactionOperation.rawTransferERC20 && to!=address(0))) {
             address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
             IERC20Module(erc20Module).sendERC20(to, data);
             address receiver = IERC20Module(erc20Module).getReceiver(to, data);
             require(ILockAndDataTM(lockAndDataAddress).sendEth(receiver, amount), "Not Sent");
-        } else if (operation == TransactionOperation.transferERC721 || operation == TransactionOperation.rawTransferERC721) {
+        } else if ((operation == TransactionOperation.transferERC721 && to==address(0)) ||
+                  (operation == TransactionOperation.rawTransferERC721 && to!=address(0))) {
             address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
             IERC721Module(erc721Module).sendERC721(to, data);
             address receiver = IERC721Module(erc721Module).getReceiver(to, data);
