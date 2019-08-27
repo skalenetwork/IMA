@@ -155,7 +155,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const contractHere = eRC20OnChain.address;
     const to = user;
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
-    const amount = 100000000000;
+    const amount = 1000000;
     const contractPosition = 10;
     const isRaw = false;
     // set `ERC20Module` contract before invoke `receiveERC20`

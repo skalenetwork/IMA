@@ -314,6 +314,14 @@ contract("TokenManager", ([user, deployer, client]) => {
             .should.be.eventually.rejectedWith(error);
     });
 
+    it("should revert `Not allowed. in TokenManager`", async () => {
+        // preparation
+        const error = "Not allowed. in TokenManager";
+        // execution/expectation
+        await web3.eth.sendTransaction({from: deployer, to: tokenManager.address, value: "1000000000000000000"})
+            .should.be.eventually.rejectedWith(error);
+    });
+
     it("should invoke `rawExitToMainERC20` without mistakes", async () => {
         const amount = "20000000000000000";
         const amountMint =    "10000000000000000";

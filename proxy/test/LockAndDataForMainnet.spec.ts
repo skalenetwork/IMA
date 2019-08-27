@@ -77,21 +77,6 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
       .to.equal(parseInt(addWeiToContract, 10) - sendWeiFromContract);
   });
 
-  it("should revert `Not allowed. in DepositBox` after invoke `sendEth`", async () => {
-    // preparation
-    const error = "Not allowed. in DepositBox";
-    const addWeiToContract = "1000";
-    const sendWeiFromContract = 100;
-    // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
-    await lockAndDataForMainnet
-      .receiveEth(invoker, {value: addWeiToContract, from: deployer});
-    // execution
-    await lockAndDataForMainnet
-      .sendEth(depositBox.address, sendWeiFromContract,
-        {from: deployer})
-        .should.be.eventually.rejectedWith(error);
-  });
-
   it("should work `approveTransfer`", async () => {
     // preparation
     const addWeiToContract = "1000";
