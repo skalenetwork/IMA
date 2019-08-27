@@ -150,6 +150,39 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount);
   });
 
+  it("should return `true` when invoke `sendERC20` with `totalSupply > totalSupplyOnMainnet`", async () => {
+    // preparation
+    const contractHere = eRC20OnChain.address;
+    const to = user;
+    const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
+    const amount = 100000000000;
+    const contractPosition = 10;
+    const isRaw = false;
+    // set `ERC20Module` contract before invoke `receiveERC20`
+    await lockAndDataForSchain
+        .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
+    // set `LockAndDataERC20` contract before invoke `receiveERC20`
+    await lockAndDataForSchain
+        .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
+    // mint some quantity of ERC20 tokens for `deployer` address
+    await eRC20OnChain.mint(deployer, "1000000000", {from: deployer});
+    // transfer more than `amount` qantity of ERC20 tokens for `lockAndDataForSchainERC20` to avoid `Not enough money`
+    await eRC20OnChain.transfer(lockAndDataForSchainERC20.address, "1000000", {from: deployer});
+    // add ERC20 token to avoid "Not existing ERC-20 contract" error in `receiveERC20` func
+    await lockAndDataForSchainERC20
+      .addERC20Token(contractHere, contractPosition, {from: deployer});
+    // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exeption
+    await eRC20OnChain.addMinter(lockAndDataForSchainERC20.address);
+    // get data from `receiveERC20`
+    const getRes = await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+    const data = getRes.logs[0].args.data;
+    // execution
+    const res = await eRC20ModuleForSchain.sendERC20(to0, data, {from: deployer});
+    // expectation
+    const balance = await eRC20OnChain.balanceOf(to);
+    parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount);
+  });
+
   it("should return `true` for `sendERC20` with `to0==address(0)` and `contractAddreess==address(0)`", async () => {
     // preparation
     const to = user;

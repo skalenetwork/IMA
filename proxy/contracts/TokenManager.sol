@@ -430,5 +430,5 @@ contract TokenManager is Permissions {
             return TransactionOperation.rawTransferERC721;
         }
     }
-    
+
 }
