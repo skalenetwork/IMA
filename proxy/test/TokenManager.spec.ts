@@ -82,8 +82,10 @@ contract("TokenManager", ([user, deployer, client]) => {
             ((1000000000).toString()), deployer, {from: deployer});
         eRC20OnChain2 = await ERC20OnChain.new("ERC202", "ER20", 18,
             ((1000000000).toString()), deployer, {from: deployer});
-        eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
-        eRC721 = await ERC721OnChain.new("eRC721", "ERR");
+        eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721",
+            {from: deployer, gas: 8000000 * gasMultiplier});
+        eRC721 = await ERC721OnChain.new("eRC721", "ERR",
+            {from: deployer, gas: 8000000 * gasMultiplier});
         eRC721ModuleForSchain = await ERC721ModuleForSchain.new(lockAndDataForSchain.address,
             {from: deployer, gas: 8000000 * gasMultiplier});
         lockAndDataForSchainERC721 = await LockAndDataForSchainERC721.new(lockAndDataForSchain.address,
@@ -523,7 +525,7 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchainERC721
             .addERC721Token(eRC20OnChain.address, 1, {from: deployer});
         // invoke `addMinter` to avoid `MinterRole: caller does not have the Minter role` exeption:
-        await eRC721OnChain.addMinter(deployer);
+        await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exeption on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
         // invoke `addGasCosts` to avoid `Not enough gas sent` exeption on `exitToMainERC20` function:
@@ -557,7 +559,7 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchainERC721
             .addERC721Token(eRC20OnChain.address, 1, {from: deployer});
         // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exeption:
-        await eRC721OnChain.addMinter(deployer);
+        await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exeption on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
         // invoke `addERC20Token` to avoid `Not existing ERC-20 contract` exeption on `exitToMainERC20` function:
@@ -592,7 +594,7 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchainERC721
             .addERC721Token(contractHere, contractPosition, {from: deployer});
         // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exeption:
-        await eRC721OnChain.addMinter(deployer);
+        await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exeption on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
         // invoke `addGasCosts` to avoid `Not enough gas sent` exeption on `exitToMainERC20` function:
@@ -631,7 +633,7 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchainERC721
             .addERC721Token(contractHere, contractPosition, {from: deployer});
         // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exeption:
-        await eRC721OnChain.addMinter(deployer);
+        await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exeption on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
         // invoke `addGasCosts` to avoid `Not enough gas sent` exeption on `exitToMainERC20` function:
@@ -670,7 +672,7 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchainERC721
             .addERC721Token(contractHere, contractPosition, {from: deployer});
         // invoke `addMinter` to avoid `MinterRole: caller does not have the Minter role` exeption:
-        await eRC721OnChain.addMinter(deployer);
+        await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exeption on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
         // invoke `addGasCosts` to avoid `Not enough gas sent` exeption on `exitToMainERC20` function:
@@ -708,7 +710,7 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchainERC721
             .addERC721Token(contractHere, contractPosition, {from: deployer});
         // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exeption:
-        await eRC721OnChain.addMinter(deployer);
+        await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exeption on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
         // invoke `addERC20Token` to avoid `Not existing ERC-20 contract` exeption on `exitToMainERC20` function:
@@ -742,7 +744,7 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchainERC721
             .addERC721Token(contractHere, contractPosition, {from: deployer});
         // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exeption:
-        await eRC721OnChain.addMinter(deployer);
+        await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exeption on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
         // invoke `addGasCosts` to avoid `Not enough gas sent` exeption on `exitToMainERC20` function:
@@ -780,7 +782,7 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchainERC721
             .addERC721Token(contractHere, contractPosition, {from: deployer});
         // invoke `addMinter` to avoid `MinterRole: caller does not have the Minter role` exeption:
-        await eRC721OnChain.addMinter(deployer);
+        await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exeption on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
         // invoke `addGasCosts` to avoid `Not enough gas sent` exeption on `exitToMainERC20` function:
@@ -818,7 +820,7 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchainERC721
             .addERC721Token(contractHere, contractPosition, {from: deployer});
         // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exeption:
-        await eRC721OnChain.addMinter(deployer);
+        await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exeption on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
         // invoke `addGasCosts` to avoid `Not enough gas sent` exeption on `exitToMainERC20` function:
@@ -857,7 +859,7 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchainERC721
             .addERC721Token(contractHere, contractPosition, {from: deployer});
         // invoke `addMinter` to avoid `MinterRole: caller does not have the Minter role` exeption:
-        await eRC721OnChain.addMinter(deployer);
+        await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exeption on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
         // invoke `addGasCosts` to avoid `Not enough gas sent` exeption on `exitToMainERC20` function:
@@ -1048,18 +1050,11 @@ contract("TokenManager", ([user, deployer, client]) => {
             const schainID = randomString(10);
             const amount = 10;
             const to = user;
-            const to0 = "0x0000000000000000000000000000000000000000"; // ERC20 address
+            const to0 = eRC20OnChain.address; // ERC20 address
             const sender = deployer;
             const data = "0x13" +
-            "000000000000000000000000000000000000000000000000000000000000000a" + // contractPosition
-            to.substr(2) + "000000000000000000000000" + // receiver
-            "000000000000000000000000000000000000000000000000000000000000000a" + // tokenId
-            "000000000000000000000000000000000000000000000000000000000000000c" + // token name
-            "45524332304f6e436861696e" + // token name
-            "0000000000000000000000000000000000000000000000000000000000000005" + // token symbol
-            "455243323012" + // token symbol
-            "000000000000000000000000000000000000000000000000000000003b9ac9f6"; // total supply
-
+                to.substr(2) + "000000000000000000000000" +
+                "000000000000000000000000000000000000000000000000000000000000000a";
             // add schain to avoid the `Unconnected chain` error
             await lockAndDataForSchain
                 .addSchain(schainID, deployer, {from: deployer});
@@ -1075,6 +1070,11 @@ contract("TokenManager", ([user, deployer, client]) => {
             //
             await lockAndDataForSchain
                 .setContract("TokenFactory", tokenFactory.address, {from: deployer});
+            // invoke `addMinter` before `sendERC20` to avoid
+            // `MinterRole: caller does not have the Minter role` exeption
+            await eRC20OnChain.addMinter(lockAndDataForSchainERC20.address, {from: deployer});
+            // invoke `setTotalSupplyOnMainnet` to avoid `Total supply on mainnet exceeded`
+            await eRC20OnChain.setTotalSupplyOnMainnet(100, {from: deployer});
             // redeploy tokenManager with `developer` address instead `messageProxy.address`
             // to avoid `Not a sender` error
             tokenManager = await TokenManager.new(chainID, deployer,
@@ -1091,7 +1091,7 @@ contract("TokenManager", ([user, deployer, client]) => {
               .postMessage(sender, schainID, to0, amount, data, {from: deployer});
             // expectation
             expect(parseInt((new BigNumber(await ethERC20.balanceOf(to))).toString(), 10))
-                .to.be.equal(0);
+                .to.be.equal(amount);
         });
 
         it("should transfer ERC721 token", async () => {
@@ -1148,16 +1148,18 @@ contract("TokenManager", ([user, deployer, client]) => {
             const schainID = randomString(10);
             const amount = 10;
             const to = user;
-            const to0 = "0x0000000000000000000000000000000000000000"; // ERC20 address
+            const to0 = eRC721.address; // ERC20 address
             const sender = deployer;
-            const data = "0x15" +
-            "0000000000000000000000000000000000000000000000000000000000000001" + // contractPosition
-            to.substr(2) + "000000000000000000000000" + // receiver
-            "0000000000000000000000000000000000000000000000000000000000000002" + // tokenId
-            "000000000000000000000000000000000000000000000000000000000000000d" + // token name
-            "4552433732314f6e436861696e" + // token name
-            "0000000000000000000000000000000000000000000000000000000000000006" + // token symbol
-            "455243373231"; // token symbol
+            // const data = "0x15" +
+            //     to.substr(2) + "000000000000000000000000" +
+            //     "000000000000000000000000000000000000000000000000000000000000000a";
+            const contractHere = eRC721OnChain.address;
+            const tokenId = 9;
+            const isRaw = true;
+            // get data from `receiveERC721`
+            const getRes = await eRC721ModuleForSchain
+                .receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
+            const data = getRes.logs[0].args.data;
             // add schain to avoid the `Unconnected chain` error
             await lockAndDataForSchain
                 .addSchain(schainID, deployer, {from: deployer});
@@ -1170,9 +1172,6 @@ contract("TokenManager", ([user, deployer, client]) => {
             // set `LockAndDataERC721` contract before invoke `receiveERC721`
             await lockAndDataForSchain
                 .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
-            //
-            await lockAndDataForSchain
-            .setContract("TokenFactory", tokenFactory.address, {from: deployer});
             // redeploy tokenManager with `developer` address instead `messageProxy.address`
             // to avoid `Not a sender` error
             tokenManager = await TokenManager.new(chainID, deployer,
@@ -1185,11 +1184,14 @@ contract("TokenManager", ([user, deployer, client]) => {
             // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
             await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
             // execution
+            // invoke `addMinter` before `sendERC721` to avoid
+            // `MinterRole: caller does not have the Minter role` exeption
+            await eRC721.addMinter(lockAndDataForSchainERC721.address, {from: deployer});
             await tokenManager
               .postMessage(sender, schainID, to0, amount, data, {from: deployer});
             // expectation
             expect(parseInt((new BigNumber(await ethERC20.balanceOf(to))).toString(), 10))
-                .to.be.equal(0);
+                .to.be.equal(amount);
         });
     });
 
