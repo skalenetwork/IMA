@@ -189,7 +189,8 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const newAddress = res.logs[1].args.contractAddress;
     // expectation
     const newERC20Contract = new web3.eth.Contract(ABIERC20OnChain.abi, newAddress);
-    const res2 = await eRC20ModuleForSchain.sendERC20(to0, data, {from: deployer});
+    const res2 = await eRC20ModuleForSchain.sendERC20(to0, data2, {from: deployer});
+    console.log(res2);
     const balance = await newERC20Contract.methods.balanceOf(to).call();
     parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount * 2);
   });
