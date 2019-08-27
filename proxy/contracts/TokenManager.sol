@@ -430,51 +430,5 @@ contract TokenManager is Permissions {
             return TransactionOperation.rawTransferERC721;
         }
     }
-
-    function fallbackDataParser(bytes memory data)
-        internal
-        pure
-        returns (uint, address, uint)
-    {
-        bytes32 contractIndex;
-        bytes32 to;
-        bytes32 token;
-        // solium-disable-next-line security/no-inline-assembly
-        assembly {
-            contractIndex := mload(add(data, 33))
-            to := mload(add(data, 65))
-            token := mload(add(data, 97))
-        }
-        return (
-            uint(contractIndex), address(bytes20(to)), uint(token)
-        );
-    }
-
-    function fallbackContractIndexDataParser(bytes memory data)
-        internal
-        pure
-        returns (uint)
-    {
-        bytes32 contractIndex;
-        // solium-disable-next-line security/no-inline-assembly
-        assembly {
-            contractIndex := mload(add(data, 33))
-        }
-        return uint(contractIndex);
-    }
-
-    function fallbackRawDataParser(bytes memory data)
-        internal
-        pure
-        returns (address, uint)
-    {
-        bytes32 to;
-        bytes32 amount;
-        // solium-disable-next-line security/no-inline-assembly
-        assembly {
-            to := mload(add(data, 33))
-            amount := mload(add(data, 65))
-        }
-        return (address(bytes20(to)), uint(amount));
-    }
+    
 }
