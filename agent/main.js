@@ -113,6 +113,7 @@ let g_wei_amount = 0; // 1000000000000000000
 let g_token_amount = 0;
 let g_token_id = 0;
 let g_isRawTokenTransfer = true;
+let g_isRawTokenTransfer_EXPLICIT = false;
 
 let g_nTransferBlockSizeM2S = 10;
 let g_nTransferBlockSizeS2M = 10;
@@ -462,11 +463,11 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         continue;
     }
     if ( joArg.name == "raw-transfer" ) {
-        g_isRawTokenTransfer = true;
+        g_isRawTokenTransfer = g_isRawTokenTransfer_EXPLICIT = true;
         continue;
     }
     if ( joArg.name == "no-raw-transfer" ) {
-        g_isRawTokenTransfer = false;
+        g_isRawTokenTransfer = g_isRawTokenTransfer_EXPLICIT = false;
         continue;
     }
     if ( joArg.name == "show-config" ) {
@@ -933,7 +934,7 @@ function load_json( strPath ) {
     return null;
 }
 
-function disconver_in_json_coin_name( jo ) {
+function discover_in_json_coin_name( jo ) {
     if ( typeof jo !== "object" )
         return "";
     var arrKeys = Object.keys( jo ),
@@ -1133,9 +1134,9 @@ if ( g_str_path_json_erc721_main_net.length > 0 /*&& g_str_path_json_erc721_s_ch
         n2 = Object.keys( joErc721_s_chain ).length;
     }
     if ( n1 > 0 /*&& n2 > 0*/ ) {
-        strCoinNameErc721_main_net = disconver_in_json_coin_name( joErc721_main_net );
+        strCoinNameErc721_main_net = discover_in_json_coin_name( joErc721_main_net );
         if ( n2 > 0 )
-            strCoinNameErc721_s_chain = disconver_in_json_coin_name( joErc721_s_chain );
+            strCoinNameErc721_s_chain = discover_in_json_coin_name( joErc721_s_chain );
         n1 = strCoinNameErc721_main_net.length;
         if ( n2 > 0 )
             n2 = strCoinNameErc721_s_chain.length;
@@ -1178,7 +1179,7 @@ if ( g_str_path_json_erc721_main_net.length > 0 /*&& g_str_path_json_erc721_s_ch
         n2 = Object.keys( joErc721_s_chain ).length;
 
         if ( n2 > 0 ) {
-            strCoinNameErc721_s_chain = disconver_in_json_coin_name( joErc721_s_chain );
+            strCoinNameErc721_s_chain = discover_in_json_coin_name( joErc721_s_chain );
             n2 = strCoinNameErc721_s_chain.length;
             if ( n2 > 0 )
                 log.write( cc.info( "Loaded S-Chain  ERC721 ABI " ) + cc.attention( strCoinNameErc721_s_chain ) + "\n" );
@@ -1201,7 +1202,7 @@ if ( n1 != 0 && n2 == 0 ) {
         log.write( cc.attention( "IMPORTANT NOTICE:" ) + " " + cc.note( "S-Chain ERC721 ABI will be auto-generated" ) + "\n" );
         strCoinNameErc721_s_chain = "" + strCoinNameErc721_main_net; // assume same
         joErc721_s_chain = JSON.parse( JSON.stringify( joErc721_main_net ) ); // clone
-        joErc721_s_chain[ strCoinNameErc7210_s_chain + "_address" ] = "" + g_str_addr_erc721_explicit; // set explicit address
+        joErc721_s_chain[ strCoinNameErc721_s_chain + "_address" ] = "" + g_str_addr_erc721_explicit; // set explicit address
         if ( g_isRawTokenTransfer ) {
             g_isRawTokenTransfer = false;
             if ( MTA.verbose_get() > MTA.RV_VERBOSE.information )
@@ -1213,9 +1214,9 @@ if ( n1 != 0 && n2 == 0 ) {
 } else {
     if ( n1 != 0 && n2 != 0) {
         if ( !g_isRawTokenTransfer ) {
-            g_isRawTokenTransfer = true;
+            g_isRawTokenTransfer = g_isRawTokenTransfer_EXPLICIT; // true;
             if ( MTA.verbose_get() > MTA.RV_VERBOSE.information )
-                log.write( cc.warning( "ERC721 raw transfer is force " ) + cc.error( "ON" ) + "\n" );
+                log.write( cc.warning( "ERC721 raw transfer is force " ) + cc.error( g_isRawTokenTransfer_EXPLICIT ? "ON" : "OFF" ) + "\n" );
         }
     }
 }
@@ -1236,9 +1237,9 @@ if ( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chai
         n2 = Object.keys( joErc20_s_chain ).length;
     }
     if ( n1 > 0 /*&& n2 > 0*/ ) {
-        strCoinNameErc20_main_net = disconver_in_json_coin_name( joErc20_main_net );
+        strCoinNameErc20_main_net = discover_in_json_coin_name( joErc20_main_net );
         if ( n2 > 0 )
-            strCoinNameErc20_s_chain = disconver_in_json_coin_name( joErc20_s_chain );
+            strCoinNameErc20_s_chain = discover_in_json_coin_name( joErc20_s_chain );
         n1 = strCoinNameErc20_main_net.length;
         if ( n2 > 0 )
             n2 = strCoinNameErc20_s_chain.length;
@@ -1281,7 +1282,7 @@ if ( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chai
         n2 = Object.keys( joErc20_s_chain ).length;
 
         if ( n2 > 0 ) {
-            strCoinNameErc20_s_chain = disconver_in_json_coin_name( joErc20_s_chain );
+            strCoinNameErc20_s_chain = discover_in_json_coin_name( joErc20_s_chain );
             n2 = strCoinNameErc20_s_chain.length;
             if ( n2 > 0 )
                 log.write( cc.info( "Loaded S-Chain  ERC20 ABI " ) + cc.attention( strCoinNameErc20_s_chain ) + "\n" );
@@ -1316,9 +1317,9 @@ if ( n1 != 0 && n2 == 0 ) {
 } else {
     if ( n1 != 0 && n2 != 0) {
         if ( !g_isRawTokenTransfer ) {
-            g_isRawTokenTransfer = true;
+            g_isRawTokenTransfer = g_isRawTokenTransfer_EXPLICIT; // true;
             if ( MTA.verbose_get() > MTA.RV_VERBOSE.information )
-                log.write( cc.warning( "ERC20 raw transfer is force " ) + cc.error( "ON" ) + "\n" );
+                log.write( cc.warning( "ERC20 raw transfer is force " ) + cc.error( g_isRawTokenTransfer_EXPLICIT ? "ON" : "OFF" ) + "\n" );
         }
     }
 }
