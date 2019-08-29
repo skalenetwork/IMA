@@ -672,7 +672,8 @@ async function do_erc721_payment_from_main_net(
             "data": deposit,
             "to": depositBoxAddress,
             "gasPrice": 0,
-            "gas": 8000000
+            "gas": 8000000,
+            "value": 2000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" )
         }
         //
         //
@@ -691,10 +692,15 @@ async function do_erc721_payment_from_main_net(
         // send transactions
         //
         strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
+        if ( verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.normal( "Composed " ) + cc.info("rawTxApprove") + cc.normal(" is: ") + cc.j( rawTxApprove ) + "\n" );
         let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+        log.write( cc.normal("Will send ERC721 signed transaction from ") + cc.warn(joAccountSrc.address( w3_main_net )) + "\n" );
         strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
+        if ( verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.normal( "Composed " ) + cc.info("rawTxDeposit") + cc.normal(" is: ") + cc.j( rawTxDeposit ) + "\n" );
         let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
