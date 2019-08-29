@@ -150,6 +150,51 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount);
   });
 
+  it("should return send ERC20 token twice", async () => {
+    // preparation
+    const to = user;
+    const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
+    const amount = 10;
+    const data = "0x03" +
+    "000000000000000000000000000000000000000000000000000000000000000a" + // contractPosition
+    to.substr(2) + "000000000000000000000000" + // receiver
+    "000000000000000000000000000000000000000000000000000000000000000a" + // tokenId
+    "000000000000000000000000000000000000000000000000000000000000000c" + // token name
+    "45524332304f6e436861696e" + // token name
+    "0000000000000000000000000000000000000000000000000000000000000005" + // token symbol
+    "455243323012" + // token symbol
+    "000000000000000000000000000000000000000000000000000000003b9ac9f6"; // total supply
+
+    const data2 = "0x03" +
+    "000000000000000000000000000000000000000000000000000000000000000a" + // contractPosition
+    to.substr(2) + "000000000000000000000000" + // receiver
+    "000000000000000000000000000000000000000000000000000000000000000a" + // tokenId
+    "000000000000000000000000000000000000000000000000000000000000000c" + // token name
+    "45524332304f6e436861696e" + // token name
+    "0000000000000000000000000000000000000000000000000000000000000005" + // token symbol
+    "455243323012" + // token symbol
+    "000000000000000000000000000000000000000000000000000000003b9ac9f7"; // total supply
+
+    // set `ERC20Module` contract before invoke `receiveERC20`
+    await lockAndDataForSchain
+        .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
+    // set `LockAndDataERC20` contract before invoke `receiveERC20`
+    await lockAndDataForSchain
+        .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
+    //
+    await lockAndDataForSchain
+        .setContract("TokenFactory", tokenFactory.address, {from: deployer});
+    // execution
+    const res = await eRC20ModuleForSchain.sendERC20(to0, data, {from: deployer});
+    const newAddress = res.logs[1].args.contractAddress;
+    // expectation
+    const newERC20Contract = new web3.eth.Contract(ABIERC20OnChain.abi, newAddress);
+    const res2 = await eRC20ModuleForSchain.sendERC20(to0, data2, {from: deployer});
+    console.log(res2);
+    const balance = await newERC20Contract.methods.balanceOf(to).call();
+    parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount * 2);
+  });
+
   it("should return `true` for `sendERC20` with `to0==address(0)` and `contractAddreess==address(0)`", async () => {
     // preparation
     const to = user;
