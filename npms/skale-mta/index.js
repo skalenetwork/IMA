@@ -754,7 +754,10 @@ async function do_erc20_payment_from_main_net(
         //
         strActionName = "ERC20 prepare M->S";
         const erc20ABI = erc20PrivateTestnetJson_main_net[ strCoinNameErc20_main_net + "_abi" ];
+        //log.write( cc.normal("erc20PrivateTestnetJson_main_net = ") + cc.j(erc20PrivateTestnetJson_main_net) + "\n" )
+        //log.write( cc.normal("strCoinNameErc20_main_net = ") + cc.info(strCoinNameErc20_main_net) + "\n" )
         const erc20Address_main_net = erc20PrivateTestnetJson_main_net[ strCoinNameErc20_main_net + "_address" ];
+        //log.write( cc.normal("erc20Address_main_net = ") + cc.info(erc20Address_main_net) + "\n" )
         let contractERC20 = new w3_main_net.eth.Contract( erc20ABI, erc20Address_main_net );
         //prepare the smart contract function deposit(string schainID, address to)
         let depositBoxAddress = jo_deposit_box.options.address;
@@ -764,6 +767,11 @@ async function do_erc20_payment_from_main_net(
                 depositBoxAddress, w3_main_net.utils.toBN( token_amount )
             ).encodeABI();
         let deposit = null;
+
+
+        log.write( cc.normal("isRawTokenTransfer = ") + cc.info(isRawTokenTransfer) + "\n" )
+
+
         if ( isRawTokenTransfer ) {
             let erc20Address_s_chain = erc20PrivateTestnetJson_s_chain[ strCoinNameErc20_s_chain + "_address" ];
             deposit =
