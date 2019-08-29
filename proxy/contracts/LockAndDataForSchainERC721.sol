@@ -10,6 +10,9 @@ interface ERC721MintAndBurn {
 
 contract LockAndDataForSchainERC721 is Permissions {
 
+    event SendERC721(bool result);
+    event ReceiveERC721(bool result);
+
     mapping(uint => address) public ERC721Tokens;
     mapping(address => uint) public ERC721Mapper;
     // mapping(uint => uint) public mintToken;
@@ -20,12 +23,14 @@ contract LockAndDataForSchainERC721 is Permissions {
 
     function sendERC721(address contractHere, address to, uint tokenId) public allow("ERC721Module") returns (bool) {
         require(ERC721MintAndBurn(contractHere).mint(to, tokenId), "Could not mint ERC721 Token");
+        emit SendERC721(true);
         return true;
     }
 
     function receiveERC721(address contractHere, uint tokenId) public allow("ERC721Module") returns (bool) {
         require(ERC721MintAndBurn(contractHere).ownerOf(tokenId) == address(this), "Token not transfered");
         ERC721MintAndBurn(contractHere).burn(tokenId);
+        emit ReceiveERC721(true);
         return true;
     }
 

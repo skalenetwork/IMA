@@ -53,8 +53,11 @@ contract MessageProxy {
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public owner;
 
+    mapping(address => bool) public authorizedCaller;
+
     event OutgoingMessage(
         string dstChain,
+        bytes32 indexed dstChainHash,
         uint indexed msgCounter,
         address indexed srcContract,
         address dstContract,
@@ -82,6 +85,7 @@ contract MessageProxy {
 
     constructor(string memory newChainID) public {
         owner = msg.sender;
+        authorizedCaller[msg.sender] = true;
         chainID = newChainID;
         if (keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet"))
@@ -95,23 +99,53 @@ contract MessageProxy {
         }
     }
 
+    function addAuthorizedCaller(address caller) public {
+        require(msg.sender == owner, "Sender is not an owner");
+        authorizedCaller[caller] = true;
+    }
+
+    function removeAuthorizedCaller(address caller) public {
+        require(msg.sender == owner, "Sender is not an owner");
+        authorizedCaller[caller] = false;
+    }
+
+    // Registration state detection
+    function isConnectedChain(
+        string memory someChainID
+    )
+        public
+        view
+        returns (bool)
+    {
+        //require(msg.sender == owner); // todo: tmp!!!!!
+        require(
+            keccak256(abi.encodePacked(someChainID)) !=
+            keccak256(abi.encodePacked("Mainnet"))
+        ); // main net does not have a public key and is implicitly connected
+        if( ! connectedChains[keccak256(abi.encodePacked(someChainID))].inited ) {
+            return false;
+        }
+        return true;
+    }
+
     // This is called by  schain owner.
     // On mainnet, SkaleManager will call it every time a SKALE chain is
     // created. Therefore, any SKALE chain is always connected to the main chain.
-    // To connect to other chains, the owner needs to explicitely call this function
+    // To connect to other chains, the owner needs to explicitly call this function
     function addConnectedChain(
         string memory newChainID,
         uint[4] memory newPublicKey
     )
         public
     {
-        //require(msg.sender == owner); // todo: tmp!!!!!
+        require(authorizedCaller[msg.sender], "Not authorized caller");
         require(
             keccak256(abi.encodePacked(newChainID)) !=
-            keccak256(abi.encodePacked("Mainnet"))
-        ); // main net does not have a public key and is implicitely connected
+            keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
+        // main net does not have a public key and is implicitly connected
         require(
-            !connectedChains[keccak256(abi.encodePacked(newChainID))].inited
+            !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
+            "Chain is aready connected"
         );
         connectedChains[
             keccak256(abi.encodePacked(newChainID))
@@ -124,7 +158,7 @@ contract MessageProxy {
     }
 
     function removeConnectedChain(string memory newChainID) public {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Sender is not an owner");
         require(
             keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet"))
@@ -146,10 +180,11 @@ contract MessageProxy {
         public
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
-        require(connectedChains[dstChainHash].inited);
+        require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         connectedChains[dstChainHash].outgoingMessageCounter++;
         emit OutgoingMessage(
             dstChainID,
+            dstChainHash,
             connectedChains[dstChainHash].outgoingMessageCounter - 1,
             msg.sender,
             dstContract,
@@ -173,7 +208,7 @@ contract MessageProxy {
     )
         public
     {
-        //require(msg.sender == owner);
+        require(authorizedCaller[msg.sender], "Not authorized caller");
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(connectedChains[srcChainHash].inited);
         require(senders.length == dstContracts.length);

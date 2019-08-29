@@ -12,8 +12,12 @@ interface ILockAndDataERC721M {
 
 contract ERC721ModuleForMainnet is Permissions {
 
+    event EncodedData(bytes data);
+    event EncodedRawData(bytes data);
+    event ERC721TokenAdded(address indexed tokenHere, uint contractPosition);
+
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
-        
+
     }
 
     function receiveERC721(address contractHere, address to, uint tokenId, bool isRAW) public allow("DepositBox") returns (bytes memory data) {
@@ -22,10 +26,15 @@ contract ERC721ModuleForMainnet is Permissions {
             uint contractPosition = ILockAndDataERC721M(lockAndDataERC721).ERC721Mapper(contractHere);
             if (contractPosition == 0) {
                 contractPosition = ILockAndDataERC721M(lockAndDataERC721).addERC721Token(contractHere);
+                emit ERC721TokenAdded(contractHere, contractPosition);
             }
-            return encodeData(contractHere, contractPosition, to, tokenId);
+            data = encodeData(contractHere, contractPosition, to, tokenId);
+            emit EncodedData(bytes(data));
+            return data;
         } else {
-            return encodeRawData(to, tokenId);
+            data = encodeRawData(to, tokenId);
+            emit EncodedRawData(bytes(data));
+            return data;
         }
     }
 

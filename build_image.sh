@@ -5,9 +5,31 @@ then
     echo "No VERSION provided, exiting"
     exit 1
 fi
+USERNAME=$1
+PASSWORD=$2
 
-docker build -t skalelabshub/ktm:latest .
-docker tag skalelabshub/ktm:latest skalelabshub/ktm:$VERSION
+NAME=ima
+REPO_NAME=skalelabshub/$NAME
+IMAGE_NAME=$REPO_NAME:$VERSION
+LATEST_IMAGE_NAME=$REPO_NAME:latest
 
-docker push skalelabshub/ktm:latest
-docker push skalelabshub/ktm:$VERSION
+if [ -z "$SKIP_BUILD" ]
+then   
+
+    docker build -t $IMAGE_NAME . || exit $?
+
+    if [ "$RELEASE" = true ]
+    then
+        docker tag $IMAGE_NAME $LATEST_IMAGE_NAME
+    fi
+fi
+
+if [[ ! -z "$USERNAME" ]]
+then
+    echo "$PASSWORD" | docker login --username $USERNAME --password-stdin
+    docker push $IMAGE_NAME || exit $?
+    if [ "$RELEASE" = true ]
+    then
+        docker push $LATEST_IMAGE_NAME || exit $?
+    fi
+fi

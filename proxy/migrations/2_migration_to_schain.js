@@ -21,12 +21,17 @@ let proxyMainnet = require("../data/proxyMainnet.json");
 let gasLimit = 8000000;
 
 async function deploy(deployer, network) {
+
+    if (network == "test" || network == "coverage") {
+        // skip this part of deployment if we run tests
+        return;
+    }
     
     if (process.env.SCHAIN_NAME == undefined || process.env.SCHAIN_NAME == "") {
         console.log(network);
         console.log(networks['networks'][network]);
         console.log("Please set SCHAIN_NAME to .env file");
-        process.exit(0);
+        process.exit(1);
     }
     let schainName = process.env.SCHAIN_NAME;
     await deployer.deploy(MessageProxy, schainName, {gas: gasLimit}).then(async function() {
@@ -66,6 +71,8 @@ async function deploy(deployer, network) {
             erc721_module_for_schain_abi: ERC721ModuleForSchain.abi,
             token_factory_address: TokenFactory.address,
             token_factory_abi: TokenFactory.abi,
+            // erc721_on_chain_address: ERC721OnChain.address,
+            // erc721_on_chain_abi: ERC721OnChain.abi,
             message_proxy_chain_address: MessageProxy.address,
             message_proxy_chain_abi: MessageProxy.abi
         }

@@ -61,3 +61,6 @@ __pycache__/
 
 proxy/proxy.json
 proxy/data/*.json
+
+test/working
+test/config.json

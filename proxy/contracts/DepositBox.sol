@@ -53,8 +53,8 @@ contract DepositBox is Permissions {
 
     address public proxyAddress;
 
-    uint public constant GAS_AMOUNT_POST_MESSAGE = 55000; // 0;
-    uint public constant AVERAGE_TX_PRICE = 1000000000;
+    uint public constant GAS_AMOUNT_POST_MESSAGE = 200000; // 0;
+    uint public constant AVERAGE_TX_PRICE = 10000000000;
 
     //mapping(address => mapping(address => uint)) public allowed;
 
@@ -80,7 +80,11 @@ contract DepositBox is Permissions {
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
         require(schainHash != keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect");
         require(tokenManagerAddress != address(0), "Unconnected chain");
-        require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Not enough money");
+        _;
+    }
+
+    modifier requireGasPayment() {
+        require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Gas was not paid");
         _;
     }
 
@@ -90,7 +94,7 @@ contract DepositBox is Permissions {
     }
 
     function() external payable {
-        revert("Not allowed");
+        revert("Not allowed. in DepositBox");
     }
 
     function deposit(string memory schainID, address to) public payable {
@@ -101,7 +105,7 @@ contract DepositBox is Permissions {
     function deposit(string memory schainID, address to, bytes memory data)
         public
         payable
-        rightTransaction(schainID)
+        rightTransaction(schainID) requireGasPayment
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
@@ -203,7 +207,7 @@ contract DepositBox is Permissions {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
         require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721Full(contractHere).transferFrom(msg.sender, lockAndDataERC721, tokenId);
+        IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         bytes memory data = IERC721Module(erc721Module).receiveERC721(contractHere, to, tokenId, false);
         IMessageProxy(proxyAddress).postOutgoingMessage(
@@ -231,7 +235,7 @@ contract DepositBox is Permissions {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
         require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721Full(contractHere).transferFrom(msg.sender, lockAndDataERC721, tokenId);
+        IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         bytes memory data = IERC721Module(erc721Module).receiveERC721(contractHere, to, tokenId, true);
         IMessageProxy(proxyAddress).postOutgoingMessage(
@@ -285,6 +289,7 @@ contract DepositBox is Permissions {
             return;
         }
 
+        // this condition never be `false`, because `sendEth` return `true` or rejected with error only
         if (!ILockAndDataDB(lockAndDataAddress).sendEth(owner, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
             emit Error(
                 sender,
@@ -301,14 +306,16 @@ contract DepositBox is Permissions {
             if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
                 ILockAndDataDB(lockAndDataAddress).approveTransfer(to, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
             }
-        } else if (operation == TransactionOperation.transferERC20 || operation == TransactionOperation.rawTransferERC20) {
+        } else if ((operation == TransactionOperation.transferERC20 && to==address(0)) ||
+                  (operation == TransactionOperation.rawTransferERC20 && to!=address(0))) {
             address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
             IERC20Module(erc20Module).sendERC20(to, data);
             address receiver = IERC20Module(erc20Module).getReceiver(to, data);
             if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
                 ILockAndDataDB(lockAndDataAddress).approveTransfer(receiver, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
             }
-        } else if (operation == TransactionOperation.transferERC721 || operation == TransactionOperation.rawTransferERC721) {
+        } else if ((operation == TransactionOperation.transferERC721 && to==address(0)) ||
+                  (operation == TransactionOperation.rawTransferERC721 && to!=address(0))) {
             address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
             IERC721Module(erc721Module).sendERC721(to, data);
             address receiver = IERC721Module(erc721Module).getReceiver(to, data);

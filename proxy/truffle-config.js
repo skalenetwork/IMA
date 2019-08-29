@@ -79,13 +79,13 @@ module.exports = {
         gas: 8000000,
         network_id: "*"
       },
-      rinkeby: {
+      mainnet: {
         provider: () => { 
           return new hdwalletProvider(mnemonicForMainnet, mainnetRpcUrl); 
         },
         gasPrice: 10000000000,
         gas: 6900000,
-        network_id: "4"
+        network_id: "*"
       }
     },
     mocha: {
@@ -99,7 +99,7 @@ module.exports = {
             enabled: true,
             runs: 200
           },
-          evmVersion: "byzantium"
+          evmVersion: "petersburg"
         }
       }
     }

@@ -30,6 +30,8 @@ contract LockAndDataForMainnet is Ownable {
 
     mapping(address => uint) public approveTransfers;
 
+    mapping(address => bool) public authorizedCaller;
+
     modifier allow(string memory contractName) {
         require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
         owner == msg.sender, "Not allowed");
@@ -38,8 +40,14 @@ contract LockAndDataForMainnet is Ownable {
 
     event MoneyReceived(address from, uint amount);
 
-    constructor() Ownable() public {
+    event Error(
+        address to,
+        uint amount,
+        string message
+    );
 
+    constructor() Ownable() public {
+        authorizedCaller[msg.sender] = true;
     }
 
     function receiveEth(address from) public allow("DepositBox") payable {
@@ -59,11 +67,34 @@ contract LockAndDataForMainnet is Ownable {
         permitted[contractId] = newContract;
     }
 
-    function addSchain(string memory schainID, address tokenManagerAddress) public onlyOwner {
+    function hasSchain( string memory schainID ) public view returns (bool) {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        if( tokenManagerAddresses[schainHash] == address(0) ) {
+            return false;
+        }
+        return true;
+    }
+
+    function addSchain(string memory schainID, address tokenManagerAddress) public {
+        require(authorizedCaller[msg.sender], "Not authorized caller");
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
+    }
+
+    function removeSchain(string memory schainID) public onlyOwner {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        require(tokenManagerAddresses[schainHash] != address(0), "SKALE chain is not set");
+        delete tokenManagerAddresses[schainHash];
+    }
+
+    function addAuthorizedCaller(address caller) public onlyOwner {
+        authorizedCaller[caller] = true;
+    }
+
+    function removeAuthorizedCaller(address caller) public onlyOwner {
+        authorizedCaller[caller] = false;
     }
 
     function approveTransfer(address to, uint amount) public allow("DepositBox") {
@@ -71,7 +102,7 @@ contract LockAndDataForMainnet is Ownable {
     }
 
     function getMyEth() public {
-        require(address(this).balance >= approveTransfers[msg.sender], "Not enough ETH");
+        require(address(this).balance >= approveTransfers[msg.sender], "Not enough ETH. in `LockAndDataForMainnet.getMyEth`");
         require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
         uint amount = approveTransfers[msg.sender];
         approveTransfers[msg.sender] = 0;
@@ -79,7 +110,15 @@ contract LockAndDataForMainnet is Ownable {
     }
 
     function sendEth(address payable to, uint amount) public allow("DepositBox") returns (bool) {
-        require(address(this).balance >= amount, "Not enough ETH");
+        // require(address(this).balance >= amount, "Not enough ETH. in `LockAndDataForMainnet.sendEth`");
+        if (address(this).balance < amount) {
+            emit Error(
+                to,
+                amount,
+                "Not enough ETH. in `LockAndDataForMainnet.sendEth`"
+            );
+            return false;
+        }
         to.transfer(amount);
         return true;
     }
