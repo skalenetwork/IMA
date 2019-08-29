@@ -16,7 +16,7 @@ class SendERC721ToSchain(TestCase):
         self.erc721 = self.blockchain.deploy_erc721_on_mainnet(self.config.mainnet_key, 'elv721', 'ELV')
 
         address = self.blockchain.key_to_address(self.config.mainnet_key)
-        mint_txn = self.erc721.functions.mint(address, self.tokenId).buildTransaction({
+        mint_txn = self.erc721.functions.mintWithTokenURI(address, self.tokenId, "8=>").buildTransaction({
             'nonce': self.blockchain.get_transactions_count_on_mainnet(address)})
 
         signed_txn = self.blockchain.web3_mainnet.eth.account.signTransaction(mint_txn,
@@ -30,9 +30,9 @@ class SendERC721ToSchain(TestCase):
                                                          self.tokenId,
                                                          self.timeout)
 
-        # erc20 = self.blockchain.get_erc20_on_schain(1)
+        erc721 = self.blockchain.get_erc721_on_schain(self.tokenId)
         destination_address = self.blockchain.key_to_address(self.config.schain_key)
-        new_owner_address = self.erc721.functions.ownerOf(self.tokenId).call()
+        new_owner_address = erc721.functions.ownerOf(self.tokenId).call()
         if destination_address == new_owner_address:
             self._mark_passed()
 

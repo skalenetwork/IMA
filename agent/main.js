@@ -1113,7 +1113,7 @@ let g_jo_message_proxy_main_net = new g_w3_main_net.eth.Contract( joTrufflePubli
 let g_jo_message_proxy_s_chain = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.message_proxy_chain_abi, joTrufflePublishResult_s_chain.message_proxy_chain_address );
 let g_jo_lock_and_data_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.lock_and_data_for_mainnet_abi, joTrufflePublishResult_main_net.lock_and_data_for_mainnet_address );
 let g_jo_lock_and_data_s_chain = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.lock_and_data_for_schain_abi, joTrufflePublishResult_s_chain.lock_and_data_for_schain_address );
-let g_eth_erc721 = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.eth_erc721_abi, joTrufflePublishResult_s_chain.eth_erc721_address ); // only s-chain
+// let g_eth_erc721 = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.eth_erc721_abi, joTrufflePublishResult_s_chain.eth_erc721_address ); // only s-chain
 let g_eth_erc20 = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.eth_erc20_abi, joTrufflePublishResult_s_chain.eth_erc20_address ); // only s-chain
 
 //
@@ -1133,7 +1133,7 @@ if ( g_str_path_json_erc721_main_net.length > 0 /*&& g_str_path_json_erc721_s_ch
         n2 = Object.keys( joErc721_s_chain ).length;
     }
     if ( n1 > 0 /*&& n2 > 0*/ ) {
-        strCoinNameErc721_main_net = disconver_in_json_coin_name( joErc721main_net );
+        strCoinNameErc721_main_net = disconver_in_json_coin_name( joErc721_main_net );
         if ( n2 > 0 )
             strCoinNameErc721_s_chain = disconver_in_json_coin_name( joErc721_s_chain );
         n1 = strCoinNameErc721_main_net.length;
@@ -1429,7 +1429,7 @@ if ( MTA.verbose_get() > MTA.RV_VERBOSE.information || g_bShowConfigMode ) {
         } );
         if ( MTA.verbose_get() > MTA.RV_VERBOSE.information )
             log.write( cc.info( "ERC721 raw transfer is " ) + cc.yn( g_isRawTokenTransfer ) + "\n" );
-        log.write( cc.info( "ERC721 explicit S-Chain address is " ) + cc.attention( g_str_addr_er721_explicit ) + "\n" );
+        log.write( cc.info( "ERC721 explicit S-Chain address is " ) + cc.attention( g_str_addr_erc721_explicit ) + "\n" );
     }
     if ( strCoinNameErc20_main_net.length > 0 /*&& strCoinNameErc20_s_chain.length > 0*/ ) {
         ensure_have_value( "Loaded Main-net ERC20 ABI ", strCoinNameErc20_main_net, false, true, null, ( x ) => {
