@@ -93,7 +93,7 @@ class Agent:
 
     def transfer_erc20_from_mainnet_to_schain(self, token_contract, from_key, to_key, amount, timeout=0):
         config_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
-        erc20_config_filename = self.config.test_working_dir +  '/erc20.json'
+        erc20_config_filename = self.config.test_working_dir + '/erc20.json'
         self._create_path(erc20_config_filename)
         with open(erc20_config_filename, 'w') as erc20_file:
             json.dump(config_json, erc20_file)
@@ -111,6 +111,28 @@ class Agent:
                 return
             except ValueError:
                 debug('Wait for erc20 deployment')
+                sleep(1)
+
+    def transfer_erc721_from_mainnet_to_schain(self, token_contract, from_key, to_key, token_id, timeout=0):
+        config_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
+        erc721_config_filename = self.config.test_working_dir + '/erc721.json'
+        self._create_path(erc721_config_filename)
+        with open(erc721_config_filename, 'w') as erc721_file:
+            json.dump(config_json, erc721_file)
+
+        self._execute_command('m2s-payment', {'no-raw-transfer': None,
+                                              'tid': token_id,
+                                              'key-main-net': from_key,
+                                              'key-s-chain': to_key,
+                                              'erc721-main-net': erc721_config_filename})
+
+        start = time()
+        while time() < start + timeout if timeout > 0 else True:
+            try:
+                self.blockchain.get_erc721_on_schain(token_id)
+                return
+            except ValueError:
+                debug('Wait for erc721 deployment')
                 sleep(1)
 
     def transfer_erc20_from_schain_to_mainnet(self, token_contract, from_key, to_key, amount, timeout=0):
@@ -134,6 +156,28 @@ class Agent:
         while (time() < start + timeout if timeout > 0 else True) and \
                 balance == erc20.functions.balanceOf(destination_address).call():
             debug('Wait for erc20 payment')
+            sleep(1)
+
+    def transfer_erc721_from_schain_to_mainnet(self, token_contract, from_key, to_key, token_id, timeout=0):
+        config_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
+        erc721_clone_config_filename = self.config.test_working_dir + '/erc721_clone.json'
+        self._create_path(erc721_clone_config_filename)
+        with open(erc721_clone_config_filename, 'w') as erc721_file:
+            json.dump(config_json, erc721_file)
+
+        erc721 = self.blockchain.get_erc721_on_mainnet(token_id)
+        destination_address = erc721.functions.ownerOf(token_id).call()
+
+        self._execute_command('s2m-payment', {'no-raw-transfer': None,
+                                              'tid': token_id,
+                                              'key-main-net': to_key,
+                                              'key-s-chain': from_key,
+                                              'erc721-s-chain': erc721_clone_config_filename})
+
+        start = time()
+        while (time() < start + timeout if timeout > 0 else True) and \
+                destination_address == erc721.functions.ownerOf(token_id).call():
+            debug('Wait for erc721 payment')
             sleep(1)
 
     # private

@@ -358,6 +358,10 @@ Performed with the **--m2s-payment** and **--no-raw-transfer** command line opti
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside Main-net blockchain using the **--key-main-net** command line argument. Target S-chain account is specified as address with the **--address-s-chain** command line argument. We don't need to specify private key for target account.
 
+### ERC721 default transfer from Main-net account to S-Chain
+
+Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
+
 ### ERC20 default transfer from S-Chain account to Main-net
 
 Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s-chain** command line options:
@@ -378,6 +382,10 @@ Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s
         --no-raw-transfer
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
+
+### ERC721 default transfer from S-Chain account to Main-net
+
+Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
 
 ### ERC20 raw transfer from Main-net account to S-Chain
 
@@ -400,6 +408,10 @@ Performed with the **--m2s-payment** and **--raw-transfer** command line options
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside Main-net blockchain using the **--key-main-net** command line argument. Target S-chain account is specified as address with the **--address-s-chain** command line argument. We don't need to specify private key for target account.
 
+### ERC721 raw transfer from Main-net account to S-Chain
+
+Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
+
 ### ERC20 raw transfer from S-Chain account to Main-net
 
 Performed with the **--s2m-payment** and **--raw-transfer** command line options:
@@ -420,3 +432,7 @@ Performed with the **--s2m-payment** and **--raw-transfer** command line options
         --raw-transfer
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
+
+### ERC721 raw transfer from S-Chain account to Main-net
+
+Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
