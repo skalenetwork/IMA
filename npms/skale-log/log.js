@@ -18,7 +18,7 @@ function generateTimestamp() {
 let ts = new Date();
 let s =
 	""               + cc.date(      n2s( ts.getUTCFullYear(),     4 ) )
-	+ cc.bright("-") + cc.date(      n2s( ts.getUTCMonth(),        2 ) )
+	+ cc.bright("-") + cc.date(      n2s( ts.getUTCMonth() + 1,    2 ) )
 	+ cc.bright("-") + cc.date(      n2s( ts.getUTCDate(),         2 ) )
 	+ " "            + cc.time(      n2s( ts.getUTCHours(),        2 ) )
 	+ cc.bright(":") + cc.time(      n2s( ts.getUTCMinutes(),      2 ) )
