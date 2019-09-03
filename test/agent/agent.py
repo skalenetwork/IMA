@@ -158,6 +158,28 @@ class Agent:
             debug('Wait for erc20 payment')
             sleep(1)
 
+    def transfer_erc721_from_schain_to_mainnet(self, token_contract, from_key, to_key, token_id, timeout=0):
+        config_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
+        erc721_clone_config_filename = self.config.test_working_dir + '/erc721_clone.json'
+        self._create_path(erc721_clone_config_filename)
+        with open(erc721_clone_config_filename, 'w') as erc721_file:
+            json.dump(config_json, erc721_file)
+
+        erc721 = self.blockchain.get_erc721_on_mainnet(token_id)
+        destination_address = erc721.functions.ownerOf(token_id).call()
+
+        self._execute_command('s2m-payment', {'no-raw-transfer': None,
+                                              'tid': token_id,
+                                              'key-main-net': to_key,
+                                              'key-s-chain': from_key,
+                                              'erc721-s-chain': erc721_clone_config_filename})
+
+        start = time()
+        while (time() < start + timeout if timeout > 0 else True) and \
+                destination_address == erc721.functions.ownerOf(token_id).call():
+            debug('Wait for erc721 payment')
+            sleep(1)
+
     # private
 
     def _execute_command(self, command, flags=None):

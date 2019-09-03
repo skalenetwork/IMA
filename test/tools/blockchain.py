@@ -116,6 +116,15 @@ class BlockChain:
             erc20_on_mainnet_json = json.load(erc20_file)
             return self.web3_schain.eth.contract(address=erc20_address, abi=erc20_on_mainnet_json['abi'])
 
+    def get_erc721_on_mainnet(self, index):
+        lock_erc721 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc721')
+        erc721_address = lock_erc721.functions.ERC721Tokens(index).call()
+        if erc721_address == '0x0000000000000000000000000000000000000000':
+            raise ValueError('No such token')
+        with open(self.config.test_resource_dir + '/ERC721FullMetadataMintable.json') as erc721_file:
+            erc721_on_mainnet_json = json.load(erc721_file)
+            return self.web3_schain.eth.contract(address=erc721_address, abi=erc721_on_mainnet_json['abi'])
+
     # private
 
     def _get_contact(self, web3, json_filename, name):

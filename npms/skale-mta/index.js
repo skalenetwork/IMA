@@ -976,6 +976,121 @@ async function do_erc20_payment_from_s_chain(
     return true;
 } // async function do_erc20_payment_from_s_chain(...
 
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+async function do_erc721_payment_from_s_chain(
+    w3_main_net,
+    w3_s_chain,
+    joAccountSrc,
+    joAccountDst,
+    jo_token_manager, // only s-chain
+    jo_deposit_box, // only main net
+    token_id, // which ERC721 token id to send
+    strCoinNameErc721_main_net,
+    joErc721_main_net,
+    strCoinNameErc721_s_chain,
+    joErc721_s_chain,
+    isRawTokenTransfer
+) {
+    let r, strActionName = "";
+    try {
+        strActionName = "w3_s_chain.eth.getTransactionCount()/do_erc721_payment_from_s_chain";
+        if ( verbose_get() >= RV_VERBOSE.trace )
+            log.write( cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        let tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null );
+        if ( verbose_get() >= RV_VERBOSE.debug )
+            log.write( cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        //
+        //
+        strActionName = "ERC721 prepare S->M";
+        let accountForMainnet = joAccountDst.address( w3_main_net );
+        let accountForSchain = joAccountSrc.address( w3_s_chain );
+        const erc721ABI = joErc721_s_chain[ strCoinNameErc721_s_chain + "_abi" ];
+        const erc721Address_s_chain = joErc721_s_chain[ strCoinNameErc721_s_chain + "_address" ];
+        let tokenManagerAddress = jo_token_manager.options.address;
+        let contractERC721 = new w3_s_chain.eth.Contract( erc721ABI, erc721Address_s_chain );
+        //prepare the smart contract function deposit(string schainID, address to)
+        let depositBoxAddress = jo_deposit_box.options.address;
+        let approve =
+            contractERC721.methods.transferFrom(
+                accountForSchain, tokenManagerAddress, w3_s_chain.utils.toBN( token_id )
+            ).encodeABI();
+        let deposit = null;
+        if ( isRawTokenTransfer ) {
+            const erc721Address_main_net = joErc721_main_net[ strCoinNameErc721_main_net + "_address" ];
+            deposit =
+                jo_token_manager.methods.rawExitToMainERC721(
+                    erc721Address_s_chain, erc721Address_main_net // specific for rawExitToMainERC721() only
+                    , accountForMainnet, w3_s_chain.utils.toBN( token_id )
+                ).encodeABI();
+        } else {
+            var function_call_trace = "exitToMainERC721(" +
+                erc721Address_s_chain + ", " +
+                accountForMainnet + ", " +
+                w3_s_chain.utils.toBN( token_id ).toString(10) + ")"
+            deposit = // beta version
+            jo_token_manager.methods.exitToMainERC721(
+                erc721Address_s_chain, accountForMainnet, w3_s_chain.utils.toBN( token_id )
+            ).encodeABI();
+        }
+        //
+        //
+        // create raw transactions
+        //
+        //
+        strActionName = "create raw transactions S->M";
+        const rawTxApprove = {
+            "from": accountForSchain,
+            "nonce": "0x" + tcnt.toString( 16 ),
+            "data": approve,
+            "to": erc721Address_s_chain,
+            "gasPrice": 0,
+            "gas": 8000000
+        }
+        tcnt += 1;
+        const rawTxDeposit = {
+            "from": accountForSchain,
+            "nonce": "0x" + tcnt.toString( 16 ),
+            "data": deposit,
+            "to": tokenManagerAddress,
+            "gasPrice": 0,
+            "gas": 8000000
+        }
+        //
+        //
+        // sign transactions
+        //
+        //
+        strActionName = "sign transactions S->M";
+        var privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        const txApprove = new ethereumjs_tx( rawTxApprove );
+        const txDeposit = new ethereumjs_tx( rawTxDeposit );
+        txApprove.sign( privateKeyForSchain );
+        txDeposit.sign( privateKeyForSchain );
+        const serializedTxApprove = txApprove.serialize();
+        const serializedTxDeposit = txDeposit.serialize();
+        //
+        //
+        // send transactions
+        //
+        strActionName = "w3_s_chain.eth.sendSignedTransaction()/Approve";
+        let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        if ( verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+        strActionName = "w3_s_chain.eth.sendSignedTransaction()/Deposit";
+        let joReceiptDeposit = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        if ( verbose_get() >= RV_VERBOSE.information )
+            log.write( cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+    } catch ( e ) {
+        if ( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( e ) + "\n" );
+        return false;
+    }
+    return true;
+} // async function do_erc721_payment_from_s_chain(...
+
 
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1317,4 +1432,5 @@ module.exports.view_eth_payment_from_s_chain_on_main_net = view_eth_payment_from
 module.exports.do_erc721_payment_from_main_net = do_erc721_payment_from_main_net;
 module.exports.do_erc20_payment_from_main_net = do_erc20_payment_from_main_net;
 module.exports.do_erc20_payment_from_s_chain = do_erc20_payment_from_s_chain;
+module.exports.do_erc721_payment_from_s_chain = do_erc721_payment_from_s_chain;
 module.exports.do_transfer = do_transfer;

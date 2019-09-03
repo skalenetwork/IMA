@@ -621,7 +621,7 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                 if ( strCoinNameErc721_s_chain.length > 0 ) {
                     // ERC721 payment
                     log.write( cc.info( "one S->M single ERC721 payment: " ) + cc.sunny( g_token_id ) + "\n" ); // just print value
-                    return await MTA.do_erc20_payment_from_s_chain(
+                    return await MTA.do_erc721_payment_from_s_chain(
                         g_w3_main_net,
                         g_w3_s_chain,
                         g_joAccount_s_chain,
