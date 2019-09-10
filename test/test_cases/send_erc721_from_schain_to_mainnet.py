@@ -8,7 +8,7 @@ from tools.test_pool import test_pool
 class Senderc721ToMainnet(TestCase):
     erc721 = None
     erc721_clone = None
-    token_id = 1
+    token_id = 5
 
     def __init__(self, config):
         super().__init__('Send ERC721 from schain to mainnet', config)
@@ -34,7 +34,7 @@ class Senderc721ToMainnet(TestCase):
                                                           self.token_id,
                                                           self.timeout)
         #
-        amount_eth = 21 * 10 ** 15
+        amount_eth = 90 * 10 ** 15
         #
         self.agent.transfer_eth_from_mainnet_to_schain(self.config.mainnet_key,
                                                        self.config.schain_key,
@@ -60,8 +60,9 @@ class Senderc721ToMainnet(TestCase):
                                                           self.token_id,
                                                           self.timeout)
         #
-        erc721 = self.blockchain.get_erc721_on_mainnet(self.token_id)
-        new_owner_address = erc721.functions.ownerOf(self.token_id).call()
+        # erc721 = self.blockchain.get_erc721_on_mainnet(self.token_id)
+        # new_owner_address = erc721.functions.ownerOf(self.token_id).call()
+        new_owner_address = self.erc721.functions.ownerOf(self.token_id).call()
         if destination_address == new_owner_address:
             self._mark_passed()
 

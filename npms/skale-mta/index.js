@@ -1046,7 +1046,7 @@ async function do_erc721_payment_from_s_chain(
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": approve,
             "to": erc721Address_s_chain,
-            "gasPrice": 0,
+            "gasPrice": 10000000000,
             "gas": 8000000
         }
         tcnt += 1;
@@ -1055,7 +1055,7 @@ async function do_erc721_payment_from_s_chain(
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": deposit,
             "to": tokenManagerAddress,
-            "gasPrice": 0,
+            "gasPrice": 10000000000,
             "gas": 8000000
         }
         //

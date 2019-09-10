@@ -19,7 +19,7 @@ class SendERC20ToMainnet(TestCase):
 
         # deploy token
 
-        self.erc20 = self.blockchain.deploy_erc20_on_mainnet(self.config.mainnet_key, 'D2-Token', 'D2', 10)
+        self.erc20 = self.blockchain.deploy_erc20_on_mainnet(self.config.mainnet_key, 'D2-Token', 'D2', 100)
 
         # mint
 

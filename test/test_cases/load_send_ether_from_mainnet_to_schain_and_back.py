@@ -12,7 +12,7 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
 
     def _execute(self):
         #
-        range_int = 10
+        range_int = 5
         # ETH
         eth_amount = 5 * 10 ** 18
         #
