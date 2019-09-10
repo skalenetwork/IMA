@@ -879,10 +879,6 @@ async function do_erc20_payment_from_s_chain(
     joErc20_s_chain,
     isRawTokenTransfer
 ) {
-
-    log.write( cc.success( "token_amount token_amount token_amount" ) + cc.j( token_amount ) + "\n" );
-
-
     let r, strActionName = "";
     try {
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_erc20_payment_from_s_chain";
@@ -947,10 +943,6 @@ async function do_erc20_payment_from_s_chain(
             "gasPrice": 10000000000,
             "gas": 8000000
         }
-
-        log.write( cc.warning( "rawTxApprove" ) + cc.j( rawTxApprove ) + "\n" );
-        log.write( cc.warning( "rawTxDeposit" ) + cc.j( rawTxDeposit ) + "\n" );
-
         //
         //
         // sign transactions
