@@ -15,8 +15,10 @@ class SendERC20ToSchain(TestCase):
         self.erc20 = self.blockchain.deploy_erc20_on_mainnet(self.config.mainnet_key, 'D2-Token', 'D2', 2)
 
         address = self.blockchain.key_to_address(self.config.mainnet_key)
-        mint_txn = self.erc20.functions.mint(address, 1).buildTransaction({
-            'nonce': self.blockchain.get_transactions_count_on_mainnet(address)})
+        mint_txn = self.erc20.functions.mint(address, 1)\
+            .buildTransaction({
+                'gas': 8000000,
+                'nonce': self.blockchain.get_transactions_count_on_mainnet(address)})
 
         signed_txn = self.blockchain.web3_mainnet.eth.account.signTransaction(mint_txn,
                                                                               private_key=self.config.mainnet_key)
