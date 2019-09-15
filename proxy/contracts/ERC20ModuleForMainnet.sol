@@ -43,6 +43,8 @@ contract ERC20ModuleForMainnet is Permissions {
 
     function receiveERC20(address contractHere, address to, uint amount, bool isRAW) public allow("DepositBox") returns (bytes memory data) {
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        uint totalSupply = ERC20Detailed(contractHere).totalSupply();
+        require(amount <= totalSupply, "TotalSupply is not correct");
         if (!isRAW) {
             uint contractPosition = ILockAndDataERC20M(lockAndDataERC20).ERC20Mapper(contractHere);
             if (contractPosition == 0) {
