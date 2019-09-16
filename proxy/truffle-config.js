@@ -11,8 +11,6 @@ let privateKeyForSchain = process.env.PRIVATE_KEY_FOR_SCHAIN;
 
 let mnemonicForMainnet = process.env.MNEMONIC_FOR_MAINNET;
 let mnemonicForSchain = process.env.MNEMONIC_FOR_SCHAIN;
-console.log("mnemonicForMainnet", mnemonicForMainnet)
-console.log("mnemonicForSchain", mnemonicForSchain)
 
 let accountForMainnet = process.env.ACCOUNT_FOR_MAINNET;
 let accountForSchain = process.env.ACCOUNT_FOR_SCHAIN;

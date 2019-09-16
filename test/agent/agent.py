@@ -119,6 +119,7 @@ class Agent:
         self._create_path(erc721_config_filename)
         with open(erc721_config_filename, 'w') as erc721_file:
             json.dump(config_json, erc721_file)
+        sleep(5)
 
         self._execute_command('m2s-payment', {'no-raw-transfer': None,
                                               'tid': token_id,
@@ -178,7 +179,7 @@ class Agent:
         # destination_address = erc721.functions.ownerOf(token_id).call()
         destination_address = self.blockchain.key_to_address(to_key)
         tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
-
+        sleep(10)
         self._execute_command('s2m-payment', {'no-raw-transfer': None,
                                               'tid': token_id,
                                               'key-main-net': to_key,
