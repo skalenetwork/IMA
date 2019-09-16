@@ -63,9 +63,9 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     const tokenId = 1;
     const isRaw = true;
     // execution
-    const res = await eRC721ModuleForSchain.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
+    const res = await eRC721ModuleForSchain.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
     // expectation
-    (res.logs[0].event).should.be.equal("EncodedRawData");
+    (res).should.include("0x");
   });
 
   it("should rejected with `Not existing ERC-721 contract` with `isRaw==false`", async () => {
@@ -104,9 +104,9 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // transfer ERC721 token to `lockAndDataForMainnetERC721` to avoid "Token not transfered" error
     await eRC721OnChain.transferFrom(deployer, lockAndDataForSchainERC721.address, tokenId, {from: deployer});
     // execution
-    const res = await eRC721ModuleForSchain.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
+    const res = await eRC721ModuleForSchain.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
     // expectation
-    (res.logs[0].event).should.be.equal("EncodedData");
+    (res).should.include("0x");
   });
 
   it("should return `true` for `sendERC721` with `to0==address(0)` and `contractAddreess==address(0)`", async () => {
@@ -135,7 +135,8 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // execution
     const res = await eRC721ModuleForSchain.sendERC721(to0, data, {from: deployer});
     // expectation
-    const newAddress = res.logs[1].args.contractAddress;
+    // get new token address
+    const newAddress = res.logs[0].args.tokenAddress;
     const newERC721Contract = new web3.eth.Contract(ABIERC721OnChain.abi, newAddress);
     expect(await newERC721Contract.methods.ownerOf(tokenId).call()).to.be.equal(to);
   });
@@ -167,10 +168,10 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // invoke `addMinter` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exeption
     await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address);
     // get data from `receiveERC721`
-    const getRes = await eRC721ModuleForSchain.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = await eRC721ModuleForSchain.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
+    await eRC721ModuleForSchain.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
     // execution
-    const res = await eRC721ModuleForSchain.sendERC721(to0, data, {from: deployer});
+    await eRC721ModuleForSchain.sendERC721(to0, data, {from: deployer});
     // expectation
     expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(user);
   });
@@ -191,8 +192,8 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // invoke `addMinter` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exeption
     await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address);
     // get data from `receiveERC721`
-    const getRes = await eRC721ModuleForSchain.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = await eRC721ModuleForSchain.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
+    await eRC721ModuleForSchain.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
     // execution
     const res = await eRC721ModuleForSchain.sendERC721(to0, data, {from: deployer});
     // expectation
@@ -213,8 +214,8 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     await lockAndDataForSchain
         .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
     // get data from `receiveERC721`
-    const getRes = await eRC721ModuleForSchain.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = await eRC721ModuleForSchain.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
+    await eRC721ModuleForSchain.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
     // execution
     const res = await eRC721ModuleForSchain.getReceiver(to0, data, {from: deployer});
     // expectation
@@ -243,8 +244,8 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // transfer ERC721 token to `lockAndDataForMainnetERC721` to avoid "Token not transfered" error
     await eRC721OnChain.transferFrom(deployer, lockAndDataForSchainERC721.address, tokenId, {from: deployer});
     // get data from `receiveERC721`
-    const getRes = await eRC721ModuleForSchain.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = await eRC721ModuleForSchain.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
+    await eRC721ModuleForSchain.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
     // execution
     const res = await eRC721ModuleForSchain.getReceiver(to0, data, {from: deployer});
     // expectation
