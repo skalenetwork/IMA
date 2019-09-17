@@ -1165,9 +1165,10 @@ contract("TokenManager", ([user, deployer, client]) => {
             const tokenId = 9;
             const isRaw = true;
             // get data from `receiveERC721`
-            const getRes = await eRC721ModuleForSchain
+            const data = await eRC721ModuleForSchain
+                .receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
+            await eRC721ModuleForSchain
                 .receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
-            const data = getRes.logs[0].args.data;
             // add schain to avoid the `Unconnected chain` error
             await lockAndDataForSchain
                 .addSchain(schainID, deployer, {from: deployer});

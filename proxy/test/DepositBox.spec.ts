@@ -254,6 +254,19 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         {from: deployer, gas: 8000000 * gasMultiplier});
       eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
 
+      // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
+      await lockAndDataForMainnet
+        .setContract("DepositBox", depositBox.address, {from: deployer});
+      // set `ERC721Module` contract before invoke `depositERC721`
+      await lockAndDataForMainnet
+        .setContract("ERC721Module", eRC721ModuleForMainnet.address, {from: deployer});
+      // set `LockAndDataERC721` contract before invoke `depositERC721`
+      await lockAndDataForMainnet
+        .setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address, {from: deployer});
+      // mint some ERC721 of  for `deployer` address
+      const tokenId = 10;
+      await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
+
     });
 
     describe("tests for `depositERC721` function", async () => {
@@ -273,17 +286,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
         await messageProxy
           .addConnectedChain(schainID, publicKeyArray, {from: deployer});
-        // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
-        await lockAndDataForMainnet
-          .setContract("DepositBox", depositBox.address, {from: deployer});
-        // set `ERC721Module` contract before invoke `depositERC721`
-        await lockAndDataForMainnet
-          .setContract("ERC721Module", eRC721ModuleForMainnet.address, {from: deployer});
-        // set `LockAndDataERC721` contract before invoke `depositERC721`
-        await lockAndDataForMainnet
-          .setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address, {from: deployer});
-        // mint some ERC721 of  for `deployer` address
-        await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
+
         // execution/expectation
         await depositBox
           .depositERC721(schainID, contractHere, to, tokenId, {value: wei, from: deployer})
@@ -305,17 +308,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
         await messageProxy
           .addConnectedChain(schainID, publicKeyArray, {from: deployer});
-        // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
-        await lockAndDataForMainnet
-          .setContract("DepositBox", depositBox.address, {from: deployer});
-        // set `ERC721Module` contract before invoke `depositERC721`
-        await lockAndDataForMainnet
-          .setContract("ERC721Module", eRC721ModuleForMainnet.address, {from: deployer});
-        // set `LockAndDataERC721` contract before invoke `depositERC721`
-        await lockAndDataForMainnet
-          .setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address, {from: deployer});
-        // mint some ERC721 of  for `deployer` address
-        await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
         // transfer tokenId from `deployer` to `depositBox`
         await eRC721OnChain.transferFrom(deployer,
           depositBox.address, tokenId, {from: deployer});
@@ -346,17 +338,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
         await messageProxy
           .addConnectedChain(schainID, publicKeyArray, {from: deployer});
-        // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
-        await lockAndDataForMainnet
-          .setContract("DepositBox", depositBox.address, {from: deployer});
-        // set `ERC721Module` contract before invoke `depositERC721`
-        await lockAndDataForMainnet
-          .setContract("ERC721Module", eRC721ModuleForMainnet.address, {from: deployer});
-        // set `LockAndDataERC721` contract before invoke `depositERC721`
-        await lockAndDataForMainnet
-          .setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address, {from: deployer});
-        // mint some ERC721 of  for `deployer` address
-        await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
         // execution/expectation
         await depositBox
           .rawDepositERC721(schainID, contractHere, contractThere, to, tokenId, {value: wei, from: deployer})
@@ -379,17 +360,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
         await messageProxy
           .addConnectedChain(schainID, publicKeyArray, {from: deployer});
-        // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
-        await lockAndDataForMainnet
-          .setContract("DepositBox", depositBox.address, {from: deployer});
-        // set `ERC721Module` contract before invoke `depositERC721`
-        await lockAndDataForMainnet
-          .setContract("ERC721Module", eRC721ModuleForMainnet.address, {from: deployer});
-        // set `LockAndDataERC721` contract before invoke `depositERC721`
-        await lockAndDataForMainnet
-          .setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address, {from: deployer});
-        // mint some ERC721 of  for `deployer` address
-        await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
         // transfer tokenId from `deployer` to `depositBox`
         await eRC721OnChain.transferFrom(deployer,
           depositBox.address, tokenId, {from: deployer});
@@ -615,8 +585,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // approve some quantity of ERC20 tokens for `depositBox` address
       await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
       // get data from `receiveERC20`
-      const getRes = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-      const data = getRes.logs[1].args.data;
+      const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
+      await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
       // execution
       // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
@@ -671,8 +641,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // approve some quantity of ERC20 tokens for `depositBox` address
       await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
       // get data from `receiveERC20`
-      const getRes = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-      const data = getRes.logs[0].args.data;
+      const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
+      await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
       // execution
       // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
@@ -723,8 +693,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       await eRC721OnChain.transferFrom(deployer,
         lockAndDataForMainnetERC721.address, tokenId, {from: deployer});
       // get data from `receiveERC721`
-      const getRes = await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
-      const data = getRes.logs[1].args.data;
+      const data = await eRC721ModuleForMainnet.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
+      eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
       // execution
       // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
@@ -775,8 +745,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       await eRC721OnChain.transferFrom(deployer,
         lockAndDataForMainnetERC721.address, tokenId, {from: deployer});
       // get data from `receiveERC721`
-      const getRes = await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
-      const data = getRes.logs[0].args.data;
+      const data = await eRC721ModuleForMainnet.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
+      await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
       // execution
       // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet

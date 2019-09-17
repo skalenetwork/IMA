@@ -90,15 +90,17 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
     const contractHere = eRC721OnChain.address;
     // execution#1
     const res = await lockAndDataForMainnetERC721
+        .addERC721Token.call(contractHere, {from: deployer});
+    await lockAndDataForMainnetERC721
         .addERC721Token(contractHere, {from: deployer});
     // expectation#1
-    parseInt(new BigNumber(res.logs[0].args.index).toString(), 10)
+    parseInt(new BigNumber(res).toString(), 10)
         .should.be.equal(1);
     // execution#2
     const res1 = await lockAndDataForMainnetERC721
-        .addERC721Token(contractHere, {from: deployer});
+        .addERC721Token.call(contractHere, {from: deployer});
     // expectation#2
-    parseInt(new BigNumber(res1.logs[0].args.index).toString(), 10)
+    parseInt(new BigNumber(res1).toString(), 10)
         .should.be.equal(2);
   });
 
