@@ -76,9 +76,9 @@ contract("LockAndDataForMainnetERC20", ([deployer, user, invoker]) => {
     await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
     // execution
     const res = await lockAndDataForMainnetERC20
-        .sendERC20(contractHere, to, amount, {from: deployer});
+        .sendERC20.call(contractHere, to, amount, {from: deployer});
     // expectation
-    expect(res.logs[0].args.result).to.be.true;
+    expect(res).to.be.true;
   });
 
   it("should return `token index` after invoke `addERC20Token`", async () => {
@@ -100,21 +100,24 @@ contract("LockAndDataForMainnetERC20", ([deployer, user, invoker]) => {
         createBytes32(sopply.toString(16)); // totalSupply
     // create ERC20 token
     // const erc20TokenAddress = await tokenFactory.createERC20(data, {from: deployer});
-    const {logs} = await tokenFactory.createERC20(data, {from: deployer});
-    const contractHere = logs[0].args.contractAddress;
+    const contractHere = await tokenFactory.createERC20.call(data, {from: deployer});
+    await tokenFactory.createERC20(data, {from: deployer});
     // for execution#2
     const contractHer = ethERC20.address;
     // execution#1
+    // just call transaction without any changes
     const res = await lockAndDataForMainnetERC20
+        .addERC20Token.call(contractHere, {from: deployer});
+    await lockAndDataForMainnetERC20
         .addERC20Token(contractHere, {from: deployer});
     // expectation#1
-    parseInt(new BigNumber(res.logs[0].args.index).toString(), 10)
+    parseInt(new BigNumber(res).toString(), 10)
         .should.be.equal(1);
     // execution#2
     const res1 = await lockAndDataForMainnetERC20
-        .addERC20Token(contractHer, {from: deployer});
+        .addERC20Token.call(contractHer, {from: deployer});
     // expectation#2
-    parseInt(new BigNumber(res1.logs[0].args.index).toString(), 10)
+    parseInt(new BigNumber(res1).toString(), 10)
         .should.be.equal(2);
   });
 

@@ -32,9 +32,6 @@ interface ILockAndDataERC20M {
 
 contract ERC20ModuleForMainnet is Permissions {
 
-    event EncodedData(bytes data);
-    event EncodedRawData(bytes data);
-    event SentERC20(bool result);
     event ERC20TokenAdded(address indexed tokenHere, uint contractPosition);
 
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
@@ -50,11 +47,9 @@ contract ERC20ModuleForMainnet is Permissions {
                 emit ERC20TokenAdded(contractHere, contractPosition);
             }
             data = encodeData(contractHere, contractPosition, to, amount);
-            emit EncodedData(bytes(data));
             return data;
         } else {
             data = encodeRawData(to, amount);
-            emit EncodedRawData(bytes(data));
             return data;
         }
     }
@@ -73,7 +68,6 @@ contract ERC20ModuleForMainnet is Permissions {
             contractAddress = to;
         }
         bool variable = ILockAndDataERC20M(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
-        emit SentERC20(bool(variable));
         return variable;
     }
 

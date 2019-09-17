@@ -12,8 +12,6 @@ interface ILockAndDataERC721M {
 
 contract ERC721ModuleForMainnet is Permissions {
 
-    event EncodedData(bytes data);
-    event EncodedRawData(bytes data);
     event ERC721TokenAdded(address indexed tokenHere, uint contractPosition);
 
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
@@ -29,11 +27,9 @@ contract ERC721ModuleForMainnet is Permissions {
                 emit ERC721TokenAdded(contractHere, contractPosition);
             }
             data = encodeData(contractHere, contractPosition, to, tokenId);
-            emit EncodedData(bytes(data));
             return data;
         } else {
             data = encodeRawData(to, tokenId);
-            emit EncodedRawData(bytes(data));
             return data;
         }
     }
