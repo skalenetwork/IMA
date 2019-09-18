@@ -1,7 +1,7 @@
 from web3 import Web3, HTTPProvider
 import json
 from eth_account import Account
-
+import time
 
 class BlockChain:
     config = None
@@ -161,10 +161,25 @@ class BlockChain:
             })
             signed_txn = web3.eth.account.signTransaction(deploy_txn, private_key=private_key)
             transaction_hash = web3.eth.sendRawTransaction(signed_txn.rawTransaction)
-            receipt = web3.eth.getTransactionReceipt(transaction_hash)
-
+            #
+            receipt = BlockChain.await_receipt(web3, transaction_hash)
+            #
             contract = web3.eth.contract(address=receipt.contractAddress, abi=abi)
             return contract
 
+    @staticmethod
+    def await_receipt(web3, tx, retries=10, timeout=5):
+        for _ in range(0, retries):
+            receipt = BlockChain.get_receipt(web3, tx)
+            if (receipt != None):
+                return receipt
+            time.sleep(timeout)
+        return None
+
+    @staticmethod
+    def get_receipt(web3, tx):
+        return web3.eth.getTransactionReceipt(tx)
+
     def _deploy_contract_to_mainnet(self, json_filename, constructor_arguments, private_key):
         return self._deploy_contract_from_json(self.web3_mainnet, json_filename, constructor_arguments, private_key)
+

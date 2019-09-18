@@ -15,7 +15,7 @@ let LockAndDataForMainnetERC20 = artifacts.require("./LockAndDataForMainnetERC20
 let ERC721ModuleForMainnet = artifacts.require("./ERC721ModuleForMainnet.sol");
 let LockAndDataForMainnetERC721 = artifacts.require("./LockAndDataForMainnetERC721.sol");
 
-let gasLimit = 6900000;
+let gasLimit = 8000000;
 
 async function deploy(deployer, network) {
 
