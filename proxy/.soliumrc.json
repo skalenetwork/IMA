@@ -3,8 +3,7 @@
     "plugins": [
       "security"
     ],
-    "rules": {
-      "operator-whitespace": "warning",
+    "rules": {      
       "array-declarations": "error",
       "indentation": ["warning", 4],
       "conditionals-whitespace": "warning",

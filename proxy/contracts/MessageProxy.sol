@@ -277,8 +277,7 @@ contract MessageProxy {
                 newData
             );
         }
-        connectedChains[srcChainHash].incomingMessageCounter +=
-            uint(senders.length);
+        connectedChains[srcChainHash].incomingMessageCounter += uint(senders.length);
     }
 
     function getOutgoingMessagesCounter(string memory dstChainID)
