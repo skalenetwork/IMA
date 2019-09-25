@@ -23,6 +23,7 @@
       "uppercase": "error",
       "error-reason": "error",
       "mixedcase": "error",
+      "no-empty-blocks": "error",
       "security/no-inline-assembly": "warning"
     }
   }

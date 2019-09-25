@@ -12,7 +12,7 @@ contract LockAndDataForMainnetERC721 is Permissions {
     uint newIndexERC721 = 1;
 
     constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
-
+        // solium-disable-previous-line no-empty-blocks
     }
 
     function sendERC721(address contractHere, address to, uint tokenId) public allow("ERC721Module") returns (bool) {

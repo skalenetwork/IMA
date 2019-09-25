@@ -19,7 +19,7 @@ contract LockAndDataForSchainERC721 is Permissions {
     // mapping(uint => uint) public mintToken;
 
     constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
-
+        // solium-disable-previous-line no-empty-blocks
     }
 
     function sendERC721(address contractHere, address to, uint tokenId) public allow("ERC721Module") returns (bool) {
