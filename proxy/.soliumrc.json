@@ -21,7 +21,7 @@
       "no-trailing-whitespace": "error",
       "function-order": "error",
       "uppercase": "error",
-      "error-reason": "warning",
+      "error-reason": "error",
       "security/no-inline-assembly": "warning"
     }
   }

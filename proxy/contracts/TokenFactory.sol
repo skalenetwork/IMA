@@ -99,8 +99,8 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
         public
         returns (bool)
     {
-        require(_exists(tokenId));
-        require(_isApprovedOrOwner(msg.sender, tokenId));
+        require(_exists(tokenId), "Token does not exists");
+        require(_isApprovedOrOwner(msg.sender, tokenId), "The sender can not set token URI");
         _setTokenURI(tokenId, tokenURI);
         return true;
     }

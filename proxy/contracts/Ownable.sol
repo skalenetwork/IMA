@@ -52,7 +52,7 @@ contract Ownable {
      * @param newOwner The address to transfer ownership to.
      */
     function transferOwnership(address payable newOwner) public onlyOwner {
-        require(newOwner != address(0));
+        require(newOwner != address(0), "New owner has to be set");
         owner = newOwner;
     }
 

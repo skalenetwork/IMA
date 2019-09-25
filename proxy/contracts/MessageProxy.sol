@@ -124,8 +124,8 @@ contract MessageProxy {
         //require(msg.sender == owner); // todo: tmp!!!!!
         require(
             keccak256(abi.encodePacked(someChainID)) !=
-            keccak256(abi.encodePacked("Mainnet"))
-        ); // main net does not have a public key and is implicitly connected
+            keccak256(abi.encodePacked("Mainnet")),
+            "Schain id can not be equal Mainnet"); // main net does not have a public key and is implicitly connected
         if ( ! connectedChains[keccak256(abi.encodePacked(someChainID))].inited ) {
             return false;
         }
@@ -165,10 +165,12 @@ contract MessageProxy {
         require(msg.sender == owner, "Sender is not an owner");
         require(
             keccak256(abi.encodePacked(newChainID)) !=
-            keccak256(abi.encodePacked("Mainnet"))
+            keccak256(abi.encodePacked("Mainnet")),
+            "New chain id can not be equal Mainnet"
         ); // you cannot remove a connection to main net
         require(
-            connectedChains[keccak256(abi.encodePacked(newChainID))].inited
+            connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
+            "Chain is not initialized"
         );
         delete connectedChains[keccak256(abi.encodePacked(newChainID))];
     }
@@ -214,15 +216,14 @@ contract MessageProxy {
     {
         require(authorizedCaller[msg.sender], "Not authorized caller");
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(connectedChains[srcChainHash].inited);
-        require(senders.length == dstContracts.length);
-        require(to.length == dstContracts.length);
-        require(to.length == amount.length);
-        require(lengthOfData.length == amount.length);
+        require(connectedChains[srcChainHash].inited, "Chain is not initialized");
+        require(senders.length == dstContracts.length, "Senders/destination amount mismatch");
+        require(to.length == dstContracts.length, "Send length is not queal to receive length");
+        require(to.length == amount.length, "Send/amount mismatch");
+        require(lengthOfData.length == amount.length, "Data length / amount mismatch");
         require(
-            startingCounter ==
-            connectedChains[srcChainHash].incomingMessageCounter
-        );
+            startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
+            "Starning counter is not qual to incomin message counter");
 
         // TODO: Calculate hash and verify BLS signature on hash
 
@@ -290,7 +291,7 @@ contract MessageProxy {
         returns (uint)
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
-        require(connectedChains[dstChainHash].inited);
+        require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         return connectedChains[dstChainHash].outgoingMessageCounter;
     }
 
@@ -300,7 +301,7 @@ contract MessageProxy {
         returns (uint)
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(connectedChains[srcChainHash].inited);
+        require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
         return connectedChains[srcChainHash].incomingMessageCounter;
     }
 }
