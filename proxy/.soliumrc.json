@@ -5,7 +5,7 @@
     ],
     "rules": {      
       "array-declarations": "error",
-      "indentation": ["warning", 4],
+      "indentation": ["error", 4],
       "conditionals-whitespace": "warning",
       "comma-whitespace": "error",
       "semicolon-whitespace": "error",
