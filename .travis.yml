@@ -36,6 +36,7 @@ jobs:
     include:
         - stage: test
           install:
+            - pip3 install slither-analyzer
             - cd proxy    
             - yarn install
 
@@ -51,6 +52,8 @@ jobs:
             - npx testrpc-sc --port 8555 --gasLimit 0xfffffffffff --quiet &    
           script:
             - yarn tslint || travis_terminate 2
+            - slither . || true
+            - slither . --exclude-informational --exclude-low --exclude-medium --exclude-high || travis_terminate 7
             - yarn generate    
             - yarn test || travis_terminate 3
 
