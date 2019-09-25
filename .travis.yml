@@ -51,9 +51,10 @@ jobs:
             - npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
             - npx testrpc-sc --port 8555 --gasLimit 0xfffffffffff --quiet &    
           script:
-            - yarn tslint || travis_terminate 2
-            - slither . || true
+            - yarn lint || travis_terminate 1
+            # - slither . || true
             - slither . --exclude-informational --exclude-low --exclude-medium --exclude-high || travis_terminate 7
+            - yarn tslint || travis_terminate 2            
             - yarn generate    
             - yarn test || travis_terminate 3
 
