@@ -53,7 +53,7 @@ jobs:
           script:
             - yarn lint || travis_terminate 1
             - slither . --filter-path openzeppelin-solidity || true
-            - slither . --filter-path openzeppelin-solidity --exclude-informational --exclude-low --exclude-medium || travis_terminate 7
+            - $(slither . --filter-path openzeppelin-solidity --exclude-informational --exclude-low --exclude-medium) || travis_terminate 7
             - yarn tslint || travis_terminate 2            
             - yarn generate    
             - yarn test || travis_terminate 3
