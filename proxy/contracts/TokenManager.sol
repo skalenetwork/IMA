@@ -116,7 +116,7 @@ contract TokenManager is Permissions {
     // This is called by schain owner.
     // Exit to main net
     function exitToMain(address to, uint amount) public {
-        bytes memory empty;
+        bytes memory empty = "";
         exitToMain(to, amount, empty);
     }
 
@@ -133,7 +133,7 @@ contract TokenManager is Permissions {
     }
 
     function transferToSchain(string memory schainID, address to, uint amount) public {
-        bytes memory data;
+        bytes memory data = "";
         transferToSchain(
             schainID,
             to,

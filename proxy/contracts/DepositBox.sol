@@ -98,7 +98,7 @@ contract DepositBox is Permissions {
     }
 
     function deposit(string memory schainID, address to) public payable {
-        bytes memory empty;
+        bytes memory empty = "";
         deposit(schainID, to, empty);
     }
 
