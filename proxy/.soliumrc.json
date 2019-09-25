@@ -4,7 +4,6 @@
       "security"
     ],
     "rules": {
-      "quotes": "warning",
       "operator-whitespace": "warning",
       "array-declarations": "error",
       "indentation": ["warning", 4],

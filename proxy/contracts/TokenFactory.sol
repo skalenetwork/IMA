@@ -19,11 +19,11 @@
 
 pragma solidity ^0.5.0;
 
-import './Permissions.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Capped.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
-import 'openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol';
-import 'openzeppelin-solidity/contracts/token/ERC721/ERC721MetadataMintable.sol';
+import "./Permissions.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20Capped.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
+import "openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol";
+import "openzeppelin-solidity/contracts/token/ERC721/ERC721MetadataMintable.sol";
 
 
 contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
