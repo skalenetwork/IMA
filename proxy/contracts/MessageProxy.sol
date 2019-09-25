@@ -95,7 +95,11 @@ contract MessageProxy {
             uint[4] memory empty;
             connectedChains[
                 keccak256(abi.encodePacked("Mainnet"))
-            ] = ConnectedChainInfo(empty, 0, 0, true);
+            ] = ConnectedChainInfo(
+                empty,
+                0,
+                0,
+                true);
         }
     }
 

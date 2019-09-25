@@ -17,7 +17,7 @@
       "blank-lines": "error",
       "whitespace": "error",
       "pragma-on-top": "error",
-      "arg-overflow": "warning",
+      "arg-overflow": "error",
       "no-trailing-whitespace": "warning",
       "function-order": "error",
       "uppercase": "error",

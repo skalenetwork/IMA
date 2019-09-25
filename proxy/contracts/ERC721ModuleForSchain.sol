@@ -26,13 +26,22 @@ contract ERC721ModuleForSchain is Permissions {
 
     }
 
-    function receiveERC721(address contractHere, address to, uint tokenId, bool isRAW) public allow("TokenManager") returns (bytes memory data) {
+    function receiveERC721(
+        address contractHere,
+        address to,
+        uint tokenId,
+        bool isRAW) public allow("TokenManager") returns (bytes memory data)
+        {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         if (!isRAW) {
             uint contractPosition = ILockAndDataERC721S(lockAndDataERC721).ERC721Mapper(contractHere);
             require(contractPosition > 0, "Not existing ERC-721 contract");
             require(ILockAndDataERC721S(lockAndDataERC721).receiveERC721(contractHere, tokenId), "Cound not receive ERC721 Token");
-            data = encodeData(contractHere, contractPosition, to, tokenId);
+            data = encodeData(
+                contractHere,
+                contractPosition,
+                to,
+                tokenId);
             return data;
         } else {
             data = encodeRawData(to, tokenId);
@@ -72,7 +81,12 @@ contract ERC721ModuleForSchain is Permissions {
         }
     }
 
-    function encodeData(address contractHere, uint contractPosition, address to, uint tokenId) internal view returns (bytes memory data) {
+    function encodeData(
+        address contractHere,
+        uint contractPosition,
+        address to,
+        uint tokenId) internal view returns (bytes memory data)
+        {
         string memory name = IERC721Full(contractHere).name();
         string memory symbol = IERC721Full(contractHere).symbol();
         data = abi.encodePacked(

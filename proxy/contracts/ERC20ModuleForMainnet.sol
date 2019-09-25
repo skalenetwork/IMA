@@ -38,7 +38,12 @@ contract ERC20ModuleForMainnet is Permissions {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function receiveERC20(address contractHere, address to, uint amount, bool isRAW) public allow("DepositBox") returns (bytes memory data) {
+    function receiveERC20(
+        address contractHere,
+        address to,
+        uint amount,
+        bool isRAW) public allow("DepositBox") returns (bytes memory data)
+        {
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         if (!isRAW) {
             uint contractPosition = ILockAndDataERC20M(lockAndDataERC20).ERC20Mapper(contractHere);
@@ -46,7 +51,11 @@ contract ERC20ModuleForMainnet is Permissions {
                 contractPosition = ILockAndDataERC20M(lockAndDataERC20).addERC20Token(contractHere);
                 emit ERC20TokenAdded(contractHere, contractPosition);
             }
-            data = encodeData(contractHere, contractPosition, to, amount);
+            data = encodeData(
+                contractHere,
+                contractPosition,
+                to,
+                amount);
             return data;
         } else {
             data = encodeRawData(to, amount);
@@ -81,7 +90,12 @@ contract ERC20ModuleForMainnet is Permissions {
         }
     }
 
-    function encodeData(address contractHere, uint contractPosition, address to, uint amount) internal view returns (bytes memory data) {
+    function encodeData(
+        address contractHere,
+        uint contractPosition,
+        address to,
+        uint amount) internal view returns (bytes memory data)
+        {
         string memory name = ERC20Detailed(contractHere).name();
         uint8 decimals = ERC20Detailed(contractHere).decimals();
         string memory symbol = ERC20Detailed(contractHere).symbol();

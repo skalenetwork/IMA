@@ -50,13 +50,22 @@ contract ERC20ModuleForSchain is Permissions {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function receiveERC20(address contractHere, address to, uint amount, bool isRAW) public allow("TokenManager") returns (bytes memory data) {
+    function receiveERC20(
+        address contractHere,
+        address to,
+        uint amount,
+        bool isRAW) public allow("TokenManager") returns (bytes memory data)
+        {
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         if (!isRAW) {
             uint contractPosition = ILockAndDataERC20S(lockAndDataERC20).ERC20Mapper(contractHere);
             require(contractPosition > 0, "Not existing ERC-20 contract");
             require(ILockAndDataERC20S(lockAndDataERC20).receiveERC20(contractHere, amount), "Cound not receive ERC20 Token");
-            data = encodeData(contractHere, contractPosition, to, amount);
+            data = encodeData(
+                contractHere,
+                contractPosition,
+                to,
+                amount);
             return data;
         } else {
             data = encodeRawData(to, amount);
@@ -101,7 +110,12 @@ contract ERC20ModuleForSchain is Permissions {
         }
     }
 
-    function encodeData(address contractHere, uint contractPosition, address to, uint amount) internal view returns (bytes memory data) {
+    function encodeData(
+        address contractHere,
+        uint contractPosition,
+        address to,
+        uint amount) internal view returns (bytes memory data)
+        {
         string memory name = ERC20Detailed(contractHere).name();
         uint8 decimals = ERC20Detailed(contractHere).decimals();
         string memory symbol = ERC20Detailed(contractHere).symbol();
