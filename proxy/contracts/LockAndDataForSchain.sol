@@ -71,7 +71,7 @@ contract LockAndDataForSchain is Ownable {
 
     function hasSchain( string memory schainID ) public view returns (bool) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        if( tokenManagerAddresses[schainHash] == address(0) ) {
+        if ( tokenManagerAddresses[schainHash] == address(0) ) {
             return false;
         }
         return true;
@@ -93,7 +93,7 @@ contract LockAndDataForSchain is Ownable {
 
     function hasDepositBox() public view returns(bool) {
         bytes32 depositBoxHash = keccak256(abi.encodePacked("Mainnet"));
-        if( tokenManagerAddresses[depositBoxHash] == address(0) ) {
+        if ( tokenManagerAddresses[depositBoxHash] == address(0) ) {
             return false;
         }
         return true;

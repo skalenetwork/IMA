@@ -68,7 +68,7 @@ contract LockAndDataForMainnet is Ownable {
 
     function hasSchain( string memory schainID ) public view returns (bool) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        if( tokenManagerAddresses[schainHash] == address(0) ) {
+        if ( tokenManagerAddresses[schainHash] == address(0) ) {
             return false;
         }
         return true;
