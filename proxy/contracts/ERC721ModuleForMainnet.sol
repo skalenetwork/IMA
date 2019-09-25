@@ -4,8 +4,8 @@ import "./Permissions.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
 
 interface ILockAndDataERC721M {
-    function ERC721Tokens(uint index) external returns (address);
-    function ERC721Mapper(address contractERC721) external returns (uint);
+    function erc721Tokens(uint index) external returns (address);
+    function erc721Mapper(address contractERC721) external returns (uint);
     function addERC721Token(address contractERC721) external returns (uint);
     function sendERC721(address contractHere, address to, uint token) external returns (bool);
 }
@@ -27,7 +27,7 @@ contract ERC721ModuleForMainnet is Permissions {
         {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         if (!isRAW) {
-            uint contractPosition = ILockAndDataERC721M(lockAndDataERC721).ERC721Mapper(contractHere);
+            uint contractPosition = ILockAndDataERC721M(lockAndDataERC721).erc721Mapper(contractHere);
             if (contractPosition == 0) {
                 contractPosition = ILockAndDataERC721M(lockAndDataERC721).addERC721Token(contractHere);
                 emit ERC721TokenAdded(contractHere, contractPosition);
@@ -52,7 +52,7 @@ contract ERC721ModuleForMainnet is Permissions {
         uint tokenId;
         if (to == address(0)) {
             (contractPosition, receiver, tokenId) = fallbackDataParser(data);
-            contractAddress = ILockAndDataERC721M(lockAndDataERC721).ERC721Tokens(contractPosition);
+            contractAddress = ILockAndDataERC721M(lockAndDataERC721).erc721Tokens(contractPosition);
         } else {
             (receiver, tokenId) = fallbackRawDataParser(data);
             contractAddress = to;

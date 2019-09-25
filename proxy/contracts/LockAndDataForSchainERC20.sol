@@ -33,8 +33,8 @@ contract LockAndDataForSchainERC20 is Permissions {
     event SendedERC20(bool result);
     event ReceivedERC20(bool result);
 
-    mapping(uint => address) public ERC20Tokens;
-    mapping(address => uint) public ERC20Mapper;
+    mapping(uint => address) public erc20Tokens;
+    mapping(address => uint) public erc20Mapper;
 
     constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
@@ -54,7 +54,7 @@ contract LockAndDataForSchainERC20 is Permissions {
     }
 
     function addERC20Token(address addressERC20, uint contractPosition) public allow("ERC20Module") {
-        ERC20Tokens[contractPosition] = addressERC20;
-        ERC20Mapper[addressERC20] = contractPosition;
+        erc20Tokens[contractPosition] = addressERC20;
+        erc20Mapper[addressERC20] = contractPosition;
     }
 }

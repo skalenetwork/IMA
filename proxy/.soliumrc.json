@@ -22,6 +22,7 @@
       "function-order": "error",
       "uppercase": "error",
       "error-reason": "error",
+      "mixedcase": "error",
       "security/no-inline-assembly": "warning"
     }
   }

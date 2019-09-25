@@ -30,7 +30,7 @@ contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
 
     uint private _totalSupplyOnMainnet;
 
-    address private AddressOfERC20Module;
+    address private addressOfErc20Module;
 
     constructor(
         string memory name,
@@ -43,7 +43,7 @@ contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
         public
     {
         _totalSupplyOnMainnet = newTotalSupply;
-        AddressOfERC20Module = erc20Module;
+        addressOfErc20Module = erc20Module;
     }
 
     function totalSupplyOnMainnet() public view returns (uint) {
@@ -51,7 +51,7 @@ contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
     }
 
     function setTotalSupplyOnMainnet(uint newTotalSupply) public {
-        require(AddressOfERC20Module == msg.sender, "Call does not go from ERC20Module");
+        require(addressOfErc20Module == msg.sender, "Call does not go from ERC20Module");
         _totalSupplyOnMainnet = newTotalSupply;
     }
 
@@ -123,13 +123,13 @@ contract TokenFactory is Permissions {
         uint8 decimals;
         uint256 totalSupply;
         (name, symbol, decimals, totalSupply) = fallbackDataCreateERC20Parser(data);
-        address ERC20ModuleAddress = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        address erc20ModuleAddress = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
             symbol,
             decimals,
             totalSupply,
-            ERC20ModuleAddress
+            erc20ModuleAddress
         );
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         newERC20.addMinter(lockAndDataERC20);

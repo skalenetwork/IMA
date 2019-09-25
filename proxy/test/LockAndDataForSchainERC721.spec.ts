@@ -92,9 +92,9 @@ contract("LockAndDataForSchainERC721", ([deployer, user, invoker]) => {
     await lockAndDataForSchainERC721
         .addERC721Token(addressERC721, contractPosition, {from: deployer});
     // expectation
-    expect(await lockAndDataForSchainERC721.ERC721Tokens(contractPosition)).to.be.equal(addressERC721);
+    expect(await lockAndDataForSchainERC721.erc721Tokens(contractPosition)).to.be.equal(addressERC721);
     expect(parseInt(
-        new BigNumber(await lockAndDataForSchainERC721.ERC721Mapper(addressERC721))
+        new BigNumber(await lockAndDataForSchainERC721.erc721Mapper(addressERC721))
         .toString(), 10))
         .to.be.equal(contractPosition);
   });

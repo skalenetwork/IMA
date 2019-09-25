@@ -6,8 +6,8 @@ import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
 
 contract LockAndDataForMainnetERC721 is Permissions {
 
-    mapping(uint => address) public ERC721Tokens;
-    mapping(address => uint) public ERC721Mapper;
+    mapping(uint => address) public erc721Tokens;
+    mapping(address => uint) public erc721Mapper;
     // mapping(uint => uint) public mintToken;
     uint newIndexERC721 = 1;
 
@@ -27,8 +27,8 @@ contract LockAndDataForMainnetERC721 is Permissions {
 
     function addERC721Token(address addressERC721) public allow("ERC721Module") returns (uint) {
         uint index = newIndexERC721;
-        ERC721Tokens[index] = addressERC721;
-        ERC721Mapper[addressERC721] = index;
+        erc721Tokens[index] = addressERC721;
+        erc721Mapper[addressERC721] = index;
         newIndexERC721++;
         return index;
     }

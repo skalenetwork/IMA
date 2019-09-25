@@ -26,8 +26,8 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 
 contract LockAndDataForMainnetERC20 is Permissions {
 
-    mapping(uint => address) public ERC20Tokens;
-    mapping(address => uint) public ERC20Mapper;
+    mapping(uint => address) public erc20Tokens;
+    mapping(address => uint) public erc20Mapper;
     uint newIndexERC20 = 1;
 
     constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
@@ -42,8 +42,8 @@ contract LockAndDataForMainnetERC20 is Permissions {
 
     function addERC20Token(address addressERC20) public allow("ERC20Module") returns (uint) {
         uint index = newIndexERC20;
-        ERC20Tokens[index] = addressERC20;
-        ERC20Mapper[addressERC20] = index;
+        erc20Tokens[index] = addressERC20;
+        erc20Mapper[addressERC20] = index;
         newIndexERC20++;
         return index;
     }

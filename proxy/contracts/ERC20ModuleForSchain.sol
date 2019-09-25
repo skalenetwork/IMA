@@ -29,8 +29,8 @@ interface ITokenFactoryForERC20 {
 }
 
 interface ILockAndDataERC20S {
-    function ERC20Tokens(uint index) external returns (address);
-    function ERC20Mapper(address contractERC20) external returns (uint);
+    function erc20Tokens(uint index) external returns (address);
+    function erc20Mapper(address contractERC20) external returns (uint);
     function addERC20Token(address contractERC20, uint contractPosition) external;
     function sendERC20(address contractHere, address to, uint amount) external returns (bool);
     function receiveERC20(address contractHere, uint amount) external returns (bool);
@@ -58,7 +58,7 @@ contract ERC20ModuleForSchain is Permissions {
         {
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         if (!isRAW) {
-            uint contractPosition = ILockAndDataERC20S(lockAndDataERC20).ERC20Mapper(contractHere);
+            uint contractPosition = ILockAndDataERC20S(lockAndDataERC20).erc20Mapper(contractHere);
             require(contractPosition > 0, "Not existing ERC-20 contract");
             require(ILockAndDataERC20S(lockAndDataERC20).receiveERC20(contractHere, amount), "Cound not receive ERC20 Token");
             data = encodeData(
@@ -81,7 +81,7 @@ contract ERC20ModuleForSchain is Permissions {
         uint amount;
         if (to == address(0)) {
             (contractPosition, receiver, amount) = fallbackDataParser(data);
-            contractAddress = ILockAndDataERC20S(lockAndDataERC20).ERC20Tokens(contractPosition);
+            contractAddress = ILockAndDataERC20S(lockAndDataERC20).erc20Tokens(contractPosition);
             if (contractAddress == address(0)) {
                 address tokenFactoryAddress = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("TokenFactory")));
                 contractAddress = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(data);

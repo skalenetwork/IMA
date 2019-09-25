@@ -14,8 +14,8 @@ contract LockAndDataForSchainERC721 is Permissions {
     event SendERC721(bool result);
     event ReceiveERC721(bool result);
 
-    mapping(uint => address) public ERC721Tokens;
-    mapping(address => uint) public ERC721Mapper;
+    mapping(uint => address) public erc721Tokens;
+    mapping(address => uint) public erc721Mapper;
     // mapping(uint => uint) public mintToken;
 
     constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
@@ -36,7 +36,7 @@ contract LockAndDataForSchainERC721 is Permissions {
     }
 
     function addERC721Token(address addressERC721, uint contractPosition) public allow("ERC721Module") {
-        ERC721Tokens[contractPosition] = addressERC721;
-        ERC721Mapper[addressERC721] = contractPosition;
+        erc721Tokens[contractPosition] = addressERC721;
+        erc721Mapper[addressERC721] = contractPosition;
     }
 }
