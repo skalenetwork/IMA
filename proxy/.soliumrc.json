@@ -12,7 +12,7 @@
       "function-whitespace": "error",
       "lbrace": "error",
       "no-unused-vars": "error",
-      "max-len": "warning",
+      "max-len": "error",
       "camelcase": "error",
       "blank-lines": "warning",
       "whitespace": "error",
