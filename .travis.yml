@@ -36,6 +36,7 @@ jobs:
     include:
         - stage: test
           install:
+            - pip3 install slither-analyzer
             - cd proxy    
             - yarn install
 
@@ -50,7 +51,11 @@ jobs:
             - npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
             - npx testrpc-sc --port 8555 --gasLimit 0xfffffffffff --quiet &    
           script:
-            - yarn tslint || travis_terminate 2
+            - yarn lint || travis_terminate 1
+            - slither --version
+            - slither . --filter-path openzeppelin-solidity || true
+            - slither . --filter-path openzeppelin-solidity --exclude-informational --exclude-low --exclude-optimization --exclude-medium || travis_terminate 7
+            - yarn tslint || travis_terminate 2            
             - yarn generate    
             - yarn test || travis_terminate 3
 
