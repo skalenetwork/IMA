@@ -17,6 +17,7 @@ interface ILockAndDataERC721S {
     function receiveERC721(address contractHere, uint tokenId) external returns (bool);
 }
 
+
 contract ERC721ModuleForSchain is Permissions {
 
     event ERC721TokenCreated(uint indexed contractPosition, address tokenAddress);

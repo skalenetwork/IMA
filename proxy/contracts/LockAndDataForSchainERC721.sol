@@ -8,6 +8,7 @@ interface ERC721MintAndBurn {
     function burn(uint tokenId) external;
 }
 
+
 contract LockAndDataForSchainERC721 is Permissions {
 
     event SendERC721(bool result);

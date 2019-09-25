@@ -10,6 +10,7 @@ interface ILockAndDataERC721M {
     function sendERC721(address contractHere, address to, uint token) external returns (bool);
 }
 
+
 contract ERC721ModuleForMainnet is Permissions {
 
     event ERC721TokenAdded(address indexed tokenHere, uint contractPosition);

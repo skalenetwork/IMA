@@ -14,7 +14,7 @@
       "no-unused-vars": "error",
       "max-len": "error",
       "camelcase": "error",
-      "blank-lines": "warning",
+      "blank-lines": "error",
       "whitespace": "error",
       "pragma-on-top": "error",
       "arg-overflow": "warning",

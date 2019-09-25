@@ -106,6 +106,7 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
     }
 }
 
+
 contract TokenFactory is Permissions {
 
     constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
