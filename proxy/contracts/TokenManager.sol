@@ -113,6 +113,12 @@ contract TokenManager is Permissions {
         revert("Not allowed. in TokenManager");
     }
 
+    function withdraw() public {
+        if (msg.sender == owner) {
+            owner.transfer(address(this).balance);
+        }
+    }
+
     // This is called by schain owner.
     // Exit to main net
     function exitToMain(address to, uint amount) public {
