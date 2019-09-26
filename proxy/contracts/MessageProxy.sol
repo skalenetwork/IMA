@@ -92,7 +92,11 @@ contract MessageProxy {
         ) {
             // connect to mainnet by default
             // Mainnet does not have a public key
-            uint[4] memory empty = [uint(0), 0, 0, 0];
+            uint[4] memory empty = [
+                uint(0),
+                0,
+                0,
+                0];
             connectedChains[
                 keccak256(abi.encodePacked("Mainnet"))
             ] = ConnectedChainInfo(
