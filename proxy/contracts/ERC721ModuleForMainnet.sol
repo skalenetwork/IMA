@@ -23,7 +23,7 @@ contract ERC721ModuleForMainnet is Permissions {
         address contractHere,
         address to,
         uint tokenId,
-        bool isRAW) public allow("DepositBox") returns (bytes memory data)
+        bool isRAW) external allow("DepositBox") returns (bytes memory data)
         {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         if (!isRAW) {
@@ -44,7 +44,7 @@ contract ERC721ModuleForMainnet is Permissions {
         }
     }
 
-    function sendERC721(address to, bytes memory data) public allow("DepositBox") returns (bool) {
+    function sendERC721(address to, bytes calldata data) external allow("DepositBox") returns (bool) {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         uint contractPosition;
         address contractAddress;
@@ -60,7 +60,7 @@ contract ERC721ModuleForMainnet is Permissions {
         return ILockAndDataERC721M(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
     }
 
-    function getReceiver(address to, bytes memory data) public pure returns (address receiver) {
+    function getReceiver(address to, bytes calldata data) external pure returns (address receiver) {
         uint contractPosition;
         uint amount;
         if (to == address(0)) {

@@ -97,37 +97,17 @@ contract DepositBox is Permissions {
         revert("Not allowed. in DepositBox");
     }
 
-    function deposit(string memory schainID, address to) public payable {
-        bytes memory empty = "";
-        deposit(schainID, to, empty);
-    }
-
-    function deposit(string memory schainID, address to, bytes memory data)
-        public
-        payable
-        rightTransaction(schainID) requireGasPayment
-    {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
-        bytes memory newData;
-        newData = abi.encodePacked(bytes1(uint8(1)), data);
-        IMessageProxy(proxyAddress).postOutgoingMessage(
-            schainID,
-            tokenManagerAddress,
-            msg.value,
-            to,
-            newData
-        );
-        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+    function depositWithoutData(string calldata schainID, address to) external payable {
+        deposit(schainID, to);
     }
 
     function depositERC20(
-        string memory schainID,
+        string calldata schainID,
         address contractHere,
         address to,
         uint amount
     )
-        public
+        external
         payable
         rightTransaction(schainID)
     {
@@ -166,18 +146,17 @@ contract DepositBox is Permissions {
     }
 
     function rawDepositERC20(
-        string memory schainID,
+        string calldata schainID,
         address contractHere,
         address contractThere,
         address to,
         uint amount
     )
-        public
+        external
         payable
         rightTransaction(schainID)
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
+        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked(schainID)));
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
@@ -211,10 +190,10 @@ contract DepositBox is Permissions {
     }
 
     function depositERC721(
-        string memory schainID,
+        string calldata schainID,
         address contractHere,
         address to,
-        uint tokenId) public payable rightTransaction(schainID)
+        uint tokenId) external payable rightTransaction(schainID)
         {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
@@ -238,13 +217,13 @@ contract DepositBox is Permissions {
     }
 
     function rawDepositERC721(
-        string memory schainID,
+        string calldata schainID,
         address contractHere,
         address contractThere,
         address to,
         uint tokenId
     )
-        public
+        external
         payable
         rightTransaction(schainID)
     {
@@ -271,12 +250,12 @@ contract DepositBox is Permissions {
 
     function postMessage(
         address sender,
-        string memory fromSchainID,
+        string calldata fromSchainID,
         address payable to,
         uint amount,
-        bytes memory data
+        bytes calldata data
     )
-        public
+        external
     {
         require(msg.sender == proxyAddress, "Incorrect sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
@@ -350,6 +329,30 @@ contract DepositBox is Permissions {
                 ILockAndDataDB(lockAndDataAddress).approveTransfer(receiver, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
             }
         }
+    }
+
+    function deposit(string memory schainID, address to) public payable {
+        bytes memory empty = "";
+        deposit(schainID, to, empty);
+    }
+
+    function deposit(string memory schainID, address to, bytes memory data)
+        public
+        payable
+        rightTransaction(schainID) requireGasPayment
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
+        bytes memory newData;
+        newData = abi.encodePacked(bytes1(uint8(1)), data);
+        IMessageProxy(proxyAddress).postOutgoingMessage(
+            schainID,
+            tokenManagerAddress,
+            msg.value,
+            to,
+            newData
+        );
+        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
     }
 
     /**

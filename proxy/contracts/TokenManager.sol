@@ -113,68 +113,25 @@ contract TokenManager is Permissions {
         revert("Not allowed. in TokenManager");
     }
 
-    function withdraw() public {
+    function withdraw() external {
         if (msg.sender == owner) {
             owner.transfer(address(this).balance);
         }
     }
 
-    // This is called by schain owner.
-    // Exit to main net
-    function exitToMain(address to, uint amount) public {
-        bytes memory empty = "";
-        exitToMain(to, amount, empty);
+    function exitToMainWithoutData(address to, uint amount) external {
+        exitToMain(to, amount);
     }
 
-    function exitToMain(address to, uint amount, bytes memory data) public receivedEth(amount) {
-        bytes memory newData;
-        newData = abi.encodePacked(bytes1(uint8(1)), data);
-        IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
-            "Mainnet",
-            ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            amount,
-            to,
-            newData
-        );
-    }
-
-    function transferToSchain(string memory schainID, address to, uint amount) public {
-        bytes memory data = "";
-        transferToSchain(
-            schainID,
-            to,
-            amount,
-            data);
-    }
-
-    function transferToSchainWithoutData(string memory schainID, address to, uint amount) public {
+    function transferToSchainWithoutData(string calldata schainID, address to, uint amount) external {
         transferToSchain(schainID, to, amount);
     }
 
-    function transferToSchain(
-        string memory schainID,
-        address to,
-        uint amount,
-        bytes memory data
-    )
-        public
-        rightTransaction(schainID)
-        receivedEth(amount)
-    {
-        IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
-            schainID,
-            ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))),
-            amount,
-            to,
-            data
-        );
-    }
-
-    function addEthCost(uint amount) public receivedEth(amount) {
+    function addEthCost(uint amount) external receivedEth(amount) {
         ILockAndDataTM(lockAndDataAddress).addGasCosts(msg.sender, amount);
     }
 
-    function exitToMainERC20(address contractHere, address to, uint amount) public {
+    function exitToMainERC20(address contractHere, address to, uint amount) external {
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
@@ -215,7 +172,7 @@ contract TokenManager is Permissions {
         address contractHere,
         address contractThere,
         address to,
-        uint amount) public
+        uint amount) external
         {
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
@@ -254,10 +211,10 @@ contract TokenManager is Permissions {
     }
 
     function transferToSchainERC20(
-        string memory schainID,
+        string calldata schainID,
         address contractHere,
         address to,
-        uint amount) public
+        uint amount) external
         {
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
@@ -291,11 +248,11 @@ contract TokenManager is Permissions {
     }
 
     function rawTransferToSchainERC20(
-        string memory schainID,
+        string calldata schainID,
         address contractHere,
         address contractThere,
         address to,
-        uint amount) public
+        uint amount) external
         {
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         address erc20Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
@@ -328,7 +285,7 @@ contract TokenManager is Permissions {
         );
     }
 
-    function exitToMainERC721(address contractHere, address to, uint tokenId) public {
+    function exitToMainERC721(address contractHere, address to, uint tokenId) external {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
         require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
@@ -357,7 +314,7 @@ contract TokenManager is Permissions {
         address contractHere,
         address contractThere,
         address to,
-        uint tokenId) public
+        uint tokenId) external
         {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
@@ -384,10 +341,10 @@ contract TokenManager is Permissions {
     }
 
     function transferToSchainERC721(
-        string memory schainID,
+        string calldata schainID,
         address contractHere,
         address to,
-        uint tokenId) public
+        uint tokenId) external
         {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
@@ -409,11 +366,11 @@ contract TokenManager is Permissions {
     }
 
     function rawTransferToSchainERC721(
-        string memory schainID,
+        string calldata schainID,
         address contractHere,
         address contractThere,
         address to,
-        uint tokenId) public
+        uint tokenId) external
         {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
@@ -438,12 +395,12 @@ contract TokenManager is Permissions {
 
     function postMessage(
         address sender,
-        string memory fromSchainID,
+        string calldata fromSchainID,
         address to,
         uint amount,
-        bytes memory data
+        bytes calldata data
     )
-        public
+        external
     {
         require(msg.sender == proxyForSchainAddress, "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
@@ -489,6 +446,53 @@ contract TokenManager is Permissions {
             address receiver = IERC721Module(erc721Module).getReceiver(to, data);
             require(ILockAndDataTM(lockAndDataAddress).sendEth(receiver, amount), "Not Sent");
         }
+    }
+
+    // This is called by schain owner.
+    // Exit to main net
+    function exitToMain(address to, uint amount) public {
+        bytes memory empty = "";
+        exitToMain(to, amount, empty);
+    }
+
+    function exitToMain(address to, uint amount, bytes memory data) public receivedEth(amount) {
+        bytes memory newData;
+        newData = abi.encodePacked(bytes1(uint8(1)), data);
+        IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
+            "Mainnet",
+            ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            amount,
+            to,
+            newData
+        );
+    }
+
+    function transferToSchain(string memory schainID, address to, uint amount) public {
+        bytes memory data = "";
+        transferToSchain(
+            schainID,
+            to,
+            amount,
+            data);
+    }
+
+    function transferToSchain(
+        string memory schainID,
+        address to,
+        uint amount,
+        bytes memory data
+    )
+        public
+        rightTransaction(schainID)
+        receivedEth(amount)
+    {
+        IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
+            schainID,
+            ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))),
+            amount,
+            to,
+            data
+        );
     }
 
     /**

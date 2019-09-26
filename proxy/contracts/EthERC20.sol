@@ -32,17 +32,17 @@ contract EthERC20 is Ownable, ERC20Detailed, ERC20 {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function mint(address account, uint256 amount) public onlyOwner returns (bool) {
+    function mint(address account, uint256 amount) external onlyOwner returns (bool) {
         require(totalSupply().add(amount) <= CAP, "Cap exceeded");
         _mint(account, amount);
         return true;
     }
 
-    function burn(uint256 amount) public {
+    function burn(uint256 amount) external {
         _burn(msg.sender, amount);
     }
 
-    function burnFrom(address account, uint256 amount) public onlyOwner {
+    function burnFrom(address account, uint256 amount) external onlyOwner {
         _burn(account, amount);
     }
 }

@@ -46,20 +46,20 @@ contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
         addressOfErc20Module = erc20Module;
     }
 
-    function totalSupplyOnMainnet() public view returns (uint) {
+    function totalSupplyOnMainnet() external view returns (uint) {
         return _totalSupplyOnMainnet;
     }
 
-    function setTotalSupplyOnMainnet(uint newTotalSupply) public {
+    function setTotalSupplyOnMainnet(uint newTotalSupply) external {
         require(addressOfErc20Module == msg.sender, "Call does not go from ERC20Module");
         _totalSupplyOnMainnet = newTotalSupply;
     }
 
-    function burn(uint256 amount) public {
+    function burn(uint256 amount) external {
         _burn(msg.sender, amount);
     }
 
-    function burnFrom(address account, uint256 amount) public {
+    function burnFrom(address account, uint256 amount) external {
         _burnFrom(account, amount);
     }
 
@@ -82,7 +82,7 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
     }
 
     function mint(address to, uint256 tokenId)
-        public
+        external
         onlyMinter
         returns (bool)
     {
@@ -90,13 +90,13 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
         return true;
     }
 
-    function burn(uint256 tokenId) public {
+    function burn(uint256 tokenId) external {
         require(_isApprovedOrOwner(msg.sender, tokenId), "ERC721Burnable: caller is not owner nor approved");
         _burn(tokenId);
     }
 
-    function setTokenURI(uint256 tokenId, string memory tokenURI)
-        public
+    function setTokenURI(uint256 tokenId, string calldata tokenURI)
+        external
         returns (bool)
     {
         require(_exists(tokenId), "Token does not exists");
@@ -113,8 +113,8 @@ contract TokenFactory is Permissions {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function createERC20(bytes memory data)
-        public
+    function createERC20(bytes calldata data)
+        external
         allow("ERC20Module")
         returns (address)
     {
@@ -137,8 +137,8 @@ contract TokenFactory is Permissions {
         return address(newERC20);
     }
 
-    function createERC721(bytes memory data)
-        public
+    function createERC721(bytes calldata data)
+        external
         allow("ERC721Module")
         returns (address)
     {

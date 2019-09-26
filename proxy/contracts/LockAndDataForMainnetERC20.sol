@@ -34,13 +34,13 @@ contract LockAndDataForMainnetERC20 is Permissions {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function sendERC20(address contractHere, address to, uint amount) public allow("ERC20Module") returns (bool) {
+    function sendERC20(address contractHere, address to, uint amount) external allow("ERC20Module") returns (bool) {
         require(IERC20(contractHere).balanceOf(address(this)) >= amount, "Not enough money");
         require(IERC20(contractHere).transfer(to, amount), "something went wrong with `transfer` in ERC20");
         return true;
     }
 
-    function addERC20Token(address addressERC20) public allow("ERC20Module") returns (uint) {
+    function addERC20Token(address addressERC20) external allow("ERC20Module") returns (uint) {
         uint index = newIndexERC20;
         erc20Tokens[index] = addressERC20;
         erc20Mapper[addressERC20] = index;

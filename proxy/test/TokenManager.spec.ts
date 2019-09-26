@@ -113,7 +113,7 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
 
         // send Eth to a client on Mainnet:
-        await tokenManager.exitToMain(to, amountTo, {from: user});
+        await tokenManager.exitToMainWithoutData(to, amountTo, {from: user});
         const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
         balanceAfter.should.be.deep.equal(amountAfter);
     });

@@ -107,21 +107,21 @@ contract MessageProxy {
         }
     }
 
-    function addAuthorizedCaller(address caller) public {
+    function addAuthorizedCaller(address caller) external {
         require(msg.sender == owner, "Sender is not an owner");
         authorizedCaller[caller] = true;
     }
 
-    function removeAuthorizedCaller(address caller) public {
+    function removeAuthorizedCaller(address caller) external {
         require(msg.sender == owner, "Sender is not an owner");
         authorizedCaller[caller] = false;
     }
 
     // Registration state detection
     function isConnectedChain(
-        string memory someChainID
+        string calldata someChainID
     )
-        public
+        external
         view
         returns (bool)
     {
@@ -141,10 +141,10 @@ contract MessageProxy {
     // created. Therefore, any SKALE chain is always connected to the main chain.
     // To connect to other chains, the owner needs to explicitly call this function
     function addConnectedChain(
-        string memory newChainID,
-        uint[4] memory newPublicKey
+        string calldata newChainID,
+        uint[4] calldata newPublicKey
     )
-        public
+        external
     {
         require(authorizedCaller[msg.sender], "Not authorized caller");
         require(
@@ -165,7 +165,7 @@ contract MessageProxy {
         });
     }
 
-    function removeConnectedChain(string memory newChainID) public {
+    function removeConnectedChain(string calldata newChainID) external {
         require(msg.sender == owner, "Sender is not an owner");
         require(
             keccak256(abi.encodePacked(newChainID)) !=
@@ -181,13 +181,13 @@ contract MessageProxy {
 
     // This is called by a smart contract that wants to make a cross-chain call
     function postOutgoingMessage(
-        string memory dstChainID,
+        string calldata dstChainID,
         address dstContract,
         uint amount,
         address to,
-        bytes memory data
+        bytes calldata data
     )
-        public
+        external
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
@@ -205,6 +205,26 @@ contract MessageProxy {
         );
     }
 
+    function getOutgoingMessagesCounter(string calldata dstChainID)
+        external
+        view
+        returns (uint)
+    {
+        bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
+        require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
+        return connectedChains[dstChainHash].outgoingMessageCounter;
+    }
+
+    function getIncomingMessagesCounter(string calldata srcChainID)
+        external
+        view
+        returns (uint)
+    {
+        bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
+        require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
+        return connectedChains[srcChainHash].incomingMessageCounter;
+    }
+
     function postIncomingMessages(
         string memory srcChainID,
         uint startingCounter,
@@ -214,7 +234,7 @@ contract MessageProxy {
         uint[] memory amount,
         bytes memory data,
         uint[] memory lengthOfData
-        /*uint[2] memory blsSignature*/
+        // uint[2] memory blsSignature
     )
         public
     {
@@ -287,25 +307,5 @@ contract MessageProxy {
             );
         }
         connectedChains[srcChainHash].incomingMessageCounter += uint(senders.length);
-    }
-
-    function getOutgoingMessagesCounter(string memory dstChainID)
-        public
-        view
-        returns (uint)
-    {
-        bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
-        require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
-        return connectedChains[dstChainHash].outgoingMessageCounter;
-    }
-
-    function getIncomingMessagesCounter(string memory srcChainID)
-        public
-        view
-        returns (uint)
-    {
-        bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
-        return connectedChains[srcChainHash].incomingMessageCounter;
     }
 }

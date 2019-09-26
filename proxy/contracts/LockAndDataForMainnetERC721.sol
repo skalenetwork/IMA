@@ -15,7 +15,7 @@ contract LockAndDataForMainnetERC721 is Permissions {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function sendERC721(address contractHere, address to, uint tokenId) public allow("ERC721Module") returns (bool) {
+    function sendERC721(address contractHere, address to, uint tokenId) external allow("ERC721Module") returns (bool) {
         if (IERC721Full(contractHere).ownerOf(tokenId) == address(this)) {
             IERC721Full(contractHere).transferFrom(address(this), to, tokenId);
             require(IERC721Full(contractHere).ownerOf(tokenId) == to, "Did not transfer");
@@ -25,7 +25,7 @@ contract LockAndDataForMainnetERC721 is Permissions {
         return true;
     }
 
-    function addERC721Token(address addressERC721) public allow("ERC721Module") returns (uint) {
+    function addERC721Token(address addressERC721) external allow("ERC721Module") returns (uint) {
         uint index = newIndexERC721;
         erc721Tokens[index] = addressERC721;
         erc721Mapper[addressERC721] = index;

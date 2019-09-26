@@ -49,11 +49,11 @@ contract LockAndDataForMainnet is Ownable {
         authorizedCaller[msg.sender] = true;
     }
 
-    function receiveEth(address from) public allow("DepositBox") payable {
+    function receiveEth(address from) external allow("DepositBox") payable {
         emit MoneyReceived(from, msg.value);
     }
 
-    function setContract(string memory contractName, address newContract) public onlyOwner {
+    function setContract(string calldata contractName, address newContract) external onlyOwner {
         require(newContract != address(0), "New address is equal zero");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(permitted[contractId] != newContract, "Contract is already added");
@@ -66,7 +66,7 @@ contract LockAndDataForMainnet is Ownable {
         permitted[contractId] = newContract;
     }
 
-    function hasSchain( string memory schainID ) public view returns (bool) {
+    function hasSchain( string calldata schainID ) external view returns (bool) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         if ( tokenManagerAddresses[schainHash] == address(0) ) {
             return false;
@@ -74,7 +74,7 @@ contract LockAndDataForMainnet is Ownable {
         return true;
     }
 
-    function addSchain(string memory schainID, address tokenManagerAddress) public {
+    function addSchain(string calldata schainID, address tokenManagerAddress) external {
         require(authorizedCaller[msg.sender], "Not authorized caller");
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
@@ -82,25 +82,25 @@ contract LockAndDataForMainnet is Ownable {
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
     }
 
-    function removeSchain(string memory schainID) public onlyOwner {
+    function removeSchain(string calldata schainID) external onlyOwner {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] != address(0), "SKALE chain is not set");
         delete tokenManagerAddresses[schainHash];
     }
 
-    function addAuthorizedCaller(address caller) public onlyOwner {
+    function addAuthorizedCaller(address caller) external onlyOwner {
         authorizedCaller[caller] = true;
     }
 
-    function removeAuthorizedCaller(address caller) public onlyOwner {
+    function removeAuthorizedCaller(address caller) external onlyOwner {
         authorizedCaller[caller] = false;
     }
 
-    function approveTransfer(address to, uint amount) public allow("DepositBox") {
+    function approveTransfer(address to, uint amount) external allow("DepositBox") {
         approveTransfers[to] += amount;
     }
 
-    function getMyEth() public {
+    function getMyEth() external {
         require(address(this).balance >= approveTransfers[msg.sender], "Not enough ETH. in `LockAndDataForMainnet.getMyEth`");
         require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
         uint amount = approveTransfers[msg.sender];
@@ -108,7 +108,7 @@ contract LockAndDataForMainnet is Ownable {
         msg.sender.transfer(amount);
     }
 
-    function sendEth(address payable to, uint amount) public allow("DepositBox") returns (bool) {
+    function sendEth(address payable to, uint amount) external allow("DepositBox") returns (bool) {
         // require(address(this).balance >= amount, "Not enough ETH. in `LockAndDataForMainnet.sendEth`");
         if (address(this).balance < amount) {
             emit Error(

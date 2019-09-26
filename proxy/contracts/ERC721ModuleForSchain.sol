@@ -30,7 +30,7 @@ contract ERC721ModuleForSchain is Permissions {
         address contractHere,
         address to,
         uint tokenId,
-        bool isRAW) public allow("TokenManager") returns (bytes memory data)
+        bool isRAW) external allow("TokenManager") returns (bytes memory data)
         {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         if (!isRAW) {
@@ -49,7 +49,7 @@ contract ERC721ModuleForSchain is Permissions {
         }
     }
 
-    function sendERC721(address to, bytes memory data) public allow("TokenManager") returns (bool) {
+    function sendERC721(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         uint contractPosition;
         address contractAddress;
@@ -71,7 +71,7 @@ contract ERC721ModuleForSchain is Permissions {
         return ILockAndDataERC721S(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
     }
 
-    function getReceiver(address to, bytes memory data) public pure returns (address receiver) {
+    function getReceiver(address to, bytes calldata data) external pure returns (address receiver) {
         uint contractPosition;
         uint tokenId;
         if (to == address(0)) {
