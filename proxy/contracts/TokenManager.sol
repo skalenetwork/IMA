@@ -147,6 +147,10 @@ contract TokenManager is Permissions {
             data);
     }
 
+    function transferToSchainWithoutData(string memory schainID, address to, uint amount) public {
+        transferToSchain(schainID, to, amount);
+    }
+
     function transferToSchain(
         string memory schainID,
         address to,

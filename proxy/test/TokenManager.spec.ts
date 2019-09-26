@@ -144,7 +144,7 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain.addSchain(chainID, user, {from: deployer});
 
         // send Eth and data to a client on schain:
-        await tokenManager.transferToSchain(chainID, to, amountTo, {from: user});
+        await tokenManager.transferToSchainWithoutData(chainID, to, amountTo, {from: user});
 
         const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
         balanceAfter.should.be.deep.equal(amountAfter);
