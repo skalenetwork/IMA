@@ -54,7 +54,7 @@ jobs:
             - yarn lint || travis_terminate 1
             - slither --version
             - slither . --filter-path openzeppelin-solidity || true            
-            - slither . --filter-path openzeppelin-solidity --exclude-informational --exclude-low --exclude-optimization --exclude constant-function || travis_terminate 7
+            - slither . --filter-path openzeppelin-solidity --exclude-informational --exclude-low --exclude constant-function || travis_terminate 7
             - yarn tslint || travis_terminate 2            
             - yarn generate    
             - yarn test || travis_terminate 3

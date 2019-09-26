@@ -18,6 +18,7 @@
  */
 
 pragma solidity ^0.5.0;
+pragma experimental ABIEncoderV2;
 
 interface ContractReceiver {
     function postMessage(
@@ -77,6 +78,15 @@ contract MessageProxy {
         uint incomingMessageCounter;
         uint outgoingMessageCounter;
         bool inited;
+    }
+
+    struct Message {
+        address sender;
+        address destinationContract;
+        address to;
+        uint amount;
+        bytes data;
+        // uint[2] blsSignature
     }
 
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
@@ -205,6 +215,34 @@ contract MessageProxy {
         );
     }
 
+    function postIncomingMessages(
+        string calldata srcChainID,
+        uint startingCounter,
+        Message[] calldata messages
+    )
+        external
+    {
+        require(authorizedCaller[msg.sender], "Not authorized caller");
+        bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
+        require(connectedChains[srcChainHash].inited, "Chain is not initialized");
+        require(
+            startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
+            "Starning counter is not qual to incomin message counter");
+
+        // TODO: Calculate hash and verify BLS signature on hash
+
+        for (uint i = 0; i < messages.length; i++) {
+            ContractReceiver(messages[i].destinationContract).postMessage(
+                messages[i].sender,
+                srcChainID,
+                messages[i].to,
+                messages[i].amount,
+                messages[i].data
+            );
+        }
+        connectedChains[srcChainHash].incomingMessageCounter += uint(messages.length);
+    }
+
     function getOutgoingMessagesCounter(string calldata dstChainID)
         external
         view
@@ -223,89 +261,5 @@ contract MessageProxy {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
         return connectedChains[srcChainHash].incomingMessageCounter;
-    }
-
-    function postIncomingMessages(
-        string memory srcChainID,
-        uint startingCounter,
-        address[] memory senders,
-        address[] memory dstContracts,
-        address[] memory to,
-        uint[] memory amount,
-        bytes memory data,
-        uint[] memory lengthOfData
-        // uint[2] memory blsSignature
-    )
-        public
-    {
-        require(authorizedCaller[msg.sender], "Not authorized caller");
-        bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(connectedChains[srcChainHash].inited, "Chain is not initialized");
-        require(senders.length == dstContracts.length, "Senders/destination amount mismatch");
-        require(to.length == dstContracts.length, "Send length is not queal to receive length");
-        require(to.length == amount.length, "Send/amount mismatch");
-        require(lengthOfData.length == amount.length, "Data length / amount mismatch");
-        require(
-            startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
-            "Starning counter is not qual to incomin message counter");
-
-        // TODO: Calculate hash and verify BLS signature on hash
-
-        uint index = 0;
-        for (uint i = 0; i < senders.length; i++) {
-            bytes memory newData;
-            uint currentLength = lengthOfData[i];
-            // solium-disable-next-line security/no-inline-assembly
-            assembly {
-                switch iszero(currentLength)
-                case 0 {
-                    newData := mload(0x40)
-                    let lengthmod := and(currentLength, 31)
-                    let mc := add(
-                        add(newData, lengthmod), mul(0x20, iszero(lengthmod))
-                    )
-                    let end := add(mc, currentLength)
-
-                    for {
-                        let cc := add(
-                            add(
-                                add(
-                                    data,
-                                    lengthmod
-                                ),
-                                mul(
-                                    0x20,
-                                    iszero(lengthmod)
-                                )
-                            ),
-                            index
-                        )
-                    } lt(mc, end) {
-                        mc := add(mc, 0x20)
-                        cc := add(cc, 0x20)
-                    } {
-                        mstore(mc, mload(cc))
-                    }
-
-                    mstore(newData, currentLength)
-                    mstore(0x40, and(add(mc, 31), not(31)))
-                }
-                default {
-                    newData := mload(0x40)
-
-                    mstore(0x40, add(newData, 0x20))
-                }
-            }
-            index += currentLength;
-
-            ContractReceiver(dstContracts[i]).postMessage(
-                senders[i],
-                srcChainID,
-                to[i],
-                amount[i],
-                newData
-            );
-        }
-        connectedChains[srcChainHash].incomingMessageCounter += uint(senders.length);
     }
 }

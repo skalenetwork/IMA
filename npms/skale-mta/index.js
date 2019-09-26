@@ -637,7 +637,7 @@ async function do_erc721_payment_from_main_net(
         let accountForSchain = joAccountDst.address( w3_s_chain );
         let approve =
             contractERC721.methods.transferFrom( // same as approve in 20
-                joAccountSrc.address( w3_main_net ), depositBoxAddress, w3_main_net.utils.toBN( token_id )
+                joAccountSrc.address( w3_main_net ), depositBoxAddress, "0x" + w3_main_net.utils.toBN( token_id ).toString(16)
             ).encodeABI();
         let deposit = null;
         if ( isRawTokenTransfer ) {
@@ -645,13 +645,14 @@ async function do_erc721_payment_from_main_net(
             deposit =
                 jo_deposit_box.methods.rawDepositERC721(
                     chain_id_s_chain, erc721Address_main_net, erc721Address_s_chain // specific for rawDepositERC721() only
-                    , accountForSchain, w3_main_net.utils.toBN( token_id )
+                    , accountForSchain, "0x" + w3_main_net.utils.toBN( token_id ).toString(16)
                 ).encodeABI();
-        } else
+        } else {
             deposit = // beta version
             jo_deposit_box.methods.depositERC721(
-                chain_id_s_chain, erc721Address_main_net, accountForSchain, w3_main_net.utils.toBN( token_id )
+                chain_id_s_chain, erc721Address_main_net, accountForSchain, "0x" + w3_main_net.utils.toBN( token_id ).toString(16)
             ).encodeABI();
+        }
         //
         //
         // create raw transactions
@@ -767,10 +768,10 @@ async function do_erc20_payment_from_main_net(
         let contractERC20 = new w3_main_net.eth.Contract( erc20ABI, erc20Address_main_net );
         //prepare the smart contract function deposit(string schainID, address to)
         let depositBoxAddress = jo_deposit_box.options.address;
-        let accountForSchain = joAccountDst.address( w3_s_chain );
+        let accountForSchain = joAccountDst.address( w3_s_chain );        
         let approve =
             contractERC20.methods.approve(
-                depositBoxAddress, w3_main_net.utils.toBN( token_amount )
+                depositBoxAddress, "0x" + w3_main_net.utils.toBN( token_amount ).toString(16)
             ).encodeABI();
         let deposit = null;
 
@@ -783,13 +784,14 @@ async function do_erc20_payment_from_main_net(
             deposit =
                 jo_deposit_box.methods.rawDepositERC20(
                     chain_id_s_chain, erc20Address_main_net, erc20Address_s_chain // specific for rawDepositERC20() only
-                    , accountForSchain, w3_main_net.utils.toBN( token_amount )
+                    , accountForSchain, "0x" + w3_main_net.utils.toBN( token_amount ).toString(16)
                 ).encodeABI();
-        } else
+        } else {
             deposit = // beta version
             jo_deposit_box.methods.depositERC20(
-                chain_id_s_chain, erc20Address_main_net, accountForSchain, w3_main_net.utils.toBN( token_amount )
+                chain_id_s_chain, erc20Address_main_net, accountForSchain, "0x" + w3_main_net.utils.toBN( token_amount ).toString(16)
             ).encodeABI();
+        }
         //
         //
         // create raw transactions
@@ -900,7 +902,7 @@ async function do_erc20_payment_from_s_chain(
         let depositBoxAddress = jo_deposit_box.options.address;
         let approve =
             contractERC20.methods.approve(
-                tokenManagerAddress, w3_s_chain.utils.toBN( token_amount )
+                tokenManagerAddress, "0x" + w3_main_net.utils.toBN( token_amount ).toString(16)
             ).encodeABI();
         let deposit = null;
         if ( isRawTokenTransfer ) {
@@ -908,7 +910,7 @@ async function do_erc20_payment_from_s_chain(
             deposit =
                 jo_token_manager.methods.rawExitToMainERC20(
                     erc20Address_s_chain, erc20Address_main_net // specific for rawExitToMainERC20() only
-                    , accountForMainnet, w3_s_chain.utils.toBN( token_amount )
+                    , accountForMainnet, "0x" + w3_main_net.utils.toBN( token_amount ).toString(16)
                 ).encodeABI();
         } else {
             var function_call_trace = "exitToMainERC20(" +
@@ -917,7 +919,7 @@ async function do_erc20_payment_from_s_chain(
                 w3_s_chain.utils.toBN( token_amount ).toString(10) + ")"
             deposit = // beta version
             jo_token_manager.methods.exitToMainERC20(
-                erc20Address_s_chain, accountForMainnet, w3_s_chain.utils.toBN( token_amount )
+                erc20Address_s_chain, accountForMainnet, "0x" + w3_main_net.utils.toBN( token_amount ).toString(16)
             ).encodeABI();
         }
         //
@@ -1015,7 +1017,7 @@ async function do_erc721_payment_from_s_chain(
         let depositBoxAddress = jo_deposit_box.options.address;
         let approve =
             contractERC721.methods.transferFrom(
-                accountForSchain, tokenManagerAddress, w3_s_chain.utils.toBN( token_id )
+                accountForSchain, tokenManagerAddress, "0x" + w3_main_net.utils.toBN( token_id ).toString(16)
             ).encodeABI();
         let deposit = null;
         if ( isRawTokenTransfer ) {
@@ -1023,7 +1025,7 @@ async function do_erc721_payment_from_s_chain(
             deposit =
                 jo_token_manager.methods.rawExitToMainERC721(
                     erc721Address_s_chain, erc721Address_main_net // specific for rawExitToMainERC721() only
-                    , accountForMainnet, w3_s_chain.utils.toBN( token_id )
+                    , accountForMainnet, "0x" + w3_main_net.utils.toBN( token_id ).toString(16)
                 ).encodeABI();
         } else {
             var function_call_trace = "exitToMainERC721(" +
@@ -1032,7 +1034,7 @@ async function do_erc721_payment_from_s_chain(
                 w3_s_chain.utils.toBN( token_id ).toString(10) + ")"
             deposit = // beta version
             jo_token_manager.methods.exitToMainERC721(
-                erc721Address_s_chain, accountForMainnet, w3_s_chain.utils.toBN( token_id )
+                erc721Address_s_chain, accountForMainnet, "0x" + w3_main_net.utils.toBN( token_id ).toString(16)
             ).encodeABI();
         }
         //
@@ -1170,12 +1172,7 @@ async function do_transfer(
             if ( verbose_get() >= RV_VERBOSE.trace )
                 log.write( cc.debug( "Entering block former iteration with " ) + cc.notice( "message counter" ) + cc.debug( " set to " ) + cc.info( nIdxCurrentMsg ) + "\n" );
             var arrMessageCounters = [];
-            var arrSrc = [];
-            var arrDst = [];
-            var arrTo = [];
-            var arrAmount = [];
-            var strDataAll = "";
-            var arrLengths = [];
+            const messages = [];
             var nIdxCurrentMsgBlockStart = 0 + nIdxCurrentMsg;
             //
             //
@@ -1303,12 +1300,13 @@ async function do_transfer(
                 if ( verbose_get() >= RV_VERBOSE.trace )
                     log.write( cc.debug( "Will process message counter value " ) + cc.info( nIdxCurrentMsg ) + "\n" );
                 arrMessageCounters.push( nIdxCurrentMsg );
-                arrSrc.push( joValues.srcContract );
-                arrDst.push( joValues.dstContract );
-                arrTo.push( joValues.to );
-                arrAmount.push( joValues.amount );
-                strDataAll += w3_dst.utils.hexToAscii( joValues.data );
-                arrLengths.push( joValues.length );
+                messages.push({
+                    amount: joValues.amount,
+                    data: joValues.data,
+                    destinationContract: joValues.dstContract,
+                    sender: joValues.srcContract,
+                    to: joValues.to
+                })
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
             if ( cntAccumulatedForBlock == 0 )
                 break;
@@ -1328,17 +1326,12 @@ async function do_transfer(
                     cc.notice( "block size" ) + cc.debug( " set to " ) + cc.info( nBlockSize ) +
                     cc.debug( ", " ) + cc.notice( "message counters =" ) + cc.debug( " are " ) + cc.info( JSON.stringify( arrMessageCounters ) ) +
                     cc.debug( "..." ) + "\n"
-                );
+                );            
             let dataTx = jo_message_proxy_dst.methods.postIncomingMessages(
                 // call params
                 chain_id_src,
                 nIdxCurrentMsgBlockStart,
-                arrSrc, // address[] memory senders
-                arrDst, // address[] memory dstContracts
-                arrTo, // address[] memory to
-                arrAmount, // uint[] memory amount / *uint[2] memory blsSignature* /
-                w3_dst.utils.asciiToHex( strDataAll ),
-                arrLengths
+                messages
             ).encodeABI(); // the encoded ABI of the method
             //
             if ( verbose_get() >= RV_VERBOSE.trace ) {
@@ -1346,10 +1339,7 @@ async function do_transfer(
                     chain_id_src,
                     chain_id_dst,
                     nIdxCurrentMsgBlockStart,
-                    arrSrc, // address[] memory senders
-                    arrDst, // address[] memory dstContracts
-                    arrTo, // address[] memory to
-                    arrAmount // uint[] memory amount / *uint[2] memory blsSignature* /
+                    messages
                 ];
                 log.write(
                     cc.debug( "....debug args for " ) +
