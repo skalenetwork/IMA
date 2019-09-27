@@ -36,7 +36,7 @@ contract LockAndDataForSchainERC20 is Permissions {
     mapping(uint => address) public erc20Tokens;
     mapping(address => uint) public erc20Mapper;
 
-    constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
+    constructor(address _lockAndDataAddress) Permissions(_lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 

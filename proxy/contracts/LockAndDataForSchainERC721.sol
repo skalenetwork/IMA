@@ -18,7 +18,7 @@ contract LockAndDataForSchainERC721 is Permissions {
     mapping(address => uint) public erc721Mapper;
     // mapping(uint => uint) public mintToken;
 
-    constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
+    constructor(address _lockAndDataAddress) Permissions(_lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 

@@ -11,7 +11,7 @@ contract LockAndDataForMainnetERC721 is Permissions {
     // mapping(uint => uint) public mintToken;
     uint newIndexERC721 = 1;
 
-    constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
+    constructor(address _lockAndDataAddress) Permissions(_lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 

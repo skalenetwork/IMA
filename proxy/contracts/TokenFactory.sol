@@ -33,13 +33,13 @@ contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
     address private addressOfErc20Module;
 
     constructor(
-        string memory name,
-        string memory symbol,
-        uint8 decimals,
+        string memory contractName,
+        string memory contractSymbol,
+        uint8 contractDecimals,
         uint256 newTotalSupply,
         address erc20Module
         )
-        ERC20Detailed(name, symbol, decimals)
+        ERC20Detailed(contractName, contractSymbol, contractDecimals)
         public
     {
         _totalSupplyOnMainnet = newTotalSupply;
@@ -72,10 +72,10 @@ contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
 
 contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
     constructor(
-        string memory name,
-        string memory symbol
+        string memory contractName,
+        string memory contractSymbol
         )
-        ERC721Full(name, symbol)
+        ERC721Full(contractName, contractSymbol)
         public
     {
         // solium-disable-previous-line no-empty-blocks
@@ -95,13 +95,13 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
         _burn(tokenId);
     }
 
-    function setTokenURI(uint256 tokenId, string calldata tokenURI)
+    function setTokenURI(uint256 tokenId, string calldata _tokenURI)
         external
         returns (bool)
     {
         require(_exists(tokenId), "Token does not exists");
         require(_isApprovedOrOwner(msg.sender, tokenId), "The sender can not set token URI");
-        _setTokenURI(tokenId, tokenURI);
+        _setTokenURI(tokenId, _tokenURI);
         return true;
     }
 }
@@ -109,7 +109,7 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
 
 contract TokenFactory is Permissions {
 
-    constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
+    constructor(address _lockAndDataAddress) Permissions(_lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 
