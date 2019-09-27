@@ -95,13 +95,13 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
         _burn(tokenId);
     }
 
-    function setTokenURI(uint256 tokenId, string calldata _tokenURI)
+    function setTokenURI(uint256 tokenId, string calldata tokenUri)
         external
         returns (bool)
     {
         require(_exists(tokenId), "Token does not exists");
         require(_isApprovedOrOwner(msg.sender, tokenId), "The sender can not set token URI");
-        _setTokenURI(tokenId, _tokenURI);
+        _setTokenURI(tokenId, tokenUri);
         return true;
     }
 }
