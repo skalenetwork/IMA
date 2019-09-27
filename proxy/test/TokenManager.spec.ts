@@ -27,6 +27,7 @@ import { ERC20ModuleForSchainContract,
     TokenManagerInstance} from "../types/truffle-contracts";
 import { gasMultiplier } from "./utils/command_line";
 import { randomString } from "./utils/helper";
+import { exists } from "fs";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -320,6 +321,14 @@ contract("TokenManager", ([user, deployer, client]) => {
         // execution/expectation
         await web3.eth.sendTransaction({from: deployer, to: tokenManager.address, value: "1000000000000000000"})
             .should.be.eventually.rejectedWith(error);
+    });
+
+    it("should return money if it has it", async () => {
+        const tokenManagerBalance = Number.parseInt(await web3.eth.getBalance(tokenManager.address), 10);
+        const ownerBalance = Number.parseInt(await web3.eth.getBalance(deployer), 10);
+        tokenManager.withdraw({from: deployer});
+        Number.parseInt(await web3.eth.getBalance(tokenManager.address), 10).should.be.equal(0);
+        Number.parseInt(await web3.eth.getBalance(deployer), 10).should.be.equal(ownerBalance + tokenManagerBalance);
     });
 
     it("should invoke `rawExitToMainERC20` without mistakes", async () => {
