@@ -27,7 +27,6 @@ import { ERC20ModuleForSchainContract,
     TokenManagerInstance} from "../types/truffle-contracts";
 import { gasMultiplier } from "./utils/command_line";
 import { randomString } from "./utils/helper";
-import { exists } from "fs";
 
 chai.should();
 chai.use((chaiAsPromised as any));
