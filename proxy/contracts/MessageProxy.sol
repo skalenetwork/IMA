@@ -17,7 +17,8 @@
  *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.3;
+pragma experimental ABIEncoderV2;
 
 interface ContractReceiver {
     function postMessage(
@@ -79,6 +80,15 @@ contract MessageProxy {
         bool inited;
     }
 
+    struct Message {
+        address sender;
+        address destinationContract;
+        address to;
+        uint amount;
+        bytes data;
+        // uint[2] blsSignature
+    }
+
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
 
     /// Create a new message proxy
@@ -92,37 +102,45 @@ contract MessageProxy {
         ) {
             // connect to mainnet by default
             // Mainnet does not have a public key
-            uint[4] memory empty;
+            uint[4] memory empty = [
+                uint(0),
+                0,
+                0,
+                0];
             connectedChains[
                 keccak256(abi.encodePacked("Mainnet"))
-            ] = ConnectedChainInfo(empty, 0, 0, true);
+            ] = ConnectedChainInfo(
+                empty,
+                0,
+                0,
+                true);
         }
     }
 
-    function addAuthorizedCaller(address caller) public {
+    function addAuthorizedCaller(address caller) external {
         require(msg.sender == owner, "Sender is not an owner");
         authorizedCaller[caller] = true;
     }
 
-    function removeAuthorizedCaller(address caller) public {
+    function removeAuthorizedCaller(address caller) external {
         require(msg.sender == owner, "Sender is not an owner");
         authorizedCaller[caller] = false;
     }
 
     // Registration state detection
     function isConnectedChain(
-        string memory someChainID
+        string calldata someChainID
     )
-        public
+        external
         view
         returns (bool)
     {
         //require(msg.sender == owner); // todo: tmp!!!!!
         require(
             keccak256(abi.encodePacked(someChainID)) !=
-            keccak256(abi.encodePacked("Mainnet"))
-        ); // main net does not have a public key and is implicitly connected
-        if( ! connectedChains[keccak256(abi.encodePacked(someChainID))].inited ) {
+            keccak256(abi.encodePacked("Mainnet")),
+            "Schain id can not be equal Mainnet"); // main net does not have a public key and is implicitly connected
+        if ( ! connectedChains[keccak256(abi.encodePacked(someChainID))].inited ) {
             return false;
         }
         return true;
@@ -133,10 +151,10 @@ contract MessageProxy {
     // created. Therefore, any SKALE chain is always connected to the main chain.
     // To connect to other chains, the owner needs to explicitly call this function
     function addConnectedChain(
-        string memory newChainID,
-        uint[4] memory newPublicKey
+        string calldata newChainID,
+        uint[4] calldata newPublicKey
     )
-        public
+        external
     {
         require(authorizedCaller[msg.sender], "Not authorized caller");
         require(
@@ -157,27 +175,29 @@ contract MessageProxy {
         });
     }
 
-    function removeConnectedChain(string memory newChainID) public {
+    function removeConnectedChain(string calldata newChainID) external {
         require(msg.sender == owner, "Sender is not an owner");
         require(
             keccak256(abi.encodePacked(newChainID)) !=
-            keccak256(abi.encodePacked("Mainnet"))
+            keccak256(abi.encodePacked("Mainnet")),
+            "New chain id can not be equal Mainnet"
         ); // you cannot remove a connection to main net
         require(
-            connectedChains[keccak256(abi.encodePacked(newChainID))].inited
+            connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
+            "Chain is not initialized"
         );
         delete connectedChains[keccak256(abi.encodePacked(newChainID))];
     }
 
     // This is called by a smart contract that wants to make a cross-chain call
     function postOutgoingMessage(
-        string memory dstChainID,
+        string calldata dstChainID,
         address dstContract,
         uint amount,
         address to,
-        bytes memory data
+        bytes calldata data
     )
-        public
+        external
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
@@ -196,108 +216,50 @@ contract MessageProxy {
     }
 
     function postIncomingMessages(
-        string memory srcChainID,
+        string calldata srcChainID,
         uint startingCounter,
-        address[] memory senders,
-        address[] memory dstContracts,
-        address[] memory to,
-        uint[] memory amount,
-        bytes memory data,
-        uint[] memory lengthOfData
-        /*uint[2] memory blsSignature*/
+        Message[] calldata messages
     )
-        public
+        external
     {
         require(authorizedCaller[msg.sender], "Not authorized caller");
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(connectedChains[srcChainHash].inited);
-        require(senders.length == dstContracts.length);
-        require(to.length == dstContracts.length);
-        require(to.length == amount.length);
-        require(lengthOfData.length == amount.length);
+        require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
-            startingCounter ==
-            connectedChains[srcChainHash].incomingMessageCounter
-        );
+            startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
+            "Starning counter is not qual to incomin message counter");
 
         // TODO: Calculate hash and verify BLS signature on hash
 
-        uint index = 0;
-        for (uint i = 0; i < senders.length; i++) {
-            bytes memory newData;
-            uint currentLength = lengthOfData[i];
-            // solium-disable-next-line security/no-inline-assembly
-            assembly {
-                switch iszero(currentLength)
-                case 0 {
-                    newData := mload(0x40)
-                    let lengthmod := and(currentLength, 31)
-                    let mc := add(
-                        add(newData, lengthmod), mul(0x20, iszero(lengthmod))
-                    )
-                    let end := add(mc, currentLength)
-
-                    for {
-                        let cc := add(
-                            add(
-                                add(
-                                    data,
-                                    lengthmod
-                                ),
-                                mul(
-                                    0x20,
-                                    iszero(lengthmod)
-                                )
-                            ),
-                            index
-                        )
-                    } lt(mc, end) {
-                        mc := add(mc, 0x20)
-                        cc := add(cc, 0x20)
-                    } {
-                        mstore(mc, mload(cc))
-                    }
-
-                    mstore(newData, currentLength)
-                    mstore(0x40, and(add(mc, 31), not(31)))
-                }
-                default {
-                    newData := mload(0x40)
-
-                    mstore(0x40, add(newData, 0x20))
-                }
-            }
-            index += currentLength;
-
-            ContractReceiver(dstContracts[i]).postMessage(
-                senders[i],
+        for (uint i = 0; i < messages.length; i++) {
+            ContractReceiver(messages[i].destinationContract).postMessage(
+                messages[i].sender,
                 srcChainID,
-                to[i],
-                amount[i],
-                newData
+                messages[i].to,
+                messages[i].amount,
+                messages[i].data
             );
         }
-        connectedChains[srcChainHash].incomingMessageCounter +=
-            uint(senders.length);
+        connectedChains[srcChainHash].incomingMessageCounter += uint(messages.length);
     }
 
-    function getOutgoingMessagesCounter(string memory dstChainID)
-        public
+    function getOutgoingMessagesCounter(string calldata dstChainID)
+        external
         view
         returns (uint)
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
-        require(connectedChains[dstChainHash].inited);
+        require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         return connectedChains[dstChainHash].outgoingMessageCounter;
     }
 
-    function getIncomingMessagesCounter(string memory srcChainID)
-        public
+    function getIncomingMessagesCounter(string calldata srcChainID)
+        external
         view
         returns (uint)
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(connectedChains[srcChainHash].inited);
+        require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
         return connectedChains[srcChainHash].incomingMessageCounter;
     }
 }

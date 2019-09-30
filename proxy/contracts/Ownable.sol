@@ -17,7 +17,7 @@
  *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.3;
 
 
 /**
@@ -51,8 +51,8 @@ contract Ownable {
      * @dev Allows the current owner to transfer control of the contract to a newOwner.
      * @param newOwner The address to transfer ownership to.
      */
-    function transferOwnership(address payable newOwner) public onlyOwner {
-        require(newOwner != address(0));
+    function transferOwnership(address payable newOwner) external onlyOwner {
+        require(newOwner != address(0), "New owner has to be set");
         owner = newOwner;
     }
 

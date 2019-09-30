@@ -17,49 +17,49 @@
  *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.3;
 
-import './Permissions.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Capped.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
-import 'openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol';
-import 'openzeppelin-solidity/contracts/token/ERC721/ERC721MetadataMintable.sol';
+import "./Permissions.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20Capped.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
+import "openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol";
+import "openzeppelin-solidity/contracts/token/ERC721/ERC721MetadataMintable.sol";
 
 
 contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
 
     uint private _totalSupplyOnMainnet;
 
-    address private AddressOfERC20Module;
+    address private addressOfErc20Module;
 
     constructor(
-        string memory name,
-        string memory symbol,
-        uint8 decimals,
+        string memory contractName,
+        string memory contractSymbol,
+        uint8 contractDecimals,
         uint256 newTotalSupply,
         address erc20Module
         )
-        ERC20Detailed(name, symbol, decimals)
+        ERC20Detailed(contractName, contractSymbol, contractDecimals)
         public
     {
         _totalSupplyOnMainnet = newTotalSupply;
-        AddressOfERC20Module = erc20Module;
+        addressOfErc20Module = erc20Module;
     }
 
-    function totalSupplyOnMainnet() public view returns (uint) {
+    function totalSupplyOnMainnet() external view returns (uint) {
         return _totalSupplyOnMainnet;
     }
 
-    function setTotalSupplyOnMainnet(uint newTotalSupply) public {
-        require(AddressOfERC20Module == msg.sender, "Call does not go from ERC20Module");
+    function setTotalSupplyOnMainnet(uint newTotalSupply) external {
+        require(addressOfErc20Module == msg.sender, "Call does not go from ERC20Module");
         _totalSupplyOnMainnet = newTotalSupply;
     }
 
-    function burn(uint256 amount) public {
+    function burn(uint256 amount) external {
         _burn(msg.sender, amount);
     }
 
-    function burnFrom(address account, uint256 amount) public {
+    function burnFrom(address account, uint256 amount) external {
         _burnFrom(account, amount);
     }
 
@@ -72,17 +72,17 @@ contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
 
 contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
     constructor(
-        string memory name,
-        string memory symbol
+        string memory contractName,
+        string memory contractSymbol
         )
-        ERC721Full(name, symbol)
+        ERC721Full(contractName, contractSymbol)
         public
     {
         // solium-disable-previous-line no-empty-blocks
     }
 
     function mint(address to, uint256 tokenId)
-        public
+        external
         onlyMinter
         returns (bool)
     {
@@ -90,30 +90,31 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
         return true;
     }
 
-    function burn(uint256 tokenId) public {
+    function burn(uint256 tokenId) external {
         require(_isApprovedOrOwner(msg.sender, tokenId), "ERC721Burnable: caller is not owner nor approved");
         _burn(tokenId);
     }
 
-    function setTokenURI(uint256 tokenId, string memory tokenURI)
-        public
+    function setTokenURI(uint256 tokenId, string calldata tokenUri)
+        external
         returns (bool)
     {
-        require(_exists(tokenId));
-        require(_isApprovedOrOwner(msg.sender, tokenId));
-        _setTokenURI(tokenId, tokenURI);
+        require(_exists(tokenId), "Token does not exists");
+        require(_isApprovedOrOwner(msg.sender, tokenId), "The sender can not set token URI");
+        _setTokenURI(tokenId, tokenUri);
         return true;
     }
 }
 
+
 contract TokenFactory is Permissions {
 
-    constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
+    constructor(address _lockAndDataAddress) Permissions(_lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function createERC20(bytes memory data)
-        public
+    function createERC20(bytes calldata data)
+        external
         allow("ERC20Module")
         returns (address)
     {
@@ -122,13 +123,13 @@ contract TokenFactory is Permissions {
         uint8 decimals;
         uint256 totalSupply;
         (name, symbol, decimals, totalSupply) = fallbackDataCreateERC20Parser(data);
-        address ERC20ModuleAddress = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        address erc20ModuleAddress = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
             symbol,
             decimals,
             totalSupply,
-            ERC20ModuleAddress
+            erc20ModuleAddress
         );
         address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         newERC20.addMinter(lockAndDataERC20);
@@ -136,8 +137,8 @@ contract TokenFactory is Permissions {
         return address(newERC20);
     }
 
-    function createERC721(bytes memory data)
-        public
+    function createERC721(bytes calldata data)
+        external
         allow("ERC721Module")
         returns (address)
     {

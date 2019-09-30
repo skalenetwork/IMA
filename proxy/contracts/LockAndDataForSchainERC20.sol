@@ -17,7 +17,7 @@
  *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.3;
 
 import "./Permissions.sol";
 
@@ -33,28 +33,28 @@ contract LockAndDataForSchainERC20 is Permissions {
     event SendedERC20(bool result);
     event ReceivedERC20(bool result);
 
-    mapping(uint => address) public ERC20Tokens;
-    mapping(address => uint) public ERC20Mapper;
+    mapping(uint => address) public erc20Tokens;
+    mapping(address => uint) public erc20Mapper;
 
-    constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
+    constructor(address _lockAndDataAddress) Permissions(_lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function sendERC20(address contractHere, address to, uint amount) public allow("ERC20Module") returns (bool) {
+    function sendERC20(address contractHere, address to, uint amount) external allow("ERC20Module") returns (bool) {
         require(ERC20MintAndBurn(contractHere).mint(to, amount), "Could not mint ERC20 Token");
         emit SendedERC20(true);
         return true;
     }
 
-    function receiveERC20(address contractHere, uint amount) public allow("ERC20Module") returns (bool) {
+    function receiveERC20(address contractHere, uint amount) external allow("ERC20Module") returns (bool) {
         require(ERC20MintAndBurn(contractHere).balanceOf(address(this)) >= amount, "Amount not transfered");
         ERC20MintAndBurn(contractHere).burn(amount);
         emit ReceivedERC20(true);
         return true;
     }
 
-    function addERC20Token(address addressERC20, uint contractPosition) public allow("ERC20Module") {
-        ERC20Tokens[contractPosition] = addressERC20;
-        ERC20Mapper[addressERC20] = contractPosition;
+    function addERC20Token(address addressERC20, uint contractPosition) external allow("ERC20Module") {
+        erc20Tokens[contractPosition] = addressERC20;
+        erc20Mapper[addressERC20] = contractPosition;
     }
 }

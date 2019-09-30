@@ -17,7 +17,7 @@
  *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.3;
 
 import "./Ownable.sol";
 
@@ -52,11 +52,11 @@ contract LockAndDataForSchain is Ownable {
         authorizedCaller[msg.sender] = true;
     }
 
-    function setEthERC20Address(address newEthERC20Address) public onlyOwner {
+    function setEthERC20Address(address newEthERC20Address) external onlyOwner {
         ethERC20Address = newEthERC20Address;
     }
 
-    function setContract(string memory contractName, address newContract) public onlyOwner {
+    function setContract(string calldata contractName, address newContract) external onlyOwner {
         require(newContract != address(0), "New address is equal zero");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(permitted[contractId] != newContract, "Contract is already added");
@@ -69,15 +69,15 @@ contract LockAndDataForSchain is Ownable {
         permitted[contractId] = newContract;
     }
 
-    function hasSchain( string memory schainID ) public view returns (bool) {
+    function hasSchain( string calldata schainID ) external view returns (bool) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        if( tokenManagerAddresses[schainHash] == address(0) ) {
+        if ( tokenManagerAddresses[schainHash] == address(0) ) {
             return false;
         }
         return true;
     }
 
-    function addSchain(string memory schainID, address tokenManagerAddress) public {
+    function addSchain(string calldata schainID, address tokenManagerAddress) external {
         require(authorizedCaller[msg.sender], "Not authorized caller");
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
@@ -85,21 +85,21 @@ contract LockAndDataForSchain is Ownable {
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
     }
 
-    function removeSchain(string memory schainID) public onlyOwner {
+    function removeSchain(string calldata schainID) external onlyOwner {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] != address(0), "SKALE chain is not set");
         delete tokenManagerAddresses[schainHash];
     }
 
-    function hasDepositBox() public view returns(bool) {
+    function hasDepositBox() external view returns(bool) {
         bytes32 depositBoxHash = keccak256(abi.encodePacked("Mainnet"));
-        if( tokenManagerAddresses[depositBoxHash] == address(0) ) {
+        if ( tokenManagerAddresses[depositBoxHash] == address(0) ) {
             return false;
         }
         return true;
     }
 
-    function addDepositBox(address depositBoxAddress) public {
+    function addDepositBox(address depositBoxAddress) external {
         require(authorizedCaller[msg.sender], "Not authorized caller");
         require(depositBoxAddress != address(0), "Incorrect Deposit Box address");
         require(
@@ -113,7 +113,7 @@ contract LockAndDataForSchain is Ownable {
         ] = depositBoxAddress;
     }
 
-    function removeDepositBox() public onlyOwner {
+    function removeDepositBox() external onlyOwner {
         require(
             tokenManagerAddresses[
                 keccak256(abi.encodePacked("Mainnet"))
@@ -123,19 +123,19 @@ contract LockAndDataForSchain is Ownable {
         delete tokenManagerAddresses[keccak256(abi.encodePacked("Mainnet"))];
     }
 
-    function addAuthorizedCaller(address caller) public onlyOwner {
+    function addAuthorizedCaller(address caller) external onlyOwner {
         authorizedCaller[caller] = true;
     }
 
-    function removeAuthorizedCaller(address caller) public onlyOwner {
+    function removeAuthorizedCaller(address caller) external onlyOwner {
         authorizedCaller[caller] = false;
     }
 
-    function addGasCosts(address to, uint amount) public allow("TokenManager") {
+    function addGasCosts(address to, uint amount) external allow("TokenManager") {
         ethCosts[to] += amount;
     }
 
-    function reduceGasCosts(address to, uint amount) public allow("TokenManager") returns (bool) {
+    function reduceGasCosts(address to, uint amount) external allow("TokenManager") returns (bool) {
         if (ethCosts[to] >= amount) {
             ethCosts[to] -= amount;
             return true;
@@ -146,12 +146,12 @@ contract LockAndDataForSchain is Ownable {
         return false;
     }
 
-    function sendEth(address to, uint amount) public allow("TokenManager") returns (bool) {
+    function sendEth(address to, uint amount) external allow("TokenManager") returns (bool) {
         require(IETHERC20(ethERC20Address).mint(to, amount), "Mint error");
         return true;
     }
 
-    function receiveEth(address sender, uint amount) public allow("TokenManager") returns (bool) {
+    function receiveEth(address sender, uint amount) external allow("TokenManager") returns (bool) {
         IETHERC20(ethERC20Address).burnFrom(sender, amount);
         return true;
     }

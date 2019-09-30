@@ -1,32 +1,42 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.3;
 
 import "./Permissions.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
 
 interface ILockAndDataERC721M {
-    function ERC721Tokens(uint index) external returns (address);
-    function ERC721Mapper(address contractERC721) external returns (uint);
+    function erc721Tokens(uint index) external returns (address);
+    function erc721Mapper(address contractERC721) external returns (uint);
     function addERC721Token(address contractERC721) external returns (uint);
     function sendERC721(address contractHere, address to, uint token) external returns (bool);
 }
+
 
 contract ERC721ModuleForMainnet is Permissions {
 
     event ERC721TokenAdded(address indexed tokenHere, uint contractPosition);
 
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
-
+        // solium-disable-previous-line no-empty-blocks
     }
 
-    function receiveERC721(address contractHere, address to, uint tokenId, bool isRAW) public allow("DepositBox") returns (bytes memory data) {
+    function receiveERC721(
+        address contractHere,
+        address to,
+        uint tokenId,
+        bool isRAW) external allow("DepositBox") returns (bytes memory data)
+        {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         if (!isRAW) {
-            uint contractPosition = ILockAndDataERC721M(lockAndDataERC721).ERC721Mapper(contractHere);
+            uint contractPosition = ILockAndDataERC721M(lockAndDataERC721).erc721Mapper(contractHere);
             if (contractPosition == 0) {
                 contractPosition = ILockAndDataERC721M(lockAndDataERC721).addERC721Token(contractHere);
                 emit ERC721TokenAdded(contractHere, contractPosition);
             }
-            data = encodeData(contractHere, contractPosition, to, tokenId);
+            data = encodeData(
+                contractHere,
+                contractPosition,
+                to,
+                tokenId);
             return data;
         } else {
             data = encodeRawData(to, tokenId);
@@ -34,7 +44,7 @@ contract ERC721ModuleForMainnet is Permissions {
         }
     }
 
-    function sendERC721(address to, bytes memory data) public allow("DepositBox") returns (bool) {
+    function sendERC721(address to, bytes calldata data) external allow("DepositBox") returns (bool) {
         address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         uint contractPosition;
         address contractAddress;
@@ -42,7 +52,7 @@ contract ERC721ModuleForMainnet is Permissions {
         uint tokenId;
         if (to == address(0)) {
             (contractPosition, receiver, tokenId) = fallbackDataParser(data);
-            contractAddress = ILockAndDataERC721M(lockAndDataERC721).ERC721Tokens(contractPosition);
+            contractAddress = ILockAndDataERC721M(lockAndDataERC721).erc721Tokens(contractPosition);
         } else {
             (receiver, tokenId) = fallbackRawDataParser(data);
             contractAddress = to;
@@ -50,7 +60,7 @@ contract ERC721ModuleForMainnet is Permissions {
         return ILockAndDataERC721M(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
     }
 
-    function getReceiver(address to, bytes memory data) public pure returns (address receiver) {
+    function getReceiver(address to, bytes calldata data) external pure returns (address receiver) {
         uint contractPosition;
         uint amount;
         if (to == address(0)) {
@@ -60,7 +70,12 @@ contract ERC721ModuleForMainnet is Permissions {
         }
     }
 
-    function encodeData(address contractHere, uint contractPosition, address to, uint tokenId) internal view returns (bytes memory data) {
+    function encodeData(
+        address contractHere,
+        uint contractPosition,
+        address to,
+        uint tokenId) internal view returns (bytes memory data)
+        {
         string memory name = IERC721Full(contractHere).name();
         string memory symbol = IERC721Full(contractHere).symbol();
         data = abi.encodePacked(

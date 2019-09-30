@@ -69,7 +69,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const schainID = randomString(10);
       // execution/expectation
       await depositBox
-        .deposit(schainID, user, {from: deployer})
+        .depositWithoutData(schainID, user, {from: deployer})
         .should.be.eventually.rejectedWith(error);
     });
 
@@ -79,7 +79,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const schainID = "Mainnet";
       // execution/expectation
       await depositBox
-        .deposit(schainID, user, {from: deployer})
+        .depositWithoutData(schainID, user, {from: deployer})
         .should.be.eventually.rejectedWith(error);
     });
 
@@ -95,7 +95,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         .addSchain(schainID, deployer, {from: deployer});
       // execution/expectation
       await depositBox
-        .deposit(schainID, user, {value: wei, from: deployer})
+        .depositWithoutData(schainID, user, {value: wei, from: deployer})
         .should.be.eventually.rejectedWith(error);
     });
 
@@ -117,7 +117,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         .setContract("DepositBox", depositBox.address, {from: deployer});
       // execution
       await depositBox
-        .deposit(schainID, deployer, {value: wei, from: deployer});
+        .depositWithoutData(schainID, deployer, {value: wei, from: deployer});
       const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
       // expectation
       expect(lockAndDataBalance).to.equal(wei);

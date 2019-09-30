@@ -17,7 +17,7 @@
  *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.3;
 
 
 import "./Permissions.sol";
@@ -26,24 +26,24 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 
 contract LockAndDataForMainnetERC20 is Permissions {
 
-    mapping(uint => address) public ERC20Tokens;
-    mapping(address => uint) public ERC20Mapper;
+    mapping(uint => address) public erc20Tokens;
+    mapping(address => uint) public erc20Mapper;
     uint newIndexERC20 = 1;
 
-    constructor(address lockAndDataAddress) Permissions(lockAndDataAddress) public {
+    constructor(address _lockAndDataAddress) Permissions(_lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function sendERC20(address contractHere, address to, uint amount) public allow("ERC20Module") returns (bool) {
+    function sendERC20(address contractHere, address to, uint amount) external allow("ERC20Module") returns (bool) {
         require(IERC20(contractHere).balanceOf(address(this)) >= amount, "Not enough money");
         require(IERC20(contractHere).transfer(to, amount), "something went wrong with `transfer` in ERC20");
         return true;
     }
 
-    function addERC20Token(address addressERC20) public allow("ERC20Module") returns (uint) {
+    function addERC20Token(address addressERC20) external allow("ERC20Module") returns (uint) {
         uint index = newIndexERC20;
-        ERC20Tokens[index] = addressERC20;
-        ERC20Mapper[addressERC20] = index;
+        erc20Tokens[index] = addressERC20;
+        erc20Mapper[addressERC20] = index;
         newIndexERC20++;
         return index;
     }

@@ -112,60 +112,32 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             tokenManager2 = await TokenManager.new(chainID, messageProxy.address,
                 lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
             const startingCounter = 0;
-            const senders = [deployer, user];
-            const contracts = [tokenManager1.address,
-            tokenManager2.address];
-            const addressTo = [client, customer];
-            const amount = [3, 7];
-            const data = "0x1122";
-            const lenthOfData = [1, 1];
+
+            const message1 = {
+                amount: 3,
+                data: "0x11",
+                destinationContract: tokenManager1.address,
+                sender: deployer,
+                to: client};
+
+            const message2 = {
+                amount: 7,
+                data: "0x22",
+                destinationContract: tokenManager2.address,
+                sender: user,
+                to: customer};
+
+            const messages = [message1, message2];
 
             // chain should be inited:
             await messageProxy
-                .postIncomingMessages(chainID, startingCounter, senders, contracts,
-                addressTo, amount, data, lenthOfData, {from: deployer})
+                .postIncomingMessages(chainID, startingCounter, messages, {from: deployer})
                 .should.be.rejected;
 
             await messageProxy.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
-            // amount of senders should be equal to amount of contracts:
-            const sender = [deployer];
             await messageProxy
-                .postIncomingMessages(chainID, startingCounter, sender, contracts,
-                addressTo, amount, data, lenthOfData, {from: deployer})
-                .should.be.rejected;
-
-            // amount of receivers should be equal to amount of contracts:
-            const addressTo1 = [client];
-            await messageProxy
-                .postIncomingMessages(chainID, startingCounter, senders, contracts,
-                addressTo1, amount, data, lenthOfData, {from: deployer})
-                .should.be.rejected;
-
-            // amount of receivers should be equal to amount of transferred eth:
-            const amount1 = [3];
-            await messageProxy
-                .postIncomingMessages(chainID, startingCounter, senders, contracts,
-                addressTo, amount1, data, lenthOfData, {from: deployer})
-                .should.be.rejected;
-
-            // amount of data lengths should be equal to amount of transferred eth:
-            const lenthOfData1 = [1];
-            await messageProxy
-                .postIncomingMessages(chainID, startingCounter, senders, contracts,
-                addressTo, amount, data, lenthOfData1, {from: deployer})
-                .should.be.rejected;
-
-            // starting counter should be equal to incoming meggages counter of this chain:
-            const startingCounter1 = 1;
-            await messageProxy
-                .postIncomingMessages(chainID, startingCounter1, senders, contracts,
-                addressTo, amount, data, lenthOfData, {from: deployer})
-                .should.be.rejected;
-
-            await messageProxy
-            .postIncomingMessages(chainID, startingCounter, senders, contracts,
-                addressTo, amount, data, lenthOfData, {from: deployer});
+            .postIncomingMessages(chainID, startingCounter, messages, {from: deployer});
             const incomingMessagesCounter = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
         });
@@ -199,13 +171,19 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             tokenManager2 = await TokenManager.new(chainID, messageProxy.address,
                 lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
             const startingCounter = 0;
-            const senders = [deployer, user];
-            const contracts = [tokenManager1.address,
-            tokenManager2.address];
-            const addressTo = [client, customer];
-            const amount = [3, 7];
-            const data = "0x1122";
-            const lenthOfData = [1, 1];
+            const message1 = {
+                amount: 3,
+                data: "0x11",
+                destinationContract: tokenManager1.address,
+                sender: deployer,
+                to: client};
+            const message2 = {
+                amount: 7,
+                data: "0x22",
+                destinationContract: tokenManager2.address,
+                sender: user,
+                to: customer};
+            const messages = [message1, message2];
 
             // chain should be inited:
             await messageProxy.getIncomingMessagesCounter(chainID).should.be.rejected;
@@ -216,8 +194,7 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             incomingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxy
-            .postIncomingMessages(chainID, startingCounter, senders, contracts,
-                addressTo, amount, data, lenthOfData, {from: deployer});
+            .postIncomingMessages(chainID, startingCounter, messages, {from: deployer});
             const incomingMessagesCounter = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
         });
@@ -299,60 +276,29 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             tokenManager2 = await TokenManager.new(chainID, messageProxy.address,
                 lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
             const startingCounter = 0;
-            const senders = [deployer, user];
-            const contracts = [tokenManager1.address,
-            tokenManager2.address];
-            const addressTo = [client, customer];
-            const amount = [3, 7];
-            const data = "0x1122";
-            const lenthOfData = [1, 1];
+            const message1 = {
+                amount: 3,
+                data: "0x11",
+                destinationContract: tokenManager1.address,
+                sender: deployer,
+                to: client};
+            const message2 = {
+                amount: 7,
+                data: "0x22",
+                destinationContract: tokenManager2.address,
+                sender: user,
+                to: customer};
+            const messages = [message1, message2];
 
             // chain should be inited:
             await messageProxy
-                .postIncomingMessages(chainID, startingCounter, senders, contracts,
-                addressTo, amount, data, lenthOfData, {from: deployer})
+                .postIncomingMessages(chainID, startingCounter, messages, {from: deployer})
                 .should.be.rejected;
 
             await messageProxy.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
-            // amount of senders should be equal to amount of contracts:
-            const sender = [deployer];
             await messageProxy
-                .postIncomingMessages(chainID, startingCounter, sender, contracts,
-                addressTo, amount, data, lenthOfData, {from: deployer})
-                .should.be.rejected;
-
-            // amount of receivers should be equal to amount of contracts:
-            const addressTo1 = [client];
-            await messageProxy
-                .postIncomingMessages(chainID, startingCounter, senders, contracts,
-                addressTo1, amount, data, lenthOfData, {from: deployer})
-                .should.be.rejected;
-
-            // amount of receivers should be equal to amount of transferred eth:
-            const amount1 = [3];
-            await messageProxy
-                .postIncomingMessages(chainID, startingCounter, senders, contracts,
-                addressTo, amount1, data, lenthOfData, {from: deployer})
-                .should.be.rejected;
-
-            // amount of data lengths should be equal to amount of transferred eth:
-            const lenthOfData1 = [1];
-            await messageProxy
-                .postIncomingMessages(chainID, startingCounter, senders, contracts,
-                addressTo, amount, data, lenthOfData1, {from: deployer})
-                .should.be.rejected;
-
-            // starting counter should be equal to incoming meggages counter of this chain:
-            const startingCounter1 = 1;
-            await messageProxy
-                .postIncomingMessages(chainID, startingCounter1, senders, contracts,
-                addressTo, amount, data, lenthOfData, {from: deployer})
-                .should.be.rejected;
-
-            await messageProxy
-                .postIncomingMessages(chainID, startingCounter, senders, contracts,
-                addressTo, amount, data, lenthOfData, {from: deployer});
+                .postIncomingMessages(chainID, startingCounter, messages, {from: deployer});
             const incomingMessagesCounter = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
         });
@@ -386,13 +332,19 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             tokenManager2 = await TokenManager.new(chainID, messageProxy.address,
                 lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
             const startingCounter = 0;
-            const senders = [deployer, user];
-            const contracts = [tokenManager1.address,
-            tokenManager2.address];
-            const addressTo = [client, customer];
-            const amount = [3, 7];
-            const data = "0x1122";
-            const lenthOfData = [1, 1];
+            const message1 = {
+                amount: 3,
+                data: "0x11",
+                destinationContract: tokenManager1.address,
+                sender: deployer,
+                to: client};
+            const message2 = {
+                amount: 7,
+                data: "0x22",
+                destinationContract: tokenManager2.address,
+                sender: user,
+                to: customer};
+            const messages = [message1, message2];
 
             // chain should be inited:
             await messageProxy.getIncomingMessagesCounter(chainID).should.be.rejected;
@@ -403,8 +355,7 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             incomingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxy
-                .postIncomingMessages(chainID, startingCounter, senders, contracts,
-                addressTo, amount, data, lenthOfData, {from: deployer});
+                .postIncomingMessages(chainID, startingCounter, messages, {from: deployer});
             const incomingMessagesCounter = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
         });

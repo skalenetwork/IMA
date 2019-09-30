@@ -91,7 +91,7 @@ class BlockChain:
 
     def get_erc20_on_schain(self, index):
         lock_erc20 = self._get_contract_on_schain('lock_and_data_for_schain_erc20')
-        erc20_address = lock_erc20.functions.ERC20Tokens(index).call()
+        erc20_address = lock_erc20.functions.erc20Tokens(index).call()
         if erc20_address == '0x0000000000000000000000000000000000000000':
             raise ValueError('No such token')
         with open(self.config.proxy_root + '/build/contracts/ERC20OnChain.json') as erc20_on_chain_file:
@@ -100,7 +100,7 @@ class BlockChain:
 
     def get_erc721_on_schain(self, index):
         lock_erc721 = self._get_contract_on_schain('lock_and_data_for_schain_erc721')
-        erc721_address = lock_erc721.functions.ERC721Tokens(index).call()
+        erc721_address = lock_erc721.functions.erc721Tokens(index).call()
         if erc721_address == '0x0000000000000000000000000000000000000000':
             raise ValueError('No such token')
         with open(self.config.proxy_root + '/build/contracts/ERC721OnChain.json') as erc721_on_chain_file:
@@ -109,7 +109,7 @@ class BlockChain:
 
     def get_erc20_on_mainnet(self, index):
         lock_erc20 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc20')
-        erc20_address = lock_erc20.functions.ERC20Tokens(index).call()
+        erc20_address = lock_erc20.functions.erc20Tokens(index).call()
         if erc20_address == '0x0000000000000000000000000000000000000000':
             raise ValueError('No such token')
         with open(self.config.test_resource_dir + '/ERC20MintableDetailed.json') as erc20_file:
@@ -118,7 +118,7 @@ class BlockChain:
 
     def get_erc721_on_mainnet(self, index):
         lock_erc721 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc721')
-        erc721_address = lock_erc721.functions.ERC721Tokens(index).call()
+        erc721_address = lock_erc721.functions.erc721Tokens(index).call()
         if erc721_address == '0x0000000000000000000000000000000000000000':
             raise ValueError('No such token')
         with open(self.config.test_resource_dir + '/ERC721FullMetadataMintable.json') as erc721_file:
