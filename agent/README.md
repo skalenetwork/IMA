@@ -336,7 +336,7 @@ Performed with the **--transfer** command line option:
 
 ### S-Chain specific configuration for more then one node S-Chains
 
-The **--node-number** and **--nodes-count** must me used for **MTA** instances running on S-Chain nodes which are part of multi-node S-Chain.
+The **--node-number** and **--nodes-count** must me used for **IMA** instances running on S-Chain nodes which are part of multi-node S-Chain.
 
 ### ERC20 default transfer from Main-net account to S-Chain
 

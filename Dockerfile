@@ -7,7 +7,7 @@ COPY agent agent
 COPY npms npms
 
 RUN cd agent && npm i
-RUN cd npms/skale-mta && npm i
+RUN cd npms/skale-ima && npm i
 
 
 CMD ["node", "/ima/agent/run.js"]

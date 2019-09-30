@@ -1,18 +1,18 @@
-# skale-ktm npm module
+# SKALE-IMA NPM module
 
-Implements **SKALE Money Transfer Manager** APIs a.k.a. **Kavoon Transfer Manager** or, shortly, **KTM**.
+Implements **SKALE Interchain Messaging Agent** APIs.
 
 Typical usage:
 
-    const KTM   = require( "../npms/skale-ktm" );
-    const cc    = KTM.cc;
-    const log   = KTM.log;
-    const w3mod = KTM.w3mod;
-    let ethereumjs_tx     = KTM.ethereumjs_tx;
-    let ethereumjs_wallet = KTM.ethereumjs_wallet;
-    let ethereumjs_util   = KTM.ethereumjs_util;
+    const IMA   = require( "../npms/skale-ima" );
+    const cc    = IMA.cc;
+    const log   = IMA.log;
+    const w3mod = IMA.w3mod;
+    let ethereumjs_tx     = IMA.ethereumjs_tx;
+    let ethereumjs_wallet = IMA.ethereumjs_wallet;
+    let ethereumjs_util   = IMA.ethereumjs_util;
 
-All the **KTM** require extenally pre-initialized **Web3** connections, ABI, contract and account description objects.
+All the **IMA** require extenally pre-initialized **Web3** connections, ABI, contract and account description objects.
 
 Mainnet and S-Chains should be pre initialized as following:
 
@@ -35,20 +35,20 @@ The **joTrufflePublishResult_main_net** and **joTrufflePublishResult_s_chain** A
 The following function registers new **S-Chain** on *Mainnet* and vice versa:
 
     async function register_all() {
-        var b1 = await KTM.register_s_chain_on_main_net(
+        var b1 = await IMA.register_s_chain_on_main_net(
             g_w3_main_net,
             g_jo_message_proxy_main_net,
             g_joAccount_main_net,
             g_chain_id_s_chain
             );
-        var b2 = await KTM.register_s_chain_in_deposit_box(
+        var b2 = await IMA.register_s_chain_in_deposit_box(
             g_w3_main_net,
             g_jo_deposit_box, // only main net
             g_joAccount_main_net,
             g_jo_token_manager, // only s-chain
             g_chain_id_s_chain
             );
-        var b3 = await KTM.reister_main_net_depositBox_on_s_chain(
+        var b3 = await IMA.reister_main_net_depositBox_on_s_chain(
             g_w3_s_chain,
             g_jo_token_manager, // only s-chain
             g_jo_deposit_box, // only main net
@@ -60,7 +60,7 @@ The following function registers new **S-Chain** on *Mainnet* and vice versa:
 
 The following code demonstrates money transfer event processing:
 
-    var b1 = await KTM.do_transfer( // main-net --> s-chain
+    var b1 = await IMA.do_transfer( // main-net --> s-chain
         /**/ g_w3_main_net,
         g_jo_message_proxy_main_net,
         g_joAccount_main_net,
@@ -72,7 +72,7 @@ The following code demonstrates money transfer event processing:
         g_nTransferBlockSizeM2S,
         g_nMaxTransactionsM2S
         );
-    var b2 = await KTM.do_transfer( // s-chain --> main-net
+    var b2 = await IMA.do_transfer( // s-chain --> main-net
         /**/ g_w3_s_chain,
         g_jo_message_proxy_s_chain,
         g_joAccount_s_chain,
@@ -87,7 +87,7 @@ The following code demonstrates money transfer event processing:
 
 The following code demonstrates cross-chain payments:
 
-    KTM.do_payment_from_main_net(
+    IMA.do_payment_from_main_net(
         g_w3_main_net,
         g_joAccount_main_net,
         g_joAccount_s_chain,
@@ -95,7 +95,7 @@ The following code demonstrates cross-chain payments:
         g_chain_id_s_chain,
         g_wei_amount // how much money to send
         );
-    await KTM.do_payment_from_s_chain(
+    await IMA.do_payment_from_s_chain(
         g_w3_s_chain,
         g_joAccount_s_chain,
         g_joAccount_main_net,
