@@ -912,13 +912,43 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                         "jsonrpc": "2.0",
                         "method": "skale_nodesRpcInfo",
                         "params": { }
-                    }, function( joIn, joOut, err ) {
+                    }, async function( joIn, joOut, err ) {
                         if( err ) {
                             console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
                             process.exit( 1 );
                         }
                         log.write( cc.normal( "S-Chain network information: " )  + cc.j( joOut.result ) + "\n" );
-                        process.exit( 0 );
+                        let joCountReceivedImaDescriptions = 0;
+                        let jarrNodes = joOut.result.network;
+                        for( let i = 0; i < jarrNodes.length; ++ i ) {
+                            let joNode = jarrNodes[ i ];
+                            let strNodeURL = compose_schain_node_url( joNode );
+                            await rpcCall.create( strNodeURL, function( joCall, err ) {
+                                if( err ) {
+                                    console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                                    process.exit( 1 );
+                                }
+                                joCall.call( {
+                                    "id": 1,
+                                    "jsonrpc": "2.0",
+                                    "method": "skale_imaInfo",
+                                    "params": { }
+                                }, function( joIn, joOut, err ) {
+                                    ++ joCountReceivedImaDescriptions;
+                                    if( err ) {
+                                        console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                                        process.exit( 1 );
+                                    }
+                                    log.write( cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " )  + cc.j( joOut.result ) + "\n" );
+                                    //process.exit( 0 );
+                                } );
+                            } );
+                        }
+                        //process.exit( 0 );
+                        setInterval( function() {
+                            if( joCountReceivedImaDescriptions == jarrNodes.length  )
+                                process.exit( 0 );
+                        }, 100 );
                     } );
                 } );
                 return true;
@@ -928,6 +958,32 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
     }
     console.log( cc.fatal( "Error:" ) + cc.error( " unkonwn command line argument " ) + cc.info( joArg.name ) );
     return 666;
+}
+
+
+function compose_schain_node_url( joNode ) {
+    process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0; // allow self-signed wss and https
+    if( "ip6" in joNode && typeof joNode.ip6 == "string" && joNode.ip6.length > 0 ) {
+        if( "wssRpcPort6" in joNode && typeof joNode.wssRpcPort6 == "number" && joNode.wssRpcPort6 > 0 )
+            return "wss://[" + joNode.ip6 + "]:" + joNode.wssRpcPort6;
+        if( "wsRpcPort6" in joNode && typeof joNode.wsRpcPort6 == "number" && joNode.wsRpcPort6 > 0 )
+            return "ws://[" + joNode.ip6 + "]:" + joNode.wsRpcPort6;
+        if( "httpsRpcPort6" in joNode && typeof joNode.httpsRpcPort6 == "number" && joNode.httpsRpcPort6 > 0 )
+            return "https://[" + joNode.ip6 + "]:" + joNode.httpsRpcPort6;
+        if( "httpRpcPort6" in joNode && typeof joNode.httpRpcPort6 == "number" && joNode.httpRpcPort6 > 0 )
+            return "http://[" + joNode.ip6 + "]:" + joNode.httpRpcPort6;
+    }
+    if( "ip" in joNode && typeof joNode.ip == "string" && joNode.ip.length > 0 ) {
+        if( "wssRpcPort" in joNode && typeof joNode.wssRpcPort == "number" && joNode.wssRpcPort > 0 )
+            return "wss://" + joNode.ip + ":" + joNode.wssRpcPort;
+        if( "wsRpcPort" in joNode && typeof joNode.wsRpcPort == "number" && joNode.wsRpcPort > 0 )
+            return "ws://" + joNode.ip + ":" + joNode.wsRpcPort;
+        if( "httpsRpcPort" in joNode && typeof joNode.httpsRpcPort == "number" && joNode.httpsRpcPort > 0 )
+            return "https://" + joNode.ip + ":" + joNode.httpsRpcPort;
+        if( "httpRpcPort" in joNode && typeof joNode.httpRpcPort == "number" && joNode.httpRpcPort > 0 )
+            return "http://" + joNode.ip + ":" + joNode.httpRpcPort;
+    }
+    return "";
 }
 
 if ( g_log_strFilePath.length > 0 ) {
