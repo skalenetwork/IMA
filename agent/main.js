@@ -8,6 +8,8 @@
 node ./main.js --load-node-config=~/Work/SkaleExperimental/skaled-tests/single-node/run-skaled/config0.json --loop --time-framing=10 --time-gap=3 --period=2
 */
 
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0; // allow self-signed wss and https
+
 //
 //
 // init very basics
@@ -962,7 +964,6 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
 
 
 function compose_schain_node_url( joNode ) {
-    process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0; // allow self-signed wss and https
     if( "ip6" in joNode && typeof joNode.ip6 == "string" && joNode.ip6.length > 0 ) {
         if( "wssRpcPort6" in joNode && typeof joNode.wssRpcPort6 == "number" && joNode.wssRpcPort6 > 0 )
             return "wss://[" + joNode.ip6 + "]:" + joNode.wssRpcPort6;
