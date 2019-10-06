@@ -1,5 +1,5 @@
-let ws = require( "ws" );
-let request = require( "request" );
+let ws = require( "ws" ); // https://www.npmjs.com/package/ws
+let request = require( "request" ); // https://www.npmjs.com/package/request
 
 let cc = null;
 let log = null;
@@ -13,9 +13,9 @@ function is_ws_url( strURL ) {
     return false;
 }
 
-function rest_call_init( a_cc, a_log ) {
+function rpc_call_init( a_cc, a_log ) {
     if(! ( a_cc && a_log ) )
-        throw "rest_call_create() bad parameters";
+        throw "rpc_call_init() bad parameters";
     cc = a_cc;
     log = a_log;
 }
@@ -79,10 +79,10 @@ async function do_call( joCall, joIn, fn ) {
     }
 }
 
-async function rest_call_create( strURL, fn ) {
+async function rpc_call_create( strURL, fn ) {
     fn = fn || function() {};
     if(! ( strURL && strURL.length > 0 ) )
-        throw "rest_call_create() bad parameters";
+        throw "rpc_call_create() bad parameters";
     let joCall = {
         "url": "" + strURL,
         "mapPendingByCallID": {},
@@ -94,6 +94,6 @@ async function rest_call_create( strURL, fn ) {
 }
 
 module.exports = {
-    "init": rest_call_init,
-    "create": rest_call_create
+    "init": rpc_call_init,
+    "create": rpc_call_create
 }; // module.exports

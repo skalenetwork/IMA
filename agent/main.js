@@ -20,8 +20,8 @@ IMA.verbose_set( IMA.verbose_parse( "info" ) );
 const log = require( "../npms/skale-log/log.js" );
 const cc = log.cc;
 const w3mod = IMA.w3mod;
-let rest_call = require( "./rest-call.js" );
-rest_call.init( cc, log );
+let rpcCall = require( "./rpc-call.js" );
+rpcCall.init( cc, log );
 let ethereumjs_tx = IMA.ethereumjs_tx;
 let ethereumjs_wallet = IMA.ethereumjs_wallet;
 let ethereumjs_util = IMA.ethereumjs_util;
@@ -902,9 +902,9 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                 }
                 log.write( cc.normal( "Downloading S-Chain network information " )  + cc.normal( "..." ) + "\n" ); // just print value
                 //let joCall
-                await rest_call.create( g_str_url_s_chain, function( joCall, err ) {
+                await rpcCall.create( g_str_url_s_chain, function( joCall, err ) {
                     if( err ) {
-                        console.log( cc.fatal( "Error:" ) + cc.error( " rest call to S-Chain failed" ) );
+                        console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
                         process.exit( 1 );
                     }
                     joCall.call( {
@@ -914,7 +914,7 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                         "params": { }
                     }, function( joIn, joOut, err ) {
                         if( err ) {
-                            console.log( cc.fatal( "Error:" ) + cc.error( " rest call to S-Chain failed, error: " ) + cc.warning( err ) );
+                            console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
                             process.exit( 1 );
                         }
                         log.write( cc.normal( "S-Chain network information: " )  + cc.j( joOut.result ) + "\n" );
