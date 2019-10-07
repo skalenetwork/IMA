@@ -49,7 +49,7 @@ Fourth, edit the *$IMA_ROOT/proxy/truffle-config.js* and specify needed networks
     cd $IMA_ROOT/proxy
     nano ./truffle-config.js
 
-We will use networks called **mainnet** and **schain** in this documentation:
+We will use networks called **MainNet** and **S-Chain** in this documentation:
 
     var privateKey_main_net = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
     var privateKey_skalechain  = "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e";
@@ -436,3 +436,19 @@ Notice: The command above does payment from Main-net and that is why we need to 
 ### ERC721 raw transfer from S-Chain account to Main-net
 
 Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
+
+## Other options and commands
+
+### Browse S-Chain network
+
+You can ask agent app to scan **S-Chain** network information and parameters, print it and exit:
+
+    node ./main.js --verbose=9 --url-s-chain=http://127.0.0.1:7000 -- browse-s-chain
+
+This information is used to sign messages on all **S-Chain** nodes.
+
+### Sign messages
+
+Adding **--sign-messages** command line parameter turns on **BLS message signing** algorithm.
+Agent app will scan **S-Chain** network and ask each of nodes to sign messages transferred from **MainNet** to **S-Chain**.
+This options requires all **S-Chain** nodes to be configured with **SGX Wallet** or **Emu Wallet** access information.

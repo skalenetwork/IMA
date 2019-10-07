@@ -29,6 +29,7 @@ let ethereumjs_wallet = IMA.ethereumjs_wallet;
 let ethereumjs_util = IMA.ethereumjs_util;
 
 let g_bIsNeededCommonInit = true;
+let g_bSignMessages = false; // use BLS message signing
 
 // TO-DO: the next ABI JSON should contain main-net only contract info - S-chain contract addresses must be downloaded from S-chain
 let joTrufflePublishResult_main_net = {};
@@ -139,7 +140,6 @@ let g_nTimeFrameSeconds = 0; // 0-disable, 60-recommended
 let g_nNextFrameGap = 10;
 
 let g_arrActions = []; // array of actions to run
-
 
 //
 //
@@ -315,8 +315,8 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         console.log( soi + cc.debug( "--" ) + cc.bright( "nodes-count" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.notice( "S-Chain " ) + cc.note( "nodes count" ) + cc.notice( "." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "time-framing" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "............" ) + cc.notice( "Specifies " ) + cc.note( "period" ) + cc.notice( "(in seconds) " ) + cc.note( "for time framing" ) + cc.notice( ". Zero means disable time framing." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "time-gap" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "................" ) + cc.notice( "Specifies " ) + cc.note( "gap" ) + cc.notice( "(in seconds) " ) + cc.note( "before next time frame" ) + cc.notice( "." ) );
-        // console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
-        // console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "................." ) + cc.notice( "Sign transferred messages." ) );
+        console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "................." ) + cc.notice( "Sign transferred messages." ) );
         console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
         console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
@@ -893,6 +893,10 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         g_log_strFilePath = "" + joArg.value;
         continue;
     }
+    if ( joArg.name == "sign-messages" ) {
+        g_bSignMessages = true;
+        continue;
+    }
     if ( joArg.name == "browse-s-chain" ) {
         g_bIsNeededCommonInit = false;
         g_arrActions.push( {
@@ -910,8 +914,6 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                         process.exit( 1 );
                     }
                     joCall.call( {
-                        "id": 1,
-                        "jsonrpc": "2.0",
                         "method": "skale_nodesRpcInfo",
                         "params": { }
                     }, async function( joIn, joOut, err ) {
@@ -920,7 +922,7 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                             process.exit( 1 );
                         }
                         log.write( cc.normal( "S-Chain network information: " )  + cc.j( joOut.result ) + "\n" );
-                        let joCountReceivedImaDescriptions = 0;
+                        let nCountReceivedImaDescriptions = 0;
                         let jarrNodes = joOut.result.network;
                         for( let i = 0; i < jarrNodes.length; ++ i ) {
                             let joNode = jarrNodes[ i ];
@@ -931,12 +933,10 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                                     process.exit( 1 );
                                 }
                                 joCall.call( {
-                                    "id": 1,
-                                    "jsonrpc": "2.0",
                                     "method": "skale_imaInfo",
                                     "params": { }
                                 }, function( joIn, joOut, err ) {
-                                    ++ joCountReceivedImaDescriptions;
+                                    ++ nCountReceivedImaDescriptions;
                                     if( err ) {
                                         console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
                                         process.exit( 1 );
@@ -948,7 +948,7 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                         }
                         //process.exit( 0 );
                         setInterval( function() {
-                            if( joCountReceivedImaDescriptions == jarrNodes.length  )
+                            if( nCountReceivedImaDescriptions == jarrNodes.length  )
                                 process.exit( 0 );
                         }, 100 );
                     } );
@@ -1563,6 +1563,12 @@ function common_init() {
             log.write( cc.info( "ERC20 explicit S-Chain address is " ) + cc.attention( g_str_addr_erc20_explicit ) + "\n" );
         }
     }
+    //
+    //
+    //
+    if( g_bSignMessages ) {
+
+    } // if( g_bSignMessages )
 } // common_init
 
 if( g_bIsNeededCommonInit )

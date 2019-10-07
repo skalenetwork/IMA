@@ -14,40 +14,52 @@ function is_ws_url( strURL ) {
 }
 
 function rpc_call_init( a_cc, a_log ) {
-    if(! ( a_cc && a_log ) )
+    if ( !( a_cc && a_log ) )
         throw "rpc_call_init() bad parameters";
     cc = a_cc;
     log = a_log;
 }
 
 async function do_connect( joCall, fn ) {
-    fn = fn || function() {};
-    if( is_ws_url( joCall.url ) ) {
-        joCall.wsConn = new ws( joCall.url );
-        joCall.wsConn.on( "open", function() {
-            fn( joCall, null );
-        } );
-        joCall.wsConn.on( "close", function () {
-            joCall.wsConn = 0;
-        } );
-        joCall.wsConn.on( "message", function incoming( data ) {
-            //log.write( cc.info( "WS message " ) + cc.attention( data ) + "\n" );
-            let joOut = JSON.parse( data );
-            if( joOut.id in joCall.mapPendingByCallID ) {
-                let entry = joCall.mapPendingByCallID[ joOut.id ];
-                delete joCall.mapPendingByCallID[ joOut.id ];
-                clearTimeout( entry.out );
-                entry.fn( entry.joIn, joOut, null );
-            }
-        } );
-        return;
+    try {
+        fn = fn || function() {};
+        if ( is_ws_url( joCall.url ) ) {
+            joCall.wsConn = new ws( joCall.url );
+            joCall.wsConn.on( "open", function() {
+                fn( joCall, null );
+            } );
+            joCall.wsConn.on( "close", function() {
+                joCall.wsConn = 0;
+            } );
+            joCall.wsConn.on( "error", function( err ) {
+                log.write( cc.u( joCall.url ) + cc.error( " WS error " ) + cc.warning( err ) + "\n" );
+            } );
+            joCall.wsConn.on( "fail", function( err ) {
+                log.write( cc.u( joCall.url ) + cc.error( " WS fail " ) + cc.warning( err ) + "\n" );
+            } );
+            joCall.wsConn.on( "message", function incoming( data ) {
+                //log.write( cc.info( "WS message " ) + cc.attention( data ) + "\n" );
+                let joOut = JSON.parse( data );
+                if ( joOut.id in joCall.mapPendingByCallID ) {
+                    let entry = joCall.mapPendingByCallID[ joOut.id ];
+                    delete joCall.mapPendingByCallID[ joOut.id ];
+                    clearTimeout( entry.out );
+                    entry.fn( entry.joIn, joOut, null );
+                }
+            } );
+            return;
+        }
+        fn( joCall, null );
+    } catch ( err ) {
+        joCall.wsConn = null;
+        fn( joCall, err );
     }
-    fn( joCall, null );
 }
 
 async function do_call( joCall, joIn, fn ) {
+    joIn = enrich_top_level_json_fields( joIn );
     fn = fn || function() {};
-    if( joCall.wsConn ) {
+    if ( joCall.wsConn ) {
         let entry = {
             "joIn": joIn,
             "fn": fn,
@@ -56,44 +68,69 @@ async function do_call( joCall, joIn, fn ) {
         joCall.mapPendingByCallID[ joIn.id ] = entry;
         entry.out = setTimeout( function() {
             delete joCall.mapPendingByCallID[ joIn.id ];
-        }, 20*1000 );
+        }, 20 * 1000 );
         joCall.wsConn.send( JSON.stringify( joIn ) );
     } else {
         request.post( {
-            "uri": joCall.url,
-            "content-type": "application/json",
-            "body": JSON.stringify( joIn )
-        },
-        function ( error, response, body ) {
-            if( error ) {
-                fn( joIn, null, error );
+                "uri": joCall.url,
+                "content-type": "application/json",
+                "body": JSON.stringify( joIn )
+            },
+            function( err, response, body ) {
+                if ( response && response.statusCode && response.statusCode != 200 )
+                    log.write( cc.error( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" );
+                if ( err ) {
+                    log.write( cc.u( joCall.url ) + cc.error( " REST error " ) + cc.warning( err ) + "\n" );
+                    fn( joIn, null, err );
+                    return;
+                }
+                let joOut = JSON.parse( body );
+                fn( joIn, joOut, null );
                 return;
-            }
-            let joOut = JSON.parse( body );
-            fn( joIn, joOut, null );
-            return;
-            // console.log('error:', error); // Print the error if one occurred
-            // console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-            // console.log('body:', body); // Print the HTML for the Google homepage.
-        } );
+            } );
     }
 }
 
 async function rpc_call_create( strURL, fn ) {
     fn = fn || function() {};
-    if(! ( strURL && strURL.length > 0 ) )
+    if ( !( strURL && strURL.length > 0 ) )
         throw "rpc_call_create() bad parameters";
     let joCall = {
         "url": "" + strURL,
         "mapPendingByCallID": {},
         "wsConn": null,
-        "reconnect": function( fnAfter ) { do_connect( joCall, fnAfter ); },
-        "call": function( joIn, fnAfter ) { do_call( joCall, joIn, fnAfter ); }
+        "reconnect": function( fnAfter ) {
+            do_connect( joCall, fnAfter );
+        },
+        "call": function( joIn, fnAfter ) {
+            do_call( joCall, joIn, fnAfter );
+        }
     };
     do_connect( joCall, fn )
 }
 
+function generate_random_integer_in_range( min, max ) {
+    min = Math.ceil( min );
+    max = Math.floor( max );
+    return parseInt( Math.floor( Math.random() * ( max - min + 1 ) ) + min );
+}
+
+function generate_random_rpc_call_id() {
+    return generate_random_integer_in_range( 1, Number.MAX_SAFE_INTEGER );
+}
+
+function enrich_top_level_json_fields( jo ) {
+    if( (!("jsonrpc" in jo)) || (typeof jo.jsonrpc != "string") || jo.jsonrpc.length == 0 )
+        jo.jsonrpc = "2.0";
+    if( (!("id" in jo)) || (typeof jo.id != "number") )
+        jo.id = generate_random_rpc_call_id();
+    return jo;
+}
+
 module.exports = {
     "init": rpc_call_init,
-    "create": rpc_call_create
+    "create": rpc_call_create,
+    "generate_random_integer_in_range": generate_random_integer_in_range,
+    "generate_random_rpc_call_id": generate_random_rpc_call_id,
+    "enrich_top_level_json_fields": enrich_top_level_json_fields
 }; // module.exports
