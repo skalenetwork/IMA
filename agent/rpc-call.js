@@ -113,7 +113,7 @@ async function rpc_call_create( strURL, fn ) {
         "reconnect_if_needed": function( fnAfter ) {
             do_connect_if_needed( joCall, fnAfter );
         },
-        "call": function( joIn, fnAfter ) {
+        "call": async function( joIn, fnAfter ) {
             let self = this;
             self.reconnect_if_needed( function( joCall, err ) {
                 if ( err ) {

@@ -31,6 +31,8 @@ let ethereumjs_util = IMA.ethereumjs_util;
 let g_bIsNeededCommonInit = true;
 let g_bSignMessages = false; // use BLS message signing
 let g_joSChainNetworkInfo = null; // scanned S-Chain network description
+let g_nMinSignaturesCount = 0; // <= 0 means all, number of signatures to collect and glue
+let g_strPathBlsGlue = ""; // path to bls_glue app
 
 // TO-DO: the next ABI JSON should contain main-net only contract info - S-chain contract addresses must be downloaded from S-chain
 let joTrufflePublishResult_main_net = {};
@@ -318,6 +320,8 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         console.log( soi + cc.debug( "--" ) + cc.bright( "time-gap" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "................" ) + cc.notice( "Specifies " ) + cc.note( "gap" ) + cc.notice( "(in seconds) " ) + cc.note( "before next time frame" ) + cc.notice( "." ) );
         console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "................." ) + cc.notice( "Sign transferred messages." ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "min-signatures" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( ".........." ) + cc.notice( "Specifies " ) + cc.note( "minimal count of signatures" ) + cc.note( " to collect before glue" ) + cc.notice( "." ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "bls-glue" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "................." ) + cc.notice( "Specifies path to " ) + cc.note( "bls_glue" ) + cc.note( " application" ) + cc.notice( "." ) );
         console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
         console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
@@ -729,7 +733,8 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                     g_nTransferBlockSizeM2S,
                     g_nMaxTransactionsM2S,
                     g_nBlockAwaitDepthM2S,
-                    g_nBlockAgeM2S
+                    g_nBlockAgeM2S,
+                    null // fn_sign_messages
                 );
             }
         } );
@@ -753,7 +758,8 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                     g_nTransferBlockSizeS2M,
                     g_nMaxTransactionsS2M,
                     g_nBlockAwaitDepthS2M,
-                    g_nBlockAgeS2M
+                    g_nBlockAgeS2M,
+                    do_sign_messages // fn_sign_messages
                 );
             }
         } );
@@ -898,6 +904,15 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         g_bSignMessages = true;
         continue;
     }
+    if ( joArg.name == "min-signatures" ) {
+        veryify_int_arg( joArg );
+        g_nMinSignaturesCount = parseInt( joArg.value );
+    }
+    if ( joArg.name == "bls-glue" ) {
+        veryify_arg_path_to_existing_file( joArg );
+        g_strPathBlsGlue = "" + joArg.value;
+        continue;
+    }
     if ( joArg.name == "browse-s-chain" ) {
         g_bIsNeededCommonInit = false;
         g_arrActions.push( {
@@ -909,12 +924,12 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                 }
                 log.write( cc.normal( "Downloading S-Chain network information " )  + cc.normal( "..." ) + "\n" ); // just print value
                 //
-                await rpcCall.create( g_str_url_s_chain, function( joCall, err ) {
+                await rpcCall.create( g_str_url_s_chain, async function( joCall, err ) {
                     if( err ) {
                         console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
                         process.exit( 1 );
                     }
-                    joCall.call( {
+                    await joCall.call( {
                         "method": "skale_nodesRpcInfo",
                         "params": { }
                     }, async function( joIn, joOut, err ) {
@@ -928,12 +943,12 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                         for( let i = 0; i < jarrNodes.length; ++ i ) {
                             let joNode = jarrNodes[ i ];
                             let strNodeURL = compose_schain_node_url( joNode );
-                            await rpcCall.create( strNodeURL, function( joCall, err ) {
+                            await rpcCall.create( strNodeURL, async function( joCall, err ) {
                                 if( err ) {
                                     console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
                                     process.exit( 1 );
                                 }
-                                joCall.call( {
+                                await joCall.call( {
                                     "method": "skale_imaInfo",
                                     "params": { }
                                 }, function( joIn, joOut, err ) {
@@ -948,9 +963,11 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                             } );
                         }
                         //process.exit( 0 );
-                        setInterval( function() {
-                            if( nCountReceivedImaDescriptions == jarrNodes.length  )
+                        let iv = setInterval( function() {
+                            if( nCountReceivedImaDescriptions == jarrNodes.length ) {
+                                clearInterval( iv );
                                 process.exit( 0 );
+                            }
                         }, 100 );
                     } );
                 } );
@@ -1580,13 +1597,13 @@ if ( g_bShowConfigMode ) {
 async function discover_s_chain_network( fnAfter ) {
     fnAfter = fnAfter || function() {};
     let joSChainNetworkInfo = null;
-    await rpcCall.create( g_str_url_s_chain, function( joCall, err ) {
+    await rpcCall.create( g_str_url_s_chain, async function( joCall, err ) {
         if( err ) {
             log.write( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed: " ) + cc.warning(err) + "\n" );
             fnAfter( err, null );
             return;
         }
-        joCall.call( {
+        await joCall.call( {
             "method": "skale_nodesRpcInfo",
             "params": { }
         }, async function( joIn, joOut, err ) {
@@ -1626,12 +1643,12 @@ async function discover_s_chain_network( fnAfter ) {
                         joNode.imaInfo = joOut.result;
                         //joNode.joCall = joCall;
                         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                           log.write( cc.success( "OK, got node ") + cc.info(joNode.nodeID) + cc.success(" IMA information(") + cc.info(nCountReceivedImaDescriptions) + cc.debug(" of ") + cc.info(jarrNodes.length) + cc.success(")." ) + "\n" );
+                           log.write( cc.success( "OK, got node ") + cc.info(joNode.nodeID) + cc.success(" IMA information(") + cc.info(nCountReceivedImaDescriptions) + cc.success(" of ") + cc.info(jarrNodes.length) + cc.success(")." ) + "\n" );
                     } );
                 } );
             }
             //process.exit( 0 );
-            var iv = setInterval( function() {
+            let iv = setInterval( function() {
                 if( nCountReceivedImaDescriptions == jarrNodes.length  ) {
                     clearInterval( iv );
                     fnAfter( null, joSChainNetworkInfo );
@@ -1688,6 +1705,10 @@ async function do_the_job() {
 }
 
 if( g_bSignMessages ) {
+    if( g_strPathBlsGlue.length == 0 ) {
+        log.write( cc.fatal( "FATAL" ) + cc.error( " please specify --bls-glue parameter." ) + "\n" );
+        process.exit( 666 );
+    }
     discover_s_chain_network( function( err, joSChainNetworkInfo ) {
         if( err )
             process.exit( 1 ); // error information is printed by discover_s_chain_network()
@@ -1820,7 +1841,8 @@ async function single_transfer_loop() {
         g_nTransferBlockSizeM2S,
         g_nMaxTransactionsM2S,
         g_nBlockAwaitDepthM2S,
-        g_nBlockAgeM2S
+        g_nBlockAgeM2S,
+        null // fn_sign_messages
     );
     var b2 = await IMA.do_transfer( // s-chain --> main-net
         /**/
@@ -1836,7 +1858,8 @@ async function single_transfer_loop() {
         g_nTransferBlockSizeS2M,
         g_nMaxTransactionsS2M,
         g_nBlockAwaitDepthS2M,
-        g_nBlockAgeS2M
+        g_nBlockAgeS2M,
+        do_sign_messages // fn_sign_messages
     );
     var b3 = b1 && b2;
     return b3;
@@ -1849,4 +1872,73 @@ async function run_transfer_loop() {
     await single_transfer_loop_with_repeat();
     //setTimeout( single_transfer_loop_with_repeat, g_nLoopPeriodSeconds*1000 );
     return true;
+}
+
+async function do_sign_messages( jarrMessages, fn ) {
+    fn = fn || function() {};
+    if( ! ( g_bSignMessages && g_strPathBlsGlue.length > 0 && g_joSChainNetworkInfo ) ) {
+        await fn( null, jarrMessages, null )
+        return;
+    }
+    // each message in array looks like:
+    // {
+    //     "amount": joValues.amount,
+    //     "data": joValues.data,
+    //     "destinationContract": joValues.dstContract,
+    //     "sender": joValues.srcContract,
+    //     "to": joValues.to
+    // }
+    let nCountReceived = 0; // including errors
+    let nCountErrors = 0;
+    let arrSignaturesReceived = [];
+    let jarrNodes = g_joSChainNetworkInfo.network;
+    let nMinSignaturesCount = ( g_nMinSignaturesCount > 0 ) ? g_nMinSignaturesCount : jarrNodes.length;
+    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+        log.write( cc.debug( "Will collect " ) + cc.info(nMinSignaturesCount) + cc.debug(" from ") + cc.info(jarrNodes.length) + cc.debug("nodes") + "\n" );
+    for( let i = 0; i < jarrNodes.length; ++ i ) {
+        let joNode = jarrNodes[ i ];
+        let strNodeURL = compose_schain_node_url( joNode );
+        await rpcCall.create( strNodeURL, async function( joCall, err ) {
+            if( err ) {
+                ++ nCountReceived; // including errors
+                ++ nCountErrors;
+                console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                return;
+            }
+            await joCall.call( {
+                "method": "skale_imaVerifyAndSign",
+                "params": {
+                    "messages": jarrMessages
+                }
+            }, function( joIn, joOut, err ) {
+                ++ nCountReceived; // including errors
+                if( err ) {
+                    ++ nCountErrors;
+                    console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                    return;
+                }
+                log.write( cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" sign result: " )  + cc.j( joOut.result ) + "\n" );
+                try {
+                    if( joOut.result.signResult.signatureShare.length > 0 && joOut.result.signResult.signatureShare.status == 0 )
+                        arrSignaturesReceived.push( joOut.result.signResult.signatureShare );
+                } catch( ... ) {
+                    ++ nCountErrors;
+                    console.log( cc.fatal( "Error:" ) + cc.error( " signature fail from node") + cc.info(joNode.nodeID) + cc.error("." ) );
+                }
+            } );
+        } );
+    }
+    let iv = setInterval( async function() {
+        let cntSuccess = nCountReceived - nCountErrors;
+        if( cntSuccess >= nMinSignaturesCount ) {
+            clearInterval( iv );
+            await fn( null, jarrMessages, null );
+            return;
+        }
+        if( nCountReceived >= jarrNodes.length ) {
+            clearInterval( iv );
+            await fn( "signature error in " + nCountErrors + " node(s) of " + jarrNodes.length + " node(s)", jarrMessages, null );
+            return;
+        }
+    }, 100 );
 }
