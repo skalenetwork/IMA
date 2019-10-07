@@ -1323,6 +1323,7 @@ async function do_transfer(
                     bErrorInSigningMessages = true;
                     if ( verbose_get() >= RV_VERBOSE.fatal )
                         log.write( cc.fatal( "Error signing messages: " ) + cc.error( err ) + "\n" );
+                    return;
                 }
                 strActionName = "dst-chain.getTransactionCount()";
                 let tcnt = await w3_dst.eth.getTransactionCount( joAccountDst.address( w3_dst ), null );
