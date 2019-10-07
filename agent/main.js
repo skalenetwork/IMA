@@ -30,6 +30,7 @@ let ethereumjs_util = IMA.ethereumjs_util;
 
 let g_bIsNeededCommonInit = true;
 let g_bSignMessages = false; // use BLS message signing
+let g_joSChainNetworkInfo = null; // scanned S-Chain network description
 
 // TO-DO: the next ABI JSON should contain main-net only contract info - S-chain contract addresses must be downloaded from S-chain
 let joTrufflePublishResult_main_net = {};
@@ -907,7 +908,7 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                     process.exit( 501 );
                 }
                 log.write( cc.normal( "Downloading S-Chain network information " )  + cc.normal( "..." ) + "\n" ); // just print value
-                //let joCall
+                //
                 await rpcCall.create( g_str_url_s_chain, function( joCall, err ) {
                     if( err ) {
                         console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
@@ -1566,9 +1567,6 @@ function common_init() {
     //
     //
     //
-    if( g_bSignMessages ) {
-
-    } // if( g_bSignMessages )
 } // common_init
 
 if( g_bIsNeededCommonInit )
@@ -1577,6 +1575,70 @@ if( g_bIsNeededCommonInit )
 if ( g_bShowConfigMode ) {
     // just show configuratin values and exit
     return true;
+}
+
+async function discover_s_chain_network( fnAfter ) {
+    fnAfter = fnAfter || function() {};
+    let joSChainNetworkInfo = null;
+    await rpcCall.create( g_str_url_s_chain, function( joCall, err ) {
+        if( err ) {
+            log.write( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed: " ) + cc.warning(err) + "\n" );
+            fnAfter( err, null );
+            return;
+        }
+        joCall.call( {
+            "method": "skale_nodesRpcInfo",
+            "params": { }
+        }, async function( joIn, joOut, err ) {
+            if( err ) {
+                log.write( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
+                fnAfter( err, null );
+                return;
+            }
+            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            //    log.write( cc.normal( "S-Chain network information: " )  + cc.j( joOut.result ) + "\n" );
+            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+               log.write( cc.success( "OK, got S-Chain network information." ) + "\n" );
+            let nCountReceivedImaDescriptions = 0;
+            joSChainNetworkInfo = joOut.result;
+            let jarrNodes = joSChainNetworkInfo.network;
+            for( let i = 0; i < jarrNodes.length; ++ i ) {
+                let joNode = jarrNodes[ i ];
+                let strNodeURL = compose_schain_node_url( joNode );
+                await rpcCall.create( strNodeURL, function( joCall, err ) {
+                    if( err ) {
+                        log.write( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                        fnAfter( err, null );
+                        return;
+                    }
+                    joCall.call( {
+                        "method": "skale_imaInfo",
+                        "params": { }
+                    }, function( joIn, joOut, err ) {
+                        ++ nCountReceivedImaDescriptions;
+                        if( err ) {
+                            log.write( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
+                            fnAfter( err, null );
+                            return;
+                        }
+                        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                        //    log.write( cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " )  + cc.j( joOut.result ) + "\n" );
+                        joNode.imaInfo = joOut.result;
+                        //joNode.joCall = joCall;
+                        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                           log.write( cc.success( "OK, got node ") + cc.info(joNode.nodeID) + cc.success(" IMA information(") + cc.info(nCountReceivedImaDescriptions) + cc.debug(" of ") + cc.info(jarrNodes.length) + cc.success(")." ) + "\n" );
+                    } );
+                } );
+            }
+            //process.exit( 0 );
+            var iv = setInterval( function() {
+                if( nCountReceivedImaDescriptions == jarrNodes.length  ) {
+                    clearInterval( iv );
+                    fnAfter( null, joSChainNetworkInfo );
+                }
+            }, 100 );
+        } );
+    } );
 }
 
 //
@@ -1624,8 +1686,21 @@ async function do_the_job() {
         process.exitCode = cntFalse;
     }
 }
-do_the_job();
-return 0; // FINISH
+
+if( g_bSignMessages ) {
+    discover_s_chain_network( function( err, joSChainNetworkInfo ) {
+        if( err )
+            process.exit( 1 ); // error information is printed by discover_s_chain_network()
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+           log.write( cc.success( "S-Chain network was discovered: " )  + cc.j( joSChainNetworkInfo ) + "\n" );
+        g_joSChainNetworkInfo = joSChainNetworkInfo;
+        do_the_job();
+        return 0; // FINISH
+    } );
+} else {
+    do_the_job();
+    return 0; // FINISH
+}
 
 async function register_step1() {
     var bRetVal = await IMA.register_s_chain_on_main_net( // step 1

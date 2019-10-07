@@ -56,6 +56,14 @@ async function do_connect( joCall, fn ) {
     }
 }
 
+async function do_connect_if_needed( joCall, fn ) {
+    if ( is_ws_url( joCall.url ) && ( !joCall.wsConn ) ) {
+        joCall.reconnect( fn );
+        return;
+    }
+    fn( joCall, null );
+}
+
 async function do_call( joCall, joIn, fn ) {
     joIn = enrich_top_level_json_fields( joIn );
     fn = fn || function() {};
@@ -102,8 +110,18 @@ async function rpc_call_create( strURL, fn ) {
         "reconnect": function( fnAfter ) {
             do_connect( joCall, fnAfter );
         },
+        "reconnect_if_needed": function( fnAfter ) {
+            do_connect_if_needed( joCall, fnAfter );
+        },
         "call": function( joIn, fnAfter ) {
-            do_call( joCall, joIn, fnAfter );
+            let self = this;
+            self.reconnect_if_needed( function( joCall, err ) {
+                if ( err ) {
+                    fnAfter( joIn, null, err );
+                    return;
+                }
+                do_call( joCall, joIn, fnAfter );
+            } );
         }
     };
     do_connect( joCall, fn )
@@ -120,9 +138,9 @@ function generate_random_rpc_call_id() {
 }
 
 function enrich_top_level_json_fields( jo ) {
-    if( (!("jsonrpc" in jo)) || (typeof jo.jsonrpc != "string") || jo.jsonrpc.length == 0 )
+    if ( ( !( "jsonrpc" in jo ) ) || ( typeof jo.jsonrpc != "string" ) || jo.jsonrpc.length == 0 )
         jo.jsonrpc = "2.0";
-    if( (!("id" in jo)) || (typeof jo.id != "number") )
+    if ( ( !( "id" in jo ) ) || ( typeof jo.id != "number" ) || jo.id <= 0 )
         jo.id = generate_random_rpc_call_id();
     return jo;
 }
