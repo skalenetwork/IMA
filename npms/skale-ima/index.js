@@ -1317,8 +1317,9 @@ async function do_transfer(
                 break;
             //
             //
-            strActionName = "sign messages"
-            await fn_sign_messages( messages, async function( err, jarrMessages, jarrSignature ) {
+            strActionName = "sign messages";
+            let jarrMessages = messages;
+            //await fn_sign_messages( messages, async function( err, jarrMessages, jarrSignature ) {
                 if( err ) {
                     bErrorInSigningMessages = true;
                     if ( verbose_get() >= RV_VERBOSE.fatal )
@@ -1380,7 +1381,7 @@ async function do_transfer(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
                 cntProcessed += cntAccumulatedForBlock;
-            } );
+            //} );
             if( bErrorInSigningMessages )
                 break;
         } // while( nIdxCurrentMsg < nOutMsgCnt )
