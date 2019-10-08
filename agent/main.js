@@ -2108,7 +2108,7 @@ async function do_sign_messages( jarrMessages, fn ) {
                         let nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
                         arrSignResults.push( {
                             "index": "" + nZeroBasedNodeIndex,
-                            "signature": split_signature_share( joOut.result.signResult.signatureShare )
+                            "signature": split_signature_share( joOut.result.signResult.signatureShare ),
                             "fromNode": joNode // extra, not needed for bls_glue
                         } );
                     }
