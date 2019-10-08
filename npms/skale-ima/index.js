@@ -1318,7 +1318,12 @@ async function do_transfer(
             //
             //
             strActionName = "sign messages";
-            await fn_sign_messages( messages, async function( err, jarrMessages, jarrSignature ) {
+            await fn_sign_messages( messages, async function( err, jarrMessages, joGlueResult ) {
+                let X = null, Y = null;
+                if( joGlueResult ) {
+                    X = joGlueResult.signature.X;
+                    Y = joGlueResult.signature.Y;
+                }
                 if( err ) {
                     bErrorInSigningMessages = true;
                     if ( verbose_get() >= RV_VERBOSE.fatal )
@@ -1345,6 +1350,7 @@ async function do_transfer(
                     chain_id_src,
                     nIdxCurrentMsgBlockStart,
                     jarrMessages // messages
+                    // , X, Y // BLS glue of signatures
                 ).encodeABI(); // the encoded ABI of the method
                 //
                 if ( verbose_get() >= RV_VERBOSE.trace ) {
@@ -1353,6 +1359,7 @@ async function do_transfer(
                         chain_id_dst,
                         nIdxCurrentMsgBlockStart,
                         jarrMessages // messages
+                        // , X, Y // BLS glue of signatures
                     ];
                     log.write(
                         cc.debug( "....debug args for " ) +

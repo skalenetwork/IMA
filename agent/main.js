@@ -28,6 +28,13 @@ let ethereumjs_tx = IMA.ethereumjs_tx;
 let ethereumjs_wallet = IMA.ethereumjs_wallet;
 let ethereumjs_util = IMA.ethereumjs_util;
 
+const uuid = require( "uuid/v4" );
+let child_process = require( "child_process" );
+var shell = require( "shelljs" );
+const {
+    Keccak
+} = require( "sha3" );
+
 let g_bIsNeededCommonInit = true;
 let g_bSignMessages = false; // use BLS message signing, turned on with --sign-messages
 let g_joSChainNetworkInfo = null; // scanned S-Chain network description
@@ -143,6 +150,47 @@ let g_nTimeFrameSeconds = 0; // 0-disable, 60-recommended
 let g_nNextFrameGap = 10;
 
 let g_arrActions = []; // array of actions to run
+
+function fileLoad( strPath, strDefault ) {
+    strDefault = strDefault || "";
+    if ( !fileExists( strPath ) )
+        return strDefault;
+    try {
+        let s = fs.readFileSync( strPath );
+        return s;
+    } catch ( err ) {}
+    return strDefault;
+}
+
+function fileSave( strPath, s ) {
+    try {
+        fs.writeFileSync( strPath, s );
+        return true;
+    } catch ( err ) {}
+    return false;
+}
+
+function jsonFileLoad( strPath, joDefault ) {
+    joDefault = joDefault || {};
+    if ( !fileExists( strPath ) )
+        return joDefault;
+    try {
+        let s = fs.readFileSync( strPath );
+        let jo = JSON.parse( s );
+        return jo;
+    } catch ( err ) {}
+    return joDefault;
+}
+
+function jsonFileSave( strPath, jo ) {
+    try {
+        let s = JSON.stringify( jo, null, 4 );
+        fs.writeFileSync( strPath, s );
+        return true;
+    } catch ( err ) {}
+    return false;
+}
+
 
 //
 //
@@ -1888,12 +1936,109 @@ function discover_bls_threshold( joSChainNetworkInfo ) {
     return -1;
 }
 
+function discover_bls_participants( joSChainNetworkInfo ) {
+    let jarrNodes = g_joSChainNetworkInfo.network;
+    for( let i = 0; i < jarrNodes.length; ++ i ) {
+        let joNode = jarrNodes[ i ];
+        if( "imaInfo" in joNode && typeof joNode.imaInfo == "object"
+            &&  "n" in joNode.imaInfo && typeof joNode.imaInfo.n == "number"
+            &&  joNode.imaInfo.n > 0
+            )
+            return t;
+    }
+    return -1;
+}
+
+function compose_summary_message_to_sign( jarrMessages ) {
+    let strSummaryMessage = "";
+    let i = 0, cnt = jarrMessages.length;
+    for( i = 0; i < cnt; ++ i ) {
+        let joMessagge = jarrMessages[ i ];
+        strSummaryMessage += joMessagge.data;
+    }
+    return strSummaryMessage;
+}
+
+function split_signature_share( signatureShare ) {
+    let jarr = signatureShare.split( ":" );
+    return {
+        "X": jarr[0],
+        "Y": jarr[1]
+    };
+}
+
+function get_bls_glue_tmp_dir() {
+    let strTmpDir = path.resolve( __dirname ) + "/tmp";
+    shell.mkdir( "-p", strTmpDir );
+
+}
+
+function alloc_bls_glue_action_dir() {
+    let strActionDir = get_bls_glue_tmp_dir() + "/" + replaceAll( uuid(), "-", "" );
+    shell.mkdir( "-p", strActionDir );
+    return strActionDir;
+}
+
+function perform_bls_glue( jarrMessages, arrSignResults ) {
+    let joGlueResult = null;
+    let jarrNodes = g_joSChainNetworkInfo.network;
+    let nThreshold = discover_bls_threshold( g_joSChainNetworkInfo );
+    let nParticipants = discover_bls_participants( g_joSChainNetworkInfo );
+    let strSummaryMessage = compose_summary_message_to_sign( jarrMessages );
+    let strPWD = shell.pwd();
+    let strActionDir = alloc_bls_glue_action_dir();
+    let fnShellRestore = function() {
+        shell.cd( strPWD );
+        shell.rm( "-rf", strActionDir );
+    };
+    try {
+        let strInput = "";
+        let i = 0, cnt = arrSignResults.length;
+        for( i = 0; i < cnt; ++ i ) {
+            let jo = arrSignResults[ i ];
+            let strPath = strActionDir + "/sign-result" + ij.index + ".json";
+            jsonFileSave( strPath, jo );
+            strInput += " --input " + strPath;
+        }
+        let strGlueCommand =
+            g_strPathBlsGlue +
+            " --t " + nThreshold +
+            " --n " + nParticipants +
+            strInput +
+            " --output " + strActionDir + "/glue-result.txt";
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( cc.normal( "Will execute glue command:\n" ) + cc.notice( strGlueCommand ) + "\n" );
+        let strOutput = child_process.execSync( strGlueCommand );
+        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+        //  log.write( cc.normal( "Glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        let joGlueResult = jsonFileLoad( strActionDir + "/glue-result.txt" );
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( cc.normal( "Glue result is: " ) + cc.j( joGlueResult ) + "\n" );
+        if( ! ( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) )
+            joGlueResult = null;
+        //
+        // typical glue result is:
+        // {
+        //     "signature": {
+        //         "X": "2533808148583356869465588922364792219279924240245650719832918161014673583859",
+        //         "Y": "2900553917645502192745899163584745093808998719667605626180761629013549672201"
+        //     }
+        // }
+        fnShellRestore();
+    } catch( err ) {
+        fnShellRestore();
+        joGlueResult = null;
+    }
+    return joGlueResult;
+}
+
 async function do_sign_messages( jarrMessages, fn ) {
     fn = fn || function() {};
     if( ! ( g_bSignMessages && g_strPathBlsGlue.length > 0 && g_joSChainNetworkInfo ) ) {
         await fn( null, jarrMessages, null )
         return;
     }
+    //
     // each message in array looks like:
     // {
     //     "amount": joValues.amount,
@@ -1902,9 +2047,21 @@ async function do_sign_messages( jarrMessages, fn ) {
     //     "sender": joValues.srcContract,
     //     "to": joValues.to
     // }
+    //
+    // sign result looks like:
+    // {
+    //     "id": 1, "jsonrpc": "2.0", "result": {
+    //         "signResult": {
+    //             "errorMessage": "",
+    //             "signatureShare": "13888409666804046853490114813821624491836407617931905586112520275264817002720:9871589266312476278322587556340871982939135237123140475925975407511373249165:0",
+    //             "status": 0
+    //         }
+    //     }
+    // }
+    //
     let nCountReceived = 0; // including errors
     let nCountErrors = 0;
-    let arrSignaturesReceived = [];
+    let arrSignResults = [];
     let jarrNodes = g_joSChainNetworkInfo.network;
     let nThreshold = discover_bls_threshold( g_joSChainNetworkInfo );
     if( nThreshold <= 0 ) {
@@ -1937,8 +2094,24 @@ async function do_sign_messages( jarrMessages, fn ) {
                 }
                 log.write( cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" sign result: " )  + cc.j( joOut.result ) + "\n" );
                 try {
-                    if( joOut.result.signResult.signatureShare.length > 0 && joOut.result.signResult.signatureShare.status == 0 )
-                        arrSignaturesReceived.push( joOut.result.signResult.signatureShare );
+                    if( joOut.result.signResult.signatureShare.length > 0 && joOut.result.signResult.signatureShare.status == 0 ) {
+                        //
+                        // sign result for bls_glue shoild look like:
+                        // {
+                        //     "index": "1",
+                        //     "signature": {
+                        //         "X": "8184471694634630119550127539973704769190648951089883109386639469590492862134",
+                        //         "Y": "4773775435244318964726085856452691379381914783621253742616578726383405809710"
+                        //     }
+                        // }
+                        //
+                        let nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
+                        arrSignResults.push( {
+                            "index": "" + nZeroBasedNodeIndex,
+                            "signature": split_signature_share( joOut.result.signResult.signatureShare )
+                            "fromNode": joNode // extra, not needed for bls_glue
+                        } );
+                    }
                 } catch( err ) {
                     ++ nCountErrors;
                     console.log( cc.fatal( "Error:" ) + cc.error( " signature fail from node") + cc.info(joNode.nodeID) + cc.error("." ) );
@@ -1950,7 +2123,8 @@ async function do_sign_messages( jarrMessages, fn ) {
         let cntSuccess = nCountReceived - nCountErrors;
         if( cntSuccess >= nThreshold ) {
             clearInterval( iv );
-            await fn( null, jarrMessages, null );
+            let joGlueResult = perform_bls_glue( jarrMessages, arrSignResults );
+            await fn( null, jarrMessages, joGlueResult );
             return;
         }
         if( nCountReceived >= jarrNodes.length ) {
