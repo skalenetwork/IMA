@@ -1921,7 +1921,7 @@ async function do_sign_messages( jarrMessages, fn ) {
                 try {
                     if( joOut.result.signResult.signatureShare.length > 0 && joOut.result.signResult.signatureShare.status == 0 )
                         arrSignaturesReceived.push( joOut.result.signResult.signatureShare );
-                } catch( ... ) {
+                } catch( err ) {
                     ++ nCountErrors;
                     console.log( cc.fatal( "Error:" ) + cc.error( " signature fail from node") + cc.info(joNode.nodeID) + cc.error("." ) );
                 }
