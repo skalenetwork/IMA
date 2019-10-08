@@ -1973,7 +1973,7 @@ function get_bls_glue_tmp_dir() {
 
 }
 
-function alloc_bls_glue_action_dir() {
+function alloc_tmp_action_dir() {
     let strActionDir = get_bls_glue_tmp_dir() + "/" + replaceAll( uuid(), "-", "" );
     shell.mkdir( "-p", strActionDir );
     return strActionDir;
@@ -1986,7 +1986,7 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
     let nParticipants = discover_bls_participants( g_joSChainNetworkInfo );
     let strSummaryMessage = compose_summary_message_to_sign( jarrMessages );
     let strPWD = shell.pwd();
-    let strActionDir = alloc_bls_glue_action_dir();
+    let strActionDir = alloc_tmp_action_dir();
     let fnShellRestore = function() {
         shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
@@ -2005,15 +2005,15 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
             " --t " + nThreshold +
             " --n " + nParticipants +
             strInput +
-            " --output " + strActionDir + "/glue-result.txt";
+            " --output " + strActionDir + "/glue-result.json";
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-            log.write( cc.normal( "Will execute glue command:\n" ) + cc.notice( strGlueCommand ) + "\n" );
+            log.write( cc.normal( "Will execute BLS glue command:\n" ) + cc.notice( strGlueCommand ) + "\n" );
         let strOutput = child_process.execSync( strGlueCommand );
         //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-        //  log.write( cc.normal( "Glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
-        let joGlueResult = jsonFileLoad( strActionDir + "/glue-result.txt" );
+        //  log.write( cc.normal( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        let joGlueResult = jsonFileLoad( strActionDir + "/glue-result.json" );
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-            log.write( cc.normal( "Glue result is: " ) + cc.j( joGlueResult ) + "\n" );
+            log.write( cc.normal( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
         if( ! ( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) )
             joGlueResult = null;
         //
@@ -2030,6 +2030,39 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
         joGlueResult = null;
     }
     return joGlueResult;
+}
+
+function perform_bls_verify( joGlueResult, jarrMessages ) {
+    if( ! joGlueResult )
+        return true;
+    let nThreshold = discover_bls_threshold( g_joSChainNetworkInfo );
+    let nParticipants = discover_bls_participants( g_joSChainNetworkInfo );
+    let strPWD = shell.pwd();
+    let strActionDir = alloc_tmp_action_dir();
+    let fnShellRestore = function() {
+        shell.cd( strPWD );
+        shell.rm( "-rf", strActionDir );
+    };
+    try {
+        jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
+        jsonFileSave( strActionDir + "/hash.json", { "message" : ompose_summary_message_to_sign( jarrMessages ) } );
+        let strVerifyCommand =
+            g_strPathBlsGlue +
+            " --t " + nThreshold +
+            " --n " + nParticipants +
+            " --input " + strActionDir + "/glue-result.json";
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( cc.normal( "Will execute BLS verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
+        let strOutput = child_process.execSync( strVerifyCommand );
+        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+        //  log.write( cc.normal( "BLS verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        fnShellRestore();
+        return true;
+    } catch( err ) {
+        fnShellRestore();
+    }
+    return false;
+
 }
 
 async function do_sign_messages( jarrMessages, fn ) {
@@ -2077,7 +2110,7 @@ async function do_sign_messages( jarrMessages, fn ) {
             if( err ) {
                 ++ nCountReceived; // including errors
                 ++ nCountErrors;
-                console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                log.write( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) + "\n" );
                 return;
             }
             await joCall.call( {
@@ -2089,7 +2122,7 @@ async function do_sign_messages( jarrMessages, fn ) {
                 ++ nCountReceived; // including errors
                 if( err ) {
                     ++ nCountErrors;
-                    console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                    log.write( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
                     return;
                 }
                 log.write( cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" sign result: " )  + cc.j( joOut.result ) + "\n" );
@@ -2114,7 +2147,7 @@ async function do_sign_messages( jarrMessages, fn ) {
                     }
                 } catch( err ) {
                     ++ nCountErrors;
-                    console.log( cc.fatal( "Error:" ) + cc.error( " signature fail from node") + cc.info(joNode.nodeID) + cc.error("." ) );
+                    log.write( cc.fatal( "Error:" ) + cc.error( " signature fail from node") + cc.info(joNode.nodeID) + cc.error("." ) + "\n" );
                 }
             } );
         } );
@@ -2123,8 +2156,25 @@ async function do_sign_messages( jarrMessages, fn ) {
         let cntSuccess = nCountReceived - nCountErrors;
         if( cntSuccess >= nThreshold ) {
             clearInterval( iv );
+            let strError = null;
             let joGlueResult = perform_bls_glue( jarrMessages, arrSignResults );
-            await fn( null, jarrMessages, joGlueResult );
+            if( joGlueResult ) {
+                if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                    log.write( cc.success( "Got BLS glue result: " ) + cc.j( joGlueResult ) + "\n" );
+                if( g_strPathBlsVerify.length > 0 ) {
+                    if( perform_bls_verify( joGlueResult, jarrMessages ) ) {
+                        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                            log.write( cc.success( "Got succerssful BLS verification result " ) + "\n" );
+                    } else {
+                        strError = "BLS verify failed";
+                        log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
+                    }
+                }
+            } else {
+                strError = "BLS glue failed";
+                log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
+            }
+            await fn( strError, jarrMessages, joGlueResult );
             return;
         }
         if( nCountReceived >= jarrNodes.length ) {
