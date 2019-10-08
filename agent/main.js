@@ -29,10 +29,10 @@ let ethereumjs_wallet = IMA.ethereumjs_wallet;
 let ethereumjs_util = IMA.ethereumjs_util;
 
 let g_bIsNeededCommonInit = true;
-let g_bSignMessages = false; // use BLS message signing
+let g_bSignMessages = false; // use BLS message signing, turned on with --sign-messages
 let g_joSChainNetworkInfo = null; // scanned S-Chain network description
-let g_nMinSignaturesCount = 0; // <= 0 means all, number of signatures to collect and glue
-let g_strPathBlsGlue = ""; // path to bls_glue app
+let g_strPathBlsGlue = ""; // path to bls_glue app, nust have if --sign-messages specified
+let g_strPathBlsVerify = ""; // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
 
 // TO-DO: the next ABI JSON should contain main-net only contract info - S-chain contract addresses must be downloaded from S-chain
 let joTrufflePublishResult_main_net = {};
@@ -320,8 +320,8 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         console.log( soi + cc.debug( "--" ) + cc.bright( "time-gap" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "................" ) + cc.notice( "Specifies " ) + cc.note( "gap" ) + cc.notice( "(in seconds) " ) + cc.note( "before next time frame" ) + cc.notice( "." ) );
         console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "................." ) + cc.notice( "Sign transferred messages." ) );
-        console.log( soi + cc.debug( "--" ) + cc.bright( "min-signatures" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( ".........." ) + cc.notice( "Specifies " ) + cc.note( "minimal count of signatures" ) + cc.note( " to collect before glue" ) + cc.notice( "." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "bls-glue" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "................." ) + cc.notice( "Specifies path to " ) + cc.note( "bls_glue" ) + cc.note( " application" ) + cc.notice( "." ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "bls-verify" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "..............." ) + cc.notice( "Specifies path to " ) + cc.note( "verify_bls" ) + cc.note( " application" ) + cc.notice( "." ) );
         console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
         console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
@@ -904,13 +904,14 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         g_bSignMessages = true;
         continue;
     }
-    if ( joArg.name == "min-signatures" ) {
-        veryify_int_arg( joArg );
-        g_nMinSignaturesCount = parseInt( joArg.value );
-    }
     if ( joArg.name == "bls-glue" ) {
         veryify_arg_path_to_existing_file( joArg );
         g_strPathBlsGlue = "" + joArg.value;
+        continue;
+    }
+    if ( joArg.name == "bls-verify" ) {
+        veryify_arg_path_to_existing_file( joArg );
+        g_strPathBlsVerify = "" + joArg.value;
         continue;
     }
     if ( joArg.name == "browse-s-chain" ) {
@@ -1874,6 +1875,19 @@ async function run_transfer_loop() {
     return true;
 }
 
+function discover_bls_threshold( joSChainNetworkInfo ) {
+    let jarrNodes = g_joSChainNetworkInfo.network;
+    for( let i = 0; i < jarrNodes.length; ++ i ) {
+        let joNode = jarrNodes[ i ];
+        if( "imaInfo" in joNode && typeof joNode.imaInfo == "object"
+            &&  "t" in joNode.imaInfo && typeof joNode.imaInfo.t == "number"
+            &&  joNode.imaInfo.t > 0
+            )
+            return t;
+    }
+    return -1;
+}
+
 async function do_sign_messages( jarrMessages, fn ) {
     fn = fn || function() {};
     if( ! ( g_bSignMessages && g_strPathBlsGlue.length > 0 && g_joSChainNetworkInfo ) ) {
@@ -1892,9 +1906,13 @@ async function do_sign_messages( jarrMessages, fn ) {
     let nCountErrors = 0;
     let arrSignaturesReceived = [];
     let jarrNodes = g_joSChainNetworkInfo.network;
-    let nMinSignaturesCount = ( g_nMinSignaturesCount > 0 ) ? g_nMinSignaturesCount : jarrNodes.length;
+    let nThreshold = discover_bls_threshold( g_joSChainNetworkInfo );
+    if( nThreshold <= 0 ) {
+        await fn( "signature error, S-Chain information was not discovered properly and BLS threshold is unknown", jarrMessages, null );
+        return;
+    }
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-        log.write( cc.debug( "Will collect " ) + cc.info(nMinSignaturesCount) + cc.debug(" from ") + cc.info(jarrNodes.length) + cc.debug("nodes") + "\n" );
+        log.write( cc.debug( "Will collect " ) + cc.info(nThreshold) + cc.debug(" from ") + cc.info(jarrNodes.length) + cc.debug("nodes") + "\n" );
     for( let i = 0; i < jarrNodes.length; ++ i ) {
         let joNode = jarrNodes[ i ];
         let strNodeURL = compose_schain_node_url( joNode );
@@ -1930,7 +1948,7 @@ async function do_sign_messages( jarrMessages, fn ) {
     }
     let iv = setInterval( async function() {
         let cntSuccess = nCountReceived - nCountErrors;
-        if( cntSuccess >= nMinSignaturesCount ) {
+        if( cntSuccess >= nThreshold ) {
             clearInterval( iv );
             await fn( null, jarrMessages, null );
             return;

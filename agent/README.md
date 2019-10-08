@@ -453,6 +453,8 @@ Adding **--sign-messages** command line parameter turns on **BLS message signing
 Agent app will scan **S-Chain** network and ask each of nodes to sign messages transferred from **MainNet** to **S-Chain**.
 This options requires all **S-Chain** nodes to be configured with **SGX Wallet** or **Emu Wallet** access information.
 
-By default all **S-Chain** nodes must sign transferred messages. The **--min-signatures** command line argument allows to limit number of **S-Chain** nodes asked to sign messages;
-
 The **--bls-glue** command line parameter must be used to specify path to the **bls_glue** application.
+This parameter must be specified if **--sign-messages** paraneter is present.
+
+The **--bls-verify** command line parameter must be used to specify path to the **verify_bls** application.
+This parameter is optional. If it was specified, then **IMA Agent** application will verify gathered BLS signatures.
