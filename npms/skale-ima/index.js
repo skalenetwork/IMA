@@ -427,7 +427,7 @@ async function do_eth_payment_from_main_net(
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
             "nonce": tcnt, // 0x00, ...
-            "gas": 2100000,
+            "gas": 3000000, // 2100000,
             "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
             "gasLimit": 3000000,
             "to": jo_deposit_box.options.address, // cantract address
