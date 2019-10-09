@@ -413,6 +413,9 @@ async function do_eth_payment_from_main_net(
 ) {
     let r, strActionName = "";
     try {
+        log.write( cc.debug( "Doing payment from mainnet with " ) + cc.notice( "chain_id_s_chain" ) + cc.debug( "=" ) + cc.notice( chain_id_s_chain ) + cc.debug( "..." ) + "\n" );
+
+        //
         strActionName = "w3_main_net.eth.getTransactionCount()";
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );

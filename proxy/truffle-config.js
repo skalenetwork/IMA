@@ -15,6 +15,20 @@ let mnemonicForSchain = process.env.MNEMONIC_FOR_SCHAIN;
 let accountForMainnet = process.env.ACCOUNT_FOR_MAINNET;
 let accountForSchain = process.env.ACCOUNT_FOR_SCHAIN;
 
+// tmp fix
+mnemonicForMainnet = privateKeyForMainnet;
+mnemonicForSchain = privateKeyForSchain;
+
+console.log( "privateKeyForMainnet = ", privateKeyForMainnet );
+console.log( "privateKeyForSchain  = ", privateKeyForSchain );
+console.log( "\n" );
+console.log( "mnemonicForMainnet   = ", mnemonicForMainnet );
+console.log( "mnemonicForSchain    = ", mnemonicForSchain);
+console.log( "\n" );
+console.log( "accountForMainnet    = ", accountForMainnet );
+console.log( "accountForSchain     = ", accountForSchain );
+console.log( "\n" );
+
 module.exports = {
     test_file_extension_regexp: /.*\.ts$/,
 
@@ -86,7 +100,8 @@ module.exports = {
         },
         gasPrice: 10000000000,
         gas: 8000000,
-        network_id: "*"
+        network_id: "*",
+        skipDryRun: true // added experimentally
       }
     },
     mocha: {
@@ -106,15 +121,14 @@ module.exports = {
     // }
     compilers: {
       solc: {
-        version: "0.5.11",
+        version: "0.5.10", // "0.5.12", // "0.5.11"
         settings: {
           optimizer: {
             enabled: true,
             runs: 200
           },
-          evmVersion: "byzantium"
+          evmVersion: "byzantium" // "constantinople" // "petersburg" // "byzantium"
         }
       }
     }
   }
-

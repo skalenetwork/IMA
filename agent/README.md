@@ -89,6 +89,7 @@ Fourth, export required environment variables:
     export MNEMONIC_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
     export MNEMONIC_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
 
+
 Fifth, try rebuild all the contracts once to ensure everything initialized OK:
 
     cd $IMA_ROOT/proxy
