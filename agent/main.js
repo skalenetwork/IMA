@@ -2032,7 +2032,7 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
     let strSummaryMessage = compose_summary_message_to_sign( jarrMessages, true );
     let strPWD = shell.pwd();
     let strActionDir = alloc_tmp_action_dir();
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+    //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
        log.write( cc.debug( "perform_bls_glue will work in ") + cc.info(strActionDir) + cc.debug(" director with ") + cc.info(arrSignResults.length) + cc.debug(" sign results..." ) + "\n" );
     let fnShellRestore = function() {
         shell.cd( strPWD );
@@ -2066,7 +2066,7 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
             log.write( cc.normal( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
         if ( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) {
-            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
                  log.write( cc.success( "BLS glue success" )  + "\n" );
         } else {
             joGlueResult = null;
@@ -2105,7 +2105,7 @@ function perform_bls_verify( joGlueResult, jarrMessages, joCommonPublicKey ) {
     try {
         shell.cd( strActionDir );
         let joMsg = { "message" : compose_summary_message_to_sign( jarrMessages, true ) };
-        // if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
             log.write( cc.debug( "BLS verify message " ) + cc.j( joMsg ) + cc.debug(" composed from ") + cc.j(jarrMessages) + cc.debug(" using glue ") + cc.j( joGlueResult) + cc.debug(" and common public key ") + cc.j( joCommonPublicKey) + "\n" );
         jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
         jsonFileSave( strActionDir + "/hash.json", joMsg );
@@ -2121,6 +2121,8 @@ function perform_bls_verify( joGlueResult, jarrMessages, joCommonPublicKey ) {
         strOutput = child_process.execSync( strVerifyCommand );
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
             log.write( cc.normal( "BLS verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+             log.write( cc.success( "BLS verify success" )  + "\n" );
         fnShellRestore();
         return true;
     } catch( err ) {
