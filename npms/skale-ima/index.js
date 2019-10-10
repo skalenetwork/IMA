@@ -1365,7 +1365,7 @@ async function do_transfer(
                         chain_id_dst,
                         nIdxCurrentMsgBlockStart,
                         jarrMessages // messages
-                        // , X, Y // BLS glue of signatures
+                        // , joGlueResult.signature.X, joGlueResult.signature.Y // BLS glue of signatures
                     ];
                     log.write(
                         cc.debug( "....debug args for " ) +
