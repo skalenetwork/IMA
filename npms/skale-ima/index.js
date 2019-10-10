@@ -485,9 +485,12 @@ async function do_eth_payment_from_s_chain(
             log.write( cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
+        strActionName = " jo_token_manager.methods.exitToMain()/do_eth_payment_from_s_chain";
         let dataTx = jo_token_manager.methods.exitToMain(
             // call params, last is destination account on S-chain
-            joAccountDst.address( w3_s_chain ), wei_how_much, w3_s_chain.utils.fromAscii( "" ) // TO-DO: string is "data" parameter, we need to allow user to specify it
+            joAccountDst.address( w3_s_chain ),
+            "0x" + w3_s_chain.utils.toBN( wei_how_much ).toString(16),
+            "0x" // w3_s_chain.utils.fromAscii( "" ) // TO-DO: string is "data" parameter, we need to allow user to specify it
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
             "nonce": tcnt, // 0x00, ...
