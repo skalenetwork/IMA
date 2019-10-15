@@ -263,12 +263,12 @@ contract MessageProxy {
         return connectedChains[srcChainHash].incomingMessageCounter;
     }
 
-    function moveIncomingCounter(string memory schainName) external {
+    function moveIncomingCounter(string calldata schainName) external {
         require(msg.sender == owner, "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter++;
     }
 
-    function setCountersToZero(string memory schainName) external {
+    function setCountersToZero(string calldata schainName) external {
         require(msg.sender == owner, "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
