@@ -127,17 +127,6 @@ contract MessageProxy {
         authorizedCaller[caller] = false;
     }
 
-    function moveIncomingCounter(string memory schainName) public {
-        require(msg.sender == owner, "Sender is not an owner");
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter++;
-    }
-
-    function setCountersToZero(string memory schainName) public {
-        require(msg.sender == owner, "Sender is not an owner");
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
-        connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
-    }
-
     // Registration state detection
     function isConnectedChain(
         string calldata someChainID
@@ -272,5 +261,16 @@ contract MessageProxy {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
         return connectedChains[srcChainHash].incomingMessageCounter;
+    }
+
+    function moveIncomingCounter(string memory schainName) public {
+        require(msg.sender == owner, "Sender is not an owner");
+        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter++;
+    }
+
+    function setCountersToZero(string memory schainName) public {
+        require(msg.sender == owner, "Sender is not an owner");
+        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
+        connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 }

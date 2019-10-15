@@ -54,7 +54,12 @@ contract ERC20ModuleForMainnet is Permissions {
                 contractPosition = ILockAndDataERC20M(lockAndDataERC20).addERC20Token(contractHere);
                 emit ERC20TokenAdded(contractHere, contractPosition);
             }
-            data = encodeData(contractHere, contractPosition, to, amount);
+            data = encodeData(
+                contractHere,
+                contractPosition,
+                to,
+                amount
+            );
             emit ERC20TokenSent(contractHere, contractPosition, amount);
             return data;
         } else {
