@@ -113,7 +113,7 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
 
         // send Eth to a client on Mainnet:
-        await tokenManager.exitToMain(to, amountTo, {from: user});
+        await tokenManager.exitToMainWithoutData(to, amountTo, {from: user});
         const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
         balanceAfter.should.be.deep.equal(amountAfter);
     });
@@ -144,7 +144,7 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain.addSchain(chainID, user, {from: deployer});
 
         // send Eth and data to a client on schain:
-        await tokenManager.transferToSchain(chainID, to, amountTo, {from: user});
+        await tokenManager.transferToSchainWithoutData(chainID, to, amountTo, {from: user});
 
         const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
         balanceAfter.should.be.deep.equal(amountAfter);
@@ -320,6 +320,14 @@ contract("TokenManager", ([user, deployer, client]) => {
         // execution/expectation
         await web3.eth.sendTransaction({from: deployer, to: tokenManager.address, value: "1000000000000000000"})
             .should.be.eventually.rejectedWith(error);
+    });
+
+    it("should return money if it has it", async () => {
+        const tokenManagerBalance = Number.parseInt(await web3.eth.getBalance(tokenManager.address), 10);
+        const ownerBalance = Number.parseInt(await web3.eth.getBalance(deployer), 10);
+        tokenManager.withdraw({from: deployer});
+        Number.parseInt(await web3.eth.getBalance(tokenManager.address), 10).should.be.equal(0);
+        Number.parseInt(await web3.eth.getBalance(deployer), 10).should.be.equal(ownerBalance + tokenManagerBalance);
     });
 
     it("should invoke `rawExitToMainERC20` without mistakes", async () => {
@@ -1165,9 +1173,10 @@ contract("TokenManager", ([user, deployer, client]) => {
             const tokenId = 9;
             const isRaw = true;
             // get data from `receiveERC721`
-            const getRes = await eRC721ModuleForSchain
+            const data = await eRC721ModuleForSchain
+                .receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
+            await eRC721ModuleForSchain
                 .receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
-            const data = getRes.logs[0].args.data;
             // add schain to avoid the `Unconnected chain` error
             await lockAndDataForSchain
                 .addSchain(schainID, deployer, {from: deployer});

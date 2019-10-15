@@ -1,7 +1,7 @@
 class Config:
     src_root = '.'
     agent_root = 'agent'
-    skale_ima_root = 'npms/skale-mta'
+    skale_ima_root = 'npms/skale-ima'
     proxy_root = 'proxy'
     test_root = 'test'
     test_working_dir = 'working'

@@ -62,10 +62,11 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const to = user;
     const amount = 10;
     const isRaw = true;
+    await ethERC20.mint(deployer, 10, {from: deployer});
     // execution
-    const res = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+    const res = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
     // expectation
-    (res.logs[0].event).should.be.equal("EncodedRawData");
+    res.should.include("0x");
   });
 
   it("should invoke `receiveERC20` with `isRaw==false`", async () => {
@@ -80,10 +81,12 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     // set `LockAndDataERC20` contract before invoke `receiveERC20`
     await lockAndDataForMainnet
         .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
+    await ethERC20.mint(deployer, 10, {from: deployer});
     // execution
-    const res = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+    const res = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
     // expectation
-    (res.logs[1].event).should.be.equal("EncodedData");
+    res.should.include("0x");
+
   });
 
   it("should return `true` when invoke `sendERC20` with `to0==address(0)`", async () => {
@@ -104,12 +107,12 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     // transfer more than `amount` qantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
     await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
-    const getRes = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-    const data = getRes.logs[1].args.data;
+    const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
+    await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // execution
-    const res = await eRC20ModuleForMainnet.sendERC20(to0, data, {from: deployer});
+    const res = await eRC20ModuleForMainnet.sendERC20.call(to0, data, {from: deployer});
     // expectation
-    expect(res.logs[0].args.result).to.be.true;
+    expect(res).to.be.true;
   });
 
   it("should return `true` when invoke `sendERC20` with `to0==ethERC20.address`", async () => {
@@ -130,12 +133,12 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     // transfer more than `amount` qantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
     await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
-    const getRes = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
+    await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // execution
-    const res = await eRC20ModuleForMainnet.sendERC20(to0, data, {from: deployer});
+    const res = await eRC20ModuleForMainnet.sendERC20.call(to0, data, {from: deployer});
     // expectation
-    expect(res.logs[0].args.result).to.be.true;
+    expect(res).to.be.true;
   });
 
   it("should return `receiver` when invoke `getReceiver` with `to0==ethERC20.address`", async () => {
@@ -156,8 +159,8 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     // transfer more than `amount` qantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
     await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
-    const getRes = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
+    await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // execution
     const res = await eRC20ModuleForMainnet.getReceiver(to0, data, {from: deployer});
     // expectation
@@ -182,8 +185,8 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     // transfer more than `amount` qantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
     await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
-    const getRes = await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-    const data = getRes.logs[1].args.data;
+    const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
+    await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // execution
     const res = await eRC20ModuleForMainnet.getReceiver(to0, data, {from: deployer});
     // expectation

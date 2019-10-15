@@ -1,13 +1,13 @@
-# SKALE Money Transfer Agent
+# SKALE Interchain Messaging Agent
 
 ## Overview
 
-This article refers to **SKALE Money Transfer Agent** as **MTA**.
+This article refers to **SKALE Interchain Messaging Agent** as **IMA**.
 
-**MTA** consists of the following parts:
+**IMA** consists of the following parts:
 
-- Contracts on Main-net
-- Contracts on S-Chain
+- Contracts on Mainnet
+- Contracts on a SKALE Chain
 - NodeJS based app
 
 ## Contracts installation
@@ -22,48 +22,48 @@ First of all, we need special truffle version **5.0.12** (notice, the *-g* optio
 
 Second, get source code of Solidity contracts and install dependecies:
 
-    git clone git@github.com:skalenetwork/MTA.git
-    cd ./MTA
+    git clone git@github.com:skalenetwork/IMA.git
+    cd ./IMA
 
 ### Node JS prerequisites
 
 Third, install required **Node JS** everywhere they needed:
 
-    export MTA_ROOT=.....
+    export IMA_ROOT=.....
     #
-    cd $MTA_ROOT/proxy
+    cd $IMA_ROOT/proxy
     rm -rf ./node_modules &> /dev/null
     npm install
     #
-    cd $MTA_ROOT/npms/skale-mta
+    cd $IMA_ROOT/npms/skale-ima
     rm -rf ./node_modules &> /dev/null
     npm install
     #
-    cd $MTA_ROOT/agent
+    cd $IMA_ROOT/agent
     rm -rf ./node_modules &> /dev/null
     npm install
 
 
-Fourth, edit the *$MTA_ROOT/proxy/truffle-config.js* and specify needed networks (Main-net and S-Chain) and account addresses which will own contracts on these blockchains:
+Fourth, edit the *$IMA_ROOT/proxy/truffle-config.js* and specify needed networks (Mainnet and SKALE Chain) and account addresses which will own contracts on these blockchains:
 
-    cd $MTA_ROOT/proxy
+    cd $IMA_ROOT/proxy
     nano ./truffle-config.js
 
 We will use networks called **mainnet** and **schain** in this documentation:
 
     var privateKey_main_net = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
-    var privateKey_s_chain  = "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e";
+    var privateKey_skalechain  = "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e";
 
 ...
 
-    mainnet: { # for Main-net
+    mainnet: { # for Mainnet
         gasPrice: 10000000000,
         gas: 8000000,
         network_id: "*",
         provider: () => { return new HDWalletProvider( privateKey_main_net, "http://127.0.0.1:8545" ); },
         skipDryRun: true
     },
-    schain: { # for S-Chain
+    schain: { # for SKALE Chain
         provider: () => { return new privateKeyProvider(privateKeyForSchain, schainRpcUrl); },
         gasPrice: 1000000000,
         gas: 8000000,
@@ -91,38 +91,38 @@ Fourth, export required environment variables:
 
 Fifth, try rebuild all the contracts once to ensure everything initialized OK:
 
-    cd $MTA_ROOT/proxy
+    cd $IMA_ROOT/proxy
     rm -rf ./build
     truffle complile
 
-### Contracts pre-installation on Main-net and S-Chain
+### Contracts pre-installation on Mainnet and SKALE Chain
 
 Pre-clean previous version of contract ABI JSON files:
 
-    cd $MTA_ROOT/proxy
+    cd $IMA_ROOT/proxy
     ./clean.sh
 
-For main net, invoke:
+For mainnet, invoke:
 
-    cd $MTA_ROOT/proxy
+    cd $IMA_ROOT/proxy
     npm run deploy-to-mainnet
     ls -1 ./data/
 
 You should see **proxyMainnet.json** file listed.
 
-For S-Chain, invoke:
+For SKALE chain, invoke:
 
-    cd $MTA_ROOT/proxy
+    cd $IMA_ROOT/proxy
     npm run deploy-to-schain
     ls -1 ./data/
 
 You should see **proxySchain.json** file listed.
 
-## MTA installation
+## IMA installation
 
-### Bind MTA to Main-net
+### Bind IMA to Main-net
 
-You can check whether **MTA** is already bound with:
+You can check whether **IMA** is already bound with:
 
     node ./main.js --verbose=9 \
         --check-registration \
@@ -135,7 +135,7 @@ You can check whether **MTA** is already bound with:
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
 
-**MTA** works as S-Chain extension. It should be registered on Main-net before performing any money transfers between blockchains:
+**IMA** works as S-Chain extension. It should be registered on Main-net before performing any money transfers between blockchains:
 
     node ./main.js --verbose=9 \
         --register \
@@ -148,7 +148,7 @@ You can check whether **MTA** is already bound with:
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
 
-### Run MTA for particular S-Chain
+### Run IMA for particular S-Chain
 
 Performed with the **--loop** command line option:
 
@@ -165,7 +165,7 @@ Performed with the **--loop** command line option:
 
 Notice: the command above can be run in forever while loop of shell script or became a part of daemon service file.
 
-## Other MTA tasks
+## Other IMA tasks
 
 ### Getting command line help
 
@@ -336,7 +336,7 @@ Performed with the **--transfer** command line option:
 
 ### S-Chain specific configuration for more then one node S-Chains
 
-The **--node-number** and **--nodes-count** must me used for **MTA** instances running on S-Chain nodes which are part of multi-node S-Chain.
+The **--node-number** and **--nodes-count** must me used for **IMA** instances running on S-Chain nodes which are part of multi-node S-Chain.
 
 ### ERC20 default transfer from Main-net account to S-Chain
 

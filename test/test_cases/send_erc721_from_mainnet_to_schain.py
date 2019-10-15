@@ -13,17 +13,24 @@ class SendERC721ToSchain(TestCase):
         super().__init__('Send ERC721 to schain', config)
 
     def _prepare(self):
-        self.erc721 = self.blockchain.deploy_erc721_on_mainnet(self.config.mainnet_key, 'elv721', 'ELV')
+        sleep(5)
 
+        self.erc721 = self.blockchain.deploy_erc721_on_mainnet(self.config.mainnet_key, 'elv721', 'ELV')
+        sleep(5)
         address = self.blockchain.key_to_address(self.config.mainnet_key)
-        mint_txn = self.erc721.functions.mint(address, self.tokenId).buildTransaction({
-            'nonce': self.blockchain.get_transactions_count_on_mainnet(address)})
+        mint_txn = self.erc721.functions.mint(address, self.tokenId)\
+            .buildTransaction({
+                'gas': 8000000,
+                'nonce': self.blockchain.get_transactions_count_on_mainnet(address)})
 
         signed_txn = self.blockchain.web3_mainnet.eth.account.signTransaction(mint_txn,
                                                                               private_key=self.config.mainnet_key)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
     def _execute(self):
+
+        sleep(5)
+
         self.agent.transfer_erc721_from_mainnet_to_schain(self.erc721,
                                                          self.config.mainnet_key,
                                                          self.config.schain_key,

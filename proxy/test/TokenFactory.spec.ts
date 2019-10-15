@@ -87,10 +87,9 @@ contract("TokenFactory", ([user, deployer]) => {
     await lockAndDataForSchain
       .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
     // execution
-    const {logs} = await tokenFactory.createERC20(data, {from: deployer});
+    const res = await tokenFactory.createERC20.call(data, {from: deployer});
     // expectation
-    expect(logs[0].event).to.be.equal("ERC20TokenCreated");
-    expect(logs[0].args.contractAddress).to.include("0x");
+    expect(res).to.include("0x");
   });
 
   it("should createERC721", async () => {
@@ -111,10 +110,9 @@ contract("TokenFactory", ([user, deployer]) => {
     await lockAndDataForSchain
         .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
     // execution
-    const {logs} = await tokenFactory.createERC721(data, {from: deployer});
+    const res = await tokenFactory.createERC721.call(data, {from: deployer});
     // expectation
-    expect(logs[0].event).to.be.equal("ERC721TokenCreated");
-    expect(logs[0].args.contractAddress).to.include("0x");
+    expect(res).to.include("0x");
   });
 
 });

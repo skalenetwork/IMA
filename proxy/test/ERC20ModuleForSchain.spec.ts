@@ -69,9 +69,9 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const amount = 10;
     const isRaw = true;
     // execution
-    const res = await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+    const res = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
     // expectation
-    (res.logs[0].event).should.be.equal("EncodedRawData");
+    (res).should.include("0x");
   });
 
   it("should rejected with `Not existing ERC-20 contract` with `isRaw==false`", async () => {
@@ -112,9 +112,9 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await lockAndDataForSchainERC20
       .addERC20Token(contractHere, contractPosition, {from: deployer});
     // execution
-    const res = await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+    const res = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
     // expectation
-    (res.logs[0].event).should.be.equal("EncodedData");
+    (res).should.include("0x");
   });
 
   it("should return `true` when invoke `sendERC20` with `to0==address(0)`", async () => {
@@ -141,10 +141,10 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exeption
     await eRC20OnChain.addMinter(lockAndDataForSchainERC20.address);
     // get data from `receiveERC20`
-    const getRes = await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
+    await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // execution
-    const res = await eRC20ModuleForSchain.sendERC20(to0, data, {from: deployer});
+    await eRC20ModuleForSchain.sendERC20(to0, data, {from: deployer});
     // expectation
     const balance = await eRC20OnChain.balanceOf(to);
     parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount);
@@ -186,11 +186,10 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
         .setContract("TokenFactory", tokenFactory.address, {from: deployer});
     // execution
     const res = await eRC20ModuleForSchain.sendERC20(to0, data, {from: deployer});
-    const newAddress = res.logs[1].args.contractAddress;
+    const newAddress = res.logs[0].args.tokenThere;
     // expectation
     const newERC20Contract = new web3.eth.Contract(ABIERC20OnChain.abi, newAddress);
-    const res2 = await eRC20ModuleForSchain.sendERC20(to0, data2, {from: deployer});
-    console.log(res2);
+    await eRC20ModuleForSchain.sendERC20(to0, data2, {from: deployer});
     const balance = await newERC20Contract.methods.balanceOf(to).call();
     parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount * 2);
   });
@@ -220,7 +219,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
         .setContract("TokenFactory", tokenFactory.address, {from: deployer});
     // execution
     const res = await eRC20ModuleForSchain.sendERC20(to0, data, {from: deployer});
-    const newAddress = res.logs[1].args.contractAddress;
+    const newAddress = res.logs[0].args.tokenThere;
     // expectation
     const newERC20Contract = new web3.eth.Contract(ABIERC20OnChain.abi, newAddress);
     const balance = await newERC20Contract.methods.balanceOf(to).call();
@@ -243,8 +242,8 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exeption
     await eRC20OnChain2.addMinter(lockAndDataForSchainERC20.address);
     // get data from `receiveERC20`
-    const getRes = await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
+    await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // execution
     const res = await eRC20ModuleForSchain.sendERC20(to0, data, {from: deployer});
     // expectation
@@ -270,8 +269,8 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // transfer more than `amount` qantity of ERC20 tokens for `lockAndDataForSchainERC20` to avoid `Not enough money`
     await ethERC20.transfer(lockAndDataForSchainERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
-    const getRes = await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
+    await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // execution
     const res = await eRC20ModuleForSchain.getReceiver(to0, data, {from: deployer});
     // expectation
@@ -300,8 +299,8 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await lockAndDataForSchainERC20
       .addERC20Token(contractHere, contractPosition, {from: deployer});
     // get data from `receiveERC20`
-    const getRes = await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
+    await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // execution
     const res = await eRC20ModuleForSchain.getReceiver(to0, data, {from: deployer});
     // expectation

@@ -17,32 +17,32 @@
  *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.3;
 
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 import "./Ownable.sol";
 
 
 contract EthERC20 is Ownable, ERC20Detailed, ERC20 {
 
-    uint private cap = 120 * (10 ** 6) * (10 ** 18);
+    uint private constant CAP = 120 * (10 ** 6) * (10 ** 18);
 
     constructor() ERC20Detailed("ERC20 Ether Clone", "ETHC", 18) public {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function mint(address account, uint256 amount) public onlyOwner returns (bool) {
-        require(totalSupply().add(amount) <= cap, "Cap exceeded");
+    function mint(address account, uint256 amount) external onlyOwner returns (bool) {
+        require(totalSupply().add(amount) <= CAP, "Cap exceeded");
         _mint(account, amount);
         return true;
     }
 
-    function burn(uint256 amount) public {
+    function burn(uint256 amount) external {
         _burn(msg.sender, amount);
     }
 
-    function burnFrom(address account, uint256 amount) public onlyOwner {
+    function burnFrom(address account, uint256 amount) external onlyOwner {
         _burn(account, amount);
     }
 }

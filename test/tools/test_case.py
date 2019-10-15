@@ -13,7 +13,7 @@ class TestCase:
     time_started = time()
     timeout = None
 
-    def __init__(self, name, config, timeout=60):
+    def __init__(self, name, config, timeout=80000):
         self.name = name
         self.deployer = Deployer(config)
         self.agent = Agent(config)
