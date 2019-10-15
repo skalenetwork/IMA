@@ -45,6 +45,7 @@ interface ERC20Clone {
 contract ERC20ModuleForSchain is Permissions {
 
     event ERC20TokenCreated(uint indexed contractPosition, address tokenThere);
+    event ERC20TokenReceived(uint indexed contractPosition, address tokenThere, uint amount);
     event EncodedData(bytes data);
     event EncodedRawData(bytes data);
     event Data(address contractAddress);
@@ -89,9 +90,11 @@ contract ERC20ModuleForSchain is Permissions {
                     ERC20Clone(contractAddress).setTotalSupplyOnMainnet(totalSupply);
                 }
             }
+            emit ERC20TokenReceived(contractPosition, contractAddress, amount);
         } else {
             (receiver, amount) = fallbackRawDataParser(data);
             contractAddress = to;
+            emit ERC20TokenReceived(0, contractAddress, amount);
         }
         emit Data(contractAddress);
         return ILockAndDataERC20S(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
