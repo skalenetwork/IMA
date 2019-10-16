@@ -2192,6 +2192,8 @@ async function do_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, fn ) {
                 "method": "skale_imaVerifyAndSign",
                 "params": {
                     "startMessageIdx": nIdxCurrentMsgBlockStart,
+                    "dstChainID": "" + ( g_chain_id_main_net ? g_chain_id_main_net : "" ),
+                    "srcChainID": "" + ( g_chain_id_s_chain ? g_chain_id_s_chain : "" ),
                     "messages": jarrMessages
                 }
             }, function( joIn, joOut, err ) {
