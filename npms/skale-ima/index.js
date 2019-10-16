@@ -1324,7 +1324,7 @@ async function do_transfer(
             //
             //
             strActionName = "sign messages";
-            await fn_sign_messages( messages, async function( err, jarrMessages, joGlueResult ) {
+            await fn_sign_messages( messages, nIdxCurrentMsgBlockStart, async function( err, jarrMessages, joGlueResult ) {
                 if( err ) {
                     bErrorInSigningMessages = true;
                     if ( verbose_get() >= RV_VERBOSE.fatal )
