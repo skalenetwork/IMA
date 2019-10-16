@@ -34,7 +34,7 @@ async function deploy(deployer, network) {
         process.exit(1);
     }
     let schainName = process.env.SCHAIN_NAME;
-    await deployer.deploy(MessageProxy, schainName, {gas: gasLimit}).then(async function() {
+    await deployer.deploy(MessageProxy, schainName, "0x0000000000000000000000000000000000000000", {gas: gasLimit}).then(async function() {
         return await deployer.deploy(LockAndDataForSchain, {gas: gasLimit});
     }).then(async function(inst) {
         await deployer.deploy(TokenManager, schainName, MessageProxy.address, inst.address, {gas: gasLimit * gasMultiplier});
