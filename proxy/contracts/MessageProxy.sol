@@ -269,7 +269,6 @@ contract MessageProxy {
         external
     {
         require(authorizedCaller[msg.sender], "Not authorized caller");
-        // bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(connectedChains[keccak256(abi.encodePacked(srcChainID))].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter,

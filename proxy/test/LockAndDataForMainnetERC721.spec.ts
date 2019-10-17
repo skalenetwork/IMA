@@ -32,6 +32,8 @@ const LockAndDataForMainnetERC721: LockAndDataForMainnetERC721Contract =
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 
+const contractManager = "0x0000000000000000000000000000000000000000";
+
 contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
@@ -41,7 +43,7 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
   let eRC721OnChain: ERC721OnChainInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnetERC721 =
