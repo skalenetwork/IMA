@@ -94,7 +94,7 @@ Fifth, try rebuild all the contracts once to ensure everything initialized OK:
 
     cd $IMA_ROOT/proxy
     rm -rf ./build
-    truffle complile
+    truffle compile
 
 ### Contracts pre-installation on Mainnet and SKALE Chain
 

@@ -1141,7 +1141,7 @@ async function do_transfer(
     fn_sign_messages
 ) {
     let bErrorInSigningMessages = false;
-    fn_sign_messages = fn_sign_messages || async function( jarrMessages, fnAfter ) {
+    fn_sign_messages = fn_sign_messages || async function( jarrMessages, nIdxCurrentMsgBlockStart, fnAfter ) {
         await fnAfter( null, jarrMessages, null ); // null - no error, null - no signatures
     };
     nTransactionsCountInBlock = nTransactionsCountInBlock || 5;
@@ -1331,11 +1331,6 @@ async function do_transfer(
                         log.write( cc.fatal( "Error signing messages: " ) + cc.error( err ) + "\n" );
                     return;
                 }
-                let X = null, Y = null;
-                if( joGlueResult ) {
-                    X = joGlueResult.signature.X;
-                    Y = joGlueResult.signature.Y;
-                }
                 strActionName = "dst-chain.getTransactionCount()";
                 let tcnt = await w3_dst.eth.getTransactionCount( joAccountDst.address( w3_dst ), null );
                 if ( verbose_get() >= RV_VERBOSE.debug )
@@ -1351,12 +1346,27 @@ async function do_transfer(
                         cc.debug( ", " ) + cc.notice( "message counters =" ) + cc.debug( " are " ) + cc.info( JSON.stringify( arrMessageCounters ) ) +
                         cc.debug( "..." ) + "\n"
                     );
+                //
+                // TO DO: convert joGlueResult.hashSrc into G1 point
+                //
+                let signature = joGlueResult ? joGlueResult.signature : null;
+                if( ! signature )
+                    signature = { "X": "0", "Y": "0" };
+                let hashPoint = joGlueResult ? joGlueResult.hashPoint : null;
+                if( ! hashPoint )
+                    hashPoint = { "X": "0", "Y": "0" };
+                let hint = joGlueResult ? joGlueResult.hint : null;
+                if( ! hint )
+                    hint = "0";
                 let dataTx = jo_message_proxy_dst.methods.postIncomingMessages(
                     // call params
                     chain_id_src,
                     nIdxCurrentMsgBlockStart,
-                    jarrMessages // messages
-                    // , X, Y // BLS glue of signatures
+                    jarrMessages, // messages
+                    [ signature.X, signature.Y ], // BLS glue of signatures
+                    hashPoint.X, // G1.X from joGlueResult.hashSrc
+                    hashPoint.Y, // G1.Y from joGlueResult.hashSrc
+                    hint
                 ).encodeABI(); // the encoded ABI of the method
                 //
                 if ( verbose_get() >= RV_VERBOSE.trace ) {
@@ -1364,8 +1374,11 @@ async function do_transfer(
                         chain_id_src,
                         chain_id_dst,
                         nIdxCurrentMsgBlockStart,
-                        jarrMessages // messages
-                        // , joGlueResult.signature.X, joGlueResult.signature.Y // BLS glue of signatures
+                        jarrMessages, // messages
+                        [ signature.X, signature.Y ], // BLS glue of signatures
+                        hashPoint.X, // G1.X from joGlueResult.hashSrc
+                        hashPoint.Y, // G1.Y from joGlueResult.hashSrc
+                        hint
                     ];
                     log.write(
                         cc.debug( "....debug args for " ) +

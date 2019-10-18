@@ -2209,6 +2209,29 @@ function alloc_tmp_action_dir() {
     return strActionDir;
 }
 
+function find_G1_hashPoint( arrSignResults ) {
+    let i, cnt = arrSignResults.length;
+    for( i = 0; i < cnt; ++ i ) {
+        let joSignResult = arrSignResults[ i ].signResult;
+console.log( "-------------- reviewing sign result ", joSignResult );
+        if( "hashPoint" in joSignResult && joSignResult.hashPoint && typeof joSignResult.hashPoint == "object"
+            && "X" in joSignResult.hashPoint
+            && "Y" in joSignResult.hashPoint
+            )
+            return joSignResult.hashPoint;
+    }
+    return { "X": "0", "Y": "0" };
+}
+function find_G1_hint( arrSignResults ) {
+    let i, cnt = arrSignResults.length;
+    for( i = 0; i < cnt; ++ i ) {
+        let joSignResult = arrSignResults[ i ].signResult;
+        if( "hint" in joSignResult )
+            return joSignResult.hint;
+    }
+    return "0";
+}
+
 function perform_bls_glue( jarrMessages, arrSignResults ) {
     let joGlueResult = null;
     let jarrNodes = g_joSChainNetworkInfo.network;
@@ -2229,6 +2252,12 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
     };
     let strOutput = "";
     try {
+        let hashPoint = find_G1_hashPoint( arrSignResults );
+        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+           log.write( cc.debug( "Found ") + cc.info("G1 point") + cc.debug( " is ") + cc.j(hashPoint) + "\n" );
+        let hint = find_G1_hint( arrSignResults );
+        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+           log.write( cc.debug( "Found ") + cc.info("G1 hint") + cc.debug( " is ") + cc.info(hint) + "\n" );
         shell.cd( strActionDir );
         let strInput = "";
         let i = 0, cnt = arrSignResults.length;
@@ -2257,6 +2286,9 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
         if ( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) {
             //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
                  log.write( cc.success( "BLS glue success" )  + "\n" );
+            joGlueResult.hashSrc = strSummaryMessage;
+            joGlueResult.hashPoint = hashPoint;
+            joGlueResult.hint = hint;
         } else {
             joGlueResult = null;
             throw "malformed BLS glue result";
@@ -2409,7 +2441,8 @@ async function do_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, fn ) {
                         arrSignResults.push( {
                             "index": "" + nZeroBasedNodeIndex,
                             "signature": split_signature_share( joOut.result.signResult.signatureShare ),
-                            "fromNode": joNode // extra, not needed for bls_glue
+                            "fromNode": joNode, // extra, not needed for bls_glue
+                            "signResult": joOut.result.signResult
                         } );
                     }
                 } catch( err ) {
