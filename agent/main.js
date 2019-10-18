@@ -1659,34 +1659,6 @@ if ( g_bShowConfigMode ) {
     return true;
 }
 
-
-
-// console.log( hexToBytes("0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F") );
-// console.log( bytesToHex( hexToBytes("0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F") ) );
-// return;
-
-
-// let joMessage =
-// {
-//     "amount": "1000000000000000000",
-//     "data": "0x01",
-//     "destinationContract": "0x88a5eDcf315599Ade5b6b4cC0991A23Bf9E88f65",
-//     "sender": "0xc2fe505C79C82bb8CEf48709816480ff6E1E0379",
-//     "to": "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F"
-// };
-// // {
-// //     "amount": "1000000000000000000",
-// //     "data": "0x01",
-// //     "destinationContract": "0x88a5eDcf315599Ade5b6b4cC0991A23Bf9E88f65",
-// //     "sender": "0xc2fe505C79C82bb8CEf48709816480ff6E1E0379",
-// //     "to": "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F"
-// // };
-// console.log( joMessage );
-// console.log( compose_one_message_byte_sequence( joMessage ).length );
-// console.log( compose_one_message_byte_sequence( joMessage ) );
-// console.log( bytesToHex( compose_one_message_byte_sequence( joMessage ) ) );
-// return;
-
 async function discover_s_chain_network( fnAfter ) {
     fnAfter = fnAfter || function() {};
     let joSChainNetworkInfo = null;
@@ -2081,13 +2053,10 @@ function hexToBytes( strHex, isInversiveOrder ) { // convert a hex string to a b
         strHex = strHex.substr( 2, strHex.length - 2 );
     if( ( strHex.length & 1 ) != 0 )
         strHex = "0" + strHex;
-//console.log( "    ", "strHex", " txt--> ", strHex );
     let i, j, cnt = strHex.length;
     let arrBytes = new Uint8Array( cnt/2 );
     for( i = 0, j = 0; i < cnt; ++ j, i += 2 )
         arrBytes[ isInversiveOrder ? ( cnt - j - 1 ) : j ] = parseInt( strHex.substr( i, 2 ), 16 );
-//console.log( "    ", strHex, " --> ", bytesToHex(arrBytes) );
-//console.log( "    ", strHex, " --> ", arrBytes.join(" ") );
     return arrBytes;
 }
 function bytesToHex( arrBytes, isInversiveOrder ) { // convert a byte array to a hex string
@@ -2172,32 +2141,32 @@ function compose_one_message_byte_sequence( joMessage ) {
     let arrBytes = new Uint8Array();
 
     let bytesSender = hexToBytes( joMessage.sender );
+    bytesSender = invertArrayItemsLR( bytesSender );
     bytesSender = bytesAlighLeftWithZeroes( bytesSender, 32 )
     bytesSender = invertArrayItemsLR( bytesSender );
     arrBytes = bytesConcat( arrBytes, bytesSender );
     //
     let bytesDestinationContract = hexToBytes( joMessage.destinationContract );
+    bytesDestinationContract = invertArrayItemsLR( bytesDestinationContract );
     bytesDestinationContract = bytesAlighLeftWithZeroes( bytesDestinationContract, 32 )
     bytesDestinationContract = invertArrayItemsLR( bytesDestinationContract );
     arrBytes = bytesConcat( arrBytes, bytesDestinationContract );
     //
     let bytesTo = hexToBytes( joMessage.to );
+    bytesTo = invertArrayItemsLR( bytesTo );
     bytesTo = bytesAlighLeftWithZeroes( bytesTo, 32 )
     bytesTo = invertArrayItemsLR( bytesTo );
     arrBytes = bytesConcat( arrBytes, bytesTo );
     //
     let strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString(16);
-console.log( "strHexAmount", strHexAmount );
     let bytesAmount = hexToBytes( strHexAmount );
-console.log( "bytesAmount1", bytesToHex(bytesAmount) );
-    bytesAmount = invertArrayItemsLR( bytesAmount );
-console.log( "bytesAmount2", bytesToHex(bytesAmount) );
-    bytesAmount = bytesAlighRightWithZeroes( bytesAmount, 32 )
+    //bytesAmount = invertArrayItemsLR( bytesAmount );
+    bytesAmount = bytesAlighLeftWithZeroes( bytesAmount, 32 )
     arrBytes = bytesConcat( arrBytes, bytesAmount );
     //
     let bytesData = hexToBytes( joMessage.data );
-    arrBytes = bytesConcat( arrBytes, bytesData );
     bytesData = invertArrayItemsLR( bytesData );
+    arrBytes = bytesConcat( arrBytes, bytesData );
     //
     return arrBytes;
 }
