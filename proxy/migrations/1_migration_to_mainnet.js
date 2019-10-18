@@ -19,7 +19,7 @@ let gasLimit = 8000000;
 
 async function deploy(deployer, network) {
 
-    await deployer.deploy(MessageProxy, "Mainnet", {gas: gasLimit}).then(async function() {
+    await deployer.deploy(MessageProxy, "Mainnet", "0x0000000000000000000000000000000000000000", {gas: gasLimit}).then(async function() {
         return await deployer.deploy(LockAndDataForMainnet, {gas: gasLimit});
     }).then(async function(inst) {
         await deployer.deploy(DepositBox, MessageProxy.address, inst.address, {gas: gasLimit * gasMultiplier});

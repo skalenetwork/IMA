@@ -18,13 +18,15 @@ const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 
+const contractManager = "0x0000000000000000000000000000000000000000";
+
 contract("LockAndDataForSchain", ([user, deployer]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let ethERC20: EthERC20Instance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     ethERC20 = await EthERC20.new({from: deployer, gas: 8000000 * gasMultiplier});
   });

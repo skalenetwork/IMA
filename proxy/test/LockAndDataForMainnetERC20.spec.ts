@@ -32,6 +32,8 @@ const LockAndDataForMainnetERC20: LockAndDataForMainnetERC20Contract =
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 
+const contractManager = "0x0000000000000000000000000000000000000000";
+
 contract("LockAndDataForMainnetERC20", ([deployer, user, invoker]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
@@ -41,7 +43,7 @@ contract("LockAndDataForMainnetERC20", ([deployer, user, invoker]) => {
   let tokenFactory: TokenFactoryInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnetERC20 =
