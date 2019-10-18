@@ -2217,6 +2217,8 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
     //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
        log.write( cc.debug( "Original long message is ") + cc.info( compose_summary_message_to_sign( jarrMessages, false ) ) + "\n" );
     let strSummaryMessage = compose_summary_message_to_sign( jarrMessages, true );
+    //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+       log.write( cc.debug( "Message hasn to sign is ") + cc.info( strSummaryMessage ) + "\n" );
     let strPWD = shell.pwd();
     let strActionDir = alloc_tmp_action_dir();
     //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
