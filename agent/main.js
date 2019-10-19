@@ -39,6 +39,7 @@ let g_bIsNeededCommonInit = true;
 let g_bSignMessages = false; // use BLS message signing, turned on with --sign-messages
 let g_joSChainNetworkInfo = null; // scanned S-Chain network description
 let g_strPathBlsGlue = ""; // path to bls_glue app, nust have if --sign-messages specified
+let g_strPathHashG1 = ""; // path to hash_g1 app, nust have if --sign-messages specified
 let g_strPathBlsVerify = ""; // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
 
 // TO-DO: the next ABI JSON should contain main-net only contract info - S-chain contract addresses must be downloaded from S-chain
@@ -385,7 +386,8 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "................." ) + cc.notice( "Sign transferred messages." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "bls-glue" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "................." ) + cc.notice( "Specifies path to " ) + cc.note( "bls_glue" ) + cc.note( " application" ) + cc.notice( "." ) );
-        console.log( soi + cc.debug( "--" ) + cc.bright( "bls-verify" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "..............." ) + cc.notice( "Specifies path to " ) + cc.note( "verify_bls" ) + cc.note( " application" ) + cc.notice( "." ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "hash-g1" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( ".................." ) + cc.notice( "Specifies path to " ) + cc.note( "hash_g1" ) + cc.note( " application" ) + cc.notice( "." ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "bls-verify" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "..............." ) + cc.notice( "Optional parameter, specifies path to " ) + cc.note( "verify_bls" ) + cc.note( " application" ) + cc.notice( "." ) );
         console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
         console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
@@ -971,6 +973,11 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
     if ( joArg.name == "bls-glue" ) {
         veryify_arg_path_to_existing_file( joArg );
         g_strPathBlsGlue = "" + joArg.value;
+        continue;
+    }
+    if ( joArg.name == "hash-g1" ) {
+        veryify_arg_path_to_existing_file( joArg );
+        g_strPathHashG1 = "" + joArg.value;
         continue;
     }
     if ( joArg.name == "bls-verify" ) {
@@ -1774,6 +1781,10 @@ if( g_bSignMessages ) {
         log.write( cc.fatal( "FATAL" ) + cc.error( " please specify --bls-glue parameter." ) + "\n" );
         process.exit( 666 );
     }
+    if( g_strPathHashG1.length == 0 ) {
+        log.write( cc.fatal( "FATAL" ) + cc.error( " please specify --hash-g1 parameter." ) + "\n" );
+        process.exit( 666 );
+    }
     discover_s_chain_network( function( err, joSChainNetworkInfo ) {
         if( err )
             process.exit( 1 ); // error information is printed by discover_s_chain_network()
@@ -2209,29 +2220,6 @@ function alloc_tmp_action_dir() {
     return strActionDir;
 }
 
-function find_G1_hashPoint( arrSignResults ) {
-    let i, cnt = arrSignResults.length;
-    for( i = 0; i < cnt; ++ i ) {
-        let joSignResult = arrSignResults[ i ].signResult;
-console.log( "-------------- reviewing sign result ", joSignResult );
-        if( "hashPoint" in joSignResult && joSignResult.hashPoint && typeof joSignResult.hashPoint == "object"
-            && "X" in joSignResult.hashPoint
-            && "Y" in joSignResult.hashPoint
-            )
-            return joSignResult.hashPoint;
-    }
-    return { "X": "0", "Y": "0" };
-}
-function find_G1_hint( arrSignResults ) {
-    let i, cnt = arrSignResults.length;
-    for( i = 0; i < cnt; ++ i ) {
-        let joSignResult = arrSignResults[ i ].signResult;
-        if( "hint" in joSignResult )
-            return joSignResult.hint;
-    }
-    return "0";
-}
-
 function perform_bls_glue( jarrMessages, arrSignResults ) {
     let joGlueResult = null;
     let jarrNodes = g_joSChainNetworkInfo.network;
@@ -2252,12 +2240,6 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
     };
     let strOutput = "";
     try {
-        let hashPoint = find_G1_hashPoint( arrSignResults );
-        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-           log.write( cc.debug( "Found ") + cc.info("G1 point") + cc.debug( " is ") + cc.j(hashPoint) + "\n" );
-        let hint = find_G1_hint( arrSignResults );
-        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-           log.write( cc.debug( "Found ") + cc.info("G1 hint") + cc.debug( " is ") + cc.info(hint) + "\n" );
         shell.cd( strActionDir );
         let strInput = "";
         let i = 0, cnt = arrSignResults.length;
@@ -2265,7 +2247,7 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
             let jo = arrSignResults[ i ];
             let strPath = strActionDir + "/sign-result" + jo.index + ".json";
             if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-            log.write( cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug(" file..." ) + "\n" );
+                log.write( cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug(" file..." ) + "\n" );
             jsonFileSave( strPath, jo );
             strInput += " --input " + strPath;
         }
@@ -2275,7 +2257,7 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
             " --n " + nParticipants +
             strInput +
             " --output " + strActionDir + "/glue-result.json";
-            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
             log.write( cc.normal( "Will execute BLS glue command:\n" ) + cc.notice( strGlueCommand ) + "\n" );
         strOutput = child_process.execSync( strGlueCommand );
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
@@ -2285,10 +2267,40 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
             log.write( cc.normal( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
         if ( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) {
             //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-                 log.write( cc.success( "BLS glue success" )  + "\n" );
+            log.write( cc.success( "BLS glue success" )  + "\n" );
             joGlueResult.hashSrc = strSummaryMessage;
-            joGlueResult.hashPoint = hashPoint;
-            joGlueResult.hint = hint;
+            //
+            //
+            //
+            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( cc.debug( "Computing " ) + cc.info("G1") + cc.debug(" hash point...") + "\n" );
+            let strPath = strActionDir + "/hash.json";
+            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug(" file..." ) + "\n" );
+            jsonFileSave( strPath, { "message": strSummaryMessage } );
+            let strHasG1Command =
+                g_strPathHashG1 +
+                " --t " + nThreshold +
+                " --n " + nParticipants;
+            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( cc.normal( "Will execute HashG1 command:\n" ) + cc.notice( strHasG1Command ) + "\n" );
+            strOutput = child_process.execSync( strHasG1Command );
+            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( cc.normal( "HashG1 output is:\n" ) + cc.notice( strOutput ) + "\n" );
+            let joResultHashG1 = jsonFileLoad( strActionDir + "/g1.json" );
+            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( cc.normal( "HashG1 result is: " ) + cc.j( joResultHashG1 ) + "\n" );
+            //
+            //
+            //
+            if ( "g1" in joResultHashG1 && "hint" in joResultHashG1.g1 && "hashPoint" in joResultHashG1.g1
+                && "X" in joResultHashG1.g1.hashPoint && "Y" in joResultHashG1.g1.hashPoint ) {
+                joGlueResult.hashPoint = joResultHashG1.g1.hashPoint;
+                joGlueResult.hint = joResultHashG1.g1.hint;
+            } else {
+                joGlueResult = null;
+                throw "malformed HashG1 result";
+            }
         } else {
             joGlueResult = null;
             throw "malformed BLS glue result";
