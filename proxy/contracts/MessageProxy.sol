@@ -276,24 +276,24 @@ contract MessageProxy {
 
         // TODO: Calculate hash and verify BLS signature on hash
 
-        // if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
-        //     Message[] memory input = new Message[](messages.length);
-        //     for (uint i = 0; i < messages.length; i++) {
-        //         input[i].sender = messages[i].sender;
-        //         input[i].destinationContract = messages[i].destinationContract;
-        //         input[i].to = messages[i].to;
-        //         input[i].amount = messages[i].amount;
-        //         input[i].data = messages[i].data;
-        //     }
-        //     verifyMessageSignature(
-        //         blsSignature,
-        //         hashedArray(input),
-        //         counter,
-        //         hashA,
-        //         hashB,
-        //         srcChainID
-        //     );
-        // }
+        if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
+            Message[] memory input = new Message[](messages.length);
+            for (uint i = 0; i < messages.length; i++) {
+                input[i].sender = messages[i].sender;
+                input[i].destinationContract = messages[i].destinationContract;
+                input[i].to = messages[i].to;
+                input[i].amount = messages[i].amount;
+                input[i].data = messages[i].data;
+            }
+            verifyMessageSignature(
+                blsSignature,
+                hashedArray(input),
+                counter,
+                hashA,
+                hashB,
+                srcChainID
+            );
+        }
 
         for (uint i = 0; i < messages.length; i++) {
             ContractReceiver(messages[i].destinationContract).postMessage(

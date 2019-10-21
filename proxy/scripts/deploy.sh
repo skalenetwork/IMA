@@ -41,6 +41,6 @@ elif [ "${DIRECTION}" = both ]; then
     fi
     echo "NETWORK_FOR_MAINNET is" ${NETWORK_FOR_MAINNET}
     echo "NETWORK_FOR_SCHAIN is" ${NETWORK_FOR_SCHAIN}
-    truffle deploy --f 1 --to 1 --network ${NETWORK_FOR_MAINNET} || exit $?
-    truffle deploy --f 2 --to 2 --network ${NETWORK_FOR_SCHAIN} || exit $?
+    ./node_modules/.bin/truffle deploy --f 1 --to 1 --network ${NETWORK_FOR_MAINNET} || exit $?
+    ./node_modules/.bin/truffle deploy --f 2 --to 2 --network ${NETWORK_FOR_SCHAIN} || exit $?
 fi
