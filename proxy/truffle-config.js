@@ -15,24 +15,6 @@ let mnemonicForSchain = process.env.MNEMONIC_FOR_SCHAIN;
 let accountForMainnet = process.env.ACCOUNT_FOR_MAINNET;
 let accountForSchain = process.env.ACCOUNT_FOR_SCHAIN;
 
-// mnemonicForMainnet = privateKeyForMainnet;
-// mnemonicForSchain = privateKeyForSchain;
-
-console.log( "privateKeyForMainnet = ", privateKeyForMainnet );
-console.log( "privateKeyForSchain  = ", privateKeyForSchain );
-console.log( "\n" );
-console.log( "mnemonicForMainnet   = ", mnemonicForMainnet );
-console.log( "mnemonicForSchain    = ", mnemonicForSchain);
-console.log( "\n" );
-console.log( "accountForMainnet    = ", accountForMainnet );
-console.log( "accountForSchain     = ", accountForSchain );
-console.log( "\n" );
-
-if( mnemonicForMainnet != privateKeyForMainnet )
-    console.log( "    Notice: mnemonicForMainnet and privateKeyForMainnet are different.\n" );
-if( mnemonicForSchain != privateKeyForSchain )
-    console.log( "    Notice: mnemonicForSchain and privateKeyForSchain are different.\n" );
-
 module.exports = {
     test_file_extension_regexp: /.*\.ts$/,
 

@@ -11,6 +11,7 @@
     "generate": "truffle compile && typechain --target truffle './build/**/*.json'",
     "lint": "npx solium --dir contracts",
     "prepare": "yarn generate",
+    "skale-manager-integration": "bash ./scripts/prepare.sh",
     "test": "truffle test && yarn tsc",
     "tsc": "tsc --noEmit",
     "tslint": "npx tslint --project ."
