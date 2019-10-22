@@ -40,6 +40,8 @@ class Config:
             self.schain_name = config_json['SCHAIN_NAME']
         if 'user_key' in config_json:
             self.user_key = config_json['user_key']
+        if 'TEST_MODE' in config_json:
+            self.test_mode = config_json['TEST_MODE']
 
         self.abi_mainnet = self.proxy_root + '/' + self.abi_mainnet
         self.abi_schain = self.proxy_root + '/' + self.abi_schain + self.schain_name + '.json'
