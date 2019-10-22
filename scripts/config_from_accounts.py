@@ -13,7 +13,8 @@ def main():
         accounts = json.load(accounts_file)
         addresses = list(accounts['private_keys'].keys())
         config = {'ETH_PRIVATE_KEY_FOR_MAINNET': accounts['private_keys'][addresses[0]],
-                  'ETH_PRIVATE_KEY_FOR_SCHAIN': accounts['private_keys'][addresses[1]]}
+                  'ETH_PRIVATE_KEY_FOR_SCHAIN': accounts['private_keys'][addresses[1]],
+                  'TEST_MODE': "True"}
         with open(config_filename, 'w') as config_file:
             json.dump(config, config_file)
 

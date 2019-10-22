@@ -26,8 +26,9 @@ async function deploy(deployer, network) {
     if (process.env.TEST_MODE == "True") {
         await deployer.deploy(ContractManager, {gas: gasLimit}).then(async function(instCM) {
             await deployer.deploy(SkaleVerifier, {gas: gasLimit});
-            inst.setContractsAddress("SkaleVerifier", SkaleVerifier.address);
+            instCM.setContractsAddress("SkaleVerifier", SkaleVerifier.address);
         });
+        contractManagerAddress = ContractManager.address;
     }
 
     await deployer.deploy(MessageProxy, "Mainnet", contractManagerAddress, {gas: gasLimit}).then(async function() {
