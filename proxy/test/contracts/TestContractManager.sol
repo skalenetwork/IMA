@@ -1,5 +1,6 @@
 pragma solidity ^0.5.0;
 
+
 contract ContractManager {
 
     // mapping of actual smart contracts addresses
