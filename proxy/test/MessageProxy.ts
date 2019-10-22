@@ -3,6 +3,8 @@ import * as chaiAsPromised from "chai-as-promised";
 
 import chai = require("chai");
 import {
+    ContractManagerContract,
+    ContractManagerInstance,
     LockAndDataForMainnetContract,
     LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
@@ -11,6 +13,8 @@ import {
     MessageProxyInstance,
     TokenManagerContract,
     TokenManagerInstance,
+    SkaleVerifierContract,
+    SkaleVerifierInstance
 } from "../types/truffle-contracts";
 import { gasMultiplier } from "./utils/command_line";
 import { randomString } from "./utils/helper";
@@ -22,8 +26,8 @@ const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
-
-const contractManager = "0x0000000000000000000000000000000000000000";
+const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
+const SkaleVerifier: SkaleVerifierContract = artifacts.require("./SkaleVerifier");
 
 contract("MessageProxy", ([user, deployer, client, customer]) => {
     let messageProxy: MessageProxyInstance;
@@ -31,6 +35,8 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
     let tokenManager2: TokenManagerInstance;
     let lockAndDataForMainnet: LockAndDataForMainnetInstance;
     let lockAndDataForSchain: LockAndDataForSchainInstance;
+    let contractManager: ContractManagerInstance;
+    let skaleVerifier: SkaleVerifierInstance;
 
     const publicKeyArray = [
         "1122334455667788990011223344556677889900112233445566778899001122",
@@ -50,7 +56,13 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
 
     describe("MessageProxy for mainnet", async () => {
         beforeEach(async () => {
-            messageProxy = await MessageProxy.new("Mainnet", contractManager,
+            contractManager = await ContractManager.new({from: deployer, gas: 8000000 * gasMultiplier});
+            skaleVerifier = await SkaleVerifier.new({from: deployer, gas: 8000000 * gasMultiplier});
+            await contractManager.setContractsAddress(
+                "SkaleVerifier",
+                skaleVerifier.address,
+            );
+            messageProxy = await MessageProxy.new("Mainnet", contractManager.address,
                 {from: deployer, gas: 8000000 * gasMultiplier});
             lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
         });
@@ -117,59 +129,59 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
         });
 
-        // it("should post incoming messages", async () => {
-        //     const chainID = randomString(10);
-        //     tokenManager1 = await TokenManager.new(chainID, messageProxy.address,
-        //         lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
-        //     tokenManager2 = await TokenManager.new(chainID, messageProxy.address,
-        //         lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
-        //     const startingCounter = 0;
+        it("should post incoming messages", async () => {
+            const chainID = randomString(10);
+            tokenManager1 = await TokenManager.new(chainID, messageProxy.address,
+                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+            tokenManager2 = await TokenManager.new(chainID, messageProxy.address,
+                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+            const startingCounter = 0;
 
-        //     const message1 = {
-        //         amount: 3,
-        //         data: "0x11",
-        //         destinationContract: tokenManager1.address,
-        //         sender: deployer,
-        //         to: client};
+            const message1 = {
+                amount: 3,
+                data: "0x11",
+                destinationContract: tokenManager1.address,
+                sender: deployer,
+                to: client};
 
-        //     const message2 = {
-        //         amount: 7,
-        //         data: "0x22",
-        //         destinationContract: tokenManager2.address,
-        //         sender: user,
-        //         to: customer};
+            const message2 = {
+                amount: 7,
+                data: "0x22",
+                destinationContract: tokenManager2.address,
+                sender: user,
+                to: customer};
 
-        //     const messages = [message1, message2];
+            const messages = [message1, message2];
 
-        //     // chain should be inited:
-        //     await messageProxy
-        //         .postIncomingMessages(
-        //             chainID,
-        //             startingCounter,
-        //             messages,
-        //             blsSignature,
-        //             hashA,
-        //             hashB,
-        //             counter,
-        //             {from: deployer},
-        //         ).should.be.rejected;
+            // chain should be inited:
+            await messageProxy
+                .postIncomingMessages(
+                    chainID,
+                    startingCounter,
+                    messages,
+                    blsSignature,
+                    hashA,
+                    hashB,
+                    counter,
+                    {from: deployer},
+                ).should.be.rejected;
 
-        //     await messageProxy.addConnectedChain(chainID, publicKeyArray, {from: deployer});
+            await messageProxy.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
-        //     await messageProxy
-        //     .postIncomingMessages(
-        //         chainID,
-        //         startingCounter,
-        //         messages,
-        //         blsSignature,
-        //         hashA,
-        //         hashB,
-        //         counter,
-        //         {from: deployer},
-        //     );
-        //     const incomingMessagesCounter = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
-        //     incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
-        // });
+            await messageProxy
+            .postIncomingMessages(
+                chainID,
+                startingCounter,
+                messages,
+                blsSignature,
+                hashA,
+                hashB,
+                counter,
+                {from: deployer},
+            );
+            const incomingMessagesCounter = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
+            incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
+        });
 
         it("should get outgoing messages counter", async () => {
             const chainID = randomString(10);
@@ -193,55 +205,55 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
         });
 
-        // it("should get incoming messages counter", async () => {
-        //     const chainID = randomString(10);
-        //     tokenManager1 = await TokenManager.new(chainID, messageProxy.address,
-        //         lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
-        //     tokenManager2 = await TokenManager.new(chainID, messageProxy.address,
-        //         lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
-        //     const startingCounter = 0;
-        //     const message1 = {
-        //         amount: 3,
-        //         data: "0x11",
-        //         destinationContract: tokenManager1.address,
-        //         sender: deployer,
-        //         to: client};
-        //     const message2 = {
-        //         amount: 7,
-        //         data: "0x22",
-        //         destinationContract: tokenManager2.address,
-        //         sender: user,
-        //         to: customer};
-        //     const messages = [message1, message2];
+        it("should get incoming messages counter", async () => {
+            const chainID = randomString(10);
+            tokenManager1 = await TokenManager.new(chainID, messageProxy.address,
+                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+            tokenManager2 = await TokenManager.new(chainID, messageProxy.address,
+                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+            const startingCounter = 0;
+            const message1 = {
+                amount: 3,
+                data: "0x11",
+                destinationContract: tokenManager1.address,
+                sender: deployer,
+                to: client};
+            const message2 = {
+                amount: 7,
+                data: "0x22",
+                destinationContract: tokenManager2.address,
+                sender: user,
+                to: customer};
+            const messages = [message1, message2];
 
-        //     // chain should be inited:
-        //     await messageProxy.getIncomingMessagesCounter(chainID).should.be.rejected;
+            // chain should be inited:
+            await messageProxy.getIncomingMessagesCounter(chainID).should.be.rejected;
 
-        //     await messageProxy.addConnectedChain(chainID, publicKeyArray, {from: deployer});
+            await messageProxy.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
-        //     const incomingMessagesCounter0 = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
-        //     incomingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
+            const incomingMessagesCounter0 = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
+            incomingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
-        //     await messageProxy
-        //     .postIncomingMessages(
-        //         chainID,
-        //         startingCounter,
-        //         messages,
-        //         blsSignature,
-        //         hashA,
-        //         hashB,
-        //         counter,
-        //         {from: deployer},
-        //     );
-        //     const incomingMessagesCounter = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
-        //     incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
-        // });
+            await messageProxy
+            .postIncomingMessages(
+                chainID,
+                startingCounter,
+                messages,
+                blsSignature,
+                hashA,
+                hashB,
+                counter,
+                {from: deployer},
+            );
+            const incomingMessagesCounter = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
+            incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
+        });
 
     });
 
     describe("MessageProxy for schain", async () => {
         beforeEach(async () => {
-            messageProxy = await MessageProxy.new("MyChain", contractManager,
+            messageProxy = await MessageProxy.new("MyChain", contractManager.address,
                 {from: deployer, gas: 8000000 * gasMultiplier});
             lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
         });
