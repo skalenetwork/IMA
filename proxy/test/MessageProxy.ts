@@ -11,10 +11,10 @@ import {
     LockAndDataForSchainInstance,
     MessageProxyContract,
     MessageProxyInstance,
+    SkaleVerifierContract,
+    SkaleVerifierInstance,
     TokenManagerContract,
     TokenManagerInstance,
-    SkaleVerifierContract,
-    SkaleVerifierInstance
 } from "../types/truffle-contracts";
 import { gasMultiplier } from "./utils/command_line";
 import { randomString } from "./utils/helper";

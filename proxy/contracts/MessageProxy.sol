@@ -285,14 +285,16 @@ contract MessageProxy {
                 input[i].amount = messages[i].amount;
                 input[i].data = messages[i].data;
             }
-            require(verifyMessageSignature(
-                blsSignature,
-                hashedArray(input),
-                counter,
-                hashA,
-                hashB,
-                srcChainID
-            ), "Signature is not verified");
+            require(
+                verifyMessageSignature(
+                    blsSignature,
+                    hashedArray(input),
+                    counter,
+                    hashA,
+                    hashB,
+                    srcChainID
+                ), "Signature is not verified"
+            );
         }
 
         for (uint i = 0; i < messages.length; i++) {
@@ -335,7 +337,7 @@ contract MessageProxy {
         // );
     }
 
-    function hashedArray(Message[] memory messages) public pure returns (bytes32) {
+    function hashedArray(Message[] memory messages) internal pure returns (bytes32) {
         bytes memory data;
         for (uint i = 0; i < messages.length; i++) {
             data = abi.encodePacked(
