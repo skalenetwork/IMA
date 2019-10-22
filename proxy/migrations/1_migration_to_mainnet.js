@@ -14,8 +14,8 @@ let ERC20ModuleForMainnet = artifacts.require("./ERC20ModuleForMainnet.sol");
 let LockAndDataForMainnetERC20 = artifacts.require("./LockAndDataForMainnetERC20.sol");
 let ERC721ModuleForMainnet = artifacts.require("./ERC721ModuleForMainnet.sol");
 let LockAndDataForMainnetERC721 = artifacts.require("./LockAndDataForMainnetERC721.sol");
-let ContractManager = artifacts.require("./ContractManager");
-let SkaleVerifier = artifacts.require("./SkaleVerifier");
+// let ContractManager = artifacts.require("./ContractManager");
+// let SkaleVerifier = artifacts.require("./SkaleVerifier");
 
 let gasLimit = 8000000;
 
@@ -23,13 +23,17 @@ let contractManagerAddress = (process.env.CONTRACT_MANAGER_ADDRESS == "" || proc
 
 async function deploy(deployer, network) {
 
-    if (process.env.TEST_MODE == "True") {
-        await deployer.deploy(ContractManager, {gas: gasLimit}).then(async function(instCM) {
-            await deployer.deploy(SkaleVerifier, {gas: gasLimit});
-            instCM.setContractsAddress("SkaleVerifier", SkaleVerifier.address);
-        });
-        contractManagerAddress = ContractManager.address;
-    }
+    // if (process.env.TEST_MODE == "True") {
+    //     await deployer.deploy(ContractManager, {gas: gasLimit}).then(async function(instCM) {
+    //         await deployer.deploy(SkaleVerifier, {gas: gasLimit});
+    //         instCM.setContractsAddress("SkaleVerifier", SkaleVerifier.address);
+    //     });
+    //     contractManagerAddress = ContractManager.address;
+    // }
+
+    // if (network == "coverage") {
+
+    // }
 
     await deployer.deploy(MessageProxy, "Mainnet", contractManagerAddress, {gas: gasLimit}).then(async function() {
         return await deployer.deploy(LockAndDataForMainnet, {gas: gasLimit});

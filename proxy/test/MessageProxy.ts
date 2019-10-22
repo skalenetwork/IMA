@@ -3,16 +3,16 @@ import * as chaiAsPromised from "chai-as-promised";
 
 import chai = require("chai");
 import {
-    ContractManagerContract,
-    ContractManagerInstance,
+    // ContractManagerContract,
+    // ContractManagerInstance,
     LockAndDataForMainnetContract,
     LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainInstance,
     MessageProxyContract,
     MessageProxyInstance,
-    SkaleVerifierContract,
-    SkaleVerifierInstance,
+    // SkaleVerifierContract,
+    // SkaleVerifierInstance,
     TokenManagerContract,
     TokenManagerInstance,
 } from "../types/truffle-contracts";
@@ -26,8 +26,14 @@ const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
-const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
-const SkaleVerifier: SkaleVerifierContract = artifacts.require("./SkaleVerifier");
+// const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
+// const SkaleVerifier: SkaleVerifierContract = artifacts.require("./SkaleVerifier");
+
+let contractManagerAddress = "0x0000000000000000000000000000000000000000";
+
+if (!(process.env.CONTRACT_MANAGER_ADDRESS === "" || process.env.CONTRACT_MANAGER_ADDRESS === undefined)) {
+    contractManagerAddress = process.env.CONTRACT_MANAGER_ADDRESS;
+}
 
 contract("MessageProxy", ([user, deployer, client, customer]) => {
     let messageProxy: MessageProxyInstance;
@@ -35,8 +41,8 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
     let tokenManager2: TokenManagerInstance;
     let lockAndDataForMainnet: LockAndDataForMainnetInstance;
     let lockAndDataForSchain: LockAndDataForSchainInstance;
-    let contractManager: ContractManagerInstance;
-    let skaleVerifier: SkaleVerifierInstance;
+    // let contractManager: ContractManagerInstance;
+    // let skaleVerifier: SkaleVerifierInstance;
 
     const publicKeyArray = [
         "1122334455667788990011223344556677889900112233445566778899001122",
@@ -56,13 +62,13 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
 
     describe("MessageProxy for mainnet", async () => {
         beforeEach(async () => {
-            contractManager = await ContractManager.new({from: deployer, gas: 8000000 * gasMultiplier});
-            skaleVerifier = await SkaleVerifier.new({from: deployer, gas: 8000000 * gasMultiplier});
-            await contractManager.setContractsAddress(
-                "SkaleVerifier",
-                skaleVerifier.address,
-            );
-            messageProxy = await MessageProxy.new("Mainnet", contractManager.address,
+            // contractManager = await ContractManager.new({from: deployer, gas: 8000000 * gasMultiplier});
+            // skaleVerifier = await SkaleVerifier.new({from: deployer, gas: 8000000 * gasMultiplier});
+            // await contractManager.setContractsAddress(
+            //     "SkaleVerifier",
+            //     skaleVerifier.address,
+            // );
+            messageProxy = await MessageProxy.new("Mainnet", contractManagerAddress,
                 {from: deployer, gas: 8000000 * gasMultiplier});
             lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
         });
@@ -253,7 +259,7 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
 
     describe("MessageProxy for schain", async () => {
         beforeEach(async () => {
-            messageProxy = await MessageProxy.new("MyChain", contractManager.address,
+            messageProxy = await MessageProxy.new("MyChain", contractManagerAddress,
                 {from: deployer, gas: 8000000 * gasMultiplier});
             lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
         });

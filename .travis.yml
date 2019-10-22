@@ -59,7 +59,9 @@ jobs:
             - yarn tslint || travis_terminate 2            
             - yarn generate
             - bash ./scripts/remove.sh
+            - RUNNING_NETWORK=test bash ./scripts/prepareSkaleManagerComponents.sh
             - yarn test || travis_terminate 3
+            - RUNNING_NETWORK=coverage bash ./scripts/prepareSkaleManagerComponents.sh
 
             - cd ../test
             - python3 ../scripts/config_from_accounts.py accounts.json config.json

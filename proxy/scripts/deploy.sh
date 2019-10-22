@@ -22,6 +22,7 @@ if [ "${DIRECTION}" = main ]; then
         exit 1
     fi
     echo "NETWORK_FOR_MAINNET is" ${NETWORK_FOR_MAINNET}
+    RUNNING_NETWORK=${NETWORK_FOR_MAINNET} bash ./scripts/prepareSkaleManagerComponents.sh
     ./node_modules/.bin/truffle deploy --f 1 --to 1 --network ${NETWORK_FOR_MAINNET} || exit $?
 elif [ "${DIRECTION}" = schain ]; then
     if [[ -z "${NETWORK_FOR_SCHAIN}" ]]; then
@@ -41,6 +42,7 @@ elif [ "${DIRECTION}" = both ]; then
     fi
     echo "NETWORK_FOR_MAINNET is" ${NETWORK_FOR_MAINNET}
     echo "NETWORK_FOR_SCHAIN is" ${NETWORK_FOR_SCHAIN}
+    RUNNING_NETWORK=${NETWORK_FOR_MAINNET} bash ./scripts/prepareSkaleManagerComponents.sh
     ./node_modules/.bin/truffle deploy --f 1 --to 1 --network ${NETWORK_FOR_MAINNET} || exit $?
     ./node_modules/.bin/truffle deploy --f 2 --to 2 --network ${NETWORK_FOR_SCHAIN} || exit $?
 fi
