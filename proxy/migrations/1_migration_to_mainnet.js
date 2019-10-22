@@ -17,11 +17,11 @@ let LockAndDataForMainnetERC721 = artifacts.require("./LockAndDataForMainnetERC7
 
 let gasLimit = 8000000;
 
-let skaleVerifierAddress = (process.env.SKALE_VERIFIER_ADDRESS == "" || process.env.SKALE_VERIFIER_ADDRESS == undefined) ? "0x0000000000000000000000000000000000000000" : process.env.SKALE_VERIFIER_ADDRESS;
+let contractManagerAddress = (process.env.CONTRACT_MANAGER_ADDRESS == "" || process.env.CONTRACT_MANAGER_ADDRESS == undefined) ? "0x0000000000000000000000000000000000000000" : process.env.CONTRACT_MANAGER_ADDRESS;
 
 async function deploy(deployer, network) {
 
-    await deployer.deploy(MessageProxy, "Mainnet", skaleVerifierAddress, {gas: gasLimit}).then(async function() {
+    await deployer.deploy(MessageProxy, "Mainnet", contractManagerAddress, {gas: gasLimit}).then(async function() {
         return await deployer.deploy(LockAndDataForMainnet, {gas: gasLimit});
     }).then(async function(inst) {
         await deployer.deploy(DepositBox, MessageProxy.address, inst.address, {gas: gasLimit * gasMultiplier});

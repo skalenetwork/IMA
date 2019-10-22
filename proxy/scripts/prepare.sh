@@ -9,7 +9,7 @@ npm install &&
 #PRIVATE_KEY=${MNEMONIC_FOR_MAINNET} ENDPOINT=${MAINNET_RPC_URL} ./node_modules/.bin/truffle migrate --network unique
 ./node_modules/.bin/truffle migrate --network test
 cd data 
-export SKALE_VERIFIER_ADDRESS=$( jq .skale_verifier_address test.json )
+export CONTRACT_MANAGER_ADDRESS=$( jq .contract_manager_address test.json )
 cp test.json ../../.
 cd ../../
 rm -rf skale-manager
