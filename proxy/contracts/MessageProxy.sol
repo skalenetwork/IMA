@@ -31,7 +31,7 @@ interface ContractReceiver {
         external;
 }
 
-interface IContractManager {
+interface IContractManagerSkaleManager {
     function contracts(bytes32 contractID) external view returns(address);
 }
 
@@ -321,7 +321,7 @@ contract MessageProxy {
         view
         returns (bool)
     {
-        address skaleVerifierAddress = IContractManager(contractManagerSkaleManager).contracts(
+        address skaleVerifierAddress = IContractManagerSkaleManager(contractManagerSkaleManager).contracts(
             keccak256(abi.encodePacked("SkaleVerifier"))
         );
         return ISkaleVerifier(skaleVerifierAddress).verifySchainSignature(

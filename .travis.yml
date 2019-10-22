@@ -37,7 +37,8 @@ jobs:
         - stage: test
           install:
             - pip3 install slither-analyzer
-            - cd proxy    
+            - cd proxy
+            - bash ./scripts/copy.sh
             - yarn install
 
             - cd ../agent 
@@ -56,7 +57,8 @@ jobs:
             - slither . --filter-path openzeppelin-solidity || true            
             - slither . --filter-path openzeppelin-solidity --exclude-informational --exclude constant-function,calls-loop || travis_terminate 7
             - yarn tslint || travis_terminate 2            
-            - yarn generate    
+            - yarn generate
+            - bash ./scripts/remove.sh
             - yarn test || travis_terminate 3
 
             - cd ../test
