@@ -14,12 +14,21 @@ let ERC20ModuleForMainnet = artifacts.require("./ERC20ModuleForMainnet.sol");
 let LockAndDataForMainnetERC20 = artifacts.require("./LockAndDataForMainnetERC20.sol");
 let ERC721ModuleForMainnet = artifacts.require("./ERC721ModuleForMainnet.sol");
 let LockAndDataForMainnetERC721 = artifacts.require("./LockAndDataForMainnetERC721.sol");
+let ContractManager = artifacts.require("./ContractManager");
+let SkaleVerifier = artifacts.require("./SkaleVerifier");
 
 let gasLimit = 8000000;
 
 let contractManagerAddress = (process.env.CONTRACT_MANAGER_ADDRESS == "" || process.env.CONTRACT_MANAGER_ADDRESS == undefined) ? "0x0000000000000000000000000000000000000000" : process.env.CONTRACT_MANAGER_ADDRESS;
 
 async function deploy(deployer, network) {
+
+    if (process.env.TEST_MODE == "True") {
+        await deployer.deploy(ContractManager, {gas: gasLimit}).then(async function(instCM) {
+            await deployer.deploy(SkaleVerifier, {gas: gasLimit});
+            inst.setContractsAddress("SkaleVerifier", SkaleVerifier.address);
+        });
+    }
 
     await deployer.deploy(MessageProxy, "Mainnet", contractManagerAddress, {gas: gasLimit}).then(async function() {
         return await deployer.deploy(LockAndDataForMainnet, {gas: gasLimit});

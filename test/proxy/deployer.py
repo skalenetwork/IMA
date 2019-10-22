@@ -29,7 +29,8 @@ class Deployer:
                     f'MAINNET_RPC_URL="{self.config.mainnet_rpc_url}"',
                     f'MNEMONIC_FOR_SCHAIN="{self.config.schain_key}"',
                     f'SCHAIN_RPC_URL="{self.config.schain_rpc_url}"',
-                    f'SCHAIN_NAME="{self.config.schain_name}"']
+                    f'SCHAIN_NAME="{self.config.schain_name}"',
+                    f'TEST_MODE="{self.config.test_mode}"']
 
         with open('.env', 'w') as dot_env:
             dot_env.write('\n'.join(env_file))
