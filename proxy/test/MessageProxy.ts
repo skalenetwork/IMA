@@ -16,6 +16,8 @@ import {
     TokenManagerContract,
     TokenManagerInstance,
 } from "../types/truffle-contracts";
+
+import * as jsonData from "./../data/skaleManagerComponents";
 import { gasMultiplier } from "./utils/command_line";
 import { randomString } from "./utils/helper";
 
@@ -68,7 +70,7 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             //     "SkaleVerifier",
             //     skaleVerifier.address,
             // );
-            messageProxy = await MessageProxy.new("Mainnet", contractManagerAddress,
+            messageProxy = await MessageProxy.new("Mainnet", jsonData.contract_manager_address,
                 {from: deployer, gas: 8000000 * gasMultiplier});
             lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
         });
@@ -259,7 +261,7 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
 
     describe("MessageProxy for schain", async () => {
         beforeEach(async () => {
-            messageProxy = await MessageProxy.new("MyChain", contractManagerAddress,
+            messageProxy = await MessageProxy.new("MyChain", jsonData.contract_manager_address,
                 {from: deployer, gas: 8000000 * gasMultiplier});
             lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
         });
