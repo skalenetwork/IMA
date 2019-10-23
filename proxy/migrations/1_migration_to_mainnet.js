@@ -20,21 +20,7 @@ let LockAndDataForMainnetERC721 = artifacts.require("./LockAndDataForMainnetERC7
 
 let gasLimit = 8000000;
 
-let contractManagerAddress = (process.env.CONTRACT_MANAGER_ADDRESS == "" || process.env.CONTRACT_MANAGER_ADDRESS == undefined) ? "0x0000000000000000000000000000000000000000" : process.env.CONTRACT_MANAGER_ADDRESS;
-
 async function deploy(deployer, network) {
-
-    // if (process.env.TEST_MODE == "True") {
-    //     await deployer.deploy(ContractManager, {gas: gasLimit}).then(async function(instCM) {
-    //         await deployer.deploy(SkaleVerifier, {gas: gasLimit});
-    //         instCM.setContractsAddress("SkaleVerifier", SkaleVerifier.address);
-    //     });
-    //     contractManagerAddress = ContractManager.address;
-    // }
-
-    // if (network == "coverage") {
-
-    // }
 
     await deployer.deploy(MessageProxy, "Mainnet", jsonData.contract_manager_address, {gas: gasLimit}).then(async function() {
         return await deployer.deploy(LockAndDataForMainnet, {gas: gasLimit});

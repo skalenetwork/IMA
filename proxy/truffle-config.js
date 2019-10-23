@@ -107,13 +107,13 @@ module.exports = {
     // }
     compilers: {
       solc: {
-        version: "0.5.10", // "0.5.12", // "0.5.11"
+        version: "0.5.10",
         settings: {
           optimizer: {
             enabled: true,
             runs: 200
           },
-          evmVersion: "byzantium" // "constantinople" // "petersburg" // "byzantium"
+          evmVersion: "byzantium"
         }
       }
     }

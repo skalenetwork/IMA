@@ -6,6 +6,5 @@
   "ETH_PRIVATE_KEY_FOR_SCHAIN": "{private_key}",
   "SCHAIN_RPC_URL": "http://localhost:8545",
   "SCHAIN_NAME": "SKALE",
-  "user_key": "{private_key}",
-  "TEST_MODE": "True"
+  "user_key": "{private_key}"
 }
