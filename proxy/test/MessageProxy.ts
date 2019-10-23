@@ -17,7 +17,7 @@ import {
     TokenManagerInstance,
 } from "../types/truffle-contracts";
 
-import * as jsonData from "./../data/skaleManagerComponents";
+import * as jsonData from "../data/skaleManagerComponents.json";
 import { gasMultiplier } from "./utils/command_line";
 import { randomString } from "./utils/helper";
 

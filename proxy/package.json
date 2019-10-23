@@ -24,7 +24,7 @@
     "truffle": "^5.0.12",
     "truffle-hdwallet-provider": "^1.0.9",
     "typescript": "^3.5.2",
-    "web3": "^1.0.0-beta.37"
+    "web3": "1.0.0-beta.37"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
@@ -38,7 +38,7 @@
     "ethlint": "^1.2.4",
     "ganache-cli": "^6.5.0",
     "solidity-coverage": "leapdao/solidity-coverage",
-    "truffle-typings": "^1.0.8",
+    "truffle-typings": "1.0.8",
     "ts-node": "^8.3.0",
     "tslint": "^5.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",

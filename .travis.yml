@@ -61,13 +61,13 @@ jobs:
             - bash ./scripts/remove.sh
             - RUNNING_NETWORK=test bash ./scripts/prepareSkaleManagerComponents.sh
             - yarn test || travis_terminate 3
-            - RUNNING_NETWORK=coverage bash ./scripts/prepareSkaleManagerComponents.sh
 
             - cd ../test
             - python3 ../scripts/config_from_accounts.py accounts.json config.json
             - pip3 install -r requirements.txt
             - python3 test.py || travis_terminate 6
             - cd ../proxy
+            - RUNNING_NETWORK=coverage bash ./scripts/prepareSkaleManagerComponents.sh
           after_script:
             - npx solidity-coverage || travis_terminate 4
             - cat coverage/lcov.info | npx codecov
