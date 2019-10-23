@@ -8,6 +8,8 @@
 node ./main.js --load-node-config=~/Work/SkaleExperimental/skaled-tests/single-node/run-skaled/config0.json --loop --time-framing=10 --time-gap=3 --period=2
 */
 
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0; // allow self-signed wss and https
+
 //
 //
 // init very basics
@@ -20,9 +22,25 @@ IMA.verbose_set( IMA.verbose_parse( "info" ) );
 const log = require( "../npms/skale-log/log.js" );
 const cc = log.cc;
 const w3mod = IMA.w3mod;
+let rpcCall = require( "./rpc-call.js" );
+rpcCall.init( cc, log );
 let ethereumjs_tx = IMA.ethereumjs_tx;
 let ethereumjs_wallet = IMA.ethereumjs_wallet;
 let ethereumjs_util = IMA.ethereumjs_util;
+
+const uuid = require( "uuid/v4" );
+let child_process = require( "child_process" );
+var shell = require( "shelljs" );
+const {
+    Keccak
+} = require( "sha3" );
+
+let g_bIsNeededCommonInit = true;
+let g_bSignMessages = false; // use BLS message signing, turned on with --sign-messages
+let g_joSChainNetworkInfo = null; // scanned S-Chain network description
+let g_strPathBlsGlue = ""; // path to bls_glue app, nust have if --sign-messages specified
+let g_strPathHashG1 = ""; // path to hash_g1 app, nust have if --sign-messages specified
+let g_strPathBlsVerify = ""; // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
 
 // TO-DO: the next ABI JSON should contain main-net only contract info - S-chain contract addresses must be downloaded from S-chain
 let joTrufflePublishResult_main_net = {};
@@ -133,6 +151,62 @@ let g_nTimeFrameSeconds = 0; // 0-disable, 60-recommended
 let g_nNextFrameGap = 10;
 
 let g_arrActions = []; // array of actions to run
+
+function replaceAll( str, find, replace ) {
+    return str.replace( new RegExp( find, "g" ), replace );
+}
+
+function fileExists( strPath ) {
+    try {
+        if( fs.existsSync( strPath ) ) {
+            var stats = fs.statSync( strPath );
+            if( stats.isFile() )
+                return true;
+        }
+    } catch( err ) {
+    }
+    return false;
+}
+
+function fileLoad( strPath, strDefault ) {
+    strDefault = strDefault || "";
+    if ( !fileExists( strPath ) )
+        return strDefault;
+    try {
+        let s = fs.readFileSync( strPath );
+        return s;
+    } catch ( err ) {}
+    return strDefault;
+}
+
+function fileSave( strPath, s ) {
+    try {
+        fs.writeFileSync( strPath, s );
+        return true;
+    } catch ( err ) {}
+    return false;
+}
+
+function jsonFileLoad( strPath, joDefault ) {
+    joDefault = joDefault || {};
+    if ( !fileExists( strPath ) )
+        return joDefault;
+    try {
+        let s = fs.readFileSync( strPath );
+        let jo = JSON.parse( s );
+        return jo;
+    } catch ( err ) {}
+    return joDefault;
+}
+
+function jsonFileSave( strPath, jo ) {
+    try {
+        let s = JSON.stringify( jo, null, 4 );
+        fs.writeFileSync( strPath, s );
+        return true;
+    } catch ( err ) {}
+    return false;
+}
 
 
 //
@@ -309,6 +383,13 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         console.log( soi + cc.debug( "--" ) + cc.bright( "nodes-count" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.notice( "S-Chain " ) + cc.note( "nodes count" ) + cc.notice( "." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "time-framing" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "............" ) + cc.notice( "Specifies " ) + cc.note( "period" ) + cc.notice( "(in seconds) " ) + cc.note( "for time framing" ) + cc.notice( ". Zero means disable time framing." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "time-gap" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "................" ) + cc.notice( "Specifies " ) + cc.note( "gap" ) + cc.notice( "(in seconds) " ) + cc.note( "before next time frame" ) + cc.notice( "." ) );
+        console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "................." ) + cc.notice( "Sign transferred messages." ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "bls-glue" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "................." ) + cc.notice( "Specifies path to " ) + cc.note( "bls_glue" ) + cc.note( " application" ) + cc.notice( "." ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "hash-g1" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( ".................." ) + cc.notice( "Specifies path to " ) + cc.note( "hash_g1" ) + cc.note( " application" ) + cc.notice( "." ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "bls-verify" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "..............." ) + cc.notice( "Optional parameter, specifies path to " ) + cc.note( "verify_bls" ) + cc.note( " application" ) + cc.notice( "." ) );
+        console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
+        console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
         console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "verbose" ) + cc.sunny( "=" ) + cc.bright( "value" ) + cc.debug( "................." ) + cc.notice( "Set " ) + cc.note( "level" ) + cc.notice( " of output details." ) );
         console.log( soi + cc.debug( "--" ) + cc.bright( "verbose-list" ) + cc.debug( ".................." ) + cc.notice( "List available " ) + cc.note( "verbose levels" ) + cc.notice( " and exit." ) );
@@ -718,7 +799,8 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                     g_nTransferBlockSizeM2S,
                     g_nMaxTransactionsM2S,
                     g_nBlockAwaitDepthM2S,
-                    g_nBlockAgeM2S
+                    g_nBlockAgeM2S,
+                    null // fn_sign_messages
                 );
             }
         } );
@@ -742,7 +824,8 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                     g_nTransferBlockSizeS2M,
                     g_nMaxTransactionsS2M,
                     g_nBlockAwaitDepthS2M,
-                    g_nBlockAgeS2M
+                    g_nBlockAgeS2M,
+                    do_sign_messages // fn_sign_messages
                 );
             }
         } );
@@ -883,8 +966,115 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         g_log_strFilePath = "" + joArg.value;
         continue;
     }
+    if ( joArg.name == "sign-messages" ) {
+        g_bSignMessages = true;
+        continue;
+    }
+    if ( joArg.name == "bls-glue" ) {
+        veryify_arg_path_to_existing_file( joArg );
+        g_strPathBlsGlue = "" + joArg.value;
+        continue;
+    }
+    if ( joArg.name == "hash-g1" ) {
+        veryify_arg_path_to_existing_file( joArg );
+        g_strPathHashG1 = "" + joArg.value;
+        continue;
+    }
+    if ( joArg.name == "bls-verify" ) {
+        veryify_arg_path_to_existing_file( joArg );
+        g_strPathBlsVerify = "" + joArg.value;
+        continue;
+    }
+    if ( joArg.name == "browse-s-chain" ) {
+        g_bIsNeededCommonInit = false;
+        g_arrActions.push( {
+            "name": "Brows S-Chain network",
+            "fn": async function() {
+                if( g_str_url_s_chain.length == 0 ) {
+                    console.log( cc.fatal( "Error:" ) + cc.error( " missing S-Chain URL, please specify " ) + cc.info( "url-s-chain" ) );
+                    process.exit( 501 );
+                }
+                log.write( cc.normal( "Downloading S-Chain network information " )  + cc.normal( "..." ) + "\n" ); // just print value
+                //
+                await rpcCall.create( g_str_url_s_chain, async function( joCall, err ) {
+                    if( err ) {
+                        console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                        process.exit( 1 );
+                    }
+                    await joCall.call( {
+                        "method": "skale_nodesRpcInfo",
+                        "params": { }
+                    }, async function( joIn, joOut, err ) {
+                        if( err ) {
+                            console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                            process.exit( 1 );
+                        }
+                        log.write( cc.normal( "S-Chain network information: " )  + cc.j( joOut.result ) + "\n" );
+                        let nCountReceivedImaDescriptions = 0;
+                        let jarrNodes = joOut.result.network;
+                        for( let i = 0; i < jarrNodes.length; ++ i ) {
+                            let joNode = jarrNodes[ i ];
+                            let strNodeURL = compose_schain_node_url( joNode );
+                            await rpcCall.create( strNodeURL, async function( joCall, err ) {
+                                if( err ) {
+                                    console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                                    process.exit( 1 );
+                                }
+                                await joCall.call( {
+                                    "method": "skale_imaInfo",
+                                    "params": { }
+                                }, function( joIn, joOut, err ) {
+                                    ++ nCountReceivedImaDescriptions;
+                                    if( err ) {
+                                        console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                                        process.exit( 1 );
+                                    }
+                                    log.write( cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " )  + cc.j( joOut.result ) + "\n" );
+                                    //process.exit( 0 );
+                                } );
+                            } );
+                        }
+                        //process.exit( 0 );
+                        let iv = setInterval( function() {
+                            if( nCountReceivedImaDescriptions == jarrNodes.length ) {
+                                clearInterval( iv );
+                                process.exit( 0 );
+                            }
+                        }, 100 );
+                    } );
+                } );
+                return true;
+            }
+        } );
+        continue;
+    }
     console.log( cc.fatal( "Error:" ) + cc.error( " unkonwn command line argument " ) + cc.info( joArg.name ) );
     return 666;
+}
+
+
+function compose_schain_node_url( joNode ) {
+    if( "ip6" in joNode && typeof joNode.ip6 == "string" && joNode.ip6.length > 0 ) {
+        if( "wssRpcPort6" in joNode && typeof joNode.wssRpcPort6 == "number" && joNode.wssRpcPort6 > 0 )
+            return "wss://[" + joNode.ip6 + "]:" + joNode.wssRpcPort6;
+        if( "wsRpcPort6" in joNode && typeof joNode.wsRpcPort6 == "number" && joNode.wsRpcPort6 > 0 )
+            return "ws://[" + joNode.ip6 + "]:" + joNode.wsRpcPort6;
+        if( "httpsRpcPort6" in joNode && typeof joNode.httpsRpcPort6 == "number" && joNode.httpsRpcPort6 > 0 )
+            return "https://[" + joNode.ip6 + "]:" + joNode.httpsRpcPort6;
+        if( "httpRpcPort6" in joNode && typeof joNode.httpRpcPort6 == "number" && joNode.httpRpcPort6 > 0 )
+            return "http://[" + joNode.ip6 + "]:" + joNode.httpRpcPort6;
+    }
+    if( "ip" in joNode && typeof joNode.ip == "string" && joNode.ip.length > 0 ) {
+        if( "wssRpcPort" in joNode && typeof joNode.wssRpcPort == "number" && joNode.wssRpcPort > 0 )
+            return "wss://" + joNode.ip + ":" + joNode.wssRpcPort;
+        if( "wsRpcPort" in joNode && typeof joNode.wsRpcPort == "number" && joNode.wsRpcPort > 0 )
+            return "ws://" + joNode.ip + ":" + joNode.wsRpcPort;
+        if( "httpsRpcPort" in joNode && typeof joNode.httpsRpcPort == "number" && joNode.httpsRpcPort > 0 )
+            return "https://" + joNode.ip + ":" + joNode.httpsRpcPort;
+        if( "httpRpcPort" in joNode && typeof joNode.httpRpcPort == "number" && joNode.httpRpcPort > 0 )
+            return "http://" + joNode.ip + ":" + joNode.httpRpcPort;
+    }
+    return "";
 }
 
 if ( g_log_strFilePath.length > 0 ) {
@@ -1082,374 +1272,462 @@ function check_keys_exist_in_abi( strName, strFile, joABI, arrKeys ) {
     }
 }
 
-joTrufflePublishResult_main_net = load_json( g_strPathAbiJson_main_net );
-joTrufflePublishResult_s_chain = load_json( g_strPathAbiJson_s_chain );
+let g_w3http_main_net = null;
+let g_w3_main_net = null;
 
-check_keys_exist_in_abi( "main-net", g_strPathAbiJson_main_net, joTrufflePublishResult_main_net, [ "deposit_box_abi", "deposit_box_address", "message_proxy_mainnet_abi", "message_proxy_mainnet_address" ] );
-check_keys_exist_in_abi( "S-Chain", g_strPathAbiJson_s_chain, joTrufflePublishResult_s_chain, [ "token_manager_abi", "token_manager_address", "message_proxy_chain_abi", "message_proxy_chain_address" ] );
+let g_w3http_s_chain = null;
+let g_w3_s_chain = null;
 
-// deposit_box_address           --> deposit_box_abi
-// token_manager_address         --> token_manager_abi
-// message_proxy_mainnet_address --> message_proxy_mainnet_abi
-// message_proxy_chain_address   --> message_proxy_chain_abi
+let g_jo_deposit_box = null; // only main net
+let g_jo_token_manager = null; // only s-chain
+let g_jo_message_proxy_main_net = null;
+let g_jo_message_proxy_s_chain = null;
+let g_jo_lock_and_data_main_net = null;
+let g_jo_lock_and_data_s_chain = null;
+// let g_eth_erc721 = null; // only s-chain
+let g_eth_erc20 = null; // only s-chain
 
-if ( g_str_url_main_net.length == 0 ) {
-    log.write( cc.fatal( "FATAL:" ) + cc.error( "Missing " ) + cc.warning( "Main-net" ) + cc.error( " URL in command line arguments" ) + "\n" );
-    process.exit( 501 );
-}
-if ( g_str_url_s_chain.length == 0 ) {
-    log.write( cc.fatal( "FATAL:" ) + cc.error( "Missing " ) + cc.warning( "S-Chain" ) + cc.error( " URL in command line arguments" ) + "\n" );
-    process.exit( 501 );
-}
+function common_init() {
+    joTrufflePublishResult_main_net = load_json( g_strPathAbiJson_main_net );
+    joTrufflePublishResult_s_chain = load_json( g_strPathAbiJson_s_chain );
 
-const g_w3http_main_net = new w3mod.providers.HttpProvider( g_str_url_main_net );
-const g_w3_main_net = new w3mod( g_w3http_main_net );
+    check_keys_exist_in_abi( "main-net", g_strPathAbiJson_main_net, joTrufflePublishResult_main_net, [ "deposit_box_abi", "deposit_box_address", "message_proxy_mainnet_abi", "message_proxy_mainnet_address" ] );
+    check_keys_exist_in_abi( "S-Chain", g_strPathAbiJson_s_chain, joTrufflePublishResult_s_chain, [ "token_manager_abi", "token_manager_address", "message_proxy_chain_abi", "message_proxy_chain_address" ] );
 
-const g_w3http_s_chain = new w3mod.providers.HttpProvider( g_str_url_s_chain );
-const g_w3_s_chain = new w3mod( g_w3http_s_chain );
+    // deposit_box_address           --> deposit_box_abi
+    // token_manager_address         --> token_manager_abi
+    // message_proxy_mainnet_address --> message_proxy_mainnet_abi
+    // message_proxy_chain_address   --> message_proxy_chain_abi
 
-let g_jo_deposit_box = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.deposit_box_abi, joTrufflePublishResult_main_net.deposit_box_address ); // only main net
-let g_jo_token_manager = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.token_manager_abi, joTrufflePublishResult_s_chain.token_manager_address ); // only s-chain
-let g_jo_message_proxy_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.message_proxy_mainnet_abi, joTrufflePublishResult_main_net.message_proxy_mainnet_address );
-let g_jo_message_proxy_s_chain = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.message_proxy_chain_abi, joTrufflePublishResult_s_chain.message_proxy_chain_address );
-let g_jo_lock_and_data_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.lock_and_data_for_mainnet_abi, joTrufflePublishResult_main_net.lock_and_data_for_mainnet_address );
-let g_jo_lock_and_data_s_chain = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.lock_and_data_for_schain_abi, joTrufflePublishResult_s_chain.lock_and_data_for_schain_address );
-// let g_eth_erc721 = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.eth_erc721_abi, joTrufflePublishResult_s_chain.eth_erc721_address ); // only s-chain
-let g_eth_erc20 = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.eth_erc20_abi, joTrufflePublishResult_s_chain.eth_erc20_address ); // only s-chain
-
-//
-//
-//
-if ( g_str_path_json_erc721_main_net.length > 0 /*&& g_str_path_json_erc721_s_chain.length > 0*/ ) {
-    var n1 = 0,
-        n2 = 0;
-    if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-        log.write( cc.info( "Loading Main-net ERC721 ABI from " ) + cc.info( g_str_path_json_erc721_main_net ) + "\n" );
-    joErc721_main_net = load_json( g_str_path_json_erc721_main_net );
-    n1 = Object.keys( joErc721_main_net ).length;
-    if ( g_str_path_json_erc721_s_chain.length > 0 ) {
-        if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            log.write( cc.info( "Loading S-Chain ERC721 ABI from " ) + cc.info( g_str_path_json_erc721_s_chain ) + "\n" );
-        joErc721_s_chain = load_json( g_str_path_json_erc721_s_chain );
-        n2 = Object.keys( joErc721_s_chain ).length;
+    if ( g_str_url_main_net.length == 0 ) {
+        log.write( cc.fatal( "FATAL:" ) + cc.error( "Missing " ) + cc.warning( "Main-net" ) + cc.error( " URL in command line arguments" ) + "\n" );
+        process.exit( 501 );
     }
-    if ( n1 > 0 /*&& n2 > 0*/ ) {
-        strCoinNameErc721_main_net = discover_in_json_coin_name( joErc721_main_net );
-        if ( n2 > 0 )
-            strCoinNameErc721_s_chain = discover_in_json_coin_name( joErc721_s_chain );
-        n1 = strCoinNameErc721_main_net.length;
-        if ( n2 > 0 )
-            n2 = strCoinNameErc721_s_chain.length;
-        if ( n1 > 0 /*&& n2 > 0*/ ) {
-            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information && ( !g_bShowConfigMode ) ) {
-                log.write( cc.info( "Loaded Main-net ERC721 ABI " ) + cc.attention( strCoinNameErc721_main_net ) + "\n" );
-                if ( n2 > 0 )
-                    log.write( cc.info( "Loaded S-Chain  ERC721 ABI " ) + cc.attention( strCoinNameErc721_s_chain ) + "\n" );
-            }
-        } else {
-            if ( n1 == 0 )
-                log.write( cc.fatal( "FATAL:" ) + cc.error( "Main-net ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
-            if ( n2 == 0 && g_str_path_json_erc721_s_chain.length > 0 )
-                log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
-            joErc721_main_net = null;
-            joErc721_s_chain = null;
-            strCoinNameErc721_main_net = "";
-            strCoinNameErc721_s_chain = "";
-            process.exit( 666 );
-        }
-    } else {
-        if ( n1 == 0 )
-            log.write( cc.fatal( "FATAL:" ) + cc.error( "Main-net ERC721 JSON is invalid" ) + "\n" );
-        if ( n2 == 0 && g_str_path_json_erc721_s_chain.length > 0 )
-            log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC721 JSON is invalid" ) + "\n" );
-        joErc721_main_net = null;
-        joErc721_s_chain = null;
-        strCoinNameErc721_main_net = "";
-        strCoinNameErc721_s_chain = "";
-        process.exit( 666 );
+    if ( g_str_url_s_chain.length == 0 ) {
+        log.write( cc.fatal( "FATAL:" ) + cc.error( "Missing " ) + cc.warning( "S-Chain" ) + cc.error( " URL in command line arguments" ) + "\n" );
+        process.exit( 501 );
     }
-} else { // if( g_str_path_json_erc721_main_net.length > 0 /*&& g_str_path_json_erc721_s_chain.length > 0*/ )
-    if ( g_str_path_json_erc721_s_chain.length > 0 ) {
+
+    g_w3http_main_net = new w3mod.providers.HttpProvider( g_str_url_main_net );
+    g_w3_main_net = new w3mod( g_w3http_main_net );
+
+    g_w3http_s_chain = new w3mod.providers.HttpProvider( g_str_url_s_chain );
+    g_w3_s_chain = new w3mod( g_w3http_s_chain );
+
+    g_jo_deposit_box = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.deposit_box_abi, joTrufflePublishResult_main_net.deposit_box_address ); // only main net
+    g_jo_token_manager = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.token_manager_abi, joTrufflePublishResult_s_chain.token_manager_address ); // only s-chain
+    g_jo_message_proxy_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.message_proxy_mainnet_abi, joTrufflePublishResult_main_net.message_proxy_mainnet_address );
+    g_jo_message_proxy_s_chain = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.message_proxy_chain_abi, joTrufflePublishResult_s_chain.message_proxy_chain_address );
+    g_jo_lock_and_data_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.lock_and_data_for_mainnet_abi, joTrufflePublishResult_main_net.lock_and_data_for_mainnet_address );
+    g_jo_lock_and_data_s_chain = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.lock_and_data_for_schain_abi, joTrufflePublishResult_s_chain.lock_and_data_for_schain_address );
+    // g_eth_erc721 = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.eth_erc721_abi, joTrufflePublishResult_s_chain.eth_erc721_address ); // only s-chain
+    g_eth_erc20 = new g_w3_s_chain.eth.Contract( joTrufflePublishResult_s_chain.eth_erc20_abi, joTrufflePublishResult_s_chain.eth_erc20_address ); // only s-chain
+
+    //
+    //
+    //
+    if ( g_str_path_json_erc721_main_net.length > 0 /*&& g_str_path_json_erc721_s_chain.length > 0*/ ) {
         var n1 = 0,
             n2 = 0;
-
         if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            log.write( cc.info( "Loading S-Chain ERC721 ABI from " ) + cc.info( g_str_path_json_erc721_s_chain ) + "\n" );
-        joErc721_s_chain = load_json( g_str_path_json_erc721_s_chain );
-        n2 = Object.keys( joErc721_s_chain ).length;
-
-        if ( n2 > 0 ) {
-            strCoinNameErc721_s_chain = discover_in_json_coin_name( joErc721_s_chain );
-            n2 = strCoinNameErc721_s_chain.length;
+            log.write( cc.info( "Loading Main-net ERC721 ABI from " ) + cc.info( g_str_path_json_erc721_main_net ) + "\n" );
+        joErc721_main_net = load_json( g_str_path_json_erc721_main_net );
+        n1 = Object.keys( joErc721_main_net ).length;
+        if ( g_str_path_json_erc721_s_chain.length > 0 ) {
+            if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+                log.write( cc.info( "Loading S-Chain ERC721 ABI from " ) + cc.info( g_str_path_json_erc721_s_chain ) + "\n" );
+            joErc721_s_chain = load_json( g_str_path_json_erc721_s_chain );
+            n2 = Object.keys( joErc721_s_chain ).length;
+        }
+        if ( n1 > 0 /*&& n2 > 0*/ ) {
+            strCoinNameErc721_main_net = discover_in_json_coin_name( joErc721_main_net );
             if ( n2 > 0 )
-                log.write( cc.info( "Loaded S-Chain  ERC721 ABI " ) + cc.attention( strCoinNameErc721_s_chain ) + "\n" );
-            else {
+                strCoinNameErc721_s_chain = discover_in_json_coin_name( joErc721_s_chain );
+            n1 = strCoinNameErc721_main_net.length;
+            if ( n2 > 0 )
+                n2 = strCoinNameErc721_s_chain.length;
+            if ( n1 > 0 /*&& n2 > 0*/ ) {
+                if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information && ( !g_bShowConfigMode ) ) {
+                    log.write( cc.info( "Loaded Main-net ERC721 ABI " ) + cc.attention( strCoinNameErc721_main_net ) + "\n" );
+                    if ( n2 > 0 )
+                        log.write( cc.info( "Loaded S-Chain  ERC721 ABI " ) + cc.attention( strCoinNameErc721_s_chain ) + "\n" );
+                }
+            } else {
+                if ( n1 == 0 )
+                    log.write( cc.fatal( "FATAL:" ) + cc.error( "Main-net ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
                 if ( n2 == 0 && g_str_path_json_erc721_s_chain.length > 0 )
                     log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
                 joErc721_main_net = null;
                 joErc721_s_chain = null;
                 strCoinNameErc721_main_net = "";
                 strCoinNameErc721_s_chain = "";
-                process.exit( 667 );
-            }
-        }
-    }
-}
-if ( n1 != 0 && n2 == 0 ) {
-    if ( g_str_addr_erc721_explicit.length == 0 ) {
-        log.write( cc.fatal( "IMPORTANT NOTICE:" ) + " " + cc.error( "Both S-Chain ERC721 JSON and explicit ERC721 address are not specified" ) + "\n" );
-    } else {
-        log.write( cc.attention( "IMPORTANT NOTICE:" ) + " " + cc.note( "S-Chain ERC721 ABI will be auto-generated" ) + "\n" );
-        strCoinNameErc721_s_chain = "" + strCoinNameErc721_main_net; // assume same
-        joErc721_s_chain = JSON.parse( JSON.stringify( joErc721_main_net ) ); // clone
-        joErc721_s_chain[ strCoinNameErc721_s_chain + "_address" ] = "" + g_str_addr_erc721_explicit; // set explicit address
-        if ( g_isRawTokenTransfer ) {
-            g_isRawTokenTransfer = false;
-            if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                log.write( cc.warning( "ERC721 raw transfer is force " ) + cc.success( "OFF" ) + "\n" );
-        }
-        // if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-        //     log.write( cc.info("Auto-generated S-Chain ERC721 JSON is ") + cc.j(joErc721_s_chain) + "\n" );
-    }
-} else {
-    if ( n1 != 0 && n2 != 0) {
-        if ( !g_isRawTokenTransfer ) {
-            g_isRawTokenTransfer = g_isRawTokenTransfer_EXPLICIT; // true;
-            if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                log.write( cc.warning( "ERC721 raw transfer is force " ) + cc.error( g_isRawTokenTransfer_EXPLICIT ? "ON" : "OFF" ) + "\n" );
-        }
-    }
-}
-//
-//
-//
-if ( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chain.length > 0*/ ) {
-    var n1 = 0,
-        n2 = 0;
-    if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-        log.write( cc.info( "Loading Main-net ERC20 ABI from " ) + cc.info( g_str_path_json_erc20_main_net ) + "\n" );
-    joErc20_main_net = load_json( g_str_path_json_erc20_main_net );
-    n1 = Object.keys( joErc20_main_net ).length;
-    if ( g_str_path_json_erc20_s_chain.length > 0 ) {
-        if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( g_str_path_json_erc20_s_chain ) + "\n" );
-        joErc20_s_chain = load_json( g_str_path_json_erc20_s_chain );
-        n2 = Object.keys( joErc20_s_chain ).length;
-    }
-    if ( n1 > 0 /*&& n2 > 0*/ ) {
-        strCoinNameErc20_main_net = discover_in_json_coin_name( joErc20_main_net );
-        if ( n2 > 0 )
-            strCoinNameErc20_s_chain = discover_in_json_coin_name( joErc20_s_chain );
-        n1 = strCoinNameErc20_main_net.length;
-        if ( n2 > 0 )
-            n2 = strCoinNameErc20_s_chain.length;
-        if ( n1 > 0 /*&& n2 > 0*/ ) {
-            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information && ( !g_bShowConfigMode ) ) {
-                log.write( cc.info( "Loaded Main-net ERC20 ABI " ) + cc.attention( strCoinNameErc20_main_net ) + "\n" );
-                if ( n2 > 0 )
-                    log.write( cc.info( "Loaded S-Chain  ERC20 ABI " ) + cc.attention( strCoinNameErc20_s_chain ) + "\n" );
+                process.exit( 666 );
             }
         } else {
             if ( n1 == 0 )
-                log.write( cc.fatal( "FATAL:" ) + cc.error( "Main-net ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
-            if ( n2 == 0 && g_str_path_json_erc20_s_chain.length > 0 )
-                log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
-            joErc20_main_net = null;
-            joErc20_s_chain = null;
-            strCoinNameErc20_main_net = "";
-            strCoinNameErc20_s_chain = "";
+                log.write( cc.fatal( "FATAL:" ) + cc.error( "Main-net ERC721 JSON is invalid" ) + "\n" );
+            if ( n2 == 0 && g_str_path_json_erc721_s_chain.length > 0 )
+                log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC721 JSON is invalid" ) + "\n" );
+            joErc721_main_net = null;
+            joErc721_s_chain = null;
+            strCoinNameErc721_main_net = "";
+            strCoinNameErc721_s_chain = "";
             process.exit( 666 );
         }
-    } else {
-        if ( n1 == 0 )
-            log.write( cc.fatal( "FATAL:" ) + cc.error( "Main-net ERC20 JSON is invalid" ) + "\n" );
-        if ( n2 == 0 && g_str_path_json_erc20_s_chain.length > 0 )
-            log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC20 JSON is invalid" ) + "\n" );
-        joErc20_main_net = null;
-        joErc20_s_chain = null;
-        strCoinNameErc20_main_net = "";
-        strCoinNameErc20_s_chain = "";
-        process.exit( 666 );
+    } else { // if( g_str_path_json_erc721_main_net.length > 0 /*&& g_str_path_json_erc721_s_chain.length > 0*/ )
+        if ( g_str_path_json_erc721_s_chain.length > 0 ) {
+            var n1 = 0,
+                n2 = 0;
+
+            if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+                log.write( cc.info( "Loading S-Chain ERC721 ABI from " ) + cc.info( g_str_path_json_erc721_s_chain ) + "\n" );
+            joErc721_s_chain = load_json( g_str_path_json_erc721_s_chain );
+            n2 = Object.keys( joErc721_s_chain ).length;
+
+            if ( n2 > 0 ) {
+                strCoinNameErc721_s_chain = discover_in_json_coin_name( joErc721_s_chain );
+                n2 = strCoinNameErc721_s_chain.length;
+                if ( n2 > 0 )
+                    log.write( cc.info( "Loaded S-Chain  ERC721 ABI " ) + cc.attention( strCoinNameErc721_s_chain ) + "\n" );
+                else {
+                    if ( n2 == 0 && g_str_path_json_erc721_s_chain.length > 0 )
+                        log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
+                    joErc721_main_net = null;
+                    joErc721_s_chain = null;
+                    strCoinNameErc721_main_net = "";
+                    strCoinNameErc721_s_chain = "";
+                    process.exit( 667 );
+                }
+            }
+        }
     }
-} else { // if( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chain.length > 0*/ )
-    if ( g_str_path_json_erc20_s_chain.length > 0 ) {
+    if ( n1 != 0 && n2 == 0 ) {
+        if ( g_str_addr_erc721_explicit.length == 0 ) {
+            log.write( cc.fatal( "IMPORTANT NOTICE:" ) + " " + cc.error( "Both S-Chain ERC721 JSON and explicit ERC721 address are not specified" ) + "\n" );
+        } else {
+            log.write( cc.attention( "IMPORTANT NOTICE:" ) + " " + cc.note( "S-Chain ERC721 ABI will be auto-generated" ) + "\n" );
+            strCoinNameErc721_s_chain = "" + strCoinNameErc721_main_net; // assume same
+            joErc721_s_chain = JSON.parse( JSON.stringify( joErc721_main_net ) ); // clone
+            joErc721_s_chain[ strCoinNameErc721_s_chain + "_address" ] = "" + g_str_addr_erc721_explicit; // set explicit address
+            if ( g_isRawTokenTransfer ) {
+                g_isRawTokenTransfer = false;
+                if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+                    log.write( cc.warning( "ERC721 raw transfer is force " ) + cc.success( "OFF" ) + "\n" );
+            }
+            // if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+            //     log.write( cc.info("Auto-generated S-Chain ERC721 JSON is ") + cc.j(joErc721_s_chain) + "\n" );
+        }
+    } else {
+        if ( n1 != 0 && n2 != 0) {
+            if ( !g_isRawTokenTransfer ) {
+                g_isRawTokenTransfer = g_isRawTokenTransfer_EXPLICIT; // true;
+                if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+                    log.write( cc.warning( "ERC721 raw transfer is force " ) + cc.error( g_isRawTokenTransfer_EXPLICIT ? "ON" : "OFF" ) + "\n" );
+            }
+        }
+    }
+    //
+    //
+    //
+    if ( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chain.length > 0*/ ) {
         var n1 = 0,
             n2 = 0;
-
         if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( g_str_path_json_erc20_s_chain ) + "\n" );
-        joErc20_s_chain = load_json( g_str_path_json_erc20_s_chain );
-        n2 = Object.keys( joErc20_s_chain ).length;
-
-        if ( n2 > 0 ) {
-            strCoinNameErc20_s_chain = discover_in_json_coin_name( joErc20_s_chain );
-            n2 = strCoinNameErc20_s_chain.length;
+            log.write( cc.info( "Loading Main-net ERC20 ABI from " ) + cc.info( g_str_path_json_erc20_main_net ) + "\n" );
+        joErc20_main_net = load_json( g_str_path_json_erc20_main_net );
+        n1 = Object.keys( joErc20_main_net ).length;
+        if ( g_str_path_json_erc20_s_chain.length > 0 ) {
+            if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+                log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( g_str_path_json_erc20_s_chain ) + "\n" );
+            joErc20_s_chain = load_json( g_str_path_json_erc20_s_chain );
+            n2 = Object.keys( joErc20_s_chain ).length;
+        }
+        if ( n1 > 0 /*&& n2 > 0*/ ) {
+            strCoinNameErc20_main_net = discover_in_json_coin_name( joErc20_main_net );
             if ( n2 > 0 )
-                log.write( cc.info( "Loaded S-Chain  ERC20 ABI " ) + cc.attention( strCoinNameErc20_s_chain ) + "\n" );
-            else {
+                strCoinNameErc20_s_chain = discover_in_json_coin_name( joErc20_s_chain );
+            n1 = strCoinNameErc20_main_net.length;
+            if ( n2 > 0 )
+                n2 = strCoinNameErc20_s_chain.length;
+            if ( n1 > 0 /*&& n2 > 0*/ ) {
+                if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information && ( !g_bShowConfigMode ) ) {
+                    log.write( cc.info( "Loaded Main-net ERC20 ABI " ) + cc.attention( strCoinNameErc20_main_net ) + "\n" );
+                    if ( n2 > 0 )
+                        log.write( cc.info( "Loaded S-Chain  ERC20 ABI " ) + cc.attention( strCoinNameErc20_s_chain ) + "\n" );
+                }
+            } else {
+                if ( n1 == 0 )
+                    log.write( cc.fatal( "FATAL:" ) + cc.error( "Main-net ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
                 if ( n2 == 0 && g_str_path_json_erc20_s_chain.length > 0 )
                     log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
                 joErc20_main_net = null;
                 joErc20_s_chain = null;
                 strCoinNameErc20_main_net = "";
                 strCoinNameErc20_s_chain = "";
-                process.exit( 667 );
+                process.exit( 666 );
+            }
+        } else {
+            if ( n1 == 0 )
+                log.write( cc.fatal( "FATAL:" ) + cc.error( "Main-net ERC20 JSON is invalid" ) + "\n" );
+            if ( n2 == 0 && g_str_path_json_erc20_s_chain.length > 0 )
+                log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC20 JSON is invalid" ) + "\n" );
+            joErc20_main_net = null;
+            joErc20_s_chain = null;
+            strCoinNameErc20_main_net = "";
+            strCoinNameErc20_s_chain = "";
+            process.exit( 666 );
+        }
+    } else { // if( g_str_path_json_erc20_main_net.length > 0 /*&& g_str_path_json_erc20_s_chain.length > 0*/ )
+        if ( g_str_path_json_erc20_s_chain.length > 0 ) {
+            var n1 = 0,
+                n2 = 0;
+
+            if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+                log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( g_str_path_json_erc20_s_chain ) + "\n" );
+            joErc20_s_chain = load_json( g_str_path_json_erc20_s_chain );
+            n2 = Object.keys( joErc20_s_chain ).length;
+
+            if ( n2 > 0 ) {
+                strCoinNameErc20_s_chain = discover_in_json_coin_name( joErc20_s_chain );
+                n2 = strCoinNameErc20_s_chain.length;
+                if ( n2 > 0 )
+                    log.write( cc.info( "Loaded S-Chain  ERC20 ABI " ) + cc.attention( strCoinNameErc20_s_chain ) + "\n" );
+                else {
+                    if ( n2 == 0 && g_str_path_json_erc20_s_chain.length > 0 )
+                        log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
+                    joErc20_main_net = null;
+                    joErc20_s_chain = null;
+                    strCoinNameErc20_main_net = "";
+                    strCoinNameErc20_s_chain = "";
+                    process.exit( 667 );
+                }
             }
         }
     }
-}
-if ( n1 != 0 && n2 == 0 ) {
-    if ( g_str_addr_erc20_explicit.length == 0 ) {
-        log.write( cc.fatal( "IMPORTANT NOTICE:" ) + " " + cc.error( "Both S-Chain ERC20 JSON and explicit ERC20 address are not specified" ) + "\n" );
+    if ( n1 != 0 && n2 == 0 ) {
+        if ( g_str_addr_erc20_explicit.length == 0 ) {
+            log.write( cc.fatal( "IMPORTANT NOTICE:" ) + " " + cc.error( "Both S-Chain ERC20 JSON and explicit ERC20 address are not specified" ) + "\n" );
+        } else {
+            log.write( cc.attention( "IMPORTANT NOTICE:" ) + " " + cc.note( "S-Chain ERC20 ABI will be auto-generated" ) + "\n" );
+            strCoinNameErc20_s_chain = "" + strCoinNameErc20_main_net; // assume same
+            joErc20_s_chain = JSON.parse( JSON.stringify( joErc20_main_net ) ); // clone
+            joErc20_s_chain[ strCoinNameErc20_s_chain + "_address" ] = "" + g_str_addr_erc20_explicit; // set explicit address
+            if ( g_isRawTokenTransfer ) {
+                g_isRawTokenTransfer = false;
+                if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+                    log.write( cc.warning( "ERC20 raw transfer is force " ) + cc.success( "OFF" ) + "\n" );
+            }
+            // if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+            //     log.write( cc.info("Auto-generated S-Chain ERC20 JSON is ") + cc.j(joErc20_s_chain) + "\n" );
+        }
     } else {
-        log.write( cc.attention( "IMPORTANT NOTICE:" ) + " " + cc.note( "S-Chain ERC20 ABI will be auto-generated" ) + "\n" );
-        strCoinNameErc20_s_chain = "" + strCoinNameErc20_main_net; // assume same
-        joErc20_s_chain = JSON.parse( JSON.stringify( joErc20_main_net ) ); // clone
-        joErc20_s_chain[ strCoinNameErc20_s_chain + "_address" ] = "" + g_str_addr_erc20_explicit; // set explicit address
-        if ( g_isRawTokenTransfer ) {
-            g_isRawTokenTransfer = false;
-            if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                log.write( cc.warning( "ERC20 raw transfer is force " ) + cc.success( "OFF" ) + "\n" );
-        }
-        // if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-        //     log.write( cc.info("Auto-generated S-Chain ERC20 JSON is ") + cc.j(joErc20_s_chain) + "\n" );
-    }
-} else {
-    if ( n1 != 0 && n2 != 0) {
-        if ( !g_isRawTokenTransfer ) {
-            g_isRawTokenTransfer = g_isRawTokenTransfer_EXPLICIT; // true;
-            if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                log.write( cc.warning( "ERC20 raw transfer is force " ) + cc.error( g_isRawTokenTransfer_EXPLICIT ? "ON" : "OFF" ) + "\n" );
+        if ( n1 != 0 && n2 != 0) {
+            if ( !g_isRawTokenTransfer ) {
+                g_isRawTokenTransfer = g_isRawTokenTransfer_EXPLICIT; // true;
+                if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+                    log.write( cc.warning( "ERC20 raw transfer is force " ) + cc.error( g_isRawTokenTransfer_EXPLICIT ? "ON" : "OFF" ) + "\n" );
+            }
         }
     }
-}
-//
-//
-//
+    //
+    //
+    //
 
 
-if ( IMA.verbose_get() > IMA.RV_VERBOSE.information || g_bShowConfigMode ) {
-    print_about( true );
-    ensure_have_value( "App path", __filename, false, true, null, ( x ) => {
-        return cc.normal( x );
-    } );
-    ensure_have_value( "Verbose level", IMA.VERBOSE[ IMA.verbose_get() ], false, true, null, ( x ) => {
-        return cc.sunny( x );
-    } );
-    ensure_have_value( "Main-net URL", g_str_url_main_net, false, true, null, ( x ) => {
-        return cc.u( x );
-    } );
-    ensure_have_value( "S-chain URL", g_str_url_s_chain, false, true, null, ( x ) => {
-        return cc.u( x );
-    } );
-    ensure_have_value( "Main-net Ethereum network ID", g_chain_id_main_net, false, true, null, ( x ) => {
-        return cc.note( x );
-    } );
-    ensure_have_value( "S-Chain Ethereum network ID", g_chain_id_s_chain, false, true, null, ( x ) => {
-        return cc.note( x );
-    } );
-    ensure_have_value( "Main-net ABI JSON file path", g_strPathAbiJson_main_net, false, true, null, ( x ) => {
-        return cc.warning( x );
-    } );
-    ensure_have_value( "S-Chain ABI JSON file path", g_strPathAbiJson_s_chain, false, true, null, ( x ) => {
-        return cc.warning( x );
-    } );
-    try {
-        ensure_have_value( "Main-net user account address", g_joAccount_main_net.address( g_w3_main_net ), false, true );
-    } catch ( err ) {}
-    try {
-        ensure_have_value( "S-chain user account address", g_joAccount_s_chain.address( g_w3_s_chain ), false, true );
-    } catch ( err ) {}
-    ensure_have_value( "Private key for main-net user account address", g_joAccount_main_net.privateKey, false, true, null, ( x ) => {
-        return cc.attention( x );
-    } );
-    ensure_have_value( "Private key for S-Chain user account address", g_joAccount_s_chain.privateKey, false, true, null, ( x ) => {
-        return cc.attention( x );
-    } );
-    ensure_have_value( "Amount of wei to transfer", g_wei_amount, false, true, null, ( x ) => {
-        return cc.info( x );
-    } );
-    ensure_have_value( "M->S transfer block size", g_nTransferBlockSizeM2S, false, true, null, ( x ) => {
-        return cc.note( x );
-    } );
-    ensure_have_value( "S->M transfer block size", g_nTransferBlockSizeS2M, false, true, null, ( x ) => {
-        return cc.note( x );
-    } );
-    ensure_have_value( "M->S transactions limit", g_nMaxTransactionsM2S, false, true, null, ( x ) => {
-        return cc.note( x );
-    } );
-    ensure_have_value( "S->M transactions limit", g_nMaxTransactionsS2M, false, true, null, ( x ) => {
-        return cc.note( x );
-    } );
-    ensure_have_value( "M->S await blocks", g_nBlockAwaitDepthM2S, false, true, null, ( x ) => {
-        return cc.note( x );
-    } );
-    ensure_have_value( "S->M await blocks", g_nBlockAwaitDepthS2M, false, true, null, ( x ) => {
-        return cc.note( x );
-    } );
-    ensure_have_value( "M->S minimal block age", g_nBlockAgeM2S, false, true, null, ( x ) => {
-        return cc.note( x );
-    } );
-    ensure_have_value( "S->M minimal block age", g_nBlockAgeS2M, false, true, null, ( x ) => {
-        return cc.note( x );
-    } );
-    ensure_have_value( "Transfer loop period(seconds)", g_nLoopPeriodSeconds, false, true, null, ( x ) => {
-        return cc.success( x );
-    } );
-    if ( g_nTimeFrameSeconds > 0 ) {
-        ensure_have_value( "Time framing(seconds)", g_nTimeFrameSeconds, false, true );
-        ensure_have_value( "Next frame gap(seconds)", g_nNextFrameGap, false, true );
-    } else
-        ensure_have_value( "Time framing", cc.error( "disabled" ), false, true );
-    ensure_have_value( "S-Chain node number(zero based)", g_nNodeNumber, false, true, null, ( x ) => {
-        return cc.info( x );
-    } );
-    ensure_have_value( "S-Chain nodes count", g_nNodesCount, false, true, null, ( x ) => {
-        return cc.info( x );
-    } );
-    if ( g_log_strFilePath.length > 0 ) {
-        ensure_have_value( "Log file path", g_log_strFilePath, false, true, null, ( x ) => {
+    if ( IMA.verbose_get() > IMA.RV_VERBOSE.information || g_bShowConfigMode ) {
+        print_about( true );
+        ensure_have_value( "App path", __filename, false, true, null, ( x ) => {
+            return cc.normal( x );
+        } );
+        ensure_have_value( "Verbose level", IMA.VERBOSE[ IMA.verbose_get() ], false, true, null, ( x ) => {
+            return cc.sunny( x );
+        } );
+        ensure_have_value( "Main-net URL", g_str_url_main_net, false, true, null, ( x ) => {
+            return cc.u( x );
+        } );
+        ensure_have_value( "S-chain URL", g_str_url_s_chain, false, true, null, ( x ) => {
+            return cc.u( x );
+        } );
+        ensure_have_value( "Main-net Ethereum network ID", g_chain_id_main_net, false, true, null, ( x ) => {
+            return cc.note( x );
+        } );
+        ensure_have_value( "S-Chain Ethereum network ID", g_chain_id_s_chain, false, true, null, ( x ) => {
+            return cc.note( x );
+        } );
+        ensure_have_value( "Main-net ABI JSON file path", g_strPathAbiJson_main_net, false, true, null, ( x ) => {
+            return cc.warning( x );
+        } );
+        ensure_have_value( "S-Chain ABI JSON file path", g_strPathAbiJson_s_chain, false, true, null, ( x ) => {
+            return cc.warning( x );
+        } );
+        try {
+            ensure_have_value( "Main-net user account address", g_joAccount_main_net.address( g_w3_main_net ), false, true );
+        } catch ( err ) {}
+        try {
+            ensure_have_value( "S-chain user account address", g_joAccount_s_chain.address( g_w3_s_chain ), false, true );
+        } catch ( err ) {}
+        ensure_have_value( "Private key for main-net user account address", g_joAccount_main_net.privateKey, false, true, null, ( x ) => {
+            return cc.attention( x );
+        } );
+        ensure_have_value( "Private key for S-Chain user account address", g_joAccount_s_chain.privateKey, false, true, null, ( x ) => {
+            return cc.attention( x );
+        } );
+        ensure_have_value( "Amount of wei to transfer", g_wei_amount, false, true, null, ( x ) => {
             return cc.info( x );
         } );
-        ensure_have_value( "Max size of log file path", g_log_nMaxSizeBeforeRotation, false, true, null, ( x ) => {
-            return ( x <= 0 ) ? cc.warn( "unlimited" ) : cc.note( x );
+        ensure_have_value( "M->S transfer block size", g_nTransferBlockSizeM2S, false, true, null, ( x ) => {
+            return cc.note( x );
         } );
-        ensure_have_value( "Max rotated count of log files", g_log_nMaxFilesCount, false, true, null, ( x ) => {
-            return ( x <= 1 ) ? cc.warn( "not set" ) : cc.note( x );
+        ensure_have_value( "S->M transfer block size", g_nTransferBlockSizeS2M, false, true, null, ( x ) => {
+            return cc.note( x );
         } );
-    }
-    if ( strCoinNameErc721_main_net.length > 0 /*&& strCoinNameErc721_s_chain.length > 0*/ ) {
-        ensure_have_value( "Loaded Main-net ERC721 ABI ", strCoinNameErc721_main_net, false, true, null, ( x ) => {
-            return cc.attention( x );
+        ensure_have_value( "M->S transactions limit", g_nMaxTransactionsM2S, false, true, null, ( x ) => {
+            return cc.note( x );
         } );
-        ensure_have_value( "Loaded S-Chain  ERC721 ABI ", strCoinNameErc721_s_chain, false, true, null, ( x ) => {
-            return cc.attention( x );
+        ensure_have_value( "S->M transactions limit", g_nMaxTransactionsS2M, false, true, null, ( x ) => {
+            return cc.note( x );
         } );
-        ensure_have_value( "ERC721 tocken id ", g_token_id, false, true, null, ( x ) => {
+        ensure_have_value( "M->S await blocks", g_nBlockAwaitDepthM2S, false, true, null, ( x ) => {
+            return cc.note( x );
+        } );
+        ensure_have_value( "S->M await blocks", g_nBlockAwaitDepthS2M, false, true, null, ( x ) => {
+            return cc.note( x );
+        } );
+        ensure_have_value( "M->S minimal block age", g_nBlockAgeM2S, false, true, null, ( x ) => {
+            return cc.note( x );
+        } );
+        ensure_have_value( "S->M minimal block age", g_nBlockAgeS2M, false, true, null, ( x ) => {
+            return cc.note( x );
+        } );
+        ensure_have_value( "Transfer loop period(seconds)", g_nLoopPeriodSeconds, false, true, null, ( x ) => {
+            return cc.success( x );
+        } );
+        if ( g_nTimeFrameSeconds > 0 ) {
+            ensure_have_value( "Time framing(seconds)", g_nTimeFrameSeconds, false, true );
+            ensure_have_value( "Next frame gap(seconds)", g_nNextFrameGap, false, true );
+        } else
+            ensure_have_value( "Time framing", cc.error( "disabled" ), false, true );
+        ensure_have_value( "S-Chain node number(zero based)", g_nNodeNumber, false, true, null, ( x ) => {
             return cc.info( x );
         } );
-        if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            log.write( cc.info( "ERC721 raw transfer is " ) + cc.yn( g_isRawTokenTransfer ) + "\n" );
-        log.write( cc.info( "ERC721 explicit S-Chain address is " ) + cc.attention( g_str_addr_erc721_explicit ) + "\n" );
-    }
-    if ( strCoinNameErc20_main_net.length > 0 /*&& strCoinNameErc20_s_chain.length > 0*/ ) {
-        ensure_have_value( "Loaded Main-net ERC20 ABI ", strCoinNameErc20_main_net, false, true, null, ( x ) => {
-            return cc.attention( x );
-        } );
-        ensure_have_value( "Loaded S-Chain  ERC20 ABI ", strCoinNameErc20_s_chain, false, true, null, ( x ) => {
-            return cc.attention( x );
-        } );
-        ensure_have_value( "Amount of tokens to transfer", g_token_amount, false, true, null, ( x ) => {
+        ensure_have_value( "S-Chain nodes count", g_nNodesCount, false, true, null, ( x ) => {
             return cc.info( x );
         } );
-        if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            log.write( cc.info( "ERC20 raw transfer is " ) + cc.yn( g_isRawTokenTransfer ) + "\n" );
-        log.write( cc.info( "ERC20 explicit S-Chain address is " ) + cc.attention( g_str_addr_erc20_explicit ) + "\n" );
+        if ( g_log_strFilePath.length > 0 ) {
+            ensure_have_value( "Log file path", g_log_strFilePath, false, true, null, ( x ) => {
+                return cc.info( x );
+            } );
+            ensure_have_value( "Max size of log file path", g_log_nMaxSizeBeforeRotation, false, true, null, ( x ) => {
+                return ( x <= 0 ) ? cc.warn( "unlimited" ) : cc.note( x );
+            } );
+            ensure_have_value( "Max rotated count of log files", g_log_nMaxFilesCount, false, true, null, ( x ) => {
+                return ( x <= 1 ) ? cc.warn( "not set" ) : cc.note( x );
+            } );
+        }
+        if ( strCoinNameErc721_main_net.length > 0 /*&& strCoinNameErc721_s_chain.length > 0*/ ) {
+            ensure_have_value( "Loaded Main-net ERC721 ABI ", strCoinNameErc721_main_net, false, true, null, ( x ) => {
+                return cc.attention( x );
+            } );
+            ensure_have_value( "Loaded S-Chain  ERC721 ABI ", strCoinNameErc721_s_chain, false, true, null, ( x ) => {
+                return cc.attention( x );
+            } );
+            ensure_have_value( "ERC721 tocken id ", g_token_id, false, true, null, ( x ) => {
+                return cc.info( x );
+            } );
+            if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+                log.write( cc.info( "ERC721 raw transfer is " ) + cc.yn( g_isRawTokenTransfer ) + "\n" );
+            log.write( cc.info( "ERC721 explicit S-Chain address is " ) + cc.attention( g_str_addr_erc721_explicit ) + "\n" );
+        }
+        if ( strCoinNameErc20_main_net.length > 0 /*&& strCoinNameErc20_s_chain.length > 0*/ ) {
+            ensure_have_value( "Loaded Main-net ERC20 ABI ", strCoinNameErc20_main_net, false, true, null, ( x ) => {
+                return cc.attention( x );
+            } );
+            ensure_have_value( "Loaded S-Chain  ERC20 ABI ", strCoinNameErc20_s_chain, false, true, null, ( x ) => {
+                return cc.attention( x );
+            } );
+            ensure_have_value( "Amount of tokens to transfer", g_token_amount, false, true, null, ( x ) => {
+                return cc.info( x );
+            } );
+            if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+                log.write( cc.info( "ERC20 raw transfer is " ) + cc.yn( g_isRawTokenTransfer ) + "\n" );
+            log.write( cc.info( "ERC20 explicit S-Chain address is " ) + cc.attention( g_str_addr_erc20_explicit ) + "\n" );
+        }
     }
-}
+    //
+    //
+    //
+} // common_init
+
+if( g_bIsNeededCommonInit )
+    common_init();
+
 if ( g_bShowConfigMode ) {
     // just show configuratin values and exit
     return true;
+}
+
+async function discover_s_chain_network( fnAfter ) {
+    fnAfter = fnAfter || function() {};
+    let joSChainNetworkInfo = null;
+    await rpcCall.create( g_str_url_s_chain, async function( joCall, err ) {
+        if( err ) {
+            log.write( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed: " ) + cc.warning(err) + "\n" );
+            fnAfter( err, null );
+            return;
+        }
+        await joCall.call( {
+            "method": "skale_nodesRpcInfo",
+            "params": { }
+        }, async function( joIn, joOut, err ) {
+            if( err ) {
+                log.write( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
+                fnAfter( err, null );
+                return;
+            }
+            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            //    log.write( cc.normal( "S-Chain network information: " )  + cc.j( joOut.result ) + "\n" );
+            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+               log.write( cc.success( "OK, got S-Chain network information." ) + "\n" );
+            let nCountReceivedImaDescriptions = 0;
+            joSChainNetworkInfo = joOut.result;
+            let jarrNodes = joSChainNetworkInfo.network;
+            for( let i = 0; i < jarrNodes.length; ++ i ) {
+                let joNode = jarrNodes[ i ];
+                let strNodeURL = compose_schain_node_url( joNode );
+                await rpcCall.create( strNodeURL, function( joCall, err ) {
+                    if( err ) {
+                        log.write( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                        fnAfter( err, null );
+                        return;
+                    }
+                    joCall.call( {
+                        "method": "skale_imaInfo",
+                        "params": { }
+                    }, function( joIn, joOut, err ) {
+                        ++ nCountReceivedImaDescriptions;
+                        if( err ) {
+                            log.write( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
+                            fnAfter( err, null );
+                            return;
+                        }
+                        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                        //    log.write( cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " )  + cc.j( joOut.result ) + "\n" );
+                        joNode.imaInfo = joOut.result;
+                        //joNode.joCall = joCall;
+                        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                           log.write( cc.success( "OK, got node ") + cc.info(joNode.nodeID) + cc.success(" IMA information(") + cc.info(nCountReceivedImaDescriptions) + cc.success(" of ") + cc.info(jarrNodes.length) + cc.success(")." ) + "\n" );
+                    } );
+                } );
+            }
+            //process.exit( 0 );
+            let iv = setInterval( function() {
+                if( nCountReceivedImaDescriptions == jarrNodes.length  ) {
+                    clearInterval( iv );
+                    fnAfter( null, joSChainNetworkInfo );
+                }
+            }, 100 );
+        } );
+    } );
 }
 
 //
@@ -1497,8 +1775,29 @@ async function do_the_job() {
         process.exitCode = cntFalse;
     }
 }
-do_the_job();
-return 0; // FINISH
+
+if( g_bSignMessages ) {
+    if( g_strPathBlsGlue.length == 0 ) {
+        log.write( cc.fatal( "FATAL" ) + cc.error( " please specify --bls-glue parameter." ) + "\n" );
+        process.exit( 666 );
+    }
+    if( g_strPathHashG1.length == 0 ) {
+        log.write( cc.fatal( "FATAL" ) + cc.error( " please specify --hash-g1 parameter." ) + "\n" );
+        process.exit( 666 );
+    }
+    discover_s_chain_network( function( err, joSChainNetworkInfo ) {
+        if( err )
+            process.exit( 1 ); // error information is printed by discover_s_chain_network()
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+           log.write( cc.success( "S-Chain network was discovered: " )  + cc.j( joSChainNetworkInfo ) + "\n" );
+        g_joSChainNetworkInfo = joSChainNetworkInfo;
+        do_the_job();
+        return 0; // FINISH
+    } );
+} else {
+    do_the_job();
+    return 0; // FINISH
+}
 
 async function register_step1() {
     var bRetVal = await IMA.register_s_chain_on_main_net( // step 1
@@ -1618,7 +1917,8 @@ async function single_transfer_loop() {
         g_nTransferBlockSizeM2S,
         g_nMaxTransactionsM2S,
         g_nBlockAwaitDepthM2S,
-        g_nBlockAgeM2S
+        g_nBlockAgeM2S,
+        null // fn_sign_messages
     );
     var b2 = await IMA.do_transfer( // s-chain --> main-net
         /**/
@@ -1634,7 +1934,8 @@ async function single_transfer_loop() {
         g_nTransferBlockSizeS2M,
         g_nMaxTransactionsS2M,
         g_nBlockAwaitDepthS2M,
-        g_nBlockAgeS2M
+        g_nBlockAgeS2M,
+        do_sign_messages // fn_sign_messages
     );
     var b3 = b1 && b2;
     return b3;
@@ -1647,4 +1948,552 @@ async function run_transfer_loop() {
     await single_transfer_loop_with_repeat();
     //setTimeout( single_transfer_loop_with_repeat, g_nLoopPeriodSeconds*1000 );
     return true;
+}
+
+function discover_bls_threshold( joSChainNetworkInfo ) {
+    let jarrNodes = g_joSChainNetworkInfo.network;
+    for( let i = 0; i < jarrNodes.length; ++ i ) {
+        let joNode = jarrNodes[ i ];
+        if( "imaInfo" in joNode && typeof joNode.imaInfo == "object"
+            &&  "t" in joNode.imaInfo && typeof joNode.imaInfo.t == "number"
+            &&  joNode.imaInfo.t > 0
+            )
+            return joNode.imaInfo.t;
+    }
+    return -1;
+}
+
+function discover_bls_participants( joSChainNetworkInfo ) {
+    let jarrNodes = g_joSChainNetworkInfo.network;
+    for( let i = 0; i < jarrNodes.length; ++ i ) {
+        let joNode = jarrNodes[ i ];
+        if( "imaInfo" in joNode && typeof joNode.imaInfo == "object"
+            &&  "n" in joNode.imaInfo && typeof joNode.imaInfo.n == "number"
+            &&  joNode.imaInfo.n > 0
+            )
+            return joNode.imaInfo.n;
+    }
+    return -1;
+}
+
+function discover_common_public_key( joSChainNetworkInfo ) {
+    let jarrNodes = g_joSChainNetworkInfo.network;
+    for( let i = 0; i < jarrNodes.length; ++ i ) {
+        let joNode = jarrNodes[ i ];
+        if( "imaInfo" in joNode && typeof joNode.imaInfo == "object"
+            &&  "insecureCommonBLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey0 == "string" && joNode.imaInfo.insecureCommonBLSPublicKey0.length > 0
+            &&  "insecureCommonBLSPublicKey1" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey1 == "string" && joNode.imaInfo.insecureCommonBLSPublicKey1.length > 0
+            &&  "insecureCommonBLSPublicKey2" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey2 == "string" && joNode.imaInfo.insecureCommonBLSPublicKey2.length > 0
+            &&  "insecureCommonBLSPublicKey3" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey3 == "string" && joNode.imaInfo.insecureCommonBLSPublicKey3.length > 0
+            )
+            return {
+                "insecureCommonBLSPublicKey0": joNode.imaInfo.insecureCommonBLSPublicKey0,
+                "insecureCommonBLSPublicKey1": joNode.imaInfo.insecureCommonBLSPublicKey1,
+                "insecureCommonBLSPublicKey2": joNode.imaInfo.insecureCommonBLSPublicKey2,
+                "insecureCommonBLSPublicKey3": joNode.imaInfo.insecureCommonBLSPublicKey3
+            };
+    }
+    return null;
+}
+
+function encodeUTF8( s ) { // marshals a string to an Uint8Array, see https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
+	var i = 0, arrBytes = new Uint8Array(s.length * 4);
+	for( var ci = 0; ci != s.length; ci++ ) {
+		var c = s.charCodeAt( ci );
+		if( c < 128 ) {
+			arrBytes[i++] = c;
+			continue;
+		}
+		if( c < 2048 )
+			arrBytes[i++] = c >> 6 | 192;
+		else {
+			if( c > 0xd7ff && c < 0xdc00 ) {
+				if( ++ci >= s.length )
+					throw new Error( "UTF-8 encode: incomplete surrogate pair" );
+				var c2 = s.charCodeAt( ci );
+				if( c2 < 0xdc00 || c2 > 0xdfff )
+					throw new Error( "UTF-8 encode: second surrogate character 0x" + c2.toString(16) + " at index " + ci + " out of range" );
+				c = 0x10000 + ((c & 0x03ff) << 10) + (c2 & 0x03ff);
+				arrBytes[i++] = c >> 18 | 240;
+				arrBytes[i++] = c >> 12 & 63 | 128;
+			} else arrBytes[i++] = c >> 12 | 224;
+			arrBytes[i++] = c >> 6 & 63 | 128;
+		}
+		arrBytes[i++] = c & 63 | 128;
+	}
+	return arrBytes.subarray( 0, i );
+}
+function decodeUTF8( arrBytes ) { // unmarshals a string from an Uint8Array, see https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
+	var i = 0, s = "";
+	while ( i < arrBytes.length ) {
+		var c = arrBytes[i++];
+		if( c > 127 ) {
+			if( c > 191 && c < 224 ) {
+				if( i >= arrBytes.length )
+					throw new Error( "UTF-8 decode: incomplete 2-byte sequence" );
+				c = (c & 31) << 6 | arrBytes[i++] & 63;
+			} else if( c > 223 && c < 240 ) {
+				if (i + 1 >= arrBytes.length)
+					throw new Error( "UTF-8 decode: incomplete 3-byte sequence" );
+				c = (c & 15) << 12 | (arrBytes[i++] & 63) << 6 | arrBytes[i++] & 63;
+			} else if( c > 239 && c < 248 ) {
+				if( i + 2 >= arrBytes.length )
+					throw new Error( "UTF-8 decode: incomplete 4-byte sequence" );
+				c = (c & 7) << 18 | (arrBytes[i++] & 63) << 12 | (arrBytes[i++] & 63) << 6 | arrBytes[i++] & 63;
+			} else
+                throw new Error( "UTF-8 decode: unknown multibyte start 0x" + c.toString(16) + " at index " + (i - 1) );
+		}
+		if( c <= 0xffff )
+            s += String.fromCharCode( c );
+		else if( c <= 0x10ffff ) {
+			c -= 0x10000;
+			s += String.fromCharCode( c >> 10 | 0xd800 )
+			s += String.fromCharCode( c & 0x3FF | 0xdc00 )
+		} else
+            throw new Error( "UTF-8 decode: code point 0x" + c.toString(16) + " exceeds UTF-16 reach" );
+	}
+	return s;
+}
+
+function hexToBytes( strHex, isInversiveOrder ) { // convert a hex string to a byte array
+    isInversiveOrder = ( isInversiveOrder != null && isInversiveOrder != undefined && isInversiveOrder ) ? true : false;
+    strHex = strHex || "";
+    strHex = "" + strHex;
+    strHex = strHex.trim().toLowerCase();
+    if( strHex.length > 1 && strHex[0] == 0 && strHex[1] == "x" )
+        strHex = strHex.substr( 2, strHex.length - 2 );
+    if( ( strHex.length & 1 ) != 0 )
+        strHex = "0" + strHex;
+    let i, j, cnt = strHex.length;
+    let arrBytes = new Uint8Array( cnt/2 );
+    for( i = 0, j = 0; i < cnt; ++ j, i += 2 )
+        arrBytes[ isInversiveOrder ? ( cnt - j - 1 ) : j ] = parseInt( strHex.substr( i, 2 ), 16 );
+    return arrBytes;
+}
+function bytesToHex( arrBytes, isInversiveOrder ) { // convert a byte array to a hex string
+    isInversiveOrder = ( isInversiveOrder != null && isInversiveOrder != undefined && isInversiveOrder ) ? true : false;
+    for( var hex = [], i = 0; i < arrBytes.length; i++)  {
+        var current = arrBytes[i] < 0 ? arrBytes[i] + 256 : arrBytes[i];
+        let c0 = ( current >>> 4 ).toString(16);
+        let c1 = ( current & 0xF ).toString(16);
+        if( isInversiveOrder ) {
+            hex.splice( 0, 0, c0 );
+            hex.splice( 1, 0, c1 );
+        } else {
+            hex.push( c0 );
+            hex.push( c1 );
+        }
+    }
+    return hex.join( "" );
+}
+
+function bytesAlighLeftWithZeroes( arrBytes, cntMin ) {
+    let arrOneZeroByte = new Uint8Array( 1 );
+    arrOneZeroByte[0] = 0;
+    while( arrBytes.length < cntMin )
+        arrBytes = bytesConcat( arrOneZeroByte, arrBytes );
+    return arrBytes;
+}
+function bytesAlighRightWithZeroes( arrBytes, cntMin ) {
+    let arrOneZeroByte = new Uint8Array( 1 );
+    arrOneZeroByte[0] = 0;
+    while( arrBytes.length < cntMin )
+        arrBytes = bytesConcat( arrBytes, arrOneZeroByte );
+    return arrBytes;
+}
+
+function concatTypedArrays( a, b ) { // a, b TypedArray of same type
+    var c = new (a.constructor)(a.length + b.length);
+    c.set( a, 0 );
+    c.set( b, a.length );
+    return c;
+}
+function concatByte( ui8a, byte ) {
+    var b = new Uint8Array( 1 );
+    b[0] = byte;
+    return concatTypedArrays(ui8a, b);
+}
+function bytesConcat( a1, a2 ) {
+    a1 = a1 || new Uint8Array();
+    a2 = a2 || new Uint8Array();
+    return concatTypedArrays( a1, a2 );
+}
+
+function toArrayBuffer( buf ) { // see https://stackoverflow.com/questions/8609289/convert-a-binary-nodejs-buffer-to-javascript-arraybuffer
+    let ab = new ArrayBuffer( buf.length );
+    let view = new Uint8Array( ab );
+    for( var i = 0; i < buf.length; ++ i )
+        view[ i ] = buf[ i ];
+    return ab;
+}
+function toBuffer( ab ) {
+    let buf = Buffer.alloc( ab.byteLength );
+    let view = new Uint8Array( ab );
+    for( let i = 0; i < buf.length; ++ i )
+        buf[ i ] = view[ i ];
+    return buf;
+}
+
+function invertArrayItemsLR( arr ) {
+    let i, cnt = arr.length / 2;
+    for( i = 0; i < cnt; ++ i ) {
+        let e1 = arr[ i ];
+        let e2 = arr[ arr.length - i - 1 ];
+        arr[ i ] = e2;
+        arr[ arr.length - i - 1 ] = e1;
+    }
+    return arr;
+}
+
+function compose_one_message_byte_sequence( joMessage ) {
+    let w3 = g_w3_s_chain ? g_w3_s_chain : g_w3_main_net;
+    if( ! w3 )
+        throw new Error( "w3.utils is needed for BN operations" );
+    let arrBytes = new Uint8Array();
+
+    let bytesSender = hexToBytes( joMessage.sender );
+    bytesSender = invertArrayItemsLR( bytesSender );
+    bytesSender = bytesAlighLeftWithZeroes( bytesSender, 32 )
+    bytesSender = invertArrayItemsLR( bytesSender );
+    arrBytes = bytesConcat( arrBytes, bytesSender );
+    //
+    let bytesDestinationContract = hexToBytes( joMessage.destinationContract );
+    bytesDestinationContract = invertArrayItemsLR( bytesDestinationContract );
+    bytesDestinationContract = bytesAlighLeftWithZeroes( bytesDestinationContract, 32 )
+    bytesDestinationContract = invertArrayItemsLR( bytesDestinationContract );
+    arrBytes = bytesConcat( arrBytes, bytesDestinationContract );
+    //
+    let bytesTo = hexToBytes( joMessage.to );
+    bytesTo = invertArrayItemsLR( bytesTo );
+    bytesTo = bytesAlighLeftWithZeroes( bytesTo, 32 )
+    bytesTo = invertArrayItemsLR( bytesTo );
+    arrBytes = bytesConcat( arrBytes, bytesTo );
+    //
+    let strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString(16);
+    let bytesAmount = hexToBytes( strHexAmount );
+    //bytesAmount = invertArrayItemsLR( bytesAmount );
+    bytesAmount = bytesAlighLeftWithZeroes( bytesAmount, 32 )
+    arrBytes = bytesConcat( arrBytes, bytesAmount );
+    //
+    let bytesData = hexToBytes( joMessage.data );
+    bytesData = invertArrayItemsLR( bytesData );
+    arrBytes = bytesConcat( arrBytes, bytesData );
+    //
+    return arrBytes;
+}
+
+function compose_summary_message_to_sign( jarrMessages, isHash ) {
+    let arrBytes = "";
+    let i = 0, cnt = jarrMessages.length;
+    for( i = 0; i < cnt; ++ i ) {
+        let joMessage = jarrMessages[ i ];
+        let arrMessageBytes = compose_one_message_byte_sequence( joMessage );
+        arrBytes = bytesConcat( arrBytes, arrMessageBytes );
+    }
+    let strSummaryMessage = "";
+    if( isHash ) {
+        const hash = new Keccak( 256 );
+        hash.update( toBuffer( arrBytes ) );
+        strSummaryMessage = hash.digest( "hex" );
+    } else
+        strSummaryMessage = "0x" + bytesToHex( arrBytes );
+    return strSummaryMessage;
+}
+
+function split_signature_share( signatureShare ) {
+    let jarr = signatureShare.split( ":" );
+    return {
+        "X": jarr[0],
+        "Y": jarr[1]
+    };
+}
+
+function get_bls_glue_tmp_dir() {
+    let strTmpDir = path.resolve( __dirname ) + "/tmp";
+    shell.mkdir( "-p", strTmpDir );
+    return strTmpDir;
+}
+
+function alloc_tmp_action_dir() {
+    let strActionDir = get_bls_glue_tmp_dir() + "/" + replaceAll( uuid(), "-", "" );
+    shell.mkdir( "-p", strActionDir );
+    return strActionDir;
+}
+
+function perform_bls_glue( jarrMessages, arrSignResults ) {
+    let joGlueResult = null;
+    let jarrNodes = g_joSChainNetworkInfo.network;
+    let nThreshold = discover_bls_threshold( g_joSChainNetworkInfo );
+    let nParticipants = discover_bls_participants( g_joSChainNetworkInfo );
+    //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+       log.write( cc.debug( "Original long message is ") + cc.info( compose_summary_message_to_sign( jarrMessages, false ) ) + "\n" );
+    let strSummaryMessage = compose_summary_message_to_sign( jarrMessages, true );
+    //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+       log.write( cc.debug( "Message hasn to sign is ") + cc.info( strSummaryMessage ) + "\n" );
+    let strPWD = shell.pwd();
+    let strActionDir = alloc_tmp_action_dir();
+    //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+       log.write( cc.debug( "perform_bls_glue will work in ") + cc.info(strActionDir) + cc.debug(" director with ") + cc.info(arrSignResults.length) + cc.debug(" sign results..." ) + "\n" );
+    let fnShellRestore = function() {
+        shell.cd( strPWD );
+        shell.rm( "-rf", strActionDir );
+    };
+    let strOutput = "";
+    try {
+        shell.cd( strActionDir );
+        let strInput = "";
+        let i = 0, cnt = arrSignResults.length;
+        for( i = 0; i < cnt; ++ i ) {
+            let jo = arrSignResults[ i ];
+            let strPath = strActionDir + "/sign-result" + jo.index + ".json";
+            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug(" file..." ) + "\n" );
+            jsonFileSave( strPath, jo );
+            strInput += " --input " + strPath;
+        }
+        let strGlueCommand =
+            g_strPathBlsGlue +
+            " --t " + nThreshold +
+            " --n " + nParticipants +
+            strInput +
+            " --output " + strActionDir + "/glue-result.json";
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( cc.normal( "Will execute BLS glue command:\n" ) + cc.notice( strGlueCommand ) + "\n" );
+        strOutput = child_process.execSync( strGlueCommand );
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( cc.normal( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        joGlueResult = jsonFileLoad( strActionDir + "/glue-result.json" );
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( cc.normal( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
+        if ( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) {
+            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( cc.success( "BLS glue success" )  + "\n" );
+            joGlueResult.hashSrc = strSummaryMessage;
+            //
+            //
+            //
+            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( cc.debug( "Computing " ) + cc.info("G1") + cc.debug(" hash point...") + "\n" );
+            let strPath = strActionDir + "/hash.json";
+            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug(" file..." ) + "\n" );
+            jsonFileSave( strPath, { "message": strSummaryMessage } );
+            let strHasG1Command =
+                g_strPathHashG1 +
+                " --t " + nThreshold +
+                " --n " + nParticipants;
+            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( cc.normal( "Will execute HashG1 command:\n" ) + cc.notice( strHasG1Command ) + "\n" );
+            strOutput = child_process.execSync( strHasG1Command );
+            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( cc.normal( "HashG1 output is:\n" ) + cc.notice( strOutput ) + "\n" );
+            let joResultHashG1 = jsonFileLoad( strActionDir + "/g1.json" );
+            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( cc.normal( "HashG1 result is: " ) + cc.j( joResultHashG1 ) + "\n" );
+            //
+            //
+            //
+            if ( "g1" in joResultHashG1 && "hint" in joResultHashG1.g1 && "hashPoint" in joResultHashG1.g1
+                && "X" in joResultHashG1.g1.hashPoint && "Y" in joResultHashG1.g1.hashPoint ) {
+                joGlueResult.hashPoint = joResultHashG1.g1.hashPoint;
+                joGlueResult.hint = joResultHashG1.g1.hint;
+            } else {
+                joGlueResult = null;
+                throw "malformed HashG1 result";
+            }
+        } else {
+            joGlueResult = null;
+            throw "malformed BLS glue result";
+        }
+        //
+        // typical glue result is:
+        // {
+        //     "signature": {
+        //         "X": "2533808148583356869465588922364792219279924240245650719832918161014673583859",
+        //         "Y": "2900553917645502192745899163584745093808998719667605626180761629013549672201"
+        //     }
+        // }
+        fnShellRestore();
+    } catch( err ) {
+        log.write( cc.fatal("BLS glue error:") + cc.normal( " error description is: " ) + cc.warning( err ) + "\n" );
+        log.write( cc.error( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        fnShellRestore();
+        joGlueResult = null;
+    }
+    return joGlueResult;
+}
+
+function perform_bls_verify( joGlueResult, jarrMessages, joCommonPublicKey ) {
+    if( ! joGlueResult )
+        return true;
+    let nThreshold = discover_bls_threshold( g_joSChainNetworkInfo );
+    let nParticipants = discover_bls_participants( g_joSChainNetworkInfo );
+    let strPWD = shell.pwd();
+    let strActionDir = alloc_tmp_action_dir();
+    let fnShellRestore = function() {
+        shell.cd( strPWD );
+        shell.rm( "-rf", strActionDir );
+    };
+    let strOutput = "";
+    try {
+        shell.cd( strActionDir );
+        let joMsg = { "message" : compose_summary_message_to_sign( jarrMessages, true ) };
+        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( cc.debug( "BLS verify message " ) + cc.j( joMsg ) + cc.debug(" composed from ") + cc.j(jarrMessages) + cc.debug(" using glue ") + cc.j( joGlueResult) + cc.debug(" and common public key ") + cc.j( joCommonPublicKey) + "\n" );
+        jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
+        jsonFileSave( strActionDir + "/hash.json", joMsg );
+        jsonFileSave( strActionDir + "/common_public_key.json", joCommonPublicKey );
+        let strVerifyCommand =
+            g_strPathBlsVerify +
+            " --t " + nThreshold +
+            " --n " + nParticipants +
+            //" --input " + strActionDir + "/glue-result.json";
+            " --input " + "./glue-result.json";
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( cc.normal( "Will execute BLS verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
+        strOutput = child_process.execSync( strVerifyCommand );
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( cc.normal( "BLS verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+             log.write( cc.success( "BLS verify success" )  + "\n" );
+        fnShellRestore();
+        return true;
+    } catch( err ) {
+        log.write( cc.fatal("BLS verify error:") + cc.normal( " error description is: " ) + cc.warning( err ) + "\n" );
+        log.write( cc.error( "BLS verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        fnShellRestore();
+    }
+    return false;
+
+}
+
+async function do_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, fn ) {
+    fn = fn || function() {};
+    if( ! ( g_bSignMessages && g_strPathBlsGlue.length > 0 && g_joSChainNetworkInfo ) ) {
+        await fn( null, jarrMessages, null )
+        return;
+    }
+    //
+    // each message in array looks like:
+    // {
+    //     "amount": joValues.amount,
+    //     "data": joValues.data,
+    //     "destinationContract": joValues.dstContract,
+    //     "sender": joValues.srcContract,
+    //     "to": joValues.to
+    // }
+    //
+    // sign result looks like:
+    // {
+    //     "id": 1, "jsonrpc": "2.0", "result": {
+    //         "signResult": {
+    //             "errorMessage": "",
+    //             "signatureShare": "13888409666804046853490114813821624491836407617931905586112520275264817002720:9871589266312476278322587556340871982939135237123140475925975407511373249165:0",
+    //             "status": 0
+    //         }
+    //     }
+    // }
+    //
+    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+        log.write( cc.debug( "Will sign ") + cc.info(jarrMessages.length) + cc.debug(" message(s)..." ) + "\n" );
+    let nCountReceived = 0; // including errors
+    let nCountErrors = 0;
+    let arrSignResults = [];
+    let jarrNodes = g_joSChainNetworkInfo.network;
+    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+        log.write( cc.debug( "Will query to sign ") + cc.info(jarrNodes.length) + cc.debug(" skaled node(s)..." ) + "\n" );
+    let nThreshold = discover_bls_threshold( g_joSChainNetworkInfo );
+    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+        log.write( cc.debug( "Discovered BLS threshold is ") + cc.info(nThreshold) + cc.debug("." ) + "\n" );
+    if( nThreshold <= 0 ) {
+        await fn( "signature error, S-Chain information was not discovered properly and BLS threshold is unknown", jarrMessages, null );
+        return;
+    }
+    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+        log.write( cc.debug( "Will collect " ) + cc.info(nThreshold) + cc.debug(" from ") + cc.info(jarrNodes.length) + cc.debug("nodes") + "\n" );
+    for( let i = 0; i < jarrNodes.length; ++ i ) {
+        let joNode = jarrNodes[ i ];
+        let strNodeURL = compose_schain_node_url( joNode );
+        await rpcCall.create( strNodeURL, async function( joCall, err ) {
+            if( err ) {
+                ++ nCountReceived; // including errors
+                ++ nCountErrors;
+                log.write( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) + "\n" );
+                return;
+            }
+            await joCall.call( {
+                "method": "skale_imaVerifyAndSign",
+                "params": {
+                    "startMessageIdx": nIdxCurrentMsgBlockStart,
+                    "dstChainID": "" + ( g_chain_id_main_net ? g_chain_id_main_net : "" ),
+                    "srcChainID": "" + ( g_chain_id_s_chain ? g_chain_id_s_chain : "" ),
+                    "messages": jarrMessages
+                }
+            }, function( joIn, joOut, err ) {
+                ++ nCountReceived; // including errors
+                if( err ) {
+                    ++ nCountErrors;
+                    log.write( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
+                    return;
+                }
+                log.write( cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" sign result: " )  + cc.j( joOut.result ? joOut.result : null ) + "\n" );
+                try {
+                    if( joOut.result.signResult.signatureShare.length > 0 && joOut.result.signResult.status == 0 ) {
+                        //
+                        // sign result for bls_glue shoild look like:
+                        // {
+                        //     "index": "1",
+                        //     "signature": {
+                        //         "X": "8184471694634630119550127539973704769190648951089883109386639469590492862134",
+                        //         "Y": "4773775435244318964726085856452691379381914783621253742616578726383405809710"
+                        //     }
+                        // }
+                        //
+                        let nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
+                        arrSignResults.push( {
+                            "index": "" + nZeroBasedNodeIndex,
+                            "signature": split_signature_share( joOut.result.signResult.signatureShare ),
+                            "fromNode": joNode, // extra, not needed for bls_glue
+                            "signResult": joOut.result.signResult
+                        } );
+                    }
+                } catch( err ) {
+                    ++ nCountErrors;
+                    log.write( cc.fatal( "Error:" ) + cc.error( " signature fail from node ") + cc.info(joNode.nodeID) + cc.error("." ) + "\n" );
+                }
+            } );
+        } );
+    }
+    let iv = setInterval( async function() {
+        let cntSuccess = nCountReceived - nCountErrors;
+        if( cntSuccess >= nThreshold ) {
+            clearInterval( iv );
+            let strError = null;
+            let joGlueResult = perform_bls_glue( jarrMessages, arrSignResults );
+            if( joGlueResult ) {
+                if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                    log.write( cc.success( "Got BLS glue result: " ) + cc.j( joGlueResult ) + "\n" );
+                if( g_strPathBlsVerify.length > 0 ) {
+                    let joCommonPublicKey = discover_common_public_key( g_joSChainNetworkInfo );
+                    if( perform_bls_verify( joGlueResult, jarrMessages, joCommonPublicKey ) ) {
+                        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                            log.write( cc.success( "Got succerssful BLS verification result " ) + "\n" );
+                    } else {
+                        strError = "BLS verify failed";
+                        log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
+                    }
+                }
+            } else {
+                strError = "BLS glue failed";
+                log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
+            }
+            await fn( strError, jarrMessages, joGlueResult );
+            return;
+        }
+        if( nCountReceived >= jarrNodes.length ) {
+            clearInterval( iv );
+            await fn( "signature error in " + nCountErrors + " node(s) of " + jarrNodes.length + " node(s)", jarrMessages, null );
+            return;
+        }
+    }, 100 );
 }

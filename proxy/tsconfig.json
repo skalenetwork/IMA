@@ -9,9 +9,10 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "forceConsistentCasingInFileNames": true,    
+    "resolveJsonModule": true,
     "lib": ["es2015", "esnext.asynciterable"],
     "sourceMap": true,
-    "typeRoots": ["./node_modules/@types", "./types"],
+    "typeRoots": ["./node_modules/@types", "./types", "./customTypes"],
     "types": ["node", "truffle-contracts"],
     "esModuleInterop": false
   },

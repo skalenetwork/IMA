@@ -32,6 +32,8 @@ const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const ERC20ModuleForMainnet: ERC20ModuleForMainnetContract = artifacts.require("./ERC20ModuleForMainnet");
 
+const contractManager = "0x0000000000000000000000000000000000000000";
+
 contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
@@ -42,7 +44,7 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
   let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnetERC20 =

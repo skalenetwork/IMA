@@ -86,7 +86,8 @@ module.exports = {
         },
         gasPrice: 10000000000,
         gas: 8000000,
-        network_id: "*"
+        network_id: "*",
+        skipDryRun: true // added experimentally
       }
     },
     mocha: {
@@ -106,7 +107,7 @@ module.exports = {
     // }
     compilers: {
       solc: {
-        version: "0.5.11",
+        version: "0.5.10",
         settings: {
           optimizer: {
             enabled: true,
@@ -117,4 +118,3 @@ module.exports = {
       }
     }
   }
-

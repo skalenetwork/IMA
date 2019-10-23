@@ -21,7 +21,7 @@ pragma solidity ^0.5.3;
 
 import "./Ownable.sol";
 
-interface ContractManager {
+interface IContractManager {
     function permitted(bytes32 contractName) external view returns (address);
 }
 
@@ -42,7 +42,7 @@ contract Permissions is Ownable {
      */
     modifier allow(string memory contractName) {
         require(
-            ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
+            IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
             owner == msg.sender, "Message sender is invalid"
         );
         _;

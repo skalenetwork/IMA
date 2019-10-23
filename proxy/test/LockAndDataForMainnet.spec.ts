@@ -20,13 +20,15 @@ const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const DepositBox: DepositBoxContract = artifacts.require("./DepositBox");
 
+const contractManager = "0x0000000000000000000000000000000000000000";
+
 contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let depositBox: DepositBoxInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
     depositBox = await DepositBox.new(messageProxy.address, lockAndDataForMainnet.address,
        {from: deployer, gas: 8000000 * gasMultiplier});

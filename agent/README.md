@@ -49,7 +49,7 @@ Fourth, edit the *$IMA_ROOT/proxy/truffle-config.js* and specify needed networks
     cd $IMA_ROOT/proxy
     nano ./truffle-config.js
 
-We will use networks called **mainnet** and **schain** in this documentation:
+We will use networks called **MainNet** and **S-Chain** in this documentation:
 
     var privateKey_main_net = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
     var privateKey_skalechain  = "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e";
@@ -89,11 +89,12 @@ Fourth, export required environment variables:
     export MNEMONIC_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
     export MNEMONIC_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
 
+
 Fifth, try rebuild all the contracts once to ensure everything initialized OK:
 
     cd $IMA_ROOT/proxy
     rm -rf ./build
-    truffle complile
+    truffle compile
 
 ### Contracts pre-installation on Mainnet and SKALE Chain
 
@@ -436,3 +437,122 @@ Notice: The command above does payment from Main-net and that is why we need to 
 ### ERC721 raw transfer from S-Chain account to Main-net
 
 Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
+
+## Other options and commands
+
+### Browse S-Chain network
+
+You can ask agent app to scan **S-Chain** network information and parameters, print it and exit:
+
+    node ./main.js --verbose=9 --url-s-chain=http://127.0.0.1:7000 -- browse-s-chain
+
+This information is used to sign messages on all **S-Chain** nodes.
+
+### Sign messages
+
+Message signing performed only for message sent from **S-Chain** to **MainNet**.
+
+Adding **--sign-messages** command line parameter turns on **BLS message signing** algorithm.
+Agent app will scan **S-Chain** network and ask each of nodes to sign messages transferred from **MainNet** to **S-Chain**.
+This options requires all **S-Chain** nodes to be configured with **SGX Wallet** or **Emu Wallet** access information.
+
+The **--bls-glue** command line parameter must be used to specify path to the **bls_glue** application.
+This parameter must be specified if **--sign-messages** paraneter is present.
+
+The **--bls-verify** command line parameter must be used to specify path to the **verify_bls** application.
+This parameter is optional. If it was specified, then **IMA Agent** application will verify gathered BLS signatures.
+
+Message signing will work only on **S-Chain** where each **skaled** node configured properly and able to:
+
+    - provide brows information for entire **S-Chain** network
+    - provide **IMA** signing APIs and parameters
+
+Here is example of correct **config.json** file for **skaled** node:
+
+    "skaleConfig": {
+        "nodeInfo": {
+            "nodeName": "Node1",
+            "nodeID": 1112,
+            "bindIP": "127.0.0.1",
+            "basePort": 1231,
+            "bindIP6": "::1",
+            "basePort6": 1231,
+            "logLevel": "trace",
+            "logLevelProposal": "trace",
+            "emptyBlockIntervalMs": 1000,
+            "ipc": false,
+            "ipcpath": "./ipcx",
+            "db-path": "./node",
+            "httpRpcPort": 7000,
+            "httpsRpcPort": 7010,
+            "wsRpcPort": 7020,
+            "wssRpcPort": 7030,
+            "httpRpcPort6": 7000,
+            "httpsRpcPort6": 7010,
+            "wsRpcPort6": 7040,
+            "wssRpcPort6": 7050,
+            "acceptors": 1,
+            "max-connections": 0,
+            "ws-mode": "simple",
+            "ws-log": "none",
+            "web3-trace": true,
+            "enable-debug-behavior-apis": false,
+            "unsafe-transactions": false,
+            "aa": "always",
+            "web3-shutdown": false,
+            "wallets": {
+                "ima": {
+                    "url": "http://127.0.0.1:1025",
+                    "keyShareName": "sergiyA",
+                    "t": 2,
+                    "n": 2,
+                    "insecureBLSPublicKey1": "?????????????????????????????????????????????",
+                    "insecureBLSPublicKey2": "?????????????????????????????????????????????",
+                    "insecureBLSPublicKey3": "?????????????????????????????????????????????",
+                    "insecureBLSPublicKey4": "?????????????????????????????????????????????",
+                    "insecureCommonBLSPublicKey0": "?????????????????????????????????????????????",
+                    "insecureCommonBLSPublicKey1": "?????????????????????????????????????????????",
+                    "insecureCommonBLSPublicKey2": "?????????????????????????????????????????????",
+                    "insecureCommonBLSPublicKey3": "?????????????????????????????????????????????"
+                }
+            }
+        },
+        "sChain": {
+            "schainName": "TestChain",
+            "schainID": 1,
+            "nodes": [
+                {
+                    "nodeID": 1112,
+                    "ip": "127.0.0.1",
+                    "basePort": 1231,
+                    "ip6": "::1",
+                    "basePort6": 1231,
+                    "schainIndex": 1,
+                    "httpRpcPort": 7000,
+                    "httpsRpcPort": 7010,
+                    "wsRpcPort": 7020,
+                    "wssRpcPort": 7030,
+                    "httpRpcPort6": 7000,
+                    "httpsRpcPort6": 7010,
+                    "wsRpcPort6": 7020,
+                    "wssRpcPort6": 7030
+                },
+                {
+                    "nodeID": 1113,
+                    "ip": "127.0.0.2",
+                    "basePort": 1331,
+                    "ip6": "::1",
+                    "basePort6": 1231,
+                    "schainIndex": 2,
+                    "httpRpcPort": 7100,
+                    "httpsRpcPort": 7110,
+                    "wsRpcPort": 7120,
+                    "wssRpcPort": 7130,
+                    "httpRpcPort6": 7100,
+                    "httpsRpcPort6": 7110,
+                    "wsRpcPort6": 7120,
+                    "wssRpcPort6": 7130
+                }
+            ]
+        }
+    }

@@ -37,7 +37,8 @@ jobs:
         - stage: test
           install:
             - pip3 install slither-analyzer
-            - cd proxy    
+            - cd proxy
+            - bash ./scripts/copy.sh
             - yarn install
 
             - cd ../agent 
@@ -56,7 +57,9 @@ jobs:
             - slither . --filter-path openzeppelin-solidity || true            
             - slither . --filter-path openzeppelin-solidity --exclude-informational --exclude constant-function,calls-loop || travis_terminate 7
             - yarn tslint || travis_terminate 2            
-            - yarn generate    
+            - yarn generate
+            - bash ./scripts/remove.sh
+            - RUNNING_NETWORK=test bash ./scripts/prepareSkaleManagerComponents.sh
             - yarn test || travis_terminate 3
 
             - cd ../test
@@ -64,6 +67,7 @@ jobs:
             - pip3 install -r requirements.txt
             - python3 test.py || travis_terminate 6
             - cd ../proxy
+            - RUNNING_NETWORK=coverage bash ./scripts/prepareSkaleManagerComponents.sh
           after_script:
             - npx solidity-coverage || travis_terminate 4
             - cat coverage/lcov.info | npx codecov
