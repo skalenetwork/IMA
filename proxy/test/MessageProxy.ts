@@ -25,12 +25,6 @@ const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 
-let contractManagerAddress = "0x0000000000000000000000000000000000000000";
-
-if (!(process.env.CONTRACT_MANAGER_ADDRESS === "" || process.env.CONTRACT_MANAGER_ADDRESS === undefined)) {
-    contractManagerAddress = process.env.CONTRACT_MANAGER_ADDRESS;
-}
-
 contract("MessageProxy", ([user, deployer, client, customer]) => {
     let messageProxy: MessageProxyInstance;
     let tokenManager1: TokenManagerInstance;

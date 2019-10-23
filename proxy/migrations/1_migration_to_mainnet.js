@@ -15,8 +15,6 @@ let ERC20ModuleForMainnet = artifacts.require("./ERC20ModuleForMainnet.sol");
 let LockAndDataForMainnetERC20 = artifacts.require("./LockAndDataForMainnetERC20.sol");
 let ERC721ModuleForMainnet = artifacts.require("./ERC721ModuleForMainnet.sol");
 let LockAndDataForMainnetERC721 = artifacts.require("./LockAndDataForMainnetERC721.sol");
-// let ContractManager = artifacts.require("./ContractManager");
-// let SkaleVerifier = artifacts.require("./SkaleVerifier");
 
 let gasLimit = 8000000;
 

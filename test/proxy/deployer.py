@@ -8,11 +8,13 @@ class Deployer:
     def deploy(self):
         chdir(self.config.proxy_root)
         self._prepare_env_file()
+        execute('bash ./scripts/prepareSkaleManagerComponents.sh')
         execute('yarn deploy-to-both-chains')
 
     def deploy_mainnet(self):
         chdir(self.config.proxy_root)
         self._prepare_env_file()
+        execute('bash ./scripts/prepareSkaleManagerComponents.sh')
         execute('yarn deploy-to-mainnet')
 
     def deploy_schain(self):

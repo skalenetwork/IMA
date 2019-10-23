@@ -83,9 +83,6 @@ contract MessageProxy {
         uint indexed msgCounter,
         address indexed srcContract,
         address dstContract,
-        //bytes4 functionSignature,
-        //uint  maxGas,
-        //bytes32[] concatenatedParameters
         address to,
         uint amount,
         bytes data,
@@ -273,8 +270,6 @@ contract MessageProxy {
         require(
             startingCounter == connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter,
             "Starning counter is not qual to incomin message counter");
-
-        // TODO: Calculate hash and verify BLS signature on hash
 
         if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
             Message[] memory input = new Message[](messages.length);
