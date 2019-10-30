@@ -796,6 +796,8 @@ async function do_erc721_payment_from_main_net(
         //         log.write( strLogPrefix + cc.success( "Got events for ERC721TokenCreated: " ) + cc.j( joEvents ) + "\n" );
         // } // if( ! isRawTokenTransfer )
 
+        let joReceipt = joReceiptDeposit;
+
         if( jo_message_proxy_main_net ) {
             if ( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("OutgoingMessage") + cc.debug(" event of the ") + cc.info("MessageProxy") + cc.debug("/") + cc.notice(jo_message_proxy_main_net.options.address) + cc.debug(" contract ..." ) + "\n" );
@@ -947,6 +949,8 @@ async function do_erc20_payment_from_main_net(
         //         log.write( strLogPrefix + cc.success( "Got events for ERC20TokenCreated: " ) + cc.j( joEvents ) + "\n" );
         // } // if( ! isRawTokenTransfer )
 
+        let joReceipt = joReceiptDeposit;
+
         if( jo_message_proxy_main_net ) {
             if ( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("OutgoingMessage") + cc.debug(" event of the ") + cc.info("MessageProxy") + cc.debug("/") + cc.notice(jo_message_proxy_main_net.options.address) + cc.debug(" contract ..." ) + "\n" );
@@ -1082,8 +1086,19 @@ async function do_erc20_payment_from_s_chain(
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
         strActionName = "w3_s_chain.eth.sendSignedTransaction()/Deposit";
         let joReceiptDeposit = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        let joReceipt = joReceiptDeposit;
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+        if( jo_message_proxy_s_chain ) {
+            if ( verbose_get() >= RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("OutgoingMessage") + cc.debug(" event of the ") + cc.info("MessageProxy") + cc.debug("/") + cc.notice(jo_message_proxy_s_chain.options.address) + cc.debug(" contract ..." ) + "\n" );
+            let joEvents = await get_contract_call_events( jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            if( joEvents.length > 0 ) {
+                if ( verbose_get() >= RV_VERBOSE.information )
+                    log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("OutgoingMessage") + cc.success(" event of the ") + cc.info("MessageProxy") + cc.success("/") + cc.notice(jo_message_proxy_s_chain.options.address) + cc.success(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+            } else
+                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.options.address + " contract, no events found" );
+        } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
@@ -1200,6 +1215,7 @@ async function do_erc721_payment_from_s_chain(
         let joReceiptDeposit = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+        let joReceipt = joReceiptDeposit;
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
