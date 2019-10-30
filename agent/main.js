@@ -2530,7 +2530,7 @@ async function do_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, fn ) {
                         //
                         // partial BLS verification for one participant
                         //
-                        let bNodeSignatureOKay = false;
+                        let bNodeSignatureOKay = false; // initially assume signature is wrong
                         let strLogPrefixA = cc.info("BLS") + cc.debug("/") + cc.notice("#") + cc.bright(nZeroBasedNodeIndex) + cc.debug(":") + " ";
                         try {
                             let arrTmp = joOut.result.signResult.signatureShare.split(":");
@@ -2547,14 +2547,13 @@ async function do_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, fn ) {
                             if( perform_bls_verify_i( nZeroBasedNodeIndex, joResultFromNode, jarrMessages, joPublicKey ) ) {
                                 //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
                                     log.write( strLogPrefixA + cc.success( "Got succerssful BLS verification result for node " ) + cc.info(joNode.nodeID) + cc.success(" with index " ) + cc.info(nZeroBasedNodeIndex) + "\n" );
-                                bNodeSignatureOKay = true;
+                                bNodeSignatureOKay = true; // node verification passed
                             } else {
                                 strError = "BLS verify failed";
                                 log.write( strLogPrefixA + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
                             }
                         } catch( err ) {
                             log.write( strLogPrefixA + cc.fatal( "Node sign error:" ) + cc.error( " partial signature fail from node ") + cc.info(joNode.nodeID) + cc.error(" with index " ) + cc.info(nZeroBasedNodeIndex) + cc.error(", error is " ) + cc.warn(err.toString()) + "\n" );
-                            bNodeSignatureOKay = false;
                         }
                         //
                         //
