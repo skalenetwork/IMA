@@ -1976,6 +1976,24 @@ function discover_bls_participants( joSChainNetworkInfo ) {
     return -1;
 }
 
+function discover_public_key_by_index( nNodeIndex, joSChainNetworkInfo ) {
+    let jarrNodes = g_joSChainNetworkInfo.network;
+    let joNode = jarrNodes[ nNodeIndex ];
+    if( "imaInfo" in joNode && typeof joNode.imaInfo == "object"
+        &&  "insecureBLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey0 == "string" && joNode.imaInfo.insecureBLSPublicKey0.length > 0
+        &&  "insecureBLSPublicKey1" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey1 == "string" && joNode.imaInfo.insecureBLSPublicKey1.length > 0
+        &&  "insecureBLSPublicKey2" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey2 == "string" && joNode.imaInfo.insecureBLSPublicKey2.length > 0
+        &&  "insecureBLSPublicKey3" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey3 == "string" && joNode.imaInfo.insecureBLSPublicKey3.length > 0
+        )
+        return {
+            "insecureBLSPublicKey0": joNode.imaInfo.insecureBLSPublicKey0,
+            "insecureBLSPublicKey1": joNode.imaInfo.insecureBLSPublicKey1,
+            "insecureBLSPublicKey2": joNode.imaInfo.insecureBLSPublicKey2,
+            "insecureBLSPublicKey3": joNode.imaInfo.insecureBLSPublicKey3
+            };
+    return null;
+}
+
 function discover_common_public_key( joSChainNetworkInfo ) {
     let jarrNodes = g_joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++ i ) {
@@ -1991,7 +2009,7 @@ function discover_common_public_key( joSChainNetworkInfo ) {
                 "insecureCommonBLSPublicKey1": joNode.imaInfo.insecureCommonBLSPublicKey1,
                 "insecureCommonBLSPublicKey2": joNode.imaInfo.insecureCommonBLSPublicKey2,
                 "insecureCommonBLSPublicKey3": joNode.imaInfo.insecureCommonBLSPublicKey3
-            };
+                };
     }
     return null;
 }
@@ -2221,19 +2239,20 @@ function alloc_tmp_action_dir() {
 }
 
 function perform_bls_glue( jarrMessages, arrSignResults ) {
+    let strLogPrefix = cc.info("BLS") + cc.debug("/") + cc.attention("Glue") + cc.debug(":") + " ";
     let joGlueResult = null;
     let jarrNodes = g_joSChainNetworkInfo.network;
     let nThreshold = discover_bls_threshold( g_joSChainNetworkInfo );
     let nParticipants = discover_bls_participants( g_joSChainNetworkInfo );
-    //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-       log.write( cc.debug( "Original long message is ") + cc.info( compose_summary_message_to_sign( jarrMessages, false ) ) + "\n" );
+    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+       log.write( strLogPrefix + cc.debug( "Original long message is ") + cc.info( compose_summary_message_to_sign( jarrMessages, false ) ) + "\n" );
     let strSummaryMessage = compose_summary_message_to_sign( jarrMessages, true );
-    //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-       log.write( cc.debug( "Message hasn to sign is ") + cc.info( strSummaryMessage ) + "\n" );
+    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+       log.write( strLogPrefix + cc.debug( "Message hasn to sign is ") + cc.info( strSummaryMessage ) + "\n" );
     let strPWD = shell.pwd();
     let strActionDir = alloc_tmp_action_dir();
-    //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-       log.write( cc.debug( "perform_bls_glue will work in ") + cc.info(strActionDir) + cc.debug(" director with ") + cc.info(arrSignResults.length) + cc.debug(" sign results..." ) + "\n" );
+    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+       log.write( strLogPrefix + cc.debug( "perform_bls_glue will work in ") + cc.info(strActionDir) + cc.debug(" director with ") + cc.info(arrSignResults.length) + cc.debug(" sign results..." ) + "\n" );
     let fnShellRestore = function() {
         shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
@@ -2247,7 +2266,7 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
             let jo = arrSignResults[ i ];
             let strPath = strActionDir + "/sign-result" + jo.index + ".json";
             if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-                log.write( cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug(" file..." ) + "\n" );
+                log.write( strLogPrefix + cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug(" file..." ) + "\n" );
             jsonFileSave( strPath, jo );
             strInput += " --input " + strPath;
         }
@@ -2258,38 +2277,38 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
             strInput +
             " --output " + strActionDir + "/glue-result.json";
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-            log.write( cc.normal( "Will execute BLS glue command:\n" ) + cc.notice( strGlueCommand ) + "\n" );
+            log.write( strLogPrefix + cc.normal( "Will execute BLS glue command:\n" ) + cc.notice( strGlueCommand ) + "\n" );
         strOutput = child_process.execSync( strGlueCommand );
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-            log.write( cc.normal( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
+            log.write( strLogPrefix + cc.normal( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
         joGlueResult = jsonFileLoad( strActionDir + "/glue-result.json" );
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-            log.write( cc.normal( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
+            log.write( strLogPrefix + cc.normal( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
         if ( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) {
             //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-            log.write( cc.success( "BLS glue success" )  + "\n" );
+            log.write( strLogPrefix + cc.success( "BLS glue success" )  + "\n" );
             joGlueResult.hashSrc = strSummaryMessage;
             //
             //
             //
-            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-                log.write( cc.debug( "Computing " ) + cc.info("G1") + cc.debug(" hash point...") + "\n" );
+            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( strLogPrefix + cc.debug( "Computing " ) + cc.info("G1") + cc.debug(" hash point...") + "\n" );
             let strPath = strActionDir + "/hash.json";
-            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-                log.write( cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug(" file..." ) + "\n" );
+            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( strLogPrefix + cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug(" file..." ) + "\n" );
             jsonFileSave( strPath, { "message": strSummaryMessage } );
             let strHasG1Command =
                 g_strPathHashG1 +
                 " --t " + nThreshold +
                 " --n " + nParticipants;
-            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-                log.write( cc.normal( "Will execute HashG1 command:\n" ) + cc.notice( strHasG1Command ) + "\n" );
+            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( strLogPrefix + cc.normal( "Will execute HashG1 command:\n" ) + cc.notice( strHasG1Command ) + "\n" );
             strOutput = child_process.execSync( strHasG1Command );
-            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-                log.write( cc.normal( "HashG1 output is:\n" ) + cc.notice( strOutput ) + "\n" );
+            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                log.write( strLogPrefix + cc.normal( "HashG1 output is:\n" ) + cc.notice( strOutput ) + "\n" );
             let joResultHashG1 = jsonFileLoad( strActionDir + "/g1.json" );
             //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-                log.write( cc.normal( "HashG1 result is: " ) + cc.j( joResultHashG1 ) + "\n" );
+                log.write( strLogPrefix + cc.normal( "HashG1 result is: " ) + cc.j( joResultHashG1 ) + "\n" );
             //
             //
             //
@@ -2315,12 +2334,58 @@ function perform_bls_glue( jarrMessages, arrSignResults ) {
         // }
         fnShellRestore();
     } catch( err ) {
-        log.write( cc.fatal("BLS glue error:") + cc.normal( " error description is: " ) + cc.warning( err ) + "\n" );
-        log.write( cc.error( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        log.write( strLogPrefix + cc.fatal("BLS glue error:") + cc.normal( " error description is: " ) + cc.warning( err ) + "\n" );
+        log.write( strLogPrefix + cc.error( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
         fnShellRestore();
         joGlueResult = null;
     }
     return joGlueResult;
+}
+
+function perform_bls_verify_i( nZeroBasedNodeIndex, joResultFromNode, jarrMessages, joPublicKey ) {
+    if( ! joResultFromNode )
+        return true;
+    let nThreshold = discover_bls_threshold( g_joSChainNetworkInfo );
+    let nParticipants = discover_bls_participants( g_joSChainNetworkInfo );
+    let strPWD = shell.pwd();
+    let strActionDir = alloc_tmp_action_dir();
+    let fnShellRestore = function() {
+        shell.cd( strPWD );
+        shell.rm( "-rf", strActionDir );
+    };
+    let strOutput = "";
+    try {
+        let strLogPrefix = cc.info("BLS") + cc.debug("/") + cc.notice("#") + cc.bright(nZeroBasedNodeIndex) + cc.debug(":") + " ";
+        shell.cd( strActionDir );
+        let joMsg = { "message" : compose_summary_message_to_sign( jarrMessages, true ) };
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( strLogPrefix + cc.debug( "BLS node") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.debug(" verify message " ) + cc.j( joMsg ) + cc.debug(" composed from ") + cc.j(jarrMessages) + cc.debug(" using glue ") + cc.j( joResultFromNode) + cc.debug(" and public key ") + cc.j( joPublicKey) + "\n" );
+        let strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
+        jsonFileSave( strSignResultFileName, joResultFromNode );
+        jsonFileSave( strActionDir + "/hash.json", joMsg );
+        jsonFileSave( strActionDir + "/BLS_keys" + nZeroBasedNodeIndex + ".json", joPublicKey );
+        let strVerifyCommand = ""
+            + g_strPathBlsVerify
+            + " --t " + nThreshold
+            + " --n " + nParticipants
+            + " --j " + nZeroBasedNodeIndex
+            + " --input " + strSignResultFileName
+            ;
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( strLogPrefix + cc.normal( "Will execute node") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.normal(" BLS verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
+        strOutput = child_process.execSync( strVerifyCommand );
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( strLogPrefix + cc.normal( "BLS node") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.normal(" verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+             log.write( strLogPrefix + cc.success( "BLS node") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.success(" verify success" )  + "\n" );
+        fnShellRestore();
+        return true;
+    } catch( err ) {
+        log.write( strLogPrefix + cc.fatal("BLS node") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.error(" verify error:") + cc.normal( " error description is: " ) + cc.warning( err ) + "\n" );
+        log.write( strLogPrefix + cc.error( "BLS node") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.error(" verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        fnShellRestore();
+    }
+    return false;
 }
 
 function perform_bls_verify( joGlueResult, jarrMessages, joCommonPublicKey ) {
@@ -2336,35 +2401,35 @@ function perform_bls_verify( joGlueResult, jarrMessages, joCommonPublicKey ) {
     };
     let strOutput = "";
     try {
+        let strLogPrefix = cc.info("BLS") + cc.debug("/") + cc.sunny("Summary") + cc.debug(":") + " ";
         shell.cd( strActionDir );
         let joMsg = { "message" : compose_summary_message_to_sign( jarrMessages, true ) };
-        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-            log.write( cc.debug( "BLS verify message " ) + cc.j( joMsg ) + cc.debug(" composed from ") + cc.j(jarrMessages) + cc.debug(" using glue ") + cc.j( joGlueResult) + cc.debug(" and common public key ") + cc.j( joCommonPublicKey) + "\n" );
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( strLogPrefix + cc.debug( "BLS summary verify message " ) + cc.j( joMsg ) + cc.debug(" composed from ") + cc.j(jarrMessages) + cc.debug(" using glue ") + cc.j( joGlueResult) + cc.debug(" and common public key ") + cc.j( joCommonPublicKey) + "\n" );
         jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
         jsonFileSave( strActionDir + "/hash.json", joMsg );
         jsonFileSave( strActionDir + "/common_public_key.json", joCommonPublicKey );
-        let strVerifyCommand =
-            g_strPathBlsVerify +
-            " --t " + nThreshold +
-            " --n " + nParticipants +
-            //" --input " + strActionDir + "/glue-result.json";
-            " --input " + "./glue-result.json";
+        let strVerifyCommand = ""
+            + g_strPathBlsVerify
+            + " --t " + nThreshold
+            + " --n " + nParticipants
+            + " --input " + "./glue-result.json"
+            ;
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-            log.write( cc.normal( "Will execute BLS verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
+            log.write( strLogPrefix + cc.normal( "Will execute BLS summary verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
         strOutput = child_process.execSync( strVerifyCommand );
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-            log.write( cc.normal( "BLS verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
-        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-             log.write( cc.success( "BLS verify success" )  + "\n" );
+            log.write( strLogPrefix + cc.normal( "BLS summary verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+             log.write( strLogPrefix + cc.success( "BLS summary verify success" )  + "\n" );
         fnShellRestore();
         return true;
     } catch( err ) {
-        log.write( cc.fatal("BLS verify error:") + cc.normal( " error description is: " ) + cc.warning( err ) + "\n" );
-        log.write( cc.error( "BLS verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        log.write( strLogPrefix + cc.fatal("BLS summary verify error:") + cc.normal( " error description is: " ) + cc.warning( err ) + "\n" );
+        log.write( strLogPrefix + cc.error( "BLS summary verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         fnShellRestore();
     }
     return false;
-
 }
 
 async function do_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, fn ) {
@@ -2439,6 +2504,43 @@ async function do_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, fn ) {
                 log.write( cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" sign result: " )  + cc.j( joOut.result ? joOut.result : null ) + "\n" );
                 try {
                     if( joOut.result.signResult.signatureShare.length > 0 && joOut.result.signResult.status == 0 ) {
+                        let nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
+                        //
+                        //
+                        //
+                        //
+                        // partial BLS verification for one participant
+                        //
+                        let strLogPrefix = cc.info("BLS") + cc.debug("/") + cc.notice("#") + cc.bright(nZeroBasedNodeIndex) + cc.debug(":") + " ";
+                        try {
+                            let arrTmp = joOut.result.signResult.signatureShare.split(":");
+                            let joResultFromNode = {
+                                "index": "" + nZeroBasedNodeIndex,
+                                "signature": {
+                                    "X": arrTmp[0],
+                                    "Y": arrTmp[1]
+                                }
+                            };
+                            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                                log.write( strLogPrefix + cc.info( "Will verify sign result for node " ) + cc.info(nZeroBasedNodeIndex) + "\n" );
+                            let joPublicKey = discover_public_key_by_index( nZeroBasedNodeIndex, g_joSChainNetworkInfo )
+                            if( perform_bls_verify_i( nZeroBasedNodeIndex, joResultFromNode, jarrMessages, joPublicKey ) ) {
+                                //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+                                    log.write( strLogPrefix + cc.success( "Got succerssful BLS verification result for node " ) + cc.info(joNode.nodeID) + cc.success(" with index " ) + cc.info(nZeroBasedNodeIndex) + "\n" );
+                            } else {
+                                strError = "BLS verify failed";
+                                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
+                            }
+                        } catch( err ) {
+                            log.write( strLogPrefix + cc.fatal( "Node sign error:" ) + cc.error( " partial signature fail from node ") + cc.info(joNode.nodeID) + cc.error(" with index " ) + cc.info(nZeroBasedNodeIndex) + cc.error(", error is " ) + cc.warn(err.toString()) + "\n" );
+                            throw err;
+                        }
+                        //
+                        //
+                        //
+                        //
+                        //
+                        //
                         //
                         // sign result for bls_glue shoild look like:
                         // {
@@ -2449,7 +2551,6 @@ async function do_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, fn ) {
                         //     }
                         // }
                         //
-                        let nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
                         arrSignResults.push( {
                             "index": "" + nZeroBasedNodeIndex,
                             "signature": split_signature_share( joOut.result.signResult.signatureShare ),
@@ -2459,7 +2560,7 @@ async function do_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, fn ) {
                     }
                 } catch( err ) {
                     ++ nCountErrors;
-                    log.write( cc.fatal( "Error:" ) + cc.error( " signature fail from node ") + cc.info(joNode.nodeID) + cc.error("." ) + "\n" );
+                    log.write( cc.fatal( "Error:" ) + cc.error( " signature fail from node ") + cc.info(joNode.nodeID) + cc.error(", error is " ) + cc.warn(err.toString()) + "\n" );
                 }
             } );
         } );
@@ -2467,25 +2568,26 @@ async function do_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, fn ) {
     let iv = setInterval( async function() {
         let cntSuccess = nCountReceived - nCountErrors;
         if( cntSuccess >= nThreshold ) {
+            let strLogPrefix = cc.info("BLS") + cc.debug("/") + cc.sunny("Summary") + cc.debug(":") + " ";
             clearInterval( iv );
             let strError = null;
             let joGlueResult = perform_bls_glue( jarrMessages, arrSignResults );
             if( joGlueResult ) {
                 if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-                    log.write( cc.success( "Got BLS glue result: " ) + cc.j( joGlueResult ) + "\n" );
+                    log.write( strLogPrefix + cc.success( "Got BLS glue result: " ) + cc.j( joGlueResult ) + "\n" );
                 if( g_strPathBlsVerify.length > 0 ) {
                     let joCommonPublicKey = discover_common_public_key( g_joSChainNetworkInfo );
                     if( perform_bls_verify( joGlueResult, jarrMessages, joCommonPublicKey ) ) {
                         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
-                            log.write( cc.success( "Got succerssful BLS verification result " ) + "\n" );
+                            log.write( strLogPrefix + cc.success( "Got succerssful summary BLS verification result" ) + "\n" );
                     } else {
                         strError = "BLS verify failed";
-                        log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
+                        log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
                     }
                 }
             } else {
                 strError = "BLS glue failed";
-                log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
+                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
             }
             await fn( strError, jarrMessages, joGlueResult );
             return;

@@ -27,8 +27,10 @@ const VERBOSE = {
     2: "fatal",
     3: "error",
     4: "warning",
+    4: "warn", // alias
     5: "attention",
     6: "information",
+    6: "info", // alias
     7: "notce",
     8: "debug",
     9: "trace"
@@ -485,7 +487,7 @@ async function do_eth_payment_from_s_chain(
             log.write( cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
-        strActionName = " jo_token_manager.methods.exitToMain()/do_eth_payment_from_s_chain";
+        strActionName = "jo_token_manager.methods.exitToMain()/do_eth_payment_from_s_chain";
         let dataTx = jo_token_manager.methods.exitToMain(
             // call params, last is destination account on S-chain
             joAccountDst.address( w3_s_chain ),
