@@ -801,6 +801,8 @@ async function do_erc20_payment_from_main_net(
     joAccountSrc,
     joAccountDst,
     jo_deposit_box,
+    jo_message_proxy_main_net, // for checking logs
+    jo_lock_and_data_main_net, // for checking logs
     chain_id_s_chain,
     token_amount, // how much ERC20 tokens to send
     jo_token_manager, // only s-chain
@@ -911,6 +913,27 @@ async function do_erc20_payment_from_main_net(
         //     if ( verbose_get() >= RV_VERBOSE.information )
         //         log.write( strLogPrefix + cc.success( "Got events for ERC20TokenCreated: " ) + cc.j( joEvents ) + "\n" );
         // } // if( ! isRawTokenTransfer )
+
+        if( jo_message_proxy_main_net ) {
+            if ( verbose_get() >= RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("OutgoingMessage") + cc.debug(" event of the ") + cc.info("MessageProxy") + cc.debug("/") + cc.notice(jo_message_proxy_main_net.options.address) + cc.debug(" contract ..." ) + "\n" );
+            let joEvents = await get_contract_call_events( jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            if( joEvents.length > 0 ) {
+                if ( verbose_get() >= RV_VERBOSE.information )
+                    log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("OutgoingMessage") + cc.success(" event of the ") + cc.info("MessageProxy") + cc.success("/") + cc.notice(jo_message_proxy_main_net.options.address) + cc.success(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+            } else
+                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
+        } // if( jo_message_proxy_main_net )
+        if( jo_lock_and_data_main_net ) {
+            if ( verbose_get() >= RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("MoneyReceived") + cc.debug(" event of the ") + cc.info("LockAndDataForMainnet") + cc.debug("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.debug(" contract..." ) + "\n" );
+            let joEvents = await get_contract_call_events( jo_lock_and_data_main_net, "MoneyReceived", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            if( joEvents.length > 0 ) {
+                if ( verbose_get() >= RV_VERBOSE.information )
+                    log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("MoneyReceived") + cc.success(" event of the ") + cc.info("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.success(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+            } else
+                throw new Error( "Verification failed for the \"MoneyReceived\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
+        } // if( jo_message_proxy_main_net )
 
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
