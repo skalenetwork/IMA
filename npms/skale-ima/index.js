@@ -27,10 +27,10 @@ const VERBOSE = {
     2: "fatal",
     3: "error",
     4: "warning",
-    4: "warn", // alias
+    //4: "warn", // alias
     5: "attention",
     6: "information",
-    6: "info", // alias
+    //6: "info", // alias
     7: "notce",
     8: "debug",
     9: "trace"
@@ -43,6 +43,11 @@ const RV_VERBOSE = function() {
         var name = VERBOSE[ key ];
         m[ name ] = key;
     }
+    //
+    // aliases
+    m["warn"] = m["warning"];
+    m["info"] = m["information"];
+    //
     return m;
 }();
 let verboseLevel = RV_VERBOSE[ "error" ];
