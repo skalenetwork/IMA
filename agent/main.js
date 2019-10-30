@@ -652,6 +652,8 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                         g_joAccount_main_net,
                         g_joAccount_s_chain,
                         g_jo_deposit_box, // only main net
+                        g_jo_message_proxy_main_net, // for checking logs
+                        g_jo_lock_and_data_main_net, // for checking logs
                         g_chain_id_s_chain,
                         g_token_id, // which ERC721 token id to send
                         g_jo_token_manager, // only s-chain
