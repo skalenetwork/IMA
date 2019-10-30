@@ -147,6 +147,27 @@ function private_key_2_account_address( w3, keyPrivate ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+
+async function get_contract_call_events( joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
+    joFilter = joFilter || {};
+    let joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
+        "filter": joFilter,
+        "fromBlock": nBlockNumber,
+        "toBlock": nBlockNumber
+    } );
+    let joAllTransactionEvents = [], i;
+    for( i = 0; i < joAllEventsInBlock.length; ++ i ) {
+        let joEvent = joAllEventsInBlock[ i ];
+        if( "transactionHash" in joEvent && joEvent.transactionHash == strTxHash )
+            joAllTransactionEvents.push( joEvent );
+    }
+    return joAllTransactionEvents;
+}
+
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 // register S-Chain 1 on main net
 //
 
@@ -421,13 +442,14 @@ async function do_eth_payment_from_main_net(
     joAccountSrc,
     joAccountDst,
     jo_deposit_box,
+    jo_message_proxy_main_net, // for checking logs
+    jo_lock_and_data_main_net, // for checking logs
     chain_id_s_chain,
     wei_how_much // how much WEI money to send
 ) {
     let r, strActionName = "", strLogPrefix = cc.info("M2S ETH Payment:") + " ";
     try {
         log.write( strLogPrefix + cc.debug( "Doing payment from mainnet with " ) + cc.notice( "chain_id_s_chain" ) + cc.debug( "=" ) + cc.notice( chain_id_s_chain ) + cc.debug( "..." ) + "\n" );
-
         //
         strActionName = "w3_main_net.eth.getTransactionCount()";
         if ( verbose_get() >= RV_VERBOSE.trace )
@@ -460,6 +482,26 @@ async function do_eth_payment_from_main_net(
         let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        if( jo_message_proxy_main_net ) {
+            if ( verbose_get() >= RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("OutgoingMessage") + cc.debug(" event of the ") + cc.info("MessageProxy") + cc.debug("/") + cc.notice(jo_message_proxy_main_net.options.address) + cc.debug(" contract ..." ) + "\n" );
+            let joEvents = await get_contract_call_events( jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            if( joEvents.length > 0 ) {
+                if ( verbose_get() >= RV_VERBOSE.information )
+                    log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("OutgoingMessage") + cc.success(" event of the ") + cc.info("MessageProxy") + cc.success("/") + cc.notice(jo_message_proxy_main_net.options.address) + cc.success(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+            } else
+                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
+        } // if( jo_message_proxy_main_net )
+        if( jo_lock_and_data_main_net ) {
+            if ( verbose_get() >= RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("MoneyReceived") + cc.debug(" event of the ") + cc.info("LockAndDataForMainnet") + cc.debug("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.debug(" contract..." ) + "\n" );
+            let joEvents = await get_contract_call_events( jo_lock_and_data_main_net, "MoneyReceived", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            if( joEvents.length > 0 ) {
+                if ( verbose_get() >= RV_VERBOSE.information )
+                    log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("MoneyReceived") + cc.success(" event of the ") + cc.info("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.success(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+            } else
+                throw new Error( "Verification failed for the \"MoneyReceived\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
+        } // if( jo_message_proxy_main_net )
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
