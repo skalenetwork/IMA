@@ -805,6 +805,8 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                     g_joAccount_s_chain,
                     g_chain_id_main_net,
                     g_chain_id_s_chain,
+                    null, // g_jo_deposit_box, // for logs validation on mainnet
+                    g_jo_token_manager, // for logs validation on s-chain
                     g_nTransferBlockSizeM2S,
                     g_nMaxTransactionsM2S,
                     g_nBlockAwaitDepthM2S,
@@ -830,6 +832,8 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                     g_joAccount_main_net,
                     g_chain_id_s_chain,
                     g_chain_id_main_net,
+                    g_jo_deposit_box, // for logs validation on mainnet
+                    null, // g_jo_token_manager, // for logs validation on s-chain
                     g_nTransferBlockSizeS2M,
                     g_nMaxTransactionsS2M,
                     g_nBlockAwaitDepthS2M,
@@ -1933,6 +1937,8 @@ async function single_transfer_loop() {
         g_joAccount_s_chain,
         g_chain_id_main_net,
         g_chain_id_s_chain,
+        null, // g_jo_deposit_box, // for logs validation on mainnet
+        g_jo_token_manager, // for logs validation on s-chain
         g_nTransferBlockSizeM2S,
         g_nMaxTransactionsM2S,
         g_nBlockAwaitDepthM2S,
@@ -1954,6 +1960,8 @@ async function single_transfer_loop() {
         g_joAccount_main_net,
         g_chain_id_s_chain,
         g_chain_id_main_net,
+        g_jo_deposit_box, // for logs validation on mainnet
+        null, // g_jo_token_manager, // for logs validation on s-chain
         g_nTransferBlockSizeS2M,
         g_nMaxTransactionsS2M,
         g_nBlockAwaitDepthS2M,

@@ -1347,6 +1347,9 @@ async function do_transfer(
     chain_id_src,
     chain_id_dst,
     //
+    jo_deposit_box_main_net, // for logs validation on mainnet
+    jo_token_manager_schain, // for logs validation on s-chain
+    //
     nTransactionsCountInBlock,
     nMaxTransactionsCount,
     nBlockAwaitDepth,
@@ -1622,6 +1625,58 @@ async function do_transfer(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
                 cntProcessed += cntAccumulatedForBlock;
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                if ( verbose_get() >= RV_VERBOSE.information )
+                    log.write( strLogPrefix + cc.debug("Validating transfer from ") + cc.info(chain_id_src) + cc.debug(" to ") + cc.info(chain_id_dst) + cc.debug("...") + "\n" );
+// check DepositBox -> Error on Mainnet only
+                if( chain_id_dst == "Mainnet" ) {
+                    if ( verbose_get() >= RV_VERBOSE.information )
+                        log.write( strLogPrefix + cc.debug("Validating transfer to Main Net via DepositBox error absence on Main Net...") + "\n" );
+                    if( jo_deposit_box_main_net ) {
+
+                        log.write( strLogPrefix + cc.success("Done, validated transfer to Main Net via DepositBox error absence on Main Net") + "\n" );
+                    } else
+                        log.write( strLogPrefix + cc.console.warn("Cannot validate transfer to Main Net via DepositBox error absence on Main Net, no DepositBox provided") + "\n" );
+                } // if( chain_id_dst == "Mainnet" )
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+// check TokenManaer -> Error on Schain only
+                if( chain_id_dst != "Mainnet" ) {
+                    if ( verbose_get() >= RV_VERBOSE.information )
+                        log.write( strLogPrefix + cc.debug("Validating transfer to S-Chain via TokenManaer error absence on S-Chain...") + "\n" );
+                    if( jo_token_manager_schain ) {
+                        if ( verbose_get() >= RV_VERBOSE.information )
+                            log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("Error") + cc.debug(" event of the ") + cc.info("TokenManaer") + cc.debug("/") + cc.notice(jo_token_manager_schain.options.address) + cc.debug(" contract..." ) + "\n" );
+                        let joEvents = await get_contract_call_events( jo_token_manager_schain, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+                        if( joEvents.length == 0 ) {
+                            if ( verbose_get() >= RV_VERBOSE.information )
+                                log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("TokenManaer") + cc.success("/") + cc.notice(jo_token_manager_schain.options.address) + cc.success(" contract, no events found" ) + "\n" );
+                        } else {
+                            log.write( strLogPrefix + cc.fatal("Failed") + cc.error(" verification of the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("TokenManaer") + cc.error("/") + cc.notice(jo_token_manager_schain.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                            throw new Error( "Verification failed for the \"Error\" event of the \"TokenManaer\"/" + jo_token_manager_schain.options.address + " contract, error events found" );
+                        }
+                        log.write( strLogPrefix + cc.success("Done, validated transfer to S-Chain via TokenManaer error absence on S-Chain") + "\n" );
+                    } else
+                        log.write( strLogPrefix + cc.console.warn("Cannot validate transfer to S-Chain via TokenManaer error absence on S-Chain, no TokenManager provided") + "\n" );
+                } // if( chain_id_dst != "Mainnet" )
+                //
+                //
+                //
+                //
+                //
+                //
+                //
             } );
             if( bErrorInSigningMessages )
                 break;
