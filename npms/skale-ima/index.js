@@ -482,6 +482,9 @@ async function do_eth_payment_from_main_net(
         let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        //
+        // Must-have event(s) analysis as indicator(s) of success
+        //
         if( jo_message_proxy_main_net ) {
             if ( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("OutgoingMessage") + cc.debug(" event of the ") + cc.info("MessageProxy") + cc.debug("/") + cc.notice(jo_message_proxy_main_net.options.address) + cc.debug(" contract ..." ) + "\n" );
@@ -501,7 +504,34 @@ async function do_eth_payment_from_main_net(
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("MoneyReceived") + cc.success(" event of the ") + cc.info("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.success(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             } else
                 throw new Error( "Verification failed for the \"MoneyReceived\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-        } // if( jo_message_proxy_main_net )
+        } // if( jo_lock_and_data_main_net )
+        //
+        // Must-absent event(s) analysis as indicator(s) of success
+        //
+        if( jo_lock_and_data_main_net ) {
+            if ( verbose_get() >= RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("Error") + cc.debug(" event of the ") + cc.info("LockAndDataForMainnet") + cc.debug("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.debug(" contract..." ) + "\n" );
+            let joEvents = await get_contract_call_events( jo_lock_and_data_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            if( joEvents.length == 0 ) {
+                if ( verbose_get() >= RV_VERBOSE.information )
+                    log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.success(" contract, no event found" ) + "\n" );
+            } else {
+                log.write( strLogPrefix + cc.fatal("Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
+            }
+        } // if( jo_lock_and_data_main_net )
+        if( jo_deposit_box ) {
+            if ( verbose_get() >= RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("Error") + cc.debug(" event of the ") + cc.info("DepositBox") + cc.debug("/") + cc.notice(jo_deposit_box.options.address) + cc.debug(" contract..." ) + "\n" );
+            let joEvents = await get_contract_call_events( jo_deposit_box, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            if( joEvents.length == 0 ) {
+                if ( verbose_get() >= RV_VERBOSE.information )
+                    log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.success(" contract, no event found" ) + "\n" );
+            } else {
+                log.write( strLogPrefix + cc.fatal("Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box.options.address + " contract, no events found" );
+            }
+        } // if( jo_deposit_box )
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
@@ -567,6 +597,9 @@ async function do_eth_payment_from_s_chain(
         let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        //
+        // Must-have event(s) analysis as indicator(s) of success
+        //
         if( jo_message_proxy_s_chain ) {
             if ( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("OutgoingMessage") + cc.debug(" event of the ") + cc.info("MessageProxy") + cc.debug("/") + cc.notice(jo_message_proxy_s_chain.options.address) + cc.debug(" contract ..." ) + "\n" );
@@ -797,7 +830,9 @@ async function do_erc721_payment_from_main_net(
         // } // if( ! isRawTokenTransfer )
 
         let joReceipt = joReceiptDeposit;
-
+        //
+        // Must-have event(s) analysis as indicator(s) of success
+        //
         if( jo_message_proxy_main_net ) {
             if ( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("OutgoingMessage") + cc.debug(" event of the ") + cc.info("MessageProxy") + cc.debug("/") + cc.notice(jo_message_proxy_main_net.options.address) + cc.debug(" contract ..." ) + "\n" );
@@ -817,7 +852,7 @@ async function do_erc721_payment_from_main_net(
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("MoneyReceived") + cc.success(" event of the ") + cc.info("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.success(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             } else
                 throw new Error( "Verification failed for the \"MoneyReceived\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-        } // if( jo_message_proxy_main_net )
+        } // if( jo_lock_and_data_main_net )
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
@@ -950,7 +985,9 @@ async function do_erc20_payment_from_main_net(
         // } // if( ! isRawTokenTransfer )
 
         let joReceipt = joReceiptDeposit;
-
+        //
+        // Must-have event(s) analysis as indicator(s) of success
+        //
         if( jo_message_proxy_main_net ) {
             if ( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("OutgoingMessage") + cc.debug(" event of the ") + cc.info("MessageProxy") + cc.debug("/") + cc.notice(jo_message_proxy_main_net.options.address) + cc.debug(" contract ..." ) + "\n" );
@@ -970,8 +1007,7 @@ async function do_erc20_payment_from_main_net(
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("MoneyReceived") + cc.success(" event of the ") + cc.info("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.success(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             } else
                 throw new Error( "Verification failed for the \"MoneyReceived\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-        } // if( jo_message_proxy_main_net )
-
+        } // if( jo_lock_and_data_main_net )
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
@@ -1089,6 +1125,9 @@ async function do_erc20_payment_from_s_chain(
         let joReceipt = joReceiptDeposit;
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+        //
+        // Must-have event(s) analysis as indicator(s) of success
+        //
         if( jo_message_proxy_s_chain ) {
             if ( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("OutgoingMessage") + cc.debug(" event of the ") + cc.info("MessageProxy") + cc.debug("/") + cc.notice(jo_message_proxy_s_chain.options.address) + cc.debug(" contract ..." ) + "\n" );
@@ -1218,6 +1257,9 @@ async function do_erc721_payment_from_s_chain(
         let joReceipt = joReceiptDeposit;
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+        //
+        // Must-have event(s) analysis as indicator(s) of success
+        //
         if( jo_message_proxy_s_chain ) {
             if ( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("OutgoingMessage") + cc.debug(" event of the ") + cc.info("MessageProxy") + cc.debug("/") + cc.notice(jo_message_proxy_s_chain.options.address) + cc.debug(" contract ..." ) + "\n" );
