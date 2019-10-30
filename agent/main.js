@@ -714,6 +714,7 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                         g_joAccount_s_chain,
                         g_joAccount_main_net,
                         g_jo_token_manager, // only s-chain
+                        g_jo_message_proxy_s_chain, // for checking logs
                         g_jo_deposit_box, // only main net
                         g_token_id, // which ERC721 token id to send
                         strCoinNameErc721_main_net,
@@ -732,6 +733,7 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                         g_joAccount_s_chain,
                         g_joAccount_main_net,
                         g_jo_token_manager, // only s-chain
+                        g_jo_message_proxy_s_chain, // for checking logs
                         g_jo_deposit_box, // only main net
                         g_token_amount, // how ERC20 tokens money to send
                         strCoinNameErc20_main_net,
@@ -748,6 +750,7 @@ for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
                     g_joAccount_s_chain,
                     g_joAccount_main_net,
                     g_jo_token_manager, // only s-chain
+                    g_jo_message_proxy_s_chain, // for checking logs
                     g_wei_amount // how much WEI money to send
                 );
             }
