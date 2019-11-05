@@ -115,6 +115,9 @@ let imaState = {
     "nTimeFrameSeconds": 0, // 0-disable, 60-recommended
     "nNextFrameGap": 10,
 
+    //
+    //
+
     "w3http_main_net": null,
     "w3_main_net": null,
 
@@ -143,6 +146,8 @@ let imaState = {
     //
     "joAccount_main_net": { "privateKey": "", "address": fn_address_impl_ },
     "joAccount_s_chain": { "privateKey": "", "address": fn_address_impl_ },
+
+    //
     //
 
     "arrActions": [] // array of actions to run
