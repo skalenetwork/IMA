@@ -31,7 +31,6 @@ function print_about( isLog ) {
         console.log( strMsg );
 }
 
-
 function parse_command_line_argument( s ) {
     var joArg = {
         "name": "",
