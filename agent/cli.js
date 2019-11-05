@@ -8,9 +8,11 @@ let imaState = null;
 let imaUtils = null;
 let log = null;
 let cc = null;
+let w3mod = null;
 
 function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc ) {
     IMA = anIMA;
+    w3mod = IMA.w3mod;
     imaState = an_imaState;
     imaUtils = an_imaUtils,
     log = a_log;
