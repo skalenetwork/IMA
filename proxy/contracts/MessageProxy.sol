@@ -316,6 +316,7 @@ contract MessageProxy {
         view
         returns (bool)
     {
+        /*
         address skaleVerifierAddress = IContractManagerSkaleManager(contractManagerSkaleManager).contracts(
             keccak256(abi.encodePacked("SkaleVerifier"))
         );
@@ -330,6 +331,10 @@ contract MessageProxy {
             );
         //     "Could not verify signature"
         // );
+        */
+
+        // l_sergiy: temporarily commented
+        return true;
     }
 
     function hashedArray(Message[] memory messages) internal pure returns (bytes32) {
