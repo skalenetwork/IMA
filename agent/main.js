@@ -1303,13 +1303,22 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 log.write( strLogPrefix + cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) + "\n" );
                 return;
             }
+            let dstChainID = "", srcChainID = "";
+            if( strDirection == "M2S" ) {
+                dstChainID = "" + ( imaState.strChainID_s_chain ? imaState.strChainID_s_chain : "" );
+                srcChainID = "" + ( imaState.strChainID_main_net ? imaState.strChainID_main_net : "" );
+            } else {
+                dstChainID = "" + ( imaState.strChainID_main_net ? imaState.strChainID_main_net : "" );
+                srcChainID = "" + ( imaState.strChainID_s_chain ? imaState.strChainID_s_chain : "" );
+            }
+
             await joCall.call( {
                 "method": "skale_imaVerifyAndSign",
                 "params": {
                     "direction": "" + strDirection,
                     "startMessageIdx": nIdxCurrentMsgBlockStart,
-                    "dstChainID": "" + ( imaState.strChainID_main_net ? imaState.strChainID_main_net : "" ),
-                    "srcChainID": "" + ( imaState.strChainID_s_chain ? imaState.strChainID_s_chain : "" ),
+                    "dstChainID": dstChainID,
+                    "srcChainID": srcChainID,
                     "messages": jarrMessages
                 }
             }, function( joIn, joOut, err ) {
