@@ -35,6 +35,8 @@ const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const ERC20ModuleForSchain: ERC20ModuleForSchainContract = artifacts.require("./ERC20ModuleForSchain");
 const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 
+const contractManager = "0x0000000000000000000000000000000000000000";
+
 contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
@@ -46,7 +48,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
   let eRC20OnChain2: ERC20OnChainInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Schain", {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxy.new("Schain", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchainERC20 =
         await LockAndDataForSchainERC20.new(lockAndDataForSchain.address,

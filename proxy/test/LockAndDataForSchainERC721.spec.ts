@@ -26,6 +26,8 @@ const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract =
     artifacts.require("./LockAndDataForSchainERC721");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 
+const contractManager = "0x0000000000000000000000000000000000000000";
+
 contract("LockAndDataForSchainERC721", ([deployer, user, invoker]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
@@ -33,7 +35,7 @@ contract("LockAndDataForSchainERC721", ([deployer, user, invoker]) => {
   let eRC721OnChain: ERC721OnChainInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Schain", {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxy.new("Schain", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchainERC721 =
         await LockAndDataForSchainERC721.new(lockAndDataForSchain.address,

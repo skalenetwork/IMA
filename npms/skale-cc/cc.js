@@ -127,7 +127,7 @@ function safeURL( arg ) {
 	}
 }
 
-function to_ipv4_arr( s ) {  
+function to_ipv4_arr( s ) {
 	if( /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test( s ) ) {
 		let arr = s.split( "." );
 		if( (!arr) || arr.length != 4 )
@@ -135,7 +135,7 @@ function to_ipv4_arr( s ) {
 		return arr;
 	}
 	return null;
-}  
+}
 function log_arg_to_str_as_ipv4( arg ) {
 	let arr = to_ipv4_arr( arg );
 	if( ! arr )
@@ -304,12 +304,12 @@ let jsonColorizer = { // see http://jsfiddle.net/unLSJ/
 		, censor: ( censor ) => {
 			let i = 0;
 			return ( key, value ) => {
-				if( i !== 0 && typeof(censor) === 'object' && typeof(value) == 'object' && censor == value ) 
-					return '[Circular]'; 
+				if( i !== 0 && typeof(censor) === 'object' && typeof(value) == 'object' && censor == value )
+					return '[Circular]';
 				if( i >= jsonColorizer.cntCensoredMax )
 					return '[Unknown]';
 				++i; // so we know we aren't using the original object anymore
-				return value;  
+				return value;
 			}
 		}, replacerHTML: ( match, pIndent, pKey, pVal, pEnd ) => {
 			let key = "<span class=json-key>";
@@ -338,7 +338,7 @@ let jsonColorizer = { // see http://jsfiddle.net/unLSJ/
 				r = r + log_arg_to_str( pVal );
 			return r + ( pEnd || "" );
 		}, prettyPrintConsole: ( obj ) => {
-			if( ! g_bEnabled ) return obj; 
+			if( ! g_bEnabled ) return obj;
 			let jsonLine = /^( *)("[\w]+": )?("[^"]*"|[\w.+-]*)?([,[{])?$/mg;
 			let s =
 				JSON.stringify( obj, ( jsonColorizer.cntCensoredMax > 0 ) ? jsonColorizer.censor( obj ) : null, 4 )
@@ -411,4 +411,3 @@ module.exports = {
 	, "tf":         function( x ) { return _tf_( x ); }
 	, "u":          function( x ) { return url_colorized( x ); }
 }; // module.exports
-

@@ -26,6 +26,8 @@ const LockAndDataForMainnetERC721: LockAndDataForMainnetERC721Contract =
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 const ERC721ModuleForMainnet: ERC721ModuleForMainnetContract = artifacts.require("./ERC721ModuleForMainnet");
 
+const contractManager = "0x0000000000000000000000000000000000000000";
+
 contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
@@ -34,7 +36,7 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
   let eRC721ModuleForMainnet: ERC721ModuleForMainnetInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnetERC721 =
         await LockAndDataForMainnetERC721.new(lockAndDataForMainnet.address,

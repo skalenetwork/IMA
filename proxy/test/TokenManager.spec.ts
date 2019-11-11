@@ -44,6 +44,8 @@ const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract = artifacts
     .require("./LockAndDataForSchainERC721");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 
+const contractManager = "0x0000000000000000000000000000000000000000";
+
 contract("TokenManager", ([user, deployer, client]) => {
     let tokenManager: TokenManagerInstance;
     let messageProxy: MessageProxyInstance;
@@ -69,7 +71,7 @@ contract("TokenManager", ([user, deployer, client]) => {
     const chainID = randomString(10);
 
     beforeEach(async () => {
-        messageProxy = await MessageProxy.new(chainID, {from: deployer, gas: 8000000 * gasMultiplier});
+        messageProxy = await MessageProxy.new(chainID, contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
         lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
         tokenManager = await TokenManager.new(chainID, messageProxy.address,
             lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
@@ -325,7 +327,7 @@ contract("TokenManager", ([user, deployer, client]) => {
     it("should return money if it has it", async () => {
         const tokenManagerBalance = Number.parseInt(await web3.eth.getBalance(tokenManager.address), 10);
         const ownerBalance = Number.parseInt(await web3.eth.getBalance(deployer), 10);
-        tokenManager.withdraw({from: deployer});
+        tokenManager.withdraw({from: deployer, gasPrice: 0});
         Number.parseInt(await web3.eth.getBalance(tokenManager.address), 10).should.be.equal(0);
         Number.parseInt(await web3.eth.getBalance(deployer), 10).should.be.equal(ownerBalance + tokenManagerBalance);
     });

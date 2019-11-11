@@ -2,6 +2,7 @@ let fs = require("fs");
 const fsPromises = fs.promises;
 
 let networks = require("../truffle-config.js");
+let jsonData = require("../data/skaleManagerComponents.json");
 
 const gasMultiplierParameter = 'gas_multiplier';
 const argv = require('minimist')(process.argv.slice(2), {string: [gasMultiplierParameter]});
@@ -19,7 +20,7 @@ let gasLimit = 8000000;
 
 async function deploy(deployer, network) {
 
-    await deployer.deploy(MessageProxy, "Mainnet", {gas: gasLimit}).then(async function() {
+    await deployer.deploy(MessageProxy, "Mainnet", jsonData.contract_manager_address, {gas: gasLimit}).then(async function() {
         return await deployer.deploy(LockAndDataForMainnet, {gas: gasLimit});
     }).then(async function(inst) {
         await deployer.deploy(DepositBox, MessageProxy.address, inst.address, {gas: gasLimit * gasMultiplier});

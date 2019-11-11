@@ -25,7 +25,7 @@ contract ERC721ModuleForMainnet is Permissions {
         uint tokenId,
         bool isRAW) external allow("DepositBox") returns (bytes memory data)
         {
-        address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        address lockAndDataERC721 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         if (!isRAW) {
             uint contractPosition = ILockAndDataERC721M(lockAndDataERC721).erc721Mapper(contractHere);
             if (contractPosition == 0) {
@@ -45,7 +45,7 @@ contract ERC721ModuleForMainnet is Permissions {
     }
 
     function sendERC721(address to, bytes calldata data) external allow("DepositBox") returns (bool) {
-        address lockAndDataERC721 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        address lockAndDataERC721 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         uint contractPosition;
         address contractAddress;
         address receiver;
