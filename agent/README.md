@@ -93,15 +93,12 @@ Fourth, export required environment variables:
 Fifth, try rebuild all the contracts once to ensure everything initialized OK:
 
     cd $IMA_ROOT/proxy
+    mkdir -p data || true
     rm -rf ./build
+    rm -rf ./data/*
     truffle compile
 
 ### Contracts pre-installation on Mainnet and SKALE Chain
-
-Pre-clean previous version of contract ABI JSON files:
-
-    cd $IMA_ROOT/proxy
-    ./clean.sh
 
 For mainnet, invoke:
 

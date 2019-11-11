@@ -2,21 +2,24 @@ const fs = require( "fs" );
 const path = require( "path" );
 const url = require( "url" );
 const os = require( "os" );
+let shell = require( "shelljs" );
 
 let IMA = null;
 let imaState = null;
 let imaUtils = null;
 let log = null;
 let cc = null;
+let rpcCall = null;
 let w3mod = null;
 
-function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc ) {
+function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc, a_rpcCall ) {
     IMA = anIMA;
     w3mod = IMA.w3mod;
     imaState = an_imaState;
     imaUtils = an_imaUtils,
     log = a_log;
     cc = a_cc;
+    rpcCall = a_rpcCall;
 }
 
 let g_strAppName = "SKALE Money Transfer Agent";
