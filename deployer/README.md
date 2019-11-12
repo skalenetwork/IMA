@@ -1,15 +1,14 @@
-### KTM deployer
+# SKALE IMA Deployer
 
-This scripts will help you with deployment `ktm` on the sChain.
+These helper scripts will deploy `IMA` on a SKALE chain.
 
-#### Usage
+## Usage
 
-1) Place credentials files for each sChain to the `creds` directory
+1) Place credentials files for each SKALE chain into the `creds` directory
 2) Run `python deployer.py`
 
+## Requirements
 
-#### Requirements
-
-- python 3.6+
-- scp
-- all dependencies for truffle deployment (see `proxy` folder)
+-   python 3.6+
+-   scp
+-   all dependencies for truffle deployment (see `proxy` folder)

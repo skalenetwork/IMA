@@ -1,0 +1,60 @@
+{
+    "name": "skale-ima-npms",
+    "version": "1.0.1",
+    "private": true,
+    "description": "SKALE Interchain Messaging Agent NPMs",
+    "keywords": [
+        "S-Chain",
+        "SKALE",
+        "agent",
+        "block",
+        "blockchain",
+        "chain",
+        "ethereum",
+        "money",
+        "transfer"
+    ],
+    "homepage": "https://github.com/skalenetwork/IMA/blob/master/README.md",
+    "repository": {
+        "type": "git",
+        "url": "git+git@github.com:skalenetwork/IMA.git"
+    },
+    "license": "AGPL-3.0",
+    "author": "SKALE",
+    "files": [
+        "LICENSE",
+        "README.md",
+        "index.js",
+        "cc.js",
+        "log.js"
+    ],
+    "main": "index.js",
+    "scripts": {
+        "lint": "echo \"Error: no test specified\" && exit 1",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "test-cov": "echo \"Error: no test specified\" && exit 1",
+        "test-travis": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "@babel/plugin-transform-runtime": "7.3.4",
+        "@babel/runtime": "7.3.4",
+        "colors": "1.3.3",
+        "ethereumjs-tx": "1.3.7",
+        "ethereumjs-util": "6.1.0",
+        "ethereumjs-wallet": "0.6.3",
+        "web3": "1.0.0-beta.37"
+    },
+    "devDependencies": {
+        "eslint": "4.18.1",
+        "eslint-config-standard": "11.0.0",
+        "eslint-plugin-import": "2.9.0",
+        "eslint-plugin-markdown": "1.0.0-beta.6",
+        "eslint-plugin-node": "6.0.1",
+        "eslint-plugin-promise": "3.6.0",
+        "eslint-plugin-standard": "3.0.1",
+        "istanbul": "0.4.5"
+    },
+    "engines": {
+        "node": ">= 8.0"
+    }
+}

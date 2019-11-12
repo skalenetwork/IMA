@@ -36,7 +36,7 @@ const sleep = (milliseconds) => {
 };
 
 async function run() {
-  console.log('Initing KTM...');
+  console.log('Initing IMA...');
   let sChainAbiFileExists = false;
 
   while (!sChainAbiFileExists) {
@@ -73,7 +73,7 @@ async function run() {
       );
 
 
-      // todo: start ktm logic!!!
+      // todo: start IMA logic!!!
     }
 
     await sleep(CHECK_TIMEOUT);

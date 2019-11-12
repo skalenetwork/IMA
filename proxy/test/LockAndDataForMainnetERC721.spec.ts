@@ -32,6 +32,8 @@ const LockAndDataForMainnetERC721: LockAndDataForMainnetERC721Contract =
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 
+const contractManager = "0x0000000000000000000000000000000000000000";
+
 contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
@@ -41,7 +43,7 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
   let eRC721OnChain: ERC721OnChainInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnetERC721 =
@@ -90,15 +92,17 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
     const contractHere = eRC721OnChain.address;
     // execution#1
     const res = await lockAndDataForMainnetERC721
+        .addERC721Token.call(contractHere, {from: deployer});
+    await lockAndDataForMainnetERC721
         .addERC721Token(contractHere, {from: deployer});
     // expectation#1
-    parseInt(new BigNumber(res.logs[0].args.index).toString(), 10)
+    parseInt(new BigNumber(res).toString(), 10)
         .should.be.equal(1);
     // execution#2
     const res1 = await lockAndDataForMainnetERC721
-        .addERC721Token(contractHere, {from: deployer});
+        .addERC721Token.call(contractHere, {from: deployer});
     // expectation#2
-    parseInt(new BigNumber(res1.logs[0].args.index).toString(), 10)
+    parseInt(new BigNumber(res1).toString(), 10)
         .should.be.equal(2);
   });
 

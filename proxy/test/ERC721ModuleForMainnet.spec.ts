@@ -26,6 +26,8 @@ const LockAndDataForMainnetERC721: LockAndDataForMainnetERC721Contract =
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 const ERC721ModuleForMainnet: ERC721ModuleForMainnetContract = artifacts.require("./ERC721ModuleForMainnet");
 
+const contractManager = "0x0000000000000000000000000000000000000000";
+
 contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
@@ -34,7 +36,7 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
   let eRC721ModuleForMainnet: ERC721ModuleForMainnetInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnetERC721 =
         await LockAndDataForMainnetERC721.new(lockAndDataForMainnet.address,
@@ -51,9 +53,9 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     const tokenId = 1;
     const isRaw = true;
     // execution
-    const res = await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
+    const res = await eRC721ModuleForMainnet.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
     // expectation
-    (res.logs[0].event).should.be.equal("EncodedRawData");
+    (res).should.include("0x");
   });
 
   it("should invoke `receiveERC721` with `isRaw==false`", async () => {
@@ -68,9 +70,9 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     await lockAndDataForMainnet
         .setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address, {from: deployer});
     // execution
-    const res = await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
+    const res = await eRC721ModuleForMainnet.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
     // expectation
-    (res.logs[0].event).should.be.equal("EncodedData");
+    (res).should.include("0x");
   });
 
   it("should return `true` when invoke `sendERC721` with `to0==address(0)`", async () => {
@@ -92,10 +94,10 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     await eRC721OnChain.transferFrom(deployer,
       lockAndDataForMainnetERC721.address, tokenId, {from: deployer});
     // get data from `receiveERC721`
-    const getRes = await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = await eRC721ModuleForMainnet.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
+    await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
     // execution
-    const res = await eRC721ModuleForMainnet.sendERC721(to0, data, {from: deployer});
+    await eRC721ModuleForMainnet.sendERC721(to0, data, {from: deployer});
     // expectation
     expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(user);
   });
@@ -119,10 +121,10 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     await eRC721OnChain.transferFrom(deployer,
       lockAndDataForMainnetERC721.address, tokenId, {from: deployer});
     // get data from `receiveERC721`
-    const getRes = await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = await eRC721ModuleForMainnet.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
+    await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
     // execution
-    const res = await eRC721ModuleForMainnet.sendERC721(to0, data, {from: deployer});
+    await eRC721ModuleForMainnet.sendERC721(to0, data, {from: deployer});
     // expectation
     expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(user);
   });
@@ -141,8 +143,8 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     await lockAndDataForMainnet
         .setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address, {from: deployer});
     // get data from `receiveERC721`
-    const getRes = await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = await eRC721ModuleForMainnet.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
+    await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
     // execution
     const res = await eRC721ModuleForMainnet.getReceiver(to0, data, {from: deployer});
     // expectation
@@ -163,8 +165,8 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     await lockAndDataForMainnet
         .setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address, {from: deployer});
     // get data from `receiveERC721`
-    const getRes = await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
-    const data = getRes.logs[0].args.data;
+    const data = await eRC721ModuleForMainnet.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
+    await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
     // execution
     const res = await eRC721ModuleForMainnet.getReceiver(to0, data, {from: deployer});
     // expectation

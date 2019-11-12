@@ -26,20 +26,48 @@ language: node_js
 node_js:
   - "10"
 os: linux
-dist: xenial
+dist: bionic
+addons:
+  apt:
+    packages:
+      - python3-pip
+      - python3-setuptools
 jobs:
     include:
         - stage: test
           install:
-            - cd proxy    
-            - yarn install    
+            - pip3 install slither-analyzer
+            - cd proxy
+            - bash ./scripts/copy.sh
+            - yarn install
+
+            - cd ../agent 
+            - npm install
+            
+            - cd ../npms/skale-ima
+            - npm install
+
+            - cd ../../proxy
           before_script:
-            - npx ganache-cli --gasLimit 8000000 --quiet &
+            - npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
             - npx testrpc-sc --port 8555 --gasLimit 0xfffffffffff --quiet &    
           script:
-            - yarn tslint || travis_terminate 2
-            - yarn generate    
+            - yarn lint || travis_terminate 1
+            - slither --version
+            - slither . --filter-path openzeppelin-solidity || true            
+            - slither . --filter-path openzeppelin-solidity --exclude-informational --exclude constant-function,calls-loop || travis_terminate 7
+            - yarn tslint || travis_terminate 2            
+            - yarn generate
+            - bash ./scripts/remove.sh
+            - RUNNING_NETWORK=test bash ./scripts/prepareSkaleManagerComponents.sh
             - yarn test || travis_terminate 3
+
+            - cd ../test
+            - python3 ../scripts/config_from_accounts.py accounts.json config.json
+            - pip3 install -r requirements.txt
+            - python3 test.py || travis_terminate 6
+            - cd ../proxy
+            - RUNNING_NETWORK=coverage bash ./scripts/prepareSkaleManagerComponents.sh
           after_script:
             - npx solidity-coverage || travis_terminate 4
             - cat coverage/lcov.info | npx codecov

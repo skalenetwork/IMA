@@ -26,6 +26,8 @@ const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract =
     artifacts.require("./LockAndDataForSchainERC721");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 
+const contractManager = "0x0000000000000000000000000000000000000000";
+
 contract("LockAndDataForSchainERC721", ([deployer, user, invoker]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
@@ -33,7 +35,7 @@ contract("LockAndDataForSchainERC721", ([deployer, user, invoker]) => {
   let eRC721OnChain: ERC721OnChainInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Schain", {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxy.new("Schain", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchainERC721 =
         await LockAndDataForSchainERC721.new(lockAndDataForSchain.address,
@@ -92,9 +94,9 @@ contract("LockAndDataForSchainERC721", ([deployer, user, invoker]) => {
     await lockAndDataForSchainERC721
         .addERC721Token(addressERC721, contractPosition, {from: deployer});
     // expectation
-    expect(await lockAndDataForSchainERC721.ERC721Tokens(contractPosition)).to.be.equal(addressERC721);
+    expect(await lockAndDataForSchainERC721.erc721Tokens(contractPosition)).to.be.equal(addressERC721);
     expect(parseInt(
-        new BigNumber(await lockAndDataForSchainERC721.ERC721Mapper(addressERC721))
+        new BigNumber(await lockAndDataForSchainERC721.erc721Mapper(addressERC721))
         .toString(), 10))
         .to.be.equal(contractPosition);
   });

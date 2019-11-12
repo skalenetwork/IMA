@@ -17,12 +17,12 @@
  *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.3;
 
 
 contract Migrations {
     address public owner;
-    uint public last_completed_migration;
+    uint public lastCompletedMigration;
 
     modifier restricted() {
         if (msg.sender == owner)
@@ -33,12 +33,12 @@ contract Migrations {
         owner = msg.sender;
     }
 
-    function setCompleted(uint completed) public restricted {
-        last_completed_migration = completed;
+    function setCompleted(uint completed) external restricted {
+        lastCompletedMigration = completed;
     }
 
-    function upgrade(address new_address) public restricted {
-        Migrations upgraded = Migrations(new_address);
-        upgraded.setCompleted(last_completed_migration);
+    function upgrade(address newAddress) external restricted {
+        Migrations upgraded = Migrations(newAddress);
+        upgraded.setCompleted(lastCompletedMigration);
     }
 }

@@ -26,6 +26,8 @@ const LockAndDataForSchainERC20: LockAndDataForSchainERC20Contract =
     artifacts.require("./LockAndDataForSchainERC20");
 const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 
+const contractManager = "0x0000000000000000000000000000000000000000";
+
 contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
   let messageProxy: MessageProxyInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
@@ -33,7 +35,7 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
   let eRC20OnChain: ERC20OnChainInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Schain", {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxy.new("Schain", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchainERC20 =
         await LockAndDataForSchainERC20.new(lockAndDataForSchain.address,
@@ -93,9 +95,9 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     await lockAndDataForSchainERC20
         .addERC20Token(addressERC20, contractPosition, {from: deployer});
     // expectation
-    expect(await lockAndDataForSchainERC20.ERC20Tokens(contractPosition)).to.be.equal(addressERC20);
+    expect(await lockAndDataForSchainERC20.erc20Tokens(contractPosition)).to.be.equal(addressERC20);
     expect(parseInt(
-        new BigNumber(await lockAndDataForSchainERC20.ERC20Mapper(addressERC20))
+        new BigNumber(await lockAndDataForSchainERC20.erc20Mapper(addressERC20))
         .toString(), 10))
         .to.be.equal(contractPosition);
   });

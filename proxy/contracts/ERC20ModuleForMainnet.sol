@@ -17,14 +17,14 @@
  *   along with SKALE-IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.3;
 
 import "./Permissions.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 
 interface ILockAndDataERC20M {
-    function ERC20Tokens(uint index) external returns (address);
-    function ERC20Mapper(address contractERC20) external returns (uint);
+    function erc20Tokens(uint index) external returns (address);
+    function erc20Mapper(address contractERC20) external returns (uint);
     function addERC20Token(address contractERC20) external returns (uint);
     function sendERC20(address contractHere, address to, uint amount) external returns (bool);
 }
@@ -32,50 +32,55 @@ interface ILockAndDataERC20M {
 
 contract ERC20ModuleForMainnet is Permissions {
 
-    event EncodedData(bytes data);
-    event EncodedRawData(bytes data);
-    event SentERC20(bool result);
+    event ERC20TokenAdded(address indexed tokenHere, uint contractPosition);
 
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function receiveERC20(address contractHere, address to, uint amount, bool isRAW) public allow("DepositBox") returns (bytes memory data) {
-        address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+    function receiveERC20(
+        address contractHere,
+        address to,
+        uint amount,
+        bool isRAW) external allow("DepositBox") returns (bytes memory data)
+        {
+        address lockAndDataERC20 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         if (!isRAW) {
-            uint contractPosition = ILockAndDataERC20M(lockAndDataERC20).ERC20Mapper(contractHere);
+            uint contractPosition = ILockAndDataERC20M(lockAndDataERC20).erc20Mapper(contractHere);
             if (contractPosition == 0) {
                 contractPosition = ILockAndDataERC20M(lockAndDataERC20).addERC20Token(contractHere);
+                emit ERC20TokenAdded(contractHere, contractPosition);
             }
-            data = encodeData(contractHere, contractPosition, to, amount);
-            emit EncodedData(bytes(data));
+            data = encodeData(
+                contractHere,
+                contractPosition,
+                to,
+                amount);
             return data;
         } else {
             data = encodeRawData(to, amount);
-            emit EncodedRawData(bytes(data));
             return data;
         }
     }
 
-    function sendERC20(address to, bytes memory data) public allow("DepositBox") returns (bool) {
-        address lockAndDataERC20 = ContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+    function sendERC20(address to, bytes calldata data) external allow("DepositBox") returns (bool) {
+        address lockAndDataERC20 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         uint contractPosition;
         address contractAddress;
         address receiver;
         uint amount;
         if (to == address(0)) {
             (contractPosition, receiver, amount) = fallbackDataParser(data);
-            contractAddress = ILockAndDataERC20M(lockAndDataERC20).ERC20Tokens(contractPosition);
+            contractAddress = ILockAndDataERC20M(lockAndDataERC20).erc20Tokens(contractPosition);
         } else {
             (receiver, amount) = fallbackRawDataParser(data);
             contractAddress = to;
         }
         bool variable = ILockAndDataERC20M(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
-        emit SentERC20(bool(variable));
         return variable;
     }
 
-    function getReceiver(address to, bytes memory data) public pure returns (address receiver) {
+    function getReceiver(address to, bytes calldata data) external pure returns (address receiver) {
         uint contractPosition;
         uint amount;
         if (to == address(0)) {
@@ -85,7 +90,12 @@ contract ERC20ModuleForMainnet is Permissions {
         }
     }
 
-    function encodeData(address contractHere, uint contractPosition, address to, uint amount) internal view returns (bytes memory data) {
+    function encodeData(
+        address contractHere,
+        uint contractPosition,
+        address to,
+        uint amount) internal view returns (bytes memory data)
+        {
         string memory name = ERC20Detailed(contractHere).name();
         uint8 decimals = ERC20Detailed(contractHere).decimals();
         string memory symbol = ERC20Detailed(contractHere).symbol();
