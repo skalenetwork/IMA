@@ -138,7 +138,7 @@ contract TokenManager is Permissions {
 
     function removeEthCost() external {
         uint returnBalance = ILockAndDataTM(lockAndDataAddress).removeGasCosts(msg.sender);
-        ILockAndDataTM(lockAndDataAddress).sendEth(msg.sender, returnBalance);
+        require(ILockAndDataTM(lockAndDataAddress).sendEth(msg.sender, returnBalance), "Not sent");
     }
 
     function exitToMainERC20(address contractHere, address to, uint amount) external {
