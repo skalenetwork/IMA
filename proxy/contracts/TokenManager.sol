@@ -132,6 +132,10 @@ contract TokenManager is Permissions {
         addEthCost(msg.sender, amount);
     }
 
+    function addEthCost(uint amount) external {
+        this.addEthCost(msg.sender, amount);
+    }
+
     function removeEthCost() external {
         uint returnBalance = ILockAndDataTM(lockAndDataAddress).removeGasCosts(msg.sender);
         require(ILockAndDataTM(lockAndDataAddress).sendEth(msg.sender, returnBalance), "Not sent");
@@ -499,10 +503,6 @@ contract TokenManager is Permissions {
             to,
             data
         );
-    }
-
-    function addEthCost(uint amount) public {
-        this.addEthCost(msg.sender, amount);
     }
 
     function addEthCost(address sender, uint amount) public receivedEth(amount) {
