@@ -348,7 +348,8 @@ contract DepositBox is Permissions {
     function deposit(string memory schainID, address to, bytes memory data)
         public
         payable
-        rightTransaction(schainID) requireGasPayment
+        rightTransaction(schainID)
+        requireGasPayment
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
@@ -361,7 +362,6 @@ contract DepositBox is Permissions {
             to,
             newData
         );
-        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
     }
 
     /**

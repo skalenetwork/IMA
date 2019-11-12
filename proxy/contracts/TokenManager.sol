@@ -128,12 +128,8 @@ contract TokenManager is Permissions {
         transferToSchain(schainID, to, amount);
     }
 
-    function addEthCost(address sender, uint amount) external receivedEth(amount) {
-        ILockAndDataTM(lockAndDataAddress).addGasCosts(sender, amount);
-    }
-
-    function addEthCost(uint amount) external {
-        this.addEthCost(msg.sender, amount);
+    function addEthCostWithoutAddress(uint amount) external {
+        addEthCost(msg.sender, amount);
     }
 
     function removeEthCost() external {
@@ -503,6 +499,14 @@ contract TokenManager is Permissions {
             to,
             data
         );
+    }
+
+    function addEthCost(uint amount) public {
+        this.addEthCost(msg.sender, amount);
+    }
+
+    function addEthCost(address sender, uint amount) public receivedEth(amount) {
+        ILockAndDataTM(lockAndDataAddress).addGasCosts(sender, amount);
     }
 
     /**
