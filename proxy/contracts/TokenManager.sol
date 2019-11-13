@@ -129,11 +129,7 @@ contract TokenManager is Permissions {
     }
 
     function addEthCostWithoutAddress(uint amount) external {
-        addEthCost(msg.sender, amount);
-    }
-
-    function addEthCost(uint amount) external {
-        this.addEthCost(msg.sender, amount);
+        addEthCost(amount);
     }
 
     function removeEthCost() external {
@@ -503,6 +499,10 @@ contract TokenManager is Permissions {
             to,
             data
         );
+    }
+
+    function addEthCost(uint amount) public {
+        addEthCost(msg.sender, amount);
     }
 
     function addEthCost(address sender, uint amount) public receivedEth(amount) {
