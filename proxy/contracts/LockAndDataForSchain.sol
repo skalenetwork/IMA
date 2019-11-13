@@ -146,6 +146,11 @@ contract LockAndDataForSchain is Ownable {
         return false;
     }
 
+    function removeGasCosts(address to) external allow("TokenManager") returns (uint balance) {
+        balance = ethCosts[to];
+        delete ethCosts[to];
+    }
+
     function sendEth(address to, uint amount) external allow("TokenManager") returns (bool) {
         require(IETHERC20(ethERC20Address).mint(to, amount), "Mint error");
         return true;

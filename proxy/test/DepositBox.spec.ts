@@ -118,8 +118,10 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       await lockAndDataForMainnet
         .setContract("DepositBox", depositBox.address, {from: deployer});
       // execution
-      await depositBox
+      const tx = await depositBox
         .depositWithoutData(schainID, deployer, {value: wei, from: deployer});
+
+      console.log(tx);
       const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
       // expectation
       expect(lockAndDataBalance).to.equal(wei);
@@ -193,6 +195,33 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         await depositBox
           .depositERC20(schainID, ethERC20.address, deployer, 1, {from: deployer});
       });
+
+      it("should invoke `depositERC20` with some ETH without mistakes", async () => {
+        // preparation
+        const schainID = randomString(10);
+        // add schain to avoid the `Unconnected chain` error
+        const chain = await lockAndDataForMainnet
+          .addSchain(schainID, deployer, {from: deployer});
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
+        await messageProxy
+          .addConnectedChain(schainID, publicKeyArray, {from: deployer});
+        // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
+        await lockAndDataForMainnet
+          .setContract("DepositBox", depositBox.address, {from: deployer});
+        // set `ERC20Module` contract before invoke `depositERC20`
+        await lockAndDataForMainnet
+          .setContract("ERC20Module", eRC20ModuleForMainnet.address, {from: deployer});
+        // set `LockAndDataERC20` contract before invoke `depositERC20`
+        await lockAndDataForMainnet
+          .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
+        // mint some quantity of ERC20 tokens for `deployer` address
+        await ethERC20.mint(deployer, "1000000000", {from: deployer});
+        // approve some quantity of ERC20 tokens for `depositBox` address
+        await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
+        // execution
+        await depositBox
+          .depositERC20(schainID, ethERC20.address, deployer, 1, {value: "1000000000000", from: deployer});
+      });
     });
 
     describe("tests for `rawDepositERC20` function", async () => {
@@ -240,6 +269,33 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // execution
         await depositBox
           .rawDepositERC20(schainID, ethERC20.address, user, deployer, 1, {from: deployer});
+      });
+
+      it("should invoke `rawDepositERC20` with some ETH without mistakes", async () => {
+        // preparation
+        const schainID = randomString(10);
+        // add schain to avoid the `Unconnected chain` error
+        const chain = await lockAndDataForMainnet
+          .addSchain(schainID, deployer, {from: deployer});
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
+        await messageProxy
+          .addConnectedChain(schainID, publicKeyArray, {from: deployer});
+        // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
+        await lockAndDataForMainnet
+          .setContract("DepositBox", depositBox.address, {from: deployer});
+        // set `ERC20Module` contract before invoke `rawDepositERC20`
+        await lockAndDataForMainnet
+          .setContract("ERC20Module", eRC20ModuleForMainnet.address, {from: deployer});
+        // set `LockAndDataERC20` contract before invoke `rawDepositERC20`
+        await lockAndDataForMainnet
+          .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
+        // mint some quantity of ERC20 tokens for `deployer` address
+        await ethERC20.mint(deployer, "1000000000", {from: deployer});
+        // approve some quantity of ERC20 tokens for `depositBox` address
+        await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
+        // execution
+        await depositBox
+          .rawDepositERC20(schainID, ethERC20.address, user, deployer, 1, {value: "1000000000000", from: deployer});
       });
     });
   });

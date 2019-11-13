@@ -237,6 +237,98 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
         });
 
+        it("should move incoming counter", async () => {
+            const chainID = randomString(10);
+            await messageProxy.addConnectedChain(chainID, publicKeyArray, {from: deployer});
+            const isConnectedChain = await messageProxy.isConnectedChain(chainID);
+            isConnectedChain.should.be.deep.equal(Boolean(true));
+
+            // chain can't be connected twice:
+            const incomingMessages = new BigNumber(
+                await messageProxy.getIncomingMessagesCounter(chainID, {from: deployer}),
+            );
+
+            // main net does not have a public key and is implicitly connected:
+            await messageProxy.moveIncomingCounter(chainID, {from: deployer});
+
+            const newIncomingMessages = new BigNumber(
+                await messageProxy.getIncomingMessagesCounter(chainID, {from: deployer}),
+            );
+
+            newIncomingMessages.should.be.deep.equal(BigNumber.sum(incomingMessages, 1));
+        });
+
+        it("should get incoming messages counter", async () => {
+            const chainID = randomString(10);
+            tokenManager1 = await TokenManager.new(chainID, messageProxy.address,
+                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+            tokenManager2 = await TokenManager.new(chainID, messageProxy.address,
+                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+            const startingCounter = 0;
+            const message1 = {
+                amount: 3,
+                data: "0x11",
+                destinationContract: tokenManager1.address,
+                sender: deployer,
+                to: client};
+            const message2 = {
+                amount: 7,
+                data: "0x22",
+                destinationContract: tokenManager2.address,
+                sender: user,
+                to: customer};
+            const messages = [message1, message2];
+
+            // chain should be inited:
+            await messageProxy.getIncomingMessagesCounter(chainID).should.be.rejected;
+
+            await messageProxy.addConnectedChain(chainID, publicKeyArray, {from: deployer});
+
+            const incomingMessagesCounter0 = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
+            incomingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
+
+            await messageProxy
+            .postIncomingMessages(
+                chainID,
+                startingCounter,
+                messages,
+                blsSignature,
+                hashA,
+                hashB,
+                counter,
+                {from: deployer},
+            );
+            const incomingMessagesCounter = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
+            incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
+
+            const amount = 5;
+            const addressTo = client;
+            const bytesData = "0x0";
+
+            const outgoingMessagesCounter0 = new BigNumber(await messageProxy.getOutgoingMessagesCounter(chainID));
+            outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
+
+            await messageProxy.postOutgoingMessage(
+                chainID,
+                lockAndDataForMainnet.address,
+                amount,
+                addressTo,
+                bytesData,
+                {from: deployer},
+            );
+
+            const outgoingMessagesCounter = new BigNumber(await messageProxy.getOutgoingMessagesCounter(chainID));
+            outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
+
+            await messageProxy.setCountersToZero(chainID, {from: deployer});
+
+            const newIncomingMessagesCounter = new BigNumber(await messageProxy.getIncomingMessagesCounter(chainID));
+            newIncomingMessagesCounter.should.be.deep.equal(new BigNumber(0));
+
+            const newOutgoingMessagesCounter = new BigNumber(await messageProxy.getOutgoingMessagesCounter(chainID));
+            newOutgoingMessagesCounter.should.be.deep.equal(new BigNumber(0));
+        });
+
     });
 
     describe("MessageProxy for schain", async () => {

@@ -86,6 +86,7 @@ contract DepositBox is Permissions {
     modifier requireGasPayment() {
         require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Gas was not paid");
         _;
+        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
     }
 
     /// Create a new deposit box
@@ -142,7 +143,9 @@ contract DepositBox is Permissions {
             address(0),
             data
         );
-        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        if (msg.value > 0) {
+            ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        }
     }
 
     function rawDepositERC20(
@@ -186,7 +189,9 @@ contract DepositBox is Permissions {
             contractThere,
             data
         );
-        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        if (msg.value > 0) {
+            ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        }
     }
 
     function depositERC721(
@@ -213,7 +218,9 @@ contract DepositBox is Permissions {
             address(0),
             data
         );
-        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        if (msg.value > 0) {
+            ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        }
     }
 
     function rawDepositERC721(
@@ -245,7 +252,9 @@ contract DepositBox is Permissions {
             contractThere,
             data
         );
-        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        if (msg.value > 0) {
+            ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        }
     }
 
     function postMessage(
@@ -339,7 +348,8 @@ contract DepositBox is Permissions {
     function deposit(string memory schainID, address to, bytes memory data)
         public
         payable
-        rightTransaction(schainID) requireGasPayment
+        rightTransaction(schainID)
+        requireGasPayment
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
@@ -352,7 +362,6 @@ contract DepositBox is Permissions {
             to,
             newData
         );
-        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
     }
 
     /**

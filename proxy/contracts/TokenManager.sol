@@ -35,6 +35,7 @@ interface ILockAndDataTM {
     function ethCosts(address to) external returns (uint);
     function addGasCosts(address to, uint amount) external;
     function reduceGasCosts(address to, uint amount) external returns (bool);
+    function removeGasCosts(address to) external returns (uint);
 }
 
 // This contract runs on schains and accepts messages from main net creates ETH clones.
@@ -89,7 +90,7 @@ contract TokenManager is Permissions {
     }
 
     modifier receivedEth(uint amount) {
-        require(amount > 0, "Null Amount");
+        require(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Null Amount");
         require(ILockAndDataTM(lockAndDataAddress).receiveEth(msg.sender, amount), "Could not receive ETH Clone");
         _;
     }
@@ -127,8 +128,13 @@ contract TokenManager is Permissions {
         transferToSchain(schainID, to, amount);
     }
 
-    function addEthCost(uint amount) external receivedEth(amount) {
-        ILockAndDataTM(lockAndDataAddress).addGasCosts(msg.sender, amount);
+    function addEthCostWithoutAddress(uint amount) external {
+        addEthCost(amount);
+    }
+
+    function removeEthCost() external {
+        uint returnBalance = ILockAndDataTM(lockAndDataAddress).removeGasCosts(msg.sender);
+        require(ILockAndDataTM(lockAndDataAddress).sendEth(msg.sender, returnBalance), "Not sent");
     }
 
     function exitToMainERC20(address contractHere, address to, uint amount) external {
@@ -493,6 +499,14 @@ contract TokenManager is Permissions {
             to,
             data
         );
+    }
+
+    function addEthCost(uint amount) public {
+        addEthCost(msg.sender, amount);
+    }
+
+    function addEthCost(address sender, uint amount) public receivedEth(amount) {
+        ILockAndDataTM(lockAndDataAddress).addGasCosts(sender, amount);
     }
 
     /**

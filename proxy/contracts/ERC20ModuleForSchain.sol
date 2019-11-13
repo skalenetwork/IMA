@@ -45,6 +45,8 @@ interface ERC20Clone {
 contract ERC20ModuleForSchain is Permissions {
 
     event ERC20TokenCreated(uint indexed contractPosition, address tokenThere);
+    event ERC20TokenReceived(uint indexed contractPosition, address tokenThere, uint amount);
+
 
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
@@ -93,9 +95,11 @@ contract ERC20ModuleForSchain is Permissions {
                     ERC20Clone(contractAddress).setTotalSupplyOnMainnet(totalSupply);
                 }
             }
+            emit ERC20TokenReceived(contractPosition, contractAddress, amount);
         } else {
             (receiver, amount) = fallbackRawDataParser(data);
             contractAddress = to;
+            emit ERC20TokenReceived(0, contractAddress, amount);
         }
         return ILockAndDataERC20S(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
     }

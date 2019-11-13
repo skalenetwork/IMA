@@ -64,6 +64,7 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const to = user;
     const amount = 10;
     const isRaw = true;
+    await ethERC20.mint(deployer, 10, {from: deployer});
     // execution
     const res = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
     // expectation
@@ -82,6 +83,7 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     // set `LockAndDataERC20` contract before invoke `receiveERC20`
     await lockAndDataForMainnet
         .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
+    await ethERC20.mint(deployer, 10, {from: deployer});
     // execution
     const res = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
     // expectation

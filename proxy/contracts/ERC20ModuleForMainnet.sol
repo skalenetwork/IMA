@@ -33,6 +33,7 @@ interface ILockAndDataERC20M {
 contract ERC20ModuleForMainnet is Permissions {
 
     event ERC20TokenAdded(address indexed tokenHere, uint contractPosition);
+    event ERC20TokenSent(address indexed tokenHere, uint contractPosition, uint amount);
 
     constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
@@ -42,9 +43,15 @@ contract ERC20ModuleForMainnet is Permissions {
         address contractHere,
         address to,
         uint amount,
-        bool isRAW) external allow("DepositBox") returns (bytes memory data)
-        {
+        bool isRAW
+    )
+        external
+        allow("DepositBox")
+        returns (bytes memory data)
+    {
         address lockAndDataERC20 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        uint totalSupply = ERC20Detailed(contractHere).totalSupply();
+        require(amount <= totalSupply, "TotalSupply is not correct");
         if (!isRAW) {
             uint contractPosition = ILockAndDataERC20M(lockAndDataERC20).erc20Mapper(contractHere);
             if (contractPosition == 0) {
@@ -55,10 +62,13 @@ contract ERC20ModuleForMainnet is Permissions {
                 contractHere,
                 contractPosition,
                 to,
-                amount);
+                amount
+            );
+            emit ERC20TokenSent(contractHere, contractPosition, amount);
             return data;
         } else {
             data = encodeRawData(to, amount);
+            emit ERC20TokenSent(contractHere, 0, amount);
             return data;
         }
     }

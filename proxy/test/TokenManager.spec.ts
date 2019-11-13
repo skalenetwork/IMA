@@ -97,9 +97,9 @@ contract("TokenManager", ([user, deployer, client]) => {
     });
 
     it("should send Eth to somebody on Mainnet, closed to Mainnet, called by schain", async () => {
-        const amount = new BigNumber(200);
-        const amountTo = new BigNumber(20);
-        const amountAfter = new BigNumber(180);
+        const amount = new BigNumber("20000000000000000");
+        const amountTo = new BigNumber("2000000000000000");
+        const amountAfter = new BigNumber("18000000000000000");
         const to = deployer;
 
         // set EthERC20 address:
@@ -121,9 +121,9 @@ contract("TokenManager", ([user, deployer, client]) => {
     });
 
     it("should transfer to somebody on schain Eth and some data", async () => {
-        const amount = new BigNumber(200);
-        const amountTo = new BigNumber(20);
-        const amountAfter = new BigNumber(180);
+        const amount = new BigNumber("20000000000000000");
+        const amountTo = new BigNumber("2000000000000000");
+        const amountAfter = new BigNumber("18000000000000000");
         const bytesData = "0x0";
         const to = deployer;
 
@@ -153,9 +153,9 @@ contract("TokenManager", ([user, deployer, client]) => {
     });
 
     it("should add Eth cost", async () => {
-        const amount = new BigNumber(200);
-        const amountTo = new BigNumber(20);
-        const amountAfter = new BigNumber(180);
+        const amount = new BigNumber("200000000000000000");
+        const amountTo = new BigNumber("20000000000000000");
+        const amountAfter = new BigNumber("180000000000000000");
 
         // set EthERC20 address:
         await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
@@ -176,13 +176,54 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain.addSchain(chainID, user, {from: deployer});
 
         // add Eth cost:
-        await tokenManager.addEthCost(amountTo, {from: user});
+        await tokenManager.addEthCostWithoutAddress(amountTo, {from: user});
 
         const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
         balanceAfter.should.be.deep.equal(amountAfter);
 
         const ethCosts = new BigNumber(await lockAndDataForSchain.ethCosts(user));
         ethCosts.should.be.deep.equal(amountTo);
+    });
+
+    it("should remove Eth cost", async () => {
+        const amount = new BigNumber("200000000000000000");
+        const amountTo = new BigNumber("20000000000000000");
+        const amountAfter = new BigNumber("180000000000000000");
+
+        // set EthERC20 address:
+        await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+
+        // set contract TokenManager:
+        await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
+
+        // add connected chain:
+        await messageProxy.addConnectedChain(chainID, publicKeyArray, {from: deployer});
+
+        // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
+        await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
+
+        // send Eth:
+        await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
+
+        // // add schain:
+        await lockAndDataForSchain.addSchain(chainID, user, {from: deployer});
+
+        // add Eth cost:
+        await tokenManager.addEthCostWithoutAddress(amountTo, {from: user});
+
+        const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
+        balanceAfter.should.be.deep.equal(amountAfter);
+
+        const ethCosts = new BigNumber(await lockAndDataForSchain.ethCosts(user));
+        ethCosts.should.be.deep.equal(amountTo);
+
+        await tokenManager.removeEthCost({from: user});
+
+        const balanceAfterY = new BigNumber(await ethERC20.balanceOf(user));
+        balanceAfterY.should.be.deep.equal(amount);
+
+        const ethCostsY = new BigNumber(await lockAndDataForSchain.ethCosts(user));
+        ethCostsY.should.be.deep.equal(new BigNumber(0));
     });
 
     it("should rejected with `Not allowed ERC20 Token` when invoke `exitToMainERC20`", async () => {
