@@ -561,7 +561,6 @@ async function do_sign_messages_s2m( jarrMessages, nIdxCurrentMsgBlockStart, fn 
     return await do_sign_messages_impl( "S2M", jarrMessages, nIdxCurrentMsgBlockStart, fn );
 }
 
-
 module.exports = {
     "init": init,
     "do_sign_messages_m2s": do_sign_messages_m2s,
