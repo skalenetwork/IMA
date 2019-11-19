@@ -325,8 +325,8 @@ function perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonP
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
+    let strLogPrefix = cc.bright(strDirection) + cc.debug("/") + cc.info("BLS") + cc.debug("/") + cc.sunny("Summary") + cc.debug(":") + " ";
     try {
-        let strLogPrefix = cc.bright(strDirection) + cc.debug("/") + cc.info("BLS") + cc.debug("/") + cc.sunny("Summary") + cc.debug(":") + " ";
         shell.cd( strActionDir );
         let joMsg = { "message" : compose_summary_message_to_sign( jarrMessages, true ) };
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
@@ -334,6 +334,8 @@ function perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonP
         imaUtils.jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
         imaUtils.jsonFileSave( strActionDir + "/common_public_key.json", joCommonPublicKey );
+        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+            log.write( strLogPrefix + cc.normal( "BLS common public key for verification is:\n" ) + cc.j( joCommonPublicKey ) + "\n" );
         let strVerifyCommand = ""
             + imaState.strPathBlsVerify
             + " --t " + nThreshold
@@ -527,6 +529,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                     log.write( strLogPrefixB + cc.success( "Got BLS glue result: " ) + cc.j( joGlueResult ) + "\n" );
                 if( imaState.strPathBlsVerify.length > 0 ) {
                     let joCommonPublicKey = discover_common_public_key( imaState.joSChainNetworkInfo );
+//console.log(joCommonPublicKey);
                     if( perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonPublicKey ) ) {
                         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
                             log.write( strLogPrefixB + cc.success( "Got succerssful summary BLS verification result" ) + "\n" );
@@ -557,7 +560,6 @@ async function do_sign_messages_m2s( jarrMessages, nIdxCurrentMsgBlockStart, fn 
 async function do_sign_messages_s2m( jarrMessages, nIdxCurrentMsgBlockStart, fn ) {
     return await do_sign_messages_impl( "S2M", jarrMessages, nIdxCurrentMsgBlockStart, fn );
 }
-
 
 module.exports = {
     "init": init,
