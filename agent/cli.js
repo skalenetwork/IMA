@@ -192,8 +192,10 @@ function parse( joExternalHandlers ) {
             console.log( cc.sunny( "BLOCKCHAIN NETWORK" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( ".............." ) + cc.note( "Main-net URL" ) + cc.notice( " for Web3." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "..............." ) + cc.note( "S-chain URL" ) + cc.notice( " for Web3." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "id-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "network ID." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "id-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............." ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "network ID." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "id-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "id-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............." ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "cid-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "..........." ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "chain ID." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "cid-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "chain ID." ) );
             console.log( cc.sunny( "BLOCKCHAIN INTERFACE" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "abi-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "............." ) + cc.notice( "Path to JSON file containing IMA ABI of " ) + cc.note( "Main-net" ) + cc.notice( " for Web3." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "abi-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( ".............." ) + cc.notice( "Path to JSON file containing IMA ABI of " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
@@ -306,6 +308,16 @@ function parse( joExternalHandlers ) {
         if ( joArg.name == "id-main-net" ) {
             verify_arg_with_non_empty_value( joArg );
             imaState.strChainID_main_net = joArg.value;
+            continue;
+        }
+        if ( joArg.name == "cid-s-chain" ) {
+            veryify_int_arg( joArg );
+            imaState.cid_s_chain = parseInt( joArg.value );
+            continue;
+        }
+        if ( joArg.name == "cid-main-net" ) {
+            veryify_int_arg( joArg );
+            imaState.cid_main_net = parseInt( joArg.value );
             continue;
         }
         /**/
@@ -844,10 +856,16 @@ function ima_common_init() {
         ensure_have_value( "S-chain URL", imaState.strURL_s_chain, false, true, null, ( x ) => {
             return cc.u( x );
         } );
-        ensure_have_value( "Main-net Ethereum network ID", imaState.strChainID_main_net, false, true, null, ( x ) => {
+        ensure_have_value( "Main-net Ethereum network name", imaState.strChainID_main_net, false, true, null, ( x ) => {
             return cc.note( x );
         } );
-        ensure_have_value( "S-Chain Ethereum network ID", imaState.strChainID_s_chain, false, true, null, ( x ) => {
+        ensure_have_value( "S-Chain Ethereum network name", imaState.strChainID_s_chain, false, true, null, ( x ) => {
+            return cc.note( x );
+        } );
+        ensure_have_value( "Main-net Ethereum chain ID", imaState.cid_main_net, false, true, null, ( x ) => {
+            return cc.note( x );
+        } );
+        ensure_have_value( "S-Chain Ethereum chain ID", imaState.cid_s_chain, false, true, null, ( x ) => {
             return cc.note( x );
         } );
         ensure_have_value( "Main-net ABI JSON file path", imaState.strPathAbiJson_main_net, false, true, null, ( x ) => {

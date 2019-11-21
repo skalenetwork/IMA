@@ -204,7 +204,8 @@ async function register_s_chain_on_main_net( // step 1
     w3_main_net,
     jo_message_proxy_main_net,
     joAccount_main_net,
-    chain_id_s_chain
+    chain_id_s_chain,
+    cid_main_net
     ) {
     let strLogPrefix = cc.sunny("Reg S on M:") + " ";
     if ( verbose_get() >= RV_VERBOSE.debug ) {
@@ -230,6 +231,7 @@ async function register_s_chain_on_main_net( // step 1
             chain_id_s_chain, [ 0, 0, 0, 0 ] // call params
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
+            "chainId": cid_main_net,
             "nonce": tcnt, // 0x00, ...
             "gasPrice": 10000000000,
             "gasLimit": 3000000,
@@ -295,7 +297,8 @@ async function register_s_chain_in_deposit_box( // step 2
     jo_lock_and_data_main_net,
     joAccount_main_net,
     jo_token_manager, // only s-chain
-    chain_id_s_chain
+    chain_id_s_chain,
+    cid_main_net
 ) {
     let strLogPrefix = cc.sunny("Reg S in depositBox:") + " ";
     if ( verbose_get() >= RV_VERBOSE.debug ) {
@@ -320,6 +323,7 @@ async function register_s_chain_in_deposit_box( // step 2
             chain_id_s_chain, jo_token_manager.options.address // call params
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
+            "chainId": cid_main_net,
             "nonce": tcnt, // 0x00, ...
             "gasPrice": 10000000000,
             "gasLimit": 3000000,
@@ -377,7 +381,8 @@ async function register_main_net_depositBox_on_s_chain( // step 3
     //jo_token_manager,
     jo_deposit_box_main_net,
     jo_lock_and_data_s_chain,
-    joAccount
+    joAccount,
+    cid_s_chain
 ) {
     let strLogPrefix = cc.sunny("Reg MS depositBox on S:") + " ";
     if ( verbose_get() >= RV_VERBOSE.debug ) {
@@ -399,6 +404,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             jo_deposit_box_main_net.options.address // call params
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
+            "chainId": cid_s_chain,
             "nonce": tcnt, // 0x00, ...
             "gasPrice": 10000000000,
             "gasLimit": 3000000,
@@ -439,6 +445,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
 //
 async function do_eth_payment_from_main_net(
     w3_main_net,
+    cid_main_net,
     joAccountSrc,
     joAccountDst,
     jo_deposit_box,
@@ -464,6 +471,7 @@ async function do_eth_payment_from_main_net(
             chain_id_s_chain, joAccountDst.address( w3_main_net ), w3_main_net.utils.fromAscii( "" ) // TO-DO: string is "data" parameter, we need to allow user to specify it
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
+            "chainId": cid_main_net,
             "nonce": tcnt, // 0x00, ...
             "gas": 3000000, // 2100000,
             "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
@@ -555,6 +563,7 @@ async function do_eth_payment_from_main_net(
 //
 async function do_eth_payment_from_s_chain(
     w3_s_chain,
+    cid_s_chain,
     joAccountSrc,
     joAccountDst,
     jo_token_manager,
@@ -579,6 +588,7 @@ async function do_eth_payment_from_s_chain(
             "0x" // w3_s_chain.utils.fromAscii( "" ) // TO-DO: string is "data" parameter, we need to allow user to specify it
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
+            "chainId": cid_s_chain,
             "nonce": tcnt, // 0x00, ...
             "gas": 2100000,
             "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
@@ -625,6 +635,7 @@ async function do_eth_payment_from_s_chain(
 //
 async function receive_eth_payment_from_s_chain_on_main_net(
     w3_main_net,
+    cid_main_net,
     joAccount_main_net,
     jo_lock_and_data_main_net
 ) {
@@ -642,6 +653,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             // call params(empty)
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
+            "chainId": cid_main_net,
             "nonce": tcnt, // 0x00, ...
             "gas": 2100000,
             "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
@@ -711,6 +723,8 @@ async function view_eth_payment_from_s_chain_on_main_net(
 async function do_erc721_payment_from_main_net(
     w3_main_net,
     w3_s_chain,
+    cid_main_net,
+    cid_s_chain,
     joAccountSrc,
     joAccountDst,
     jo_deposit_box,
@@ -766,6 +780,7 @@ async function do_erc721_payment_from_main_net(
         //
         strActionName = "create raw transactions M->S";
         const rawTxApprove = {
+            "chainId": cid_main_net,
             "from": joAccountSrc.address( w3_main_net ), // accountForMainnet
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": approve,
@@ -775,6 +790,7 @@ async function do_erc721_payment_from_main_net(
         }
         tcnt += 1;
         const rawTxDeposit = {
+            "chainId": cid_main_net,
             "from": joAccountSrc.address( w3_main_net ), // accountForMainnet
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": deposit,
@@ -885,6 +901,8 @@ async function do_erc721_payment_from_main_net(
 async function do_erc20_payment_from_main_net(
     w3_main_net,
     w3_s_chain,
+    cid_main_net,
+    cid_s_chain,
     joAccountSrc,
     joAccountDst,
     jo_deposit_box,
@@ -944,6 +962,7 @@ async function do_erc20_payment_from_main_net(
         //
         strActionName = "create raw transactions M->S";
         const rawTxApprove = {
+            "chainId": cid_main_net,
             "from": joAccountSrc.address( w3_main_net ), // accountForMainnet
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": approve,
@@ -953,6 +972,7 @@ async function do_erc20_payment_from_main_net(
         }
         tcnt += 1;
         const rawTxDeposit = {
+            "chainId": cid_main_net,
             "from": joAccountSrc.address( w3_main_net ), // accountForMainnet
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": deposit,
@@ -1057,6 +1077,8 @@ async function do_erc20_payment_from_main_net(
 async function do_erc20_payment_from_s_chain(
     w3_main_net,
     w3_s_chain,
+    cid_main_net,
+    cid_s_chain,
     joAccountSrc,
     joAccountDst,
     jo_token_manager, // only s-chain
@@ -1117,6 +1139,7 @@ async function do_erc20_payment_from_s_chain(
         //
         strActionName = "create raw transactions S->M";
         const rawTxApprove = {
+            "chainId": cid_s_chain,
             "from": accountForSchain,
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": approve,
@@ -1126,6 +1149,7 @@ async function do_erc20_payment_from_s_chain(
         }
         tcnt += 1;
         const rawTxDeposit = {
+            "chainId": cid_s_chain,
             "from": accountForSchain,
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": deposit,
@@ -1187,6 +1211,8 @@ async function do_erc20_payment_from_s_chain(
 async function do_erc721_payment_from_s_chain(
     w3_main_net,
     w3_s_chain,
+    cid_main_net,
+    cid_s_chain,
     joAccountSrc,
     joAccountDst,
     jo_token_manager, // only s-chain
@@ -1247,6 +1273,7 @@ async function do_erc721_payment_from_s_chain(
         //
         strActionName = "create raw transactions S->M";
         const rawTxApprove = {
+            "chainId": cid_s_chain,
             "from": accountForSchain,
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": approve,
@@ -1256,6 +1283,7 @@ async function do_erc721_payment_from_s_chain(
         }
         tcnt += 1;
         const rawTxDeposit = {
+            "chainId": cid_s_chain,
             "from": accountForSchain,
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": deposit,
@@ -1346,6 +1374,8 @@ async function do_transfer(
     //
     chain_id_src,
     chain_id_dst,
+    cid_src,
+    cid_dst,
     //
     jo_deposit_box_main_net, // for logs validation on mainnet
     jo_token_manager_schain, // for logs validation on s-chain
@@ -1606,6 +1636,7 @@ async function do_transfer(
                 }
                 //
                 let rawTx = {
+                    "chainId": cid_dst,
                     "nonce": tcnt, // 0x00, ...
                     "gas": 3000000,
                     "gasPrice": 10000000000, // not w3_dst.eth.gasPrice ... got from truffle.js network_name gasPrice

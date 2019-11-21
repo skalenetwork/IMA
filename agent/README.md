@@ -97,6 +97,7 @@ Fifth, try rebuild all the contracts once to ensure everything initialized OK:
     rm -rf ./build
     rm -rf ./data/proxy*
     truffle compile
+    ls -1 ./data/
 
 ### Contracts pre-installation on Mainnet and SKALE Chain
 
@@ -128,6 +129,8 @@ You can check whether **IMA** is already bound with:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
@@ -141,6 +144,8 @@ You can check whether **IMA** is already bound with:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
@@ -156,6 +161,8 @@ Performed with the **--loop** command line option:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
@@ -194,6 +201,8 @@ Performed with the **--m2s-payment** command line option:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
@@ -212,6 +221,8 @@ Performed with the **--s2m-payment** command line option:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
@@ -228,6 +239,8 @@ Performed with the **--s2m-view** command line option:
         --url-main-net=http://127.0.0.1:8545 \
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --id-s-chain=Bob \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
@@ -245,6 +258,8 @@ Performed with the **--s2m-receive** command line option:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc
@@ -277,6 +292,8 @@ Performed with the **--m2s-transfer** command line option:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
@@ -292,6 +309,8 @@ Performed with the **--s2m-transfer** command line option:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
@@ -307,6 +326,8 @@ Performed with the **--transfer** command line option:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
@@ -347,6 +368,8 @@ Performed with the **--m2s-payment** and **--no-raw-transfer** command line opti
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
@@ -371,6 +394,8 @@ Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
@@ -396,6 +421,8 @@ Performed with the **--m2s-payment** and **--raw-transfer** command line options
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
@@ -421,6 +448,8 @@ Performed with the **--s2m-payment** and **--raw-transfer** command line options
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
@@ -520,6 +549,8 @@ Here is example of IMA message processing loop invocation with BLS support:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
