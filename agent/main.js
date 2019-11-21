@@ -81,6 +81,8 @@ let imaState = {
 
     "strChainID_main_net": "Mainnet",
     "strChainID_s_chain": "id-S-chain",
+    "cid_main_net": -4,
+    "cid_s_chain": -4,
 
     "strPathJsonErc20_main_net": "",
     "strPathJsonErc20_s_chain": "",
@@ -233,6 +235,8 @@ imaCLI.parse( {
                     return await IMA.do_erc721_payment_from_main_net(
                         imaState.w3_main_net,
                         imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
                         imaState.joAccount_main_net,
                         imaState.joAccount_s_chain,
                         imaState.jo_deposit_box, // only main net
@@ -256,6 +260,8 @@ imaCLI.parse( {
                     return await IMA.do_erc20_payment_from_main_net(
                         imaState.w3_main_net,
                         imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
                         imaState.joAccount_main_net,
                         imaState.joAccount_s_chain,
                         imaState.jo_deposit_box, // only main net
@@ -275,6 +281,7 @@ imaCLI.parse( {
                 log.write( cc.info( "one M->S single ETH payment: " ) + cc.sunny( imaState.nAmountOfWei ) + "\n" ); // just print value
                 return await IMA.do_eth_payment_from_main_net(
                     imaState.w3_main_net,
+                    imaState.cid_main_net,
                     imaState.joAccount_main_net,
                     imaState.joAccount_s_chain,
                     imaState.jo_deposit_box, // only main net
@@ -295,6 +302,8 @@ imaCLI.parse( {
                     return await IMA.do_erc721_payment_from_s_chain(
                         imaState.w3_main_net,
                         imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
                         imaState.joAccount_s_chain,
                         imaState.joAccount_main_net,
                         imaState.jo_token_manager, // only s-chain
@@ -314,6 +323,8 @@ imaCLI.parse( {
                     return await IMA.do_erc20_payment_from_s_chain(
                         imaState.w3_main_net,
                         imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
                         imaState.joAccount_s_chain,
                         imaState.joAccount_main_net,
                         imaState.jo_token_manager, // only s-chain
@@ -331,6 +342,7 @@ imaCLI.parse( {
                 log.write( cc.info( "one S->M single ETH payment: " ) + cc.sunny( imaState.nAmountOfWei ) + "\n" ); // just print value
                 return await IMA.do_eth_payment_from_s_chain(
                     imaState.w3_s_chain,
+                    imaState.cid_s_chain,
                     imaState.joAccount_s_chain,
                     imaState.joAccount_main_net,
                     imaState.jo_token_manager, // only s-chain
@@ -346,6 +358,7 @@ imaCLI.parse( {
                 log.write( cc.info( "receive one S->M single ETH payment: " ) + "\n" ); // just print value
                 return await IMA.receive_eth_payment_from_s_chain_on_main_net(
                     imaState.w3_main_net,
+                    imaState.cid_main_net,
                     imaState.joAccount_main_net,
                     imaState.jo_lock_and_data_main_net
                 );
@@ -383,6 +396,8 @@ imaCLI.parse( {
                     imaState.joAccount_s_chain,
                     imaState.strChainID_main_net,
                     imaState.strChainID_s_chain,
+                    imaState.cid_main_net,
+                    imaState.cid_s_chain,
                     null, // imaState.jo_deposit_box, // for logs validation on mainnet
                     imaState.jo_token_manager, // for logs validation on s-chain
                     imaState.nTransferBlockSizeM2S,
@@ -408,6 +423,8 @@ imaCLI.parse( {
                     imaState.joAccount_main_net,
                     imaState.strChainID_s_chain,
                     imaState.strChainID_main_net,
+                    imaState.cid_s_chain,
+                    imaState.cid_main_net,
                     imaState.jo_deposit_box, // for logs validation on mainnet
                     null, // imaState.jo_token_manager, // for logs validation on s-chain
                     imaState.nTransferBlockSizeS2M,
@@ -675,7 +692,8 @@ async function register_step1() {
         imaState.w3_main_net,
         imaState.jo_message_proxy_main_net,
         imaState.joAccount_main_net,
-        imaState.strChainID_s_chain
+        imaState.strChainID_s_chain,
+        imaState.cid_main_net
     );
     if ( !bRetVal ) {
         var nRetCode = 1501;
@@ -692,7 +710,8 @@ async function register_step2() {
         imaState.jo_lock_and_data_main_net,
         imaState.joAccount_main_net,
         imaState.jo_token_manager, // only s-chain
-        imaState.strChainID_s_chain
+        imaState.strChainID_s_chain,
+        imaState.cid_main_net
     );
     if ( !bRetVal ) {
         var nRetCode = 1502;
@@ -708,7 +727,8 @@ async function register_step3() {
         //imaState.jo_token_manager, // only s-chain
         imaState.jo_deposit_box, // only main net
         imaState.jo_lock_and_data_s_chain,
-        imaState.joAccount_s_chain
+        imaState.joAccount_s_chain,
+        imaState.cid_s_chain
     );
     if ( !bRetVal ) {
         var nRetCode = 1503;
@@ -832,6 +852,8 @@ async function single_transfer_loop() {
         imaState.joAccount_s_chain,
         imaState.strChainID_main_net,
         imaState.strChainID_s_chain,
+        imaState.cid_main_net,
+        imaState.cid_s_chain,
         null, // imaState.jo_deposit_box, // for logs validation on mainnet
         imaState.jo_token_manager, // for logs validation on s-chain
         imaState.nTransferBlockSizeM2S,
@@ -855,6 +877,8 @@ async function single_transfer_loop() {
         imaState.joAccount_main_net,
         imaState.strChainID_s_chain,
         imaState.strChainID_main_net,
+        imaState.cid_s_chain,
+        imaState.cid_main_net,
         imaState.jo_deposit_box, // for logs validation on mainnet
         null, // imaState.jo_token_manager, // for logs validation on s-chain
         imaState.nTransferBlockSizeS2M,

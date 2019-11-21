@@ -97,6 +97,7 @@ Fifth, try rebuild all the contracts once to ensure everything initialized OK:
     rm -rf ./build
     rm -rf ./data/proxy*
     truffle compile
+    ls -1 ./data/
 
 ### Contracts pre-installation on Mainnet and SKALE Chain
 
