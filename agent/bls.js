@@ -259,7 +259,7 @@ function perform_bls_glue( strDirection, jarrMessages, arrSignResults ) {
         // }
         fnShellRestore();
     } catch( err ) {
-        log.write( strLogPrefix + cc.fatal("BLS glue error:") + cc.normal( " error description is: " ) + cc.warning( err ) + "\n" );
+        log.write( strLogPrefix + cc.fatal("BLS glue CRITICAL ERROR:") + cc.error( " error description is: " ) + cc.warning( err ) + "\n" );
         log.write( strLogPrefix + cc.error( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
         fnShellRestore();
         joGlueResult = null;
@@ -306,8 +306,8 @@ function perform_bls_verify_i( strDirection, nZeroBasedNodeIndex, joResultFromNo
         fnShellRestore();
         return true;
     } catch( err ) {
-        log.write( strLogPrefix + cc.fatal("BLS node ") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.error(" verify error:") + cc.normal( " error description is: " ) + cc.warning( err ) + "\n" );
-        log.write( strLogPrefix + cc.error( "BLS node ") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.error(" verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        log.write( strLogPrefix + cc.fatal("CRITICAL ERROR: BLS node ") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.error(" verify error:") + cc.normal( " error description is: " ) + cc.warning( err ) + "\n" );
+        log.write( strLogPrefix + cc.error( "CRITICAL ERROR: BLS node ") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.error(" verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         fnShellRestore();
     }
     return false;
@@ -352,7 +352,7 @@ function perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonP
         fnShellRestore();
         return true;
     } catch( err ) {
-        log.write( strLogPrefix + cc.fatal("BLS/summary verify error:") + cc.normal( " error description is: " ) + cc.warning( err ) + "\n" );
+        log.write( strLogPrefix + cc.fatal("BLS/summary verify CRITICAL ERROR:") + cc.normal( " error description is: " ) + cc.warning( err ) + "\n" );
         log.write( strLogPrefix + cc.error( "BLS/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         fnShellRestore();
     }
@@ -411,7 +411,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
             if( err ) {
                 ++ nCountReceived; // including errors
                 ++ nCountErrors;
-                log.write( strLogPrefix + cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) + "\n" );
+                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) + "\n" );
                 return;
             }
             let dstChainID = "", srcChainID = "";
@@ -436,16 +436,16 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 ++ nCountReceived; // including errors
                 if( err ) {
                     ++ nCountErrors;
-                    log.write( strLogPrefix + cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
+                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
                     return;
                 }
                 if( joOut.result == null || joOut.result == undefined || ( ! typeof joOut.result == "object" ) ) {
                     ++ nCountErrors;
                     if( "error" in joOut && "message" in joOut.error )
-                        log.write( strLogPrefix + cc.fatal( "Wallet Error:" )
+                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" )
                             + cc.error( "S-Chain reported wallet error: " ) + cc.warn( joOut.error.message ) );
                     else
-                        log.write( strLogPrefix + cc.fatal( "Wallet Error:" )
+                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" )
                             + cc.error( "JSON RPC call to S-Chain failed with " ) + cc.warning( "unknown wallet error" ) );
                     return;
                 }
@@ -482,7 +482,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                                 log.write( strLogPrefixA + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
                             }
                         } catch( err ) {
-                            log.write( strLogPrefixA + cc.fatal( "Node sign error:" ) + cc.error( " partial signature fail from node ") + cc.info(joNode.nodeID) + cc.error(" with index " ) + cc.info(nZeroBasedNodeIndex) + cc.error(", error is " ) + cc.warn(err.toString()) + "\n" );
+                            log.write( strLogPrefixA + cc.fatal( "Node sign CRITICAL ERROR:" ) + cc.error( " partial signature fail from node ") + cc.info(joNode.nodeID) + cc.error(" with index " ) + cc.info(nZeroBasedNodeIndex) + cc.error(", error is " ) + cc.warn(err.toString()) + "\n" );
                         }
                         //
                         //
@@ -512,7 +512,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                     }
                 } catch( err ) {
                     ++ nCountErrors;
-                    log.write( strLogPrefix + cc.fatal( "Error:" ) + cc.error( " signature fail from node ") + cc.info(joNode.nodeID) + cc.error(", error is " ) + cc.warn(err.toString()) + "\n" );
+                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " signature fail from node ") + cc.info(joNode.nodeID) + cc.error(", error is " ) + cc.warn(err.toString()) + "\n" );
                 }
             } );
         } );
@@ -535,12 +535,12 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                             log.write( strLogPrefixB + cc.success( "Got succerssful summary BLS verification result" ) + "\n" );
                     } else {
                         strError = "BLS verify failed";
-                        log.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
+                        log.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
                     }
                 }
             } else {
                 strError = "BLS glue failed";
-                log.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
+                log.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( strError ) + "\n" );
             }
             await fn( strError, jarrMessages, joGlueResult );
             return;

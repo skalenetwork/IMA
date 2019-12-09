@@ -75,7 +75,7 @@ function jsonFileLoad( strPath, joDefault, bLogOutput ) {
         return jo;
     } catch ( err ) {
         if ( bLogOutput )
-            console.log( cc.fatal( "Error:" ) + cc.error( " failed to load JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warn( err ) );
+            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to load JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warn( err ) );
     }
     return joDefault;
 }
@@ -93,7 +93,7 @@ function jsonFileSave( strPath, jo, bLogOutput ) {
         return true;
     } catch ( err ) {
         if ( bLogOutput )
-            console.log( cc.fatal( "Error:" ) + cc.error( " failed to save JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warn( err ) );
+            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to save JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warn( err ) );
     }
     return false;
 }
@@ -298,7 +298,7 @@ function check_key_exist_in_abi( strName, strFile, joABI, strKey ) {
             return;
     } catch( err ) {
     }
-    log.write( cc.fatal( "FATAL:" ) + cc.error( "Loaded " ) + cc.warning( strName ) + cc.error( " ABI JSON file " ) + cc.info( strFile ) + cc.error( " does not contain needed key " ) + cc.warning( strKey ) + "\n" );
+    log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Loaded " ) + cc.warning( strName ) + cc.error( " ABI JSON file " ) + cc.info( strFile ) + cc.error( " does not contain needed key " ) + cc.warning( strKey ) + "\n" );
     process.exit( 123 );
 }
 
