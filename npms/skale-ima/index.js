@@ -1559,11 +1559,11 @@ async function do_transfer(
                     log.write( strLogPrefix + cc.debug( "Will process message counter value " ) + cc.info( nIdxCurrentMsg ) + "\n" );
                 arrMessageCounters.push( nIdxCurrentMsg );
                 messages.push( {
-                    "amount": joValues.amount,
-                    "data": joValues.data,
-                    "destinationContract": joValues.dstContract,
                     "sender": joValues.srcContract,
-                    "to": joValues.to
+                    "destinationContract": joValues.dstContract,
+                    "to": joValues.to,
+                    "amount": joValues.amount,
+                    "data": joValues.data
                 } );
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
             if ( cntAccumulatedForBlock == 0 )
