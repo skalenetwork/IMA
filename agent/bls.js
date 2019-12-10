@@ -333,7 +333,14 @@ function perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonP
             log.write( strLogPrefix + cc.debug( "BLS/summary verify message " ) + cc.j( joMsg ) + cc.debug(" composed from ") + cc.j(jarrMessages) + cc.debug(" using glue ") + cc.j( joGlueResult) + cc.debug(" and common public key ") + cc.j( joCommonPublicKey) + "\n" );
         imaUtils.jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
-        imaUtils.jsonFileSave( strActionDir + "/common_public_key.json", joCommonPublicKey );
+        //let joCommonPublicKey_for_O = joCommonPublicKey;
+        let joCommonPublicKey_for_O = {
+            insecureCommonBLSPublicKey0: joCommonPublicKey.insecureCommonBLSPublicKey1,
+            insecureCommonBLSPublicKey1: joCommonPublicKey.insecureCommonBLSPublicKey0,
+            insecureCommonBLSPublicKey2: joCommonPublicKey.insecureCommonBLSPublicKey3,
+            insecureCommonBLSPublicKey3: joCommonPublicKey.insecureCommonBLSPublicKey2
+        };
+        imaUtils.jsonFileSave( strActionDir + "/common_public_key.json", joCommonPublicKey_for_O );
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
             log.write( strLogPrefix + cc.normal( "BLS common public key for verification is:\n" ) + cc.j( joCommonPublicKey ) + "\n" );
         let strVerifyCommand = ""
