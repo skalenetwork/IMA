@@ -55,7 +55,7 @@ jobs:
             - yarn lint || travis_terminate 1
             - slither --version
             - slither . --filter-path openzeppelin-solidity || true            
-            - slither . --filter-path openzeppelin-solidity --exclude-informational --exclude constant-function,calls-loop || travis_terminate 7
+            - slither . --filter-path openzeppelin-solidity --exclude-informational --exclude reentrancy-events,constant-function,calls-loop || travis_terminate 7
             - yarn tslint || travis_terminate 2            
             - yarn generate
             - bash ./scripts/remove.sh
@@ -74,7 +74,7 @@ jobs:
             - cd ..
 
         - stage: deploy
-          if: branch IN (master, release-candidate, develop)
+          if: branch IN (master, release-candidate, develop, beta)
           script:
             - export VERSION=$(cat VERSION)
             - export VERSION=$( (test $TRAVIS_BRANCH = "master" && echo $VERSION) ||
@@ -117,3 +117,4 @@ jobs:
                     - master
                     - release-candidate
                     - develop
+                    - beta
