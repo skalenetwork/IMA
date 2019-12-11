@@ -95,8 +95,9 @@ Fifth, try rebuild all the contracts once to ensure everything initialized OK:
     cd $IMA_ROOT/proxy
     mkdir -p data || true
     rm -rf ./build
-    rm -rf ./data/*
+    rm -rf ./data/proxy*
     truffle compile
+    ls -1 ./data/
 
 ### Contracts pre-installation on Mainnet and SKALE Chain
 
@@ -128,6 +129,8 @@ You can check whether **IMA** is already bound with:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
@@ -141,6 +144,8 @@ You can check whether **IMA** is already bound with:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
@@ -156,6 +161,8 @@ Performed with the **--loop** command line option:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
@@ -194,6 +201,8 @@ Performed with the **--m2s-payment** command line option:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
@@ -212,6 +221,8 @@ Performed with the **--s2m-payment** command line option:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
@@ -228,6 +239,8 @@ Performed with the **--s2m-view** command line option:
         --url-main-net=http://127.0.0.1:8545 \
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --id-s-chain=Bob \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
@@ -245,6 +258,8 @@ Performed with the **--s2m-receive** command line option:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc
@@ -277,6 +292,8 @@ Performed with the **--m2s-transfer** command line option:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
@@ -292,6 +309,8 @@ Performed with the **--s2m-transfer** command line option:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
@@ -307,6 +326,8 @@ Performed with the **--transfer** command line option:
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
@@ -347,6 +368,8 @@ Performed with the **--m2s-payment** and **--no-raw-transfer** command line opti
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
@@ -371,6 +394,8 @@ Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
@@ -396,6 +421,8 @@ Performed with the **--m2s-payment** and **--raw-transfer** command line options
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
@@ -421,6 +448,8 @@ Performed with the **--s2m-payment** and **--raw-transfer** command line options
         --url-s-chain=http://127.0.0.1:7000 \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
@@ -459,6 +488,8 @@ This parameter must be specified if **--sign-messages** paraneter is present.
 The **--bls-verify** command line parameter must be used to specify path to the **verify_bls** application.
 This parameter is optional. If it was specified, then **IMA Agent** application will verify gathered BLS signatures.
 
+The **--hash-g1** command line parameter must be used to specify path to the **hash_g1** application.
+
 Message signing will work only on **S-Chain** where each **skaled** node configured properly and able to:
 
     - provide brows information for entire **S-Chain** network
@@ -468,88 +499,63 @@ Here is example of correct **config.json** file for **skaled** node:
 
     "skaleConfig": {
         "nodeInfo": {
-            "nodeName": "Node1",
-            "nodeID": 1112,
-            "bindIP": "127.0.0.1",
-            "basePort": 1231,
-            "bindIP6": "::1",
-            "basePort6": 1231,
-            "logLevel": "trace",
-            "logLevelProposal": "trace",
-            "emptyBlockIntervalMs": 1000,
-            "ipc": false,
-            "ipcpath": "./ipcx",
-            "db-path": "./node",
-            "httpRpcPort": 7000,
-            "httpsRpcPort": 7010,
-            "wsRpcPort": 7020,
-            "wssRpcPort": 7030,
-            "httpRpcPort6": 7000,
-            "httpsRpcPort6": 7010,
-            "wsRpcPort6": 7040,
-            "wssRpcPort6": 7050,
-            "acceptors": 1,
-            "max-connections": 0,
-            "ws-mode": "simple",
-            "ws-log": "none",
-            "web3-trace": true,
-            "enable-debug-behavior-apis": false,
-            "unsafe-transactions": false,
-            "aa": "always",
-            "web3-shutdown": false,
+            "nodeName": "???????????", "nodeID": ????,
+            "bindIP": "??.??.??.??, "bindIP6": "???????????", "basePort": ????, "basePort6": ????,
+            "logLevel": "trace", "logLevelProposal": "trace",
+            "emptyBlockIntervalMs": ?????, "ipc": false, "ipcpath": "./ipcx", "db-path": "./node",
+            "httpRpcPort": ????, "httpsRpcPort": ????, "wsRpcPort": ????, "wssRpcPort": ????,
+            "httpRpcPort6": ????, "httpsRpcPort6": ????, "wsRpcPort6": ????, "wssRpcPort6": ????,
+            "acceptors": 1, "max-connections": 0,
+            "web3-trace": true, "enable-debug-behavior-apis": false, "unsafe-transactions": false,
+            "aa": "always", "web3-shutdown": false,
+            "imaMainNet": "????://??.??.??.??:????",
+            "imaMessageProxySChain":  "0x????????????????????????????????????????,
+            "imaMessageProxyMainNet": "0x????????????????????????????????????????",
             "wallets": {
                 "ima": {
-                    "url": "http://127.0.0.1:1025",
-                    "keyShareName": "sergiyA",
-                    "t": 2,
-                    "n": 2,
-                    "insecureBLSPublicKey1": "?????????????????????????????????????????????",
-                    "insecureBLSPublicKey2": "?????????????????????????????????????????????",
-                    "insecureBLSPublicKey3": "?????????????????????????????????????????????",
-                    "insecureBLSPublicKey4": "?????????????????????????????????????????????",
-                    "insecureCommonBLSPublicKey0": "?????????????????????????????????????????????",
-                    "insecureCommonBLSPublicKey1": "?????????????????????????????????????????????",
-                    "insecureCommonBLSPublicKey2": "?????????????????????????????????????????????",
-                    "insecureCommonBLSPublicKey3": "?????????????????????????????????????????????"
+                    "url": ""????://??.??.??.??:????" "keyShareName": "???????????????", "t": 2, "n": 2,
+                    "insecureBLSPublicKey1": "?????????????????????????????????????????????????????????????????????????????",
+                    "insecureBLSPublicKey2": "?????????????????????????????????????????????????????????????????????????????",
+                    "insecureBLSPublicKey3": "?????????????????????????????????????????????????????????????????????????????",
+                    "insecureBLSPublicKey4": "?????????????????????????????????????????????????????????????????????????????",
+                    "insecureCommonBLSPublicKey0": "?????????????????????????????????????????????????????????????????????????????",
+                    "insecureCommonBLSPublicKey1": "?????????????????????????????????????????????????????????????????????????????",
+                    "insecureCommonBLSPublicKey2": "?????????????????????????????????????????????????????????????????????????????",
+                    "insecureCommonBLSPublicKey3": "?????????????????????????????????????????????????????????????????????????????"
                 }
             }
         },
         "sChain": {
-            "schainName": "TestChain",
-            "schainID": 1,
-            "nodes": [
-                {
-                    "nodeID": 1112,
-                    "ip": "127.0.0.1",
-                    "basePort": 1231,
-                    "ip6": "::1",
-                    "basePort6": 1231,
-                    "schainIndex": 1,
-                    "httpRpcPort": 7000,
-                    "httpsRpcPort": 7010,
-                    "wsRpcPort": 7020,
-                    "wssRpcPort": 7030,
-                    "httpRpcPort6": 7000,
-                    "httpsRpcPort6": 7010,
-                    "wsRpcPort6": 7020,
-                    "wssRpcPort6": 7030
-                },
-                {
-                    "nodeID": 1113,
-                    "ip": "127.0.0.2",
-                    "basePort": 1331,
-                    "ip6": "::1",
-                    "basePort6": 1231,
-                    "schainIndex": 2,
-                    "httpRpcPort": 7100,
-                    "httpsRpcPort": 7110,
-                    "wsRpcPort": 7120,
-                    "wssRpcPort": 7130,
-                    "httpRpcPort6": 7100,
-                    "httpsRpcPort6": 7110,
-                    "wsRpcPort6": 7120,
-                    "wssRpcPort6": 7130
-                }
-            ]
+            "schainID": 1234, "schainName": "????????????????????",
+            "nodes": [ {
+                "schainIndex": 1, "nodeID": ????,
+                "ip": "??.??.??.??", "ip6": "????????????????????", "basePort": ????, "basePort6": ????,
+                "httpRpcPort": ????, "httpsRpcPort": ????, "wsRpcPort": ????, "wssRpcPort": ????,
+                "httpRpcPort6": ????, "httpsRpcPort6": ????, "wsRpcPort6": ????, "wssRpcPort6": ????
+            }, {
+                "schainIndex": 1, "nodeID": ????,
+                "ip": "??.??.??.??", "ip6": "????????????????????", "basePort": ????, "basePort6": ????,
+                "httpRpcPort": ????, "httpsRpcPort": ????, "wsRpcPort": ????, "wssRpcPort": ????,
+                "httpRpcPort6": ????, "httpsRpcPort6": ????, "wsRpcPort6": ????, "wssRpcPort6": ????
+            } ]
         }
     }
+
+Here is example of IMA message processing loop invocation with BLS support:
+
+    reset; node ./main.js --verbose=9 \
+        --loop \
+        --url-main-net=http://127.0.0.1:8545 \
+        --url-s-chain=http://127.0.0.1:7000 \
+        --id-main-net=Mainnet \
+        --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
+        --abi-main-net=../proxy/data/proxyMainnet.json \
+        --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
+        --sign-messages \
+        --bls-glue=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/bls_glue \
+        --hash-g1=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/hash_g1 \
+        --bls-verify=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/verify_bls

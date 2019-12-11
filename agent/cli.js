@@ -58,7 +58,7 @@ function parse_command_line_argument( s ) {
 
 function verify_arg_with_non_empty_value( joArg ) {
     if ( ( !joArg.value ) || joArg.value.length == 0 ) {
-        console.log( cc.fatal( "Error:" ) + cc.error( " value of command line argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
+        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " value of command line argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
         process.exit( 666 );
     }
 }
@@ -127,7 +127,7 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
     value = value.toString();
     if ( value.length == 0 ) {
         retVal = false;
-        console.log( cc.fatal( "Error:" ) + cc.error( " missing value for " ) + fnNameColorizer( name ) );
+        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing value for " ) + fnNameColorizer( name ) );
         if ( isExitIfEmpty )
             process.exit( 666 );
     }
@@ -175,7 +175,7 @@ function load_node_config( strPath ) {
             log.write( strLogPrefix + cc.success( "Done" ) + cc.debug( " loading values from S-Chain configuraton JSON file " ) + cc.note( strPath ) + cc.debug( "." ) + "\n" );
     } catch ( e ) {
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Exception in load_node_config():" ) + cc.error( e ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR: Exception in load_node_config():" ) + cc.error( e ) + "\n" );
     }
 }
 
@@ -192,8 +192,10 @@ function parse( joExternalHandlers ) {
             console.log( cc.sunny( "BLOCKCHAIN NETWORK" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( ".............." ) + cc.note( "Main-net URL" ) + cc.notice( " for Web3." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "..............." ) + cc.note( "S-chain URL" ) + cc.notice( " for Web3." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "id-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "network ID." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "id-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............." ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "network ID." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "id-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "id-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............." ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "cid-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "..........." ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "chain ID." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "cid-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "chain ID." ) );
             console.log( cc.sunny( "BLOCKCHAIN INTERFACE" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "abi-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "............." ) + cc.notice( "Path to JSON file containing IMA ABI of " ) + cc.note( "Main-net" ) + cc.notice( " for Web3." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "abi-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( ".............." ) + cc.notice( "Path to JSON file containing IMA ABI of " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
@@ -306,6 +308,16 @@ function parse( joExternalHandlers ) {
         if ( joArg.name == "id-main-net" ) {
             verify_arg_with_non_empty_value( joArg );
             imaState.strChainID_main_net = joArg.value;
+            continue;
+        }
+        if ( joArg.name == "cid-s-chain" ) {
+            veryify_int_arg( joArg );
+            imaState.cid_s_chain = parseInt( joArg.value );
+            continue;
+        }
+        if ( joArg.name == "cid-main-net" ) {
+            veryify_int_arg( joArg );
+            imaState.cid_main_net = parseInt( joArg.value );
             continue;
         }
         /**/
@@ -578,7 +590,7 @@ function parse( joExternalHandlers ) {
             joExternalHandlers[joArg.name]();
             continue;
         }
-        console.log( cc.fatal( "Error:" ) + cc.error( " unkonwn command line argument " ) + cc.info( joArg.name ) );
+        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " unkonwn command line argument " ) + cc.info( joArg.name ) );
         return 666;
     }
 }
@@ -596,11 +608,11 @@ function ima_common_init() {
     // message_proxy_chain_address   --> message_proxy_chain_abi
 
     if ( imaState.strURL_main_net.length == 0 ) {
-        log.write( cc.fatal( "FATAL:" ) + cc.error( "Missing " ) + cc.warning( "Main-net" ) + cc.error( " URL in command line arguments" ) + "\n" );
+        log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Missing " ) + cc.warning( "Main-net" ) + cc.error( " URL in command line arguments" ) + "\n" );
         process.exit( 501 );
     }
     if ( imaState.strURL_s_chain.length == 0 ) {
-        log.write( cc.fatal( "FATAL:" ) + cc.error( "Missing " ) + cc.warning( "S-Chain" ) + cc.error( " URL in command line arguments" ) + "\n" );
+        log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Missing " ) + cc.warning( "S-Chain" ) + cc.error( " URL in command line arguments" ) + "\n" );
         process.exit( 501 );
     }
 
@@ -650,9 +662,9 @@ function ima_common_init() {
                 }
             } else {
                 if ( n1 == 0 )
-                    log.write( cc.fatal( "FATAL:" ) + cc.error( "Main-net ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
+                    log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
                 if ( n2 == 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
-                    log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
+                    log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
                 imaState.joErc721_main_net = null;
                 imaState.joErc721_s_chain = null;
                 imaState.strCoinNameErc721_main_net = "";
@@ -661,9 +673,9 @@ function ima_common_init() {
             }
         } else {
             if ( n1 == 0 )
-                log.write( cc.fatal( "FATAL:" ) + cc.error( "Main-net ERC721 JSON is invalid" ) + "\n" );
+                log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC721 JSON is invalid" ) + "\n" );
             if ( n2 == 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
-                log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC721 JSON is invalid" ) + "\n" );
+                log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC721 JSON is invalid" ) + "\n" );
             imaState.joErc721_main_net = null;
             imaState.joErc721_s_chain = null;
             imaState.strCoinNameErc721_main_net = "";
@@ -687,7 +699,7 @@ function ima_common_init() {
                     log.write( cc.info( "Loaded S-Chain  ERC721 ABI " ) + cc.attention( imaState.strCoinNameErc721_s_chain ) + "\n" );
                 else {
                     if ( n2 == 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
-                        log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
+                        log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
                     imaState.joErc721_main_net = null;
                     imaState.joErc721_s_chain = null;
                     imaState.strCoinNameErc721_main_net = "";
@@ -753,9 +765,9 @@ function ima_common_init() {
                 }
             } else {
                 if ( n1 == 0 )
-                    log.write( cc.fatal( "FATAL:" ) + cc.error( "Main-net ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
+                    log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
                 if ( n2 == 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
-                    log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
+                    log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
                 imaState.joErc20_main_net = null;
                 imaState.joErc20_s_chain = null;
                 imaState.strCoinNameErc20_main_net = "";
@@ -764,9 +776,9 @@ function ima_common_init() {
             }
         } else {
             if ( n1 == 0 )
-                log.write( cc.fatal( "FATAL:" ) + cc.error( "Main-net ERC20 JSON is invalid" ) + "\n" );
+                log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC20 JSON is invalid" ) + "\n" );
             if ( n2 == 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
-                log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC20 JSON is invalid" ) + "\n" );
+                log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC20 JSON is invalid" ) + "\n" );
             imaState.joErc20_main_net = null;
             imaState.joErc20_s_chain = null;
             imaState.strCoinNameErc20_main_net = "";
@@ -790,7 +802,7 @@ function ima_common_init() {
                     log.write( cc.info( "Loaded S-Chain  ERC20 ABI " ) + cc.attention( imaState.strCoinNameErc20_s_chain ) + "\n" );
                 else {
                     if ( n2 == 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
-                        log.write( cc.fatal( "FATAL:" ) + cc.error( "S-Chain ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
+                        log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
                     imaState.joErc20_main_net = null;
                     imaState.joErc20_s_chain = null;
                     imaState.strCoinNameErc20_main_net = "";
@@ -844,10 +856,16 @@ function ima_common_init() {
         ensure_have_value( "S-chain URL", imaState.strURL_s_chain, false, true, null, ( x ) => {
             return cc.u( x );
         } );
-        ensure_have_value( "Main-net Ethereum network ID", imaState.strChainID_main_net, false, true, null, ( x ) => {
+        ensure_have_value( "Main-net Ethereum network name", imaState.strChainID_main_net, false, true, null, ( x ) => {
             return cc.note( x );
         } );
-        ensure_have_value( "S-Chain Ethereum network ID", imaState.strChainID_s_chain, false, true, null, ( x ) => {
+        ensure_have_value( "S-Chain Ethereum network name", imaState.strChainID_s_chain, false, true, null, ( x ) => {
+            return cc.note( x );
+        } );
+        ensure_have_value( "Main-net Ethereum chain ID", imaState.cid_main_net, false, true, null, ( x ) => {
+            return cc.note( x );
+        } );
+        ensure_have_value( "S-Chain Ethereum chain ID", imaState.cid_s_chain, false, true, null, ( x ) => {
             return cc.note( x );
         } );
         ensure_have_value( "Main-net ABI JSON file path", imaState.strPathAbiJson_main_net, false, true, null, ( x ) => {

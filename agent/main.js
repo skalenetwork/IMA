@@ -81,6 +81,8 @@ let imaState = {
 
     "strChainID_main_net": "Mainnet",
     "strChainID_s_chain": "id-S-chain",
+    "cid_main_net": -4,
+    "cid_s_chain": -4,
 
     "strPathJsonErc20_main_net": "",
     "strPathJsonErc20_s_chain": "",
@@ -233,6 +235,8 @@ imaCLI.parse( {
                     return await IMA.do_erc721_payment_from_main_net(
                         imaState.w3_main_net,
                         imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
                         imaState.joAccount_main_net,
                         imaState.joAccount_s_chain,
                         imaState.jo_deposit_box, // only main net
@@ -256,6 +260,8 @@ imaCLI.parse( {
                     return await IMA.do_erc20_payment_from_main_net(
                         imaState.w3_main_net,
                         imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
                         imaState.joAccount_main_net,
                         imaState.joAccount_s_chain,
                         imaState.jo_deposit_box, // only main net
@@ -275,6 +281,7 @@ imaCLI.parse( {
                 log.write( cc.info( "one M->S single ETH payment: " ) + cc.sunny( imaState.nAmountOfWei ) + "\n" ); // just print value
                 return await IMA.do_eth_payment_from_main_net(
                     imaState.w3_main_net,
+                    imaState.cid_main_net,
                     imaState.joAccount_main_net,
                     imaState.joAccount_s_chain,
                     imaState.jo_deposit_box, // only main net
@@ -295,6 +302,8 @@ imaCLI.parse( {
                     return await IMA.do_erc721_payment_from_s_chain(
                         imaState.w3_main_net,
                         imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
                         imaState.joAccount_s_chain,
                         imaState.joAccount_main_net,
                         imaState.jo_token_manager, // only s-chain
@@ -314,6 +323,8 @@ imaCLI.parse( {
                     return await IMA.do_erc20_payment_from_s_chain(
                         imaState.w3_main_net,
                         imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
                         imaState.joAccount_s_chain,
                         imaState.joAccount_main_net,
                         imaState.jo_token_manager, // only s-chain
@@ -331,6 +342,7 @@ imaCLI.parse( {
                 log.write( cc.info( "one S->M single ETH payment: " ) + cc.sunny( imaState.nAmountOfWei ) + "\n" ); // just print value
                 return await IMA.do_eth_payment_from_s_chain(
                     imaState.w3_s_chain,
+                    imaState.cid_s_chain,
                     imaState.joAccount_s_chain,
                     imaState.joAccount_main_net,
                     imaState.jo_token_manager, // only s-chain
@@ -346,6 +358,7 @@ imaCLI.parse( {
                 log.write( cc.info( "receive one S->M single ETH payment: " ) + "\n" ); // just print value
                 return await IMA.receive_eth_payment_from_s_chain_on_main_net(
                     imaState.w3_main_net,
+                    imaState.cid_main_net,
                     imaState.joAccount_main_net,
                     imaState.jo_lock_and_data_main_net
                 );
@@ -383,6 +396,8 @@ imaCLI.parse( {
                     imaState.joAccount_s_chain,
                     imaState.strChainID_main_net,
                     imaState.strChainID_s_chain,
+                    imaState.cid_main_net,
+                    imaState.cid_s_chain,
                     null, // imaState.jo_deposit_box, // for logs validation on mainnet
                     imaState.jo_token_manager, // for logs validation on s-chain
                     imaState.nTransferBlockSizeM2S,
@@ -408,6 +423,8 @@ imaCLI.parse( {
                     imaState.joAccount_main_net,
                     imaState.strChainID_s_chain,
                     imaState.strChainID_main_net,
+                    imaState.cid_s_chain,
+                    imaState.cid_main_net,
                     imaState.jo_deposit_box, // for logs validation on mainnet
                     null, // imaState.jo_token_manager, // for logs validation on s-chain
                     imaState.nTransferBlockSizeS2M,
@@ -451,14 +468,14 @@ imaCLI.parse( {
             "fn": async function() {
                 let strLogPrefix = cc.info("S Browse:") + " ";
                 if( imaState.strURL_s_chain.length == 0 ) {
-                    console.log( cc.fatal( "Error:" ) + cc.error( " missing S-Chain URL, please specify " ) + cc.info( "url-s-chain" ) );
+                    console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing S-Chain URL, please specify " ) + cc.info( "url-s-chain" ) );
                     process.exit( 501 );
                 }
                 log.write( strLogPrefix + cc.normal( "Downloading S-Chain network information " )  + cc.normal( "..." ) + "\n" ); // just print value
                 //
                 await rpcCall.create( imaState.strURL_s_chain, async function( joCall, err ) {
                     if( err ) {
-                        console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
                         process.exit( 1 );
                     }
                     await joCall.call( {
@@ -466,7 +483,7 @@ imaCLI.parse( {
                         "params": { }
                     }, async function( joIn, joOut, err ) {
                         if( err ) {
-                            console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
                             process.exit( 1 );
                         }
                         log.write( strLogPrefix + cc.normal( "S-Chain network information: " )  + cc.j( joOut.result ) + "\n" );
@@ -477,7 +494,7 @@ imaCLI.parse( {
                             let strNodeURL = imaUtils.compose_schain_node_url( joNode );
                             await rpcCall.create( strNodeURL, async function( joCall, err ) {
                                 if( err ) {
-                                    console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                                    console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
                                     process.exit( 1 );
                                 }
                                 await joCall.call( {
@@ -486,7 +503,7 @@ imaCLI.parse( {
                                 }, function( joIn, joOut, err ) {
                                     ++ nCountReceivedImaDescriptions;
                                     if( err ) {
-                                        console.log( cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                                        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
                                         process.exit( 1 );
                                     }
                                     log.write( strLogPrefix + cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " )  + cc.j( joOut.result ) + "\n" );
@@ -540,7 +557,7 @@ async function discover_s_chain_network( fnAfter ) {
     let joSChainNetworkInfo = null;
     await rpcCall.create( imaState.strURL_s_chain, async function( joCall, err ) {
         if( err ) {
-            log.write( strLogPrefix + cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed: " ) + cc.warning(err) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed: " ) + cc.warning(err) + "\n" );
             fnAfter( err, null );
             return;
         }
@@ -549,7 +566,7 @@ async function discover_s_chain_network( fnAfter ) {
             "params": { }
         }, async function( joIn, joOut, err ) {
             if( err ) {
-                log.write( strLogPrefix + cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
+                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
                 fnAfter( err, null );
                 return;
             }
@@ -565,7 +582,7 @@ async function discover_s_chain_network( fnAfter ) {
                 let strNodeURL = imaUtils.compose_schain_node_url( joNode );
                 await rpcCall.create( strNodeURL, function( joCall, err ) {
                     if( err ) {
-                        log.write( strLogPrefix + cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                        log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
                         fnAfter( err, null );
                         return;
                     }
@@ -575,7 +592,7 @@ async function discover_s_chain_network( fnAfter ) {
                     }, function( joIn, joOut, err ) {
                         ++ nCountReceivedImaDescriptions;
                         if( err ) {
-                            log.write( strLogPrefix + cc.fatal( "Error:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
+                            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
                             fnAfter( err, null );
                             return;
                         }
@@ -630,7 +647,7 @@ async function do_the_job() {
         } catch ( e ) {
             ++cntFalse;
             if ( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal )
-                log.write( strLogPrefix + cc.fatal( "Exception occurred while executing action:" ) + " " + cc.info( joAction.name ) + cc.error( ", error description: " ) + cc.warn( e ) + "\n" );
+                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR: Exception occurred while executing action:" ) + " " + cc.info( joAction.name ) + cc.error( ", error description: " ) + cc.warn( e ) + "\n" );
         }
     } // for( idxAction = 0; idxAction < cntActions; ++ idxAction )
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
@@ -648,11 +665,11 @@ async function do_the_job() {
 
 if( imaState.bSignMessages ) {
     if( imaState.strPathBlsGlue.length == 0 ) {
-        log.write( cc.fatal( "FATAL" ) + cc.error( " please specify --bls-glue parameter." ) + "\n" );
+        log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " please specify --bls-glue parameter." ) + "\n" );
         process.exit( 666 );
     }
     if( imaState.strPathHashG1.length == 0 ) {
-        log.write( cc.fatal( "FATAL" ) + cc.error( " please specify --hash-g1 parameter." ) + "\n" );
+        log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " please specify --hash-g1 parameter." ) + "\n" );
         process.exit( 666 );
     }
     discover_s_chain_network( function( err, joSChainNetworkInfo ) {
@@ -675,11 +692,12 @@ async function register_step1() {
         imaState.w3_main_net,
         imaState.jo_message_proxy_main_net,
         imaState.joAccount_main_net,
-        imaState.strChainID_s_chain
+        imaState.strChainID_s_chain,
+        imaState.cid_main_net
     );
     if ( !bRetVal ) {
         var nRetCode = 1501;
-        log.write( strLogPrefix + cc.fatal( "FATAL" ) + cc.error( " failed to register S-Chain on Main-net, will return code " ) + cc.warn( nRetCode ) + "\n" );
+        log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain on Main-net, will return code " ) + cc.warn( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
     return true;
@@ -692,11 +710,12 @@ async function register_step2() {
         imaState.jo_lock_and_data_main_net,
         imaState.joAccount_main_net,
         imaState.jo_token_manager, // only s-chain
-        imaState.strChainID_s_chain
+        imaState.strChainID_s_chain,
+        imaState.cid_main_net
     );
     if ( !bRetVal ) {
         var nRetCode = 1502;
-        log.write( strLogPrefix + cc.fatal( "FATAL" ) + cc.error( " failed to register S-Chain in deposit box, will return code " ) + cc.warn( nRetCode ) + "\n" );
+        log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain in deposit box, will return code " ) + cc.warn( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
     return true;
@@ -708,11 +727,12 @@ async function register_step3() {
         //imaState.jo_token_manager, // only s-chain
         imaState.jo_deposit_box, // only main net
         imaState.jo_lock_and_data_s_chain,
-        imaState.joAccount_s_chain
+        imaState.joAccount_s_chain,
+        imaState.cid_s_chain
     );
     if ( !bRetVal ) {
         var nRetCode = 1503;
-        log.write( strLogPrefix + cc.fatal( "FATAL" ) + cc.error( " failed to register Main-net deposit box on S-Chain, will return code " ) + cc.warn( nRetCode ) + "\n" );
+        log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register Main-net deposit box on S-Chain, will return code " ) + cc.warn( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
     return true;
@@ -832,6 +852,8 @@ async function single_transfer_loop() {
         imaState.joAccount_s_chain,
         imaState.strChainID_main_net,
         imaState.strChainID_s_chain,
+        imaState.cid_main_net,
+        imaState.cid_s_chain,
         null, // imaState.jo_deposit_box, // for logs validation on mainnet
         imaState.jo_token_manager, // for logs validation on s-chain
         imaState.nTransferBlockSizeM2S,
@@ -855,6 +877,8 @@ async function single_transfer_loop() {
         imaState.joAccount_main_net,
         imaState.strChainID_s_chain,
         imaState.strChainID_main_net,
+        imaState.cid_s_chain,
+        imaState.cid_main_net,
         imaState.jo_deposit_box, // for logs validation on mainnet
         null, // imaState.jo_token_manager, // for logs validation on s-chain
         imaState.nTransferBlockSizeS2M,

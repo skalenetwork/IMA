@@ -195,7 +195,7 @@ async function check_is_registered_s_chain_on_main_net( // step 1
         return bIsRegistered;
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Error in check_is_registered_s_chain_on_main_net(reg-step1)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Error in check_is_registered_s_chain_on_main_net(reg-step1)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
     }
     return false;
 }
@@ -204,7 +204,8 @@ async function register_s_chain_on_main_net( // step 1
     w3_main_net,
     jo_message_proxy_main_net,
     joAccount_main_net,
-    chain_id_s_chain
+    chain_id_s_chain,
+    cid_main_net
     ) {
     let strLogPrefix = cc.sunny("Reg S on M:") + " ";
     if ( verbose_get() >= RV_VERBOSE.debug ) {
@@ -230,6 +231,7 @@ async function register_s_chain_on_main_net( // step 1
             chain_id_s_chain, [ 0, 0, 0, 0 ] // call params
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
+            "chainId": cid_main_net,
             "nonce": tcnt, // 0x00, ...
             "gasPrice": 10000000000,
             "gasLimit": 3000000,
@@ -248,7 +250,7 @@ async function register_s_chain_on_main_net( // step 1
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Error in register_s_chain_on_main_net() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Error in register_s_chain_on_main_net() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
     return true;
@@ -284,7 +286,7 @@ async function check_is_registered_s_chain_in_deposit_box( // step 2
         return bIsRegistered;
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Error in check_is_registered_s_chain_in_deposit_box(reg-step2)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Error in check_is_registered_s_chain_in_deposit_box(reg-step2)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
     }
     return false;
 }
@@ -295,7 +297,8 @@ async function register_s_chain_in_deposit_box( // step 2
     jo_lock_and_data_main_net,
     joAccount_main_net,
     jo_token_manager, // only s-chain
-    chain_id_s_chain
+    chain_id_s_chain,
+    cid_main_net
 ) {
     let strLogPrefix = cc.sunny("Reg S in depositBox:") + " ";
     if ( verbose_get() >= RV_VERBOSE.debug ) {
@@ -320,6 +323,7 @@ async function register_s_chain_in_deposit_box( // step 2
             chain_id_s_chain, jo_token_manager.options.address // call params
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
+            "chainId": cid_main_net,
             "nonce": tcnt, // 0x00, ...
             "gasPrice": 10000000000,
             "gasLimit": 3000000,
@@ -338,7 +342,7 @@ async function register_s_chain_in_deposit_box( // step 2
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Error in register_s_chain_in_deposit_box() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Error in register_s_chain_in_deposit_box() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
     return true;
@@ -367,7 +371,7 @@ async function check_is_registered_main_net_depositBox_on_s_chain( // step 3
         return bIsRegistered;
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Error in check_is_registered_main_net_depositBox_on_s_chain(reg-step3)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( "Error in check_is_registered_main_net_depositBox_on_s_chain(reg-step3)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
     }
     return false;
 }
@@ -377,7 +381,8 @@ async function register_main_net_depositBox_on_s_chain( // step 3
     //jo_token_manager,
     jo_deposit_box_main_net,
     jo_lock_and_data_s_chain,
-    joAccount
+    joAccount,
+    cid_s_chain
 ) {
     let strLogPrefix = cc.sunny("Reg MS depositBox on S:") + " ";
     if ( verbose_get() >= RV_VERBOSE.debug ) {
@@ -399,6 +404,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             jo_deposit_box_main_net.options.address // call params
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
+            "chainId": cid_s_chain,
             "nonce": tcnt, // 0x00, ...
             "gasPrice": 10000000000,
             "gasLimit": 3000000,
@@ -417,7 +423,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Error in register_main_net_depositBox_on_s_chain() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Error in register_main_net_depositBox_on_s_chain() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
     return true;
@@ -439,6 +445,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
 //
 async function do_eth_payment_from_main_net(
     w3_main_net,
+    cid_main_net,
     joAccountSrc,
     joAccountDst,
     jo_deposit_box,
@@ -464,6 +471,7 @@ async function do_eth_payment_from_main_net(
             chain_id_s_chain, joAccountDst.address( w3_main_net ), w3_main_net.utils.fromAscii( "" ) // TO-DO: string is "data" parameter, we need to allow user to specify it
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
+            "chainId": cid_main_net,
             "nonce": tcnt, // 0x00, ...
             "gas": 3000000, // 2100000,
             "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
@@ -516,7 +524,7 @@ async function do_eth_payment_from_main_net(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.success(" contract, no event found" ) + "\n" );
             } else {
-                log.write( strLogPrefix + cc.fatal("Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                 throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
             }
         } // if( jo_lock_and_data_main_net )
@@ -528,13 +536,13 @@ async function do_eth_payment_from_main_net(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.success(" contract, no event found" ) + "\n" );
             } else {
-                log.write( strLogPrefix + cc.fatal("Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                 throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box.options.address + " contract, no events found" );
             }
         } // if( jo_deposit_box )
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
     return true;
@@ -555,6 +563,7 @@ async function do_eth_payment_from_main_net(
 //
 async function do_eth_payment_from_s_chain(
     w3_s_chain,
+    cid_s_chain,
     joAccountSrc,
     joAccountDst,
     jo_token_manager,
@@ -579,6 +588,7 @@ async function do_eth_payment_from_s_chain(
             "0x" // w3_s_chain.utils.fromAscii( "" ) // TO-DO: string is "data" parameter, we need to allow user to specify it
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
+            "chainId": cid_s_chain,
             "nonce": tcnt, // 0x00, ...
             "gas": 2100000,
             "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
@@ -612,7 +622,7 @@ async function do_eth_payment_from_s_chain(
         } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
     return true;
@@ -625,6 +635,7 @@ async function do_eth_payment_from_s_chain(
 //
 async function receive_eth_payment_from_s_chain_on_main_net(
     w3_main_net,
+    cid_main_net,
     joAccount_main_net,
     jo_lock_and_data_main_net
 ) {
@@ -642,6 +653,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             // call params(empty)
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
+            "chainId": cid_main_net,
             "nonce": tcnt, // 0x00, ...
             "gas": 2100000,
             "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
@@ -662,7 +674,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Receive payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Receive payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
     return true;
@@ -699,7 +711,7 @@ async function view_eth_payment_from_s_chain_on_main_net(
         return xWei;
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "View payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " View payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return null;
     }
 }
@@ -711,6 +723,8 @@ async function view_eth_payment_from_s_chain_on_main_net(
 async function do_erc721_payment_from_main_net(
     w3_main_net,
     w3_s_chain,
+    cid_main_net,
+    cid_s_chain,
     joAccountSrc,
     joAccountDst,
     jo_deposit_box,
@@ -766,6 +780,7 @@ async function do_erc721_payment_from_main_net(
         //
         strActionName = "create raw transactions M->S";
         const rawTxApprove = {
+            "chainId": cid_main_net,
             "from": joAccountSrc.address( w3_main_net ), // accountForMainnet
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": approve,
@@ -775,6 +790,7 @@ async function do_erc721_payment_from_main_net(
         }
         tcnt += 1;
         const rawTxDeposit = {
+            "chainId": cid_main_net,
             "from": joAccountSrc.address( w3_main_net ), // accountForMainnet
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": deposit,
@@ -854,7 +870,7 @@ async function do_erc721_payment_from_main_net(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.success(" contract, no event found" ) + "\n" );
             } else {
-                log.write( strLogPrefix + cc.fatal("Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                 throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
             }
         } // if( jo_lock_and_data_main_net )
@@ -866,13 +882,13 @@ async function do_erc721_payment_from_main_net(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.success(" contract, no event found" ) + "\n" );
             } else {
-                log.write( strLogPrefix + cc.fatal("Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                 throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box.options.address + " contract, no events found" );
             }
         } // if( jo_deposit_box )
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
     return true;
@@ -885,6 +901,8 @@ async function do_erc721_payment_from_main_net(
 async function do_erc20_payment_from_main_net(
     w3_main_net,
     w3_s_chain,
+    cid_main_net,
+    cid_s_chain,
     joAccountSrc,
     joAccountDst,
     jo_deposit_box,
@@ -944,6 +962,7 @@ async function do_erc20_payment_from_main_net(
         //
         strActionName = "create raw transactions M->S";
         const rawTxApprove = {
+            "chainId": cid_main_net,
             "from": joAccountSrc.address( w3_main_net ), // accountForMainnet
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": approve,
@@ -953,6 +972,7 @@ async function do_erc20_payment_from_main_net(
         }
         tcnt += 1;
         const rawTxDeposit = {
+            "chainId": cid_main_net,
             "from": joAccountSrc.address( w3_main_net ), // accountForMainnet
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": deposit,
@@ -1026,7 +1046,7 @@ async function do_erc20_payment_from_main_net(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.success(" contract, no event found" ) + "\n" );
             } else {
-                log.write( strLogPrefix + cc.fatal("Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                 throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
             }
         } // if( jo_lock_and_data_main_net )
@@ -1038,13 +1058,13 @@ async function do_erc20_payment_from_main_net(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.success(" contract, no event found" ) + "\n" );
             } else {
-                log.write( strLogPrefix + cc.fatal("Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                 throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box.options.address + " contract, no events found" );
             }
         } // if( jo_deposit_box )
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
     return true;
@@ -1057,6 +1077,8 @@ async function do_erc20_payment_from_main_net(
 async function do_erc20_payment_from_s_chain(
     w3_main_net,
     w3_s_chain,
+    cid_main_net,
+    cid_s_chain,
     joAccountSrc,
     joAccountDst,
     jo_token_manager, // only s-chain
@@ -1117,6 +1139,7 @@ async function do_erc20_payment_from_s_chain(
         //
         strActionName = "create raw transactions S->M";
         const rawTxApprove = {
+            "chainId": cid_s_chain,
             "from": accountForSchain,
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": approve,
@@ -1126,6 +1149,7 @@ async function do_erc20_payment_from_s_chain(
         }
         tcnt += 1;
         const rawTxDeposit = {
+            "chainId": cid_s_chain,
             "from": accountForSchain,
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": deposit,
@@ -1174,7 +1198,7 @@ async function do_erc20_payment_from_s_chain(
         } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
     return true;
@@ -1187,6 +1211,8 @@ async function do_erc20_payment_from_s_chain(
 async function do_erc721_payment_from_s_chain(
     w3_main_net,
     w3_s_chain,
+    cid_main_net,
+    cid_s_chain,
     joAccountSrc,
     joAccountDst,
     jo_token_manager, // only s-chain
@@ -1247,6 +1273,7 @@ async function do_erc721_payment_from_s_chain(
         //
         strActionName = "create raw transactions S->M";
         const rawTxApprove = {
+            "chainId": cid_s_chain,
             "from": accountForSchain,
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": approve,
@@ -1256,6 +1283,7 @@ async function do_erc721_payment_from_s_chain(
         }
         tcnt += 1;
         const rawTxDeposit = {
+            "chainId": cid_s_chain,
             "from": accountForSchain,
             "nonce": "0x" + tcnt.toString( 16 ),
             "data": deposit,
@@ -1306,7 +1334,7 @@ async function do_erc721_payment_from_s_chain(
         } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
     return true;
@@ -1346,6 +1374,8 @@ async function do_transfer(
     //
     chain_id_src,
     chain_id_dst,
+    cid_src,
+    cid_dst,
     //
     jo_deposit_box_main_net, // for logs validation on mainnet
     jo_token_manager_schain, // for logs validation on s-chain
@@ -1458,7 +1488,7 @@ async function do_transfer(
                     } catch ( err ) {
                         bSecurityCheckPassed = false;
                         if ( verbose_get() >= RV_VERBOSE.fatal )
-                            log.write( strLogPrefix + cc.fatal( "Exception(evaluate block depth) while getting trasaction hash and block number during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+                            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Exception(evaluate block depth) while getting trasaction hash and block number during " + strActionName + ": " ) + cc.error( err ) + "\n" );
                         return false;
                     }
                     strActionName = "" + strActionName_old;
@@ -1500,7 +1530,7 @@ async function do_transfer(
                     } catch ( err ) {
                         bSecurityCheckPassed = false;
                         if ( verbose_get() >= RV_VERBOSE.fatal )
-                            log.write( strLogPrefix + cc.fatal( "Exception(evaluate block age) while getting block number and timestamp during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+                            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Exception(evaluate block age) while getting block number and timestamp during " + strActionName + ": " ) + cc.error( err ) + "\n" );
                         return false;
                     }
                     strActionName = "" + strActionName_old;
@@ -1545,7 +1575,7 @@ async function do_transfer(
                 if( err ) {
                     bErrorInSigningMessages = true;
                     if ( verbose_get() >= RV_VERBOSE.fatal )
-                        log.write( strLogPrefix + cc.fatal( "Error signing messages: " ) + cc.error( err ) + "\n" );
+                        log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Error signing messages: " ) + cc.error( err ) + "\n" );
                     return;
                 }
                 strActionName = "dst-chain.getTransactionCount()";
@@ -1606,6 +1636,7 @@ async function do_transfer(
                 }
                 //
                 let rawTx = {
+                    "chainId": cid_dst,
                     "nonce": tcnt, // 0x00, ...
                     "gas": 3000000,
                     "gasPrice": 10000000000, // not w3_dst.eth.gasPrice ... got from truffle.js network_name gasPrice
@@ -1646,7 +1677,7 @@ async function do_transfer(
                             if ( verbose_get() >= RV_VERBOSE.information )
                                 log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box_main_net.options.address) + cc.success(" contract, no events found" ) + "\n" );
                         } else {
-                            log.write( strLogPrefix + cc.fatal("Failed") + cc.error(" verification of the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("DepositBox") + cc.error("/") + cc.notice(jo_deposit_box_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.warn(" Failed") + cc.error(" verification of the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("DepositBox") + cc.error("/") + cc.notice(jo_deposit_box_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                             throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_main_net.options.address + " contract, error events found" );
                         }
                         if ( verbose_get() >= RV_VERBOSE.information )
@@ -1668,7 +1699,7 @@ async function do_transfer(
                             if ( verbose_get() >= RV_VERBOSE.information )
                                 log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("TokenManager") + cc.success("/") + cc.notice(jo_token_manager_schain.options.address) + cc.success(" contract, no events found" ) + "\n" );
                         } else {
-                            log.write( strLogPrefix + cc.fatal("Failed") + cc.error(" verification of the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("TokenManager") + cc.error("/") + cc.notice(jo_token_manager_schain.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.warn(" Failed") + cc.error(" verification of the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("TokenManager") + cc.error("/") + cc.notice(jo_token_manager_schain.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                             throw new Error( "Verification failed for the \"Error\" event of the \"TokenManager\"/" + jo_token_manager_schain.options.address + " contract, error events found" );
                         }
                         if ( verbose_get() >= RV_VERBOSE.information )
@@ -1691,7 +1722,7 @@ async function do_transfer(
         } // while( nIdxCurrentMsg < nOutMsgCnt )
     } catch ( err ) {
         if ( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
     return true;
