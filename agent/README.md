@@ -559,3 +559,20 @@ Here is example of IMA message processing loop invocation with BLS support:
         --bls-glue=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/bls_glue \
         --hash-g1=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/hash_g1 \
         --bls-verify=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/verify_bls
+
+    reset; node ./main.js --verbose=9 \
+        --loop \
+        --url-main-net=http://127.0.0.1:8545 \
+        --url-s-chain=http://127.0.0.1:7000 \
+        --id-main-net=Mainnet \
+        --id-s-chain=Bob \
+        --cid-main-net=-4 \
+        --cid-s-chain=-4 \
+        --abi-main-net=../proxy/data/proxyMainnet.json \
+        --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
+        --sign-messages \
+        --bls-glue=/home/serge/Work/skaled/build/libconsensus/libBLS/bls_glue \
+        --hash-g1=/home/serge/Work/skaled/build/libconsensus/libBLS/hash_g1 \
+        --bls-verify=/home/serge/Work/skaled/build/libconsensus/libBLS/verify_bls
