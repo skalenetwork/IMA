@@ -50,12 +50,13 @@ let g_strPrivateKeyImaSC = "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12fee
 let g_strNetworkNameMN = "mainnet";
 let g_strNetworkNameSC = "schain";
 
-let g_strUrlSgxWalletHTTP  = "https://45.76.36.246:1027"; // "https://127.0.0.1:1027";
+let g_strUrlSgxWalletHTTP  = "http://45.76.36.246:1027"; // "https://127.0.0.1:1027";
 let g_strUrlSgxWalletHTTPS = "https://45.76.36.246:1026"; // "https://127.0.0.1:1026";
 let g_strPathForSgxSslData = __dirname + "/create_pems";
 let g_joSgxRpcOptions = {
-    "ca":     fs.readFileSync( g_strPathForSgxSslData + "/rootCA.pem", "utf8" ) // joCall.strPathCertFile ? fs.readFileSync( joCall.strPathCertFile ) : null
-    , "cert": fs.readFileSync( g_strPathForSgxSslData + "/client.crt", "utf8" )
+    //"ca":     fs.readFileSync( g_strPathForSgxSslData + "/rootCA.pem", "utf8" ) // joCall.strPathCertFile ? fs.readFileSync( joCall.strPathCertFile ) : null
+    //,
+     "cert": fs.readFileSync( g_strPathForSgxSslData + "/client.crt", "utf8" )
     , "key":  fs.readFileSync( g_strPathForSgxSslData + "/k.key",      "utf8" )
 }
 

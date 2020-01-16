@@ -13,8 +13,7 @@ rm -r ./imaAgent_??.log || true > /dev/null
 
 cd ./create_pems && ./create_pems.sh && cd ..
 
-pwd
-node ./index.js
+#node ./index.js
 
 #echo "Test done... searching zombies..."
 #ps -Al | grep node

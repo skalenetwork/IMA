@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64; chmod +x ./jq
+sudo apt-get install jq || true
+
 rm -f a.csr || true
 rm -f a.csr.signgleline || true
 ls -1
@@ -88,12 +91,40 @@ echo " "
 echo " ---"
 echo " --- curl sign"
 echo " ---"
+rm ./sign_resilt.json || true
 sign_request_json='{ "jsonrpc": "2.0", "id": 2, "method": "SignCertificate", "params": { "certificate": "'$a_csr_value'" } }'
 curl -X POST --data \
     "$sign_request_json" \
     -v \
     -H 'content-type:application/json;' \
-    $URL_SGX_WALLET_HTTP
+    $URL_SGX_WALLET_HTTP > ./sign_resilt.json
+cat ./sign_resilt.json | jq
+sign_hash=`cat ./sign_resilt.json | jq -r ".result.hash"`
+echo "sign_hash =" $sign_hash
+
+echo " "
+echo " ---"
+echo " --- get certificate"
+echo " ---"
+rm -f ./get_certificate_result.json || true
+get_certificate_json='{ "jsonrpc": "2.0", "id": 2, "method": "GetCertificate", "params": { "hash": "'$sign_hash'" } }'
+curl -X POST --data \
+    "$get_certificate_json" \
+    -v \
+    -H 'content-type:application/json;' \
+    $URL_SGX_WALLET_HTTP > ./get_certificate_result.json
+cat ./get_certificate_result.json | jq
+certificate=`cat ./get_certificate_result.json | jq -r ".result.cert"`
+#echo " --- got certificate"
+#echo $certificate
+echo $certificate \
+    | sed 's/^.*\(-----BEGIN CERTIFICATE-----.*\)/\1/g' \
+    | sed 's/-----BEGIN CERTIFICATE-----/-----BEGIN-CERTIFICATE-----/g' \
+    | sed 's/-----END CERTIFICATE-----/-----END-CERTIFICATE-----/g' \
+    | tr " " "\n" \
+    | sed 's/-----BEGIN-CERTIFICATE-----/-----BEGIN CERTIFICATE-----/g' \
+    | sed 's/-----END-CERTIFICATE-----/-----END CERTIFICATE-----/g' \
+    > ./client.crt
 
 # # generate client certificate signed by root ones:
 # echo " "
@@ -105,19 +136,19 @@ curl -X POST --data \
 # #sign csr
 # yes | openssl ca -config ca.config -in $CSR_FILE -out "client.crt"
 
-# echo " "
-# echo " ---"
-# echo " --- client.crt"
-# echo " ---"
-# cat client.crt
+echo " "
+echo " ---"
+echo " --- client.crt"
+echo " ---"
+cat client.crt
 
-# echo " "
-# echo " ---"
-# echo " --- client.pem"
-# echo " ---"
-# openssl x509 -inform PEM -in client.crt > client.pem
-# cat client.pem
-# #cd ..
+echo " "
+echo " ---"
+echo " --- client.pem"
+echo " ---"
+openssl x509 -inform PEM -in client.crt > client.pem
+cat client.pem
+
 
 # echo " "
 # echo " ---"
@@ -132,13 +163,9 @@ curl -X POST --data \
 #     $URL_SGX_WALLET_HTTPS -k
 
 
-# echo " "
-# echo " ---"
-# echo " --- curl sign"
-# echo " ---"
-# curl -X POST --data \
-#     '{ "jsonrpc": "2.0", "id": 2, "method": "GetCertificate", "params": { "hash":"1680a4fd4e046fb8346924862808d4367efb008b434a72da03368c46d54a9968" } }' \
-#     -v \
-#     -H 'content-type:application/json;' \
-#     $URL_SGX_WALLET_HTTP
+
+
+
+
+
 
