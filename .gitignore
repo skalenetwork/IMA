@@ -68,4 +68,6 @@ test/config.json
 .vscode
 
 functional_check/s_chain_gen/node_??
+functional_check/s_chain_gen/node_modules
 functional_check/skale-manager
+functional_check/engine/node_modules

@@ -50,10 +50,8 @@ let g_strPrivateKeyImaSC = "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12fee
 let g_strNetworkNameMN = "mainnet";
 let g_strNetworkNameSC = "schain";
 
-// 192.168.2.59 - Sveta
-// 192.168.2.138 - Oleg
-let g_strUrlSgxWalletHTTP  = "https://127.0.0.1:1027";
-let g_strUrlSgxWalletHTTPS = "https://127.0.0.1:1026";
+let g_strUrlSgxWalletHTTP  = "https://45.76.36.246:1027"; // "https://127.0.0.1:1027";
+let g_strUrlSgxWalletHTTPS = "https://45.76.36.246:1026"; // "https://127.0.0.1:1026";
 let g_strPathForSgxSslData = __dirname + "/create_pems";
 let g_joSgxRpcOptions = {
     "ca":     fs.readFileSync( g_strPathForSgxSslData + "/rootCA.pem", "utf8" ) // joCall.strPathCertFile ? fs.readFileSync( joCall.strPathCertFile ) : null
@@ -124,7 +122,7 @@ let g_strFolderMultiNodeDeployment = normalizePath( __dirname + "/../../skaled-t
 if( g_bVerbose )
     log.write( cc.normal( "Assuming " ) + cc.sunny( "Multi Node Deployment" ) + cc.normal( " is located at " ) + cc.info( g_strFolderMultiNodeDeployment ) + "\n" );
 
-let g_strFolderRepoIMA = normalizePath( __dirname + "/../../../IMA" );
+let g_strFolderRepoIMA = normalizePath( __dirname + "/../.." );
 if( g_bVerbose )
     log.write( cc.normal( "Assuming " ) + cc.sunny( "IMA" ) + cc.normal( " repo is " ) + cc.info( g_strFolderRepoIMA ) + "\n" );
 let g_strFolderImaProxy = g_strFolderRepoIMA + "/proxy";
@@ -1873,7 +1871,7 @@ async function all_ima_agents_stop() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-let g_strFolderRepoSkaleManager = normalizePath( __dirname + "/../../../skale-manager" );
+let g_strFolderRepoSkaleManager = normalizePath( __dirname + "/../skale-manager" );
 if( g_bVerbose )
     log.write( cc.normal( "Assuming " ) + cc.sunny( "Skale Manager" ) + cc.normal( " repo is " ) + cc.info( g_strFolderRepoSkaleManager ) + "\n" );
 let g_strSkaleManagerAbiJsonPath = normalizePath( g_strFolderRepoSkaleManager + "/data/test.json" );
