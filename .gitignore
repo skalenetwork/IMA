@@ -64,3 +64,7 @@ proxy/data/*.json
 
 test/working
 test/config.json
+
+.vscode
+
+functional_check/s_chain_gen/node_??
