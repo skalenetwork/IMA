@@ -11,6 +11,9 @@ rm -r ./mainnet.log     || true > /dev/null
 rm -r ./skaled_??.log   || true > /dev/null
 rm -r ./imaAgent_??.log || true > /dev/null
 
+cd ./create_pems && ./create_pems.sh && cd ..
+
+pwd
 node ./index.js
 
 #echo "Test done... searching zombies..."
