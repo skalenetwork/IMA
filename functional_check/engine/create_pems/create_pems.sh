@@ -150,17 +150,19 @@ openssl x509 -inform PEM -in client.crt > client.pem
 cat client.pem
 
 
-# echo " "
-# echo " ---"
-# echo " --- test"
-# echo " ---"127.0.0
-# curl \
-#     -X POST --data \
-#     '{ "jsonrpc": "2.0", "id": 1, "method": "importBLSKeyShare", "params": { "keyShareName": "nBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3C4ceRhzMAZnG87PwlkzMROHsm3B", "n": 2, "t": 2, "index" : 1, "keyShare": "21043165427057050523208250969869713544622230829814517880078280390613973680760" } }' \
-#     -H 'content-type:application/json;' \
-#     -v \
-#     --cacert ./rootCA.pem --key $KEY_PEM_FILE --cert ./client.pem \
-#     $URL_SGX_WALLET_HTTPS -k
+echo " "
+echo " ---"
+echo " --- test"
+echo " ---"127.0.0
+curl \
+    -X POST --data \
+    '{ "jsonrpc": "2.0", "id": 1, "method": "importBLSKeyShare", "params": { "keyShareName": "nBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3C4ceRhzMAZnG87PwlkzMROHsm3B", "n": 2, "t": 2, "index" : 1, "keyShare": "21043165427057050523208250969869713544622230829814517880078280390613973680760" } }' \
+    -H 'content-type:application/json;' \
+    -v \
+    --cacert ./rootCA.pem --key $KEY_PEM_FILE --cert ./client.pem \
+    $URL_SGX_WALLET_HTTPS -k
+echo " "
+echo " "
 
 
 
