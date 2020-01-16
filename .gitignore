@@ -71,3 +71,14 @@ functional_check/s_chain_gen/node_??
 functional_check/s_chain_gen/node_modules
 functional_check/skale-manager
 functional_check/engine/node_modules
+functional_check/engine/create_pems/a.csr
+functional_check/engine/create_pems/a.csr.signgleline
+functional_check/engine/create_pems/client.crt
+functional_check/engine/create_pems/client.pem
+functional_check/engine/create_pems/generated_cert_name.txt
+functional_check/engine/create_pems/get_certificate_result.json
+functional_check/engine/create_pems/index.txt.attr
+functional_check/engine/create_pems/k.key
+functional_check/engine/create_pems/k.pem
+functional_check/engine/create_pems/serial
+functional_check/engine/create_pems/sign_resilt.json
