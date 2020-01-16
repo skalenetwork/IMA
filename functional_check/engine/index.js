@@ -119,7 +119,7 @@ function normalizePath( strPath ) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-let g_strFolderMultiNodeDeployment = normalizePath( __dirname + "/../../skaled-tests/multi-node/run-skaled" );
+let g_strFolderMultiNodeDeployment = normalizePath( __dirname + "/../s_chain_gen" );
 if( g_bVerbose )
     log.write( cc.normal( "Assuming " ) + cc.sunny( "Multi Node Deployment" ) + cc.normal( " is located at " ) + cc.info( g_strFolderMultiNodeDeployment ) + "\n" );
 
