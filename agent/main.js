@@ -971,7 +971,8 @@ function loop_pre_processing() {
         imaState.accountMonitoringOptions.mn.object = new OutOfMoneyHelper(
             "MAIN NET",
             imaState.w3_main_net,
-            imaState.joAccount_main_net.address( imaState.w3_main_net ),
+            //imaState.joAccount_main_net.address( imaState.w3_main_net ),
+            imaState.jo_deposit_box.address, // only main net
             imaState.strChainID_main_net,
             imaState.cid_main_net,
             new BigNumber( imaState.accountMonitoringOptions.mn.wei )
@@ -982,7 +983,8 @@ function loop_pre_processing() {
         imaState.accountMonitoringOptions.sc.object = new OutOfMoneyHelper(
             "S-CHAIN",
             imaState.w3_s_chain,
-            imaState.joAccount_s_chain.address( imaState.w3_s_chain ),
+            //imaState.joAccount_s_chain.address( imaState.w3_s_chain ),
+            imaState.jo_token_manager.address, // only s-chain
             imaState.strChainID_s_chain,
             imaState.cid_s_chain,
             new BigNumber( imaState.accountMonitoringOptions.sc.wei )
