@@ -951,12 +951,12 @@ async function run_transfer_loop( fnBefore, fnAfter ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-function handle_ballance_warning( event ) {
+function handle_balance_warning( event ) {
     let jo = event.details;
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.warning ) {}
-        log.write( cc.warning( "LOW BALLANCE WARNING: " )  + cc.j( jo ) + "\n" );
+        log.write( cc.warning( "LOW BALANCE WARNING: " )  + cc.j( jo ) + "\n" );
     if( imaState.telegramMessagingOptions.object ) {
-        let strMessage = "LOW BALLANCE WARNING:\n";
+        let strMessage = "LOW BALANCE WARNING:\n";
         strMessage += JSON.stringify( jo, null, 4 );
         imaState.telegramMessagingOptions.object.sendMessage( strMessage );
     }
@@ -972,7 +972,7 @@ function loop_pre_processing() {
             imaState.cid_main_net,
             new BigNumber( imaState.accountMonitoringOptions.mn.wei )
             );
-        imaState.accountMonitoringOptions.mn.object.on( "ballance.warning", handle_ballance_warning );
+        imaState.accountMonitoringOptions.mn.object.on( "balance.warning", handle_balance_warning );
     }
     if( imaState.accountMonitoringOptions.sc.enabled && (!imaState.accountMonitoringOptions.sc.object) ) {
         imaState.accountMonitoringOptions.sc.object = new OutOfMoneyHelper(
@@ -983,15 +983,15 @@ function loop_pre_processing() {
             imaState.cid_s_chain,
             new BigNumber( imaState.accountMonitoringOptions.sc.wei )
             );
-        imaState.accountMonitoringOptions.sc.object.on( "ballance.warning", handle_ballance_warning );
+        imaState.accountMonitoringOptions.sc.object.on( "balance.warning", handle_balance_warning );
     }
 }
 
 function loop_post_processing() {
     if( imaState.accountMonitoringOptions.mn.object )
-        imaState.accountMonitoringOptions.mn.object.checkBallance();
+        imaState.accountMonitoringOptions.mn.object.checkBalance();
     if( imaState.accountMonitoringOptions.sc.object )
-        imaState.accountMonitoringOptions.sc.object.checkBallance();
+        imaState.accountMonitoringOptions.sc.object.checkBalance();
 }
 
 

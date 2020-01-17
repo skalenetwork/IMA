@@ -271,12 +271,12 @@ function parse( joExternalHandlers ) {
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
             console.log( cc.sunny( "ACCOUNT MONITORING" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "monitor-ballance-main-net" ) + cc.debug( "....." ) + cc.notice( "Track balance of Main Net part of IMA." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "monitor-ballance-s-chain" ) + cc.debug( "......" ) + cc.notice( "Track balance of S-Chain part of IMA." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "monitor-ballance" ) + cc.debug( ".............." ) + cc.notice( "Track balance of both Main Net and S-Chain parts of IMA." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "low-ballance-main-net" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "..." ) + cc.notice( "Main Net " ) + cc.note( "wei" ) + cc.notice( " low ballance value(default is 1 ETH)." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "low-ballance-s-chain" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "...." ) + cc.notice( "S-Chain " ) + cc.note( "wei" ) + cc.notice( " low ballance value(default is 1 ETH)." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "low-ballance" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............" ) + cc.notice( "Main Net and S-Chain " ) + cc.note( "wei" ) + cc.notice( " low ballance value(default is 1 ETH)." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "monitor-balance-main-net" ) + cc.debug( "......" ) + cc.notice( "Track balance of Main Net part of IMA." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "monitor-balance-s-chain" ) + cc.debug( "......." ) + cc.notice( "Track balance of S-Chain part of IMA." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "monitor-balance" ) + cc.debug( "..............." ) + cc.notice( "Track balance of both Main Net and S-Chain parts of IMA." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "low-balance-main-net" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "...." ) + cc.notice( "Main Net " ) + cc.note( "wei" ) + cc.notice( " low balance value(default is 1 ETH)." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "low-balance-s-chain" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "....." ) + cc.notice( "S-Chain " ) + cc.note( "wei" ) + cc.notice( " low balance value(default is 1 ETH)." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "low-balance" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.notice( "Main Net and S-Chain " ) + cc.note( "wei" ) + cc.notice( " low balance value(default is 1 ETH)." ) );
             console.log( cc.sunny( "TELEGRAM NOTIFICATIONS" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "telegram-bot-token" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "......" ) + cc.notice( "Telegram " ) + cc.note( "bot token" ) + cc.notice( " to use as message sender account." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "telegram-chat-id" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "........" ) + cc.notice( "Telegram " ) + cc.note( "chat identifier" ) + cc.notice( " to send notification messages to." ) );
@@ -581,28 +581,28 @@ function parse( joExternalHandlers ) {
         }
         //
         //
-        if ( joArg.name == "monitor-ballance-main-net" ) {
+        if ( joArg.name == "monitor-balance-main-net" ) {
             imaState.accountMonitoringOptions.mn.enabled = true;
             continue;
         }
-        if ( joArg.name == "monitor-ballance-s-chain" ) {
+        if ( joArg.name == "monitor-balance-s-chain" ) {
             imaState.accountMonitoringOptions.sc.enabled = true;
             continue;
         }
-        if ( joArg.name == "monitor-ballance" ) {
+        if ( joArg.name == "monitor-balance" ) {
             imaState.accountMonitoringOptions.mn.enabled = true;
             imaState.accountMonitoringOptions.sc.enabled = true;
             continue;
         }
-        if ( joArg.name == "low-ballance-main-net" ) {
+        if ( joArg.name == "low-balance-main-net" ) {
             imaState.accountMonitoringOptions.mn.wei = "" + joArg.value;
             continue;
         }
-        if ( joArg.name == "low-ballance-s-chain" ) {
+        if ( joArg.name == "low-balance-s-chain" ) {
             imaState.accountMonitoringOptions.sc.wei = "" + joArg.value;
             continue;
         }
-        if ( joArg.name == "low-ballance" ) {
+        if ( joArg.name == "low-balance" ) {
             imaState.accountMonitoringOptions.mn.wei = "" + joArg.value;
             imaState.accountMonitoringOptions.sc.wei = "" + joArg.value;
             continue;
