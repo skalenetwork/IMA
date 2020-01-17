@@ -466,12 +466,19 @@ Same as above. But use **721** instead of **20** in command names. Also use **--
 
 ## Monitoring IMA accounts
 
+**IMA Agent** supports low balance checking for both **MainNet** and/or **S-Chain** parts:
+
     --monitor-balance-main-net.....Track balance of Main Net part of IMA.
     --monitor-balance-s-chain......Track balance of S-Chain part of IMA.
     --monitor-balance..............Track balance of both Main Net and S-Chain parts of IMA.
     --low-balance-main-net=value...Main Net wei low balance value(default is 1 ETH).
     --low-balance-s-chain=value....S-Chain wei low balance value(default is 1 ETH).
     --low-balance=value............Main Net and S-Chain wei low balance value(default is 1 ETH).
+
+By default only warning messages saved into log output when low balances are detected.
+If Telegram messaging options are specified in command line, then low balance warnings are sent into Telegram chat.
+
+Balance checks performed after each transfer loop pass.
 
 ## Sending monitoring warnings to telegram
 
