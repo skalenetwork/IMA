@@ -31,6 +31,19 @@ let ethereumjs_tx = IMA.ethereumjs_tx;
 let ethereumjs_wallet = IMA.ethereumjs_wallet;
 let ethereumjs_util = IMA.ethereumjs_util;
 
+function require_all_global( name ) {
+    let m = require( name );
+    let k;
+    for( k in m ) {
+        if( m.hasOwnProperty( k ) )
+            global[ k ] = m[ k ];
+    }
+}
+
+require_all_global( __dirname + "/event_dispatcher.js" );
+require_all_global( __dirname + "/telegram.js" );
+require_all_global( __dirname + "/out_of_money.js" );
+
 function fn_address_impl_( w3 ) {
     if ( this.address_ == undefined || this.address_ == null )
         this.address_ = "" + IMA.private_key_2_account_address( w3, this.privateKey );
@@ -147,6 +160,23 @@ let imaState = {
 
     //
     //
+
+    "accountMonitoringOptions": {
+        "mn": {
+            "enabled": false,
+            "wei": "1000000000000000000",
+            "object": null
+        }, "sc": {
+            "enabled": false,
+            "wei": "1000000000000000000",
+            "object": null
+        }
+    },
+    "telegramMessagingOptions": {
+        "idBotToken": null,
+        "idChat": null,
+        "object": null
+    },
 
     "arrActions": [] // array of actions to run
 };
@@ -439,7 +469,7 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "Single M<->S transfer loop iteration",
             "fn": async function() {
-                return await single_transfer_loop();
+                return await single_transfer_loop( loop_pre_processing, loop_post_processing );
             }
         } );
     }, "loop": function() {
@@ -458,7 +488,7 @@ imaCLI.parse( {
                     if( ! await register_step3() )
                         return false;
                 }
-                return await run_transfer_loop();
+                return await run_transfer_loop( loop_pre_processing, loop_post_processing );
             }
         } );
     }, "browse-s-chain": function() {
@@ -538,6 +568,12 @@ if ( imaState.strLogFilePath.length > 0 ) {
 
 if( imaState.bIsNeededCommonInit )
     imaCLI.ima_common_init();
+
+if( imaState.telegramMessagingOptions.idBotToken && imaState.telegramMessagingOptions.idChat )
+    imaState.telegramMessagingOptions.object = new TelegramHelper(
+        imaState.telegramMessagingOptions.idBotToken,
+        imaState.telegramMessagingOptions.idChat
+        );
 
 if ( imaState.bShowConfigMode ) {
     // just show configuratin values and exit
@@ -830,7 +866,9 @@ function check_time_framing( d ) {
     return true;
 }
 
-async function single_transfer_loop() {
+async function single_transfer_loop(  fnBefore, fnAfter  ) {
+    fnBefore = fnBefore || function() { };
+    fnAfter = fnAfter || function() { };
     let strLogPrefix = cc.attention("Single Loop:") + " ";
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
@@ -839,6 +877,7 @@ async function single_transfer_loop() {
             log.write( strLogPrefix + cc.warn( "Skipped due to time framing" ) + "\n" );
         return true;
     }
+    fnBefore();
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
         log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
     var b1 = await IMA.do_transfer( // main-net --> s-chain
@@ -892,14 +931,67 @@ async function single_transfer_loop() {
     var b3 = b1 && b2;
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
         log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf(b3) + "\n" );
+    fnAfter();
     return b3;
 }
-async function single_transfer_loop_with_repeat() {
-    await single_transfer_loop();
+async function single_transfer_loop_with_repeat( fnBefore, fnAfter ) {
+    await single_transfer_loop( fnBefore, fnAfter );
     setTimeout( single_transfer_loop_with_repeat, imaState.nLoopPeriodSeconds * 1000 );
 };
-async function run_transfer_loop() {
-    await single_transfer_loop_with_repeat();
+async function run_transfer_loop( fnBefore, fnAfter ) {
+    await single_transfer_loop_with_repeat( fnBefore, fnAfter );
     //setTimeout( single_transfer_loop_with_repeat, imaState.nLoopPeriodSeconds*1000 );
     return true;
 }
+
+//
+//
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+function handle_ballance_warning( event ) {
+    let jo = event.details;
+    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.warning ) {}
+        log.write( cc.warning( "LOW BALLANCE WARNING: " )  + cc.j( jo ) + "\n" );
+    if( imaState.telegramMessagingOptions.object ) {
+        let strMessage = "LOW BALLANCE WARNING:\n";
+        strMessage += JSON.stringify( jo, null, 4 );
+        imaState.telegramMessagingOptions.object.sendMessage( strMessage );
+    }
+}
+
+function loop_pre_processing() {
+    if( imaState.accountMonitoringOptions.mn.enabled && (!imaState.accountMonitoringOptions.mn.object) ) {
+        imaState.accountMonitoringOptions.mn.object = new OutOfMoneyHelper(
+            "MAIN NET",
+            imaState.w3_main_net,
+            imaState.joAccount_main_net.address( imaState.w3_main_net ),
+            imaState.strChainID_main_net,
+            imaState.cid_main_net,
+            new BigNumber( imaState.accountMonitoringOptions.mn.wei )
+            );
+        imaState.accountMonitoringOptions.mn.object.on( "ballance.warning", handle_ballance_warning );
+    }
+    if( imaState.accountMonitoringOptions.sc.enabled && (!imaState.accountMonitoringOptions.sc.object) ) {
+        imaState.accountMonitoringOptions.sc.object = new OutOfMoneyHelper(
+            "S-CHAIN",
+            imaState.w3_s_chain,
+            imaState.joAccount_s_chain.address( imaState.w3_s_chain ),
+            imaState.strChainID_s_chain,
+            imaState.cid_s_chain,
+            new BigNumber( imaState.accountMonitoringOptions.sc.wei )
+            );
+        imaState.accountMonitoringOptions.sc.object.on( "ballance.warning", handle_ballance_warning );
+    }
+}
+
+function loop_post_processing() {
+    if( imaState.accountMonitoringOptions.mn.object )
+        imaState.accountMonitoringOptions.mn.object.checkBallance();
+    if( imaState.accountMonitoringOptions.sc.object )
+        imaState.accountMonitoringOptions.sc.object.checkBallance();
+}
+
+

@@ -270,17 +270,27 @@ function parse( joExternalHandlers ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "bls-verify" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "..............." ) + cc.notice( "Optional parameter, specifies path to " ) + cc.note( "verify_bls" ) + cc.note( " application" ) + cc.notice( "." ) );
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
+            console.log( cc.sunny( "ACCOUNT MONITORING" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "monitor-ballance-main-net" ) + cc.debug( "....." ) + cc.notice( "Track balance of Main Net part of IMA." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "monitor-ballance-s-chain" ) + cc.debug( "......" ) + cc.notice( "Track balance of S-Chain part of IMA." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "monitor-ballance" ) + cc.debug( ".............." ) + cc.notice( "Track balance of both Main Net and S-Chain parts of IMA." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "low-ballance-main-net" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "..." ) + cc.notice( "Main Net " ) + cc.note( "wei" ) + cc.notice( " low ballance value(default is 1 ETH)." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "low-ballance-s-chain" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "...." ) + cc.notice( "S-Chain " ) + cc.note( "wei" ) + cc.notice( " low ballance value(default is 1 ETH)." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "low-ballance" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............" ) + cc.notice( "Main Net and S-Chain " ) + cc.note( "wei" ) + cc.notice( " low ballance value(default is 1 ETH)." ) );
+            console.log( cc.sunny( "TELEGRAM NOTIFICATIONS" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "telegram-bot-token" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "......" ) + cc.notice( "Telegram " ) + cc.note( "bot token" ) + cc.notice( " to use as message sender account." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "telegram-chat-id" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "........" ) + cc.notice( "Telegram " ) + cc.note( "chat identifier" ) + cc.notice( " to send notification mmessages to." ) );
             console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "verbose" ) + cc.sunny( "=" ) + cc.bright( "value" ) + cc.debug( "................." ) + cc.notice( "Set " ) + cc.note( "level" ) + cc.notice( " of output details." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "verbose-list" ) + cc.debug( ".................." ) + cc.notice( "List available " ) + cc.note( "verbose levels" ) + cc.notice( " and exit." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "log" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "......................" ) + cc.notice( "Write program output to specified log file(multiple files can be specified)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "log-size" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "................" ) + cc.notice( "Max size(in bytes) of one log file(affects to log log rotation)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "log-files" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "..............." ) + cc.notice( "Maximum number of log files for log rotation." ) );
-            return 0;
+            process.exit( 0 ); // return 0;
         }
         if ( joArg.name == "version" ) {
             print_about();
-            return 0;
+            process.exit( 0 ); // return 0;
         }
         if ( joArg.name == "verbose" ) {
             IMA.verbose_set( IMA.verbose_parse( joArg.value ) );
@@ -569,6 +579,46 @@ function parse( joExternalHandlers ) {
             imaState.strPathBlsVerify = "" + joArg.value;
             continue;
         }
+        //
+        //
+        if ( joArg.name == "monitor-ballance-main-net" ) {
+            imaState.accountMonitoringOptions.mn.enabled = true;
+            continue;
+        }
+        if ( joArg.name == "monitor-ballance-s-chain" ) {
+            imaState.accountMonitoringOptions.sc.enabled = true;
+            continue;
+        }
+        if ( joArg.name == "monitor-ballance" ) {
+            imaState.accountMonitoringOptions.mn.enabled = true;
+            imaState.accountMonitoringOptions.sc.enabled = true;
+            continue;
+        }
+        if ( joArg.name == "low-ballance-main-net" ) {
+            imaState.accountMonitoringOptions.mn.wei = "" + joArg.value;
+            continue;
+        }
+        if ( joArg.name == "low-ballance-s-chain" ) {
+            imaState.accountMonitoringOptions.sc.wei = "" + joArg.value;
+            continue;
+        }
+        if ( joArg.name == "low-ballance" ) {
+            imaState.accountMonitoringOptions.mn.wei = "" + joArg.value;
+            imaState.accountMonitoringOptions.sc.wei = "" + joArg.value;
+            continue;
+        }
+        //
+        //
+        if ( joArg.name == "telegram-bot-token" ) {
+            imaState.telegramMessagingOptions.idBotToken = "" + joArg.value;
+            continue;
+        }
+        if ( joArg.name == "telegram-chat-id" ) {
+            imaState.telegramMessagingOptions.idChat = "" + joArg.value;
+            continue;
+        }
+        //
+        //
         if (    joArg.name == "register"
             ||  joArg.name == "register1"
             ||  joArg.name == "register2"
