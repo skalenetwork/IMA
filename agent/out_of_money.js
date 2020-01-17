@@ -19,7 +19,7 @@
             console.log( "Balance active value is ", balance.toString() );
             console.log( "Balance margin value is ", this.bnLowBalance.toString() );
             let isLowBalance = balance.lte( this.bnLowBalance ) ? true : false;
-            isLowBalance = true;
+            ///////isLowBalance = true; // debug
             console.log( "Low balance check is", isLowBalance );
             if( isLowBalance ) {
                 this.dispatchEvent( new CustomEvent( "balance.warning", { "w3": this.w3, "details": {
@@ -28,7 +28,7 @@
                     , "networkName": this.strNetworkName
                     , "cid": this.chainID3
                     , "balance": balance.toString()
-                    , "bnLowBalance": this.bnLowBalance.toString()
+                    , "lowBalanceMargin": this.bnLowBalance.toString()
                 } } ) );
             }
         }

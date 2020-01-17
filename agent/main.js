@@ -938,7 +938,9 @@ async function single_transfer_loop(  fnBefore, fnAfter  ) {
 }
 async function single_transfer_loop_with_repeat( fnBefore, fnAfter ) {
     await single_transfer_loop( fnBefore, fnAfter );
-    setTimeout( single_transfer_loop_with_repeat, imaState.nLoopPeriodSeconds * 1000 );
+    setTimeout( function() {
+        single_transfer_loop_with_repeat( fnBefore, fnAfter );
+    }, imaState.nLoopPeriodSeconds * 1000 );
 };
 async function run_transfer_loop( fnBefore, fnAfter ) {
     await single_transfer_loop_with_repeat( fnBefore, fnAfter );
@@ -953,7 +955,7 @@ async function run_transfer_loop( fnBefore, fnAfter ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 
-function handle_balance_warning( event ) {
+function handle_low_balance_warning( event ) {
     let jo = event.details;
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.warning ) {}
         log.write( cc.warning( "LOW BALANCE WARNING: " )  + cc.j( jo ) + "\n" );
@@ -974,7 +976,7 @@ function loop_pre_processing() {
             imaState.cid_main_net,
             new BigNumber( imaState.accountMonitoringOptions.mn.wei )
             );
-        imaState.accountMonitoringOptions.mn.object.addEventListener( "balance.warning", handle_balance_warning );
+        imaState.accountMonitoringOptions.mn.object.addEventListener( "balance.warning", handle_low_balance_warning );
     }
     if( imaState.accountMonitoringOptions.sc.enabled && (!imaState.accountMonitoringOptions.sc.object) ) {
         imaState.accountMonitoringOptions.sc.object = new OutOfMoneyHelper(
@@ -985,7 +987,7 @@ function loop_pre_processing() {
             imaState.cid_s_chain,
             new BigNumber( imaState.accountMonitoringOptions.sc.wei )
             );
-        imaState.accountMonitoringOptions.sc.object.addEventListener( "balance.warning", handle_balance_warning );
+        imaState.accountMonitoringOptions.sc.object.addEventListener( "balance.warning", handle_low_balance_warning );
     }
 }
 

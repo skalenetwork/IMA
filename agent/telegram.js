@@ -2,6 +2,8 @@
     "use strict";
     let this_module = this;
 
+    this_module.telegram = require( "telegram-bot-api" );
+
     // https://www.npmjs.com/package/telegram-bot-api
     // https://t.me/botfather
     // https://core.telegram.org/bots
@@ -13,7 +15,7 @@
             this.init( idBotToken, idChat );
         }
         dispose() {
-            self.me = null;
+            this.me = null;
             this.idBotToken = null;
             this.idChat = null;
             this.t = null;
@@ -24,8 +26,8 @@
             self.idBotToken = ( idBotToken && typeof idBotToken == "string" && idBotToken.length > 0 ) ? ( "" + idBotToken ) : null;
             self.idChat = ( idChat && typeof idChat == "string" && idChat.length > 0 ) ? ( "" + idChat ) : null;
             if( self.idBotToken && self.idChat ) {
-                self.t = new telegram( { token: idBotToken, updates: { enabled: true } } );
-                t.on( "message", function ( message ) {
+                self.t = new this_module.telegram( { token: idBotToken, updates: { enabled: true } } );
+                self.t.on( "message", function ( message ) {
                     //log.write( cc.rx(" >>> ") + cc.rxa("Received text message") + cc.rx(" >>> ") + cc.j( message ) + "\n" );
                     switch ( message.text.toLowerCase() ) {
                         case "hello": sendMessage( {
@@ -35,23 +37,23 @@
                     }
                     self.dispatchEvent( new CustomEvent( "message", { "detail": { "message": message } } ) );
                 } );
-                t.on( "inline.query", function ( message ) {
+                self.t.on( "inline.query", function ( message ) {
                     //log.write( cc.rx(" >>> ") + cc.rxa("Received inline query") + cc.rx(" >>> ") + cc.j( message ) + "\n" );
                     self.dispatchEvent( new CustomEvent( "inline.query", { "detail": { "message": message } } ) );
                 } );
-                t.on( "inline.result", function ( message ) {
+                self.t.on( "inline.result", function ( message ) {
                     //log.write( cc.rx(" >>> ") + cc.rxa("Received chosen inline result") + cc.rx(" >>> ") + cc.j( message ) + "\n" );
                     self.dispatchEvent( new CustomEvent( "inline.result", { "detail": { "message": message } } ) );
                 } );
-                t.on( "inline.callback.query", function ( message ) {
+                self.t.on( "inline.callback.query", function ( message ) {
                     //log.write( cc.rx(" >>> ") + cc.rxa("New incoming callback query") + cc.rx(" >>> ") + cc.j( message ) + "\n" );
                     self.dispatchEvent( new CustomEvent( "inline.callback.query", { "detail": { "message": message } } ) );
                 } );
-                t.on( "edited.message", function ( message ) {
+                self.t.on( "edited.message", function ( message ) {
                     log.write( cc.rx(" >>> ") + cc.rxa("Message that was edited") + cc.rx(" >>> ") + cc.j( message ) + "\n" );
                     self.dispatchEvent( new CustomEvent( "edited.message", { "detail": { "message": message } } ) );
                 } );
-                t.on( "update", function ( message ) {
+                self.t.on( "update", function ( message ) {
                     // Generic update object
                     // Subscribe on it in case if you want to handle all possible
                     // event types in one callback
@@ -59,8 +61,8 @@
                     self.dispatchEvent( new CustomEvent( "update", { "detail": { "message": message } } ) );
                 } );
                 //
-                log.write( cc.normal( "Querying bot information..." ) + "\n" );
-                t.getMe()
+                //log.write( cc.normal( "Querying bot information..." ) + "\n" );
+                self.t.getMe()
                     .then( function ( data ) {
                         //log.write( cc.normal( "Got bot information: " ) + cc.j(data) + "\n" );
                         self.me = data;
