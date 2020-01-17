@@ -2,6 +2,15 @@
     "use strict";
     let this_module = this;
 
+    class CustomEvent {
+        constructor( type, jo ) {
+            this.type = type;
+            this.jo = jo;
+            this.details = jo.details;
+        }
+    };
+    this_module.CustomEvent = CustomEvent;
+
     class EventDispatcher {
         // see https://stackoverflow.com/questions/36675693/eventtarget-interface-in-safari
         constructor() {
