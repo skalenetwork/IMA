@@ -464,6 +464,20 @@ Notice: The command above does payment from Main-net and that is why we need to 
 
 Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
 
+## Monitoring IMA accounts
+
+    --monitor-ballance-main-net.....Track balance of Main Net part of IMA.
+    --monitor-ballance-s-chain......Track balance of S-Chain part of IMA.
+    --monitor-ballance..............Track balance of both Main Net and S-Chain parts of IMA.
+    --low-ballance-main-net=value...Main Net wei low ballance value(default is 1 ETH).
+    --low-ballance-s-chain=value....S-Chain wei low ballance value(default is 1 ETH).
+    --low-ballance=value............Main Net and S-Chain wei low ballance value(default is 1 ETH).
+
+## Sending monitoring warnings to telegram
+
+    --telegram-bot-token=value......Telegram bot token to use as message sender account.
+    --telegram-chat-id=value........Telegram chat identifier to send notification messages to.
+
 ## Other options and commands
 
 ### Browse S-Chain network
