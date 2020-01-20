@@ -22,15 +22,28 @@ contract ERC721ModuleForSchain is Permissions {
 
     event ERC721TokenCreated(uint indexed contractPosition, address tokenAddress);
 
-    constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
-        // solium-disable-previous-line no-empty-blocks
+    bool isVariablesSet = false;
+
+    modifier setVariables() {
+        if (!isVariablesSet) {
+            address newLockAndData;
+            address newOwner;
+            assembly {
+                newLockAndData := sload(0x00)
+                newOwner := sload(0x01)
+            }
+            lockAndDataAddress = newLockAndData;
+            owner = newOwner;
+            isVariablesSet = true;
+        }
+        _;
     }
 
     function receiveERC721(
         address contractHere,
         address to,
         uint tokenId,
-        bool isRAW) external allow("TokenManager") returns (bytes memory data)
+        bool isRAW) external setVariables allow("TokenManager") returns (bytes memory data)
         {
         address lockAndDataERC721 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         if (!isRAW) {
@@ -49,7 +62,7 @@ contract ERC721ModuleForSchain is Permissions {
         }
     }
 
-    function sendERC721(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
+    function sendERC721(address to, bytes calldata data) external setVariables allow("TokenManager") returns (bool) {
         address lockAndDataERC721 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         uint contractPosition;
         address contractAddress;

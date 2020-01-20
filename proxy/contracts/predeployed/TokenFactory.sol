@@ -109,12 +109,26 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
 
 contract TokenFactory is Permissions {
 
-    constructor(address _lockAndDataAddress) Permissions(_lockAndDataAddress) public {
-        // solium-disable-previous-line no-empty-blocks
+    bool isVariablesSet = false;
+
+    modifier setVariables() {
+        if (!isVariablesSet) {
+            address newLockAndData;
+            address newOwner;
+            assembly {
+                newLockAndData := sload(0x00)
+                newOwner := sload(0x01)
+            }
+            lockAndDataAddress = newLockAndData;
+            owner = newOwner;
+            isVariablesSet = true;
+        }
+        _;
     }
 
     function createERC20(bytes calldata data)
         external
+        setVariables
         allow("ERC20Module")
         returns (address)
     {
@@ -139,6 +153,7 @@ contract TokenFactory is Permissions {
 
     function createERC721(bytes calldata data)
         external
+        setVariables
         allow("ERC721Module")
         returns (address)
     {

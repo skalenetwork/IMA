@@ -20,9 +20,9 @@
 pragma solidity ^0.5.3;
 
 import "./Permissions.sol";
-import "./IMessageProxy.sol";
-import "./IERC20Module.sol";
-import "./IERC721Module.sol";
+import "./../interfaces/IMessageProxy.sol";
+import "./../interfaces/IERC20Module.sol";
+import "./../interfaces/IERC721Module.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
 
@@ -69,6 +69,8 @@ contract TokenManager is Permissions {
     uint public constant GAS_AMOUNT_POST_MESSAGE = 200000;
     uint public constant AVERAGE_TX_PRICE = 10000000000;
 
+    bool isVariablesSet = false;
+
     // Owner of this schain. For mainnet
     //address public owner;
 
@@ -80,6 +82,27 @@ contract TokenManager is Permissions {
         bytes data,
         string message
     );
+
+    modifier setVariables() {
+        if (!isVariablesSet) {
+            address newLockAndData;
+            address newOwner;
+            string memory newChainID;
+            address newProxyAddress;
+            assembly {
+                newLockAndData := sload(0x00)
+                newOwner := sload(0x01)
+                newChainID := sload(0x02)
+                newProxyAddress := sload(0x03)
+            }
+            lockAndDataAddress = newLockAndData;
+            owner = newOwner;
+            chainID = newChainID;
+            proxyForSchainAddress = newProxyAddress;
+            isVariablesSet = true;
+        }
+        _;
+    }
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -98,27 +121,27 @@ contract TokenManager is Permissions {
 
     /// Create a new token manager
 
-    constructor(
-        string memory newChainID,
-        address newProxyAddress,
-        address newLockAndDataAddress
-    )
-        Permissions(newLockAndDataAddress)
-        public
-    {
-        chainID = newChainID;
-        proxyForSchainAddress = newProxyAddress;
-    }
+    // constructor(
+    //     string memory newChainID,
+    //     address newProxyAddress,
+    //     address newLockAndDataAddress
+    // )
+    //     Permissions(newLockAndDataAddress)
+    //     public
+    // {
+    //     chainID = newChainID;
+    //     proxyForSchainAddress = newProxyAddress;
+    // }
 
     function() external payable {
         revert("Not allowed. in TokenManager");
     }
 
-    function withdraw() external {
-        if (msg.sender == owner) {
-            owner.transfer(address(this).balance);
-        }
-    }
+    // function withdraw() external {
+    //     if (msg.sender == owner) {
+    //         owner.transfer(address(this).balance);
+    //     }
+    // }
 
     function exitToMainWithoutData(address to, uint amount) external {
         exitToMain(to, amount);
@@ -407,6 +430,7 @@ contract TokenManager is Permissions {
         bytes calldata data
     )
         external
+        setVariables
     {
         require(msg.sender == proxyForSchainAddress, "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));

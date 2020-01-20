@@ -6,15 +6,15 @@ const gasMultiplierParameter = 'gas_multiplier';
 const argv = require('minimist')(process.argv.slice(2), {string: [gasMultiplierParameter]});
 const gasMultiplier = argv[gasMultiplierParameter] === undefined ? 1 : Number(argv[gasMultiplierParameter])
 
-let MessageProxy = artifacts.require("./MessageProxy.sol");
-let TokenManager = artifacts.require("./TokenManager.sol");
-let LockAndDataForSchain = artifacts.require("./LockAndDataForSchain.sol");
-let EthERC20 = artifacts.require("./EthERC20.sol");
-let ERC20ModuleForSchain = artifacts.require("./ERC20ModuleForSchain.sol");
-let LockAndDataForSchainERC20 = artifacts.require("./LockAndDataForSchainERC20.sol");
-let ERC721ModuleForSchain = artifacts.require("./ERC721ModuleForSchain.sol");
-let LockAndDataForSchainERC721 = artifacts.require("./LockAndDataForSchainERC721.sol");
-let TokenFactory = artifacts.require("./TokenFactory.sol");
+let MessageProxy = artifacts.require("./predeployed/MessageProxy.sol");
+let TokenManager = artifacts.require("./predeployed/TokenManager.sol");
+let LockAndDataForSchain = artifacts.require("./predeployed/LockAndDataForSchain.sol");
+let EthERC20 = artifacts.require("./predeployed/EthERC20.sol");
+let ERC20ModuleForSchain = artifacts.require("./predeployed/ERC20ModuleForSchain.sol");
+let LockAndDataForSchainERC20 = artifacts.require("./predeployed/LockAndDataForSchainERC20.sol");
+let ERC721ModuleForSchain = artifacts.require("./predeployed/ERC721ModuleForSchain.sol");
+let LockAndDataForSchainERC721 = artifacts.require("./predeployed/LockAndDataForSchainERC721.sol");
+let TokenFactory = artifacts.require("./predeployed/TokenFactory.sol");
 
 let networks = require("../truffle-config.js");
 let proxyMainnet = require("../data/proxyMainnet.json");
@@ -76,8 +76,32 @@ async function deploy(deployer, network) {
             message_proxy_chain_address: MessageProxy.address,
             message_proxy_chain_abi: MessageProxy.abi
         }
+
+        let jsonObject2 = {
+            lock_and_data_for_schain_address: LockAndDataForSchain.address,
+            lock_and_data_for_schain_bytecode: LockAndDataForSchain.bytecode,
+            eth_erc20_address: EthERC20.address,
+            eth_erc20_bytecode: EthERC20.bytecode,
+            token_manager_address: TokenManager.address,
+            token_manager_bytecode: TokenManager.bytecode,
+            lock_and_data_for_schain_erc20_address: LockAndDataForSchainERC20.address,
+            lock_and_data_for_schain_erc20_bytecode: LockAndDataForSchainERC20.bytecode,
+            erc20_module_for_schain_address: ERC20ModuleForSchain.address,
+            erc20_module_for_schain_bytecode: ERC20ModuleForSchain.bytecode,
+            lock_and_data_for_schain_erc721_address: LockAndDataForSchainERC721.address,
+            lock_and_data_for_schain_erc721_bytecode: LockAndDataForSchainERC721.bytecode,
+            erc721_module_for_schain_address: ERC721ModuleForSchain.address,
+            erc721_module_for_schain_bytecode: ERC721ModuleForSchain.bytecode,
+            token_factory_address: TokenFactory.address,
+            token_factory_bytecode: TokenFactory.bytecode,
+            // erc721_on_chain_address: ERC721OnChain.address,
+            // erc721_on_chain_bytecode: ERC721OnChain.bytecode,
+            message_proxy_chain_address: MessageProxy.address,
+            message_proxy_chain_bytecode: MessageProxy.bytecode
+        }
     
         await fsPromises.writeFile(`data/proxySchain_${schainName}.json`, JSON.stringify(jsonObject));
+        await fsPromises.writeFile(`data/proxySchain_${schainName}_bytecode.json`, JSON.stringify(jsonObject2));
         await sleep(10000);
         console.log(`Done, check proxySchain_${schainName}.json file in data folder.`);
     });

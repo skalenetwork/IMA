@@ -21,18 +21,32 @@ pragma solidity ^0.5.3;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
-import "./Ownable.sol";
+import "./../Ownable.sol";
 
 
-contract EthERC20 is Ownable, ERC20Detailed, ERC20 {
+contract EthERC20 is Ownable, ERC20 {
+
+    string private _name = "ERC20 Ether Clone";
+    string private _symbol = "ETHC";
+    uint8 private _decimals = 18;
 
     uint private constant CAP = 120 * (10 ** 6) * (10 ** 18);
 
-    constructor() ERC20Detailed("ERC20 Ether Clone", "ETHC", 18) public {
-        // solium-disable-previous-line no-empty-blocks
+    bool isVariablesSet = false;
+
+    modifier setVariables() {
+        if (!isVariablesSet) {
+            address newLockAndData;
+            assembly {
+                newLockAndData := sload(0x00)
+            }
+            owner = newLockAndData;
+            isVariablesSet = true;
+        }
+        _;
     }
 
-    function mint(address account, uint256 amount) external onlyOwner returns (bool) {
+    function mint(address account, uint256 amount) external setVariables onlyOwner returns (bool) {
         require(totalSupply().add(amount) <= CAP, "Cap exceeded");
         _mint(account, amount);
         return true;
@@ -42,7 +56,19 @@ contract EthERC20 is Ownable, ERC20Detailed, ERC20 {
         _burn(msg.sender, amount);
     }
 
-    function burnFrom(address account, uint256 amount) external onlyOwner {
+    function burnFrom(address account, uint256 amount) external setVariables onlyOwner {
         _burn(account, amount);
+    }
+
+    function name() public view returns (string memory) {
+        return _name;
+    }
+
+    function symbol() public view returns (string memory) {
+        return _symbol;
+    }
+
+    function decimals() public view returns (uint8) {
+        return _decimals;
     }
 }

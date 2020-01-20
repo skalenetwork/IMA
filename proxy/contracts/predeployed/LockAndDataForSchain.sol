@@ -19,7 +19,7 @@
 
 pragma solidity ^0.5.3;
 
-import "./Ownable.sol";
+import "./../Ownable.sol";
 
 interface IETHERC20 {
     function allowance(address from, address to) external returns (uint);
@@ -41,15 +41,63 @@ contract LockAndDataForSchain is Ownable {
 
     mapping(address => bool) public authorizedCaller;
 
+    bool isVariablesSet = false;
+
+    // modifier setVariables() {
+    //     if (!isVariablesSet) {
+    //         address newEthERC20Address;
+    //         address newOwner;
+    //         uint length;
+    //         assembly {
+    //             newEthERC20Address := sload(0x00)
+    //             newOwner := sload(0x01)
+    //             length := sload(0x02)
+    //         }
+    //         ethERC20Address = newEthERC20Address;
+    //         owner = newOwner;
+    //         address callerAddr;
+    //         assembly {
+    //             callerAddr := sload(0x03)
+    //         }
+    //         permitted[keccak256(abi.encodePacked("TokenManager"))] = callerAddr;
+    //         assembly {
+    //             callerAddr := sload(0x04)
+    //         }
+    //         permitted[keccak256(abi.encodePacked("ERC20Module"))] = callerAddr;
+    //         assembly {
+    //             callerAddr := sload(0x05)
+    //         }
+    //         permitted[keccak256(abi.encodePacked("LockAndDataERC20"))] = callerAddr;
+    //         assembly {
+    //             callerAddr := sload(0x06)
+    //         }
+    //         permitted[keccak256(abi.encodePacked("ERC721Module"))] = callerAddr;
+    //         assembly {
+    //             callerAddr := sload(0x07)
+    //         }
+    //         permitted[keccak256(abi.encodePacked("LockAndDataERC721"))] = callerAddr;
+    //         assembly {
+    //             callerAddr := sload(0x08)
+    //         }
+    //         permitted[keccak256(abi.encodePacked("TokenFactory"))] = callerAddr;
+    //         bytes1 index = 0x09;
+    //         for (uint i = 0; i < length; i++) {
+    //             assembly {
+    //                 callerAddr := sload(add(index, i))
+    //             }
+    //             authorizedCaller[callerAddr] = true;
+    //         }
+
+    //         isVariablesSet = true;
+    //     }
+    //     _;
+    // }
+
     modifier allow(string memory contractName) {
         require(
             permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
             owner == msg.sender, "Not allowed LockAndDataForSchain");
         _;
-    }
-
-    constructor() public {
-        authorizedCaller[msg.sender] = true;
     }
 
     function setEthERC20Address(address newEthERC20Address) external onlyOwner {
@@ -78,7 +126,10 @@ contract LockAndDataForSchain is Ownable {
     }
 
     function addSchain(string calldata schainID, address tokenManagerAddress) external {
-        require(authorizedCaller[msg.sender], "Not authorized caller");
+        if (!isVariablesSet) {
+            setVariables();
+        }
+        require(authorizedCaller[msg.sender] || owner == msg.sender, "Not authorized caller");
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
@@ -100,7 +151,10 @@ contract LockAndDataForSchain is Ownable {
     }
 
     function addDepositBox(address depositBoxAddress) external {
-        require(authorizedCaller[msg.sender], "Not authorized caller");
+        if (!isVariablesSet) {
+            setVariables();
+        }
+        require(authorizedCaller[msg.sender] || owner == msg.sender, "Not authorized caller");
         require(depositBoxAddress != address(0), "Incorrect Deposit Box address");
         require(
             tokenManagerAddresses[
@@ -159,5 +213,51 @@ contract LockAndDataForSchain is Ownable {
     function receiveEth(address sender, uint amount) external allow("TokenManager") returns (bool) {
         IETHERC20(ethERC20Address).burnFrom(sender, amount);
         return true;
+    }
+
+    function setVariables() internal {
+        address newEthERC20Address;
+        address newOwner;
+        uint length;
+        assembly {
+            newEthERC20Address := sload(0x00)
+            newOwner := sload(0x01)
+        }
+        ethERC20Address = newEthERC20Address;
+        owner = newOwner;
+        address callerAddr;
+        assembly {
+            callerAddr := sload(0x02)
+        }
+        permitted[keccak256(abi.encodePacked("TokenManager"))] = callerAddr;
+        assembly {
+            callerAddr := sload(0x03)
+        }
+        permitted[keccak256(abi.encodePacked("ERC20Module"))] = callerAddr;
+        assembly {
+            callerAddr := sload(0x04)
+        }
+        permitted[keccak256(abi.encodePacked("LockAndDataERC20"))] = callerAddr;
+        assembly {
+            callerAddr := sload(0x05)
+        }
+        permitted[keccak256(abi.encodePacked("ERC721Module"))] = callerAddr;
+        assembly {
+            callerAddr := sload(0x06)
+        }
+        permitted[keccak256(abi.encodePacked("LockAndDataERC721"))] = callerAddr;
+        assembly {
+            callerAddr := sload(0x07)
+            length := sload(0x08)
+        }
+        permitted[keccak256(abi.encodePacked("TokenFactory"))] = callerAddr;
+        bytes1 index = 0x09;
+        for (uint i = 0; i < length; i++) {
+            assembly {
+                callerAddr := sload(add(index, i))
+            }
+            authorizedCaller[callerAddr] = true;
+        }
+        isVariablesSet = true;
     }
 }

@@ -27,7 +27,7 @@ pragma solidity ^0.5.3;
  */
 contract Ownable {
 
-    address payable owner;
+    address public owner;
 
 
     /**
