@@ -1,7 +1,7 @@
 /**
- *   Ownable.sol - SKALE Interchain Messaging Agent
+ *   LockAndDataOwnable.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2019-Present SKALE Labs
- *   @author Artem Payvin
+ *   @author Sergiy Lavrynenko
  *
  *   SKALE-IMA is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published
@@ -19,15 +19,18 @@
 
 pragma solidity ^0.5.3;
 
-import "./predeployed/SkaleFeatures.sol";
+import "./SkaleFeatures.sol";
 
 
 /**
- * @title Ownable
+ * @title LockAndDataOwnable
  * @dev The Ownable contract has an owner address, and provides basic authorization control
  * functions, this simplifies the implementation of "user permissions".
  */
-contract Ownable {
+contract LockAndDataOwnable {
+/*
+// l_sergiy: new contract - LockAndDataOwnable - because owner should be lockAndDataAddress
+*/
 
     /**
      * @dev ownerAddress is only used after transferOwnership(). By default, value of "skaleConfig.contractSettings.IMA.ownerAddress" config variable is used
@@ -48,7 +51,7 @@ contract Ownable {
      */
     function getOwner() public view returns ( address ow ) {
         if( ownerAddress == address( 0 ) ) {
-            return SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableAddress( "skaleConfig.contractSettings.IMA.ownerAddress" );
+            return SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableAddress( "skaleConfig.contractSettings.IMA.lockAndDataAddress" );
         }
         return ownerAddress;
     }

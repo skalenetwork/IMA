@@ -33,7 +33,7 @@ contract LockAndDataForMainnet is Ownable {
     mapping(address => bool) public authorizedCaller;
 
     modifier allow(string memory contractName) {
-        require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender || owner == msg.sender, "Not allowed");
+        require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender || getOwner() == msg.sender, "Not allowed");
         _;
     }
 

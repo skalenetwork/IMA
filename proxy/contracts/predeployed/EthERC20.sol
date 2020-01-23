@@ -24,7 +24,13 @@ import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 import "./../Ownable.sol";
 
 
-contract EthERC20 is Ownable, ERC20 {
+/*
+// l_sergiy: new contract - LockAndDataOwnable - because owner should be lockAndDataAddress
+*/
+import "./LockAndDataOwnable.sol";
+
+
+contract EthERC20 is LockAndDataOwnable, ERC20 {
 
     string private _name = "ERC20 Ether Clone";
     string private _symbol = "ETHC";
@@ -40,7 +46,10 @@ contract EthERC20 is Ownable, ERC20 {
             assembly {
                 newLockAndData := sload(0x00)
             }
+            /*
+            // l_sergiy: commented, owner can be changed only via contract Ownable -> transferOwnership()
             owner = newLockAndData;
+            */
             isVariablesSet = true;
         }
         _;

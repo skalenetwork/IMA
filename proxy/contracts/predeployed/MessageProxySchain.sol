@@ -20,6 +20,8 @@
 pragma solidity ^0.5.3;
 pragma experimental ABIEncoderV2;
 
+import "./SkaleFeatures.sol";
+
 interface ContractReceiver {
     function postMessage(
         address sender,
@@ -50,13 +52,45 @@ contract MessageProxy {
     // Call postIncomingMessages function passing (un)signed message array
 
     // ID of this schain, Chain 0 represents ETH mainnet,
-    string public chainID;
+    string private chainID_; // l_sergiy: changed name _ and made private
+
     // Owner of this chain. For mainnet, the owner is SkaleManager
-    address public owner;
+    address public ownerAddress; // l_sergiy: changed name to ownerAddress
+
+    function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
+        if( keccak256( abi.encodePacked( chainID_ ) ) == keccak256(abi.encodePacked( "" ) ) ) {
+            return SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableString( "skaleConfig.sChain.schainID" );
+        }
+        return chainID_;
+    }
+
+    function getOwner() public view returns ( address ow ) { // l_sergiy: added
+        if( ownerAddress == address( 0 ) ) {
+            return SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableAddress( "skaleConfig.contractSettings.IMA.ownerAddress" );
+        }
+        return ownerAddress;
+    }
 
     bool mainnetConnected = false;
 
-    mapping(address => bool) public authorizedCaller;
+    mapping(address => bool) private authorizedCaller_; // l_sergiy: changed name _ and made private
+
+    function addr2str( address a ) private pure returns ( string memory ) { // l_sergiy: added
+        bytes memory b = new bytes(20);
+        for (uint i = 0; i < 20; i++)
+            b[i] = byte(uint8(uint(a) / (2**(8*(19 - i)))));
+        return string(b);
+    }
+
+    function checkIsAuthorizedCaller( address a ) private view returns ( bool rv ) { // l_sergiy: added
+        if( authorizedCaller_[msg.sender] )
+            return true;
+        string memory strVarName = SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).concatenateStrings( "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers.0x", addr2str(a) );
+        uint256 u = SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableUint256( strVarName );
+        if( u != 0 )
+            return true;
+        return false;
+    }
 
     event OutgoingMessage(
         string dstChain,
@@ -112,15 +146,15 @@ contract MessageProxy {
                 newOwner := sload(0x01)
                 length := sload(0x02)
             }
-            chainID = newChainID;
-            owner = newOwner;
+            chainID_ = newChainID;
+            ownerAddress = newOwner;
             address callerAddr;
             bytes1 index = 0x03;
             for (uint i = 0; i < length; i++) {
                 assembly {
                     callerAddr := sload(add(index, i))
                 }
-                authorizedCaller[callerAddr] = true;
+                authorizedCaller_[callerAddr] = true;
             }
             mainnetConnected = true;
         }
@@ -130,13 +164,13 @@ contract MessageProxy {
     /// Create a new message proxy
 
     function addAuthorizedCaller(address caller) external {
-        require(msg.sender == owner, "Sender is not an owner");
-        authorizedCaller[caller] = true;
+        require(msg.sender == getOwner(), "Sender is not an owner");
+        authorizedCaller_[caller] = true;
     }
 
     function removeAuthorizedCaller(address caller) external {
-        require(msg.sender == owner, "Sender is not an owner");
-        authorizedCaller[caller] = false;
+        require(msg.sender == getOwner(), "Sender is not an owner");
+        authorizedCaller_[caller] = false;
     }
 
     // Registration state detection
@@ -168,7 +202,9 @@ contract MessageProxy {
     )
         external
     {
-        require(authorizedCaller[msg.sender], "Not authorized caller");
+        //require(authorizedCaller[msg.sender], "Not authorized caller");
+        require( checkIsAuthorizedCaller( msg.sender ), "Not authorized caller"); // l_sergiy: replacement
+        
         require(
             keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
@@ -188,7 +224,7 @@ contract MessageProxy {
     }
 
     function removeConnectedChain(string calldata newChainID) external {
-        require(msg.sender == owner, "Sender is not an owner");
+        require(msg.sender == getOwner(), "Sender is not an owner");
         require(
             keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet")),
@@ -259,11 +295,13 @@ contract MessageProxy {
         external
         connectMainnet
     {
-        require(authorizedCaller[msg.sender], "Not authorized caller");
+        //require(authorizedCaller[msg.sender], "Not authorized caller");
+        require( checkIsAuthorizedCaller( msg.sender ), "Not authorized caller"); // l_sergiy: replacement
+        
         require(connectedChains[keccak256(abi.encodePacked(srcChainID))].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter,
-            "Starning counter is not qual to incomin message counter");
+            "Starting counter is not qual to incoming message counter");
 
         // if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
         //     Message[] memory input = new Message[](messages.length);
@@ -299,12 +337,12 @@ contract MessageProxy {
     }
 
     function moveIncomingCounter(string calldata schainName) external {
-        require(msg.sender == owner, "Sender is not an owner");
+        require(msg.sender == getOwner(), "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter++;
     }
 
     function setCountersToZero(string calldata schainName) external {
-        require(msg.sender == owner, "Sender is not an owner");
+        require(msg.sender == getOwner(), "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }

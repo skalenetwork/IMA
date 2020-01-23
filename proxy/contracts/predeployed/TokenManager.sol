@@ -54,9 +54,22 @@ contract TokenManager is Permissions {
     }
 
     // ID of this schain,
-    string public chainID;
+    string private chainID_; // l_sergiy: changed name _ and made private
+    address private proxyForSchainAddress_; // l_sergiy: changed name _ made private
 
-    address public proxyForSchainAddress;
+    function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
+        if( keccak256( abi.encodePacked( chainID_ ) ) == keccak256(abi.encodePacked( "" ) ) ) {
+            return SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableString( "skaleConfig.sChain.schainID" );
+        }
+        return chainID_;
+    }
+
+    function getProxyForSchainAddress() public view returns ( address ow ) { // l_sergiy: added
+        if( proxyForSchainAddress_ == address( 0 ) ) {
+            return SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableAddress( "skaleConfig.contractSettings.IMA.proxyForSchainAddress" );
+        }
+        return proxyForSchainAddress_;
+    }
 
     // The maximum amount of ETH clones this contract can create
     // It is 102000000 which is the current total ETH supply
@@ -95,10 +108,13 @@ contract TokenManager is Permissions {
                 newChainID := sload(0x02)
                 newProxyAddress := sload(0x03)
             }
-            lockAndDataAddress = newLockAndData;
+            lockAndDataAddress_ = newLockAndData;
+            /*
+            // l_sergiy: commented, owner can be changed only via contract Ownable -> transferOwnership()
             owner = newOwner;
-            chainID = newChainID;
-            proxyForSchainAddress = newProxyAddress;
+            */
+            chainID_ = newChainID;
+            proxyForSchainAddress_ = newProxyAddress;
             isVariablesSet = true;
         }
         _;
@@ -106,7 +122,7 @@ contract TokenManager is Permissions {
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address schainTokenManagerAddress = ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(schainHash);
+        address schainTokenManagerAddress = ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash);
         require(schainHash != keccak256(abi.encodePacked("Mainnet")), "This function is not for transfering to Mainnet");
         require(schainTokenManagerAddress != address(0), "Incorrect Token Manager address");
         _;
@@ -114,7 +130,7 @@ contract TokenManager is Permissions {
 
     modifier receivedEth(uint amount) {
         require(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Null Amount");
-        require(ILockAndDataTM(lockAndDataAddress).receiveEth(msg.sender, amount), "Could not receive ETH Clone");
+        require(ILockAndDataTM(getLockAndDataAddress()).receiveEth(msg.sender, amount), "Could not receive ETH Clone");
         _;
     }
 
@@ -156,13 +172,13 @@ contract TokenManager is Permissions {
     }
 
     function removeEthCost() external {
-        uint returnBalance = ILockAndDataTM(lockAndDataAddress).removeGasCosts(msg.sender);
-        require(ILockAndDataTM(lockAndDataAddress).sendEth(msg.sender, returnBalance), "Not sent");
+        uint returnBalance = ILockAndDataTM(getLockAndDataAddress()).removeGasCosts(msg.sender);
+        require(ILockAndDataTM(getLockAndDataAddress()).sendEth(msg.sender, returnBalance), "Not sent");
     }
 
     function exitToMainERC20(address contractHere, address to, uint amount) external {
-        address lockAndDataERC20 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        address erc20Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        address lockAndDataERC20 = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address erc20Module = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
             ERC20Detailed(contractHere).allowance(
                 msg.sender,
@@ -179,7 +195,7 @@ contract TokenManager is Permissions {
             "Could not transfer ERC20 Token"
         );
         require(
-            ILockAndDataTM(lockAndDataAddress).reduceGasCosts(
+            ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
                 GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
             "Not enough gas sent");
@@ -188,9 +204,9 @@ contract TokenManager is Permissions {
             to,
             amount,
             false);
-        IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
+        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
-            ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
             address(0),
             data
@@ -203,8 +219,8 @@ contract TokenManager is Permissions {
         address to,
         uint amount) external
         {
-        address lockAndDataERC20 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        address erc20Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        address lockAndDataERC20 = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address erc20Module = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
             ERC20Detailed(contractHere).allowance(
                 msg.sender,
@@ -221,7 +237,7 @@ contract TokenManager is Permissions {
             "Could not transfer ERC20 Token"
         );
         require(
-            ILockAndDataTM(lockAndDataAddress).reduceGasCosts(
+            ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
                 GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
             "Not enough gas sent");
@@ -230,9 +246,9 @@ contract TokenManager is Permissions {
             to,
             amount,
             true);
-        IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
+        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
-            ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
             contractThere,
             data
@@ -245,8 +261,8 @@ contract TokenManager is Permissions {
         address to,
         uint amount) external
         {
-        address lockAndDataERC20 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        address erc20Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        address lockAndDataERC20 = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address erc20Module = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
             ERC20Detailed(contractHere).allowance(
                 msg.sender,
@@ -267,9 +283,9 @@ contract TokenManager is Permissions {
             to,
             amount,
             false);
-        IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
+        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
-            ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             0,
             address(0),
             data
@@ -283,8 +299,8 @@ contract TokenManager is Permissions {
         address to,
         uint amount) external
         {
-        address lockAndDataERC20 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        address erc20Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        address lockAndDataERC20 = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address erc20Module = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
             ERC20Detailed(contractHere).allowance(
                 msg.sender,
@@ -305,9 +321,9 @@ contract TokenManager is Permissions {
             to,
             amount,
             true);
-        IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
+        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
-            ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             0,
             contractThere,
             data
@@ -315,13 +331,13 @@ contract TokenManager is Permissions {
     }
 
     function exitToMainERC721(address contractHere, address to, uint tokenId) external {
-        address lockAndDataERC721 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
-        address erc721Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
+        address lockAndDataERC721 = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        address erc721Module = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC721Module")));
         require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         require(
-            ILockAndDataTM(lockAndDataAddress).reduceGasCosts(
+            ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
                 GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
             "Not enough gas sent");
@@ -330,9 +346,9 @@ contract TokenManager is Permissions {
             to,
             tokenId,
             false);
-        IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
+        IMessageProxy(getLockAndDataAddress()).postOutgoingMessage(
             "Mainnet",
-            ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
             address(0),
             data
@@ -345,13 +361,13 @@ contract TokenManager is Permissions {
         address to,
         uint tokenId) external
         {
-        address lockAndDataERC721 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
-        address erc721Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
+        address lockAndDataERC721 = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        address erc721Module = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC721Module")));
         require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         require(
-            ILockAndDataTM(lockAndDataAddress).reduceGasCosts(
+            ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
                 GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
             "Not enough gas sent");
@@ -360,9 +376,9 @@ contract TokenManager is Permissions {
             to,
             tokenId,
             true);
-        IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
+        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
-            ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
             contractThere,
             data
@@ -375,8 +391,8 @@ contract TokenManager is Permissions {
         address to,
         uint tokenId) external
         {
-        address lockAndDataERC721 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
-        address erc721Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
+        address lockAndDataERC721 = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        address erc721Module = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC721Module")));
         require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
@@ -385,9 +401,9 @@ contract TokenManager is Permissions {
             to,
             tokenId,
             false);
-        IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
+        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
-            ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             0,
             address(0),
             data
@@ -401,8 +417,8 @@ contract TokenManager is Permissions {
         address to,
         uint tokenId) external
         {
-        address lockAndDataERC721 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
-        address erc721Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
+        address lockAndDataERC721 = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        address erc721Module = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC721Module")));
         require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
@@ -411,9 +427,9 @@ contract TokenManager is Permissions {
             to,
             tokenId,
             true);
-        IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
+        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
-            ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             0,
             contractThere,
             data
@@ -432,10 +448,10 @@ contract TokenManager is Permissions {
         external
         setVariables
     {
-        require(msg.sender == proxyForSchainAddress, "Not a sender");
+        require(msg.sender == getProxyForSchainAddress(), "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
-        if (schainHash == keccak256(abi.encodePacked(chainID)) || sender != ILockAndDataTM(
-            lockAndDataAddress).tokenManagerAddresses(schainHash)) {
+        if (schainHash == keccak256(abi.encodePacked(getChainID())) || sender != ILockAndDataTM(
+            getLockAndDataAddress()).tokenManagerAddresses(schainHash)) {
             emit Error(
                 sender,
                 fromSchainID,
@@ -461,20 +477,20 @@ contract TokenManager is Permissions {
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
             require(to != address(0), "Incorrect receiver");
-            require(ILockAndDataTM(lockAndDataAddress).sendEth(to, amount), "Not Sent");
+            require(ILockAndDataTM(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
             return;
         } else if ((operation == TransactionOperation.transferERC20 && to==address(0)) ||
                   (operation == TransactionOperation.rawTransferERC20 && to!=address(0))) {
-            address erc20Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
+            address erc20Module = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
             require(IERC20Module(erc20Module).sendERC20(to, data), "Failed to send ERC20");
             address receiver = IERC20Module(erc20Module).getReceiver(to, data);
-            require(ILockAndDataTM(lockAndDataAddress).sendEth(receiver, amount), "Not Sent");
+            require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else if ((operation == TransactionOperation.transferERC721 && to==address(0)) ||
                   (operation == TransactionOperation.rawTransferERC721 && to!=address(0))) {
-            address erc721Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
+            address erc721Module = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC721Module")));
             require(IERC721Module(erc721Module).sendERC721(to, data), "Failed to send ERC721");
             address receiver = IERC721Module(erc721Module).getReceiver(to, data);
-            require(ILockAndDataTM(lockAndDataAddress).sendEth(receiver, amount), "Not Sent");
+            require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         }
     }
 
@@ -488,9 +504,9 @@ contract TokenManager is Permissions {
     function exitToMain(address to, uint amount, bytes memory data) public receivedEth(amount) {
         bytes memory newData;
         newData = abi.encodePacked(bytes1(uint8(1)), data);
-        IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
+        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
-            ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             amount,
             to,
             newData
@@ -516,9 +532,9 @@ contract TokenManager is Permissions {
         rightTransaction(schainID)
         receivedEth(amount)
     {
-        IMessageProxy(proxyForSchainAddress).postOutgoingMessage(
+        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
-            ILockAndDataTM(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))),
+            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))),
             amount,
             to,
             data
@@ -530,7 +546,7 @@ contract TokenManager is Permissions {
     }
 
     function addEthCost(address sender, uint amount) public receivedEth(amount) {
-        ILockAndDataTM(lockAndDataAddress).addGasCosts(sender, amount);
+        ILockAndDataTM(getLockAndDataAddress()).addGasCosts(sender, amount);
     }
 
     /**

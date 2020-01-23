@@ -77,7 +77,7 @@ contract DepositBox is Permissions {
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
+        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
         require(schainHash != keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect");
         require(tokenManagerAddress != address(0), "Unconnected chain");
         _;
@@ -86,7 +86,7 @@ contract DepositBox is Permissions {
     modifier requireGasPayment() {
         require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Gas was not paid");
         _;
-        ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+        ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
     }
 
     /// Create a new deposit box
@@ -113,9 +113,9 @@ contract DepositBox is Permissions {
         rightTransaction(schainID)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
-        address lockAndDataERC20 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        address erc20Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
+        address lockAndDataERC20 = IContractManager(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address erc20Module = IContractManager(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
             IERC20(contractHere).allowance(
                 msg.sender,
@@ -144,7 +144,7 @@ contract DepositBox is Permissions {
             data
         );
         if (msg.value > 0) {
-            ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+            ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
         }
     }
 
@@ -159,9 +159,9 @@ contract DepositBox is Permissions {
         payable
         rightTransaction(schainID)
     {
-        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(keccak256(abi.encodePacked(schainID)));
-        address lockAndDataERC20 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        address erc20Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(keccak256(abi.encodePacked(schainID)));
+        address lockAndDataERC20 = IContractManager(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address erc20Module = IContractManager(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
             IERC20(contractHere).allowance(
                 msg.sender,
@@ -190,7 +190,7 @@ contract DepositBox is Permissions {
             data
         );
         if (msg.value > 0) {
-            ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+            ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
         }
     }
 
@@ -201,8 +201,8 @@ contract DepositBox is Permissions {
         uint tokenId) external payable rightTransaction(schainID)
         {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address lockAndDataERC721 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
-        address erc721Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
+        address lockAndDataERC721 = IContractManager(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        address erc721Module = IContractManager(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("ERC721Module")));
         require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
@@ -213,13 +213,13 @@ contract DepositBox is Permissions {
             false);
         IMessageProxy(proxyAddress).postOutgoingMessage(
             schainID,
-            ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash),
+            ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash),
             msg.value,
             address(0),
             data
         );
         if (msg.value > 0) {
-            ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+            ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
         }
     }
 
@@ -235,8 +235,8 @@ contract DepositBox is Permissions {
         rightTransaction(schainID)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address lockAndDataERC721 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
-        address erc721Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
+        address lockAndDataERC721 = IContractManager(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        address erc721Module = IContractManager(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("ERC721Module")));
         require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
@@ -247,13 +247,13 @@ contract DepositBox is Permissions {
             true);
         IMessageProxy(proxyAddress).postOutgoingMessage(
             schainID,
-            ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash),
+            ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash),
             msg.value,
             contractThere,
             data
         );
         if (msg.value > 0) {
-            ILockAndDataDB(lockAndDataAddress).receiveEth.value(msg.value)(msg.sender);
+            ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
         }
     }
 
@@ -270,7 +270,7 @@ contract DepositBox is Permissions {
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         if (
             schainHash == keccak256(abi.encodePacked("Mainnet")) ||
-            sender != ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash)
+            sender != ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash)
         ) {
             emit Error(
                 sender,
@@ -281,7 +281,7 @@ contract DepositBox is Permissions {
                 "Receiver chain is incorrect"
             );
         }
-        if (!(amount <= address(lockAndDataAddress).balance) && !(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
+        if (!(amount <= address(lockAndDataAddress_).balance) && !(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
             emit Error(
                 sender,
                 fromSchainID,
@@ -305,7 +305,7 @@ contract DepositBox is Permissions {
         }
 
         // this condition never be `false`, because `sendEth` return `true` or rejected with error only
-        if (!ILockAndDataDB(lockAndDataAddress).sendEth(owner, GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
+        if (!ILockAndDataDB(lockAndDataAddress_).sendEth(getOwner(), GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
             emit Error(
                 sender,
                 fromSchainID,
@@ -319,23 +319,23 @@ contract DepositBox is Permissions {
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
             if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
-                ILockAndDataDB(lockAndDataAddress).approveTransfer(to, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
+                ILockAndDataDB(lockAndDataAddress_).approveTransfer(to, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
             }
         } else if ((operation == TransactionOperation.transferERC20 && to==address(0)) ||
                   (operation == TransactionOperation.rawTransferERC20 && to!=address(0))) {
-            address erc20Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC20Module")));
+            address erc20Module = IContractManager(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("ERC20Module")));
             require(IERC20Module(erc20Module).sendERC20(to, data), "Sending of ERC20 was failed");
             address receiver = IERC20Module(erc20Module).getReceiver(to, data);
             if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
-                ILockAndDataDB(lockAndDataAddress).approveTransfer(receiver, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
+                ILockAndDataDB(lockAndDataAddress_).approveTransfer(receiver, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
             }
         } else if ((operation == TransactionOperation.transferERC721 && to==address(0)) ||
                   (operation == TransactionOperation.rawTransferERC721 && to!=address(0))) {
-            address erc721Module = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("ERC721Module")));
+            address erc721Module = IContractManager(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("ERC721Module")));
             require(IERC721Module(erc721Module).sendERC721(to, data), "Sending of ERC721 was failed");
             address receiver = IERC721Module(erc721Module).getReceiver(to, data);
             if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
-                ILockAndDataDB(lockAndDataAddress).approveTransfer(receiver, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
+                ILockAndDataDB(lockAndDataAddress_).approveTransfer(receiver, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
             }
         }
     }
@@ -352,7 +352,7 @@ contract DepositBox is Permissions {
         requireGasPayment
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash);
+        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
         bytes memory newData;
         newData = abi.encodePacked(bytes1(uint8(1)), data);
         IMessageProxy(proxyAddress).postOutgoingMessage(

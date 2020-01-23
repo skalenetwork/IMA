@@ -31,9 +31,9 @@ interface IETHERC20 {
 
 contract LockAndDataForSchain is Ownable {
 
-    address public ethERC20Address;
+    address private ethERC20Address_; // l_sergiy: changed name _
 
-    mapping(bytes32 => address) public permitted;
+    mapping(bytes32 => address) private permitted_; // l_sergiy: changed name _
 
     mapping(bytes32 => address) public tokenManagerAddresses;
 
@@ -42,6 +42,23 @@ contract LockAndDataForSchain is Ownable {
     mapping(address => bool) public authorizedCaller;
 
     bool isVariablesSet = false;
+    
+    // l_sergiy: added check_permitted() function
+    function check_permitted( string memory contractName, address contractAddress ) private view returns ( bool rv ) {
+        require( contractAddress != address(0), "contract address required to check permitted status" );
+        bytes32 contractId = keccak256(abi.encodePacked(contractName));
+        bool isPermitted = (permitted_[contractId] == contractAddress ) ? true : false;
+        if( isPermitted ) {
+            rv = true;
+        } else {
+            string memory strVarName = SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).concatenateStrings( "skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.", contractName );
+            address a = SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableAddress( strVarName );
+            if( a == contractAddress )
+                rv = true;
+            else
+                rv = false;
+        }
+    }
 
     // modifier setVariables() {
     //     if (!isVariablesSet) {
@@ -95,26 +112,35 @@ contract LockAndDataForSchain is Ownable {
 
     modifier allow(string memory contractName) {
         require(
-            permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
-            owner == msg.sender, "Not allowed LockAndDataForSchain");
+            permitted_[keccak256(abi.encodePacked(contractName))] == msg.sender ||
+            getOwner() == msg.sender, "Not allowed LockAndDataForSchain");
         _;
     }
 
+    function getEthERC20Address() /*external onlyOwner*/ private view returns ( address a ) {
+        if( ethERC20Address_ == address( 0 ) ) {
+            return SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableAddress( "skaleConfig.contractSettings.IMA.ethERC20Address" );
+        }
+        a = ethERC20Address_;
+    }
     function setEthERC20Address(address newEthERC20Address) external onlyOwner {
-        ethERC20Address = newEthERC20Address;
+        ethERC20Address_ = newEthERC20Address;
     }
 
     function setContract(string calldata contractName, address newContract) external onlyOwner {
         require(newContract != address(0), "New address is equal zero");
+        
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        require(permitted[contractId] != newContract, "Contract is already added");
+        //require(permitted[contractId] != newContract, "Contract is already added");
+        require( ! check_permitted(contractName,newContract), "Contract is already added" ); // l_sergiy: repacement
+        
         uint length;
         // solium-disable-next-line security/no-inline-assembly
         assembly {
             length := extcodesize(newContract)
         }
         require(length > 0, "Given contract address does not contain code");
-        permitted[contractId] = newContract;
+        permitted_[contractId] = newContract;
     }
 
     function hasSchain( string calldata schainID ) external view returns (bool) {
@@ -129,7 +155,7 @@ contract LockAndDataForSchain is Ownable {
         if (!isVariablesSet) {
             setVariables();
         }
-        require(authorizedCaller[msg.sender] || owner == msg.sender, "Not authorized caller");
+        require(authorizedCaller[msg.sender] || getOwner() == msg.sender, "Not authorized caller");
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
@@ -154,7 +180,7 @@ contract LockAndDataForSchain is Ownable {
         if (!isVariablesSet) {
             setVariables();
         }
-        require(authorizedCaller[msg.sender] || owner == msg.sender, "Not authorized caller");
+        require(authorizedCaller[msg.sender] || getOwner() == msg.sender, "Not authorized caller");
         require(depositBoxAddress != address(0), "Incorrect Deposit Box address");
         require(
             tokenManagerAddresses[
@@ -206,51 +232,60 @@ contract LockAndDataForSchain is Ownable {
     }
 
     function sendEth(address to, uint amount) external allow("TokenManager") returns (bool) {
-        require(IETHERC20(ethERC20Address).mint(to, amount), "Mint error");
+        require(IETHERC20(getEthERC20Address()).mint(to, amount), "Mint error");
         return true;
     }
 
     function receiveEth(address sender, uint amount) external allow("TokenManager") returns (bool) {
-        IETHERC20(ethERC20Address).burnFrom(sender, amount);
+        IETHERC20(getEthERC20Address()).burnFrom(sender, amount);
         return true;
     }
 
     function setVariables() internal {
-        address newEthERC20Address;
-        address newOwner;
         uint length;
+        address newEthERC20Address;
+        /*
+        // l_sergiy: commented, owner can be changed only via contract Ownable -> transferOwnership()
+        address newOwner;
+        */
         assembly {
             newEthERC20Address := sload(0x00)
+            /*
+            // l_sergiy: commented
             newOwner := sload(0x01)
+            */
         }
-        ethERC20Address = newEthERC20Address;
+        ethERC20Address_ = newEthERC20Address;
+        /*
+        // l_sergiy: commented
         owner = newOwner;
+        */
         address callerAddr;
         assembly {
             callerAddr := sload(0x02)
         }
-        permitted[keccak256(abi.encodePacked("TokenManager"))] = callerAddr;
+        permitted_[keccak256(abi.encodePacked("TokenManager"))] = callerAddr;
         assembly {
             callerAddr := sload(0x03)
         }
-        permitted[keccak256(abi.encodePacked("ERC20Module"))] = callerAddr;
+        permitted_[keccak256(abi.encodePacked("ERC20Module"))] = callerAddr;
         assembly {
             callerAddr := sload(0x04)
         }
-        permitted[keccak256(abi.encodePacked("LockAndDataERC20"))] = callerAddr;
+        permitted_[keccak256(abi.encodePacked("LockAndDataERC20"))] = callerAddr;
         assembly {
             callerAddr := sload(0x05)
         }
-        permitted[keccak256(abi.encodePacked("ERC721Module"))] = callerAddr;
+        permitted_[keccak256(abi.encodePacked("ERC721Module"))] = callerAddr;
         assembly {
             callerAddr := sload(0x06)
         }
-        permitted[keccak256(abi.encodePacked("LockAndDataERC721"))] = callerAddr;
+        permitted_[keccak256(abi.encodePacked("LockAndDataERC721"))] = callerAddr;
         assembly {
             callerAddr := sload(0x07)
             length := sload(0x08)
         }
-        permitted[keccak256(abi.encodePacked("TokenFactory"))] = callerAddr;
+        permitted_[keccak256(abi.encodePacked("TokenFactory"))] = callerAddr;
         bytes1 index = 0x09;
         for (uint i = 0; i < length; i++) {
             assembly {
@@ -261,3 +296,6 @@ contract LockAndDataForSchain is Ownable {
         isVariablesSet = true;
     }
 }
+
+
+

@@ -33,7 +33,13 @@ interface IContractManager {
 contract Permissions is Ownable {
 
     // address of ContractManager
-    address lockAndDataAddress;
+    address lockAndDataAddress_; // l_sergiy: changed name _
+    
+    function getLockAndDataAddress() public view returns ( address a ) {
+        if( lockAndDataAddress_ != address( 0 ) )
+            return lockAndDataAddress_;
+        return SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableAddress( "skaleConfig.contractSettings.IMA.lockAndDataAddress" );
+    }
 
     /**
      * @dev allow - throws if called by any account and contract other than the owner
@@ -42,8 +48,8 @@ contract Permissions is Ownable {
      */
     modifier allow(string memory contractName) {
         require(
-            IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
-            owner == msg.sender, "Message sender is invalid"
+            IContractManager(lockAndDataAddress_).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
+            getOwner() == msg.sender, "Message sender is invalid"
         );
         _;
     }
@@ -53,6 +59,6 @@ contract Permissions is Ownable {
      * @param newContractsAddress - current address of ContractManager
      */
     constructor(address newContractsAddress) public {
-        lockAndDataAddress = newContractsAddress;
+        lockAndDataAddress_ = newContractsAddress;
     }
 }

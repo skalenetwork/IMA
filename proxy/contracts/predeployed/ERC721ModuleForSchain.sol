@@ -32,8 +32,11 @@ contract ERC721ModuleForSchain is Permissions {
                 newLockAndData := sload(0x00)
                 newOwner := sload(0x01)
             }
-            lockAndDataAddress = newLockAndData;
+            lockAndDataAddress_ = newLockAndData;
+            /*
+            // l_sergiy: commented, owner can be changed only via contract Ownable -> transferOwnership()
             owner = newOwner;
+            */
             isVariablesSet = true;
         }
         _;
@@ -45,7 +48,7 @@ contract ERC721ModuleForSchain is Permissions {
         uint tokenId,
         bool isRAW) external setVariables allow("TokenManager") returns (bytes memory data)
         {
-        address lockAndDataERC721 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        address lockAndDataERC721 = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         if (!isRAW) {
             uint contractPosition = ILockAndDataERC721S(lockAndDataERC721).erc721Mapper(contractHere);
             require(contractPosition > 0, "Not existing ERC-721 contract");
@@ -63,7 +66,7 @@ contract ERC721ModuleForSchain is Permissions {
     }
 
     function sendERC721(address to, bytes calldata data) external setVariables allow("TokenManager") returns (bool) {
-        address lockAndDataERC721 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        address lockAndDataERC721 = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         uint contractPosition;
         address contractAddress;
         address receiver;
@@ -72,7 +75,7 @@ contract ERC721ModuleForSchain is Permissions {
             (contractPosition, receiver, tokenId) = fallbackDataParser(data);
             contractAddress = ILockAndDataERC721S(lockAndDataERC721).erc721Tokens(contractPosition);
             if (contractAddress == address(0)) {
-                address tokenFactoryAddress = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("TokenFactory")));
+                address tokenFactoryAddress = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("TokenFactory")));
                 contractAddress = ITokenFactoryForERC721(tokenFactoryAddress).createERC721(data);
                 emit ERC721TokenCreated(contractPosition, contractAddress);
                 ILockAndDataERC721S(lockAndDataERC721).addERC721Token(contractAddress, contractPosition);
@@ -154,3 +157,5 @@ contract ERC721ModuleForSchain is Permissions {
         return (address(bytes20(to)), uint(token));
     }
 }
+
+
