@@ -1,5 +1,5 @@
 /**
- *   Permissions.sol - SKALE Interchain Messaging Agent
+ *   PermissionsForMainnet.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -19,7 +19,7 @@
 
 pragma solidity ^0.5.3;
 
-import "./Ownable.sol";
+import "./OwnableForMainnet.sol";
 
 interface IContractManager {
     function permitted(bytes32 contractName) external view returns (address);
@@ -36,9 +36,7 @@ contract Permissions is Ownable {
     address lockAndDataAddress_; // l_sergiy: changed name _
     
     function getLockAndDataAddress() public view returns ( address a ) {
-        if( lockAndDataAddress_ != address( 0 ) )
-            return lockAndDataAddress_;
-        return SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableAddress( "skaleConfig.contractSettings.IMA.lockAndDataAddress" );
+        return lockAndDataAddress_;
     }
 
     /**

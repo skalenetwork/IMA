@@ -19,7 +19,7 @@
 
 pragma solidity ^0.5.3;
 
-import "./../Ownable.sol";
+import "./OwnableForSchain.sol";
 
 interface IETHERC20 {
     function allowance(address from, address to) external returns (uint);

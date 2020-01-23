@@ -19,7 +19,7 @@
 
 pragma solidity ^0.5.3;
 
-import "./Permissions.sol";
+import "./PermissionsForSchain.sol";
 
 interface ERC20MintAndBurn {
     function balanceOf(address to) external view returns (uint);

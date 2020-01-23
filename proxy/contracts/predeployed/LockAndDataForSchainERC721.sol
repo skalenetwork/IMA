@@ -1,6 +1,6 @@
 pragma solidity ^0.5.3;
 
-import "./Permissions.sol";
+import "./PermissionsForSchain.sol";
 
 interface ERC721MintAndBurn {
     function ownerOf(uint tokenId) external view returns (address);

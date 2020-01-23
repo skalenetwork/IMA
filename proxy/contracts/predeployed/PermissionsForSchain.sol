@@ -1,5 +1,5 @@
 /**
- *   Permissions.sol - SKALE Interchain Messaging Agent
+ *   PermissionsForSchain.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -19,7 +19,7 @@
 
 pragma solidity ^0.5.3;
 
-import "./../Ownable.sol";
+import "./OwnableForSchain.sol";
 
 interface IContractManager {
     function permitted(bytes32 contractName) external view returns (address);

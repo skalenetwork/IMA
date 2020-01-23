@@ -19,7 +19,7 @@
 
 pragma solidity ^0.5.3;
 
-import "./Permissions.sol";
+import "./PermissionsForSchain.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 
 interface ITokenFactoryForERC20 {

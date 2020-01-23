@@ -19,7 +19,7 @@
 
 pragma solidity ^0.5.3;
 
-import "./Permissions.sol";
+import "./PermissionsForMainnet.sol";
 import "./interfaces/IMessageProxy.sol";
 import "./interfaces/IERC20Module.sol";
 import "./interfaces/IERC721Module.sol";
