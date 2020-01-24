@@ -31,7 +31,7 @@ contract LockAndDataForSchainERC721 is Permissions {
             lockAndDataAddress_ = newLockAndData;
 
             // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
-            setOwner( newOwner );
+            setOwner(newOwner);
 
             isVariablesSet = true;
         }

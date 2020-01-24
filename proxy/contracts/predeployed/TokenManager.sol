@@ -111,7 +111,7 @@ contract TokenManager is Permissions {
             lockAndDataAddress_ = newLockAndData;
 
             // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
-            setOwner( newOwner );
+            setOwner(newOwner);
 
             chainID_ = newChainID;
             proxyForSchainAddress_ = newProxyAddress;

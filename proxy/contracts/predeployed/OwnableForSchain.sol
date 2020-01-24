@@ -42,7 +42,16 @@ contract Ownable {
     constructor() public {
         ownerAddress = msg.sender;
     }
-    
+
+    /**
+     * @dev Allows the current owner to transfer control of the contract to a newOwner.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address payable newOwner) external onlyOwner {
+        require(newOwner != address(0), "New owner has to be set");
+        setOwner(newOwner);
+    }
+
     /**
      * @dev Returns owner address.
      */
@@ -66,16 +75,6 @@ contract Ownable {
     modifier onlyOwner() {
         require(msg.sender == getOwner(), "Only owner can execute this method");
         _;
-    }
-
-
-    /**
-     * @dev Allows the current owner to transfer control of the contract to a newOwner.
-     * @param newOwner The address to transfer ownership to.
-     */
-    function transferOwnership(address payable newOwner) external onlyOwner {
-        require(newOwner != address(0), "New owner has to be set");
-        setOwner( newOwner );
     }
 
 }

@@ -258,7 +258,7 @@ contract LockAndDataForSchain is Ownable {
         ethERC20Address_ = newEthERC20Address;
 
         // l_sergiy:  owner can be changed only via contract Ownable -> transferOwnership()
-        setOwner( newOwner );
+        setOwner(newOwner);
 
         address callerAddr;
         assembly {

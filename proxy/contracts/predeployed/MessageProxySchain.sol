@@ -152,7 +152,7 @@ contract MessageProxy {
             chainID_ = newChainID;
 
             // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
-            setOwner( newOwner );
+            setOwner(newOwner);
 
             address callerAddr;
             bytes1 index = 0x03;

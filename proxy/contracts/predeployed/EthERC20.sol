@@ -48,7 +48,7 @@ contract EthERC20 is LockAndDataOwnable, ERC20 {
             }
 
             // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
-            setOwner( newLockAndData );
+            setOwner(newLockAndData);
 
             isVariablesSet = true;
         }

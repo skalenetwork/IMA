@@ -34,7 +34,14 @@ contract Permissions is Ownable {
 
     // address of ContractManager
     address lockAndDataAddress_; // l_sergiy: changed name _
-    
+
+    /**
+     * @dev constructor - sets current address of ContractManager
+     * @param newContractsAddress - current address of ContractManager
+     */
+    constructor(address newContractsAddress) public {
+        lockAndDataAddress_ = newContractsAddress;
+    }
     function getLockAndDataAddress() public view returns ( address a ) {
         return lockAndDataAddress_;
     }
@@ -52,11 +59,4 @@ contract Permissions is Ownable {
         _;
     }
 
-    /**
-     * @dev constructor - sets current address of ContractManager
-     * @param newContractsAddress - current address of ContractManager
-     */
-    constructor(address newContractsAddress) public {
-        lockAndDataAddress_ = newContractsAddress;
-    }
 }

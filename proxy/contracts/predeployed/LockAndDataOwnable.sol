@@ -78,7 +78,7 @@ contract LockAndDataOwnable {
      */
     function transferOwnership(address payable newOwner) external onlyOwner {
         require(newOwner != address(0), "New owner has to be set");
-        setOwner( newOwner );
+        setOwner(newOwner);
     }
 
 }
