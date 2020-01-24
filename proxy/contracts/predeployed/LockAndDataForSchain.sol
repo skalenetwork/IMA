@@ -47,7 +47,7 @@ contract LockAndDataForSchain is Ownable {
     function checkPermitted( string memory contractName, address contractAddress ) private view returns ( bool rv ) {
         require(contractAddress != address(0), "contract address required to check permitted status");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        bool isPermitted = (permitted_[ contractId ] == contractAddress) ? true : false;
+        bool isPermitted = (permitted[contractId] == contractAddress) ? true : false;
         if( isPermitted ) {
             rv = true;
         } else {
@@ -119,21 +119,22 @@ contract LockAndDataForSchain is Ownable {
 
     function getEthERC20Address() /*external onlyOwner*/ private view returns ( address a ) {
         if( ethERC20Address_ == address(0) ) {
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress( "skaleConfig.contractSettings.IMA.ethERC20Address" );
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ethERC20Address");
         }
         a = ethERC20Address_;
     }
+
     function setEthERC20Address(address newEthERC20Address) external onlyOwner {
         ethERC20Address_ = newEthERC20Address;
     }
 
     function setContract(string calldata contractName, address newContract) external onlyOwner {
         require(newContract != address(0), "New address is equal zero");
-        
+
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         //require(permitted[contractId] != newContract, "Contract is already added");
-        require( ! checkPermitted(contractName,newContract), "Contract is already added" ); // l_sergiy: repacement
-        
+        require(!checkPermitted(contractName,newContract), "Contract is already added"); // l_sergiy: repacement
+
         uint length;
         // solium-disable-next-line security/no-inline-assembly
         assembly {

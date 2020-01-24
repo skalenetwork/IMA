@@ -20,7 +20,7 @@
 pragma solidity ^0.5.0;
 
 contract SkaleFeatures {
-    
+
     uint constant FREE_MEM_PTR = 0x40;
     uint256 constant FN_NUM_logTextMessage = 0x12;
     uint256 constant FN_NUM_getConfigVariableUint256 = 0x13;
@@ -106,8 +106,8 @@ contract SkaleFeatures {
     function concatenateStrings( string memory strA, string memory strB ) public view returns ( string memory rv ) {
         uint fmp = FREE_MEM_PTR;
         uint256 fnc = FN_NUM_concatenateStrings;
-        uint256 blocksA = (bytes( strA ).length + 31) / 32 + 1;
-        uint256 blocksB = (bytes( strB ).length + 31) / 32 + 1;
+        uint256 blocksA = (bytes(strA).length + 31) / 32 + 1;
+        uint256 blocksB = (bytes(strB).length + 31) / 32 + 1;
         uint256 blocks = blocksA + blocksB;
         assembly {
             let p := mload(fmp)
