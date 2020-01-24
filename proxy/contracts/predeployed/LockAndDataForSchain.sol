@@ -29,7 +29,7 @@ interface IETHERC20 {
 }
 
 
-contract LockAndDataForSchain is Ownable {
+contract LockAndDataForSchain is OwnableForSchain {
 
     address private ethERC20Address_; // l_sergiy: changed name _
 
@@ -222,7 +222,7 @@ contract LockAndDataForSchain is Ownable {
         uint length;
         address newEthERC20Address;
 
-        // l_sergiy:  owner can be changed only via contract Ownable -> transferOwnership()
+        // l_sergiy:  owner can be changed only via contract OwnableForSchain -> transferOwnership()
         address newOwner;
 
         assembly {
@@ -234,7 +234,7 @@ contract LockAndDataForSchain is Ownable {
         }
         ethERC20Address_ = newEthERC20Address;
 
-        // l_sergiy:  owner can be changed only via contract Ownable -> transferOwnership()
+        // l_sergiy:  owner can be changed only via contract OwnableForSchain -> transferOwnership()
         setOwner(newOwner);
 
         address callerAddr;

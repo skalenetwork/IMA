@@ -23,11 +23,11 @@ import "./predeployed/SkaleFeatures.sol";
 
 
 /**
- * @title Ownable
- * @dev The Ownable contract has an owner address, and provides basic authorization control
+ * @title OwnableForMainnet
+ * @dev The OwnableForMainnet contract has an owner address, and provides basic authorization control
  * functions, this simplifies the implementation of "user permissions".
  */
-contract Ownable {
+contract OwnableForMainnet {
 
     /**
      * @dev ownerAddress is only used after transferOwnership(). By default, value of "skaleConfig.contractSettings.IMA.ownerAddress" config variable is used
@@ -36,7 +36,7 @@ contract Ownable {
 
 
     /**
-     * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+     * @dev The OwnableForMainnet constructor sets the original `owner` of the contract to the sender
      * account.
      */
     constructor() public {

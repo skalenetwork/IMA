@@ -39,7 +39,7 @@ interface ILockAndDataDB {
 // This contract runs on the main net and accepts deposits
 
 
-contract DepositBox is Permissions {
+contract DepositBox is PermissionsForMainnet {
 
     //address public skaleManagerAddress;
 
@@ -90,7 +90,7 @@ contract DepositBox is Permissions {
     }
 
     /// Create a new deposit box
-    constructor(address newProxyAddress, address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
+    constructor(address newProxyAddress, address newLockAndDataAddress) PermissionsForMainnet(newLockAndDataAddress) public {
         proxyAddress = newProxyAddress;
     }
 

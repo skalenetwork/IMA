@@ -11,11 +11,11 @@ interface ILockAndDataERC721M {
 }
 
 
-contract ERC721ModuleForMainnet is Permissions {
+contract ERC721ModuleForMainnet is PermissionsForMainnet {
 
     event ERC721TokenAdded(address indexed tokenHere, uint contractPosition);
 
-    constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
+    constructor(address newLockAndDataAddress) PermissionsForMainnet(newLockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 

@@ -4,14 +4,14 @@ import "./PermissionsForMainnet.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
 
 
-contract LockAndDataForMainnetERC721 is Permissions {
+contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
 
     mapping(uint => address) public erc721Tokens;
     mapping(address => uint) public erc721Mapper;
     // mapping(uint => uint) public mintToken;
     uint newIndexERC721 = 1;
 
-    constructor(address _lockAndDataAddress) Permissions(_lockAndDataAddress) public {
+    constructor(address _lockAndDataAddress) PermissionsForMainnet(_lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 

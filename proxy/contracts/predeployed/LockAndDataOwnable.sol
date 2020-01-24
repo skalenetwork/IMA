@@ -24,7 +24,7 @@ import "./SkaleFeatures.sol";
 
 /**
  * @title LockAndDataOwnable
- * @dev The Ownable contract has an owner address, and provides basic authorization control
+ * @dev The LockAndDataOwnable contract has an owner address, and provides basic authorization control
  * functions, this simplifies the implementation of "user permissions".
  */
 contract LockAndDataOwnable {
@@ -39,7 +39,7 @@ contract LockAndDataOwnable {
 
 
     /**
-     * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+     * @dev The LockAndDataOwnable constructor sets the original `owner` of the contract to the sender
      * account.
      */
     constructor() public {

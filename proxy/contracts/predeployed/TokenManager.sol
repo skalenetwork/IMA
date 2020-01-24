@@ -42,7 +42,7 @@ interface ILockAndDataTM {
 // When the user exits, it burns them
 
 
-contract TokenManager is Permissions {
+contract TokenManager is PermissionsForSchain {
 
 
     enum TransactionOperation {
@@ -96,7 +96,7 @@ contract TokenManager is Permissions {
             }
             lockAndDataAddress_ = newLockAndData;
 
-            // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
+            // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
             setOwner(newOwner);
 
             chainID_ = newChainID;
@@ -128,7 +128,7 @@ contract TokenManager is Permissions {
     //     address newProxyAddress,
     //     address newLockAndDataAddress
     // )
-    //     Permissions(newLockAndDataAddress)
+    //     PermissionsForSchain(newLockAndDataAddress)
     //     public
     // {
     //     chainID = newChainID;

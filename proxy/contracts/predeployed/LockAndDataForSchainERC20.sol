@@ -28,7 +28,7 @@ interface ERC20MintAndBurn {
 }
 
 
-contract LockAndDataForSchainERC20 is Permissions {
+contract LockAndDataForSchainERC20 is PermissionsForSchain {
 
     event SendedERC20(bool result);
     event ReceivedERC20(bool result);
@@ -48,7 +48,7 @@ contract LockAndDataForSchainERC20 is Permissions {
             }
             lockAndDataAddress_ = newLockAndData;
 
-            // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
+            // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
             setOwner(newOwner);
 
             isVariablesSet = true;

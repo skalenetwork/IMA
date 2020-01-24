@@ -117,7 +117,7 @@ contract MessageProxy {
             }
             chainID_ = newChainID;
 
-            // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
+            // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
             setOwner(newOwner);
 
             address callerAddr;

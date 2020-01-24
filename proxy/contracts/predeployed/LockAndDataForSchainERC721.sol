@@ -9,7 +9,7 @@ interface ERC721MintAndBurn {
 }
 
 
-contract LockAndDataForSchainERC721 is Permissions {
+contract LockAndDataForSchainERC721 is PermissionsForSchain {
 
     event SendERC721(bool result);
     event ReceiveERC721(bool result);
@@ -30,7 +30,7 @@ contract LockAndDataForSchainERC721 is Permissions {
             }
             lockAndDataAddress_ = newLockAndData;
 
-            // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
+            // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
             setOwner(newOwner);
 
             isVariablesSet = true;

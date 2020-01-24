@@ -30,12 +30,12 @@ interface ILockAndDataERC20M {
 }
 
 
-contract ERC20ModuleForMainnet is Permissions {
+contract ERC20ModuleForMainnet is PermissionsForMainnet {
 
     event ERC20TokenAdded(address indexed tokenHere, uint contractPosition);
     event ERC20TokenSent(address indexed tokenHere, uint contractPosition, uint amount);
 
-    constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
+    constructor(address newLockAndDataAddress) PermissionsForMainnet(newLockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 

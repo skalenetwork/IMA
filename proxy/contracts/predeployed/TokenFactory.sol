@@ -107,7 +107,7 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
 }
 
 
-contract TokenFactory is Permissions {
+contract TokenFactory is PermissionsForSchain {
 
     bool isVariablesSet = false;
 
@@ -121,7 +121,7 @@ contract TokenFactory is Permissions {
             }
             lockAndDataAddress_ = newLockAndData;
 
-            // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
+            // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
             setOwner(newOwner);
 
             isVariablesSet = true;

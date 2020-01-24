@@ -27,10 +27,10 @@ interface IContractManager {
 
 
 /**
- * @title Permissions - connected module for Upgradeable approach, knows ContractManager
+ * @title PermissionsForMainnet - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-contract Permissions is Ownable {
+contract PermissionsForMainnet is OwnableForMainnet {
 
     // address of ContractManager
     address lockAndDataAddress_; // l_sergiy: changed name _

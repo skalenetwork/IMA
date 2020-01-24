@@ -18,7 +18,7 @@ interface ILockAndDataERC721S {
 }
 
 
-contract ERC721ModuleForSchain is Permissions {
+contract ERC721ModuleForSchain is PermissionsForSchain {
 
     event ERC721TokenCreated(uint indexed contractPosition, address tokenAddress);
 
@@ -34,7 +34,7 @@ contract ERC721ModuleForSchain is Permissions {
             }
             lockAndDataAddress_ = newLockAndData;
 
-            // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
+            // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
             setOwner(newOwner);
 
             isVariablesSet = true;

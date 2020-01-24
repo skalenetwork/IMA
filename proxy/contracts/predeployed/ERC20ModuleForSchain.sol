@@ -42,7 +42,7 @@ interface ERC20Clone {
 }
 
 
-contract ERC20ModuleForSchain is Permissions {
+contract ERC20ModuleForSchain is PermissionsForSchain {
 
     event ERC20TokenCreated(uint indexed contractPosition, address tokenThere);
     event ERC20TokenReceived(uint indexed contractPosition, address tokenThere, uint amount);
@@ -59,7 +59,7 @@ contract ERC20ModuleForSchain is Permissions {
             }
             lockAndDataAddress_ = newLockAndData;
 
-            // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
+            // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
             setOwner(newOwner);
 
             isVariablesSet = true;

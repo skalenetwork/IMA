@@ -23,11 +23,11 @@ import "./SkaleFeatures.sol";
 
 
 /**
- * @title Ownable
- * @dev The Ownable contract has an owner address, and provides basic authorization control
+ * @title OwnableForSchain
+ * @dev The OwnableForSchain contract has an owner address, and provides basic authorization control
  * functions, this simplifies the implementation of "user permissions".
  */
-contract Ownable {
+contract OwnableForSchain {
 
     /**
      * @dev ownerAddress is only used after transferOwnership(). By default, value of "skaleConfig.contractSettings.IMA.ownerAddress" config variable is used
@@ -36,12 +36,12 @@ contract Ownable {
 
 
     /**
-     * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+     * @dev The OwnableForSchain constructor sets the original `owner` of the contract to the sender
      * account.
      */
-    constructor() public {
-        ownerAddress = msg.sender;
-    }
+    // constructor() public {
+    //     ownerAddress = msg.sender;
+    // }
 
     /**
      * @dev Allows the current owner to transfer control of the contract to a newOwner.

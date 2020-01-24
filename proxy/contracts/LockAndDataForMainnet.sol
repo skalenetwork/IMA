@@ -22,7 +22,7 @@ pragma solidity ^0.5.3;
 import "./OwnableForMainnet.sol";
 
 
-contract LockAndDataForMainnet is Ownable {
+contract LockAndDataForMainnet is OwnableForMainnet {
 
     mapping(bytes32 => address) public permitted;
 
@@ -45,7 +45,7 @@ contract LockAndDataForMainnet is Ownable {
         string message
     );
 
-    constructor() Ownable() public {
+    constructor() OwnableForMainnet() public {
         authorizedCaller[msg.sender] = true;
     }
 

@@ -27,10 +27,10 @@ interface IContractManager {
 
 
 /**
- * @title Permissions - connected module for Upgradeable approach, knows ContractManager
+ * @title PermissionsForSchain - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-contract Permissions is Ownable {
+contract PermissionsForSchain is OwnableForSchain {
 
     // address of ContractManager
     address lockAndDataAddress_; // l_sergiy: changed name _
@@ -39,9 +39,9 @@ contract Permissions is Ownable {
      * @dev constructor - sets current address of ContractManager
      * @param newContractsAddress - current address of ContractManager
      */
-    constructor(address newContractsAddress) public {
-        lockAndDataAddress_ = newContractsAddress;
-    }
+    // constructor(address newContractsAddress) public {
+    //     lockAndDataAddress_ = newContractsAddress;
+    // }
 
     /**
      * @dev allow - throws if called by any account and contract other than the owner
