@@ -285,7 +285,7 @@ contract LockAndDataForSchain is Ownable {
         require(contractAddress != address(0), "contract address required to check permitted status");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         bool isPermitted = (permitted_[contractId] == contractAddress) ? true : false;
-        if( isPermitted )
+        if( (isPermitted) )
             rv = true;
         else {
             string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).concatenateStrings("skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.", contractName);

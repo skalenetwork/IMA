@@ -34,11 +34,13 @@ contract Permissions is Ownable {
 
     // address of ContractManager
     address lockAndDataAddress_; // l_sergiy: changed name _
-    
-    function getLockAndDataAddress() public view returns ( address a ) {
-        if( lockAndDataAddress_ != address(0) )
-            return lockAndDataAddress_;
-        return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.lockAndDataAddress");
+
+    /**
+     * @dev constructor - sets current address of ContractManager
+     * @param newContractsAddress - current address of ContractManager
+     */
+    constructor(address newContractsAddress) public {
+        lockAndDataAddress_ = newContractsAddress;
     }
 
     /**
@@ -54,11 +56,11 @@ contract Permissions is Ownable {
         _;
     }
 
-    /**
-     * @dev constructor - sets current address of ContractManager
-     * @param newContractsAddress - current address of ContractManager
-     */
-    constructor(address newContractsAddress) public {
-        lockAndDataAddress_ = newContractsAddress;
+    function getLockAndDataAddress() public view returns ( address a ) {
+        if( lockAndDataAddress_ != address(0) )
+            return lockAndDataAddress_;
+        return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).
+            getConfigVariableAddress("skaleConfig.contractSettings.IMA.lockAndDataAddress");
     }
+
 }

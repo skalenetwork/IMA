@@ -58,7 +58,7 @@ contract TokenManager is Permissions {
     address private proxyForSchainAddress_; // l_sergiy: changed name _ made private
 
     function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
-        if( keccak256(abi.encodePacked(chainID_)) == keccak256(abi.encodePacked("")) ) {
+        if( (keccak256(abi.encodePacked(chainID_))) == (keccak256(abi.encodePacked(""))) ) {
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString("skaleConfig.sChain.schainID");
         }
         return chainID_;

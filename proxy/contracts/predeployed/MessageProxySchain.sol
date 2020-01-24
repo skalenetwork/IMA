@@ -57,25 +57,25 @@ contract MessageProxy {
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public ownerAddress; // l_sergiy: changed name to ownerAddress
 
+    bool mainnetConnected = false;
+
+    mapping(address => bool) private authorizedCaller_; // l_sergiy: changed name _ and made private
+
     function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
-        if( keccak256(abi.encodePacked(chainID_)) == keccak256(abi.encodePacked("")) ) {
+        if( (keccak256(abi.encodePacked(chainID_))) == (keccak256(abi.encodePacked(""))) )
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString("skaleConfig.sChain.schainID");
-        }
         return chainID_;
     }
 
     function getOwner() public view returns ( address ow ) { // l_sergiy: added
-        if( ownerAddress == address(0) )
+        if( (ownerAddress) == (address(0)) )
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ownerAddress");
         return ownerAddress;
     }
+
     function setOwner( address newAddressOwner ) public {
         ownerAddress = newAddressOwner;
     }
-
-    bool mainnetConnected = false;
-
-    mapping(address => bool) private authorizedCaller_; // l_sergiy: changed name _ and made private
 
     function addr2str( address a ) private pure returns ( string memory ) { // l_sergiy: added
         bytes memory b = new bytes(20);
