@@ -47,18 +47,27 @@ contract LockAndDataOwnable {
     }
 
     /**
+     * @dev Allows the current owner to transfer control of the contract to a newOwner.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address payable newOwner) external onlyOwner {
+        require(newOwner != address(0), "New owner has to be set");
+        setOwner(newOwner);
+    }
+
+    /**
      * @dev Sets new owner address.
      */
     function setOwner( address newAddressOwner ) public {
         ownerAddress = newAddressOwner;
     }
-    
+
     /**
      * @dev Returns owner address.
      */
     function getOwner() public view returns ( address ow ) {
-        if( ownerAddress == address( 0 ) ) {
-            return SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableAddress( "skaleConfig.contractSettings.IMA.lockAndDataAddress" );
+        if( ownerAddress == address(0) ) {
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress( "skaleConfig.contractSettings.IMA.lockAndDataAddress" );
         }
         return ownerAddress;
     }
@@ -69,16 +78,6 @@ contract LockAndDataOwnable {
     modifier onlyOwner() {
         require(msg.sender == getOwner(), "Only owner can execute this method");
         _;
-    }
-
-
-    /**
-     * @dev Allows the current owner to transfer control of the contract to a newOwner.
-     * @param newOwner The address to transfer ownership to.
-     */
-    function transferOwnership(address payable newOwner) external onlyOwner {
-        require(newOwner != address(0), "New owner has to be set");
-        setOwner(newOwner);
     }
 
 }

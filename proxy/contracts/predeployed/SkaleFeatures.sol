@@ -32,98 +32,98 @@ contract SkaleFeatures {
         uint fmp = FREE_MEM_PTR;
         uint256 fnc = FN_NUM_logTextMessage;
         address who = msg.sender;
-        uint256 blocks = ( bytes( strTextMessage ).length + 31 ) / 32 + 1;
+        uint256 blocks = (bytes(strTextMessage).length + 31) / 32 + 1;
         assembly {
-            let p := mload( fmp )
+            let p := mload(fmp)
             let ptr := p
             // who
-            mstore( ptr, who )
-            ptr := add( ptr, 32 )
+            mstore(ptr, who)
+            ptr := add(ptr, 32)
             // type
-            mstore( ptr, messageType )
-            ptr := add( ptr, 32 )
+            mstore(ptr, messageType )
+            ptr := add(ptr, 32)
             // message
-            for { let i := 0 } lt( i, blocks ) { i := add( 1, i ) } {
-                let where := add( ptr, mul( 32, i ) )
-                let what := mload( add( strTextMessage, mul( 32, i ) ) )
-                mstore( where, what )
+            for { let i := 0 } lt( i, blocks ) { i := add(1, i) } {
+                let where := add(ptr, mul(32, i))
+                let what := mload(add( strTextMessage, mul(32, i)))
+                mstore(where, what)
             }
-            rv := staticcall( not( 0 ), fnc, p, add( 64, mul( blocks, 32 ) ), p, 32 )
+            rv := staticcall(not(0), fnc, p, add( 64, mul(blocks, 32) ), p, 32)
         }
     }
-    function logMessage( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage( 0, strMessage ); }
-    function logDebug  ( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage( 1, strMessage ); }
-    function logTrace  ( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage( 2, strMessage ); }
-    function logWarning( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage( 3, strMessage ); }
-    function logError  ( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage( 4, strMessage ); }
-    function logFatal  ( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage( 5, strMessage ); }
+    function logMessage( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage(0, strMessage); }
+    function logDebug  ( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage(1, strMessage); }
+    function logTrace  ( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage(2, strMessage); }
+    function logWarning( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage(3, strMessage); }
+    function logError  ( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage(4, strMessage); }
+    function logFatal  ( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage(5, strMessage); }
 
     function getConfigVariableUint256( string memory strConfigVariableName ) public view returns ( uint256 rv ) {
         uint fmp = FREE_MEM_PTR;
         uint256 fnc = FN_NUM_getConfigVariableUint256;
-        uint256 blocks = ( bytes( strConfigVariableName ).length + 31 ) / 32 + 1;
+        uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
         assembly {
-            let ptr := mload( fmp )
-            for { let i := 0 } lt( i, blocks ) { i := add( 1, i ) } {
-                let where := add( ptr, mul( 32, i ) )
-                let what := mload( add( strConfigVariableName, mul( 32, i ) ) )
-                mstore( where, what )
+            let ptr := mload(fmp)
+            for { let i := 0 } lt( i, blocks ) { i := add(1, i) } {
+                let where := add(ptr, mul(32, i))
+                let what := mload(add(strConfigVariableName, mul(32, i)))
+                mstore(where, what)
             }
-            let status := staticcall( not( 0 ), fnc, ptr, mul( blocks, 32 ), ptr, 32 )
-            rv := mload( ptr )
+            let status := staticcall(not(0), fnc, ptr, mul(blocks, 32), ptr, 32)
+            rv := mload(ptr)
         }
     }
     function getConfigVariableAddress( string memory strConfigVariableName ) public view returns ( address rv ) {
         uint fmp = FREE_MEM_PTR;
         uint256 fnc = FN_NUM_getConfigVariableAddress;
-        uint256 blocks = ( bytes( strConfigVariableName ).length + 31 ) / 32 + 1;
+        uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
         assembly {
-            let ptr := mload( fmp )
-            for { let i := 0 } lt( i, blocks ) { i := add( 1, i ) } {
-                let where := add( ptr, mul( 32, i ) )
-                let what := mload( add( strConfigVariableName, mul( 32, i ) ) )
-                mstore( where, what )
+            let ptr := mload(fmp)
+            for { let i := 0 } lt( i, blocks ) { i := add(1, i) } {
+                let where := add(ptr, mul(32, i))
+                let what := mload(add(strConfigVariableName, mul(32, i)))
+                mstore(where, what)
             }
-            let status := staticcall( not( 0 ), fnc, ptr, mul( blocks, 32 ), ptr, 32 )
-            rv := mload( ptr )
+            let status := staticcall(not(0), fnc, ptr, mul(blocks, 32), ptr, 32)
+            rv := mload(ptr)
         }
     }
     function getConfigVariableString( string memory strConfigVariableName ) public view returns ( string memory rv ) {
         uint fmp = FREE_MEM_PTR;
         uint256 fnc = FN_NUM_getConfigVariableString;
-        uint256 blocks = ( bytes( strConfigVariableName ).length + 31 ) / 32 + 1;
+        uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
         assembly {
-            let ptr := mload( fmp )
-            for { let i := 0 } lt( i, blocks ) { i := add( 1, i ) } {
-                let where := add( ptr, mul( 32, i ) )
-                let what := mload( add( strConfigVariableName, mul( 32, i ) ) )
-                mstore( where, what )
+            let ptr := mload(fmp)
+            for { let i := 0 } lt( i, blocks ) { i := add(1, i) } {
+                let where := add(ptr, mul(32, i))
+                let what := mload(add(strConfigVariableName, mul(32, i)))
+                mstore(where, what)
             }
-            let status := staticcall( not( 0 ), fnc, ptr, mul( blocks, 32 ), rv, mul( 1024, 1024 ) )
+            let status := staticcall(not(0), fnc, ptr, mul(blocks, 32), rv, mul(1024, 1024))
         }
     }
 
     function concatenateStrings( string memory strA, string memory strB ) public view returns ( string memory rv ) {
         uint fmp = FREE_MEM_PTR;
         uint256 fnc = FN_NUM_concatenateStrings;
-        uint256 blocksA = ( bytes( strA ).length + 31 ) / 32 + 1;
-        uint256 blocksB = ( bytes( strB ).length + 31 ) / 32 + 1;
+        uint256 blocksA = (bytes( strA ).length + 31) / 32 + 1;
+        uint256 blocksB = (bytes( strB ).length + 31) / 32 + 1;
         uint256 blocks = blocksA + blocksB;
         assembly {
-            let p := mload( fmp )
+            let p := mload(fmp)
             let ptr := p
-            for { let i := 0 } lt( i, blocksA ) { i := add( 1, i ) } {
-                let where := add( ptr, mul( 32, i ) )
-                let what := mload( add( strA, mul( 32, i ) ) )
-                mstore( where, what )
+            for { let i := 0 } lt( i, blocksA ) { i := add(1, i) } {
+                let where := add(ptr, mul(32, i))
+                let what := mload(add( strA, mul(32, i)))
+                mstore(where, what)
             }
-            ptr := add( ptr, mul( blocksA, 32 ) )
-            for { let i := 0 } lt( i, blocksB ) { i := add( 1, i ) } {
-                let where := add( ptr, mul( 32, i ) )
-                let what := mload( add( strB, mul( 32, i ) ) )
-                mstore( where, what )
+            ptr := add(ptr, mul( blocksA, 32) )
+            for { let i := 0 } lt( i, blocksB ) { i := add(1, i) } {
+                let where := add(ptr, mul(32, i))
+                let what := mload(add( strB, mul(32, i)))
+                mstore(where, what)
             }
-            let status := staticcall( not( 0 ), fnc, p, mul( blocks, 32 ), rv, mul( 1024, 1024 ) )
+            let status := staticcall(not(0), fnc, p, mul(blocks, 32), rv, mul(1024, 1024))
         }
     }
 }

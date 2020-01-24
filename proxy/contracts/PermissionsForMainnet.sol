@@ -42,6 +42,7 @@ contract Permissions is Ownable {
     constructor(address newContractsAddress) public {
         lockAndDataAddress_ = newContractsAddress;
     }
+
     function getLockAndDataAddress() public view returns ( address a ) {
         return lockAndDataAddress_;
     }

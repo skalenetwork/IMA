@@ -42,17 +42,17 @@ contract LockAndDataForSchain is Ownable {
     mapping(address => bool) public authorizedCaller;
 
     bool isVariablesSet = false;
-    
+
     // l_sergiy: added checkPermitted() function
     function checkPermitted( string memory contractName, address contractAddress ) private view returns ( bool rv ) {
-        require( contractAddress != address (0 ), "contract address required to check permitted status" );
-        bytes32 contractId = keccak256( abi.encodePacked( contractName ) );
-        bool isPermitted = ( permitted_[ contractId ] == contractAddress ) ? true : false;
+        require(contractAddress != address(0), "contract address required to check permitted status");
+        bytes32 contractId = keccak256(abi.encodePacked(contractName));
+        bool isPermitted = (permitted_[ contractId ] == contractAddress) ? true : false;
         if( isPermitted ) {
             rv = true;
         } else {
-            string memory strVarName = SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).concatenateStrings( "skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.", contractName );
-            address a = SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableAddress( strVarName );
+            string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).concatenateStrings("skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.", contractName);
+            address a = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(strVarName);
             if( a == contractAddress )
                 rv = true;
             else
@@ -118,8 +118,8 @@ contract LockAndDataForSchain is Ownable {
     }
 
     function getEthERC20Address() /*external onlyOwner*/ private view returns ( address a ) {
-        if( ethERC20Address_ == address( 0 ) ) {
-            return SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableAddress( "skaleConfig.contractSettings.IMA.ethERC20Address" );
+        if( ethERC20Address_ == address(0) ) {
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress( "skaleConfig.contractSettings.IMA.ethERC20Address" );
         }
         a = ethERC20Address_;
     }

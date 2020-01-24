@@ -58,15 +58,15 @@ contract TokenManager is Permissions {
     address private proxyForSchainAddress_; // l_sergiy: changed name _ made private
 
     function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
-        if( keccak256( abi.encodePacked( chainID_ ) ) == keccak256(abi.encodePacked( "" ) ) ) {
-            return SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableString( "skaleConfig.sChain.schainID" );
+        if( keccak256(abi.encodePacked(chainID_)) == keccak256(abi.encodePacked("")) ) {
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString( "skaleConfig.sChain.schainID" );
         }
         return chainID_;
     }
 
     function getProxyForSchainAddress() public view returns ( address ow ) { // l_sergiy: added
-        if( proxyForSchainAddress_ == address( 0 ) ) {
-            return SkaleFeatures( 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2 ).getConfigVariableAddress( "skaleConfig.contractSettings.IMA.proxyForSchainAddress" );
+        if( proxyForSchainAddress_ == address(0) ) {
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress( "skaleConfig.contractSettings.IMA.proxyForSchainAddress" );
         }
         return proxyForSchainAddress_;
     }
