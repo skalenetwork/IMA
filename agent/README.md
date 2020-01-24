@@ -20,7 +20,7 @@ First of all, we need special truffle version **5.0.12** (notice, the *-g* optio
     sudo npm install -g truffle@5.0.12
     truffle --version
 
-Second, get source code of Solidity contracts and install dependecies:
+Second, get source code of Solidity contracts and install dependencies:
 
     git clone git@github.com:skalenetwork/IMA.git
     cd ./IMA
@@ -88,7 +88,6 @@ Fourth, export required environment variables:
     export ACCOUNT_FOR_SCHAIN="0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852"
     export MNEMONIC_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
     export MNEMONIC_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
-
 
 Fifth, try rebuild all the contracts once to ensure everything initialized OK:
 
@@ -483,7 +482,7 @@ Agent app will scan **S-Chain** network and ask each of nodes to sign messages t
 This options requires all **S-Chain** nodes to be configured with **SGX Wallet** or **Emu Wallet** access information.
 
 The **--bls-glue** command line parameter must be used to specify path to the **bls_glue** application.
-This parameter must be specified if **--sign-messages** paraneter is present.
+This parameter must be specified if **--sign-messages** parameter is present.
 
 The **--bls-verify** command line parameter must be used to specify path to the **verify_bls** application.
 This parameter is optional. If it was specified, then **IMA Agent** application will verify gathered BLS signatures.
