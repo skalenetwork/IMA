@@ -43,11 +43,11 @@ contract LockAndDataForSchain is Ownable {
 
     bool isVariablesSet = false;
     
-    // l_sergiy: added check_permitted() function
-    function check_permitted( string memory contractName, address contractAddress ) private view returns ( bool rv ) {
-        require( contractAddress != address(0), "contract address required to check permitted status" );
-        bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        bool isPermitted = (permitted_[contractId] == contractAddress ) ? true : false;
+    // l_sergiy: added checkPermitted() function
+    function checkPermitted( string memory contractName, address contractAddress ) private view returns ( bool rv ) {
+        require( contractAddress != address (0 ), "contract address required to check permitted status" );
+        bytes32 contractId = keccak256( abi.encodePacked( contractName ) );
+        bool isPermitted = ( permitted_[ contractId ] == contractAddress ) ? true : false;
         if( isPermitted ) {
             rv = true;
         } else {
@@ -132,7 +132,7 @@ contract LockAndDataForSchain is Ownable {
         
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         //require(permitted[contractId] != newContract, "Contract is already added");
-        require( ! check_permitted(contractName,newContract), "Contract is already added" ); // l_sergiy: repacement
+        require( ! checkPermitted(contractName,newContract), "Contract is already added" ); // l_sergiy: repacement
         
         uint length;
         // solium-disable-next-line security/no-inline-assembly
@@ -244,10 +244,10 @@ contract LockAndDataForSchain is Ownable {
     function setVariables() internal {
         uint length;
         address newEthERC20Address;
-        /*
-        // l_sergiy: commented, owner can be changed only via contract Ownable -> transferOwnership()
+
+        // l_sergiy:  owner can be changed only via contract Ownable -> transferOwnership()
         address newOwner;
-        */
+
         assembly {
             newEthERC20Address := sload(0x00)
             /*
@@ -256,10 +256,10 @@ contract LockAndDataForSchain is Ownable {
             */
         }
         ethERC20Address_ = newEthERC20Address;
-        /*
-        // l_sergiy: commented
-        owner = newOwner;
-        */
+
+        // l_sergiy:  owner can be changed only via contract Ownable -> transferOwnership()
+        setOwner( newOwner );
+
         address callerAddr;
         assembly {
             callerAddr := sload(0x02)

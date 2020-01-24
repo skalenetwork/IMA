@@ -109,10 +109,10 @@ contract TokenManager is Permissions {
                 newProxyAddress := sload(0x03)
             }
             lockAndDataAddress_ = newLockAndData;
-            /*
-            // l_sergiy: commented, owner can be changed only via contract Ownable -> transferOwnership()
-            owner = newOwner;
-            */
+
+            // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
+            setOwner( newOwner );
+
             chainID_ = newChainID;
             proxyForSchainAddress_ = newProxyAddress;
             isVariablesSet = true;

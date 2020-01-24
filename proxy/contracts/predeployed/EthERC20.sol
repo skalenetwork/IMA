@@ -46,10 +46,10 @@ contract EthERC20 is LockAndDataOwnable, ERC20 {
             assembly {
                 newLockAndData := sload(0x00)
             }
-            /*
-            // l_sergiy: commented, owner can be changed only via contract Ownable -> transferOwnership()
-            owner = newLockAndData;
-            */
+
+            // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
+            setOwner( newLockAndData );
+
             isVariablesSet = true;
         }
         _;

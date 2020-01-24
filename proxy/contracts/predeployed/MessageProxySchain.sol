@@ -70,6 +70,9 @@ contract MessageProxy {
         }
         return ownerAddress;
     }
+    function setOwner( address newAddressOwner ) public {
+        ownerAddress = newAddressOwner;
+    }
 
     bool mainnetConnected = false;
 
@@ -147,7 +150,10 @@ contract MessageProxy {
                 length := sload(0x02)
             }
             chainID_ = newChainID;
-            ownerAddress = newOwner;
+
+            // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
+            setOwner( newOwner );
+
             address callerAddr;
             bytes1 index = 0x03;
             for (uint i = 0; i < length; i++) {

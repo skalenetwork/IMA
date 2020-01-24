@@ -54,6 +54,13 @@ contract Ownable {
     }
 
     /**
+     * @dev Sets new owner address.
+     */
+    function setOwner( address newAddressOwner ) public {
+        ownerAddress = newAddressOwner;
+    }
+
+    /**
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
@@ -68,7 +75,7 @@ contract Ownable {
      */
     function transferOwnership(address payable newOwner) external onlyOwner {
         require(newOwner != address(0), "New owner has to be set");
-        ownerAddress = newOwner;
+        setOwner( newOwner );
     }
 
 }

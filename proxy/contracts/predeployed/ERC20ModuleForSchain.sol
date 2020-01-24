@@ -58,10 +58,10 @@ contract ERC20ModuleForSchain is Permissions {
                 newOwner := sload(0x01)
             }
             lockAndDataAddress_ = newLockAndData;
-            /*
-            // l_sergiy: commented, owner can be changed only via contract Ownable -> transferOwnership()
-            owner = newOwner;
-            */
+
+            // l_sergiy: owner can be changed only via contract Ownable -> transferOwnership()
+            setOwner( newOwner );
+
             isVariablesSet = true;
         }
         _;

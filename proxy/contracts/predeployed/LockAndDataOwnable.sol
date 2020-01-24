@@ -45,6 +45,13 @@ contract LockAndDataOwnable {
     constructor() public {
         ownerAddress = msg.sender;
     }
+
+    /**
+     * @dev Sets new owner address.
+     */
+    function setOwner( address newAddressOwner ) public {
+        ownerAddress = newAddressOwner;
+    }
     
     /**
      * @dev Returns owner address.
@@ -71,7 +78,7 @@ contract LockAndDataOwnable {
      */
     function transferOwnership(address payable newOwner) external onlyOwner {
         require(newOwner != address(0), "New owner has to be set");
-        ownerAddress = newOwner;
+        setOwner( newOwner );
     }
 
 }
