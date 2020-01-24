@@ -61,40 +61,6 @@ contract MessageProxy {
 
     mapping(address => bool) private authorizedCaller_; // l_sergiy: changed name _ and made private
 
-    function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
-        if ((keccak256(abi.encodePacked(chainID_))) == (keccak256(abi.encodePacked(""))) )
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString("skaleConfig.sChain.schainID");
-        return chainID_;
-    }
-
-    function getOwner() public view returns ( address ow ) { // l_sergiy: added
-        if ((ownerAddress) == (address(0)) )
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ownerAddress");
-        return ownerAddress;
-    }
-
-    function setOwner( address newAddressOwner ) public {
-        ownerAddress = newAddressOwner;
-    }
-
-    function addr2str( address a ) private pure returns ( string memory ) { // l_sergiy: added
-        bytes memory b = new bytes(20);
-        for (uint i = 0; i < 20; i++)
-            b[i] = byte(uint8(uint(a) / (2**(8*(19 - i)))));
-        return string(b);
-    }
-
-    function checkIsAuthorizedCaller( address a ) private view returns ( bool rv ) { // l_sergiy: added
-        if (authorizedCaller_[msg.sender] )
-            return true;
-        string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).
-            concatenateStrings("skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers.0x", addr2str(a));
-        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableUint256(strVarName);
-        if (u != 0 )
-            return true;
-        return false;
-    }
-
     event OutgoingMessage(
         string dstChain,
         bytes32 indexed dstChainHash,
@@ -379,6 +345,22 @@ contract MessageProxy {
     //     );
     // }
 
+    function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
+        if ((keccak256(abi.encodePacked(chainID_))) == (keccak256(abi.encodePacked(""))) )
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString("skaleConfig.sChain.schainID");
+        return chainID_;
+    }
+
+    function getOwner() public view returns ( address ow ) { // l_sergiy: added
+        if ((ownerAddress) == (address(0)) )
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ownerAddress");
+        return ownerAddress;
+    }
+
+    function setOwner( address newAddressOwner ) public {
+        ownerAddress = newAddressOwner;
+    }
+
     function hashedArray(Message[] memory messages) internal pure returns (bytes32) {
         bytes memory data;
         for (uint i = 0; i < messages.length; i++) {
@@ -393,4 +375,24 @@ contract MessageProxy {
         }
         return keccak256(data);
     }
+
+    function addr2str( address a ) private pure returns ( string memory ) { // l_sergiy: added
+        bytes memory b = new bytes(20);
+        for (uint i = 0; i < 20; i++) {
+            b[i] = byte(uint8(uint(a) / (2**(8*(19 - i)))));
+        }
+        return string(b);
+    }
+
+    function checkIsAuthorizedCaller( address a ) private view returns ( bool rv ) { // l_sergiy: added
+        if (authorizedCaller_[msg.sender] )
+            return true;
+        string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).
+            concatenateStrings("skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers.0x", addr2str(a));
+        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableUint256(strVarName);
+        if (u != 0 )
+            return true;
+        return false;
+    }
+
 }

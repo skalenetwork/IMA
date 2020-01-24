@@ -100,13 +100,6 @@ contract LockAndDataForSchain is Ownable {
         _;
     }
 
-    function getEthERC20Address() /*external onlyOwner*/ private view returns ( address a ) {
-        if (ethERC20Address_ == address(0) ) {
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ethERC20Address");
-        }
-        a = ethERC20Address_;
-    }
-
     function setEthERC20Address(address newEthERC20Address) external onlyOwner {
         ethERC20Address_ = newEthERC20Address;
     }
@@ -208,7 +201,14 @@ contract LockAndDataForSchain is Ownable {
             return true;
         }
         return false;
+    }    function getEthERC20Address() /*external onlyOwner*/ private view returns ( address a ) {
+        if (ethERC20Address_ == address(0) ) {
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ethERC20Address");
+        }
+        a = ethERC20Address_;
     }
+
+
 
     function removeGasCosts(address to) external allow("TokenManager") returns (uint balance) {
         balance = ethCosts[to];
@@ -278,6 +278,13 @@ contract LockAndDataForSchain is Ownable {
             authorizedCaller[callerAddr] = true;
         }
         isVariablesSet = true;
+    }
+
+    function getEthERC20Address() /*external onlyOwner*/ private view returns ( address a ) {
+        if (ethERC20Address_ == address(0) ) {
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ethERC20Address");
+        }
+        a = ethERC20Address_;
     }
 
     // l_sergiy: added checkPermitted() function
