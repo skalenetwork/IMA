@@ -203,8 +203,6 @@ contract LockAndDataForSchain is Ownable {
         return false;
     }
 
-
-
     function removeGasCosts(address to) external allow("TokenManager") returns (uint balance) {
         balance = ethCosts[to];
         delete ethCosts[to];
