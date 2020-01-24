@@ -101,7 +101,7 @@ contract LockAndDataForSchain is Ownable {
     }
 
     function getEthERC20Address() /*external onlyOwner*/ private view returns ( address a ) {
-        if( ethERC20Address_ == address(0) ) {
+        if (ethERC20Address_ == address(0) ) {
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ethERC20Address");
         }
         a = ethERC20Address_;
@@ -285,12 +285,12 @@ contract LockAndDataForSchain is Ownable {
         require(contractAddress != address(0), "contract address required to check permitted status");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         bool isPermitted = (permitted_[contractId] == contractAddress) ? true : false;
-        if( (isPermitted) )
+        if ((isPermitted) )
             rv = true;
         else {
             string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).concatenateStrings("skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.", contractName);
             address a = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(strVarName);
-            if( a == contractAddress )
+            if (a == contractAddress )
                 rv = true;
             else
                 rv = false;
