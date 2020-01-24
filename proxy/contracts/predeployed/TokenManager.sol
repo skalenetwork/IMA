@@ -535,6 +535,20 @@ contract TokenManager is Permissions {
         ILockAndDataTM(getLockAndDataAddress()).addGasCosts(sender, amount);
     }
 
+    function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
+        if ((keccak256(abi.encodePacked(chainID_))) == (keccak256(abi.encodePacked(""))) ) {
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString("skaleConfig.sChain.schainID");
+        }
+        return chainID_;
+    }
+
+    function getProxyForSchainAddress() public view returns ( address ow ) { // l_sergiy: added
+        if (proxyForSchainAddress_ == address(0) ) {
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.proxyForSchainAddress");
+        }
+        return proxyForSchainAddress_;
+    }
+
     /**
      * @dev Convert first byte of data to Operation
      * 0x01 - transfer eth
@@ -574,20 +588,6 @@ contract TokenManager is Permissions {
         } else if (operationType == 0x15) {
             return TransactionOperation.rawTransferERC721;
         }
-    }
-
-    function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
-        if ((keccak256(abi.encodePacked(chainID_))) == (keccak256(abi.encodePacked(""))) ) {
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString("skaleConfig.sChain.schainID");
-        }
-        return chainID_;
-    }
-
-    function getProxyForSchainAddress() public view returns ( address ow ) { // l_sergiy: added
-        if (proxyForSchainAddress_ == address(0) ) {
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.proxyForSchainAddress");
-        }
-        return proxyForSchainAddress_;
     }
 
 }
