@@ -53,7 +53,7 @@ async function run() {
       let baseArgs = `--url-main-net=${MAINNET_RPC_URL} --url-s-chain=${SCHAIN_RPC_URL} \
       --id-main-net=Mainnet --id-s-chain=${SCHAIN_NAME} --abi-main-net=${MAINNET_PROXY_PATH} \
       --node-number=${NODE_NUMBER} --nodes-count=${NODES_COUNT}  \
-      --abi-s-chain=${SCHAIN_PROXY_PATH} --key-main-net=${pk} --key-s-chain=${pk}  `;
+      --abi-s-chain=${SCHAIN_PROXY_PATH} --key-main-net=${pk} --key-s-chain=${pk} --period 5`;
 
       let baseCmd = `node ${__dirname}/main.js`;
       let registerCmd = `${baseCmd} --register ${baseArgs}`;
