@@ -47,7 +47,7 @@ contract LockAndDataForSchain is Ownable {
     function checkPermitted( string memory contractName, address contractAddress ) private view returns ( bool rv ) {
         require(contractAddress != address(0), "contract address required to check permitted status");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        bool isPermitted = (permitted[contractId] == contractAddress) ? true : false;
+        bool isPermitted = (permitted_[contractId] == contractAddress) ? true : false;
         if( isPermitted ) {
             rv = true;
         } else {
