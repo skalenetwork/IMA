@@ -236,6 +236,8 @@ let g_arrContracts = [
     }
 ];
 
+let g_joSummaryABI = {};
+
 let g_joSkaleConfigTemplate = {
     "accounts": {
     },
@@ -262,6 +264,10 @@ let g_joSkaleConfigTemplate = {
 
 g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers[ ownerAddress ] = 1;
 
+function convert_camel_case_to_underscore_case( s ) {
+    return ( typeof s == "string" ) ? s.replace(/\.?([A-Z])/g, function (x,y){return "_" + y.toLowerCase()}).replace(/^_/, "") : s;
+}
+
 for( let idxContract = 0; idxContract < g_arrContracts.length; ++ idxContract ) {
     let joContractProperties = g_arrContracts[ idxContract ];
     if( g_bVerbose )
@@ -280,6 +286,13 @@ for( let idxContract = 0; idxContract < g_arrContracts.length; ++ idxContract ) 
     g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA[ joContractProperties.referenceVariableName ] = joContractProperties.address;
     g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted[ joContractBuildInfo.contractName ] = joContractProperties.address;
     g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers[ joContractProperties.address ] = 1;
+    //
+    let strContractNameCamelCase = joContractProperties.fileName.replace( ".json", "" );
+    let strContractNameUnderscoreCase = convert_camel_case_to_underscore_case( strContractNameCamelCase ).replace( "e_r_c", "erc" );
+    if( strContractNameUnderscoreCase == "message_proxy" )
+        strContractNameUnderscoreCase += "_chain"; // message_proxy -> message_proxy_chain
+    g_joSummaryABI[ "" + strContractNameUnderscoreCase + "_address" ] = "" + joContractProperties.address;
+    g_joSummaryABI[ "" + strContractNameUnderscoreCase + "_abi" ] = joContractBuildInfo.abi;
     if( g_bVerbose )
         log.write( cc.success("Done") + "\n" );
 }
@@ -290,6 +303,10 @@ for( let idxAuthorizedCaller = 0; idxAuthorizedCaller < g_arrExampleAuthorizedCa
 }
 
 
-//log.write( cc.success("Done, generated ") + cc.j(g_joSkaleConfigTemplate) + "\n" );
-//log.write( cc.success("Done, generated ") + cc.j(JSON.stringify( g_joSkaleConfigTemplate, null, 4 ) ) + "\n" );
-console.log( JSON.stringify( g_joSkaleConfigTemplate, null, 4 ) );
+
+
+//log.write( cc.success("Done, generated skaled config data: ") + cc.j(g_joSkaleConfigTemplate) + "\n" );
+//log.write( cc.success("Done, generated skaled config data: ") + cc.j(JSON.stringify( g_joSkaleConfigTemplate, null, 4 ) ) + "\n" );
+//console.log( "Done, generated skaled config data: " + JSON.stringify( g_joSkaleConfigTemplate, null, 4 ) );
+
+console.log( "Done, generated ABI summary: " + JSON.stringify( g_joSummaryABI, null, 4 ) );
