@@ -164,7 +164,8 @@ contract TokenFactory is PermissionsForSchain {
         string memory symbol;
         (name, symbol) = fallbackDataCreateERC721Parser(data);
         ERC721OnChain newERC721 = new ERC721OnChain(name, symbol);
-        address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
+        address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
+            permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         newERC721.addMinter(lockAndDataERC721);
         newERC721.renounceMinter();
         return address(newERC721);
