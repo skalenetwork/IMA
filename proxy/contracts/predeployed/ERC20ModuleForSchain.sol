@@ -73,7 +73,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         uint amount,
         bool isRAW) external setVariables allow("TokenManager") returns (bytes memory data)
         {
-        address lockAndDataERC20 = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         if (!isRAW) {
             uint contractPosition = ILockAndDataERC20S(lockAndDataERC20).erc20Mapper(contractHere);
             require(contractPosition > 0, "Not existing ERC-20 contract");
@@ -91,7 +91,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
     }
 
     function sendERC20(address to, bytes calldata data) external setVariables allow("TokenManager") returns (bool) {
-        address lockAndDataERC20 = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         uint contractPosition;
         address contractAddress;
         address receiver;
@@ -100,7 +100,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
             (contractPosition, receiver, amount) = fallbackDataParser(data);
             contractAddress = ILockAndDataERC20S(lockAndDataERC20).erc20Tokens(contractPosition);
             if (contractAddress == address(0)) {
-                address tokenFactoryAddress = IContractManager(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("TokenFactory")));
+                address tokenFactoryAddress = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("TokenFactory")));
                 contractAddress = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(data);
                 emit ERC20TokenCreated(contractPosition, contractAddress);
                 ILockAndDataERC20S(lockAndDataERC20).addERC20Token(contractAddress, contractPosition);

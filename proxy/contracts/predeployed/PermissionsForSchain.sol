@@ -21,7 +21,7 @@ pragma solidity ^0.5.3;
 
 import "./OwnableForSchain.sol";
 
-interface IContractManager {
+interface IContractManagerForSchain {
     function permitted(bytes32 contractName) external view returns (address);
 }
 
@@ -50,7 +50,7 @@ contract PermissionsForSchain is OwnableForSchain {
      */
     modifier allow(string memory contractName) {
         require(
-            IContractManager(lockAndDataAddress_).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
+            IContractManagerForSchain(lockAndDataAddress_).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
             getOwner() == msg.sender, "Message sender is invalid"
         );
         _;
