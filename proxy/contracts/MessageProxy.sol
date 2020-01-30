@@ -20,7 +20,7 @@
 pragma solidity ^0.5.3;
 pragma experimental ABIEncoderV2;
 
-interface ContractReceiver {
+interface ContractReceiverForMainnet {
     function postMessage(
         address sender,
         string calldata schainID,
@@ -288,7 +288,7 @@ contract MessageProxy {
         }
 
         for (uint i = 0; i < messages.length; i++) {
-            ContractReceiver(messages[i].destinationContract).postMessage(
+            ContractReceiverForMainnet(messages[i].destinationContract).postMessage(
                 messages[i].sender,
                 srcChainID,
                 messages[i].to,

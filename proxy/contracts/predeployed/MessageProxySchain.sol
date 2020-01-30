@@ -22,7 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "./SkaleFeatures.sol";
 
-interface ContractReceiver {
+interface ContractReceiverForSchain {
     function postMessage(
         address sender,
         string calldata schainID,
@@ -297,7 +297,7 @@ contract MessageProxy {
         // }
 
         for (uint i = 0; i < messages.length; i++) {
-            ContractReceiver(messages[i].destinationContract).postMessage(
+            ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                 messages[i].sender,
                 srcChainID,
                 messages[i].to,
