@@ -107,28 +107,27 @@ contract MessageProxyForSchain {
                 0,
                 true);
             mainnetConnected = true;
-            string memory newChainID;
-            address newOwner;
-            uint length;
-            assembly {
-                newChainID := sload(0x00)
-                newOwner := sload(0x01)
-                length := sload(0x02)
-            }
-            chainID_ = newChainID;
+            // string memory newChainID;
+            // address newOwner;
+            // uint length;
+            // assembly {
+            //     newChainID := sload(0x00)
+            //     newOwner := sload(0x01)
+            //     length := sload(0x02)
+            // }
+            // chainID_ = newChainID;
 
-            // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
-            setOwner(newOwner);
+            // // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
+            // setOwner(newOwner);
 
-            address callerAddr;
-            bytes1 index = 0x03;
-            for (uint i = 0; i < length; i++) {
-                assembly {
-                    callerAddr := sload(add(index, i))
-                }
-                authorizedCaller_[callerAddr] = true;
-            }
-            mainnetConnected = true;
+            // address callerAddr;
+            // bytes1 index = 0x03;
+            // for (uint i = 0; i < length; i++) {
+            //     assembly {
+            //         callerAddr := sload(add(index, i))
+            //     }
+            //     authorizedCaller_[callerAddr] = true;
+            // }
         }
         _;
     }
@@ -254,11 +253,15 @@ contract MessageProxyForSchain {
         view
         returns (uint)
     {
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- getIncomingMessagesCounter --- 1" );
+
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
 
         //require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
         if( !connectedChains[srcChainHash].inited )
             return 0;
+
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- getIncomingMessagesCounter --- 2" );
 
         return connectedChains[srcChainHash].incomingMessageCounter;
     }
@@ -275,13 +278,22 @@ contract MessageProxyForSchain {
         external
         connectMainnet
     {
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- begin" );
+
         //require(authorizedCaller[msg.sender], "Not authorized caller");
         require(checkIsAuthorizedCaller(msg.sender), "Not authorized caller"); // l_sergiy: replacement
 
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- 2" );
+
         require(connectedChains[keccak256(abi.encodePacked(srcChainID))].inited, "Chain is not initialized");
+
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- 3" );
+
         require(
             startingCounter == connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
+
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- 4" );
 
         // if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
         //     Message[] memory input = new Message[](messages.length);
