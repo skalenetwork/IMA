@@ -1,5 +1,5 @@
 /**
- *   MessageProxy.sol - SKALE Interchain Messaging Agent
+ *   MessageProxyForMainnet.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -51,7 +51,7 @@ interface ISkaleVerifier {
 }
 
 
-contract MessageProxy {
+contract MessageProxyForMainnet {
 
     // Note: this uses assembly example from
 

@@ -1346,13 +1346,13 @@ async function do_erc721_payment_from_s_chain(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Do real money movement from main-net to S-chain by sniffing events
-// 1) main-net.MessageProxy.getOutgoingMessagesCounter -> save to nOutMsgCnt
-// 2) S-chain.MessageProxy.getIncomingMessagesCounter -> save to nIncMsgCnt
+// 1) main-net.MessageProxyForMainnet.getOutgoingMessagesCounter -> save to nOutMsgCnt
+// 2) S-chain.MessageProxySchain.getIncomingMessagesCounter -> save to nIncMsgCnt
 // 3) Will transfer all in range from [ nIncMsgCnt ... (nOutMsgCnt-1) ] ... assume current counter index is nIdxCurrentMsg
 //
 // One transaction transfer is:
-// 1) Find events main-net.MessageProxy.OutgoingMessage where msgCounter member is in range
-// 2) Publish it to S-chain.MessageProxy.postIncomingMessages(
+// 1) Find events main-net.MessageProxyForMainnet.OutgoingMessage where msgCounter member is in range
+// 2) Publish it to S-chain.MessageProxySchain.postIncomingMessages(
 //            main-net chain id   // uint64 srcChainID
 //            nIdxCurrentMsg // uint64 startingCounter
 //            [srcContract]  // address[] memory senders

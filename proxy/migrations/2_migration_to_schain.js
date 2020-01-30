@@ -6,7 +6,7 @@ const gasMultiplierParameter = 'gas_multiplier';
 const argv = require('minimist')(process.argv.slice(2), {string: [gasMultiplierParameter]});
 const gasMultiplier = argv[gasMultiplierParameter] === undefined ? 1 : Number(argv[gasMultiplierParameter])
 
-let MessageProxy = artifacts.require("./predeployed/MessageProxy.sol");
+let MessageProxy = artifacts.require("./predeployed/MessageProxyForSchain.sol");
 let TokenManager = artifacts.require("./predeployed/TokenManager.sol");
 let LockAndDataForSchain = artifacts.require("./predeployed/LockAndDataForSchain.sol");
 let EthERC20 = artifacts.require("./predeployed/EthERC20.sol");

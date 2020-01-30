@@ -1,5 +1,5 @@
 /**
- *   MessageProxy.sol - SKALE Interchain Messaging Agent
+ *   MessageProxyForSchain.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -34,7 +34,7 @@ interface ContractReceiverForSchain {
 }
 
 
-contract MessageProxy {
+contract MessageProxyForSchain {
 
     // Note: this uses assembly example from
 
@@ -388,7 +388,7 @@ contract MessageProxy {
         if (authorizedCaller_[msg.sender] )
             return true;
         string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).
-            concatenateStrings("skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers.0x", addr2str(a));
+            concatenateStrings("skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers.0x", addr2str(a));
         uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableUint256(strVarName);
         if (u != 0 )
             return true;

@@ -8,7 +8,7 @@ const gasMultiplierParameter = 'gas_multiplier';
 const argv = require('minimist')(process.argv.slice(2), {string: [gasMultiplierParameter]});
 const gasMultiplier = argv[gasMultiplierParameter] === undefined ? 1 : Number(argv[gasMultiplierParameter])
 
-let MessageProxy = artifacts.require("./MessageProxy.sol");
+let MessageProxy = artifacts.require("./MessageProxyForMainnet.sol");
 let DepositBox = artifacts.require("./DepositBox.sol");
 let LockAndDataForMainnet = artifacts.require("./LockAndDataForMainnet.sol");
 let ERC20ModuleForMainnet = artifacts.require("./ERC20ModuleForMainnet.sol");

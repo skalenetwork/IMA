@@ -252,7 +252,7 @@ let g_joSkaleConfigTemplate = {
                         permitted: {
                         }
                     },
-                    MessageProxy: {
+                    MessageProxyForSchain: {
                         mapAuthorizedCallers: {
                         } 
                     }
@@ -262,7 +262,7 @@ let g_joSkaleConfigTemplate = {
     }
 };
 
-g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers[ ownerAddress ] = 1;
+g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers[ ownerAddress ] = 1;
 
 function convert_camel_case_to_underscore_case( s ) {
     return ( typeof s == "string" ) ? s.replace(/\.?([A-Z])/g, function (x,y){return "_" + y.toLowerCase()}).replace(/^_/, "") : s;
@@ -285,7 +285,7 @@ for( let idxContract = 0; idxContract < g_arrContracts.length; ++ idxContract ) 
     };
     g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA[ joContractProperties.referenceVariableName ] = joContractProperties.address;
     g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted[ joContractBuildInfo.contractName ] = joContractProperties.address;
-    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers[ joContractProperties.address ] = 1;
+    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers[ joContractProperties.address ] = 1;
     //
     let strContractNameCamelCase = joContractProperties.fileName.replace( ".json", "" );
     let strContractNameUnderscoreCase = convert_camel_case_to_underscore_case( strContractNameCamelCase ).replace( "e_r_c", "erc" );
@@ -299,7 +299,7 @@ for( let idxContract = 0; idxContract < g_arrContracts.length; ++ idxContract ) 
 
 for( let idxAuthorizedCaller = 0; idxAuthorizedCaller < g_arrExampleAuthorizedCallers.length; ++ idxAuthorizedCaller ) {
     let joExampleAuthorizedCaller = g_arrExampleAuthorizedCallers[ idxAuthorizedCaller ];
-    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers[ joExampleAuthorizedCaller.address ] = 1;
+    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers[ joExampleAuthorizedCaller.address ] = 1;
 }
 
 
