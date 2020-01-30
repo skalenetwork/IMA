@@ -21,7 +21,7 @@ pragma solidity ^0.5.3;
 
 import "./OwnableForMainnet.sol";
 
-interface IContractManagerForMainnetForMainnet {
+interface IContractManagerForMainnet {
     function permitted(bytes32 contractName) external view returns (address);
 }
 
