@@ -6,7 +6,7 @@ const gasMultiplierParameter = 'gas_multiplier';
 const argv = require('minimist')(process.argv.slice(2), {string: [gasMultiplierParameter]});
 const gasMultiplier = argv[gasMultiplierParameter] === undefined ? 1 : Number(argv[gasMultiplierParameter])
 
-let MessageProxy = artifacts.require("./predeployed/MessageProxyForSchain.sol");
+let MessageProxyForSchain = artifacts.require("./predeployed/MessageProxyForSchain.sol");
 let TokenManager = artifacts.require("./predeployed/TokenManager.sol");
 let LockAndDataForSchain = artifacts.require("./predeployed/LockAndDataForSchain.sol");
 let EthERC20 = artifacts.require("./predeployed/EthERC20.sol");
@@ -34,10 +34,10 @@ async function deploy(deployer, network) {
         process.exit(1);
     }
     let schainName = process.env.SCHAIN_NAME;
-    await deployer.deploy(MessageProxy, schainName, "0x0000000000000000000000000000000000000000", {gas: gasLimit}).then(async function() {
+    await deployer.deploy(MessageProxyForSchain, schainName, "0x0000000000000000000000000000000000000000", {gas: gasLimit}).then(async function() {
         return await deployer.deploy(LockAndDataForSchain, {gas: gasLimit});
     }).then(async function(inst) {
-        await deployer.deploy(TokenManager, schainName, MessageProxy.address, inst.address, {gas: gasLimit * gasMultiplier});
+        await deployer.deploy(TokenManager, schainName, MessageProxyForSchain.address, inst.address, {gas: gasLimit * gasMultiplier});
         await deployer.deploy(EthERC20, {gas: gasLimit * gasMultiplier}).then(async function(EthERC20Inst) {
             await EthERC20Inst.transferOwnership(inst.address, {gas: gasLimit});
         });
@@ -73,8 +73,8 @@ async function deploy(deployer, network) {
             token_factory_abi: TokenFactory.abi,
             // erc721_on_chain_address: ERC721OnChain.address,
             // erc721_on_chain_abi: ERC721OnChain.abi,
-            message_proxy_chain_address: MessageProxy.address,
-            message_proxy_chain_abi: MessageProxy.abi
+            message_proxy_chain_address: MessageProxyForSchain.address,
+            message_proxy_chain_abi: MessageProxyForSchain.abi
         }
 
         let jsonObject2 = {
@@ -96,8 +96,8 @@ async function deploy(deployer, network) {
             token_factory_bytecode: TokenFactory.bytecode,
             // erc721_on_chain_address: ERC721OnChain.address,
             // erc721_on_chain_bytecode: ERC721OnChain.bytecode,
-            message_proxy_chain_address: MessageProxy.address,
-            message_proxy_chain_bytecode: MessageProxy.bytecode
+            message_proxy_chain_address: MessageProxyForSchain.address,
+            message_proxy_chain_bytecode: MessageProxyForSchain.bytecode
         }
     
         await fsPromises.writeFile(`data/proxySchain_${schainName}.json`, JSON.stringify(jsonObject));

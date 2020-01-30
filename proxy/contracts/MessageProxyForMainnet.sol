@@ -112,20 +112,20 @@ contract MessageProxyForMainnet {
         owner = msg.sender;
         authorizedCaller[msg.sender] = true;
         chainID = newChainID;
-        if (keccak256(abi.encodePacked(newChainID)) !=
-            keccak256(abi.encodePacked("Mainnet"))
-        ) {
-            // connect to mainnet by default
-            // Mainnet does not have a public key
-            connectedChains[
-                keccak256(abi.encodePacked("Mainnet"))
-            ] = ConnectedChainInfo(
-                0,
-                0,
-                true);
-        } else {
+        // if (keccak256(abi.encodePacked(newChainID)) !=
+        //     keccak256(abi.encodePacked("Mainnet"))
+        // ) {
+        //     // connect to mainnet by default
+        //     // Mainnet does not have a public key
+        //     connectedChains[
+        //         keccak256(abi.encodePacked("Mainnet"))
+        //     ] = ConnectedChainInfo(
+        //         0,
+        //         0,
+        //         true);
+        // } else {
             contractManagerSkaleManager = newContractManager;
-        }
+        // }
     }
 
     function addAuthorizedCaller(address caller) external {

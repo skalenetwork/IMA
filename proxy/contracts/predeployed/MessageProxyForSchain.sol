@@ -241,7 +241,11 @@ contract MessageProxyForSchain {
         returns (uint)
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
-        require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
+
+        //require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
+        if( !connectedChains[dstChainHash].inited )
+            return 0;
+
         return connectedChains[dstChainHash].outgoingMessageCounter;
     }
 
@@ -251,7 +255,11 @@ contract MessageProxyForSchain {
         returns (uint)
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
+
+        //require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
+        if( !connectedChains[srcChainHash].inited )
+            return 0;
+
         return connectedChains[srcChainHash].incomingMessageCounter;
     }
 

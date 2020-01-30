@@ -202,7 +202,7 @@ let g_arrContracts = [
         , address: "0x47cf4c2d6891377952a7e0e08a6f17180a91a0f9"
         , referenceVariableName: "lockAndDataAddress"
     }, {
-        fileName: "MessageProxy.json"
+        fileName: "MessageProxyForSchain.json"
         , address: "0x427c74e358eb1f620e71f64afc9b1b5d2309dd01"
         , referenceVariableName: "messageProxyAddress"
     }, {

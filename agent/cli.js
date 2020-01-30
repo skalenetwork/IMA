@@ -623,8 +623,8 @@ function ima_common_init() {
     imaState.w3_s_chain = new w3mod( imaState.w3http_s_chain );
 
 
-    console.log( "----------------------------------------------- HERE" );
-    console.log( imaState.joTrufflePublishResult_main_net.message_proxy_mainnet_abi  );
+    // console.log( "----------------------------------------------- HERE" );
+    // console.log( imaState.joTrufflePublishResult_main_net.message_proxy_mainnet_abi  );
     
 
 
