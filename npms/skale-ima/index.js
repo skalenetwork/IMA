@@ -1412,6 +1412,8 @@ async function do_transfer(
         if ( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( nOutMsgCnt ) + "\n" );
         //
+// console.log( "----------------------------------------------- HERE" );
+// console.log( Object.keys( jo_message_proxy_dst.methods)  );
         strActionName = "dst-chain.MessageProxy.getIncomingMessagesCounter()";
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
