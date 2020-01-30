@@ -428,7 +428,7 @@ contract TokenManager is PermissionsForSchain {
             contractThere,
             data
         );
-    }Source chain is not initialized
+    }
 
     // Receive money from main net and Schain
 
