@@ -168,9 +168,11 @@ contract MessageProxy {
         external
     {
         require(authorizedCaller[msg.sender], "Not authorized caller");
-        require(
-            keccak256(abi.encodePacked(newChainID)) !=
-            keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
+
+        // require(
+        //     keccak256(abi.encodePacked(newChainID)) !=
+        //     keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
+
         // main net does not have a public key and is implicitly connected
         require(
             !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
@@ -187,11 +189,13 @@ contract MessageProxy {
 
     function removeConnectedChain(string calldata newChainID) external {
         require(msg.sender == owner, "Sender is not an owner");
-        require(
-            keccak256(abi.encodePacked(newChainID)) !=
-            keccak256(abi.encodePacked("Mainnet")),
-            "New chain id can not be equal Mainnet"
-        ); // you cannot remove a connection to main net
+
+        // require(
+        //     keccak256(abi.encodePacked(newChainID)) !=
+        //     keccak256(abi.encodePacked("Mainnet")),
+        //     "New chain id can not be equal Mainnet"
+        //     ); // you cannot remove a connection to main net
+
         require(
             connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
             "Chain is not initialized"

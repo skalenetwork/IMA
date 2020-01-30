@@ -2,7 +2,7 @@ require('dotenv').config();
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 let mainnetData = require("../data/proxyMainnet.json");
-let schainData = require("../data/proxySchain_WYTE8K6S.json");
+let schainData = require("../data/proxySchain_Bob.json");
 
 let mainnetRPC = process.env.MAINNET_RPC_URL;
 let schainRPC = process.env.SCHAIN_RPC_URL;
@@ -92,9 +92,9 @@ async function ConnectSchain() {
 }
 
 async function addAuthorizedCallers() {
-    // await sendTransaction(web3Mainnet, accountMainnet, privateKeyMainnetBuffer, addAuthCallerMPM, messageProxyMainnetAddress);
+    await sendTransaction(web3Mainnet, accountMainnet, privateKeyMainnetBuffer, addAuthCallerMPM, messageProxyMainnetAddress);
     // await sendTransaction(web3Mainnet, accountMainnet, privateKeyMainnetBuffer, addAuthCallerLDM, lockAndDataForMainnetAddress);
-    await sendTransaction(web3Schain, accountSchain, privateKeySchainBuffer, addAuthCallerLDS, lockAndDataForSchainAddress);
+    // await sendTransaction(web3Schain, accountSchain, privateKeySchainBuffer, addAuthCallerLDS, lockAndDataForSchainAddress);
     // await sendTransaction(web3Schain, accountSchain, privateKeySchainBuffer, addAuthCallerMPS, messageProxySchainAddress);
 }
 
