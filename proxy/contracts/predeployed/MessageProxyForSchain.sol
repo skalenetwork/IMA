@@ -396,20 +396,11 @@ contract MessageProxyForSchain {
         return keccak256(data);
     }
 
-    function addr2str( address a ) private pure returns ( string memory ) { // l_sergiy: added
-        bytes memory b = new bytes(20);
-        for (uint i = 0; i < 20; i++) {
-            b[i] = byte(uint8(uint(a) / (2**(8*(19 - i)))));
-        }
-        return string(b);
-    }
-
     function checkIsAuthorizedCaller( address a ) private view returns ( bool rv ) { // l_sergiy: added
         if (authorizedCaller_[msg.sender] )
             return true;
-        string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).
-            concatenateStrings("skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers.0x", addr2str(a));
-        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableUint256(strVarName);
+        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).
+            getConfigPermissionFlag(a, "skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers");
         if (u != 0 )
             return true;
         return false;

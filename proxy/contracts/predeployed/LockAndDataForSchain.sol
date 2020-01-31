@@ -95,7 +95,8 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     modifier allow(string memory contractName) {
         require(
-            permitted_[keccak256(abi.encodePacked(contractName))] == msg.sender ||
+            //permitted_[keccak256(abi.encodePacked(contractName))] == msg.sender ||
+            checkPermitted(contractName,msg.sender) ||
             getOwner() == msg.sender, "Not allowed LockAndDataForSchain");
         _;
     }
@@ -219,57 +220,57 @@ contract LockAndDataForSchain is OwnableForSchain {
     }
 
     function setVariables() internal {
-        uint length;
-        address newEthERC20Address;
+        // uint length;
+        // address newEthERC20Address;
 
-        // l_sergiy:  owner can be changed only via contract OwnableForSchain -> transferOwnership()
-        address newOwner;
+        // // l_sergiy:  owner can be changed only via contract OwnableForSchain -> transferOwnership()
+        // address newOwner;
 
-        assembly {
-            newEthERC20Address := sload(0x00)
-            /*
-            // l_sergiy: commented
-            newOwner := sload(0x01)
-            */
-        }
-        ethERC20Address_ = newEthERC20Address;
+        // assembly {
+        //     newEthERC20Address := sload(0x00)
+        //     /*
+        //     // l_sergiy: commented
+        //     newOwner := sload(0x01)
+        //     */
+        // }
+        // ethERC20Address_ = newEthERC20Address;
 
-        // l_sergiy:  owner can be changed only via contract OwnableForSchain -> transferOwnership()
-        setOwner(newOwner);
+        // // l_sergiy:  owner can be changed only via contract OwnableForSchain -> transferOwnership()
+        // setOwner(newOwner);
 
-        address callerAddr;
-        assembly {
-            callerAddr := sload(0x02)
-        }
-        permitted_[keccak256(abi.encodePacked("TokenManager"))] = callerAddr;
-        assembly {
-            callerAddr := sload(0x03)
-        }
-        permitted_[keccak256(abi.encodePacked("ERC20Module"))] = callerAddr;
-        assembly {
-            callerAddr := sload(0x04)
-        }
-        permitted_[keccak256(abi.encodePacked("LockAndDataERC20"))] = callerAddr;
-        assembly {
-            callerAddr := sload(0x05)
-        }
-        permitted_[keccak256(abi.encodePacked("ERC721Module"))] = callerAddr;
-        assembly {
-            callerAddr := sload(0x06)
-        }
-        permitted_[keccak256(abi.encodePacked("LockAndDataERC721"))] = callerAddr;
-        assembly {
-            callerAddr := sload(0x07)
-            length := sload(0x08)
-        }
-        permitted_[keccak256(abi.encodePacked("TokenFactory"))] = callerAddr;
-        bytes1 index = 0x09;
-        for (uint i = 0; i < length; i++) {
-            assembly {
-                callerAddr := sload(add(index, i))
-            }
-            authorizedCaller[callerAddr] = true;
-        }
+        // address callerAddr;
+        // assembly {
+        //     callerAddr := sload(0x02)
+        // }
+        // permitted_[keccak256(abi.encodePacked("TokenManager"))] = callerAddr;
+        // assembly {
+        //     callerAddr := sload(0x03)
+        // }
+        // permitted_[keccak256(abi.encodePacked("ERC20Module"))] = callerAddr;
+        // assembly {
+        //     callerAddr := sload(0x04)
+        // }
+        // permitted_[keccak256(abi.encodePacked("LockAndDataERC20"))] = callerAddr;
+        // assembly {
+        //     callerAddr := sload(0x05)
+        // }
+        // permitted_[keccak256(abi.encodePacked("ERC721Module"))] = callerAddr;
+        // assembly {
+        //     callerAddr := sload(0x06)
+        // }
+        // permitted_[keccak256(abi.encodePacked("LockAndDataERC721"))] = callerAddr;
+        // assembly {
+        //     callerAddr := sload(0x07)
+        //     length := sload(0x08)
+        // }
+        // permitted_[keccak256(abi.encodePacked("TokenFactory"))] = callerAddr;
+        // bytes1 index = 0x09;
+        // for (uint i = 0; i < length; i++) {
+        //     assembly {
+        //         callerAddr := sload(add(index, i))
+        //     }
+        //     authorizedCaller[callerAddr] = true;
+        // }
         isVariablesSet = true;
     }
 

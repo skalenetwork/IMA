@@ -113,16 +113,16 @@ contract TokenFactory is PermissionsForSchain {
 
     modifier setVariables() {
         if (!isVariablesSet) {
-            address newLockAndData;
-            address newOwner;
-            assembly {
-                newLockAndData := sload(0x00)
-                newOwner := sload(0x01)
-            }
-            lockAndDataAddress_ = newLockAndData;
+            // address newLockAndData;
+            // address newOwner;
+            // assembly {
+            //     newLockAndData := sload(0x00)
+            //     newOwner := sload(0x01)
+            // }
+            // lockAndDataAddress_ = newLockAndData;
 
-            // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
-            setOwner(newOwner);
+            // // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
+            // setOwner(newOwner);
 
             isVariablesSet = true;
         }

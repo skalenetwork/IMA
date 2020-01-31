@@ -84,23 +84,23 @@ contract TokenManager is PermissionsForSchain {
 
     modifier setVariables() {
         if (!isVariablesSet) {
-            address newLockAndData;
-            address newOwner;
-            string memory newChainID;
-            address newProxyAddress;
-            assembly {
-                newLockAndData := sload(0x00)
-                newOwner := sload(0x01)
-                newChainID := sload(0x02)
-                newProxyAddress := sload(0x03)
-            }
-            lockAndDataAddress_ = newLockAndData;
+            // address newLockAndData;
+            // address newOwner;
+            // string memory newChainID;
+            // address newProxyAddress;
+            // assembly {
+            //     newLockAndData := sload(0x00)
+            //     newOwner := sload(0x01)
+            //     newChainID := sload(0x02)
+            //     newProxyAddress := sload(0x03)
+            // }
+            // lockAndDataAddress_ = newLockAndData;
 
-            // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
-            setOwner(newOwner);
+            // // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
+            // setOwner(newOwner);
 
-            chainID_ = newChainID;
-            proxyForSchainAddress_ = newProxyAddress;
+            // chainID_ = newChainID;
+            // proxyForSchainAddress_ = newProxyAddress;
             isVariablesSet = true;
         }
         _;
@@ -552,7 +552,7 @@ contract TokenManager is PermissionsForSchain {
 
     function getProxyForSchainAddress() public view returns ( address ow ) { // l_sergiy: added
         if (proxyForSchainAddress_ == address(0) ) {
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.proxyForSchainAddress");
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.messageProxyAddress");
         }
         return proxyForSchainAddress_;
     }

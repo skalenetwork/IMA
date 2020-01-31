@@ -235,6 +235,7 @@ let g_arrContracts = [
         , referenceVariableName: "tokenFactoryAddress"
     }
 ];
+//proxyForSchainAddress
 
 let g_joSummaryABI = {};
 
@@ -289,8 +290,8 @@ for( let idxContract = 0; idxContract < g_arrContracts.length; ++ idxContract ) 
     //
     let strContractNameCamelCase = joContractProperties.fileName.replace( ".json", "" );
     let strContractNameUnderscoreCase = convert_camel_case_to_underscore_case( strContractNameCamelCase ).replace( "e_r_c", "erc" );
-    if( strContractNameUnderscoreCase == "message_proxy" )
-        strContractNameUnderscoreCase += "_chain"; // message_proxy -> message_proxy_chain
+    if( strContractNameUnderscoreCase == "message_proxy" || strContractNameUnderscoreCase == "message_proxy_for_schain" )
+        strContractNameUnderscoreCase = "message_proxy_chain"; // message_proxy -> message_proxy_chain
     g_joSummaryABI[ "" + strContractNameUnderscoreCase + "_address" ] = "" + joContractProperties.address;
     g_joSummaryABI[ "" + strContractNameUnderscoreCase + "_abi" ] = joContractBuildInfo.abi;
     if( g_bVerbose )
@@ -307,6 +308,6 @@ for( let idxAuthorizedCaller = 0; idxAuthorizedCaller < g_arrExampleAuthorizedCa
 
 //log.write( cc.success("Done, generated skaled config data: ") + cc.j(g_joSkaleConfigTemplate) + "\n" );
 //log.write( cc.success("Done, generated skaled config data: ") + cc.j(JSON.stringify( g_joSkaleConfigTemplate, null, 4 ) ) + "\n" );
-//console.log( "Done, generated skaled config data: " + JSON.stringify( g_joSkaleConfigTemplate, null, 4 ) );
+console.log( "Done, generated skaled config data: " + JSON.stringify( g_joSkaleConfigTemplate, null, 4 ) );
 
-console.log( "Done, generated ABI summary: " + JSON.stringify( g_joSummaryABI, null, 4 ) );
+// console.log( "Done, generated ABI summary: " + JSON.stringify( g_joSummaryABI, null, 4 ) );

@@ -42,13 +42,13 @@ contract EthERC20 is LockAndDataOwnable, ERC20 {
 
     modifier setVariables() {
         if (!isVariablesSet) {
-            address newLockAndData;
-            assembly {
-                newLockAndData := sload(0x00)
-            }
+            // address newLockAndData;
+            // assembly {
+            //     newLockAndData := sload(0x00)
+            // }
 
-            // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
-            setOwner(newLockAndData);
+            // // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
+            // setOwner(newLockAndData);
 
             isVariablesSet = true;
         }

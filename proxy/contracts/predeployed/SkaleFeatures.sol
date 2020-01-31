@@ -28,6 +28,7 @@ contract SkaleFeatures {
     uint256 constant FN_NUM_GET_CONFIG_VARIABLE_ADDRESS = 0x14;
     uint256 constant FN_NUM_GET_CONFIG_VARIABLE_STRING = 0x15;
     uint256 constant FN_NUM_CONCATENATE_STRINGS = 0x16;
+    uint256 constant FN_NUM_GET_CONFIG_PERMISSION_FLAG = 0x17;
 
     function logTextMessage( uint256 messageType, string memory strTextMessage ) public view returns ( uint256 rv ) {
         uint fmp = FREE_MEM_PTR;
@@ -135,5 +136,24 @@ contract SkaleFeatures {
             let status := staticcall(not(0), fnc, p, mul(blocks, 32), rv, mul(1024, 1024))
         }
     }
+
+    function getConfigPermissionFlag( address a, string memory strConfigVariableName ) public view returns ( uint256 rv ) {
+        uint fmp = FREE_MEM_PTR;
+        uint256 fnc = FN_NUM_GET_CONFIG_PERMISSION_FLAG;
+        uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
+        assembly {
+            let p := mload(fmp)
+            mstore(p, a)
+            let ptr := add(p, 32)
+            for { let i := 0 } lt( i, blocks ) { i := add(1, i) } {
+                let where := add(ptr, mul(32, i))
+                let what := mload(add(strConfigVariableName, mul(32, i)))
+                mstore(where, what)
+            }
+            let status := staticcall(not(0), fnc, p, add(64, mul(blocks, 32) ), p, 32)
+            rv := mload(ptr)
+        }
+    }
+
 }
 
