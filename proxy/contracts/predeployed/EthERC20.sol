@@ -55,6 +55,12 @@ contract EthERC20 is LockAndDataOwnable, ERC20 {
         _;
     }
 
+    // TO-FIX: ! l_sergiy: - not compiled parent constructor call
+    // constructor() ERC20Detailed("ERC20 Ether Clone", "ETHC", 18) public {
+    //     // solium-disable-previous-line no-empty-blocks
+    // }
+
+
     function mint(address account, uint256 amount) external setVariables onlyOwner returns (bool) {
         require(totalSupply().add(amount) <= CAP, "Cap exceeded");
         _mint(account, amount);

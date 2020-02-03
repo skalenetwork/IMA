@@ -101,6 +101,10 @@ contract LockAndDataForSchain is OwnableForSchain {
         _;
     }
 
+    constructor() public {
+        authorizedCaller[msg.sender] = true;
+    }
+
     function setEthERC20Address(address newEthERC20Address) external onlyOwner {
         ethERC20Address_ = newEthERC20Address;
     }

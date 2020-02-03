@@ -67,6 +67,10 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         _;
     }
 
+    constructor(address newLockAndDataAddress) PermissionsForSchain(newLockAndDataAddress) public {
+        // solium-disable-previous-line no-empty-blocks
+    }
+
     function receiveERC20(
         address contractHere,
         address to,

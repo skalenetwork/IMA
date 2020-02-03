@@ -123,17 +123,17 @@ contract TokenManager is PermissionsForSchain {
 
     /// Create a new token manager
 
-    // constructor(
-    //     string memory newChainID,
-    //     address newProxyAddress,
-    //     address newLockAndDataAddress
-    // )
-    //     PermissionsForSchain(newLockAndDataAddress)
-    //     public
-    // {
-    //     chainID = newChainID;
-    //     proxyForSchainAddress = newProxyAddress;
-    // }
+    constructor(
+        string memory newChainID,
+        address newProxyAddress,
+        address newLockAndDataAddress
+    )
+        PermissionsForSchain(newLockAndDataAddress)
+        public
+    {
+        chainID_ = newChainID;
+        proxyForSchainAddress_ = newProxyAddress;
+    }
 
     function() external payable {
         revert("Not allowed. in TokenManager");

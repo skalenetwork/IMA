@@ -56,6 +56,10 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         _;
     }
 
+    constructor(address _lockAndDataAddress) PermissionsForSchain(_lockAndDataAddress) public {
+        // solium-disable-previous-line no-empty-blocks
+    }
+
     function sendERC20(address contractHere, address to, uint amount) external setVariables allow("ERC20Module") returns (bool) {
         require(ERC20MintAndBurn(contractHere).mint(to, amount), "Could not mint ERC20 Token");
         emit SendedERC20(true);

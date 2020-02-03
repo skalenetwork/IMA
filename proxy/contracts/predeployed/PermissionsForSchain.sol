@@ -39,9 +39,9 @@ contract PermissionsForSchain is OwnableForSchain {
      * @dev constructor - sets current address of ContractManager
      * @param newContractsAddress - current address of ContractManager
      */
-    // constructor(address newContractsAddress) public {
-    //     lockAndDataAddress_ = newContractsAddress;
-    // }
+    constructor(address newContractsAddress) public {
+        lockAndDataAddress_ = newContractsAddress;
+    }
 
     /**
      * @dev allow - throws if called by any account and contract other than the owner

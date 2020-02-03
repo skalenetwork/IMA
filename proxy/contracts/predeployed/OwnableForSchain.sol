@@ -39,9 +39,9 @@ contract OwnableForSchain {
      * @dev The OwnableForSchain constructor sets the original `owner` of the contract to the sender
      * account.
      */
-    // constructor() public {
-    //     ownerAddress = msg.sender;
-    // }
+    constructor() public {
+        ownerAddress = msg.sender;
+    }
 
     /**
      * @dev Allows the current owner to transfer control of the contract to a newOwner.

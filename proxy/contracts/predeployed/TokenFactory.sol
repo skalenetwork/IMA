@@ -129,6 +129,10 @@ contract TokenFactory is PermissionsForSchain {
         _;
     }
 
+    constructor(address _lockAndDataAddress) PermissionsForSchain(_lockAndDataAddress) public {
+        // solium-disable-previous-line no-empty-blocks
+    }
+
     function createERC20(bytes calldata data)
         external
         setVariables

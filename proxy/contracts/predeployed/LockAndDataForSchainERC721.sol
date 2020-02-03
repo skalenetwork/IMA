@@ -38,6 +38,10 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
         _;
     }
 
+    constructor(address _lockAndDataAddress) PermissionsForSchain(_lockAndDataAddress) public {
+        // solium-disable-previous-line no-empty-blocks
+    }
+
     function sendERC721(address contractHere, address to, uint tokenId) external setVariables allow("ERC721Module") returns (bool) {
         require(ERC721MintAndBurn(contractHere).mint(to, tokenId), "Could not mint ERC721 Token");
         emit SendERC721(true);
