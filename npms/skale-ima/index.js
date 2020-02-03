@@ -590,9 +590,9 @@ async function do_eth_payment_from_s_chain(
         let rawTx = {
             "chainId": cid_s_chain,
             "nonce": tcnt, // 0x00, ...
-            "gas": 2100000,
+            "gas": 6000000, // 2100000
             "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
-            "gasLimit": 3000000,
+            //"gasLimit": 3000000,
             "to": jo_token_manager.options.address, // cantract address
             "data": dataTx,
             "value": 0 // how much money to send
@@ -1638,9 +1638,9 @@ async function do_transfer(
                 let rawTx = {
                     "chainId": cid_dst,
                     "nonce": tcnt, // 0x00, ...
-                    "gas": 3000000,
+                    "gas": 6000000,
                     "gasPrice": 10000000000, // not w3_dst.eth.gasPrice ... got from truffle.js network_name gasPrice
-                    "gasLimit": 3000000,
+                    //"gasLimit": 3000000,
                     "to": jo_message_proxy_dst.options.address, // cantract address
                     "data": dataTx //,
                     //"value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send

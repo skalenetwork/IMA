@@ -278,22 +278,22 @@ contract MessageProxyForSchain {
         external
         connectMainnet
     {
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- begin" );
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- begin" );
 
         //require(authorizedCaller[msg.sender], "Not authorized caller");
         require(checkIsAuthorizedCaller(msg.sender), "Not authorized caller"); // l_sergiy: replacement
 
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- 2" );
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- 2" );
 
         require(connectedChains[keccak256(abi.encodePacked(srcChainID))].inited, "Chain is not initialized");
 
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- 3" );
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- 3" );
 
         require(
             startingCounter == connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
 
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- 4" );
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- 4" );
 
         // if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
         //     Message[] memory input = new Message[](messages.length);
