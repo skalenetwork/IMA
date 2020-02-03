@@ -26,6 +26,7 @@ let g_bVerbose = true;
 let g_bExternalMN = true; // set to true to run Min Net manually outside this test
 let g_bExternalSC = true; // set to true to run S-Chain manually outside this test
 let g_bExternalIMA = false; // set to true to run S-Chain manually outside this test
+let g_bPredeployedIMA = true;
 let g_bAskExternalStartStopMN = false;
 let g_bAskExternalStartStopSC = false;
 let g_bAskExternalStartStopIMA = false;
@@ -130,11 +131,14 @@ let g_strFolderImaProxy = g_strFolderRepoIMA + "/proxy";
 let g_strFolderImaAgent = g_strFolderRepoIMA + "/agent";
 // IMA ABIs    
 let g_strPathImaAbiMN = g_strFolderImaProxy + "/data/proxyMainnet.json";
-let g_strPathImaAbiSC = g_strFolderImaProxy + "/data/proxySchain_" + g_strSChainName + ".json";
+let g_strPathImaAbiSC = g_bPredeployedIMA
+    ? g_strFolderImaProxy + "/data/precompiled.json.file"
+    : g_strFolderImaProxy + "/data/proxySchain_" + g_strSChainName + ".json"
+    ;
 
 let g_arrNodeDescriptions = [
-    initNodeDescription( "http://127.0.0.1:15000", 0, 1112 ), // same as cat "Aldo"
-    initNodeDescription( "http://127.0.0.2:15100", 1, 1113 ) // same as cat "Bear"
+    initNodeDescription( "http://127.0.0.1:15000", 0, 1112 ) // same as cat "Aldo"
+    //, initNodeDescription( "http://127.0.0.2:15100", 1, 1113 ) // same as cat "Bear"
 ];
 let g_joChainEventInfoSM = null;
 let g_arrAssignedNodeIndices = [];
@@ -1118,7 +1122,7 @@ function sgx_do_verify_secret( w3, joNodeDescA, joNodeDescB, joCall ) {
         log.write( "    " + cc.normal( "Using slaves entire " ) + cc.attention( "secretKeyContribution" ) + cc.normal( "=" ) + cc.info( entire_ss ) + "\n" );
     }
     joCall.call( {
-        "method": "DKGVerification",
+        "method": "dkgVerification",
         "params": {
             "publicShares": vvs,
             "EthKeyName": ekn,
@@ -1277,7 +1281,7 @@ function sgx_create_node_bls_private_key( joNodeDesc, joCall ) {
         log.write( "    " + cc.normal( "Using " ) + cc.attention( "SecretShare" ) + cc.normal( "=" ) + cc.info( ss ) + "\n" );
     }
     joCall.call( {
-        "method": "CreateBLSPrivateKey",
+        "method": "createBLSPrivateKey",
         "params": {
             "BLSKeyName": joNodeDesc.nameBlsPrivateKey,
             "EthKeyName": joNodeDesc.nameEcdsaPubKey,
@@ -1309,7 +1313,7 @@ function sgx_fetch_node_public_key( joNodeDesc, joCall ) {
             cc.bright( "..." ) +
             "\n\n" );
     joCall.call( {
-        "method": "GetBLSPublicKeyShare",
+        "method": "getBLSPublicKeyShare",
         "params": {
             "BLSKeyName": joNodeDesc.nameBlsPrivateKey
         }
@@ -2141,7 +2145,7 @@ async function redeploy_ima( fnContinue ) {
         , "MNEMONIC_FOR_MAINNET": "" + g_strPrivateKeyImaMN
         , "MNEMONIC_FOR_SCHAIN": "" + g_strPrivateKeyImaSC
     };
-    exec_array_of_commands( [
+    let arrCommands = [
         "node --version"
         , "npm --version"
         ,"yarn --version"
@@ -2158,9 +2162,12 @@ async function redeploy_ima( fnContinue ) {
         , "./node_modules/.bin/truffle compile" //  , "truffle compile"
         , "yarn deploy-to-mainnet" //, "npm run deploy-to-mainnet"
         , "ls -1 ./data/"
-        , "yarn deploy-to-schain" //, "npm run deploy-to-schain"
-        , "ls -1 ./data/"
-    ], g_strFolderImaProxy, mapEnv );
+    ];
+    if( ! g_bPredeployedIMA ) {
+        arrCommands.push( "yarn deploy-to-schain" ); //, "npm run deploy-to-schain"
+        arrCommands.push( "ls -1 ./data/" );
+    }
+    exec_array_of_commands( arrCommands, g_strFolderImaProxy, mapEnv );
     fnContinue();
 }
 
@@ -2331,42 +2338,8 @@ run();
 
 
 /*
-reset; node /home/serge/Work/IMA/agent/main.js --verbose=9 --register --url-main-net=http://127.0.0.1:8545 --url-s-chain=http://127.0.0.1:15000 --id-main-net=Mainnet --id-s-chain=Bob --cid-main-net=-4 --cid-s-chain=0x01 --abi-main-net=/home/serge/Work/IMA/proxy/data/proxyMainnet.json --abi-s-chain=/home/serge/Work/IMA/proxy/data/proxySchain_Bob.json --key-main-net=23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
-reset; node /home/serge/Work/IMA/agent/main.js --verbose=9 --check-registration --url-main-net=http://127.0.0.1:8545 --url-s-chain=http://127.0.0.1:15000 --id-main-net=Mainnet --id-s-chain=Bob --cid-main-net=-4 --cid-s-chain=0x01 --abi-main-net=/home/serge/Work/IMA/proxy/data/proxyMainnet.json --abi-s-chain=/home/serge/Work/IMA/proxy/data/proxySchain_Bob.json --key-main-net=23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
-
-reset; node /home/serge/Work/IMA/agent/main.js --verbose=9 --loop \
-    --url-main-net=http://127.0.0.1:8545 --url-s-chain=http://127.0.0.1:15000 --id-main-net=Mainnet --id-s-chain=Bob --cid-main-net=-4 --cid-s-chain=0x01 \
-    --abi-main-net=/home/serge/Work/IMA/proxy/data/proxyMainnet.json --abi-s-chain=/home/serge/Work/IMA/proxy/data/proxySchain_Bob.json --key-main-net=23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
-    --sign-messages --bls-glue=/home/serge/Work/skaled/build/libconsensus/libBLS/bls_glue --hash-g1=/home/serge/Work/skaled/build/libconsensus/libBLS/hash_g1 --bls-verify=/home/serge/Work/skaled/build/libconsensus/libBLS/verify_bls
-
-reset; node /home/serge/Work/IMA/agent/main.js --verbose=9 --loop --url-main-net=http://127.0.0.1:8545 --url-s-chain=http://127.0.0.1:15000 --id-main-net=Mainnet --id-s-chain=Bob --cid-main-net=-4 --cid-s-chain=0x01 --abi-main-net=/home/serge/Work/IMA/proxy/data/proxyMainnet.json --abi-s-chain=/home/serge/Work/IMA/proxy/data/proxySchain_Bob.json --key-main-net=23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e --m2s-transfer-block-size=10 --s2m-transfer-block-size=10 --m2s-max-transactions=0 --s2m-max-transactions=0 --m2s-await-blocks=0 --s2m-await-blocks=0 --m2s-await-time=0 --s2m-await-time=0 --period=10 --node-number=0 --nodes-count=2 --time-framing=60 --time-gap=10
-reset; node /home/serge/Work/IMA/agent/main.js --verbose=9 --loop --url-main-net=http://127.0.0.1:8545 --url-s-chain=http://127.0.0.2:15100 --id-main-net=Mainnet --id-s-chain=Bob --cid-main-net=-4 --cid-s-chain=0x01 --abi-main-net=/home/serge/Work/IMA/proxy/data/proxyMainnet.json --abi-s-chain=/home/serge/Work/IMA/proxy/data/proxySchain_Bob.json --key-main-net=23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e --m2s-transfer-block-size=10 --s2m-transfer-block-size=10 --m2s-max-transactions=0 --s2m-max-transactions=0 --m2s-await-blocks=0 --s2m-await-blocks=0 --m2s-await-time=0 --s2m-await-time=0 --period=10 --node-number=1 --nodes-count=2 --time-framing=60 --time-gap=10
-
-
-
-reset; node ./main.js --verbose=9 --m2s-payment --ether=100 \
-    --url-main-net=http://127.0.0.1:8545 --url-s-chain=http://127.0.0.1:15000 --id-main-net=Mainnet --id-s-chain=Bob --cid-main-net=-4 --cid-s-chain=0x01 \
-    --abi-main-net=../proxy/data/proxyMainnet.json --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-    --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852 \
-    --sign-messages --bls-glue=/home/serge/Work/skaled/build/libconsensus/libBLS/bls_glue --hash-g1=/home/serge/Work/skaled/build/libconsensus/libBLS/hash_g1 --bls-verify=/home/serge/Work/skaled/build/libconsensus/libBLS/verify_bls
-
-reset; node ./main.js --verbose=9 --s2m-payment --ether=1 \
-    --url-main-net=http://127.0.0.1:8545 --url-s-chain=http://127.0.0.1:15000 --id-main-net=Mainnet --id-s-chain=Bob --cid-main-net=-4 --cid-s-chain=0x01 \
-    --abi-main-net=../proxy/data/proxyMainnet.json --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-    --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
-    --sign-messages --bls-glue=/home/serge/Work/skaled/build/libconsensus/libBLS/bls_glue --hash-g1=/home/serge/Work/skaled/build/libconsensus/libBLS/hash_g1 --bls-verify=/home/serge/Work/skaled/build/libconsensus/libBLS/verify_bls
-
-
-
-
-
-
-
-
-
 
 curl -X POST --data '{"jsonrpc":"2.0","method":"blsSignMessageHash","params":{"keyShareName":"BLS_KEY:SCHAIN_ID:1:NODE_ID:1112:DKG_ID:10390","messageHash":"c479e35e1601856edb6207f204e9758f07c726a1980559a6cad498d561c35860","n":2,"signerIndex":1,"t":2}}' -H 'content-type:application/json;' https://127.0.0.1:1026
-
 
 
 
