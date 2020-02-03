@@ -124,7 +124,7 @@ contract MessageProxyForMainnet {
         //         0,
         //         true);
         // } else {
-            contractManagerSkaleManager = newContractManager;
+        contractManagerSkaleManager = newContractManager;
         // }
     }
 
