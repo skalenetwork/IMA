@@ -270,7 +270,7 @@ contract MessageProxyForSchain {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
 
         //require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
-        if( !connectedChains[dstChainHash].inited )
+        if ( !connectedChains[dstChainHash].inited )
             return 0;
 
         return connectedChains[dstChainHash].outgoingMessageCounter;
@@ -281,15 +281,15 @@ contract MessageProxyForSchain {
         view
         returns (uint)
     {
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- getIncomingMessagesCounter --- 1" );
+        //SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- getIncomingMessagesCounter --- 1" );
 
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
 
         //require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
-        if( !connectedChains[srcChainHash].inited )
+        if ( !connectedChains[srcChainHash].inited )
             return 0;
 
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- getIncomingMessagesCounter --- 2" );
+        //SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- getIncomingMessagesCounter --- 2" );
 
         return connectedChains[srcChainHash].incomingMessageCounter;
     }
