@@ -1460,7 +1460,7 @@ async function do_transfer(
                     }
                 }
                 if (joValues == "") {
-                    log.error( strLogPrefix + cc.error("Can't get events from MessageProxy") + "\n" );
+                    log.write( strLogPrefix + cc.error("Can't get events from MessageProxy") + "\n" );
                     process.exit(1);
                 }
                 //
