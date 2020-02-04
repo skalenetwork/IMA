@@ -60,7 +60,6 @@ contract EthERC20 is LockAndDataOwnable, ERC20Detailed, ERC20 {
         // solium-disable-previous-line no-empty-blocks
     }
 
-
     function mint(address account, uint256 amount) external setVariables onlyOwner returns (bool) {
         require(totalSupply().add(amount) <= CAP, "Cap exceeded");
         _mint(account, amount);
