@@ -26,7 +26,7 @@ let g_bVerbose = true;
 let g_bExternalMN = true; // set to true to run Min Net manually outside this test
 let g_bExternalSC = true; // set to true to run S-Chain manually outside this test
 let g_bExternalIMA = false; // set to true to run S-Chain manually outside this test
-let g_bPredeployedIMA = true;
+let g_bPredeployedIMA = false;
 let g_bAskExternalStartStopMN = false;
 let g_bAskExternalStartStopSC = false;
 let g_bAskExternalStartStopIMA = false;
@@ -136,9 +136,11 @@ let g_strPathImaAbiSC = g_bPredeployedIMA
     : g_strFolderImaProxy + "/data/proxySchain_" + g_strSChainName + ".json"
     ;
 
+let g_strFolderAppCache = g_strFolderRepoIMA + "/functional_check/app_cache";
+
 let g_arrNodeDescriptions = [
     initNodeDescription( "http://127.0.0.1:15000", 0, 1112 ) // same as cat "Aldo"
-    //, initNodeDescription( "http://127.0.0.2:15100", 1, 1113 ) // same as cat "Bear"
+    , initNodeDescription( "http://127.0.0.2:15100", 1, 1113 ) // same as cat "Bear"
 ];
 let g_joChainEventInfoSM = null;
 let g_arrAssignedNodeIndices = [];
@@ -386,6 +388,10 @@ function compose_node_runCmd4imaAgent( joNodeDesc ) {
         + " --abi-s-chain=" + g_strPathImaAbiSC
         + " --key-main-net=" + g_strPrivateKeyImaMN // keys
         + " --key-s-chain=" + g_strPrivateKeyImaSC
+        //
+        + " --bls-glue=" + g_strFolderAppCache + "/bin/bls_glue"
+        + " --hash-g1=" + g_strFolderAppCache + "/bin/hash_g1"
+        + " --bls-verify=" + g_strFolderAppCache + "/bin/verify_bls"
         // transfer loop parameters
         + " --m2s-transfer-block-size=" + 10 // .......Number of transactions in one block to use in money transfer loop from Main-net to S-chain
         + " --s2m-transfer-block-size=" + 10 // .......Number of transactions in one block to use in money transfer loop from S-chain to Main-net
@@ -401,7 +407,7 @@ function compose_node_runCmd4imaAgent( joNodeDesc ) {
         + " --nodes-count=" + g_arrNodeDescriptions.length // ....................S-Chain nodes count
         + " --time-framing=" + 60 // ..................Specifies period(in seconds) for time framing. Zero means disable time framing
         + " --time-gap=" + 10 // ......................Specifies gap(in seconds) before next time frame
-        ;
+    ;
     return "" + joNodeDesc.runCmd4imaAgent;
 }
 
@@ -1122,7 +1128,7 @@ function sgx_do_verify_secret( w3, joNodeDescA, joNodeDescB, joCall ) {
         log.write( "    " + cc.normal( "Using slaves entire " ) + cc.attention( "secretKeyContribution" ) + cc.normal( "=" ) + cc.info( entire_ss ) + "\n" );
     }
     joCall.call( {
-        "method": "dkgVerification",
+        "method": "DKGVerification", // old - "DKGVerification", new - "dkgVerification"
         "params": {
             "publicShares": vvs,
             "EthKeyName": ekn,
@@ -1281,7 +1287,7 @@ function sgx_create_node_bls_private_key( joNodeDesc, joCall ) {
         log.write( "    " + cc.normal( "Using " ) + cc.attention( "SecretShare" ) + cc.normal( "=" ) + cc.info( ss ) + "\n" );
     }
     joCall.call( {
-        "method": "createBLSPrivateKey",
+        "method": "CreateBLSPrivateKey", // old - "CreateBLSPrivateKey", new - "createBLSPrivateKey"
         "params": {
             "BLSKeyName": joNodeDesc.nameBlsPrivateKey,
             "EthKeyName": joNodeDesc.nameEcdsaPubKey,
@@ -1313,7 +1319,7 @@ function sgx_fetch_node_public_key( joNodeDesc, joCall ) {
             cc.bright( "..." ) +
             "\n\n" );
     joCall.call( {
-        "method": "getBLSPublicKeyShare",
+        "method": "GetBLSPublicKeyShare", // old - "GetBLSPublicKeyShare", new - "getBLSPublicKeyShare"
         "params": {
             "BLSKeyName": joNodeDesc.nameBlsPrivateKey
         }
@@ -1837,6 +1843,11 @@ function all_ima_agents_start() {
                 undefined, // port
                 joNodeDesc.agentFolder
                 );
+            if( g_bVerbose )
+                log.write( cc.normal( "Notice, " ) + cc.bright( "IMA Agent" ) + cc.normal( " for node " ) + cc.sunny( joNodeDesc.nodeID )
+                + cc.normal(" folder is ") + cc.info(joNodeDesc.agentFolder)
+                + cc.normal(", log output is ") + cc.info(joNodeDesc.logPath4imaAgent)
+                + "\n" );
         }
         joNodeDesc.proc4imaAgent.run();
         //joNodeDesc.proc4imaAgent.continueDetached();
@@ -2300,6 +2311,12 @@ function ima_check_registration( fnContinue ) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+if( g_bVerbose ) {
+    log.write( cc.normal( "Assuming " ) + cc.sunny( "bls_glue" ) + cc.normal( "   is " ) + cc.info( g_strFolderAppCache + "/bin/bls_glue" ) + "\n" );
+    log.write( cc.normal( "Assuming " ) + cc.sunny( "hash_g1" ) + cc.normal( "    is " ) + cc.info( g_strFolderAppCache + "/bin/hash_g1" ) + "\n" );
+    log.write( cc.normal( "Assuming " ) + cc.sunny( "verify_bls" ) + cc.normal( " is " ) + cc.info( g_strFolderAppCache + "/bin/verify_bls" ) + "\n" );
+}
 
 async function run() {
     mainnet_start();
