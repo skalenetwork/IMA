@@ -389,6 +389,7 @@ function compose_node_runCmd4imaAgent( joNodeDesc ) {
         + " --key-main-net=" + g_strPrivateKeyImaMN // keys
         + " --key-s-chain=" + g_strPrivateKeyImaSC
         //
+        + " --sign-messages"
         + " --bls-glue=" + g_strFolderAppCache + "/bin/bls_glue"
         + " --hash-g1=" + g_strFolderAppCache + "/bin/hash_g1"
         + " --bls-verify=" + g_strFolderAppCache + "/bin/verify_bls"
