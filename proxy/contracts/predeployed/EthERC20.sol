@@ -55,6 +55,7 @@ contract EthERC20 is LockAndDataOwnable, ERC20Detailed, ERC20 {
         _;
     }
 
+
     constructor() ERC20Detailed("ERC20 Ether Clone", "ETHC", 18) public {
         // solium-disable-previous-line no-empty-blocks
     }
