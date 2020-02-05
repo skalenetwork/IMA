@@ -42,14 +42,14 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
 
     // address which has been set should be equal to deployed contract address;
-    const address = await lockAndDataForSchain.ethERC20Address();
+    const address = await lockAndDataForSchain.getEthERC20Address();
     expect(address).to.equal(ethERC20.address);
   });
 
   it("should set contract", async () => {
-    const nullAddress = await lockAndDataForSchain.ethERC20Address();
+    const nullAddress = await lockAndDataForSchain.getEthERC20Address();
     await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
-    const address = await lockAndDataForSchain.ethERC20Address();
+    const address = await lockAndDataForSchain.getEthERC20Address();
 
     // only owner can set contract:
     await lockAndDataForSchain.setContract("EthERC20", address, {from: user})
