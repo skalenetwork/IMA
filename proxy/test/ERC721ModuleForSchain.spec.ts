@@ -47,7 +47,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
   let eRC721ModuleForSchain: ERC721ModuleForSchainInstance;
 
   beforeEach(async () => {
-    messageProxyForMainnet = await MessageProxyForMainnet.new
+    messageProxyForMainnet = await MessageProxyForMainnet.new(
       "Schain", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchainERC721 =
