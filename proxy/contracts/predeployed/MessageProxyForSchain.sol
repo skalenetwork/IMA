@@ -210,7 +210,7 @@ contract MessageProxyForSchain {
         // main net does not have a public key and is implicitly connected
         require(
             !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
-            "Chain is aready connected"
+            "Chain is already connected"
         );
         connectedChains[
             keccak256(abi.encodePacked(newChainID))

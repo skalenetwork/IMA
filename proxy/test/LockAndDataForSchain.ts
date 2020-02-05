@@ -6,27 +6,30 @@ import { EthERC20Contract,
   EthERC20Instance,
   LockAndDataForSchainContract,
   LockAndDataForSchainInstance,
-  MessageProxyContract,
-  MessageProxyInstance} from "../types/truffle-contracts";
+  MessageProxyForMainnetContract,
+  MessageProxyForMainnetInstance,
+  MessageProxyForSchainContract,
+  MessageProxyForSchainInstance,
+  } from "../types/truffle-contracts";
 import { gasMultiplier } from "./utils/command_line";
 import { randomString } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
+const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 
 const contractManager = "0x0000000000000000000000000000000000000000";
 
 contract("LockAndDataForSchain", ([user, deployer]) => {
-  let messageProxy: MessageProxyInstance;
+  let messageProxy: MessageProxyForSchainInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let ethERC20: EthERC20Instance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxyForSchain.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     ethERC20 = await EthERC20.new({from: deployer, gas: 8000000 * gasMultiplier});
   });
@@ -175,17 +178,17 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     // only owner can send Eth:
     await lockAndDataForSchain.sendEth(address, amount, {from: user}).should.be.rejected;
 
-    // amoult more zen cap = 120 * (10 ** 6) * (10 ** 18) can't be sent:
+    // amount more zen cap = 120 * (10 ** 6) * (10 ** 18) can't be sent:
     await lockAndDataForSchain.sendEth(address, amountMoreThenCap, {from: deployer}).should.be.rejected;
 
-    // balace of account  equal to zero:
+    // balance of account  equal to zero:
     const balanceBefore = parseInt(new BigNumber(await ethERC20.balanceOf(user)).toString(), 10);
     balanceBefore.should.be.deep.equal(amountZero);
 
     // send Eth:
     await lockAndDataForSchain.sendEth(address, amount, {from: deployer});
 
-    // balace of account equal to amount which has been sent:
+    // balance of account equal to amount which has been sent:
     const balanceAfter = parseInt(new BigNumber(await ethERC20.balanceOf(user)).toString(), 10);
     balanceAfter.should.be.deep.equal(amount);
   });
@@ -204,11 +207,11 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     //  send Eth to account:
     await lockAndDataForSchain.sendEth(address, amount, {from: deployer});
 
-    // balace of account equal to amount which has been sent:
+    // balance of account equal to amount which has been sent:
     const balance = new BigNumber(await ethERC20.balanceOf(address));
     balance.should.be.deep.equal(amount);
 
-    // burn Eth throught `receiveEth` function:
+    // burn Eth through `receiveEth` function:
     await lockAndDataForSchain.receiveEth(address, amount, {from: deployer});
 
     // balance after "receiving" equal to zero:

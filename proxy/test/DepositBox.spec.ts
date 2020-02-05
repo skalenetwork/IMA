@@ -16,8 +16,10 @@ import { DepositBoxContract,
   LockAndDataForMainnetERC721Contract,
   LockAndDataForMainnetERC721Instance,
   LockAndDataForMainnetInstance,
-  MessageProxyContract,
-  MessageProxyInstance,
+  MessageProxyForMainnetContract,
+  MessageProxyForMainnetInstance,
+  MessageProxyForSchainContract,
+  MessageProxyForSchainInstance,
   } from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
 import { createBytes32 } from "./utils/helper";
@@ -29,7 +31,8 @@ import { gasMultiplier } from "./utils/command_line";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
+const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
+const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const DepositBox: DepositBoxContract = artifacts.require("./DepositBox");
 const ERC20ModuleForMainnet: ERC20ModuleForMainnetContract = artifacts.require("./ERC20ModuleForMainnet");
@@ -44,18 +47,18 @@ const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain"
 const contractManager = "0x0000000000000000000000000000000000000000";
 
 contract("DepositBox", ([deployer, user, invoker]) => {
-  let messageProxy: MessageProxyInstance;
+  let messageProxyForMainnet: MessageProxyForMainnetInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let depositBox: DepositBoxInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxyForMainnet = await MessageProxyForMainnet.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
-    depositBox = await DepositBox.new(messageProxy.address, lockAndDataForMainnet.address,
+    depositBox = await DepositBox.new(messageProxyForMainnet.address, lockAndDataForMainnet.address,
       {from: deployer, gas: 8000000 * gasMultiplier});
   });
 
-  // for messageProxy.addConnectedChain function
+  // for messageProxyForMainnet.addConnectedChain function
   const publicKeyArray = [
     "1122334455667788990011223344556677889900112233445566778899001122",
     "1122334455667788990011223344556677889900112233445566778899001122",
@@ -111,8 +114,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // add schain to avoid the `Unconnected chain` error
       const chain = await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-      await messageProxy
+      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
+      await messageProxyForMainnet
         .addConnectedChain(schainID, publicKeyArray, {from: deployer});
       // set contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
       await lockAndDataForMainnet
@@ -157,8 +160,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-        await messageProxy
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
+        await messageProxyForMainnet
           .addConnectedChain(schainID, publicKeyArray, {from: deployer});
         // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
         await lockAndDataForMainnet
@@ -175,8 +178,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-        await messageProxy
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
+        await messageProxyForMainnet
           .addConnectedChain(schainID, publicKeyArray, {from: deployer});
         // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
         await lockAndDataForMainnet
@@ -202,8 +205,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-        await messageProxy
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
+        await messageProxyForMainnet
           .addConnectedChain(schainID, publicKeyArray, {from: deployer});
         // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
         await lockAndDataForMainnet
@@ -232,8 +235,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-        await messageProxy
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
+        await messageProxyForMainnet
           .addConnectedChain(schainID, publicKeyArray, {from: deployer});
         // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
         await lockAndDataForMainnet
@@ -250,8 +253,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-        await messageProxy
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
+        await messageProxyForMainnet
           .addConnectedChain(schainID, publicKeyArray, {from: deployer});
         // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
         await lockAndDataForMainnet
@@ -277,8 +280,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-        await messageProxy
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
+        await messageProxyForMainnet
           .addConnectedChain(schainID, publicKeyArray, {from: deployer});
         // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
         await lockAndDataForMainnet
@@ -341,8 +344,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-        await messageProxy
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
+        await messageProxyForMainnet
           .addConnectedChain(schainID, publicKeyArray, {from: deployer});
 
         // execution/expectation
@@ -363,8 +366,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-        await messageProxy
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
+        await messageProxyForMainnet
           .addConnectedChain(schainID, publicKeyArray, {from: deployer});
         // transfer tokenId from `deployer` to `depositBox`
         await eRC721OnChain.transferFrom(deployer,
@@ -393,8 +396,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-        await messageProxy
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
+        await messageProxyForMainnet
           .addConnectedChain(schainID, publicKeyArray, {from: deployer});
         // execution/expectation
         await depositBox
@@ -415,8 +418,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-        await messageProxy
+        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
+        await messageProxyForMainnet
           .addConnectedChain(schainID, publicKeyArray, {from: deployer});
         // transfer tokenId from `deployer` to `depositBox`
         await eRC721OnChain.transferFrom(deployer,
@@ -473,7 +476,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const amount = 10;
       const bytesData = "0x0";
       const sender = deployer;
-      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
       // execution
@@ -491,7 +494,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const amount = 10;
       const bytesData = "0x0";
       const sender = deployer;
-      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
       // execution
@@ -508,7 +511,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const amount = 10;
       const bytesData = "0x0";
       const sender = deployer;
-      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
       // add schain to avoid the `Receiver chain is incorrect` error
@@ -530,7 +533,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const bytesData = "0x";
       const sender = deployer;
       const wei = "100000";
-      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
       // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
@@ -539,7 +542,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // add schain to avoid the `Receiver chain is incorrect` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+      // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
         .receiveEth(deployer, {value: wei, from: deployer});
       // execution
@@ -559,7 +562,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const sender = deployer;
       // add less then `GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE` to `lockAndDataForMainnet` for invoke error
       const wei = "200000000000000";
-      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
       // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
@@ -568,7 +571,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // add schain to avoid the `Receiver chain is incorrect` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+      // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
         .receiveEth(deployer, {value: wei, from: deployer});
       // execution
@@ -586,7 +589,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const bytesData = "0x01";
       const sender = deployer;
       const wei = "20000000000000000";
-      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
       // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
@@ -595,13 +598,13 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // add schain to avoid the `Receiver chain is incorrect` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+      // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
         .receiveEth(deployer, {value: wei, from: deployer});
       // execution
       await depositBox
         .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
-      // get constatnts
+      // get constants
       const gasAmountPostMessage = parseInt((new BigNumber(await depositBox.GAS_AMOUNT_POST_MESSAGE())).toString(), 10);
       const averageTxPrise = parseInt((new BigNumber(await depositBox.AVERAGE_TX_PRICE())).toString(), 10);
       // expectation
@@ -624,8 +627,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // add schain to avoid the `Unconnected chain` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-      await messageProxy
+      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
+      await messageProxyForMainnet
         .addConnectedChain(schainID, publicKeyArray, {from: deployer});
       // set `ERC20Module` contract before invoke `postMessage`
       await lockAndDataForMainnet
@@ -636,7 +639,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // mint some quantity of ERC20 tokens for `deployer` address
       await ethERC20.mint(deployer, "1000000000", {from: deployer});
       /**
-       * transfer more than `amount` qantity of ERC20 tokens
+       * transfer more than `amount` quantity of ERC20 tokens
        * for `lockAndDataForMainnetERC20` to avoid `Not enough money`
        */
       await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
@@ -646,10 +649,10 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
       await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
       // execution
-      // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+      // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
         .receiveEth(deployer, {value: wei, from: deployer});
-      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
       // set `DepositBox` contract before invoke `postMessage`
@@ -657,7 +660,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         .setContract("DepositBox", depositBox.address, {from: deployer});
       await depositBox
         .postMessage(sender, schainID, to0, amount0, data, {from: deployer});
-      // get constatnts
+      // get constants
       const gasAmountPostMessage = parseInt((new BigNumber(await depositBox.GAS_AMOUNT_POST_MESSAGE())).toString(), 10);
       const averageTxPrise = parseInt((new BigNumber(await depositBox.AVERAGE_TX_PRICE())).toString(), 10);
       // expectation
@@ -680,8 +683,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // add schain to avoid the `Unconnected chain` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-      await messageProxy
+      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
+      await messageProxyForMainnet
         .addConnectedChain(schainID, publicKeyArray, {from: deployer});
       // set `ERC20Module` contract before invoke `postMessage`
       await lockAndDataForMainnet
@@ -692,7 +695,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // mint some quantity of ERC20 tokens for `deployer` address
       await ethERC20.mint(deployer, "1000000000", {from: deployer});
       /**
-       * transfer more than `amount` qantity of ERC20 tokens
+       * transfer more than `amount` quantity of ERC20 tokens
        * for `lockAndDataForMainnetERC20` to avoid `Not enough money`
        */
       await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
@@ -702,10 +705,10 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
       await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
       // execution
-      // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+      // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
         .receiveEth(deployer, {value: wei, from: deployer});
-      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
       // set `DepositBox` contract before invoke `postMessage`
@@ -713,7 +716,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         .setContract("DepositBox", depositBox.address, {from: deployer});
       await depositBox
         .postMessage(sender, schainID, to0, amount0, data, {from: deployer});
-      // get constatnts
+      // get constants
       const gasAmountPostMessage = parseInt((new BigNumber(await depositBox.GAS_AMOUNT_POST_MESSAGE())).toString(), 10);
       const averageTxPrise = parseInt((new BigNumber(await depositBox.AVERAGE_TX_PRICE())).toString(), 10);
       // expectation
@@ -736,8 +739,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // add schain to avoid the `Unconnected chain` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-      await messageProxy
+      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
+      await messageProxyForMainnet
         .addConnectedChain(schainID, publicKeyArray, {from: deployer});
       // set `ERC721Module` contract before invoke `receiveERC721`
       await lockAndDataForMainnet
@@ -754,10 +757,10 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const data = await eRC721ModuleForMainnet.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
       eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
       // execution
-      // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+      // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
         .receiveEth(deployer, {value: wei, from: deployer});
-      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
       // set `DepositBox` contract before invoke `postMessage`
@@ -765,7 +768,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         .setContract("DepositBox", depositBox.address, {from: deployer});
       await depositBox
         .postMessage(sender, schainID, to0, amount0, data, {from: deployer});
-      // get constatnts
+      // get constants
       const gasAmountPostMessage = parseInt((new BigNumber(await depositBox.GAS_AMOUNT_POST_MESSAGE())).toString(), 10);
       const averageTxPrise = parseInt((new BigNumber(await depositBox.AVERAGE_TX_PRICE())).toString(), 10);
       // expectation
@@ -788,8 +791,8 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // add schain to avoid the `Unconnected chain` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
-      await messageProxy
+      // add connected chain to avoid the `Destination chain is not initialized` error in ForMainnet.sol
+      await messageProxyForMainnet
         .addConnectedChain(schainID, publicKeyArray, {from: deployer});
       // set `ERC721Module` contract before invoke `receiveERC721`
       await lockAndDataForMainnet
@@ -806,10 +809,10 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const data = await eRC721ModuleForMainnet.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
       await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
       // execution
-      // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+      // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
         .receiveEth(deployer, {value: wei, from: deployer});
-      // redeploy depositBox with `developer` address instead `messageProxy.address` to avoid `Incorrect sender` error
+      // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address` to avoid `Incorrect sender` error
       depositBox = await DepositBox.new(deployer, lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
       // set `DepositBox` contract before invoke `postMessage`
@@ -817,7 +820,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         .setContract("DepositBox", depositBox.address, {from: deployer});
       await depositBox
         .postMessage(sender, schainID, to0, amount0, data, {from: deployer});
-      // get constatnts
+      // get constants
       const gasAmountPostMessage = parseInt((new BigNumber(await depositBox.GAS_AMOUNT_POST_MESSAGE())).toString(), 10);
       const averageTxPrise = parseInt((new BigNumber(await depositBox.AVERAGE_TX_PRICE())).toString(), 10);
       // expectation

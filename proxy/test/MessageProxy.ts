@@ -7,8 +7,10 @@ import {
     LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainInstance,
-    MessageProxyContract,
-    MessageProxyInstance,
+    MessageProxyForMainnetContract,
+    MessageProxyForMainnetInstance,
+    MessageProxyForSchainContract,
+    MessageProxyForSchainInstance,
     TokenManagerContract,
     TokenManagerInstance,
 } from "../types/truffle-contracts";
@@ -20,13 +22,13 @@ import { randomString } from "./utils/helper";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
+const MessageProxy: MessageProxyForSchainContract = artifacts.require("./MessageProxy");
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 
 contract("MessageProxy", ([user, deployer, client, customer]) => {
-    let messageProxy: MessageProxyInstance;
+    let messageProxy: MessageProxyForSchainInstance;
     let tokenManager1: TokenManagerInstance;
     let tokenManager2: TokenManagerInstance;
     let lockAndDataForMainnet: LockAndDataForMainnetInstance;
@@ -75,7 +77,7 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
 
             // chain can't be connected twice:
             await messageProxy.addConnectedChain(chainID, publicKeyArray, {from: deployer})
-            .should.be.rejectedWith("Chain is aready connected");
+            .should.be.rejectedWith("Chain is already connected");
 
             // main net does not have a public key and is implicitly connected:
             await messageProxy.addConnectedChain("Mainnet", publicKeyArray, {from: deployer})
@@ -358,7 +360,7 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
 
             // chain can't be connected twice:
             await messageProxy.addConnectedChain(chainID, publicKeyArray, {from: deployer})
-            .should.be.rejectedWith("Chain is aready connected");
+            .should.be.rejectedWith("Chain is already connected");
 
             // main net does not have a public key and is implicitly connected:
             await messageProxy.addConnectedChain("Mainnet", publicKeyArray, {from: deployer})

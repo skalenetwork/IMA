@@ -9,8 +9,10 @@ import {
     LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainInstance,
-    MessageProxyContract,
-    MessageProxyInstance,
+    MessageProxyForMainnetContract,
+    MessageProxyForMainnetInstance,
+    MessageProxyForSchainContract,
+    MessageProxyForSchainInstance,
     TokenFactoryContract,
     TokenFactoryInstance,
     } from "../types/truffle-contracts";
@@ -24,7 +26,7 @@ import { gasMultiplier } from "./utils/command_line";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
+const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const LockAndDataForMainnetERC20: LockAndDataForMainnetERC20Contract =
@@ -35,7 +37,7 @@ const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const contractManager = "0x0000000000000000000000000000000000000000";
 
 contract("LockAndDataForMainnetERC20", ([deployer, user, invoker]) => {
-  let messageProxy: MessageProxyInstance;
+  let messageProxyForMainnet: MessageProxyForMainnetInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
@@ -43,7 +45,7 @@ contract("LockAndDataForMainnetERC20", ([deployer, user, invoker]) => {
   let tokenFactory: TokenFactoryInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxyForMainnet = await MessageProxyForMainnet.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnetERC20 =
@@ -89,7 +91,7 @@ contract("LockAndDataForMainnetERC20", ([deployer, user, invoker]) => {
     const name = "elvis";
     const tokenName = "ELV";
     const sopply = 1000000 * 10 ** 18;
-    const data = "0x" + // create data for create ERC20 trought tokenFactory (see ERC20ModuleForSchain.encodeData)
+    const data = "0x" + // create data for create ERC20 trough tokenFactory (see ERC20ModuleForSchain.encodeData)
         "01" + // bytes1(uint8(3))
         createBytes32("0") + // bytes32(contractPosition)
         createBytes32("0") + // bytes32(bytes20(to))
