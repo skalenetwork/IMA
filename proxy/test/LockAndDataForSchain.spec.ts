@@ -70,7 +70,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await lockAndDataForSchain.setContract("EthERC20", deployer, {from: deployer}).
     should.be.rejectedWith("Given contract address does not contain code");
 
-    const getMapping = await lockAndDataForSchain.permitted(web3.utils.soliditySha3("EthERC20"));
+    const getMapping = await lockAndDataForSchain.getPermittedByName("EthERC20");
     expect(getMapping).to.equal(ethERC20.address);
   });
 
