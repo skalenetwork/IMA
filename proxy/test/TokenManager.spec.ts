@@ -74,7 +74,8 @@ contract("TokenManager", ([user, deployer, client]) => {
     const chainID = randomString(10);
 
     beforeEach(async () => {
-        messageProxy = await MessageProxyForSchain.new(chainID, contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
+        messageProxy = await MessageProxyForSchain.new(
+            chainID, contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
         lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
         tokenManager = await TokenManager.new(chainID, messageProxy.address,
             lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});

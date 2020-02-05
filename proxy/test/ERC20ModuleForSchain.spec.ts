@@ -50,7 +50,8 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
   let eRC20OnChain2: ERC20OnChainInstance;
 
   beforeEach(async () => {
-    messageProxyForMainnet = await MessageProxyForMainnet.new("Schain", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxyForMainnet = await MessageProxyForMainnet.new(
+      "Schain", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchainERC20 =
         await LockAndDataForSchainERC20.new(lockAndDataForSchain.address,

@@ -46,7 +46,8 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
   let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
 
   beforeEach(async () => {
-    messageProxyForMainnet = await MessageProxyForMainnet.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxyForMainnet = await MessageProxyForMainnet.new(
+      "Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnetERC20 =

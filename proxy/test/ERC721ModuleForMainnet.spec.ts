@@ -38,7 +38,8 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
   let eRC721ModuleForMainnet: ERC721ModuleForMainnetInstance;
 
   beforeEach(async () => {
-    messageProxyForMainnet = await MessageProxyForMainnet.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxyForMainnet = await MessageProxyForMainnet.new(
+      "Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnetERC721 =
         await LockAndDataForMainnetERC721.new(lockAndDataForMainnet.address,

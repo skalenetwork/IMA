@@ -29,7 +29,8 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
   let ethERC20: EthERC20Instance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxyForSchain.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxyForSchain.new(
+      "Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     ethERC20 = await EthERC20.new({from: deployer, gas: 8000000 * gasMultiplier});
   });

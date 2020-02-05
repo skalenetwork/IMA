@@ -30,7 +30,8 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
   let depositBox: DepositBoxInstance;
 
   beforeEach(async () => {
-    messageProxyForMainnet = await MessageProxyForMainnet.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxyForMainnet = await MessageProxyForMainnet.new(
+      "Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
     depositBox = await DepositBox.new(messageProxyForMainnet.address, lockAndDataForMainnet.address,
        {from: deployer, gas: 8000000 * gasMultiplier});
