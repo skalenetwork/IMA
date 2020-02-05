@@ -55,7 +55,7 @@ jobs:
             - yarn lint || travis_terminate 1
             - slither --version
             - slither . --filter-path openzeppelin-solidity,@openzeppelin/contracts/ || true            
-            - slither . --filter-path openzeppelin-solidity,@openzeppelin/contracts/ --exclude-informational --exclude reentrancy-events,constant-function,calls-loop,reentrancy-benign,pragma,assembly,blank-lines,timestamp || travis_terminate 7
+            - slither . --filter-path openzeppelin-solidity,@openzeppelin/contracts/ --exclude-informational --exclude reentrancy-events,constant-function,calls-loop,reentrancy-benign,pragma,assembly,blank-lines,timestamp,external-function || travis_terminate 7
             - yarn tslint || travis_terminate 2            
             - yarn generate
             - bash ./scripts/remove.sh
