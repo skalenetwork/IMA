@@ -223,6 +223,13 @@ contract LockAndDataForSchain is OwnableForSchain {
         return true;
     }
 
+    function getEthERC20Address() /*external onlyOwner*/ /*private*/ public view returns ( address a ) {
+        if (ethERC20Address_ == address(0) ) {
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ethERC20Address");
+        }
+        a = ethERC20Address_;
+    }
+
     function setVariables() internal {
         // uint length;
         // address newEthERC20Address;
@@ -276,13 +283,6 @@ contract LockAndDataForSchain is OwnableForSchain {
         //     authorizedCaller[callerAddr] = true;
         // }
         isVariablesSet = true;
-    }
-
-    function getEthERC20Address() /*external onlyOwner*/ /*private*/ public view returns ( address a ) {
-        if (ethERC20Address_ == address(0) ) {
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ethERC20Address");
-        }
-        a = ethERC20Address_;
     }
 
     // l_sergiy: added checkPermitted() function
