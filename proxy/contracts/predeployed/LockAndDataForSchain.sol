@@ -287,7 +287,7 @@ contract LockAndDataForSchain is OwnableForSchain {
 
 
     // l_sergiy: added getPermittedByName() function
-    function getPermittedByName( string memory shaOfContractName ) public view returns ( bool rv ) {
+    function getPermittedByName( string memory contractName ) public view returns ( bool rv ) {
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         bool isPermitted = (permitted_[contractId] != address(0)) ? true : false;
         if ((isPermitted) )
