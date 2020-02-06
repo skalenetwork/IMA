@@ -61,6 +61,8 @@ contract MessageProxyForSchain {
 
     mapping(address => bool) private authorizedCaller_; // l_sergiy: changed name _ and made private
 
+    bool private isCustomDeploymentMode_ = false;
+
     event OutgoingMessage(
         string dstChain,
         bytes32 indexed dstChainHash,
@@ -135,6 +137,7 @@ contract MessageProxyForSchain {
     /// Create a new message proxy
 
     constructor(string memory newChainID, address newContractManager) public {
+        isCustomDeploymentMode_ = true;
         ownerAddress = msg.sender;
         authorizedCaller_[msg.sender] = true;
         chainID_ = newChainID;
@@ -201,7 +204,6 @@ contract MessageProxyForSchain {
     )
         external
     {
-        //require(authorizedCaller[msg.sender], "Not authorized caller");
         require(checkIsAuthorizedCaller(msg.sender), "Not authorized caller"); // l_sergiy: replacement
 
         require(
@@ -269,7 +271,7 @@ contract MessageProxyForSchain {
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
 
-        //require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
+        require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         if ( !connectedChains[dstChainHash].inited )
             return 0;
 
@@ -281,15 +283,11 @@ contract MessageProxyForSchain {
         view
         returns (uint)
     {
-        //SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- getIncomingMessagesCounter --- 1" );
-
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
 
-        //require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
+        require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
         if ( !connectedChains[srcChainHash].inited )
             return 0;
-
-        //SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- getIncomingMessagesCounter --- 2" );
 
         return connectedChains[srcChainHash].incomingMessageCounter;
     }
@@ -306,44 +304,11 @@ contract MessageProxyForSchain {
         external
         connectMainnet
     {
-        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- begin" );
-
-        //require(authorizedCaller[msg.sender], "Not authorized caller");
         require(checkIsAuthorizedCaller(msg.sender), "Not authorized caller"); // l_sergiy: replacement
-
-        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- 2" );
-
         require(connectedChains[keccak256(abi.encodePacked(srcChainID))].inited, "Chain is not initialized");
-
-        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- 3" );
-
         require(
             startingCounter == connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
-
-        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logTrace( "--- MessageProxyForSchain --- postIncomingMessages --- 4" );
-
-        // if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
-        //     Message[] memory input = new Message[](messages.length);
-        //     for (uint i = 0; i < messages.length; i++) {
-        //         input[i].sender = messages[i].sender;
-        //         input[i].destinationContract = messages[i].destinationContract;
-        //         input[i].to = messages[i].to;
-        //         input[i].amount = messages[i].amount;
-        //         input[i].data = messages[i].data;
-        //     }
-        //     require(
-        //         verifyMessageSignature(
-        //             blsSignature,
-        //             hashedArray(input),
-        //             counter,
-        //             hashA,
-        //             hashB,
-        //             srcChainID
-        //         ), "Signature is not verified"
-        //     );
-        // }
-
         for (uint i = 0; i < messages.length; i++) {
             ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                 messages[i].sender,
@@ -394,14 +359,18 @@ contract MessageProxyForSchain {
     // }
 
     function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
-        if ((keccak256(abi.encodePacked(chainID_))) == (keccak256(abi.encodePacked(""))) )
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString("skaleConfig.sChain.schainID");
+        if (!isCustomDeploymentMode_) {
+            if ((keccak256(abi.encodePacked(chainID_))) == (keccak256(abi.encodePacked(""))) )
+                return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString("skaleConfig.sChain.schainID");
+        }
         return chainID_;
     }
 
     function getOwner() public view returns ( address ow ) { // l_sergiy: added
-        if ((ownerAddress) == (address(0)) )
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ownerAddress");
+        if (!isCustomDeploymentMode_) {
+            if ((ownerAddress) == (address(0)) )
+                return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ownerAddress");
+        }
         return ownerAddress;
     }
 
@@ -412,6 +381,8 @@ contract MessageProxyForSchain {
     function checkIsAuthorizedCaller( address a ) public view returns ( bool rv ) { // l_sergiy: added
         if (authorizedCaller_[msg.sender] )
             return true;
+        if (isCustomDeploymentMode_)
+            return false;
         uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).
             getConfigPermissionFlag(a, "skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers");
         if (u != 0 )

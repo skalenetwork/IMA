@@ -39,7 +39,7 @@ const ERC721ModuleForSchain: ERC721ModuleForSchainContract = artifacts.require("
 const contractManager = "0x0000000000000000000000000000000000000000";
 
 contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
-  let messageProxyForMainnet: MessageProxyForMainnetInstance;
+  // let messageProxyForMainnet: MessageProxyForMainnetInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForSchainERC721: LockAndDataForSchainERC721Instance;
   let tokenFactory: TokenFactoryInstance;

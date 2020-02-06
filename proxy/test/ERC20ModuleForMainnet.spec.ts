@@ -39,17 +39,17 @@ const contractManager = "0x0000000000000000000000000000000000000000";
 contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
   let messageProxyForMainnet: MessageProxyForMainnetInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
-  let lockAndDataForSchain: LockAndDataForSchainInstance;
+  // let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
   let ethERC20: EthERC20Instance;
-  let tokenFactory: TokenFactoryInstance;
+  // let tokenFactory: TokenFactoryInstance;
   let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
 
   beforeEach(async () => {
     messageProxyForMainnet = await MessageProxyForMainnet.new(
       "Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
-    //lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
+    // lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnetERC20 =
         await LockAndDataForMainnetERC20.new(lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
