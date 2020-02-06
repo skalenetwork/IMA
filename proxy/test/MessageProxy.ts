@@ -130,12 +130,6 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
                 lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
             const startingCounter = 0;
 
-            console.log(tokenManager1.address);
-            console.log(tokenManager2.address);
-            console.log(user);
-            console.log(deployer);
-            console.log(client);
-            console.log(customer);
             const message1 = {
                 amount: 3,
                 data: "0x11",
@@ -167,7 +161,6 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
 
             await messageProxyForMainnet.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
-            console.log("------------ contract_manager_address is", jsonData.contract_manager_address);
             await messageProxyForMainnet
             .postIncomingMessages(
                 chainID,
@@ -179,7 +172,6 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
                 counter,
                 {from: deployer},
             );
-            console.log("------------ we are here, after messageProxyForMainnet.postIncomingMessages");
             const incomingMessagesCounter = new BigNumber(
                 await messageProxyForMainnet.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
