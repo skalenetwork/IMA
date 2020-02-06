@@ -409,6 +409,16 @@ contract MessageProxyForSchain {
         ownerAddress = newAddressOwner;
     }
 
+    function checkIsAuthorizedCaller( address a ) public view returns ( bool rv ) { // l_sergiy: added
+        if (authorizedCaller_[msg.sender] )
+            return true;
+        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).
+            getConfigPermissionFlag(a, "skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers");
+        if (u != 0 )
+            return true;
+        return false;
+    }
+
     function hashedArray(Message[] memory messages) internal pure returns (bytes32) {
         bytes memory data;
         for (uint i = 0; i < messages.length; i++) {
@@ -422,16 +432,6 @@ contract MessageProxyForSchain {
             );
         }
         return keccak256(data);
-    }
-
-    function checkIsAuthorizedCaller( address a ) private view returns ( bool rv ) { // l_sergiy: added
-        if (authorizedCaller_[msg.sender] )
-            return true;
-        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).
-            getConfigPermissionFlag(a, "skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers");
-        if (u != 0 )
-            return true;
-        return false;
     }
 
 }

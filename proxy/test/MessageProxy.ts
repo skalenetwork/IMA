@@ -543,7 +543,8 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             await messageProxy
               .addAuthorizedCaller(caller, {from: deployer});
             // expectation
-            const res = await messageProxy.authorizedCaller(caller);
+            //const res = await messageProxy.authorizedCaller(caller); // Main Net
+            const res = await messageProxy.checkIsAuthorizedCaller(caller); // S-Chain
             // console.log("res", res);
             expect(res).to.be.true;
         });
@@ -557,7 +558,8 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             await messageProxy
               .removeAuthorizedCaller(caller, {from: deployer});
             // expectation
-            const res = await messageProxy.authorizedCaller(caller);
+            //const res = await messageProxy.authorizedCaller(caller); // Main Net
+            const res = await messageProxy.checkIsAuthorizedCaller(caller); // S-Chain
             // console.log("res", res);
             expect(res).to.be.false;
         });
