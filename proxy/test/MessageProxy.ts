@@ -115,7 +115,8 @@ contract("MessageProxyForSchain", ([user, deployer, client, customer]) => {
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
             await messageProxyForSchain
             .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
-            const outgoingMessagesCounter = new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
+            const outgoingMessagesCounter = new BigNumber(
+                await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
         });
 
@@ -169,7 +170,8 @@ contract("MessageProxyForSchain", ([user, deployer, client, customer]) => {
                 counter,
                 {from: deployer},
             );
-            const incomingMessagesCounter = new BigNumber(await messageProxyForSchain.getIncomingMessagesCounter(chainID));
+            const incomingMessagesCounter = new BigNumber(
+                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
         });
 
@@ -185,13 +187,15 @@ contract("MessageProxyForSchain", ([user, deployer, client, customer]) => {
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
-            const outgoingMessagesCounter0 = new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
+            const outgoingMessagesCounter0 = new BigNumber(
+                await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForSchain
             .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
 
-            const outgoingMessagesCounter = new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
+            const outgoingMessagesCounter = new BigNumber(
+                await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
         });
 
@@ -221,7 +225,8 @@ contract("MessageProxyForSchain", ([user, deployer, client, customer]) => {
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
-            const incomingMessagesCounter0 = new BigNumber(await messageProxyForSchain.getIncomingMessagesCounter(chainID));
+            const incomingMessagesCounter0 = new BigNumber(
+                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForSchain
@@ -235,7 +240,8 @@ contract("MessageProxyForSchain", ([user, deployer, client, customer]) => {
                 counter,
                 {from: deployer},
             );
-            const incomingMessagesCounter = new BigNumber(await messageProxyForSchain.getIncomingMessagesCounter(chainID));
+            const incomingMessagesCounter = new BigNumber(
+                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
         });
 
@@ -286,7 +292,8 @@ contract("MessageProxyForSchain", ([user, deployer, client, customer]) => {
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
-            const incomingMessagesCounter0 = new BigNumber(await messageProxyForSchain.getIncomingMessagesCounter(chainID));
+            const incomingMessagesCounter0 = new BigNumber(
+                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForSchain
@@ -300,14 +307,16 @@ contract("MessageProxyForSchain", ([user, deployer, client, customer]) => {
                 counter,
                 {from: deployer},
             );
-            const incomingMessagesCounter = new BigNumber(await messageProxyForSchain.getIncomingMessagesCounter(chainID));
+            const incomingMessagesCounter = new BigNumber(
+                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
 
             const amount = 5;
             const addressTo = client;
             const bytesData = "0x0";
 
-            const outgoingMessagesCounter0 = new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
+            const outgoingMessagesCounter0 = new BigNumber(
+                await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForSchain.postOutgoingMessage(
@@ -319,15 +328,18 @@ contract("MessageProxyForSchain", ([user, deployer, client, customer]) => {
                 {from: deployer},
             );
 
-            const outgoingMessagesCounter = new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
+            const outgoingMessagesCounter = new BigNumber(
+                await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
 
             await messageProxyForSchain.setCountersToZero(chainID, {from: deployer});
 
-            const newIncomingMessagesCounter = new BigNumber(await messageProxyForSchain.getIncomingMessagesCounter(chainID));
+            const newIncomingMessagesCounter = new BigNumber(
+                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
             newIncomingMessagesCounter.should.be.deep.equal(new BigNumber(0));
 
-            const newOutgoingMessagesCounter = new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
+            const newOutgoingMessagesCounter = new BigNumber
+                (await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             newOutgoingMessagesCounter.should.be.deep.equal(new BigNumber(0));
         });
 
@@ -398,7 +410,8 @@ contract("MessageProxyForSchain", ([user, deployer, client, customer]) => {
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
             await messageProxyForSchain
             .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
-            const outgoingMessagesCounter = new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
+            const outgoingMessagesCounter = new BigNumber(
+                await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
         });
 
@@ -447,7 +460,8 @@ contract("MessageProxyForSchain", ([user, deployer, client, customer]) => {
                 counter,
                 {from: deployer},
             );
-            const incomingMessagesCounter = new BigNumber(await messageProxyForSchain.getIncomingMessagesCounter(chainID));
+            const incomingMessagesCounter = new BigNumber(
+                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
         });
 
@@ -463,13 +477,15 @@ contract("MessageProxyForSchain", ([user, deployer, client, customer]) => {
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
-            const outgoingMessagesCounter0 = new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
+            const outgoingMessagesCounter0 = new BigNumber(
+                await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForSchain
             .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
 
-            const outgoingMessagesCounter = new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
+            const outgoingMessagesCounter = new BigNumber(
+                await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
         });
 
@@ -499,7 +515,8 @@ contract("MessageProxyForSchain", ([user, deployer, client, customer]) => {
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
-            const incomingMessagesCounter0 = new BigNumber(await messageProxyForSchain.getIncomingMessagesCounter(chainID));
+            const incomingMessagesCounter0 = new BigNumber(
+                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForSchain.postIncomingMessages(
@@ -512,7 +529,8 @@ contract("MessageProxyForSchain", ([user, deployer, client, customer]) => {
                 counter,
                 {from: deployer},
             );
-            const incomingMessagesCounter = new BigNumber(await messageProxyForSchain.getIncomingMessagesCounter(chainID));
+            const incomingMessagesCounter = new BigNumber(
+                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
         });
 
