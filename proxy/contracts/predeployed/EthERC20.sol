@@ -37,7 +37,7 @@ contract EthERC20 is LockAndDataOwnable, ERC20Detailed, ERC20 {
     uint8 private _decimals = 18;
 
     uint private constant CAP = 120 * (10 ** 6) * (10 ** 18);
-    
+
 
     constructor() ERC20Detailed("ERC20 Ether Clone", "ETHC", 18) public {
         // solium-disable-previous-line no-empty-blocks
