@@ -125,7 +125,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const tx = await depositBox
         .depositWithoutData(schainID, deployer, {value: wei, from: deployer});
 
-      console.log(tx);
+      // console.log(tx);
       const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
       // expectation
       expect(lockAndDataBalance).to.equal(wei);

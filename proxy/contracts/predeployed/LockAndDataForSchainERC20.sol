@@ -36,44 +36,25 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     mapping(uint => address) public erc20Tokens;
     mapping(address => uint) public erc20Mapper;
 
-    bool isVariablesSet = false;
-
-    modifier setVariables() {
-        if (!isVariablesSet) {
-            // address newLockAndData;
-            // address newOwner;
-            // assembly {
-            //     newLockAndData := sload(0x00)
-            //     newOwner := sload(0x01)
-            // }
-            // lockAndDataAddress_ = newLockAndData;
-
-            // // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
-            // setOwner(newOwner);
-
-            isVariablesSet = true;
-        }
-        _;
-    }
 
     constructor(address _lockAndDataAddress) PermissionsForSchain(_lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function sendERC20(address contractHere, address to, uint amount) external setVariables allow("ERC20Module") returns (bool) {
+    function sendERC20(address contractHere, address to, uint amount) external allow("ERC20Module") returns (bool) {
         require(ERC20MintAndBurn(contractHere).mint(to, amount), "Could not mint ERC20 Token");
         emit SendedERC20(true);
         return true;
     }
 
-    function receiveERC20(address contractHere, uint amount) external setVariables allow("ERC20Module") returns (bool) {
+    function receiveERC20(address contractHere, uint amount) external allow("ERC20Module") returns (bool) {
         require(ERC20MintAndBurn(contractHere).balanceOf(address(this)) >= amount, "Amount not transfered");
         ERC20MintAndBurn(contractHere).burn(amount);
         emit ReceivedERC20(true);
         return true;
     }
 
-    function addERC20Token(address addressERC20, uint contractPosition) external setVariables allow("ERC20Module") {
+    function addERC20Token(address addressERC20, uint contractPosition) external allow("ERC20Module") {
         erc20Tokens[contractPosition] = addressERC20;
         erc20Mapper[addressERC20] = contractPosition;
     }

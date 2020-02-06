@@ -647,7 +647,6 @@ contract("TokenManager", ([user, deployer, client]) => {
         const contractPosition = 1;
         const contractHere = eRC721OnChain.address;
         const to = user;
-
         // set contract TokenManager to avoid `Not allowed` exception on `exitToMainERC20` function:
         await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
         // to avoid "Message sender is invalid" error

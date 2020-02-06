@@ -109,25 +109,6 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
 
 contract TokenFactory is PermissionsForSchain {
 
-    bool isVariablesSet = false;
-
-    modifier setVariables() {
-        if (!isVariablesSet) {
-            // address newLockAndData;
-            // address newOwner;
-            // assembly {
-            //     newLockAndData := sload(0x00)
-            //     newOwner := sload(0x01)
-            // }
-            // lockAndDataAddress_ = newLockAndData;
-
-            // // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
-            // setOwner(newOwner);
-
-            isVariablesSet = true;
-        }
-        _;
-    }
 
     constructor(address _lockAndDataAddress) PermissionsForSchain(_lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
@@ -135,7 +116,6 @@ contract TokenFactory is PermissionsForSchain {
 
     function createERC20(bytes calldata data)
         external
-        setVariables
         allow("ERC20Module")
         returns (address)
     {
@@ -160,7 +140,6 @@ contract TokenFactory is PermissionsForSchain {
 
     function createERC721(bytes calldata data)
         external
-        setVariables
         allow("ERC721Module")
         returns (address)
     {

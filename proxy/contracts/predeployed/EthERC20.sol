@@ -37,30 +37,13 @@ contract EthERC20 is LockAndDataOwnable, ERC20Detailed, ERC20 {
     uint8 private _decimals = 18;
 
     uint private constant CAP = 120 * (10 ** 6) * (10 ** 18);
-
-    bool isVariablesSet = false;
-
-    modifier setVariables() {
-        if (!isVariablesSet) {
-            // address newLockAndData;
-            // assembly {
-            //     newLockAndData := sload(0x00)
-            // }
-
-            // // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
-            // setOwner(newLockAndData);
-
-            isVariablesSet = true;
-        }
-        _;
-    }
-
+    
 
     constructor() ERC20Detailed("ERC20 Ether Clone", "ETHC", 18) public {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function mint(address account, uint256 amount) external setVariables onlyOwner returns (bool) {
+    function mint(address account, uint256 amount) external onlyOwner returns (bool) {
         require(totalSupply().add(amount) <= CAP, "Cap exceeded");
         _mint(account, amount);
         return true;
@@ -70,7 +53,7 @@ contract EthERC20 is LockAndDataOwnable, ERC20Detailed, ERC20 {
         _burn(msg.sender, amount);
     }
 
-    function burnFrom(address account, uint256 amount) external setVariables onlyOwner {
+    function burnFrom(address account, uint256 amount) external onlyOwner {
         _burn(account, amount);
     }
 

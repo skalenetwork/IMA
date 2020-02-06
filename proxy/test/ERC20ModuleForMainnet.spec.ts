@@ -49,14 +49,14 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     messageProxyForMainnet = await MessageProxyForMainnet.new(
       "Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
+    //lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForMainnetERC20 =
         await LockAndDataForMainnetERC20.new(lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
-    await lockAndDataForSchain.setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address);
+    // await lockAndDataForMainnet.setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address);
     ethERC20 = await EthERC20.new({from: deployer, gas: 8000000 * gasMultiplier});
-    tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
+    // tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
+        // {from: deployer, gas: 8000000 * gasMultiplier});
     eRC20ModuleForMainnet = await ERC20ModuleForMainnet.new(lockAndDataForMainnet.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
   });
@@ -71,7 +71,7 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     // execution
     const res = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
     // expectation
-    res.should.include("0x");
+    res.should.include("0x"); // l_sergiy: FIX - not passing
   });
 
   it("should invoke `receiveERC20` with `isRaw==false`", async () => {

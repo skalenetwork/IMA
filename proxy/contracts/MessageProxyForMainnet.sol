@@ -169,9 +169,9 @@ contract MessageProxyForMainnet {
     {
         require(authorizedCaller[msg.sender], "Not authorized caller");
 
-        // require(
-        //     keccak256(abi.encodePacked(newChainID)) !=
-        //     keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
+        require(
+            keccak256(abi.encodePacked(newChainID)) !=
+            keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
 
         // main net does not have a public key and is implicitly connected
         require(

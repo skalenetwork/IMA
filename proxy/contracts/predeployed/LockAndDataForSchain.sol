@@ -33,7 +33,7 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     address private ethERC20Address_; // l_sergiy: changed name _
 
-    mapping(bytes32 => address) private permitted_; // l_sergiy: changed name _
+    mapping(bytes32 => address) public permitted; // l_sergiy: changed name _
 
     mapping(bytes32 => address) public tokenManagerAddresses;
 
@@ -41,67 +41,18 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     mapping(address => bool) public authorizedCaller;
 
-    bool isVariablesSet = false;
-
-    // modifier setVariables() {
-    //     if (!isVariablesSet) {
-    //         address newEthERC20Address;
-    //         address newOwner;
-    //         uint length;
-    //         assembly {
-    //             newEthERC20Address := sload(0x00)
-    //             newOwner := sload(0x01)
-    //             length := sload(0x02)
-    //         }
-    //         ethERC20Address = newEthERC20Address;
-    //         owner = newOwner;
-    //         address callerAddr;
-    //         assembly {
-    //             callerAddr := sload(0x03)
-    //         }
-    //         permitted[keccak256(abi.encodePacked("TokenManager"))] = callerAddr;
-    //         assembly {
-    //             callerAddr := sload(0x04)
-    //         }
-    //         permitted[keccak256(abi.encodePacked("ERC20Module"))] = callerAddr;
-    //         assembly {
-    //             callerAddr := sload(0x05)
-    //         }
-    //         permitted[keccak256(abi.encodePacked("LockAndDataERC20"))] = callerAddr;
-    //         assembly {
-    //             callerAddr := sload(0x06)
-    //         }
-    //         permitted[keccak256(abi.encodePacked("ERC721Module"))] = callerAddr;
-    //         assembly {
-    //             callerAddr := sload(0x07)
-    //         }
-    //         permitted[keccak256(abi.encodePacked("LockAndDataERC721"))] = callerAddr;
-    //         assembly {
-    //             callerAddr := sload(0x08)
-    //         }
-    //         permitted[keccak256(abi.encodePacked("TokenFactory"))] = callerAddr;
-    //         bytes1 index = 0x09;
-    //         for (uint i = 0; i < length; i++) {
-    //             assembly {
-    //                 callerAddr := sload(add(index, i))
-    //             }
-    //             authorizedCaller[callerAddr] = true;
-    //         }
-
-    //         isVariablesSet = true;
-    //     }
-    //     _;
-    // }
+    bool private isCustomDeploymentMode_ = false;
 
     modifier allow(string memory contractName) {
         require(
-            //permitted_[keccak256(abi.encodePacked(contractName))] == msg.sender ||
+            //permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
             checkPermitted(contractName,msg.sender) ||
             getOwner() == msg.sender, "Not allowed LockAndDataForSchain");
         _;
     }
 
     constructor() public {
+        isCustomDeploymentMode_ = true;
         authorizedCaller[msg.sender] = true;
     }
 
@@ -122,7 +73,7 @@ contract LockAndDataForSchain is OwnableForSchain {
             length := extcodesize(newContract)
         }
         require(length > 0, "Given contract address does not contain code");
-        permitted_[contractId] = newContract;
+        permitted[contractId] = newContract;
     }
 
     function hasSchain( string calldata schainID ) external view returns (bool) {
@@ -134,9 +85,6 @@ contract LockAndDataForSchain is OwnableForSchain {
     }
 
     function addSchain(string calldata schainID, address tokenManagerAddress) external {
-        if (!isVariablesSet) {
-            setVariables();
-        }
         require(authorizedCaller[msg.sender] || getOwner() == msg.sender, "Not authorized caller");
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
@@ -159,9 +107,6 @@ contract LockAndDataForSchain is OwnableForSchain {
     }
 
     function addDepositBox(address depositBoxAddress) external {
-        if (!isVariablesSet) {
-            setVariables();
-        }
         require(authorizedCaller[msg.sender] || getOwner() == msg.sender, "Not authorized caller");
         require(depositBoxAddress != address(0), "Incorrect Deposit Box address");
         require(
@@ -224,98 +169,28 @@ contract LockAndDataForSchain is OwnableForSchain {
     }
 
     function getEthERC20Address() /*external onlyOwner*/ /*private*/ public view returns ( address a ) {
-        if (ethERC20Address_ == address(0) ) {
+        if (ethERC20Address_ == address(0) && (!isCustomDeploymentMode_)) {
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ethERC20Address");
         }
         a = ethERC20Address_;
-    }
-
-    // l_sergiy: added getPermittedByName() function
-    function getPermittedByName( string memory contractName ) public view returns ( bool rv ) {
-        bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        bool isPermitted = (permitted_[contractId] != address(0)) ? true : false;
-        if ((isPermitted) )
-            rv = true;
-        else {
-            string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).concatenateStrings("skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.", contractName);
-            address a = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(strVarName);
-            if (a != address(0))
-                rv = true;
-            else
-                rv = false;
-        }
-    }
-
-    function setVariables() internal {
-        // uint length;
-        // address newEthERC20Address;
-
-        // // l_sergiy:  owner can be changed only via contract OwnableForSchain -> transferOwnership()
-        // address newOwner;
-
-        // assembly {
-        //     newEthERC20Address := sload(0x00)
-        //     /*
-        //     // l_sergiy: commented
-        //     newOwner := sload(0x01)
-        //     */
-        // }
-        // ethERC20Address_ = newEthERC20Address;
-
-        // // l_sergiy:  owner can be changed only via contract OwnableForSchain -> transferOwnership()
-        // setOwner(newOwner);
-
-        // address callerAddr;
-        // assembly {
-        //     callerAddr := sload(0x02)
-        // }
-        // permitted_[keccak256(abi.encodePacked("TokenManager"))] = callerAddr;
-        // assembly {
-        //     callerAddr := sload(0x03)
-        // }
-        // permitted_[keccak256(abi.encodePacked("ERC20Module"))] = callerAddr;
-        // assembly {
-        //     callerAddr := sload(0x04)
-        // }
-        // permitted_[keccak256(abi.encodePacked("LockAndDataERC20"))] = callerAddr;
-        // assembly {
-        //     callerAddr := sload(0x05)
-        // }
-        // permitted_[keccak256(abi.encodePacked("ERC721Module"))] = callerAddr;
-        // assembly {
-        //     callerAddr := sload(0x06)
-        // }
-        // permitted_[keccak256(abi.encodePacked("LockAndDataERC721"))] = callerAddr;
-        // assembly {
-        //     callerAddr := sload(0x07)
-        //     length := sload(0x08)
-        // }
-        // permitted_[keccak256(abi.encodePacked("TokenFactory"))] = callerAddr;
-        // bytes1 index = 0x09;
-        // for (uint i = 0; i < length; i++) {
-        //     assembly {
-        //         callerAddr := sload(add(index, i))
-        //     }
-        //     authorizedCaller[callerAddr] = true;
-        // }
-        isVariablesSet = true;
     }
 
     // l_sergiy: added checkPermitted() function
     function checkPermitted( string memory contractName, address contractAddress ) private view returns ( bool rv ) {
         require(contractAddress != address(0), "contract address required to check permitted status");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        bool isPermitted = (permitted_[contractId] == contractAddress) ? true : false;
+        bool isPermitted = (permitted[contractId] == contractAddress) ? true : false;
         if ((isPermitted) )
             rv = true;
-        else {
+        else if (!isCustomDeploymentMode_) {
             string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).concatenateStrings("skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.", contractName);
             address a = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(strVarName);
             if (a == contractAddress)
                 rv = true;
             else
                 rv = false;
-        }
+        } else
+            rv = false;
     }
 
 }

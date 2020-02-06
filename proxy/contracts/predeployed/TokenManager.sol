@@ -68,8 +68,6 @@ contract TokenManager is PermissionsForSchain {
     uint public constant GAS_AMOUNT_POST_MESSAGE = 200000;
     uint public constant AVERAGE_TX_PRICE = 10000000000;
 
-    bool isVariablesSet = false;
-
     // Owner of this schain. For mainnet
     //address public owner;
 
@@ -81,30 +79,6 @@ contract TokenManager is PermissionsForSchain {
         bytes data,
         string message
     );
-
-    modifier setVariables() {
-        if (!isVariablesSet) {
-            // address newLockAndData;
-            // address newOwner;
-            // string memory newChainID;
-            // address newProxyAddress;
-            // assembly {
-            //     newLockAndData := sload(0x00)
-            //     newOwner := sload(0x01)
-            //     newChainID := sload(0x02)
-            //     newProxyAddress := sload(0x03)
-            // }
-            // lockAndDataAddress_ = newLockAndData;
-
-            // // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
-            // setOwner(newOwner);
-
-            // chainID_ = newChainID;
-            // proxyForSchainAddress_ = newProxyAddress;
-            isVariablesSet = true;
-        }
-        _;
-    }
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -334,7 +308,7 @@ contract TokenManager is PermissionsForSchain {
             to,
             tokenId,
             false);
-        IMessageProxy(getLockAndDataAddress()).postOutgoingMessage(
+        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
@@ -440,7 +414,6 @@ contract TokenManager is PermissionsForSchain {
         bytes calldata data
     )
         external
-        setVariables
     {
         require(msg.sender == getProxyForSchainAddress(), "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));

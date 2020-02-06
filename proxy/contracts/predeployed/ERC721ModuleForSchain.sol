@@ -22,25 +22,6 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
 
     event ERC721TokenCreated(uint indexed contractPosition, address tokenAddress);
 
-    bool isVariablesSet = false;
-
-    modifier setVariables() {
-        if (!isVariablesSet) {
-            // address newLockAndData;
-            // address newOwner;
-            // assembly {
-            //     newLockAndData := sload(0x00)
-            //     newOwner := sload(0x01)
-            // }
-            // lockAndDataAddress_ = newLockAndData;
-
-            // // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
-            // setOwner(newOwner);
-
-            isVariablesSet = true;
-        }
-        _;
-    }
 
     constructor(address newLockAndDataAddress) PermissionsForSchain(newLockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
@@ -50,7 +31,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         address contractHere,
         address to,
         uint tokenId,
-        bool isRAW) external setVariables allow("TokenManager") returns (bytes memory data)
+        bool isRAW) external allow("TokenManager") returns (bytes memory data)
         {
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
             permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
@@ -70,7 +51,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         }
     }
 
-    function sendERC721(address to, bytes calldata data) external setVariables allow("TokenManager") returns (bool) {
+    function sendERC721(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
             permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         uint contractPosition;
