@@ -186,10 +186,11 @@ contract LockAndDataForSchain is OwnableForSchain {
             if (!isCustomDeploymentMode_) {
                 string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).concatenateStrings("skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.", contractName);
                 address a = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(strVarName);
-                if (a == contractAddress)
+                if (a == contractAddress) {
                     rv = true;
-                else
+                } else {
                     rv = false;
+                }
             } else {
                 rv = false;
             }
