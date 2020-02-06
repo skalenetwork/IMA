@@ -230,6 +230,22 @@ contract LockAndDataForSchain is OwnableForSchain {
         a = ethERC20Address_;
     }
 
+    // l_sergiy: added getPermittedByName() function
+    function getPermittedByName( string memory contractName ) public view returns ( bool rv ) {
+        bytes32 contractId = keccak256(abi.encodePacked(contractName));
+        bool isPermitted = (permitted_[contractId] != address(0)) ? true : false;
+        if ((isPermitted) )
+            rv = true;
+        else {
+            string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).concatenateStrings("skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.", contractName);
+            address a = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(strVarName);
+            if (a != address(0))
+                rv = true;
+            else
+                rv = false;
+        }
+    }
+
     function setVariables() internal {
         // uint length;
         // address newEthERC20Address;
@@ -283,23 +299,6 @@ contract LockAndDataForSchain is OwnableForSchain {
         //     authorizedCaller[callerAddr] = true;
         // }
         isVariablesSet = true;
-    }
-
-
-    // l_sergiy: added getPermittedByName() function
-    function getPermittedByName( string memory contractName ) public view returns ( bool rv ) {
-        bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        bool isPermitted = (permitted_[contractId] != address(0)) ? true : false;
-        if ((isPermitted) )
-            rv = true;
-        else {
-            string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).concatenateStrings("skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.", contractName);
-            address a = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(strVarName);
-            if (a != address(0))
-                rv = true;
-            else
-                rv = false;
-        }
     }
 
     // l_sergiy: added checkPermitted() function
