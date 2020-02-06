@@ -288,7 +288,8 @@ contract("TokenManager", ([user, deployer, client]) => {
             .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
 
         // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
-        // await lockAndDataForSchain.setContract("MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
+        // await lockAndDataForSchain.setContract(
+        // "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
 
         // add connected chain:
         await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
@@ -397,7 +398,8 @@ contract("TokenManager", ([user, deployer, client]) => {
             .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
 
         // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
-        // await lockAndDataForSchain.setContract("MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
+        // await lockAndDataForSchain.setContract(
+        // "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
 
         // add connected chain:
         await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
@@ -495,7 +497,8 @@ contract("TokenManager", ([user, deployer, client]) => {
         await tokenManager
             .transferToSchainERC20(chainID, eRC20OnChain.address, client, amountReduceCoast, {from: deployer});
         // expectation:
-        const outgoingMessagesCounterMainnet = new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
+        const outgoingMessagesCounterMainnet = new BigNumber(
+            await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
         outgoingMessagesCounterMainnet.should.be.deep.equal(new BigNumber(1));
     });
 
@@ -530,7 +533,8 @@ contract("TokenManager", ([user, deployer, client]) => {
             .rawTransferToSchainERC20(chainID, eRC20OnChain.address, eRC20OnChain.address,
                 client, amountReduceCoast, {from: deployer});
         // expectation:
-        const outgoingMessagesCounterMainnet = new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
+        const outgoingMessagesCounterMainnet = new BigNumber(
+            await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
         outgoingMessagesCounterMainnet.should.be.deep.equal(new BigNumber(1));
     });
 
@@ -581,7 +585,8 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain
             .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
         // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.setContract("MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
+        await lockAndDataForSchain.setContract(
+            "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
         await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
         await lockAndDataForSchainERC721
@@ -615,7 +620,8 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain
             .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
         // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.setContract("MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
+        await lockAndDataForSchain.setContract(
+            "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
         await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
         await lockAndDataForSchainERC721
@@ -650,7 +656,8 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain
             .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
         // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.setContract("MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
+        await lockAndDataForSchain.setContract(
+            "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
         await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
         await lockAndDataForSchainERC721
@@ -689,7 +696,8 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain
             .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
         // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.setContract("MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
+        await lockAndDataForSchain.setContract(
+            "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
         await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
         await lockAndDataForSchainERC721
@@ -728,7 +736,8 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain
             .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
         // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.setContract("MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
+        await lockAndDataForSchain.setContract(
+            "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
         await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
         await lockAndDataForSchainERC721
@@ -766,7 +775,8 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain
             .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
         // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.setContract("MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
+        await lockAndDataForSchain.setContract(
+            "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
         await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
         await lockAndDataForSchainERC721
@@ -800,7 +810,8 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain
             .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
         // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.setContract("MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
+        await lockAndDataForSchain.setContract(
+            "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
         await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
         await lockAndDataForSchainERC721
@@ -838,7 +849,8 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain
             .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
         // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.setContract("MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
+        await lockAndDataForSchain.setContract(
+            "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
         await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
         await lockAndDataForSchainERC721
@@ -876,7 +888,8 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain
             .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
         // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.setContract("MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
+        await lockAndDataForSchain.setContract(
+            "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
         await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
         await lockAndDataForSchainERC721
@@ -915,7 +928,8 @@ contract("TokenManager", ([user, deployer, client]) => {
         await lockAndDataForSchain
             .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
         // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.setContract("MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
+        await lockAndDataForSchain.setContract(
+            "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
         await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
         await lockAndDataForSchainERC721
