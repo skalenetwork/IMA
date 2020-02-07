@@ -36,7 +36,7 @@ contract EthERC20 is LockAndDataOwnable, IERC20, ERC20 {
     string private _name;
     string private _symbol;
     uint8 private _decimals;
-    uint private _CAP;
+    uint private _capacity;
 
 
     constructor() public {
@@ -46,7 +46,7 @@ contract EthERC20 is LockAndDataOwnable, IERC20, ERC20 {
 
     function mint(address account, uint256 amount) external onlyOwner returns (bool) {
         delayedInit();
-        require(totalSupply().add(amount) <= _CAP, "Cap exceeded");
+        require(totalSupply().add(amount) <= _capacity, "Capacity exceeded");
         _mint(account, amount);
         return true;
     }
@@ -60,17 +60,6 @@ contract EthERC20 is LockAndDataOwnable, IERC20, ERC20 {
         _burn(account, amount);
     }
 
-    function delayedInit() internal {
-        if (initialized_) {
-            return;
-        }
-        initialized_ = true;
-        _name = "ERC20 Ether Clone";
-        _symbol = "ETHC";
-        _decimals = 18;
-        _CAP = 120 * (10 ** 6) * (10 ** 18);
-    }
-
     function name() public view returns (string memory) {
         return _name;
     }
@@ -82,4 +71,16 @@ contract EthERC20 is LockAndDataOwnable, IERC20, ERC20 {
     function decimals() public view returns (uint8) {
         return _decimals;
     }
+
+    function delayedInit() internal {
+        if (initialized_) {
+            return;
+        }
+        initialized_ = true;
+        _name = "ERC20 Ether Clone";
+        _symbol = "ETHC";
+        _decimals = 18;
+        _capacity = 120 * (10 ** 6) * (10 ** 18);
+    }
+
 }
