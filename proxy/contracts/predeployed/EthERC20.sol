@@ -30,7 +30,7 @@ import "./OwnableForSchain.sol";
 import "./LockAndDataOwnable.sol";
 
 
-contract EthERC20 is LockAndDataOwnable, IERC20, ERC20 {
+contract EthERC20 is LockAndDataOwnable, ERC20 {
 
     bool private initialized_ = false;
     string private _name;
