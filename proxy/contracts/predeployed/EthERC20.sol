@@ -36,23 +36,23 @@ contract EthERC20 is LockAndDataOwnable, IERC20, ERC20 {
     string private _name;
     string private _symbol;
     uint8 private _decimals;
-    uint private CAP_;
+    uint private _CAP;
 
 
     constructor() public {
         // solium-disable-previous-line no-empty-blocks
-        delayed_init();
+        delayedInit();
     }
 
     function mint(address account, uint256 amount) external onlyOwner returns (bool) {
-        delayed_init();
-        require(totalSupply().add(amount) <= CAP_, "Cap exceeded");
+        delayedInit();
+        require(totalSupply().add(amount) <= _CAP, "Cap exceeded");
         _mint(account, amount);
         return true;
     }
 
     function burn(uint256 amount) external {
-        delayed_init();
+        delayedInit();
         _burn(msg.sender, amount);
     }
 
@@ -60,7 +60,7 @@ contract EthERC20 is LockAndDataOwnable, IERC20, ERC20 {
         _burn(account, amount);
     }
 
-    function delayed_init() internal {
+    function delayedInit() internal {
         if (initialized_) {
             return;
         }
@@ -68,7 +68,7 @@ contract EthERC20 is LockAndDataOwnable, IERC20, ERC20 {
         _name = "ERC20 Ether Clone";
         _symbol = "ETHC";
         _decimals = 18;
-        CAP_ = 120 * (10 ** 6) * (10 ** 18);
+        _CAP = 120 * (10 ** 6) * (10 ** 18);
     }
 
     function name() public view returns (string memory) {
