@@ -30,31 +30,45 @@ import "./OwnableForSchain.sol";
 import "./LockAndDataOwnable.sol";
 
 
-contract EthERC20 is LockAndDataOwnable, ERC20Detailed, ERC20 {
+contract EthERC20 is LockAndDataOwnable, IERC20, ERC20 {
 
-    string private _name = "ERC20 Ether Clone";
-    string private _symbol = "ETHC";
-    uint8 private _decimals = 18;
+    bool private initialized_ = false;
+    string private _name;
+    string private _symbol;
+    uint8 private _decimals;
+    uint private CAP_;
 
-    uint private constant CAP = 120 * (10 ** 6) * (10 ** 18);
 
-
-    constructor() ERC20Detailed("ERC20 Ether Clone", "ETHC", 18) public {
+    constructor() public {
         // solium-disable-previous-line no-empty-blocks
+        delayed_init();
     }
 
     function mint(address account, uint256 amount) external onlyOwner returns (bool) {
-        require(totalSupply().add(amount) <= CAP, "Cap exceeded");
+        delayed_init();
+        require(totalSupply().add(amount) <= CAP_, "Cap exceeded");
         _mint(account, amount);
         return true;
     }
 
     function burn(uint256 amount) external {
+        delayed_init();
         _burn(msg.sender, amount);
     }
 
     function burnFrom(address account, uint256 amount) external onlyOwner {
         _burn(account, amount);
+    }
+
+    function delayed_init() internal {
+        if (initialized_) {
+            return;
+        }
+        initialized_ = true;
+        _name = "ERC20 Ether Clone";
+        _symbol = "ETHC";
+        _decimals = 18;
+        CAP_ = 120 * (10 ** 6) * (10 ** 18);
     }
 
     function name() public view returns (string memory) {
