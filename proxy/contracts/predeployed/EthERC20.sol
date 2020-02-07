@@ -32,7 +32,7 @@ import "./LockAndDataOwnable.sol";
 
 contract EthERC20 is LockAndDataOwnable, ERC20 {
 
-    bool private initialized_ = false;
+    bool private _initialized = false;
     string private _name;
     string private _symbol;
     uint8 private _decimals;
@@ -57,6 +57,7 @@ contract EthERC20 is LockAndDataOwnable, ERC20 {
     }
 
     function burnFrom(address account, uint256 amount) external onlyOwner {
+        delayedInit();
         _burn(account, amount);
     }
 
@@ -73,10 +74,10 @@ contract EthERC20 is LockAndDataOwnable, ERC20 {
     }
 
     function delayedInit() internal {
-        if (initialized_) {
+        if (_initialized) {
             return;
         }
-        initialized_ = true;
+        _initialized = true;
         _name = "ERC20 Ether Clone";
         _symbol = "ETHC";
         _decimals = 18;
