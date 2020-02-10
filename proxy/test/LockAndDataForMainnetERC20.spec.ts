@@ -46,16 +46,16 @@ contract("LockAndDataForMainnetERC20", ([deployer, user, invoker]) => {
 
   beforeEach(async () => {
     messageProxyForMainnet = await MessageProxyForMainnet.new(
-        "Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
+        "Mainnet", contractManager, {from: deployer});
+    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer});
+    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     lockAndDataForMainnetERC20 =
         await LockAndDataForMainnetERC20.new(lockAndDataForMainnet.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
+        {from: deployer});
     await lockAndDataForSchain.setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address);
-    ethERC20 = await EthERC20.new({from: deployer, gas: 8000000 * gasMultiplier});
+    ethERC20 = await EthERC20.new({from: deployer});
     tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
+        {from: deployer});
   });
 
   it("should rejected with `Not enough money`", async () => {

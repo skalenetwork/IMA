@@ -49,16 +49,16 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
   beforeEach(async () => {
     // messageProxyForMainnet = await MessageProxyForMainnet.new(
       // "Schain", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
+    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     lockAndDataForSchainERC721 =
         await LockAndDataForSchainERC721.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
+        {from: deployer});
     tokenFactory =
         await TokenFactory.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
+        {from: deployer});
     eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
     eRC721ModuleForSchain = await ERC721ModuleForSchain.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
+        {from: deployer});
   });
 
   it("should invoke `receiveERC721` with `isRaw==true`", async () => {

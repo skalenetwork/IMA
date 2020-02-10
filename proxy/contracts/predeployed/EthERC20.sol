@@ -40,7 +40,6 @@ contract EthERC20 is LockAndDataOwnable, ERC20 {
 
 
     constructor() public {
-        // solium-disable-previous-line no-empty-blocks
         delayedInit();
     }
 

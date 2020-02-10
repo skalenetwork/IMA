@@ -93,7 +93,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await lockAndDataForSchain.addSchain(schainID, tokenManagerAddress, {from: deployer}).
     should.be.rejectedWith("SKALE chain is already set");
 
-    const getMapping = await lockAndDataForSchain.tokenManagerAddresses(web3.utils.soliditySha3(schainID));
+    const getMapping = await lockAndDataForSchain.tokenManagerAddresses(await web3.utils.soliditySha3(schainID));
     expect(getMapping).to.equal(tokenManagerAddress);
   });
 

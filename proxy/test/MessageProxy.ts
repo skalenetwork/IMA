@@ -3,6 +3,8 @@ import * as chaiAsPromised from "chai-as-promised";
 
 import chai = require("chai");
 import {
+    ContractManagerContract,
+    ContractManagerInstance,
     LockAndDataForMainnetContract,
     LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
@@ -11,11 +13,12 @@ import {
     MessageProxyForMainnetInstance,
     MessageProxyForSchainContract,
     MessageProxyForSchainInstance,
+    SkaleVerifierContract,
+    SkaleVerifierInstance,
     TokenManagerContract,
-    TokenManagerInstance,
+    TokenManagerInstance
 } from "../types/truffle-contracts";
 
-import * as jsonData from "../data/skaleManagerComponents.json";
 import { gasMultiplier } from "./utils/command_line";
 import { randomString } from "./utils/helper";
 
@@ -27,6 +30,8 @@ const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
+const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
+const SkaleVerifier: SkaleVerifierContract = artifacts.require("./SkaleVerifier");
 
 contract("MessageProxy", ([user, deployer, client, customer]) => {
     let messageProxyForMainnet: MessageProxyForMainnetInstance;
@@ -35,6 +40,8 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
     let tokenManager2: TokenManagerInstance;
     let lockAndDataForMainnet: LockAndDataForMainnetInstance;
     let lockAndDataForSchain: LockAndDataForSchainInstance;
+    let contractManager: ContractManagerInstance;
+    let skaleVerifier: SkaleVerifierInstance;
 
     const publicKeyArray = [
         "1122334455667788990011223344556677889900112233445566778899001122",
@@ -54,9 +61,12 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
 
     describe("MessageProxyForMainnet for mainnet", async () => {
         beforeEach(async () => {
-            messageProxyForMainnet = await MessageProxyForMainnet.new("Mainnet", jsonData.contract_manager_address,
-                {from: deployer, gas: 8000000 * gasMultiplier});
-            lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
+            contractManager = await ContractManager.new({from: deployer});
+            skaleVerifier = await SkaleVerifier.new({from: deployer});
+            await contractManager.setContractsAddress("SkaleVerifier", skaleVerifier.address, {from: deployer});
+            messageProxyForMainnet = await MessageProxyForMainnet.new("Mainnet", contractManager.address,
+                {from: deployer});
+            lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer});
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -125,9 +135,9 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
         it("should post incoming messages", async () => {
             const chainID = randomString(10);
             tokenManager1 = await TokenManager.new(chainID, messageProxyForMainnet.address,
-                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForMainnet.address, {from: deployer});
             tokenManager2 = await TokenManager.new(chainID, messageProxyForMainnet.address,
-                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForMainnet.address, {from: deployer});
             const startingCounter = 0;
 
             const message1 = {
@@ -204,9 +214,9 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
         it("should get incoming messages counter", async () => {
             const chainID = randomString(10);
             tokenManager1 = await TokenManager.new(chainID, messageProxyForMainnet.address,
-                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForMainnet.address, {from: deployer});
             tokenManager2 = await TokenManager.new(chainID, messageProxyForMainnet.address,
-                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForMainnet.address, {from: deployer});
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
@@ -271,9 +281,9 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
         it("should get incoming messages counter", async () => {
             const chainID = randomString(10);
             tokenManager1 = await TokenManager.new(chainID, messageProxyForMainnet.address,
-                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForMainnet.address, {from: deployer});
             tokenManager2 = await TokenManager.new(chainID, messageProxyForMainnet.address,
-                lockAndDataForMainnet.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForMainnet.address, {from: deployer});
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
@@ -349,9 +359,9 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
 
     describe("MessageProxyForSchain for schain", async () => {
         beforeEach(async () => {
-            messageProxyForSchain = await MessageProxyForSchain.new("MyChain", jsonData.contract_manager_address,
-                {from: deployer, gas: 8000000 * gasMultiplier});
-            lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
+            messageProxyForSchain = await MessageProxyForSchain.new("MyChain", contractManager.address,
+                {from: deployer});
+            lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -420,9 +430,9 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
         it("should post incoming messages", async () => {
             const chainID = randomString(10);
             tokenManager1 = await TokenManager.new(chainID, messageProxyForSchain.address,
-                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer});
             tokenManager2 = await TokenManager.new(chainID, messageProxyForSchain.address,
-                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer});
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
@@ -494,9 +504,9 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
         it("should get incoming messages counter", async () => {
             const chainID = randomString(10);
             tokenManager1 = await TokenManager.new(chainID, messageProxyForSchain.address,
-                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer});
             tokenManager2 = await TokenManager.new(chainID, messageProxyForSchain.address,
-                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer});
             const startingCounter = 0;
             const message1 = {
                 amount: 3,

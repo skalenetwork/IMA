@@ -58,19 +58,19 @@ contract("TokenFactory", ([user, deployer]) => {
 
   beforeEach(async () => {
     messageProxy = await MessageProxyForSchain.new(
-      "Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
+      "Mainnet", contractManager, {from: deployer});
+    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
-      {from: deployer, gas: 8000000 * gasMultiplier});
+      {from: deployer});
     eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
-      {from: deployer, gas: 8000000 * gasMultiplier});
+      {from: deployer});
     eRC721ModuleForSchain = await ERC721ModuleForSchain.new(lockAndDataForSchain.address,
-      {from: deployer, gas: 8000000 * gasMultiplier});
+      {from: deployer});
     lockAndDataForSchainERC20 =
-      await LockAndDataForSchainERC20.new(lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+      await LockAndDataForSchainERC20.new(lockAndDataForSchain.address, {from: deployer});
     lockAndDataForSchainERC721 =
       await LockAndDataForSchainERC721.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
+        {from: deployer});
   });
 
   it("should createERC20", async () => {
@@ -129,8 +129,8 @@ contract("ERC20OnChain", ([user, deployer]) => {
 
   beforeEach(async () => {
     messageProxy = await MessageProxyForSchain.new(
-      "Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
+      "Mainnet", contractManager, {from: deployer});
+    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20", 18,
         ((1000000000).toString()), deployer, {from: deployer});
   });
@@ -209,8 +209,8 @@ contract("ERC721OnChain", ([user, deployer]) => {
 
   beforeEach(async () => {
     messageProxy = await MessageProxyForSchain.new(
-      "Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
+      "Mainnet", contractManager, {from: deployer});
+    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721", {from: deployer});
   });
 

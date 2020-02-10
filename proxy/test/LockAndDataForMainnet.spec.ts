@@ -31,10 +31,10 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
 
   beforeEach(async () => {
     messageProxyForMainnet = await MessageProxyForMainnet.new(
-      "Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
+      "Mainnet", contractManager, {from: deployer});
+    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer});
     depositBox = await DepositBox.new(messageProxyForMainnet.address, lockAndDataForMainnet.address,
-       {from: deployer, gas: 8000000 * gasMultiplier});
+       {from: deployer});
   });
 
   it("should add wei to `lockAndDataForMainnet`", async () => {
@@ -145,10 +145,10 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
 
   it("should invoke setContract without mistakes", async () => {
     await lockAndDataForMainnet
-      .setContract("DepositBox", DepositBox.address, {from: deployer});
+      .setContract("DepositBox", depositBox.address, {from: deployer});
     const getMapping = await lockAndDataForMainnet.permitted(web3.utils.soliditySha3("DepositBox"));
     // expectation
-    expect(getMapping).to.equal(DepositBox.address);
+    expect(getMapping).to.equal(depositBox.address);
   });
 
   it("should rejected with `New address is equal zero` when invoke `getMyEth`", async () => {
@@ -163,10 +163,10 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     // preparation
     const error = "Contract is already added";
     await lockAndDataForMainnet
-    .setContract("DepositBox", DepositBox.address, {from: deployer});
+    .setContract("DepositBox", depositBox.address, {from: deployer});
     // execution/expectation
     await lockAndDataForMainnet
-      .setContract("DepositBox", DepositBox.address, {from: deployer})
+      .setContract("DepositBox", depositBox.address, {from: deployer})
       .should.be.eventually.rejectedWith(error);
   });
 

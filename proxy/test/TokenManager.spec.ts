@@ -75,29 +75,29 @@ contract("TokenManager", ([user, deployer, client]) => {
 
     beforeEach(async () => {
         messageProxyForSchain = await MessageProxyForSchain.new(
-            chainID, contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
-        lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
+            chainID, contractManager, {from: deployer});
+        lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
         tokenManager = await TokenManager.new(chainID, messageProxyForSchain.address,
-            lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
-        ethERC20 = await EthERC20.new({from: deployer, gas: 8000000 * gasMultiplier});
+            lockAndDataForSchain.address, {from: deployer});
+        ethERC20 = await EthERC20.new({from: deployer});
         lockAndDataForSchainERC20 = await LockAndDataForSchainERC20
-            .new(lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+            .new(lockAndDataForSchain.address, {from: deployer});
         eRC20ModuleForSchain = await ERC20ModuleForSchain
-            .new(lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+            .new(lockAndDataForSchain.address, {from: deployer});
         eRC20OnChain = await ERC20OnChain.new("ERC20", "ER2", 18,
             ((1000000000).toString()), deployer, {from: deployer});
         eRC20OnChain2 = await ERC20OnChain.new("ERC202", "ER20", 18,
             ((1000000000).toString()), deployer, {from: deployer});
         eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721",
-            {from: deployer, gas: 8000000 * gasMultiplier});
+            {from: deployer});
         eRC721 = await ERC721OnChain.new("eRC721", "ERR",
-            {from: deployer, gas: 8000000 * gasMultiplier});
+            {from: deployer});
         eRC721ModuleForSchain = await ERC721ModuleForSchain.new(lockAndDataForSchain.address,
-            {from: deployer, gas: 8000000 * gasMultiplier});
+            {from: deployer});
         lockAndDataForSchainERC721 = await LockAndDataForSchainERC721.new(lockAndDataForSchain.address,
-            {from: deployer, gas: 8000000 * gasMultiplier});
+            {from: deployer});
         tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
-            {from: deployer, gas: 8000000 * gasMultiplier});
+            {from: deployer});
     });
 
     it("should send Eth to somebody on Mainnet, closed to Mainnet, called by schain", async () => {
@@ -976,7 +976,7 @@ contract("TokenManager", ([user, deployer, client]) => {
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
             tokenManager = await TokenManager.new(schainID, deployer,
-                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer});
             // execution
             const {logs} = await tokenManager
                 .postMessage(sender, chainID, user, amount, bytesData, {from: deployer});
@@ -996,7 +996,7 @@ contract("TokenManager", ([user, deployer, client]) => {
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
             tokenManager = await TokenManager.new(chainID, deployer,
-                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer});
             // set `tokenManager` contract to avoid the `Not allowed` error in lockAndDataForSchain.sol
             await lockAndDataForSchain
                 .setContract("TokenManager", tokenManager.address, {from: deployer});
@@ -1021,7 +1021,7 @@ contract("TokenManager", ([user, deployer, client]) => {
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
             tokenManager = await TokenManager.new(chainID, deployer,
-                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer});
             // set `tokenManager` contract to avoid the `Not allowed` error in lockAndDataForSchain.sol
             await lockAndDataForSchain
                 .setContract("TokenManager", tokenManager.address, {from: deployer});
@@ -1052,7 +1052,7 @@ contract("TokenManager", ([user, deployer, client]) => {
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
             tokenManager = await TokenManager.new(chainID, deployer,
-                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer});
             // set `tokenManager` contract to avoid the `Not allowed` error in lockAndDataForSchain.sol
             await lockAndDataForSchain
                 .setContract("TokenManager", tokenManager.address, {from: deployer});
@@ -1104,7 +1104,7 @@ contract("TokenManager", ([user, deployer, client]) => {
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
             tokenManager = await TokenManager.new(chainID, deployer,
-                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer});
             // set `tokenManager` contract before invoke `postMessage`
             await lockAndDataForSchain
               .setContract("TokenManager", tokenManager.address, {from: deployer});
@@ -1153,7 +1153,7 @@ contract("TokenManager", ([user, deployer, client]) => {
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
             tokenManager = await TokenManager.new(chainID, deployer,
-                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer});
             // set `tokenManager` contract before invoke `postMessage`
             await lockAndDataForSchain
               .setContract("TokenManager", tokenManager.address, {from: deployer});
@@ -1202,7 +1202,7 @@ contract("TokenManager", ([user, deployer, client]) => {
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
             tokenManager = await TokenManager.new(chainID, deployer,
-                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer});
             // set `tokenManager` contract before invoke `postMessage`
             await lockAndDataForSchain
               .setContract("TokenManager", tokenManager.address, {from: deployer});
@@ -1251,7 +1251,7 @@ contract("TokenManager", ([user, deployer, client]) => {
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
             tokenManager = await TokenManager.new(chainID, deployer,
-                lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+                lockAndDataForSchain.address, {from: deployer});
             // set `tokenManager` contract before invoke `postMessage`
             await lockAndDataForSchain
               .setContract("TokenManager", tokenManager.address, {from: deployer});

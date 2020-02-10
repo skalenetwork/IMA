@@ -46,15 +46,15 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
 
   beforeEach(async () => {
     messageProxyForMainnet = await MessageProxyForMainnet.new(
-        "Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
+        "Mainnet", contractManager, {from: deployer});
+    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer});
+    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     lockAndDataForMainnetERC721 =
         await LockAndDataForMainnetERC721.new(lockAndDataForMainnet.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
+        {from: deployer});
     await lockAndDataForSchain.setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address);
     tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
+        {from: deployer});
     eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
 
   });
