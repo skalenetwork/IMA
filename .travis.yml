@@ -66,6 +66,7 @@ jobs:
             - pip3 install -r requirements.txt
             - python3 test.py || travis_terminate 6
           after_script:
+            - cd ../proxy
             - npx buidler coverage --solcoverjs .solcover.js || travis_terminate 4
             - cat coverage/lcov.info | npx codecov
             - cd ..
