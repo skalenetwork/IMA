@@ -16,7 +16,7 @@ import {
     SkaleVerifierContract,
     SkaleVerifierInstance,
     TokenManagerContract,
-    TokenManagerInstance
+    TokenManagerInstance,
 } from "../types/truffle-contracts";
 
 import { gasMultiplier } from "./utils/command_line";
