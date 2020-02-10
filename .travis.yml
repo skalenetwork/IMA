@@ -50,7 +50,6 @@ jobs:
             - cd ../../proxy
           before_script:
             - npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
-            - npx testrpc-sc --port 8555 --gasLimit 0xfffffffffff --quiet &    
           script:
             - yarn lint || travis_terminate 1
             - slither --version
@@ -59,8 +58,8 @@ jobs:
             - yarn tslint || travis_terminate 2            
             - yarn generate
             - bash ./scripts/remove.sh
+            - RUNNING_NETWORK=test ./scripts/prepareSkaleManagerComponents.sh
             - yarn test || travis_terminate 3
-
             - cd ../test
             - python3 ../scripts/config_from_accounts.py accounts.json config.json
             - pip3 install -r requirements.txt
