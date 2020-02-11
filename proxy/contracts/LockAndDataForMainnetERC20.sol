@@ -20,17 +20,17 @@
 pragma solidity ^0.5.3;
 
 
-import "./Permissions.sol";
+import "./PermissionsForMainnet.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 
 
-contract LockAndDataForMainnetERC20 is Permissions {
+contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
 
     mapping(uint => address) public erc20Tokens;
     mapping(address => uint) public erc20Mapper;
     uint newIndexERC20 = 1;
 
-    constructor(address _lockAndDataAddress) Permissions(_lockAndDataAddress) public {
+    constructor(address _lockAndDataAddress) PermissionsForMainnet(_lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 

@@ -590,9 +590,9 @@ async function do_eth_payment_from_s_chain(
         let rawTx = {
             "chainId": cid_s_chain,
             "nonce": tcnt, // 0x00, ...
-            "gas": 2100000,
+            "gas": 6000000, // 2100000
             "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
-            "gasLimit": 3000000,
+            //"gasLimit": 3000000,
             "to": jo_token_manager.options.address, // cantract address
             "data": dataTx,
             "value": 0 // how much money to send
@@ -1346,13 +1346,13 @@ async function do_erc721_payment_from_s_chain(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Do real money movement from main-net to S-chain by sniffing events
-// 1) main-net.MessageProxy.getOutgoingMessagesCounter -> save to nOutMsgCnt
-// 2) S-chain.MessageProxy.getIncomingMessagesCounter -> save to nIncMsgCnt
+// 1) main-net.MessageProxyForMainnet.getOutgoingMessagesCounter -> save to nOutMsgCnt
+// 2) S-chain.MessageProxySchain.getIncomingMessagesCounter -> save to nIncMsgCnt
 // 3) Will transfer all in range from [ nIncMsgCnt ... (nOutMsgCnt-1) ] ... assume current counter index is nIdxCurrentMsg
 //
 // One transaction transfer is:
-// 1) Find events main-net.MessageProxy.OutgoingMessage where msgCounter member is in range
-// 2) Publish it to S-chain.MessageProxy.postIncomingMessages(
+// 1) Find events main-net.MessageProxyForMainnet.OutgoingMessage where msgCounter member is in range
+// 2) Publish it to S-chain.MessageProxySchain.postIncomingMessages(
 //            main-net chain id   // uint64 srcChainID
 //            nIdxCurrentMsg // uint64 startingCounter
 //            [srcContract]  // address[] memory senders
@@ -1460,7 +1460,7 @@ async function do_transfer(
                     }
                 }
                 if (joValues == "") {
-                    log.error( strLogPrefix + cc.error("Can't get events from MessageProxy") + "\n" );
+                    log.write( strLogPrefix + cc.error("Can't get events from MessageProxy") + "\n" );
                     process.exit(1);
                 }
                 //
@@ -1638,9 +1638,9 @@ async function do_transfer(
                 let rawTx = {
                     "chainId": cid_dst,
                     "nonce": tcnt, // 0x00, ...
-                    "gas": 3000000,
+                    "gas": 6000000,
                     "gasPrice": 10000000000, // not w3_dst.eth.gasPrice ... got from truffle.js network_name gasPrice
-                    "gasLimit": 3000000,
+                    //"gasLimit": 3000000,
                     "to": jo_message_proxy_dst.options.address, // cantract address
                     "data": dataTx //,
                     //"value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send

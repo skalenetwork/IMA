@@ -19,7 +19,7 @@
 
 pragma solidity ^0.5.3;
 
-import "./Permissions.sol";
+import "./PermissionsForMainnet.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 
 interface ILockAndDataERC20M {
@@ -30,12 +30,12 @@ interface ILockAndDataERC20M {
 }
 
 
-contract ERC20ModuleForMainnet is Permissions {
+contract ERC20ModuleForMainnet is PermissionsForMainnet {
 
     event ERC20TokenAdded(address indexed tokenHere, uint contractPosition);
     event ERC20TokenSent(address indexed tokenHere, uint contractPosition, uint amount);
 
-    constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
+    constructor(address newLockAndDataAddress) PermissionsForMainnet(newLockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 
@@ -49,7 +49,7 @@ contract ERC20ModuleForMainnet is Permissions {
         allow("DepositBox")
         returns (bytes memory data)
     {
-        address lockAndDataERC20 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         uint totalSupply = ERC20Detailed(contractHere).totalSupply();
         require(amount <= totalSupply, "TotalSupply is not correct");
         if (!isRAW) {
@@ -74,7 +74,7 @@ contract ERC20ModuleForMainnet is Permissions {
     }
 
     function sendERC20(address to, bytes calldata data) external allow("DepositBox") returns (bool) {
-        address lockAndDataERC20 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         uint contractPosition;
         address contractAddress;
         address receiver;

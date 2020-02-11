@@ -8,7 +8,7 @@ const gasMultiplierParameter = 'gas_multiplier';
 const argv = require('minimist')(process.argv.slice(2), {string: [gasMultiplierParameter]});
 const gasMultiplier = argv[gasMultiplierParameter] === undefined ? 1 : Number(argv[gasMultiplierParameter])
 
-let MessageProxy = artifacts.require("./MessageProxy.sol");
+let MessageProxyForMainnet = artifacts.require("./MessageProxyForMainnet.sol");
 let DepositBox = artifacts.require("./DepositBox.sol");
 let LockAndDataForMainnet = artifacts.require("./LockAndDataForMainnet.sol");
 let ERC20ModuleForMainnet = artifacts.require("./ERC20ModuleForMainnet.sol");
@@ -20,10 +20,10 @@ let gasLimit = 8000000;
 
 async function deploy(deployer, network) {
 
-    await deployer.deploy(MessageProxy, "Mainnet", jsonData.contract_manager_address, {gas: gasLimit}).then(async function() {
+    await deployer.deploy(MessageProxyForMainnet, "Mainnet", jsonData.contract_manager_address /*"0x0000000000000000000000000000000000000000"*/, {gas: gasLimit}).then(async function() {
         return await deployer.deploy(LockAndDataForMainnet, {gas: gasLimit});
     }).then(async function(inst) {
-        await deployer.deploy(DepositBox, MessageProxy.address, inst.address, {gas: gasLimit * gasMultiplier});
+        await deployer.deploy(DepositBox, MessageProxyForMainnet.address, inst.address, {gas: gasLimit * gasMultiplier});
         await inst.setContract("DepositBox", DepositBox.address);
         await deployer.deploy(ERC20ModuleForMainnet, inst.address, {gas: gasLimit * gasMultiplier});
         await inst.setContract("ERC20Module", ERC20ModuleForMainnet.address);
@@ -47,8 +47,8 @@ async function deploy(deployer, network) {
             lock_and_data_for_mainnet_erc721_abi: LockAndDataForMainnetERC721.abi,
             erc721_module_address: ERC721ModuleForMainnet.address,
             erc721_module_abi: ERC721ModuleForMainnet.abi,
-            message_proxy_mainnet_address: MessageProxy.address,
-            message_proxy_mainnet_abi: MessageProxy.abi
+            message_proxy_mainnet_address: MessageProxyForMainnet.address,
+            message_proxy_mainnet_abi: MessageProxyForMainnet.abi
         }
 
         await fsPromises.writeFile('data/proxyMainnet.json', JSON.stringify(jsonObject));

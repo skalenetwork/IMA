@@ -19,10 +19,10 @@
 
 pragma solidity ^0.5.3;
 
-import "./Ownable.sol";
+import "./OwnableForMainnet.sol";
 
 
-contract LockAndDataForMainnet is Ownable {
+contract LockAndDataForMainnet is OwnableForMainnet {
 
     mapping(bytes32 => address) public permitted;
 
@@ -33,7 +33,7 @@ contract LockAndDataForMainnet is Ownable {
     mapping(address => bool) public authorizedCaller;
 
     modifier allow(string memory contractName) {
-        require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender || owner == msg.sender, "Not allowed");
+        require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender || getOwner() == msg.sender, "Not allowed");
         _;
     }
 
@@ -45,7 +45,7 @@ contract LockAndDataForMainnet is Ownable {
         string message
     );
 
-    constructor() Ownable() public {
+    constructor() OwnableForMainnet() public {
         authorizedCaller[msg.sender] = true;
     }
 

@@ -4,8 +4,10 @@ import { DepositBoxContract,
   DepositBoxInstance,
   LockAndDataForMainnetContract,
   LockAndDataForMainnetInstance,
-  MessageProxyContract,
-  MessageProxyInstance,
+  MessageProxyForMainnetContract,
+  MessageProxyForMainnetInstance,
+  MessageProxyForSchainContract,
+  MessageProxyForSchainInstance,
   } from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
 import { skipTime } from "./utils/time";
@@ -16,29 +18,30 @@ import { gasMultiplier } from "./utils/command_line";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
+const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const DepositBox: DepositBoxContract = artifacts.require("./DepositBox");
 
 const contractManager = "0x0000000000000000000000000000000000000000";
 
 contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
-  let messageProxy: MessageProxyInstance;
+  let messageProxyForMainnet: MessageProxyForMainnetInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let depositBox: DepositBoxInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
-    depositBox = await DepositBox.new(messageProxy.address, lockAndDataForMainnet.address,
-       {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxyForMainnet = await MessageProxyForMainnet.new(
+      "Mainnet", contractManager, {from: deployer});
+    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer});
+    depositBox = await DepositBox.new(messageProxyForMainnet.address, lockAndDataForMainnet.address,
+       {from: deployer});
   });
 
   it("should add wei to `lockAndDataForMainnet`", async () => {
     // preparation
     const wei = "10000";
     const lockAndDataBalanceBefore = await web3.eth.getBalance(lockAndDataForMainnet.address);
-    // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
     await lockAndDataForMainnet
       .receiveEth(invoker, {value: wei, from: deployer});
     const lockAndDataBalanceAfter = await web3.eth.getBalance(lockAndDataForMainnet.address);
@@ -51,7 +54,7 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     // preparation
     const wei = "1000";
     const error = "Not enough ETH. in `LockAndDataForMainnet.sendEth`";
-    // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
     await lockAndDataForMainnet
       .receiveEth(invoker, {value: wei, from: deployer});
     // execution/expectation
@@ -66,7 +69,7 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     // preparation
     const addWeiToContract = "1000";
     const sendWeiFromContract = 100;
-    // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
     await lockAndDataForMainnet
       .receiveEth(invoker, {value: addWeiToContract, from: deployer});
     // execution
@@ -83,7 +86,7 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     // preparation
     const addWeiToContract = "1000";
     const sendWeiFromContract = 100;
-    // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
     await lockAndDataForMainnet
       .receiveEth(invoker, {value: addWeiToContract, from: deployer});
     // execution
@@ -99,7 +102,7 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     // preparation
     const addWeiToContract = "1000";
     const setWeiToApproveTransfers = 100;
-    // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
     await lockAndDataForMainnet
       .receiveEth(invoker, {value: addWeiToContract, from: deployer});
     // without `approveTransfer` `getMyEth` not invoke
@@ -128,7 +131,7 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     const error = "Not enough ETH. in `LockAndDataForMainnet.getMyEth`";
     const addWeiToContract = "1";
     const setWeiToApproveTransfers = 100;
-    // add wei to contract throught `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
     await lockAndDataForMainnet
       .receiveEth(invoker, {value: addWeiToContract, from: deployer});
     // without `approveTransfer` `getMyEth` not invoke
@@ -142,10 +145,10 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
 
   it("should invoke setContract without mistakes", async () => {
     await lockAndDataForMainnet
-      .setContract("DepositBox", DepositBox.address, {from: deployer});
+      .setContract("DepositBox", depositBox.address, {from: deployer});
     const getMapping = await lockAndDataForMainnet.permitted(web3.utils.soliditySha3("DepositBox"));
     // expectation
-    expect(getMapping).to.equal(DepositBox.address);
+    expect(getMapping).to.equal(depositBox.address);
   });
 
   it("should rejected with `New address is equal zero` when invoke `getMyEth`", async () => {
@@ -160,10 +163,10 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     // preparation
     const error = "Contract is already added";
     await lockAndDataForMainnet
-    .setContract("DepositBox", DepositBox.address, {from: deployer});
+    .setContract("DepositBox", depositBox.address, {from: deployer});
     // execution/expectation
     await lockAndDataForMainnet
-      .setContract("DepositBox", DepositBox.address, {from: deployer})
+      .setContract("DepositBox", depositBox.address, {from: deployer})
       .should.be.eventually.rejectedWith(error);
   });
 

@@ -7,8 +7,10 @@ import {
     LockAndDataForSchainERC20Contract,
     LockAndDataForSchainERC20Instance,
     LockAndDataForSchainInstance,
-    MessageProxyContract,
-    MessageProxyInstance,
+    MessageProxyForMainnetContract,
+    MessageProxyForMainnetInstance,
+    MessageProxyForSchainContract,
+    MessageProxyForSchainInstance,
     } from "../types/truffle-contracts";
 
 import { createBytes32 } from "./utils/helper";
@@ -20,7 +22,7 @@ import { gasMultiplier } from "./utils/command_line";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
+const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const LockAndDataForSchainERC20: LockAndDataForSchainERC20Contract =
     artifacts.require("./LockAndDataForSchainERC20");
@@ -29,13 +31,14 @@ const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 const contractManager = "0x0000000000000000000000000000000000000000";
 
 contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
-  let messageProxy: MessageProxyInstance;
+  let messageProxyForSchain: MessageProxyForSchainInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForSchainERC20: LockAndDataForSchainERC20Instance;
   let eRC20OnChain: ERC20OnChainInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Schain", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxyForSchain = await MessageProxyForSchain.new(
+      "Schain", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchainERC20 =
         await LockAndDataForSchainERC20.new(lockAndDataForSchain.address,
@@ -50,7 +53,7 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     const contractHere = eRC20OnChain.address;
     const to = user;
     const amount = 10;
-    // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exeption
+    // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
     await eRC20OnChain.addMinter(lockAndDataForSchainERC20.address);
     // execution
     const res = await lockAndDataForSchainERC20
@@ -74,7 +77,7 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     // preparation
     const contractHere = eRC20OnChain.address;
     const amount = 10;
-    // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exeption
+    // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
     await eRC20OnChain.addMinter(lockAndDataForSchainERC20.address);
     // mint some quantity of ERC20 tokens for `deployer` address
     await eRC20OnChain.mint(deployer, "1000000000", {from: deployer});
