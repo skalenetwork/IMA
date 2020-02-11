@@ -9,8 +9,10 @@ import {
     LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainInstance,
-    MessageProxyContract,
-    MessageProxyInstance,
+    MessageProxyForMainnetContract,
+    MessageProxyForMainnetInstance,
+    MessageProxyForSchainContract,
+    MessageProxyForSchainInstance,
     TokenFactoryContract,
     TokenFactoryInstance,
     } from "../types/truffle-contracts";
@@ -24,7 +26,7 @@ import { gasMultiplier } from "./utils/command_line";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
+const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const LockAndDataForMainnetERC721: LockAndDataForMainnetERC721Contract =
@@ -35,7 +37,7 @@ const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain"
 const contractManager = "0x0000000000000000000000000000000000000000";
 
 contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
-  let messageProxy: MessageProxyInstance;
+  let messageProxyForMainnet: MessageProxyForMainnetInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForMainnetERC721: LockAndDataForMainnetERC721Instance;
@@ -43,15 +45,16 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
   let eRC721OnChain: ERC721OnChainInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxyForMainnet = await MessageProxyForMainnet.new(
+        "Mainnet", contractManager, {from: deployer});
+    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer});
+    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     lockAndDataForMainnetERC721 =
         await LockAndDataForMainnetERC721.new(lockAndDataForMainnet.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
+        {from: deployer});
     await lockAndDataForSchain.setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address);
     tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
+        {from: deployer});
     eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
 
   });

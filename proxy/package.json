@@ -23,25 +23,28 @@
     "solc": "^0.5.4",
     "truffle": "^5.0.12",
     "truffle-hdwallet-provider": "^1.0.9",
-    "typescript": "^3.5.2",
-    "web3": "1.0.0-beta.37"
+    "typescript": "^3.5.2"
   },
   "devDependencies": {
+    "@nomiclabs/buidler": "^1.1.2",
+    "@nomiclabs/buidler-truffle5": "^1.1.2",
+    "@nomiclabs/buidler-web3": "^1.1.2",
     "@types/chai": "^4.1.7",
     "@types/chai-as-promised": "^7.1.0",
     "@types/minimist": "^1.2.0",
-    "@types/web3": "^1.0.19",
+    "@types/web3": "1.0.19",
     "bignumber.js": "^9.0.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "codecov": "^3.5.0",
     "ethlint": "^1.2.4",
     "ganache-cli": "^6.5.0",
-    "solidity-coverage": "leapdao/solidity-coverage",
+    "solidity-coverage": "0.7.0",
     "truffle-typings": "1.0.8",
     "ts-node": "^8.3.0",
     "tslint": "^5.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",
-    "typechain": "^0.3.19"
+    "typechain": "^0.3.19",
+    "web3": "^1.0.0-beta.37"
   }
 }

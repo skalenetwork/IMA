@@ -40,6 +40,7 @@ jobs:
             - cd proxy
             - bash ./scripts/copy.sh
             - yarn install
+            - npx buidler --version
 
             - cd ../agent 
             - npm install
@@ -50,26 +51,23 @@ jobs:
             - cd ../../proxy
           before_script:
             - npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
-            - npx testrpc-sc --port 8555 --gasLimit 0xfffffffffff --quiet &    
           script:
             - yarn lint || travis_terminate 1
             - slither --version
-            - slither . --filter-path openzeppelin-solidity || true            
-            - slither . --filter-path openzeppelin-solidity --exclude-informational --exclude reentrancy-events,constant-function,calls-loop || travis_terminate 7
+            - slither . --filter-path openzeppelin-solidity,@openzeppelin/contracts/ || true            
+            - slither . --filter-path openzeppelin-solidity,@openzeppelin/contracts/ --exclude-informational --exclude reentrancy-events,constant-function,calls-loop,reentrancy-benign,pragma,assembly,blank-lines,timestamp,external-function,constable-states,locked-ether,solc-version,too-many-digits,shadowing-state,shadowing-local,uninitialized-state || travis_terminate 7
             - yarn tslint || travis_terminate 2            
             - yarn generate
             - bash ./scripts/remove.sh
             - RUNNING_NETWORK=test bash ./scripts/prepareSkaleManagerComponents.sh
             - yarn test || travis_terminate 3
-
             - cd ../test
             - python3 ../scripts/config_from_accounts.py accounts.json config.json
             - pip3 install -r requirements.txt
             - python3 test.py || travis_terminate 6
-            - cd ../proxy
-            - RUNNING_NETWORK=coverage bash ./scripts/prepareSkaleManagerComponents.sh
           after_script:
-            - npx solidity-coverage || travis_terminate 4
+            - cd ../proxy
+            - npx buidler coverage --solcoverjs .solcover.js || travis_terminate 4
             - cat coverage/lcov.info | npx codecov
             - cd ..
 

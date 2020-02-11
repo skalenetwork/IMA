@@ -7,8 +7,10 @@ import {
     LockAndDataForSchainERC721Contract,
     LockAndDataForSchainERC721Instance,
     LockAndDataForSchainInstance,
-    MessageProxyContract,
-    MessageProxyInstance,
+    MessageProxyForMainnetContract,
+    MessageProxyForMainnetInstance,
+    MessageProxyForSchainContract,
+    MessageProxyForSchainInstance,
     } from "../types/truffle-contracts";
 
 import { createBytes32 } from "./utils/helper";
@@ -20,7 +22,7 @@ import { gasMultiplier } from "./utils/command_line";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
+const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract =
     artifacts.require("./LockAndDataForSchainERC721");
@@ -29,13 +31,14 @@ const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain"
 const contractManager = "0x0000000000000000000000000000000000000000";
 
 contract("LockAndDataForSchainERC721", ([deployer, user, invoker]) => {
-  let messageProxy: MessageProxyInstance;
+  let messageProxyForSchain: MessageProxyForSchainInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForSchainERC721: LockAndDataForSchainERC721Instance;
   let eRC721OnChain: ERC721OnChainInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Schain", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxyForSchain = await MessageProxyForSchain.new(
+      "Schain", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchainERC721 =
         await LockAndDataForSchainERC721.new(lockAndDataForSchain.address,
@@ -49,7 +52,7 @@ contract("LockAndDataForSchainERC721", ([deployer, user, invoker]) => {
     const contractHere = eRC721OnChain.address;
     const to = user;
     const tokenId = 10;
-    // invoke `addMinter` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exeption
+    // invoke `addMinter` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
     await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address);
     // execution
     const res = await lockAndDataForSchainERC721
