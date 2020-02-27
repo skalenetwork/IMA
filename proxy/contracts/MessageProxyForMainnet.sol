@@ -25,7 +25,7 @@ interface ContractReceiverForMainnet {
         address sender,
         string calldata schainID,
         address to,
-        uint amount,
+        uint256 amount,
         bytes calldata data
     )
         external;
@@ -37,12 +37,12 @@ interface IContractManagerSkaleManager {
 
 interface ISkaleVerifier {
     function verifySchainSignature(
-        uint signA,
-        uint signB,
+        uint256 signA,
+        uint256 signB,
         bytes32 hash,
-        uint counter,
-        uint hashA,
-        uint hashB,
+        uint256 counter,
+        uint256 hashA,
+        uint256 hashB,
         string calldata schainName
     )
         external
@@ -80,19 +80,31 @@ contract MessageProxyForMainnet {
     event OutgoingMessage(
         string dstChain,
         bytes32 indexed dstChainHash,
-        uint indexed msgCounter,
+        uint256 indexed msgCounter,
         address indexed srcContract,
         address dstContract,
         address to,
-        uint amount,
+        uint256 amount,
         bytes data,
-        uint length
+        uint256 length
     );
+
+    struct OutgoingMessageData {
+        string dstChain;
+        bytes32 dstChainHash;
+        uint256 msgCounter;
+        address srcContract;
+        address dstContract;
+        address to;
+        uint256 amount;
+        bytes data;
+        uint256 length;
+    }
 
     struct ConnectedChainInfo {
         // message counters start with 0
-        uint incomingMessageCounter;
-        uint outgoingMessageCounter;
+        uint256 incomingMessageCounter;
+        uint256 outgoingMessageCounter;
         bool inited;
     }
 
@@ -100,7 +112,7 @@ contract MessageProxyForMainnet {
         address sender;
         address destinationContract;
         address to;
-        uint amount;
+        uint256 amount;
         bytes data;
     }
 
@@ -163,7 +175,7 @@ contract MessageProxyForMainnet {
     // To connect to other chains, the owner needs to explicitly call this function
     function addConnectedChain(
         string calldata newChainID,
-        uint[4] calldata newPublicKey
+        uint256[4] calldata newPublicKey
     )
         external
     {
@@ -203,11 +215,42 @@ contract MessageProxyForMainnet {
         delete connectedChains[keccak256(abi.encodePacked(newChainID))];
     }
 
+    mapping ( uint256 => OutgoingMessageData ) private outgoingMessageData;
+    uint256 private idxHead;
+    uint256 private idxTail;
+
+    function pushOutgoingMessageData( OutgoingMessageData memory d ) private {
+        emit OutgoingMessage(
+            d.dstChain,
+            d.dstChainHash,
+            d.msgCounter,
+            d.srcContract,
+            d.dstContract,
+            d.to,
+            d.amount,
+            d.data,
+            d.length
+        );
+        outgoingMessageData[idxTail] = d;
+        ++ idxTail;
+    }
+    function popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) private returns ( uint256 cntDeleted ) {
+        cntDeleted = 0;
+        for ( uint256 i = idxHead; i < idxLastToPopNotIncluding; ++ i ) {
+            if ( i >= idxTail )
+                break;
+            delete outgoingMessageData[i];
+            ++ cntDeleted;
+        }
+        if (cntDeleted > 0)
+            idxHead += cntDeleted;
+    }
+
     // This is called by a smart contract that wants to make a cross-chain call
     function postOutgoingMessage(
         string calldata dstChainID,
         address dstContract,
-        uint amount,
+        uint256 amount,
         address to,
         bytes calldata data
     )
@@ -216,23 +259,25 @@ contract MessageProxyForMainnet {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         connectedChains[dstChainHash].outgoingMessageCounter++;
-        emit OutgoingMessage(
-            dstChainID,
-            dstChainHash,
-            connectedChains[dstChainHash].outgoingMessageCounter - 1,
-            msg.sender,
-            dstContract,
-            to,
-            amount,
-            data,
-            data.length
+        pushOutgoingMessageData(
+            OutgoingMessageData(
+                dstChainID,
+                dstChainHash,
+                connectedChains[dstChainHash].outgoingMessageCounter - 1,
+                msg.sender,
+                dstContract,
+                to,
+                amount,
+                data,
+                data.length
+            )
         );
     }
 
     function getOutgoingMessagesCounter(string calldata dstChainID)
         external
         view
-        returns (uint)
+        returns (uint256)
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
@@ -242,21 +287,72 @@ contract MessageProxyForMainnet {
     function getIncomingMessagesCounter(string calldata srcChainID)
         external
         view
-        returns (uint)
+        returns (uint256)
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
         return connectedChains[srcChainHash].incomingMessageCounter;
     }
 
+    // function helperPackInputArray( Message[] memory messages ) internal pure returns (Message[] memory input) {
+    //     input = new Message[](messages.length);
+    //     for (uint256 i = 0; i < messages.length; i++) {
+    //         input[i].sender = messages[i].sender;
+    //         input[i].destinationContract = messages[i].destinationContract;
+    //         input[i].to = messages[i].to;
+    //         input[i].amount = messages[i].amount;
+    //         input[i].data = messages[i].data;
+    //     }
+    // }
+    // function helperPackInputHash( Message[] memory messages ) internal pure returns (bytes32 h) {
+    //     h = hashedArray(helperPackInputArray(messages));
+    // }
+
+    // function validateIncomingMessages(
+    //     string memory srcChainID,
+    //     Message[] memory messages,
+    //     uint256[2] memory blsSignature,
+    //     uint256 hashA,
+    //     uint256 hashB,
+    //     uint256 counter
+    // )
+    // internal
+    // {
+    //     if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
+    //         Message[] memory input = new Message[](messages.length);
+    //         for (uint256 i = 0; i < messages.length; i++) {
+    //             input[i].sender = messages[i].sender;
+    //             input[i].destinationContract = messages[i].destinationContract;
+    //             input[i].to = messages[i].to;
+    //             input[i].amount = messages[i].amount;
+    //             input[i].data = messages[i].data;
+    //         }
+            
+    //         //Message[] memory input = helperPackInput( messages );
+            
+    //         require(
+    //             verifyMessageSignature(
+    //                 blsSignature,
+    //                 // helperPackInputHash(messages),
+    //                      hashedArray(input),
+    //                 counter,
+    //                 hashA,
+    //                 hashB,
+    //                 srcChainID
+    //             ), "Signature is not verified"
+    //         );
+    //     }
+    // }
+
     function postIncomingMessages(
         string calldata srcChainID,
-        uint startingCounter,
+        uint256 startingCounter,
         Message[] calldata messages,
-        uint[2] calldata blsSignature,
-        uint hashA,
-        uint hashB,
-        uint counter
+        uint256[2] calldata blsSignature,
+        uint256 hashA,
+        uint256 hashB,
+        uint256 counter,
+        uint256 idxLastToPopNotIncluding
     )
         external
     {
@@ -266,28 +362,40 @@ contract MessageProxyForMainnet {
             startingCounter == connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter,
             "Starning counter is not qual to incomin message counter");
 
-        if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
-            Message[] memory input = new Message[](messages.length);
-            for (uint i = 0; i < messages.length; i++) {
-                input[i].sender = messages[i].sender;
-                input[i].destinationContract = messages[i].destinationContract;
-                input[i].to = messages[i].to;
-                input[i].amount = messages[i].amount;
-                input[i].data = messages[i].data;
-            }
-            require(
-                verifyMessageSignature(
-                    blsSignature,
-                    hashedArray(input),
-                    counter,
-                    hashA,
-                    hashB,
-                    srcChainID
-                ), "Signature is not verified"
-            );
-        }
+        // if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
+        //     // Message[] memory input = new Message[](messages.length);
+        //     // for (uint256 i = 0; i < messages.length; i++) {
+        //     //     input[i].sender = messages[i].sender;
+        //     //     input[i].destinationContract = messages[i].destinationContract;
+        //     //     input[i].to = messages[i].to;
+        //     //     input[i].amount = messages[i].amount;
+        //     //     input[i].data = messages[i].data;
+        //     // }
+            
+        //     //Message[] memory input = helperPackInput( messages );
+            
+        //     require(
+        //         verifyMessageSignature(
+        //             blsSignature,
+        //             helperPackInputHash(messages), //hashedArray(input),
+        //             counter,
+        //             hashA,
+        //             hashB,
+        //             srcChainID
+        //         ), "Signature is not verified"
+        //     );
+        // }
 
-        for (uint i = 0; i < messages.length; i++) {
+        // validateIncomingMessages(
+        //     srcChainID,
+        //     messages,
+        //     blsSignature,
+        //     hashA,
+        //     hashB,
+        //     counter
+        // );
+
+        for (uint256 i = 0; i < messages.length; i++) {
             ContractReceiverForMainnet(messages[i].destinationContract).postMessage(
                 messages[i].sender,
                 srcChainID,
@@ -296,7 +404,9 @@ contract MessageProxyForMainnet {
                 messages[i].data
             );
         }
-        connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint(messages.length);
+        connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint256(messages.length);
+
+        popOutgoingMessageData(idxLastToPopNotIncluding);
     }
 
     function moveIncomingCounter(string calldata schainName) external {
@@ -311,11 +421,11 @@ contract MessageProxyForMainnet {
     }
 
     function verifyMessageSignature(
-        uint[2] memory blsSignature,
+        uint256[2] memory blsSignature,
         bytes32 hash,
-        uint counter,
-        uint hashA,
-        uint hashB,
+        uint256 counter,
+        uint256 hashA,
+        uint256 hashB,
         string memory srcChainID
     )
         internal
@@ -338,7 +448,7 @@ contract MessageProxyForMainnet {
 
     function hashedArray(Message[] memory messages) internal pure returns (bytes32) {
         bytes memory data;
-        for (uint i = 0; i < messages.length; i++) {
+        for (uint256 i = 0; i < messages.length; i++) {
             data = abi.encodePacked(
                 data,
                 bytes32(bytes20(messages[i].sender)),

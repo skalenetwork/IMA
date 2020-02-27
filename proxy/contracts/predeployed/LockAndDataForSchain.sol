@@ -22,7 +22,7 @@ pragma solidity ^0.5.3;
 import "./OwnableForSchain.sol";
 
 interface IETHERC20 {
-    function allowance(address from, address to) external returns (uint);
+    function allowance(address from, address to) external returns (uint256);
     function mint(address account, uint256 amount) external returns (bool);
     function burn(uint256 amount) external;
     function burnFrom(address from, uint256 amount) external;
@@ -37,7 +37,7 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     mapping(bytes32 => address) public tokenManagerAddresses;
 
-    mapping(address => uint) public ethCosts;
+    mapping(address => uint256) public ethCosts;
 
     mapping(address => bool) public authorizedCaller;
 
@@ -67,7 +67,7 @@ contract LockAndDataForSchain is OwnableForSchain {
         //require(permitted[contractId] != newContract, "Contract is already added");
         require(!checkPermitted(contractName,newContract), "Contract is already added"); // l_sergiy: repacement
 
-        uint length;
+        uint256 length;
         // solium-disable-next-line security/no-inline-assembly
         assembly {
             length := extcodesize(newContract)
@@ -138,11 +138,11 @@ contract LockAndDataForSchain is OwnableForSchain {
         authorizedCaller[caller] = false;
     }
 
-    function addGasCosts(address to, uint amount) external allow("TokenManager") {
+    function addGasCosts(address to, uint256 amount) external allow("TokenManager") {
         ethCosts[to] += amount;
     }
 
-    function reduceGasCosts(address to, uint amount) external allow("TokenManager") returns (bool) {
+    function reduceGasCosts(address to, uint256 amount) external allow("TokenManager") returns (bool) {
         if (ethCosts[to] >= amount) {
             ethCosts[to] -= amount;
             return true;
@@ -153,17 +153,17 @@ contract LockAndDataForSchain is OwnableForSchain {
         return false;
     }
 
-    function removeGasCosts(address to) external allow("TokenManager") returns (uint balance) {
+    function removeGasCosts(address to) external allow("TokenManager") returns (uint256 balance) {
         balance = ethCosts[to];
         delete ethCosts[to];
     }
 
-    function sendEth(address to, uint amount) external allow("TokenManager") returns (bool) {
+    function sendEth(address to, uint256 amount) external allow("TokenManager") returns (bool) {
         require(IETHERC20(getEthERC20Address()).mint(to, amount), "Mint error");
         return true;
     }
 
-    function receiveEth(address sender, uint amount) external allow("TokenManager") returns (bool) {
+    function receiveEth(address sender, uint256 amount) external allow("TokenManager") returns (bool) {
         IETHERC20(getEthERC20Address()).burnFrom(sender, amount);
         return true;
     }

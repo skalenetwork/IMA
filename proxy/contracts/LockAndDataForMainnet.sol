@@ -28,7 +28,7 @@ contract LockAndDataForMainnet is OwnableForMainnet {
 
     mapping(bytes32 => address) public tokenManagerAddresses;
 
-    mapping(address => uint) public approveTransfers;
+    mapping(address => uint256) public approveTransfers;
 
     mapping(address => bool) public authorizedCaller;
 
@@ -37,11 +37,11 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         _;
     }
 
-    event MoneyReceived(address from, uint amount);
+    event MoneyReceived(address from, uint256 amount);
 
     event Error(
         address to,
-        uint amount,
+        uint256 amount,
         string message
     );
 
@@ -57,7 +57,7 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         require(newContract != address(0), "New address is equal zero");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(permitted[contractId] != newContract, "Contract is already added");
-        uint length;
+        uint256 length;
         // solium-disable-next-line security/no-inline-assembly
         assembly {
             length := extcodesize(newContract)
@@ -96,19 +96,19 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         authorizedCaller[caller] = false;
     }
 
-    function approveTransfer(address to, uint amount) external allow("DepositBox") {
+    function approveTransfer(address to, uint256 amount) external allow("DepositBox") {
         approveTransfers[to] += amount;
     }
 
     function getMyEth() external {
         require(address(this).balance >= approveTransfers[msg.sender], "Not enough ETH. in `LockAndDataForMainnet.getMyEth`");
         require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
-        uint amount = approveTransfers[msg.sender];
+        uint256 amount = approveTransfers[msg.sender];
         approveTransfers[msg.sender] = 0;
         msg.sender.transfer(amount);
     }
 
-    function sendEth(address payable to, uint amount) external allow("DepositBox") returns (bool) {
+    function sendEth(address payable to, uint256 amount) external allow("DepositBox") returns (bool) {
         // require(address(this).balance >= amount, "Not enough ETH. in `LockAndDataForMainnet.sendEth`");
         if (address(this).balance < amount) {
             emit Error(

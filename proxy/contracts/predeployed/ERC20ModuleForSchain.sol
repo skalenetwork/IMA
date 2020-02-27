@@ -29,23 +29,23 @@ interface ITokenFactoryForERC20 {
 }
 
 interface ILockAndDataERC20S {
-    function erc20Tokens(uint index) external returns (address);
-    function erc20Mapper(address contractERC20) external returns (uint);
-    function addERC20Token(address contractERC20, uint contractPosition) external;
-    function sendERC20(address contractHere, address to, uint amount) external returns (bool);
-    function receiveERC20(address contractHere, uint amount) external returns (bool);
+    function erc20Tokens(uint256 index) external returns (address);
+    function erc20Mapper(address contractERC20) external returns (uint256);
+    function addERC20Token(address contractERC20, uint256 contractPosition) external;
+    function sendERC20(address contractHere, address to, uint256 amount) external returns (bool);
+    function receiveERC20(address contractHere, uint256 amount) external returns (bool);
 }
 
 interface ERC20Clone {
-    function totalSupplyOnMainnet() external view returns (uint);
-    function setTotalSupplyOnMainnet(uint newTotalSupply) external;
+    function totalSupplyOnMainnet() external view returns (uint256);
+    function setTotalSupplyOnMainnet(uint256 newTotalSupply) external;
 }
 
 
 contract ERC20ModuleForSchain is PermissionsForSchain {
 
-    event ERC20TokenCreated(uint indexed contractPosition, address tokenThere);
-    event ERC20TokenReceived(uint indexed contractPosition, address tokenThere, uint amount);
+    event ERC20TokenCreated(uint256 indexed contractPosition, address tokenThere);
+    event ERC20TokenReceived(uint256 indexed contractPosition, address tokenThere, uint256 amount);
 
 
     constructor(address newLockAndDataAddress) PermissionsForSchain(newLockAndDataAddress) public {
@@ -55,12 +55,12 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
     function receiveERC20(
         address contractHere,
         address to,
-        uint amount,
+        uint256 amount,
         bool isRAW) external allow("TokenManager") returns (bytes memory data)
         {
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         if (!isRAW) {
-            uint contractPosition = ILockAndDataERC20S(lockAndDataERC20).erc20Mapper(contractHere);
+            uint256 contractPosition = ILockAndDataERC20S(lockAndDataERC20).erc20Mapper(contractHere);
             require(contractPosition > 0, "Not existing ERC-20 contract");
             require(ILockAndDataERC20S(lockAndDataERC20).receiveERC20(contractHere, amount), "Cound not receive ERC20 Token");
             data = encodeData(
@@ -77,10 +77,10 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
 
     function sendERC20(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        uint contractPosition;
+        uint256 contractPosition;
         address contractAddress;
         address receiver;
-        uint amount;
+        uint256 amount;
         if (to == address(0)) {
             (contractPosition, receiver, amount) = fallbackDataParser(data);
             contractAddress = ILockAndDataERC20S(lockAndDataERC20).erc20Tokens(contractPosition);
@@ -90,7 +90,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
                 emit ERC20TokenCreated(contractPosition, contractAddress);
                 ILockAndDataERC20S(lockAndDataERC20).addERC20Token(contractAddress, contractPosition);
             } else {
-                uint totalSupply = fallbackTotalSupplyParser(data);
+                uint256 totalSupply = fallbackTotalSupplyParser(data);
                 if (totalSupply > ERC20Clone(contractAddress).totalSupplyOnMainnet()) {
                     ERC20Clone(contractAddress).setTotalSupplyOnMainnet(totalSupply);
                 }
@@ -105,8 +105,8 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
     }
 
     function getReceiver(address to, bytes calldata data) external pure returns (address receiver) {
-        uint contractPosition;
-        uint amount;
+        uint256 contractPosition;
+        uint256 amount;
         if (to == address(0)) {
             (contractPosition, receiver, amount) = fallbackDataParser(data);
         } else {
@@ -116,14 +116,14 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
 
     function encodeData(
         address contractHere,
-        uint contractPosition,
+        uint256 contractPosition,
         address to,
-        uint amount) internal view returns (bytes memory data)
+        uint256 amount) internal view returns (bytes memory data)
         {
         string memory name = ERC20Detailed(contractHere).name();
         uint8 decimals = ERC20Detailed(contractHere).decimals();
         string memory symbol = ERC20Detailed(contractHere).symbol();
-        uint totalSupply = ERC20Detailed(contractHere).totalSupply();
+        uint256 totalSupply = ERC20Detailed(contractHere).totalSupply();
         data = abi.encodePacked(
             bytes1(uint8(3)),
             bytes32(contractPosition),
@@ -138,7 +138,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         );
     }
 
-    function encodeRawData(address to, uint amount) internal pure returns (bytes memory data) {
+    function encodeRawData(address to, uint256 amount) internal pure returns (bytes memory data) {
         data = abi.encodePacked(
             bytes1(uint8(19)),
             bytes32(bytes20(to)),
@@ -149,7 +149,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
     function fallbackTotalSupplyParser(bytes memory data)
         internal
         pure
-        returns (uint)
+        returns (uint256)
     {
         bytes32 totalSupply;
         bytes32 nameLength;
@@ -157,22 +157,22 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         assembly {
             nameLength := mload(add(data, 129))
         }
-        uint lengthOfName = uint(nameLength);
+        uint256 lengthOfName = uint256(nameLength);
         assembly {
             symbolLength := mload(add(data, add(161, lengthOfName)))
         }
-        uint lengthOfSymbol = uint(symbolLength);
+        uint256 lengthOfSymbol = uint256(symbolLength);
         assembly {
             totalSupply := mload(add(data,
                 add(194, add(lengthOfName, lengthOfSymbol))))
         }
-        return uint(totalSupply);
+        return uint256(totalSupply);
     }
 
     function fallbackDataParser(bytes memory data)
         internal
         pure
-        returns (uint, address payable, uint)
+        returns (uint256, address payable, uint256)
     {
         bytes32 contractIndex;
         bytes32 to;
@@ -184,14 +184,14 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
             token := mload(add(data, 97))
         }
         return (
-            uint(contractIndex), address(bytes20(to)), uint(token)
+            uint256(contractIndex), address(bytes20(to)), uint256(token)
         );
     }
 
     function fallbackRawDataParser(bytes memory data)
         internal
         pure
-        returns (address payable, uint)
+        returns (address payable, uint256)
     {
         bytes32 to;
         bytes32 token;
@@ -200,6 +200,6 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
             to := mload(add(data, 33))
             token := mload(add(data, 65))
         }
-        return (address(bytes20(to)), uint(token));
+        return (address(bytes20(to)), uint256(token));
     }
 }

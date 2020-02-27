@@ -1358,7 +1358,7 @@ async function do_erc721_payment_from_s_chain(
 //            [srcContract]  // address[] memory senders
 //            [dstContract]  // address[] memory dstContracts
 //            [to]           // address[] memory to
-//            [amount]       // uint[] memory amount / *uint[2] memory blsSignature* /
+//            [amount]       // uint256[] memory amount / *uint256[2] memory blsSignature* /
 //            )
 //
 async function do_transfer(
@@ -1401,7 +1401,8 @@ async function do_transfer(
     let r, strActionName = "",
         nIdxCurrentMsg = 0,
         nOutMsgCnt = 0,
-        nIncMsgCnt = 0;
+        nIncMsgCnt = 0,
+        idxLastToPopNotIncluding = 0;
     try {
         strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
         if ( verbose_get() >= RV_VERBOSE.trace )
@@ -1420,6 +1421,13 @@ async function do_transfer(
         } ) );
         if ( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( nIncMsgCnt ) + "\n" );
+        //
+        strActionName = "src-chain.MessageProxy.getIncomingMessagesCounter()";
+        idxLastToPopNotIncluding = parseInt( await jo_message_proxy_src.methods.getIncomingMessagesCounter( chain_id_dst ).call( {
+            "from": joAccountSrc.address( w3_src )
+        } ) );
+        if ( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( idxLastToPopNotIncluding ) + "\n" );
         //
         //
         // outer loop is block former, then transfer
@@ -1614,7 +1622,8 @@ async function do_transfer(
                     [ signature.X, signature.Y ], // BLS glue of signatures
                     hashPoint.X, // G1.X from joGlueResult.hashSrc
                     hashPoint.Y, // G1.Y from joGlueResult.hashSrc
-                    hint
+                    hint,
+                    idxLastToPopNotIncluding
                 ).encodeABI(); // the encoded ABI of the method
                 //
                 if ( verbose_get() >= RV_VERBOSE.trace ) {

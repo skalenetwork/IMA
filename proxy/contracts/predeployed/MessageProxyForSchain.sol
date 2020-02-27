@@ -27,7 +27,7 @@ interface ContractReceiverForSchain {
         address sender,
         string calldata schainID,
         address to,
-        uint amount,
+        uint256 amount,
         bytes calldata data
     )
         external;
@@ -66,21 +66,33 @@ contract MessageProxyForSchain {
     event OutgoingMessage(
         string dstChain,
         bytes32 indexed dstChainHash,
-        uint indexed msgCounter,
+        uint256 indexed msgCounter,
         address indexed srcContract,
         address dstContract,
         address to,
-        uint amount,
+        uint256 amount,
         bytes data,
-        uint length
+        uint256 length
     );
+
+    struct OutgoingMessageData {
+        string dstChain;
+        bytes32 dstChainHash;
+        uint256 msgCounter;
+        address srcContract;
+        address dstContract;
+        address to;
+        uint256 amount;
+        bytes data;
+        uint256 length;
+    }
 
     struct ConnectedChainInfo {
         // BLS key is null for main chain, and not null for schains
-        uint[4] publicKey;
+        uint256[4] publicKey;
         // message counters start with 0
-        uint incomingMessageCounter;
-        uint outgoingMessageCounter;
+        uint256 incomingMessageCounter;
+        uint256 outgoingMessageCounter;
         bool inited;
     }
 
@@ -88,7 +100,7 @@ contract MessageProxyForSchain {
         address sender;
         address destinationContract;
         address to;
-        uint amount;
+        uint256 amount;
         bytes data;
     }
 
@@ -100,10 +112,10 @@ contract MessageProxyForSchain {
                 keccak256(abi.encodePacked("Mainnet"))
             ] = ConnectedChainInfo(
                 [
-                    uint(0),
-                    uint(0),
-                    uint(0),
-                    uint(0)
+                    uint256(0),
+                    uint256(0),
+                    uint256(0),
+                    uint256(0)
                 ],
                 0,
                 0,
@@ -111,7 +123,7 @@ contract MessageProxyForSchain {
             mainnetConnected = true;
             // string memory newChainID;
             // address newOwner;
-            // uint length;
+            // uint256 length;
             // assembly {
             //     newChainID := sload(0x00)
             //     newOwner := sload(0x01)
@@ -124,7 +136,7 @@ contract MessageProxyForSchain {
 
             // address callerAddr;
             // bytes1 index = 0x03;
-            // for (uint i = 0; i < length; i++) {
+            // for (uint256 i = 0; i < length; i++) {
             //     assembly {
             //         callerAddr := sload(add(index, i))
             //     }
@@ -146,8 +158,8 @@ contract MessageProxyForSchain {
         ) {
             // connect to mainnet by default
             // Mainnet does not have a public key
-            uint[4] memory empty = [
-                uint(0),
+            uint256[4] memory empty = [
+                uint256(0),
                 0,
                 0,
                 0];
@@ -200,7 +212,7 @@ contract MessageProxyForSchain {
     // To connect to other chains, the owner needs to explicitly call this function
     function addConnectedChain(
         string calldata newChainID,
-        uint[4] calldata newPublicKey
+        uint256[4] calldata newPublicKey
     )
         external
     {
@@ -238,11 +250,42 @@ contract MessageProxyForSchain {
         delete connectedChains[keccak256(abi.encodePacked(newChainID))];
     }
 
+    mapping ( uint256 => OutgoingMessageData ) private outgoingMessageData;
+    uint256 private idxHead;
+    uint256 private idxTail;
+
+    function pushOutgoingMessageData( OutgoingMessageData memory d ) private {
+        emit OutgoingMessage(
+            d.dstChain,
+            d.dstChainHash,
+            d.msgCounter,
+            d.srcContract,
+            d.dstContract,
+            d.to,
+            d.amount,
+            d.data,
+            d.length
+        );
+        outgoingMessageData[idxTail] = d;
+        ++ idxTail;
+    }
+    function popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) private returns ( uint256 cntDeleted ) {
+        cntDeleted = 0;
+        for ( uint256 i = idxHead; i < idxLastToPopNotIncluding; ++ i ) {
+            if ( i >= idxTail )
+                break;
+            delete outgoingMessageData[i];
+            ++ cntDeleted;
+        }
+        if (cntDeleted > 0)
+            idxHead += cntDeleted;
+    }
+
     // This is called by a smart contract that wants to make a cross-chain call
     function postOutgoingMessage(
         string calldata dstChainID,
         address dstContract,
-        uint amount,
+        uint256 amount,
         address to,
         bytes calldata data
     )
@@ -251,23 +294,25 @@ contract MessageProxyForSchain {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         connectedChains[dstChainHash].outgoingMessageCounter++;
-        emit OutgoingMessage(
-            dstChainID,
-            dstChainHash,
-            connectedChains[dstChainHash].outgoingMessageCounter - 1,
-            msg.sender,
-            dstContract,
-            to,
-            amount,
-            data,
-            data.length
+        pushOutgoingMessageData(
+            OutgoingMessageData(
+                dstChainID,
+                dstChainHash,
+                connectedChains[dstChainHash].outgoingMessageCounter - 1,
+                msg.sender,
+                dstContract,
+                to,
+                amount,
+                data,
+                data.length
+            )
         );
     }
 
     function getOutgoingMessagesCounter(string calldata dstChainID)
         external
         view
-        returns (uint)
+        returns (uint256)
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
 
@@ -281,7 +326,7 @@ contract MessageProxyForSchain {
     function getIncomingMessagesCounter(string calldata srcChainID)
         external
         view
-        returns (uint)
+        returns (uint256)
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
 
@@ -294,12 +339,13 @@ contract MessageProxyForSchain {
 
     function postIncomingMessages(
         string calldata srcChainID,
-        uint startingCounter,
+        uint256 startingCounter,
         Message[] calldata messages,
-        uint[2] calldata blsSignature,
-        uint hashA,
-        uint hashB,
-        uint counter
+        uint256[2] calldata blsSignature,
+        uint256 hashA,
+        uint256 hashB,
+        uint256 counter,
+        uint256 idxLastToPopNotIncluding
     )
         external
         connectMainnet
@@ -309,7 +355,7 @@ contract MessageProxyForSchain {
         require(
             startingCounter == connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
-        for (uint i = 0; i < messages.length; i++) {
+        for (uint256 i = 0; i < messages.length; i++) {
             ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                 messages[i].sender,
                 srcChainID,
@@ -318,7 +364,8 @@ contract MessageProxyForSchain {
                 messages[i].data
             );
         }
-        connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint(messages.length);
+        connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint256(messages.length);
+        popOutgoingMessageData(idxLastToPopNotIncluding);
     }
 
     function moveIncomingCounter(string calldata schainName) external {
@@ -333,11 +380,11 @@ contract MessageProxyForSchain {
     }
 
     // function verifyMessageSignature(
-    //     uint[2] memory blsSignature,
+    //     uint256[2] memory blsSignature,
     //     bytes32 hash,
-    //     uint counter,
-    //     uint hashA,
-    //     uint hashB,
+    //     uint256 counter,
+    //     uint256 hashA,
+    //     uint256 hashB,
     //     string memory srcChainID
     // )
     //     internal
@@ -385,14 +432,14 @@ contract MessageProxyForSchain {
             return false;
         uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).
             getConfigPermissionFlag(a, "skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers");
-        if (u != 0 )
+        if ( u != 0 )
             return true;
         return false;
     }
 
     function hashedArray(Message[] memory messages) internal pure returns (bytes32) {
         bytes memory data;
-        for (uint i = 0; i < messages.length; i++) {
+        for (uint256 i = 0; i < messages.length; i++) {
             data = abi.encodePacked(
                 data,
                 bytes32(bytes20(messages[i].sender)),

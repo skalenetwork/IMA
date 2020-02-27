@@ -36,7 +36,7 @@ contract EthERC20 is LockAndDataOwnable, ERC20 {
     string private _name;
     string private _symbol;
     uint8 private _decimals;
-    uint private _capacity;
+    uint256 private _capacity;
 
 
     constructor() public {
