@@ -104,7 +104,17 @@ contract MessageProxyForSchain {
         bytes data;
     }
 
+    struct Signature {
+        uint256[2] blsSignature;
+        uint256 hashA;
+        uint256 hashB;
+        uint256 counter;
+    }
+
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
+    mapping ( uint256 => OutgoingMessageData ) private outgoingMessageData;
+    uint256 private idxHead;
+    uint256 private idxTail;
 
     modifier connectMainnet() {
         if (!mainnetConnected) {
@@ -121,27 +131,6 @@ contract MessageProxyForSchain {
                 0,
                 true);
             mainnetConnected = true;
-            // string memory newChainID;
-            // address newOwner;
-            // uint256 length;
-            // assembly {
-            //     newChainID := sload(0x00)
-            //     newOwner := sload(0x01)
-            //     length := sload(0x02)
-            // }
-            // chainID_ = newChainID;
-
-            // // l_sergiy: owner can be changed only via contract OwnableForSchain -> transferOwnership()
-            // setOwner(newOwner);
-
-            // address callerAddr;
-            // bytes1 index = 0x03;
-            // for (uint256 i = 0; i < length; i++) {
-            //     assembly {
-            //         callerAddr := sload(add(index, i))
-            //     }
-            //     authorizedCaller_[callerAddr] = true;
-            // }
         }
         _;
     }
@@ -172,9 +161,6 @@ contract MessageProxyForSchain {
                 true);
             mainnetConnected = true;
         }
-        // else {
-        //     contractManagerSkaleManager = newContractManager;
-        // }
     }
 
     function addAuthorizedCaller(address caller) external {
@@ -250,37 +236,6 @@ contract MessageProxyForSchain {
         delete connectedChains[keccak256(abi.encodePacked(newChainID))];
     }
 
-    mapping ( uint256 => OutgoingMessageData ) private outgoingMessageData;
-    uint256 private idxHead;
-    uint256 private idxTail;
-
-    function pushOutgoingMessageData( OutgoingMessageData memory d ) private {
-        emit OutgoingMessage(
-            d.dstChain,
-            d.dstChainHash,
-            d.msgCounter,
-            d.srcContract,
-            d.dstContract,
-            d.to,
-            d.amount,
-            d.data,
-            d.length
-        );
-        outgoingMessageData[idxTail] = d;
-        ++ idxTail;
-    }
-    function popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) private returns ( uint256 cntDeleted ) {
-        cntDeleted = 0;
-        for ( uint256 i = idxHead; i < idxLastToPopNotIncluding; ++ i ) {
-            if ( i >= idxTail )
-                break;
-            delete outgoingMessageData[i];
-            ++ cntDeleted;
-        }
-        if (cntDeleted > 0)
-            idxHead += cntDeleted;
-    }
-
     // This is called by a smart contract that wants to make a cross-chain call
     function postOutgoingMessage(
         string calldata dstChainID,
@@ -341,10 +296,7 @@ contract MessageProxyForSchain {
         string calldata srcChainID,
         uint256 startingCounter,
         Message[] calldata messages,
-        uint256[2] calldata blsSignature,
-        uint256 hashA,
-        uint256 hashB,
-        uint256 counter,
+        Signature calldata sign,
         uint256 idxLastToPopNotIncluding
     )
         external
@@ -452,4 +404,31 @@ contract MessageProxyForSchain {
         return keccak256(data);
     }
 
+    function pushOutgoingMessageData( OutgoingMessageData memory d ) internal {
+        emit OutgoingMessage(
+            d.dstChain,
+            d.dstChainHash,
+            d.msgCounter,
+            d.srcContract,
+            d.dstContract,
+            d.to,
+            d.amount,
+            d.data,
+            d.length
+        );
+        outgoingMessageData[idxTail] = d;
+        ++ idxTail;
+    }
+
+    function popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) internal returns ( uint256 cntDeleted ) {
+        cntDeleted = 0;
+        for ( uint256 i = idxHead; i < idxLastToPopNotIncluding; ++ i ) {
+            if ( i >= idxTail )
+                break;
+            delete outgoingMessageData[i];
+            ++ cntDeleted;
+        }
+        if (cntDeleted > 0)
+            idxHead += cntDeleted;
+    }
 }

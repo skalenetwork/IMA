@@ -116,7 +116,18 @@ contract MessageProxyForMainnet {
         bytes data;
     }
 
+    struct Signature {
+        uint256[2] blsSignature;
+        uint256 hashA;
+        uint256 hashB;
+        uint256 counter;
+    }
+
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
+
+    mapping ( uint256 => OutgoingMessageData ) private outgoingMessageData;
+    uint256 private idxHead;
+    uint256 private idxTail;
 
     /// Create a new message proxy
 
@@ -124,20 +135,7 @@ contract MessageProxyForMainnet {
         owner = msg.sender;
         authorizedCaller[msg.sender] = true;
         chainID = newChainID;
-        // if (keccak256(abi.encodePacked(newChainID)) !=
-        //     keccak256(abi.encodePacked("Mainnet"))
-        // ) {
-        //     // connect to mainnet by default
-        //     // Mainnet does not have a public key
-        //     connectedChains[
-        //         keccak256(abi.encodePacked("Mainnet"))
-        //     ] = ConnectedChainInfo(
-        //         0,
-        //         0,
-        //         true);
-        // } else {
         contractManagerSkaleManager = newContractManager;
-        // }
     }
 
     function addAuthorizedCaller(address caller) external {
@@ -213,37 +211,6 @@ contract MessageProxyForMainnet {
             "Chain is not initialized"
         );
         delete connectedChains[keccak256(abi.encodePacked(newChainID))];
-    }
-
-    mapping ( uint256 => OutgoingMessageData ) private outgoingMessageData;
-    uint256 private idxHead;
-    uint256 private idxTail;
-
-    function pushOutgoingMessageData( OutgoingMessageData memory d ) private {
-        emit OutgoingMessage(
-            d.dstChain,
-            d.dstChainHash,
-            d.msgCounter,
-            d.srcContract,
-            d.dstContract,
-            d.to,
-            d.amount,
-            d.data,
-            d.length
-        );
-        outgoingMessageData[idxTail] = d;
-        ++ idxTail;
-    }
-    function popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) private returns ( uint256 cntDeleted ) {
-        cntDeleted = 0;
-        for ( uint256 i = idxHead; i < idxLastToPopNotIncluding; ++ i ) {
-            if ( i >= idxTail )
-                break;
-            delete outgoingMessageData[i];
-            ++ cntDeleted;
-        }
-        if (cntDeleted > 0)
-            idxHead += cntDeleted;
     }
 
     // This is called by a smart contract that wants to make a cross-chain call
@@ -327,9 +294,9 @@ contract MessageProxyForMainnet {
     //             input[i].amount = messages[i].amount;
     //             input[i].data = messages[i].data;
     //         }
-            
+
     //         //Message[] memory input = helperPackInput( messages );
-            
+
     //         require(
     //             verifyMessageSignature(
     //                 blsSignature,
@@ -348,10 +315,11 @@ contract MessageProxyForMainnet {
         string calldata srcChainID,
         uint256 startingCounter,
         Message[] calldata messages,
-        uint256[2] calldata blsSignature,
-        uint256 hashA,
-        uint256 hashB,
-        uint256 counter,
+        // uint256[2] calldata blsSignature,
+        // uint256 hashA,
+        // uint256 hashB,
+        // uint256 counter,
+        Signature calldata sign,
         uint256 idxLastToPopNotIncluding
     )
         external
@@ -362,29 +330,29 @@ contract MessageProxyForMainnet {
             startingCounter == connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter,
             "Starning counter is not qual to incomin message counter");
 
-        // if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
-        //     // Message[] memory input = new Message[](messages.length);
-        //     // for (uint256 i = 0; i < messages.length; i++) {
-        //     //     input[i].sender = messages[i].sender;
-        //     //     input[i].destinationContract = messages[i].destinationContract;
-        //     //     input[i].to = messages[i].to;
-        //     //     input[i].amount = messages[i].amount;
-        //     //     input[i].data = messages[i].data;
-        //     // }
-            
-        //     //Message[] memory input = helperPackInput( messages );
-            
-        //     require(
-        //         verifyMessageSignature(
-        //             blsSignature,
-        //             helperPackInputHash(messages), //hashedArray(input),
-        //             counter,
-        //             hashA,
-        //             hashB,
-        //             srcChainID
-        //         ), "Signature is not verified"
-        //     );
-        // }
+        if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
+            Message[] memory input = new Message[](messages.length);
+            for (uint256 i = 0; i < messages.length; i++) {
+                input[i].sender = messages[i].sender;
+                input[i].destinationContract = messages[i].destinationContract;
+                input[i].to = messages[i].to;
+                input[i].amount = messages[i].amount;
+                input[i].data = messages[i].data;
+            }
+
+            // Message[] memory input = helperPackInput( messages );
+
+            require(
+                verifyMessageSignature(
+                    sign.blsSignature,
+                    hashedArray(input),
+                    sign.counter,
+                    sign.hashA,
+                    sign.hashB,
+                    srcChainID
+                ), "Signature is not verified"
+            );
+        }
 
         // validateIncomingMessages(
         //     srcChainID,
@@ -459,5 +427,33 @@ contract MessageProxyForMainnet {
             );
         }
         return keccak256(data);
+    }
+
+    function pushOutgoingMessageData( OutgoingMessageData memory d ) internal {
+        emit OutgoingMessage(
+            d.dstChain,
+            d.dstChainHash,
+            d.msgCounter,
+            d.srcContract,
+            d.dstContract,
+            d.to,
+            d.amount,
+            d.data,
+            d.length
+        );
+        outgoingMessageData[idxTail] = d;
+        ++ idxTail;
+    }
+
+    function popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) internal returns ( uint256 cntDeleted ) {
+        cntDeleted = 0;
+        for ( uint256 i = idxHead; i < idxLastToPopNotIncluding; ++ i ) {
+            if ( i >= idxTail )
+                break;
+            delete outgoingMessageData[i];
+            ++ cntDeleted;
+        }
+        if (cntDeleted > 0)
+            idxHead += cntDeleted;
     }
 }
