@@ -1614,15 +1614,18 @@ async function do_transfer(
                 let hint = joGlueResult ? joGlueResult.hint : null;
                 if( ! hint )
                     hint = "0";
+                const sign = {
+                    "blsSignature": [ signature.X, signature.Y ], // BLS glue of signatures
+                    "hashA": hashPoint.X, // G1.X from joGlueResult.hashSrc
+                    "hashB": hashPoint.Y, // G1.Y from joGlueResult.hashSrc
+                    "counter": hint
+                };
                 let dataTx = jo_message_proxy_dst.methods.postIncomingMessages(
                     // call params
                     chain_id_src,
                     nIdxCurrentMsgBlockStart,
                     jarrMessages, // messages
-                    [ signature.X, signature.Y ], // BLS glue of signatures
-                    hashPoint.X, // G1.X from joGlueResult.hashSrc
-                    hashPoint.Y, // G1.Y from joGlueResult.hashSrc
-                    hint,
+                    sign, // bls singnature components
                     idxLastToPopNotIncluding
                 ).encodeABI(); // the encoded ABI of the method
                 //
