@@ -235,7 +235,7 @@ async function register_s_chain_on_main_net( // step 1
             "nonce": tcnt, // 0x00, ...
             "gasPrice": 10000000000,
             "gasLimit": 3000000,
-            "to": jo_message_proxy_main_net.options.address, // cantract address
+            "to": jo_message_proxy_main_net.options.address, // contract address
             "data": dataTx
         };
         if ( verbose_get() >= RV_VERBOSE.trace )
@@ -327,7 +327,7 @@ async function register_s_chain_in_deposit_box( // step 2
             "nonce": tcnt, // 0x00, ...
             "gasPrice": 10000000000,
             "gasLimit": 3000000,
-            "to": jo_lock_and_data_main_net.options.address, // cantract address
+            "to": jo_lock_and_data_main_net.options.address, // contract address
             "data": dataTx
         };
         if ( verbose_get() >= RV_VERBOSE.trace )
@@ -400,7 +400,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
-        let dataTx = jo_lock_and_data_s_chain.methods.addDepositBox(
+    let dataTx = jo_lock_and_data_s_chain.methods.addDepositBox(
             jo_deposit_box_main_net.options.address // call params
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
@@ -408,7 +408,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             "nonce": tcnt, // 0x00, ...
             "gasPrice": 10000000000,
             "gasLimit": 3000000,
-            "to": jo_lock_and_data_s_chain.options.address, // cantract address
+            "to": jo_lock_and_data_s_chain.options.address, // contract address
             "data": dataTx
         };
         if ( verbose_get() >= RV_VERBOSE.trace )
@@ -418,7 +418,27 @@ async function register_main_net_depositBox_on_s_chain( // step 3
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
         strActionName = "reg-step3:w3_s_chain.eth.sendSignedTransaction()";
-        let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        //
+        //let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        let joReceipt = null;
+        let bHaveRecipt = false;
+        try {
+            joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+            bHaveRecipt = ( joReceipt != null ) ? true : false;
+        } catch( err ) {
+            if ( verbose_get() >= RV_VERBOSE.fatal )
+                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " first attempt to send signed transaction failure during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+        }
+        if( ! bHaveRecipt ) {
+            try {
+                joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+            } catch( err ) {
+                if ( verbose_get() >= RV_VERBOSE.fatal )
+                    log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " second attempt to send signed transaction failure during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+                throw "" + err.toString();
+            }
+        }
+        //
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
     } catch ( err ) {
@@ -476,7 +496,7 @@ async function do_eth_payment_from_main_net(
             "gas": 3000000, // 2100000,
             "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
             "gasLimit": 3000000,
-            "to": jo_deposit_box.options.address, // cantract address
+            "to": jo_deposit_box.options.address, // contract address
             "data": dataTx,
             "value": wei_how_much // how much money to send
         };
@@ -593,7 +613,7 @@ async function do_eth_payment_from_s_chain(
             "gas": 6000000, // 2100000
             "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
             //"gasLimit": 3000000,
-            "to": jo_token_manager.options.address, // cantract address
+            "to": jo_token_manager.options.address, // contract address
             "data": dataTx,
             "value": 0 // how much money to send
         };
@@ -658,7 +678,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             "gas": 2100000,
             "gasPrice": 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
             "gasLimit": 3000000,
-            "to": jo_lock_and_data_main_net.options.address, // cantract address
+            "to": jo_lock_and_data_main_net.options.address, // contract address
             "data": dataTx,
             "value": 0 // how much money to send
         };
@@ -1653,7 +1673,7 @@ async function do_transfer(
                     "gas": 6000000,
                     "gasPrice": 10000000000, // not w3_dst.eth.gasPrice ... got from truffle.js network_name gasPrice
                     //"gasLimit": 3000000,
-                    "to": jo_message_proxy_dst.options.address, // cantract address
+                    "to": jo_message_proxy_dst.options.address, // contract address
                     "data": dataTx //,
                     //"value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
                 };
