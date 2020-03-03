@@ -168,6 +168,35 @@ async function get_contract_call_events( joContract, strEventName, nBlockNumber,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+
+async function safe_send_signed_transaction( w3, serializedTx, strActionName, strLogPrefix ) {
+    let strTX = "0x" + serializedTx.toString( "hex" ); // strTX is string starting from "0x"
+    //let joReceipt = await w3.eth.sendSignedTransaction( strTX );
+    let joReceipt = null;
+    let bHaveReceipt = false;
+    try {
+        joReceipt = await w3.eth.sendSignedTransaction( strTX );
+        bHaveReceipt = ( joReceipt != null ) ? true : false;
+    } catch( err ) {
+        if ( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( strLogPrefix + cc.fatal("WARNING:") + cc.warning( " first attempt to send signed transaction failure during " + strActionName + ": " ) + cc.sunny( err ) + "\n" );
+    }
+    if( ! bHaveReceipt ) {
+        try {
+            joReceipt = await w3.eth.sendSignedTransaction( strTX );
+        } catch( err ) {
+            if ( verbose_get() >= RV_VERBOSE.fatal )
+                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " second attempt to send signed transaction failure during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            throw "" + err.toString();
+        }
+    }
+    return joReceipt;
+}
+
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 // register S-Chain 1 on main net
 //
 
@@ -245,7 +274,8 @@ async function register_s_chain_on_main_net( // step 1
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
         strActionName = "reg-step1:w3_main_net.eth.sendSignedTransaction()";
-        let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        //let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        let joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
     } catch ( err ) {
@@ -337,7 +367,8 @@ async function register_s_chain_in_deposit_box( // step 2
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
         strActionName = "reg-step2:w3_main_net.eth.sendSignedTransaction()";
-        let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        //let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        let joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
     } catch ( err ) {
@@ -418,27 +449,8 @@ async function register_main_net_depositBox_on_s_chain( // step 3
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
         strActionName = "reg-step3:w3_s_chain.eth.sendSignedTransaction()";
-        //
         //let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-        let joReceipt = null;
-        let bHaveRecipt = false;
-        try {
-            joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-            bHaveRecipt = ( joReceipt != null ) ? true : false;
-        } catch( err ) {
-            if ( verbose_get() >= RV_VERBOSE.fatal )
-                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " first attempt to send signed transaction failure during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-        }
-        if( ! bHaveRecipt ) {
-            try {
-                joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-            } catch( err ) {
-                if ( verbose_get() >= RV_VERBOSE.fatal )
-                    log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " second attempt to send signed transaction failure during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-                throw "" + err.toString();
-            }
-        }
-        //
+        let joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
     } catch ( err ) {
@@ -507,7 +519,8 @@ async function do_eth_payment_from_main_net(
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction()";
-        let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        //let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        let joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
         //
@@ -624,7 +637,8 @@ async function do_eth_payment_from_s_chain(
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
         strActionName = "w3_s_chain.eth.sendSignedTransaction()";
-        let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        //let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        let joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
         //
@@ -689,7 +703,8 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         tx.sign( key ); // arg is privateKey as buffer
         var serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction()";
-        let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        //let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        let joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
     } catch ( err ) {
@@ -838,14 +853,16 @@ async function do_erc721_payment_from_main_net(
         strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.normal( "Composed " ) + cc.info("rawTxApprove") + cc.normal(" is: ") + cc.j( rawTxApprove ) + "\n" );
-        let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        //let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        let joReceiptApprove = await safe_send_signed_transaction( w3_main_net, serializedTxApprove, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
         log.write( cc.normal("Will send ERC721 signed transaction from ") + cc.warn(joAccountSrc.address( w3_main_net )) + "\n" );
         strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.normal( "Composed " ) + cc.info("rawTxDeposit") + cc.normal(" is: ") + cc.j( rawTxDeposit ) + "\n" );
-        let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        //let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        let joReceiptDeposit = await safe_send_signed_transaction( w3_main_net, serializedTxDeposit, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
         //
@@ -1017,11 +1034,13 @@ async function do_erc20_payment_from_main_net(
         // send transactions
         //
         strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
-        let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        //let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        let joReceiptApprove = await safe_send_signed_transaction( w3_main_net, serializedTxApprove, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
         strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
-        let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        //let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        let joReceiptDeposit = await safe_send_signed_transaction( w3_main_net, serializedTxDeposit, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
         //
@@ -1195,11 +1214,13 @@ async function do_erc20_payment_from_s_chain(
         // send transactions
         //
         strActionName = "w3_s_chain.eth.sendSignedTransaction()/Approve";
-        let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        //let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        let joReceiptApprove = await safe_send_signed_transaction( w3_s_chain, serializedTxApprove, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
         strActionName = "w3_s_chain.eth.sendSignedTransaction()/Deposit";
-        let joReceiptDeposit = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        //let joReceiptDeposit = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        let joReceiptDeposit = await safe_send_signed_transaction( w3_s_chain, serializedTxDeposit, strActionName, strLogPrefix );
         let joReceipt = joReceiptDeposit;
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
@@ -1329,11 +1350,13 @@ async function do_erc721_payment_from_s_chain(
         // send transactions
         //
         strActionName = "w3_s_chain.eth.sendSignedTransaction()/Approve";
-        let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        //let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        let joReceiptApprove = await safe_send_signed_transaction( w3_s_chain, serializedTxApprove, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
         strActionName = "w3_s_chain.eth.sendSignedTransaction()/Deposit";
-        let joReceiptDeposit = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        //let joReceiptDeposit = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        let joReceiptDeposit = await safe_send_signed_transaction( w3_s_chain, serializedTxDeposit, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
         let joReceipt = joReceiptDeposit;
@@ -1684,7 +1707,8 @@ async function do_transfer(
                 tx.sign( key ); // arg is privateKey as buffer
                 var serializedTx = tx.serialize();
                 strActionName = "w3_dst.eth.sendSignedTransaction()";
-                let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+                //let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+                let joReceipt = await safe_send_signed_transaction( w3_dst, serializedTx, strActionName, strLogPrefix );
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
                 cntProcessed += cntAccumulatedForBlock;
@@ -1720,6 +1744,7 @@ async function do_transfer(
                 //
                 //
 // check TokenManager -> Error on Schain only
+                /*
                 if( chain_id_dst != "Mainnet" ) {
                     if ( verbose_get() >= RV_VERBOSE.information )
                         log.write( strLogPrefix + cc.debug("Validating transfer to S-Chain via TokenManager error absence on S-Chain...") + "\n" );
@@ -1741,6 +1766,7 @@ async function do_transfer(
                 } // if( chain_id_dst != "Mainnet" )
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Done, validated transfer from ") + cc.info(chain_id_src) + cc.debug(" to ") + cc.info(chain_id_dst) + cc.debug(", everything is OKay") + "\n" );
+                */
                 //
                 //
                 //
