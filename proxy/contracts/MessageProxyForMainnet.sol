@@ -261,64 +261,10 @@ contract MessageProxyForMainnet {
         return connectedChains[srcChainHash].incomingMessageCounter;
     }
 
-    // function helperPackInputArray( Message[] memory messages ) internal pure returns (Message[] memory input) {
-    //     input = new Message[](messages.length);
-    //     for (uint256 i = 0; i < messages.length; i++) {
-    //         input[i].sender = messages[i].sender;
-    //         input[i].destinationContract = messages[i].destinationContract;
-    //         input[i].to = messages[i].to;
-    //         input[i].amount = messages[i].amount;
-    //         input[i].data = messages[i].data;
-    //     }
-    // }
-    // function helperPackInputHash( Message[] memory messages ) internal pure returns (bytes32 h) {
-    //     h = hashedArray(helperPackInputArray(messages));
-    // }
-
-    // function validateIncomingMessages(
-    //     string memory srcChainID,
-    //     Message[] memory messages,
-    //     uint256[2] memory blsSignature,
-    //     uint256 hashA,
-    //     uint256 hashB,
-    //     uint256 counter
-    // )
-    // internal
-    // {
-    //     if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
-    //         Message[] memory input = new Message[](messages.length);
-    //         for (uint256 i = 0; i < messages.length; i++) {
-    //             input[i].sender = messages[i].sender;
-    //             input[i].destinationContract = messages[i].destinationContract;
-    //             input[i].to = messages[i].to;
-    //             input[i].amount = messages[i].amount;
-    //             input[i].data = messages[i].data;
-    //         }
-
-    //         //Message[] memory input = helperPackInput( messages );
-
-    //         require(
-    //             verifyMessageSignature(
-    //                 blsSignature,
-    //                 // helperPackInputHash(messages),
-    //                      hashedArray(input),
-    //                 counter,
-    //                 hashA,
-    //                 hashB,
-    //                 srcChainID
-    //             ), "Signature is not verified"
-    //         );
-    //     }
-    // }
-
     function postIncomingMessages(
         string calldata srcChainID,
         uint256 startingCounter,
         Message[] calldata messages,
-        // uint256[2] calldata blsSignature,
-        // uint256 hashA,
-        // uint256 hashB,
-        // uint256 counter,
         Signature calldata sign,
         uint256 idxLastToPopNotIncluding
     )
@@ -330,38 +276,27 @@ contract MessageProxyForMainnet {
             startingCounter == connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter,
             "Starning counter is not qual to incomin message counter");
 
-        if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
-            Message[] memory input = new Message[](messages.length);
-            for (uint256 i = 0; i < messages.length; i++) {
-                input[i].sender = messages[i].sender;
-                input[i].destinationContract = messages[i].destinationContract;
-                input[i].to = messages[i].to;
-                input[i].amount = messages[i].amount;
-                input[i].data = messages[i].data;
-            }
+        // if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
+        //     Message[] memory input = new Message[](messages.length);
+        //     for (uint256 i = 0; i < messages.length; i++) {
+        //         input[i].sender = messages[i].sender;
+        //         input[i].destinationContract = messages[i].destinationContract;
+        //         input[i].to = messages[i].to;
+        //         input[i].amount = messages[i].amount;
+        //         input[i].data = messages[i].data;
+        //     }
 
-            // Message[] memory input = helperPackInput( messages );
-
-            require(
-                verifyMessageSignature(
-                    sign.blsSignature,
-                    hashedArray(input),
-                    sign.counter,
-                    sign.hashA,
-                    sign.hashB,
-                    srcChainID
-                ), "Signature is not verified"
-            );
-        }
-
-        // validateIncomingMessages(
-        //     srcChainID,
-        //     messages,
-        //     blsSignature,
-        //     hashA,
-        //     hashB,
-        //     counter
-        // );
+        //     require(
+        //         verifyMessageSignature(
+        //             sign.blsSignature,
+        //             hashedArray(input),
+        //             sign.counter,
+        //             sign.hashA,
+        //             sign.hashB,
+        //             srcChainID
+        //         ), "Signature is not verified"
+        //     );
+        // }
 
         for (uint256 i = 0; i < messages.length; i++) {
             ContractReceiverForMainnet(messages[i].destinationContract).postMessage(
@@ -412,6 +347,30 @@ contract MessageProxyForMainnet {
             hashB,
             srcChainID
         );
+    }
+
+    function verifyOutgoingMessageData(
+        uint256 idxMessage,
+        address sender,
+        address destinationContract,
+        address to,
+        uint256 amount
+        ) public view returns ( bool isValidMessage ) {
+        isValidMessage = false;
+        OutgoingMessageData memory d = outgoingMessageData[idxMessage];
+        //
+        // string dstChain;
+        // bytes32 dstChainHash;
+        // uint256 msgCounter;
+        // address srcContract;
+        // address dstContract;
+        // address to;
+        // uint256 amount;
+        // bytes data;
+        // uint256 length;
+        //
+        if ( d.dstContract == destinationContract && d.srcContract == sender && d.to == to && d.amount == amount )
+            isValidMessage = true;
     }
 
     function hashedArray(Message[] memory messages) internal pure returns (bytes32) {

@@ -1430,9 +1430,18 @@ async function do_transfer(
     fn_sign_messages
 ) {
     let bErrorInSigningMessages = false, strLogPrefix = cc.info("Transfer from ") + cc.notice(chain_id_src) + cc.info(" to ") + cc.notice(chain_id_dst) + cc.info(":") + " ";
-    fn_sign_messages = fn_sign_messages || async function( jarrMessages, nIdxCurrentMsgBlockStart, fnAfter ) {
-        await fnAfter( null, jarrMessages, null ); // null - no error, null - no signatures
-    };
+    if( fn_sign_messages == null || fn_sign_messages == undefined ) {
+        if ( verbose_get() >= RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
+        fn_sign_messages = async function( jarrMessages, nIdxCurrentMsgBlockStart, fnAfter ) {
+            //if ( verbose_get() >= RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( "Message signing callback was " ) + cc.error( "not provided" )
+                + cc.debug( " to IMA, message start index is " ) + cc.info(nIdxCurrentMsgBlockStart) + cc.debug( ", have " )
+                + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) + "\n" );
+            await fnAfter( null, jarrMessages, null ); // null - no error, null - no signatures
+        };
+    } else
+        log.write( strLogPrefix + cc.debug( "Using externally provided signing function" ) + "\n" );
     nTransactionsCountInBlock = nTransactionsCountInBlock || 5;
     nMaxTransactionsCount = nMaxTransactionsCount || 100;
     if ( nTransactionsCountInBlock < 1 )

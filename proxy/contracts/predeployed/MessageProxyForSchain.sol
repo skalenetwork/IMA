@@ -331,32 +331,6 @@ contract MessageProxyForSchain {
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
-    // function verifyMessageSignature(
-    //     uint256[2] memory blsSignature,
-    //     bytes32 hash,
-    //     uint256 counter,
-    //     uint256 hashA,
-    //     uint256 hashB,
-    //     string memory srcChainID
-    // )
-    //     internal
-    //     view
-    //     returns (bool)
-    // {
-    //     address skaleVerifierAddress = IContractManagerSkaleManager(contractManagerSkaleManager).contracts(
-    //         keccak256(abi.encodePacked("SkaleVerifier"))
-    //     );
-    //     return ISkaleVerifier(skaleVerifierAddress).verifySchainSignature(
-    //         blsSignature[0],
-    //         blsSignature[1],
-    //         hash,
-    //         counter,
-    //         hashA,
-    //         hashB,
-    //         srcChainID
-    //     );
-    // }
-
     function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
         if (!isCustomDeploymentMode_) {
             if ((keccak256(abi.encodePacked(chainID_))) == (keccak256(abi.encodePacked(""))) )
@@ -387,6 +361,30 @@ contract MessageProxyForSchain {
         if ( u != 0 )
             return true;
         return false;
+    }
+
+    function verifyOutgoingMessageData(
+        uint256 idxMessage,
+        address sender,
+        address destinationContract,
+        address to,
+        uint256 amount
+        ) public view returns ( bool isValidMessage ) {
+        isValidMessage = false;
+        OutgoingMessageData memory d = outgoingMessageData[idxMessage];
+        //
+        // string dstChain;
+        // bytes32 dstChainHash;
+        // uint256 msgCounter;
+        // address srcContract;
+        // address dstContract;
+        // address to;
+        // uint256 amount;
+        // bytes data;
+        // uint256 length;
+        //
+        if ( d.dstContract == destinationContract && d.srcContract == sender && d.to == to && d.amount == amount )
+            isValidMessage = true;
     }
 
     function hashedArray(Message[] memory messages) internal pure returns (bytes32) {
@@ -431,4 +429,5 @@ contract MessageProxyForSchain {
         if (cntDeleted > 0)
             idxHead += cntDeleted;
     }
+
 }
