@@ -358,17 +358,6 @@ contract MessageProxyForMainnet {
         ) public view returns ( bool isValidMessage ) {
         isValidMessage = false;
         OutgoingMessageData memory d = outgoingMessageData[idxMessage];
-        //
-        // string dstChain;
-        // bytes32 dstChainHash;
-        // uint256 msgCounter;
-        // address srcContract;
-        // address dstContract;
-        // address to;
-        // uint256 amount;
-        // bytes data;
-        // uint256 length;
-        //
         if ( d.dstContract == destinationContract && d.srcContract == sender && d.to == to && d.amount == amount )
             isValidMessage = true;
     }

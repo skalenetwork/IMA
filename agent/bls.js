@@ -366,6 +366,102 @@ function perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonP
     return false;
 }
 
+async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart ) {
+    let w3 = null, joMessageProxy = null, joAccount = null;
+    if( strDirection == "M2S" ) {
+        w3 = imaState.w3_main_net;
+        joMessageProxy = imaState.jo_message_proxy_main_net;
+        joAccount = imaState.joAccount_main_net;
+    } else if( strDirection == "S2M" ) {
+        w3 = imaState.w3_s_chain;
+        joMessageProxy = imaState.jo_message_proxy_s_chain;
+        joAccount = imaState.joAccount_s_chain;
+    }
+    let strCallerAccountAddress = joAccount.address( w3 );
+    log.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " message correctness validation through call to " )
+        + cc.notice( "verifyOutgoingMessageData" ) + cc.debug( " method of " ) + cc.bright( "MessageProxy" )
+        + cc.debug( " contract with address " ) + cc.notice( joMessageProxy.options.address )
+        + cc.debug( ", caller account address is " ) + cc.info( joMessageProxy.options.address )
+        + cc.debug( ", message(s) count is " ) + cc.info( jarrMessages.length )
+        + cc.debug( ", message(s) to process:" ) + cc.j( jarrMessages )
+        + "\n" );
+    let cntBadMessages = 0, i = 0, cnt = jarrMessages.length;
+    for( i = 0; i < cnt; ++ i ) {
+        let joMessage = jarrMessages[ i ], idxMessage = nIdxCurrentMsgBlockStart + i;
+        try {
+            let strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString(16);
+            let m = joMessageProxy.methods.verifyOutgoingMessageData(
+                idxMessage,
+                joMessage.sender,
+                joMessage.destinationContract,
+                joMessage.to,
+                strHexAmount
+            );
+            //console.log( "Will do call", m );
+            let isValidMessage = await m.call( { "from": strCallerAccountAddress } );
+            //console.log( "Got call result", isValidMessage );
+            if(  ! isValidMessage )
+                throw "Bad message detected";
+        } catch( err ) {
+            ++ cntBadMessages;
+            log.write( strLogPrefix + cc.fatal( "BAD ERROR:" )
+                + cc.error( " Correctness validation failed for message " ) + cc.info( idxMessage )
+                + cc.error( ", message is: " ) + cc.j( joMessage )
+                + cc.error( ", error information: " ) + cc.warn( err.toString() )
+                + "\n" );
+        }
+    } // for( let i = 0; i < jarrMessages.length; ++ i )
+    if( cntBadMessages > 0 )
+        log.write( strLogPrefix + cc.fatal( "BAD ERROR:" )
+            + cc.error( " Correctness validation failed for " ) + cc.info( cntBadMessages )
+            + cc.error( " of " ) + cc.info( cnt ) + cc.error( " message(s)" ) + "\n" );
+    else
+        log.write( strLogPrefix + cc.success( "Correctness validation passed for " ) + cc.info( cnt ) + cc.success( " message(s)" ) + "\n" );
+
+        
+    // //
+    // // The next code block is demonstrating debug call to skale_imaVerifyAndSign JSON RPC API on S-Chain
+    // // This test will work for HTTP(S) URLs only
+    // //
+    // let dstChainID = "", srcChainID = "", strURL;
+    // if( strDirection == "M2S" ) {
+    //     strURL =  imaState.strURL_s_chain; // imaState.strURL_main_net;
+    //     dstChainID = "" + ( imaState.strChainID_s_chain ? imaState.strChainID_s_chain : "" );
+    //     srcChainID = "" + ( imaState.strChainID_main_net ? imaState.strChainID_main_net : "" );
+    // } else {
+    //     strURL = imaState.strURL_s_chain;
+    //     dstChainID = "" + ( imaState.strChainID_main_net ? imaState.strChainID_main_net : "" );
+    //     srcChainID = "" + ( imaState.strChainID_s_chain ? imaState.strChainID_s_chain : "" );
+    // }
+    // //if( strDirection == "S2M" ) {
+    // // assuming strURL is http
+    // let joCall = rpcCall.create( strURL, async function ( joCall, err ) {
+    //     await joCall.call( {
+    //         "method": "skale_imaVerifyAndSign",
+    //         "params": {
+    //             "onlyVerify": true, // no BLS signing needed here
+    //             "direction": "" + strDirection,
+    //             "startMessageIdx": nIdxCurrentMsgBlockStart,
+    //             "dstChainID": dstChainID,
+    //             "srcChainID": srcChainID,
+    //             "messages": jarrMessages
+    //         }
+    //     }, function( joIn, joOut, err ) {
+    //         log.write( strLogPrefix + cc.debug( "S-Chain message verification test returned:" ) + cc.j( joOut ) + "\n" );
+    //         if( err ) {
+    //             log.write( strLogPrefix + cc.fatal( "S-Chain message verification test failed with errpr:" ) + cc.error( err ) + "\n" );
+    //             return;
+    //         }
+    //         log.write( strLogPrefix + cc.success( "S-Chain message verification test passed:" ) + cc.j( joOut ) + "\n" );
+    //     } );
+    // } );
+    // //} // if( strDirection == "S2M" )
+
+
+}
+
+
+
 async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsgBlockStart, fn ) {
     let strLogPrefix = cc.bright(strDirection) + " " + cc.info("Sign msgs:") + " ";
     fn = fn || function() {};
@@ -375,9 +471,11 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
             + cc.debug( ", message start index is " ) + cc.info(nIdxCurrentMsgBlockStart)
             + cc.debug( ", have " ) + cc.info( jarrMessages.length )
             + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) + "\n" );
+        await check_correctness_of_messages_to_sign( strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart );
         await fn( null, jarrMessages, null )
         return;
     }
+    await check_correctness_of_messages_to_sign( strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart );
     //
     // each message in array looks like:
     // {
