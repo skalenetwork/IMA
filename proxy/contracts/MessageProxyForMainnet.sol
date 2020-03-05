@@ -276,27 +276,27 @@ contract MessageProxyForMainnet {
             startingCounter == connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter,
             "Starning counter is not qual to incomin message counter");
 
-        // if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
-        //     Message[] memory input = new Message[](messages.length);
-        //     for (uint256 i = 0; i < messages.length; i++) {
-        //         input[i].sender = messages[i].sender;
-        //         input[i].destinationContract = messages[i].destinationContract;
-        //         input[i].to = messages[i].to;
-        //         input[i].amount = messages[i].amount;
-        //         input[i].data = messages[i].data;
-        //     }
+        if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
+            Message[] memory input = new Message[](messages.length);
+            for (uint256 i = 0; i < messages.length; i++) {
+                input[i].sender = messages[i].sender;
+                input[i].destinationContract = messages[i].destinationContract;
+                input[i].to = messages[i].to;
+                input[i].amount = messages[i].amount;
+                input[i].data = messages[i].data;
+            }
 
-        //     require(
-        //         verifyMessageSignature(
-        //             sign.blsSignature,
-        //             hashedArray(input),
-        //             sign.counter,
-        //             sign.hashA,
-        //             sign.hashB,
-        //             srcChainID
-        //         ), "Signature is not verified"
-        //     );
-        // }
+            require(
+                verifyMessageSignature(
+                    sign.blsSignature,
+                    hashedArray(input),
+                    sign.counter,
+                    sign.hashA,
+                    sign.hashB,
+                    srcChainID
+                ), "Signature is not verified"
+            );
+        }
 
         for (uint256 i = 0; i < messages.length; i++) {
             ContractReceiverForMainnet(messages[i].destinationContract).postMessage(
@@ -355,7 +355,11 @@ contract MessageProxyForMainnet {
         address destinationContract,
         address to,
         uint256 amount
-        ) public view returns ( bool isValidMessage ) {
+        )
+            public
+            view
+            returns ( bool isValidMessage )
+    {
         isValidMessage = false;
         OutgoingMessageData memory d = outgoingMessageData[idxMessage];
         if ( d.dstContract == destinationContract && d.srcContract == sender && d.to == to && d.amount == amount )

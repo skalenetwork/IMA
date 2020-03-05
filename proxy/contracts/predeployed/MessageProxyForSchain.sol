@@ -369,7 +369,11 @@ contract MessageProxyForSchain {
         address destinationContract,
         address to,
         uint256 amount
-        ) public view returns ( bool isValidMessage ) {
+        )
+            public
+            view
+            returns ( bool isValidMessage )
+    {
         isValidMessage = false;
         OutgoingMessageData memory d = outgoingMessageData[idxMessage];
         if ( d.dstContract == destinationContract && d.srcContract == sender && d.to == to && d.amount == amount )
