@@ -323,6 +323,23 @@ contract MessageProxyForMainnet {
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
+    function verifyOutgoingMessageData(
+        uint256 idxMessage,
+        address sender,
+        address destinationContract,
+        address to,
+        uint256 amount
+        )
+            public
+            view
+            returns (bool isValidMessage)
+    {
+        isValidMessage = false;
+        OutgoingMessageData memory d = outgoingMessageData[idxMessage];
+        if ( d.dstContract == destinationContract && d.srcContract == sender && d.to == to && d.amount == amount )
+            isValidMessage = true;
+    }
+
     function verifyMessageSignature(
         uint256[2] memory blsSignature,
         bytes32 hash,
@@ -347,23 +364,6 @@ contract MessageProxyForMainnet {
             hashB,
             srcChainID
         );
-    }
-
-    function verifyOutgoingMessageData(
-        uint256 idxMessage,
-        address sender,
-        address destinationContract,
-        address to,
-        uint256 amount
-        )
-            public
-            view
-            returns (bool isValidMessage)
-    {
-        isValidMessage = false;
-        OutgoingMessageData memory d = outgoingMessageData[idxMessage];
-        if ( d.dstContract == destinationContract && d.srcContract == sender && d.to == to && d.amount == amount )
-            isValidMessage = true;
     }
 
     function hashedArray(Message[] memory messages) internal pure returns (bytes32) {
