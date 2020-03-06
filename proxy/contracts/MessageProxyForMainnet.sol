@@ -358,7 +358,7 @@ contract MessageProxyForMainnet {
         )
             public
             view
-            returns ( bool isValidMessage )
+            returns (bool isValidMessage)
     {
         isValidMessage = false;
         OutgoingMessageData memory d = outgoingMessageData[idxMessage];
