@@ -839,7 +839,7 @@ async function single_transfer_loop() {
             log.write( strLogPrefix + cc.warn( "Skipped due to time framing" ) + "\n" );
         return true;
     }
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
     var b1 = await IMA.do_transfer( // main-net --> s-chain
         /**/
@@ -862,9 +862,9 @@ async function single_transfer_loop() {
         imaState.nBlockAgeM2S,
         imaBLS.do_sign_messages_m2s // fn_sign_messages
     );
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf(b1) + "\n" );
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
     var b2 = await IMA.do_transfer( // s-chain --> main-net
         /**/
@@ -887,10 +887,10 @@ async function single_transfer_loop() {
         imaState.nBlockAgeS2M,
         imaBLS.do_sign_messages_s2m // fn_sign_messages
     );
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf(b2) + "\n" );
     var b3 = b1 && b2;
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.info )
+    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf(b3) + "\n" );
     return b3;
 }

@@ -26,22 +26,22 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 
 contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
 
-    mapping(uint => address) public erc20Tokens;
-    mapping(address => uint) public erc20Mapper;
-    uint newIndexERC20 = 1;
+    mapping(uint256 => address) public erc20Tokens;
+    mapping(address => uint256) public erc20Mapper;
+    uint256 newIndexERC20 = 1;
 
     constructor(address _lockAndDataAddress) PermissionsForMainnet(_lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
     }
 
-    function sendERC20(address contractHere, address to, uint amount) external allow("ERC20Module") returns (bool) {
+    function sendERC20(address contractHere, address to, uint256 amount) external allow("ERC20Module") returns (bool) {
         require(IERC20(contractHere).balanceOf(address(this)) >= amount, "Not enough money");
         require(IERC20(contractHere).transfer(to, amount), "something went wrong with `transfer` in ERC20");
         return true;
     }
 
-    function addERC20Token(address addressERC20) external allow("ERC20Module") returns (uint) {
-        uint index = newIndexERC20;
+    function addERC20Token(address addressERC20) external allow("ERC20Module") returns (uint256) {
+        uint256 index = newIndexERC20;
         erc20Tokens[index] = addressERC20;
         erc20Mapper[addressERC20] = index;
         newIndexERC20++;

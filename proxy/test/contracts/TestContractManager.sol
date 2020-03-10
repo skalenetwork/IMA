@@ -20,7 +20,7 @@ contract ContractManager {
         bytes32 contractId = keccak256(abi.encodePacked(contractsName));
         // check newContractsAddress is not equal the previous contract's address
         require(contracts[contractId] != newContractsAddress, "Contract is already added");
-        uint length;
+        uint256 length;
         assembly {
             length := extcodesize(newContractsAddress)
         }
