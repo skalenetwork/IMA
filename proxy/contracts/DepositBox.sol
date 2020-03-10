@@ -30,8 +30,8 @@ import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
 interface ILockAndDataDB {
     function setContract(string calldata contractName, address newContract) external;
     function tokenManagerAddresses(bytes32 schainHash) external returns (address);
-    function sendEth(address to, uint amount) external returns (bool);
-    function approveTransfer(address to, uint amount) external;
+    function sendEth(address to, uint256 amount) external returns (bool);
+    function approveTransfer(address to, uint256 amount) external;
     function addSchain(string calldata schainID, address tokenManagerAddress) external;
     function receiveEth(address from) external payable;
 }
@@ -53,16 +53,16 @@ contract DepositBox is PermissionsForMainnet {
 
     address public proxyAddress;
 
-    uint public constant GAS_AMOUNT_POST_MESSAGE = 200000; // 0;
-    uint public constant AVERAGE_TX_PRICE = 10000000000;
+    uint256 public constant GAS_AMOUNT_POST_MESSAGE = 200000; // 0;
+    uint256 public constant AVERAGE_TX_PRICE = 10000000000;
 
-    //mapping(address => mapping(address => uint)) public allowed;
+    //mapping(address => mapping(address => uint256)) public allowed;
 
     event MoneyReceivedMessage(
         address sender,
         string fromSchainID,
         address to,
-        uint amount,
+        uint256 amount,
         bytes data
     );
 
@@ -70,7 +70,7 @@ contract DepositBox is PermissionsForMainnet {
         address sender,
         string fromSchainID,
         address to,
-        uint amount,
+        uint256 amount,
         bytes data,
         string message
     );
@@ -106,7 +106,7 @@ contract DepositBox is PermissionsForMainnet {
         string calldata schainID,
         address contractHere,
         address to,
-        uint amount
+        uint256 amount
     )
         external
         payable
@@ -153,7 +153,7 @@ contract DepositBox is PermissionsForMainnet {
         address contractHere,
         address contractThere,
         address to,
-        uint amount
+        uint256 amount
     )
         external
         payable
@@ -198,7 +198,7 @@ contract DepositBox is PermissionsForMainnet {
         string calldata schainID,
         address contractHere,
         address to,
-        uint tokenId) external payable rightTransaction(schainID)
+        uint256 tokenId) external payable rightTransaction(schainID)
         {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address lockAndDataERC721 = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
@@ -228,7 +228,7 @@ contract DepositBox is PermissionsForMainnet {
         address contractHere,
         address contractThere,
         address to,
-        uint tokenId
+        uint256 tokenId
     )
         external
         payable
@@ -261,7 +261,7 @@ contract DepositBox is PermissionsForMainnet {
         address sender,
         string calldata fromSchainID,
         address payable to,
-        uint amount,
+        uint256 amount,
         bytes calldata data
     )
         external

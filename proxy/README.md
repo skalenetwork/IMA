@@ -19,7 +19,7 @@ interface Proxy {
     function postOutgoingMessage(
         string calldata dstChainID, 
         address dstContract, 
-        uint amount, 
+        uint256 amount, 
         address to, 
         bytes calldata data
     ) 
@@ -34,7 +34,7 @@ function postMessage(
     address sender, 
     string memory fromSchainID, 
     address payable to, 
-    uint amount, 
+    uint256 amount, 
     bytes memory data
 ) 
     public 

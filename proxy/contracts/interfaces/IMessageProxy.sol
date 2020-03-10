@@ -4,7 +4,7 @@ interface IMessageProxy {
     function postOutgoingMessage(
         string calldata dstChainID,
         address dstContract,
-        uint amount,
+        uint256 amount,
         address to,
         bytes calldata data
     )

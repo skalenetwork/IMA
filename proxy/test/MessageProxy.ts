@@ -50,14 +50,14 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
         "1122334455667788990011223344556677889900112233445566778899001122",
     ];
 
-    const blsSignature = [
+    const BlsSignature = [
         "1122334455667788990011223344556677889900112233445566778899001122",
         "1122334455667788990011223344556677889900112233445566778899001122",
     ];
 
-    const hashA = "1122334455667788990011223344556677889900112233445566778899001122";
-    const hashB = "1122334455667788990011223344556677889900112233445566778899001122";
-    const counter = 0;
+    const HashA = "1122334455667788990011223344556677889900112233445566778899001122";
+    const HashB = "1122334455667788990011223344556677889900112233445566778899001122";
+    const Counter = 0;
 
     describe("MessageProxyForMainnet for mainnet", async () => {
         beforeEach(async () => {
@@ -155,6 +155,12 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
                 to: customer};
 
             const messages = [message1, message2];
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
 
             // chain should be inited:
             await messageProxyForMainnet
@@ -162,10 +168,8 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
                     chainID,
                     startingCounter,
                     messages,
-                    blsSignature,
-                    hashA,
-                    hashB,
-                    counter,
+                    sign,
+                    0,
                     {from: deployer},
                 ).should.be.rejected;
 
@@ -176,10 +180,8 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
                 chainID,
                 startingCounter,
                 messages,
-                blsSignature,
-                hashA,
-                hashB,
-                counter,
+                sign,
+                0,
                 {from: deployer},
             );
             const incomingMessagesCounter = new BigNumber(
@@ -231,6 +233,12 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
                 sender: user,
                 to: customer};
             const messages = [message1, message2];
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
 
             // chain should be inited:
             await messageProxyForMainnet.getIncomingMessagesCounter(chainID).should.be.rejected;
@@ -246,10 +254,8 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
                 chainID,
                 startingCounter,
                 messages,
-                blsSignature,
-                hashA,
-                hashB,
-                counter,
+                sign,
+                0,
                 {from: deployer},
             );
             const incomingMessagesCounter = new BigNumber(
@@ -298,6 +304,12 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
                 sender: user,
                 to: customer};
             const messages = [message1, message2];
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
 
             // chain should be inited:
             await messageProxyForMainnet.getIncomingMessagesCounter(chainID).should.be.rejected;
@@ -313,10 +325,8 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
                 chainID,
                 startingCounter,
                 messages,
-                blsSignature,
-                hashA,
-                hashB,
-                counter,
+                sign,
+                0,
                 {from: deployer},
             );
             const incomingMessagesCounter = new BigNumber(
@@ -447,16 +457,20 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
                 sender: user,
                 to: customer};
             const messages = [message1, message2];
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
 
             // chain should be inited:
             await messageProxyForSchain.postIncomingMessages(
                 chainID,
                 startingCounter,
                 messages,
-                blsSignature,
-                hashA,
-                hashB,
-                counter,
+                sign,
+                0,
                 {from: deployer},
             ).should.be.rejected;
 
@@ -466,10 +480,8 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
                 chainID,
                 startingCounter,
                 messages,
-                blsSignature,
-                hashA,
-                hashB,
-                counter,
+                sign,
+                0,
                 {from: deployer},
             );
             const incomingMessagesCounter = new BigNumber(
@@ -521,6 +533,12 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
                 sender: user,
                 to: customer};
             const messages = [message1, message2];
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
 
             // chain should be inited:
             await messageProxyForSchain.getIncomingMessagesCounter(chainID).should.be.rejected;
@@ -535,10 +553,8 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
                 chainID,
                 startingCounter,
                 messages,
-                blsSignature,
-                hashA,
-                hashB,
-                counter,
+                sign,
+                0,
                 {from: deployer},
             );
             const incomingMessagesCounter = new BigNumber(

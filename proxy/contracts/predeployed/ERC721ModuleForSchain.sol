@@ -10,17 +10,17 @@ interface ITokenFactoryForERC721 {
 }
 
 interface ILockAndDataERC721S {
-    function erc721Tokens(uint index) external returns (address);
-    function erc721Mapper(address contractERC721) external returns (uint);
-    function addERC721Token(address contractERC721, uint contractPosition) external;
-    function sendERC721(address contractHere, address to, uint tokenId) external returns (bool);
-    function receiveERC721(address contractHere, uint tokenId) external returns (bool);
+    function erc721Tokens(uint256 index) external returns (address);
+    function erc721Mapper(address contractERC721) external returns (uint256);
+    function addERC721Token(address contractERC721, uint256 contractPosition) external;
+    function sendERC721(address contractHere, address to, uint256 tokenId) external returns (bool);
+    function receiveERC721(address contractHere, uint256 tokenId) external returns (bool);
 }
 
 
 contract ERC721ModuleForSchain is PermissionsForSchain {
 
-    event ERC721TokenCreated(uint indexed contractPosition, address tokenAddress);
+    event ERC721TokenCreated(uint256 indexed contractPosition, address tokenAddress);
 
 
     constructor(address newLockAndDataAddress) PermissionsForSchain(newLockAndDataAddress) public {
@@ -30,13 +30,13 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
     function receiveERC721(
         address contractHere,
         address to,
-        uint tokenId,
+        uint256 tokenId,
         bool isRAW) external allow("TokenManager") returns (bytes memory data)
         {
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
             permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         if (!isRAW) {
-            uint contractPosition = ILockAndDataERC721S(lockAndDataERC721).erc721Mapper(contractHere);
+            uint256 contractPosition = ILockAndDataERC721S(lockAndDataERC721).erc721Mapper(contractHere);
             require(contractPosition > 0, "Not existing ERC-721 contract");
             require(ILockAndDataERC721S(lockAndDataERC721).receiveERC721(contractHere, tokenId), "Cound not receive ERC721 Token");
             data = encodeData(
@@ -54,10 +54,10 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
     function sendERC721(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
             permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
-        uint contractPosition;
+        uint256 contractPosition;
         address contractAddress;
         address receiver;
-        uint tokenId;
+        uint256 tokenId;
         if (to == address(0)) {
             (contractPosition, receiver, tokenId) = fallbackDataParser(data);
             contractAddress = ILockAndDataERC721S(lockAndDataERC721).erc721Tokens(contractPosition);
@@ -76,8 +76,8 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
     }
 
     function getReceiver(address to, bytes calldata data) external pure returns (address receiver) {
-        uint contractPosition;
-        uint tokenId;
+        uint256 contractPosition;
+        uint256 tokenId;
         if (to == address(0)) {
             (contractPosition, receiver, tokenId) = fallbackDataParser(data);
         } else {
@@ -87,9 +87,9 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
 
     function encodeData(
         address contractHere,
-        uint contractPosition,
+        uint256 contractPosition,
         address to,
-        uint tokenId) internal view returns (bytes memory data)
+        uint256 tokenId) internal view returns (bytes memory data)
         {
         string memory name = IERC721Full(contractHere).name();
         string memory symbol = IERC721Full(contractHere).symbol();
@@ -105,7 +105,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         );
     }
 
-    function encodeRawData(address to, uint tokenId) internal pure returns (bytes memory data) {
+    function encodeRawData(address to, uint256 tokenId) internal pure returns (bytes memory data) {
         data = abi.encodePacked(
             bytes1(uint8(21)),
             bytes32(bytes20(to)),
@@ -116,7 +116,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
     function fallbackDataParser(bytes memory data)
         internal
         pure
-        returns (uint, address payable, uint)
+        returns (uint256, address payable, uint256)
     {
         bytes32 contractIndex;
         bytes32 to;
@@ -127,14 +127,14 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
             token := mload(add(data, 97))
         }
         return (
-            uint(contractIndex), address(bytes20(to)), uint(token)
+            uint256(contractIndex), address(bytes20(to)), uint256(token)
         );
     }
 
     function fallbackRawDataParser(bytes memory data)
         internal
         pure
-        returns (address payable, uint)
+        returns (address payable, uint256)
     {
         bytes32 to;
         bytes32 token;
@@ -142,7 +142,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
             to := mload(add(data, 33))
             token := mload(add(data, 65))
         }
-        return (address(bytes20(to)), uint(token));
+        return (address(bytes20(to)), uint256(token));
     }
 }
 

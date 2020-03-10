@@ -1641,6 +1641,8 @@ function perform_multi_node_deployment() {
         joNodeDesc.joConfig.skaleConfig.nodeInfo.imaMainNet = g_strMainNetURL;
         // joNodeDesc.joConfig.skaleConfig.nodeInfo.imaMessageProxySChain
         // joNodeDesc.joConfig.skaleConfig.nodeInfo.imaMessageProxyMainNet
+        joNodeDesc.joConfig.skaleConfig.nodeInfo.imaCallerAddressSChain = "0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852";
+        joNodeDesc.joConfig.skaleConfig.nodeInfo.imaCallerAddressMainNet = "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f";
         joNodeDesc.joConfig.skaleConfig.nodeInfo.wallets.ima.url = g_strUrlSgxWalletHTTPS;
         joNodeDesc.joConfig.skaleConfig.nodeInfo.wallets.ima.caFile   = strSkaledNodeSgxDataFolder + "/rootCA.pem"; // TO-DO: should be different for each skaled
         joNodeDesc.joConfig.skaleConfig.nodeInfo.wallets.ima.certFile = strSkaledNodeSgxDataFolder + "/client.crt"; // TO-DO: should be different for each skaled

@@ -435,7 +435,9 @@ let joConfigurationTemplate = {
             // "web3-shutdown": true,
             // "imaMainNet": "http://127.0.0.1:8545",
             // "imaMessageProxySChain": "0x4cC0e8b2347172011798e6C6c196360F9f4ad113",
-            // "imaMessageProxyMainNet": "0x1830e6cac0b1D202E0D329874d39680D68729Aa9"
+            // "imaMessageProxyMainNet": "0x1830e6cac0b1D202E0D329874d39680D68729Aa9",
+            // "imaCallerAddressSChain": "0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852",
+            // "imaCallerAddressMainNet": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
         },
         "sChain": {
             "schainName": "TestChain",
@@ -574,8 +576,10 @@ function create_node_config( idx ) { // idx is 0-based
         "web3-shutdown": true,
         "imaMainNet": "http://127.0.0.1:8545",
         "imaMessageProxySChain": "0x4cC0e8b2347172011798e6C6c196360F9f4ad113",
-        "imaMessageProxyMainNet": "0x1830e6cac0b1D202E0D329874d39680D68729Aa9"
-    };
+        "imaMessageProxyMainNet": "0x1830e6cac0b1D202E0D329874d39680D68729Aa9",
+        "imaCallerAddressSChain": "0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852",
+        "imaCallerAddressMainNet": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
+};
     if( cntNodes in g_mapImaWalletConfigurations ) {
         var arrImaWalletConfigurations = g_mapImaWalletConfigurations[ cntNodes ];
         jo.skaleConfig.nodeInfo.wallets = {};

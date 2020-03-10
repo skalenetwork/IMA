@@ -23,17 +23,17 @@ import "./PermissionsForMainnet.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 
 interface ILockAndDataERC20M {
-    function erc20Tokens(uint index) external returns (address);
-    function erc20Mapper(address contractERC20) external returns (uint);
-    function addERC20Token(address contractERC20) external returns (uint);
-    function sendERC20(address contractHere, address to, uint amount) external returns (bool);
+    function erc20Tokens(uint256 index) external returns (address);
+    function erc20Mapper(address contractERC20) external returns (uint256);
+    function addERC20Token(address contractERC20) external returns (uint256);
+    function sendERC20(address contractHere, address to, uint256 amount) external returns (bool);
 }
 
 
 contract ERC20ModuleForMainnet is PermissionsForMainnet {
 
-    event ERC20TokenAdded(address indexed tokenHere, uint contractPosition);
-    event ERC20TokenSent(address indexed tokenHere, uint contractPosition, uint amount);
+    event ERC20TokenAdded(address indexed tokenHere, uint256 contractPosition);
+    event ERC20TokenSent(address indexed tokenHere, uint256 contractPosition, uint256 amount);
 
     constructor(address newLockAndDataAddress) PermissionsForMainnet(newLockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks
@@ -42,7 +42,7 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
     function receiveERC20(
         address contractHere,
         address to,
-        uint amount,
+        uint256 amount,
         bool isRAW
     )
         external
@@ -50,10 +50,10 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         returns (bytes memory data)
     {
         address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        uint totalSupply = ERC20Detailed(contractHere).totalSupply();
+        uint256 totalSupply = ERC20Detailed(contractHere).totalSupply();
         require(amount <= totalSupply, "TotalSupply is not correct");
         if (!isRAW) {
-            uint contractPosition = ILockAndDataERC20M(lockAndDataERC20).erc20Mapper(contractHere);
+            uint256 contractPosition = ILockAndDataERC20M(lockAndDataERC20).erc20Mapper(contractHere);
             if (contractPosition == 0) {
                 contractPosition = ILockAndDataERC20M(lockAndDataERC20).addERC20Token(contractHere);
                 emit ERC20TokenAdded(contractHere, contractPosition);
@@ -75,10 +75,10 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
 
     function sendERC20(address to, bytes calldata data) external allow("DepositBox") returns (bool) {
         address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        uint contractPosition;
+        uint256 contractPosition;
         address contractAddress;
         address receiver;
-        uint amount;
+        uint256 amount;
         if (to == address(0)) {
             (contractPosition, receiver, amount) = fallbackDataParser(data);
             contractAddress = ILockAndDataERC20M(lockAndDataERC20).erc20Tokens(contractPosition);
@@ -91,8 +91,8 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
     }
 
     function getReceiver(address to, bytes calldata data) external pure returns (address receiver) {
-        uint contractPosition;
-        uint amount;
+        uint256 contractPosition;
+        uint256 amount;
         if (to == address(0)) {
             (contractPosition, receiver, amount) = fallbackDataParser(data);
         } else {
@@ -102,14 +102,14 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
 
     function encodeData(
         address contractHere,
-        uint contractPosition,
+        uint256 contractPosition,
         address to,
-        uint amount) internal view returns (bytes memory data)
+        uint256 amount) internal view returns (bytes memory data)
         {
         string memory name = ERC20Detailed(contractHere).name();
         uint8 decimals = ERC20Detailed(contractHere).decimals();
         string memory symbol = ERC20Detailed(contractHere).symbol();
-        uint totalSupply = ERC20Detailed(contractHere).totalSupply();
+        uint256 totalSupply = ERC20Detailed(contractHere).totalSupply();
         data = abi.encodePacked(
             bytes1(uint8(3)),
             bytes32(contractPosition),
@@ -124,7 +124,7 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
-    function encodeRawData(address to, uint amount) internal pure returns (bytes memory data) {
+    function encodeRawData(address to, uint256 amount) internal pure returns (bytes memory data) {
         data = abi.encodePacked(
             bytes1(uint8(19)),
             bytes32(bytes20(to)),
@@ -135,7 +135,7 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
     function fallbackDataParser(bytes memory data)
         internal
         pure
-        returns (uint, address payable, uint)
+        returns (uint256, address payable, uint256)
     {
         bytes32 contractIndex;
         bytes32 to;
@@ -147,14 +147,14 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
             token := mload(add(data, 97))
         }
         return (
-            uint(contractIndex), address(bytes20(to)), uint(token)
+            uint256(contractIndex), address(bytes20(to)), uint256(token)
         );
     }
 
     function fallbackRawDataParser(bytes memory data)
         internal
         pure
-        returns (address payable, uint)
+        returns (address payable, uint256)
     {
         bytes32 to;
         bytes32 token;
@@ -163,7 +163,7 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
             to := mload(add(data, 33))
             token := mload(add(data, 65))
         }
-        return (address(bytes20(to)), uint(token));
+        return (address(bytes20(to)), uint256(token));
     }
 
 }
