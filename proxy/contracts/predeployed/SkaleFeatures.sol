@@ -22,7 +22,7 @@ pragma solidity ^0.5.0;
 
 contract SkaleFeatures {
 
-    uint constant FREE_MEM_PTR = 0x40;
+    uint256 constant FREE_MEM_PTR = 0x40;
     uint256 constant FN_NUM_LOG_TEXT_MESSAGE = 0x12;
     uint256 constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;
     uint256 constant FN_NUM_GET_CONFIG_VARIABLE_ADDRESS = 0x14;
@@ -31,7 +31,7 @@ contract SkaleFeatures {
     uint256 constant FN_NUM_GET_CONFIG_PERMISSION_FLAG = 0x17;
 
     function logTextMessage( uint256 messageType, string memory strTextMessage ) public view returns ( uint256 rv ) {
-        uint fmp = FREE_MEM_PTR;
+        uint256 fmp = FREE_MEM_PTR;
         uint256 fnc = FN_NUM_LOG_TEXT_MESSAGE;
         address who = msg.sender;
         uint256 blocks = (bytes(strTextMessage).length + 31) / 32 + 1;
@@ -67,7 +67,7 @@ contract SkaleFeatures {
     function logFatal  ( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage(5, strMessage); }
 
     function getConfigVariableUint256( string memory strConfigVariableName ) public view returns ( uint256 rv ) {
-        uint fmp = FREE_MEM_PTR;
+        uint256 fmp = FREE_MEM_PTR;
         uint256 fnc = FN_NUM_GET_CONFIG_VARIABLE_UINT256;
         uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
         assembly {
@@ -83,7 +83,7 @@ contract SkaleFeatures {
     }
 
     function getConfigVariableAddress( string memory strConfigVariableName ) public view returns ( address rv ) {
-        uint fmp = FREE_MEM_PTR;
+        uint256 fmp = FREE_MEM_PTR;
         uint256 fnc = FN_NUM_GET_CONFIG_VARIABLE_ADDRESS;
         uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
         assembly {
@@ -99,7 +99,7 @@ contract SkaleFeatures {
     }
 
     function getConfigVariableString( string memory strConfigVariableName ) public view returns ( string memory rv ) {
-        uint fmp = FREE_MEM_PTR;
+        uint256 fmp = FREE_MEM_PTR;
         uint256 fnc = FN_NUM_GET_CONFIG_VARIABLE_STRING;
         uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
         assembly {
@@ -114,7 +114,7 @@ contract SkaleFeatures {
     }
 
     function concatenateStrings( string memory strA, string memory strB ) public view returns ( string memory rv ) {
-        uint fmp = FREE_MEM_PTR;
+        uint256 fmp = FREE_MEM_PTR;
         uint256 fnc = FN_NUM_CONCATENATE_STRINGS;
         uint256 blocksA = (bytes(strA).length + 31) / 32 + 1;
         uint256 blocksB = (bytes(strB).length + 31) / 32 + 1;
@@ -138,7 +138,7 @@ contract SkaleFeatures {
     }
 
     function getConfigPermissionFlag( address a, string memory strConfigVariableName ) public view returns ( uint256 rv ) {
-        uint fmp = FREE_MEM_PTR;
+        uint256 fmp = FREE_MEM_PTR;
         uint256 fnc = FN_NUM_GET_CONFIG_PERMISSION_FLAG;
         uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
         assembly {
