@@ -38,9 +38,9 @@ jobs:
         cat /proc/version || true
         echo ------------ lscpu
         lscpu || true
-        echo ------------ lsusb
-        sudo apt-get install usbutils || true &> /dev/null
-        lsusb -t || true
+        # echo ------------ lsusb
+        # sudo apt-get install usbutils || true &> /dev/null
+        # lsusb -t || echo "No lsusb available" || true
 
     - name: NODE 10.x
       run: |
@@ -56,10 +56,10 @@ jobs:
         echo ------------ install
         sudo apt-get install nodejs
         echo ------------ node version check
-        which node || echo "----> Looks like node was not installed"
+        which node || echo "----> Looks like node was not installed, next command will fail"
         node --version
         echo ------------ npm version check
-        which npm || echo "----> Looks like npm was not installed"
+        which npm || echo "----> Looks like npm was not installed, next command will fail"
         npm --version
 
     # - name: INSTALL PREREQUISITES - PY
@@ -73,7 +73,7 @@ jobs:
     #     echo ------------ slither analyzer install
     #     pip3 install slither-analyzer
     #     echo ------------ slither version check - after install
-    #     which slither || echo "----> Looks like slither was not installed"
+    #     which slither || echo "----> Looks like slither was not installed, next command will fail"
     #     slither --version
 
     - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
@@ -88,7 +88,7 @@ jobs:
         echo ------------ yarn pass
         yarn install
         echo ------------ npx version check
-        which npx || echo "----> Looks like npx was not installed"
+        which npx || echo "----> Looks like npx was not installed, next command will fail"
         npx --version
         echo ------------ buidler version check
         npx buidler --version
@@ -109,7 +109,7 @@ jobs:
     # - name: START BACKGROUND GANACHE
     #   run: |
     #     echo ------------ ganache-cli version check
-    #     which ganache-cli || echo "----> Looks like ganache-cli was not installed"
+    #     which ganache-cli || echo "----> Looks like ganache-cli was not installed, next command will fail"
     #     ganache-cli --version
     #     echo ------------ ganache-cli startup
     #     npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
@@ -124,7 +124,7 @@ jobs:
     #   run: |
     #     cd proxy
     #     echo ------------ slither version check - before run
-    #     which slither || echo "----> Looks like slither was not installed"
+    #     which slither || echo "----> Looks like slither was not installed, next command will fail"
     #     slither --version
     #     echo ------------ slither steo 1
     #     slither . --filter-path openzeppelin-solidity,@openzeppelin/contracts/ || true            
@@ -148,7 +148,7 @@ jobs:
     - name: PROXY - TEST
       run: |
         echo ------------ ganache-cli version check
-        which ganache-cli || echo "----> Looks like ganache-cli was not installed"
+        which ganache-cli || echo "----> Looks like ganache-cli was not installed, next command will fail"
         ganache-cli --version
         echo ------------ ganache-cli startup
         npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
