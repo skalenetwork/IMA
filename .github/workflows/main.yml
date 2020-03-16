@@ -24,9 +24,9 @@ jobs:
 
     - name: SYSTEM VERSION CHECKS
       run: |
-        echo ------------ unix name (a)
+        echo ------------ unix name - a
         uname -a || true
-        echo ------------ unix name (r)
+        echo ------------ unix name - r
         uname -r || true
         echo ------------ lsb
         lsb_release -a || true
@@ -63,7 +63,7 @@ jobs:
         sudo apt-get install python3-pip python3-setuptools
         echo ------------ slither analyzer install
         pip3 install slither-analyzer
-        echo ------------ slither version check (after install)
+        echo ------------ slither version check - after install
         which slither
         slither --version
 
@@ -109,7 +109,7 @@ jobs:
     - name: PROXY - SLITHER
       run: |
         cd proxy
-        echo ------------ slither version check (before run)
+        echo ------------ slither version check - before run
         which slither
         slither --version
         echo ------------ slither steo 1
