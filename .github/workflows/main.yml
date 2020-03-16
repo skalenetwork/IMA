@@ -36,62 +36,63 @@ jobs:
         echo ------------ install
         sudo apt-get install nodejs
 
-    # - name: VERSION CHECKS
-    #   run: |
-    #     echo ------------ sys
-    #     uname -a
-    #     echo ------------ node
-    #     which node
-    #     node --version
-    #     echo ------------ npm
-    #     which npm
-    #     npm --version
+    - name: VERSION CHECKS
+      run: |
+        echo ------------ sys
+        uname -a
+        echo ------------ node
+        which node
+        node --version
+        echo ------------ npm
+        which npm
+        npm --version
 
-    # - name: INSTALL PREREQUISITES - PY
-    #   run: |
-    #     sudo apt-get install python3-pip python3-setuptools
-    #     pip3 install slither-analyzer
+    - name: INSTALL PREREQUISITES - PY
+      run: |
+        sudo apt-get install python3-pip python3-setuptools
+        pip3 install slither-analyzer
 
-    # - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
-    #   run: |
-    #     cd proxy
-    #     bash ./scripts/copy.sh
-    #     cd ..
+    - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
+      run: |
+        cd proxy
+        bash ./scripts/copy.sh
+        cd ..
 
-    # - name: INSTALL PREREQUISITES - PROXY - PACKAGES
-    #   run: |
-    #     cd proxy
-    #     echo ------------ yarn pass
-    #     yarn install
-    #     echo ------------ npx version check
-    #     npx --version
-    #     echo ------------ buidler version check
-    #     npx buidler --version
-    #     cd ..
+    - name: INSTALL PREREQUISITES - PROXY - PACKAGES
+      run: |
+        cd proxy
+        echo ------------ yarn pass
+        yarn install
+        echo ------------ npx version check
+        npx --version
+        echo ------------ buidler version check
+        npx buidler --version
+        cd ..
 
-    # - name: INSTALL PREREQUISITES - AGENT - PACKAGES
-    #   run: |
-    #     cd agent 
-    #     npm install
-    #     cd ..
+    - name: INSTALL PREREQUISITES - AGENT - PACKAGES
+      run: |
+        cd agent 
+        npm install
+        cd ..
 
-    # - name: INSTALL PREREQUISITES - SKALE-IMA - PACKAGES
-    #   run: |
-    #     cd npms/skale-ima
-    #     npm install
-    #     cd ../..
+    - name: INSTALL PREREQUISITES - SKALE-IMA - PACKAGES
+      run: |
+        cd npms/skale-ima
+        npm install
+        cd ../..
 
-    # - name: START BACKGROUND GANACHE
-    #   run: |
-    #     npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
+    - name: START BACKGROUND GANACHE
+      run: |
+        npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
 
-    # - name: PROXY - LINT
-    #   run: |
-    #     cd proxy
-    #     yarn lint #|| travis_terminate 1
-    #     cd ..
+    - name: PROXY - LINT
+      run: |
+        cd proxy
+        yarn lint #|| travis_terminate 1
+        cd ..
 
     - name: PROXY - SLITHER
+      run: |
         cd proxy
         echo ------------ slither version check
         slither --version
