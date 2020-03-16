@@ -21,7 +21,6 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-
     - name: NODE 10.x
       run: |
         echo ------------ uninstall
@@ -35,7 +34,6 @@ jobs:
         curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
         echo ------------ install
         sudo apt-get install nodejs
-
     - name: VERSION CHECKS
       run: |
         echo ------------ sys
