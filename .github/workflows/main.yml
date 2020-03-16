@@ -65,13 +65,15 @@ jobs:
     - name: INSTALL PREREQUISITES - PY
       run: |
         echo ------------ py3 installs
-        sudo apt-get install python3-pip python3-setuptools
-        echo ------------ py3 wheel
+        sudo apt-get install python3-pip python3-setuptools python3-dev
+        echo ------------ py3 wheel - apt
+        sudo apt-get install python3-wheel
+        echo ------------ py3 wheel - pip
         pip3 install wheel
         echo ------------ slither analyzer install
         pip3 install slither-analyzer
         echo ------------ slither version check - after install
-        which slither
+        which slither || echo "----> Looks like slither was not installed" || true
         slither --version
 
     - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
