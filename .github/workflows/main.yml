@@ -211,6 +211,5 @@ jobs:
 
     - name: DEPLOY
       run: |
-        echo "DOCKER_USERNAME is:" $DOCKER_USERNAME
-        # echo $DOCKER_PASSWORD
-        bash ./build_image.sh $DOCKER_USERNAME $DOCKER_PASSWORD || true
+        bash ./build_image.sh ${{ secrets.DOCKER_USERNAME }} ${{ secrets.DOCKER_PASSWORD }} || echo "----> Looks like deploy failed"
+
