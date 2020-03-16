@@ -66,8 +66,10 @@ jobs:
       run: |
         echo ------------ py3 installs
         sudo apt-get install python3-pip python3-setuptools
+        echo ------------ py3 wheel
+        pip3 install wheel
         echo ------------ slither analyzer install
-        pip3 install wheel slither-analyzer
+        pip3 install slither-analyzer
         echo ------------ slither version check - after install
         which slither
         slither --version
