@@ -147,13 +147,14 @@ jobs:
 
     - name: PROXY - TEST
       run: |
+        cd proxy
         echo ------------ ganache-cli version check
         which ganache-cli || echo "----> Looks like ganache-cli was not installed, next command will fail"
         ganache-cli --version
         echo ------------ ganache-cli startup
         npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
         echo ------------ run yarn test
-        cd proxy
+        # cd proxy
         RUNNING_NETWORK=test bash ./scripts/prepareSkaleManagerComponents.sh
         yarn test #|| travis_terminate 3
         cd ..
