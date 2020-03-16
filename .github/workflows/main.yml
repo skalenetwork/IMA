@@ -175,8 +175,6 @@ jobs:
         RUNNING_NETWORK=test bash ./scripts/prepareSkaleManagerComponents.sh
         yarn test #|| travis_terminate 3
         cd ..
-        echo ------------ cleanup
-        killall npx || true
 
     - name: TEST - PY - PRE-RUN
       run: |
