@@ -24,6 +24,40 @@ jobs:
 
     - name: SYSTEM VERSION CHECKS
       run: |
+        echo ------------ GIT_CURRENT_BRANCH
+        export GIT_CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo $GIT_CURRENT_BRANCH
+        echo ------------ GIT_SYMBOLIC_BRANCH
+        export GIT_SYMBOLIC_BRANCH=$(git symbolic-ref --short HEAD)
+        echo $GIT_SYMBOLIC_BRANCH
+        echo ------------ GITHUB_WORKFLOW
+        echo $GITHUB_WORKFLOW
+        echo ------------ GITHUB_RUN_ID
+        echo $GITHUB_RUN_ID
+        echo ------------ GITHUB_RUN_NUMBER
+        echo $GITHUB_RUN_NUMBER
+        echo ------------ GITHUB_ACTION
+        echo $GITHUB_ACTION
+        echo ------------ GITHUB_ACTIONS
+        echo $GITHUB_ACTIONS
+        echo ------------ GITHUB_ACTOR
+        echo $GITHUB_ACTOR
+        echo ------------ GITHUB_REPOSITORY
+        echo $GITHUB_REPOSITORY
+        echo ------------ GITHUB_EVENT_NAME
+        echo $GITHUB_EVENT_NAME
+        echo ------------ GITHUB_EVENT_PATH
+        echo $GITHUB_EVENT_PATH
+        echo ------------ GITHUB_WORKSPACE
+        echo $GITHUB_WORKSPACE
+        echo ------------ GITHUB_SHA
+        echo $GITHUB_SHA
+        echo ------------ GITHUB_REF
+        echo $GITHUB_REF
+        echo ------------ GITHUB_HEAD_REF
+        echo $GITHUB_HEAD_REF
+        echo ------------ GITHUB_BASE_REF
+        echo $GITHUB_BASE_REF
         echo ------------ user
         echo $USER
         echo ------------ home
@@ -211,5 +245,12 @@ jobs:
 
     - name: DEPLOY
       run: |
-        bash ./build_image.sh ${{ secrets.DOCKER_USERNAME }} ${{ secrets.DOCKER_PASSWORD }} || echo "----> Looks like deploy failed"
+        echo ------------ prepare version 1
+        export VERSION=$(cat VERSION)
+        echo $VERSION
+        echo ------------ prepare version 2
+        export VERSION=$( (test $GIT_CURRENT_BRANCH = "master" && echo $VERSION) || (test $GIT_CURRENT_BRANCH = "release-candidate" && ./calculate_version.sh rc $VERSION) || ./calculate_version.sh develop $VERSION)        
+        echo $VERSION
+        echo ------------ docker image
+        bash ./build_image.sh ${{ secrets.DOCKER_USERNAME }} ${{ secrets.DOCKER_PASSWORD }} #|| echo "----> Looks like deploy failed"
 
