@@ -47,10 +47,10 @@ jobs:
         which npm
         npm --version
 
-    - name: INSTALL PREREQUISITES - PY
-      run: |
-        sudo apt-get install python3-pip python3-setuptools
-        pip3 install slither-analyzer
+    # - name: INSTALL PREREQUISITES - PY
+    #   run: |
+    #     sudo apt-get install python3-pip python3-setuptools
+    #     pip3 install slither-analyzer
 
     # - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
     #   run: |
