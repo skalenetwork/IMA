@@ -26,6 +26,11 @@ jobs:
       run: |
         echo ------------ uninstall
         sudo apt-get remove nodejs || true
+        echo ------------ force remove
+        sudo rm -f /usr/local/bin/node || true
+        sudo rm -f /usr/local/bin/npm || true
+        sudo rm -f /usr/bin/node || true
+        sudo rm -f /usr/bin/npm || true
         echo ------------ download
         curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
         echo ------------ install
@@ -42,9 +47,9 @@ jobs:
         which npm
         npm --version
         echo ------------ node g
-        /usr/bin/node --version
+        /usr/bin/node --version || true
         echo ------------ node l
-        /usr/local/bin/node --version
+        /usr/local/bin/node --version || true
 
     # - name: INSTALL PREREQUISITES - PY
     #   run: |
