@@ -58,22 +58,22 @@ jobs:
         bash ./scripts/copy.sh
         cd ..
 
-    - name: INSTALL PREREQUISITES - PROXY - PACKAGES
-      run: |
-        cd proxy
-        echo ------------ yarn pass
-        yarn install
-        echo ------------ npx version check
-        npx --version
-        echo ------------ buidler version check
-        npx buidler --version
-        cd ..
+    # - name: INSTALL PREREQUISITES - PROXY - PACKAGES
+    #   run: |
+    #     cd proxy
+    #     echo ------------ yarn pass
+    #     yarn install
+    #     echo ------------ npx version check
+    #     npx --version
+    #     echo ------------ buidler version check
+    #     npx buidler --version
+    #     cd ..
 
-    - name: INSTALL PREREQUISITES - AGENT - PACKAGES
-      run: |
-        cd agent 
-        npm install
-        cd ..
+    # - name: INSTALL PREREQUISITES - AGENT - PACKAGES
+    #   run: |
+    #     cd agent 
+    #     npm install
+    #     cd ..
 
     # - name: INSTALL PREREQUISITES - SKALE-IMA - PACKAGES
     #   run: |
