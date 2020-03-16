@@ -114,7 +114,9 @@ jobs:
         which ganache-cli || echo "----> Looks like ganache-cli was not installed"
         ganache-cli --version
         echo ------------ ganache-cli startup
+        cd proxy
         npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
+        cd ..
 
     - name: PROXY - LINT
       run: |
