@@ -91,7 +91,8 @@ jobs:
         echo ------------ py3 wheel - pip
         pip3 install wheel
         echo ------------ slither analyzer install
-        pip3 install slither-analyzer
+        # pip3 install slither-analyzer
+        pip3 install slither-analyzer==0.6.8
         echo ------------ slither version check - after install
         which slither || echo "----> Looks like slither was not installed, next command will fail"
         slither --version || true
