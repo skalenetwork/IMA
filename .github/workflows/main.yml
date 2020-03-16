@@ -74,7 +74,10 @@ jobs:
     - name: SOLC CHECKS
       run: |
         echo ------------ solc install
-        sudo npm install -g solc
+        # sudo npm install -g solc
+        sudo add-apt-repository ppa:ethereum/ethereum
+        sudo apt-get update
+        sudo apt-get install solc
         echo ------------ solc version check
         which solc || echo "----> Looks like solc was not installed, next command will fail"
         solc --version
