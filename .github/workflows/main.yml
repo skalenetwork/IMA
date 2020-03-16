@@ -28,6 +28,8 @@ jobs:
         echo $USER
         echo ------------ home
         echo $HOME
+        echo ------------ path
+        echo $PATH
         echo ------------ pwd
         pwd
         echo ------------ unix name - a
@@ -103,8 +105,8 @@ jobs:
         export PATH=$PATH:/home/$USER/.local/bin
         which slither || echo "----> Looks like slither was not installed, next command will fail"
         slither --version || true
-        echo ------------ slither search attempt
-        sudo find / -name slither || true
+        # echo ------------ slither search attempt
+        # sudo find / -name slither || true
 
     - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
       run: |
@@ -154,17 +156,17 @@ jobs:
         yarn lint #|| travis_terminate 1
         cd ..
 
-    - name: PROXY - SLITHER
-      run: |
-        cd proxy
-        echo ------------ slither version check - before run
-        which slither || echo "----> Looks like slither was not installed, next command will fail"
-        slither --version
-        echo ------------ slither steo 1
-        slither . --filter-path openzeppelin-solidity,@openzeppelin/contracts/ || true            
-        echo ------------ slither steo 2
-        slither . --filter-path openzeppelin-solidity,@openzeppelin/contracts/ --exclude-informational --exclude reentrancy-events,constant-function,calls-loop,reentrancy-benign,pragma,assembly,blank-lines,timestamp,external-function,constable-states,locked-ether,solc-version,too-many-digits,shadowing-state,shadowing-local,uninitialized-state || travis_terminate 7
-        cd ..
+    # - name: PROXY - SLITHER
+    #   run: |
+    #     cd proxy
+    #     echo ------------ slither version check - before run
+    #     which slither || echo "----> Looks like slither was not installed, next command will fail"
+    #     slither --version
+    #     echo ------------ slither steo 1
+    #     slither . --filter-path openzeppelin-solidity,@openzeppelin/contracts/ || true            
+    #     echo ------------ slither steo 2
+    #     slither . --filter-path openzeppelin-solidity,@openzeppelin/contracts/ --exclude-informational --exclude reentrancy-events,constant-function,calls-loop,reentrancy-benign,pragma,assembly,blank-lines,timestamp,external-function,constable-states,locked-ether,solc-version,too-many-digits,shadowing-state,shadowing-local,uninitialized-state || travis_terminate 7
+    #     cd ..
 
     - name: PROXY - LINT-2
       run: |
