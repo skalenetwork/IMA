@@ -6,9 +6,9 @@ name: Build and test
 # events but only for the master branch
 on:
   push:
-    branches: [ develop ]
+    branches: [ master, release-candidate, develop, beta ]
   pull_request:
-    branches: [ develop ]
+    branches: [ master, release-candidate, develop, beta ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -101,12 +101,13 @@ jobs:
         echo ------------ slither analyzer install
         # pip3 install slither-analyzer
         pip3 install slither-analyzer==0.6.8
-        echo ------------ slither version check - after install
+        echo ------------ slither search attempt
+        sudo find / -name slither || true
+        echo ------------ slither location detection - after install
         export PATH=$PATH:/home/$USER/.local/bin
         which slither || echo "----> Looks like slither was not installed, next command will fail"
+        echo ------------ slither version check - after install
         slither --version || true
-        # echo ------------ slither search attempt
-        # sudo find / -name slither || true
 
     - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
       run: |
@@ -208,3 +209,8 @@ jobs:
         cat coverage/lcov.info | npx codecov
         cd ..
 
+    - name: DEPLOY
+      run: |
+        echo "DOCKER_USERNAME is:" $DOCKER_USERNAME
+        # echo $DOCKER_PASSWORD
+        bash ./build_image.sh $DOCKER_USERNAME $DOCKER_PASSWORD || true
