@@ -39,7 +39,7 @@ jobs:
         echo ------------ lscpu
         lscpu || true
         echo ------------ lsusb
-        sudo apt-get install usbutils || true > /dev/null
+        sudo apt-get install usbutils || true &> /dev/null
         lsusb -t || true
 
     - name: NODE 10.x
@@ -88,6 +88,7 @@ jobs:
         echo ------------ yarn pass
         yarn install
         echo ------------ npx version check
+        which npx || echo "----> Looks like npx was not installed"
         npx --version
         echo ------------ buidler version check
         npx buidler --version
@@ -105,9 +106,13 @@ jobs:
         npm install
         cd ../..
 
-    - name: START BACKGROUND GANACHE
-      run: |
-        npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
+    # - name: START BACKGROUND GANACHE
+    #   run: |
+    #     echo ------------ ganache-cli version check
+    #     which ganache-cli || echo "----> Looks like ganache-cli was not installed"
+    #     ganache-cli --version
+    #     echo ------------ ganache-cli startup
+    #     npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
 
     - name: PROXY - LINT
       run: |
@@ -142,10 +147,18 @@ jobs:
 
     - name: PROXY - TEST
       run: |
+        echo ------------ ganache-cli version check
+        which ganache-cli || echo "----> Looks like ganache-cli was not installed"
+        ganache-cli --version
+        echo ------------ ganache-cli startup
+        npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
+        echo ------------ run yarn test
         cd proxy
         RUNNING_NETWORK=test bash ./scripts/prepareSkaleManagerComponents.sh
         yarn test #|| travis_terminate 3
         cd ..
+        echo ------------ cleanup
+        killall npx || true
 
     - name: TEST - PY - PRE-RUN
       run: |
