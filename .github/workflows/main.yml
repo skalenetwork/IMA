@@ -52,11 +52,11 @@ jobs:
         sudo apt-get install python3-pip python3-setuptools
         pip3 install slither-analyzer
 
-    - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
-      run: |
-        cd proxy
-        bash ./scripts/copy.sh
-        cd ..
+    # - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
+    #   run: |
+    #     cd proxy
+    #     bash ./scripts/copy.sh
+    #     cd ..
 
     # - name: INSTALL PREREQUISITES - PROXY - PACKAGES
     #   run: |
