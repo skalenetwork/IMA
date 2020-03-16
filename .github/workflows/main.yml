@@ -36,6 +36,11 @@ jobs:
         cat /etc/os-release || true
         echo ------------ /proc/version
         cat /proc/version || true
+        echo ------------ lscpu
+        lscpu || true
+        echo ------------ lsusb
+        sudo apt-get install usbutils || true > /dev/null
+        lsusb -t || true
 
     - name: NODE 10.x
       run: |
@@ -62,7 +67,7 @@ jobs:
         echo ------------ py3 installs
         sudo apt-get install python3-pip python3-setuptools
         echo ------------ slither analyzer install
-        pip3 install slither-analyzer
+        pip3 install wheel slither-analyzer
         echo ------------ slither version check - after install
         which slither
         slither --version
