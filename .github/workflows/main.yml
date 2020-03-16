@@ -56,10 +56,10 @@ jobs:
         echo ------------ install
         sudo apt-get install nodejs
         echo ------------ node version check
-        which node || echo "----> Looks like node was not installed, next command will fail"
+        which node || echo "----> Looks like node was not installed"
         node --version
         echo ------------ npm version check
-        which npm || echo "----> Looks like npm was not installed, next command will fail"
+        which npm || echo "----> Looks like npm was not installed"
         npm --version
 
     # - name: INSTALL PREREQUISITES - PY
@@ -73,7 +73,7 @@ jobs:
     #     echo ------------ slither analyzer install
     #     pip3 install slither-analyzer
     #     echo ------------ slither version check - after install
-    #     which slither || echo "----> Looks like slither was not installed, next command will fail"
+    #     which slither || echo "----> Looks like slither was not installed"
     #     slither --version
 
     - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
@@ -88,7 +88,7 @@ jobs:
         echo ------------ yarn pass
         yarn install
         echo ------------ npx version check
-        which npx || echo "----> Looks like npx was not installed, next command will fail"
+        which npx || echo "----> Looks like npx was not installed"
         npx --version
         echo ------------ buidler version check
         npx buidler --version
@@ -106,13 +106,15 @@ jobs:
         npm install
         cd ../..
 
-    # - name: START BACKGROUND GANACHE
-    #   run: |
-    #     echo ------------ ganache-cli version check
-    #     which ganache-cli || echo "----> Looks like ganache-cli was not installed, next command will fail"
-    #     ganache-cli --version
-    #     echo ------------ ganache-cli startup
-    #     npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
+    - name: START BACKGROUND GANACHE
+      run: |
+        echo ------------ ganache-cli install
+        sudo npm install -g ganache-cli
+        echo ------------ ganache-cli version check
+        which ganache-cli || echo "----> Looks like ganache-cli was not installed"
+        ganache-cli --version
+        echo ------------ ganache-cli startup
+        npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
 
     - name: PROXY - LINT
       run: |
@@ -124,7 +126,7 @@ jobs:
     #   run: |
     #     cd proxy
     #     echo ------------ slither version check - before run
-    #     which slither || echo "----> Looks like slither was not installed, next command will fail"
+    #     which slither || echo "----> Looks like slither was not installed"
     #     slither --version
     #     echo ------------ slither steo 1
     #     slither . --filter-path openzeppelin-solidity,@openzeppelin/contracts/ || true            
@@ -147,14 +149,13 @@ jobs:
 
     - name: PROXY - TEST
       run: |
-        cd proxy
         echo ------------ ganache-cli version check
-        which ganache-cli || echo "----> Looks like ganache-cli was not installed, next command will fail"
+        which ganache-cli || echo "----> Looks like ganache-cli was not installed"
         ganache-cli --version
         echo ------------ ganache-cli startup
         npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
         echo ------------ run yarn test
-        # cd proxy
+        cd proxy
         RUNNING_NETWORK=test bash ./scripts/prepareSkaleManagerComponents.sh
         yarn test #|| travis_terminate 3
         cd ..
