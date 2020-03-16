@@ -36,47 +36,53 @@ jobs:
         echo ------------ sys
         uname -a
         echo ------------ node
+        which node
         node --version
         echo ------------ npm
+        which npm
         npm --version
+        echo ------------ node g
+        /usr/bin/node --version
+        echo ------------ node l
+        /usr/local/bin/node --version
 
-    - name: INSTALL PREREQUISITES - PY
-      run: |
-        sudo apt-get install python3-pip python3-setuptools
-        pip3 install slither-analyzer
+    # - name: INSTALL PREREQUISITES - PY
+    #   run: |
+    #     sudo apt-get install python3-pip python3-setuptools
+    #     pip3 install slither-analyzer
 
-    - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
-      run: |
-        cd proxy
-        bash ./scripts/copy.sh
-        cd ..
+    # - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
+    #   run: |
+    #     cd proxy
+    #     bash ./scripts/copy.sh
+    #     cd ..
 
-    - name: INSTALL PREREQUISITES - PROXY - PACKAGES
-      run: |
-        cd proxy
-        echo ------------ yarn pass
-        yarn install
-        echo ------------ npx version check
-        npx --version
-        echo ------------ buidler version check
-        npx buidler --version
-        cd ..
+    # - name: INSTALL PREREQUISITES - PROXY - PACKAGES
+    #   run: |
+    #     cd proxy
+    #     echo ------------ yarn pass
+    #     yarn install
+    #     echo ------------ npx version check
+    #     npx --version
+    #     echo ------------ buidler version check
+    #     npx buidler --version
+    #     cd ..
 
-    - name: INSTALL PREREQUISITES - AGENT - PACKAGES
-      run: |
-        cd agent 
-        npm install
-        cd ..
+    # - name: INSTALL PREREQUISITES - AGENT - PACKAGES
+    #   run: |
+    #     cd agent 
+    #     npm install
+    #     cd ..
 
-    - name: INSTALL PREREQUISITES - SKALE-IMA - PACKAGES
-      run: |
-        cd npms/skale-ima
-        npm install
-        cd ../..
+    # - name: INSTALL PREREQUISITES - SKALE-IMA - PACKAGES
+    #   run: |
+    #     cd npms/skale-ima
+    #     npm install
+    #     cd ../..
 
-    - name: START BACKGROUND GANACHE
-      run: |
-        npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
+    # - name: START BACKGROUND GANACHE
+    #   run: |
+    #     npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
 
     # - name: PROXY - LINT
     #   run: |
