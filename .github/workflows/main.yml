@@ -20,8 +20,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - name: CHECK-OUT
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
     - name: NODE 10.x
       run: |
@@ -37,16 +36,16 @@ jobs:
         echo ------------ install
         sudo apt-get install nodejs
 
-    - name: VERSION CHECKS
-      run: |
-        echo ------------ sys
-        uname -a
-        echo ------------ node
-        which node
-        node --version
-        echo ------------ npm
-        which npm
-        npm --version
+    # - name: VERSION CHECKS
+    #   run: |
+    #     echo ------------ sys
+    #     uname -a
+    #     echo ------------ node
+    #     which node
+    #     node --version
+    #     echo ------------ npm
+    #     which npm
+    #     npm --version
 
     # - name: INSTALL PREREQUISITES - PY
     #   run: |
