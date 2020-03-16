@@ -22,6 +22,16 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
+    - name: VERSION_CHECKS
+      run: |
+        echo ----------------- VERSION_CHECKS---------------------------------------------------
+        echo -- sys
+        uname -a
+        echo -- node
+        node --version
+        echo -- npm
+        npm --version
+
     - name: INSTALL PREREQUISITES
       run: |
         echo ----------------- INSTALL PREREQUISITES ---------------------------------------------------
