@@ -75,21 +75,21 @@ jobs:
         npm install
         cd ..
 
-    - name: INSTALL PREREQUISITES - SKALE-IMA - PACKAGES
-      run: |
-        cd npms/skale-ima
-        npm install
-        cd ../..
+    # - name: INSTALL PREREQUISITES - SKALE-IMA - PACKAGES
+    #   run: |
+    #     cd npms/skale-ima
+    #     npm install
+    #     cd ../..
 
-    - name: START BACKGROUND GANACHE
-      run: |
-        npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
+    # - name: START BACKGROUND GANACHE
+    #   run: |
+    #     npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
 
-    - name: PROXY - LINT
-      run: |
-        cd proxy
-        yarn lint #|| travis_terminate 1
-        cd ..
+    # - name: PROXY - LINT
+    #   run: |
+    #     cd proxy
+    #     yarn lint #|| travis_terminate 1
+    #     cd ..
 
     - name: PROXY - SLITHER
         cd proxy
