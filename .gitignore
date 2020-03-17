@@ -72,3 +72,6 @@ functional_check/s_chain_gen/node_??
 functional_check/s_chain_gen/package-lock.json
 functional_check/skale-manager
 package-lock.json
+
+actions-runner/
+

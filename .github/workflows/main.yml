@@ -1,0 +1,256 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Build and test
+
+# Controls when the action will run. Triggers the workflow on push or pull request 
+# events but only for the master branch
+on:
+  push:
+    branches: [ master, release-candidate, develop, beta ]
+  pull_request:
+    branches: [ master, release-candidate, develop, beta ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    - name: SYSTEM VERSION CHECKS
+      run: |
+        echo ------------ GIT_CURRENT_BRANCH
+        export GIT_CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo $GIT_CURRENT_BRANCH
+        echo ------------ GIT_SYMBOLIC_BRANCH
+        export GIT_SYMBOLIC_BRANCH=$(git symbolic-ref --short HEAD)
+        echo $GIT_SYMBOLIC_BRANCH
+        echo ------------ GITHUB_WORKFLOW
+        echo $GITHUB_WORKFLOW
+        echo ------------ GITHUB_RUN_ID
+        echo $GITHUB_RUN_ID
+        echo ------------ GITHUB_RUN_NUMBER
+        echo $GITHUB_RUN_NUMBER
+        echo ------------ GITHUB_ACTION
+        echo $GITHUB_ACTION
+        echo ------------ GITHUB_ACTIONS
+        echo $GITHUB_ACTIONS
+        echo ------------ GITHUB_ACTOR
+        echo $GITHUB_ACTOR
+        echo ------------ GITHUB_REPOSITORY
+        echo $GITHUB_REPOSITORY
+        echo ------------ GITHUB_EVENT_NAME
+        echo $GITHUB_EVENT_NAME
+        echo ------------ GITHUB_EVENT_PATH
+        echo $GITHUB_EVENT_PATH
+        echo ------------ GITHUB_WORKSPACE
+        echo $GITHUB_WORKSPACE
+        echo ------------ GITHUB_SHA
+        echo $GITHUB_SHA
+        echo ------------ GITHUB_REF
+        echo $GITHUB_REF
+        echo ------------ GITHUB_HEAD_REF
+        echo $GITHUB_HEAD_REF
+        echo ------------ GITHUB_BASE_REF
+        echo $GITHUB_BASE_REF
+        echo ------------ user
+        echo $USER
+        echo ------------ home
+        echo $HOME
+        echo ------------ path
+        echo $PATH
+        echo ------------ pwd
+        pwd
+        echo ------------ unix name - a
+        uname -a || true
+        echo ------------ unix name - r
+        uname -r || true
+        echo ------------ lsb
+        lsb_release -a || true
+        echo ------------ hostnamectl
+        hostnamectl || true
+        echo ------------ /etc/os-release
+        cat /etc/os-release || true
+        echo ------------ /proc/version
+        cat /proc/version || true
+        echo ------------ lscpu
+        lscpu || true
+        # echo ------------ lsusb
+        # sudo apt-get install usbutils || true &> /dev/null
+        # lsusb -t || echo "No lsusb available" || true
+
+    - name: NODE 10.x
+      run: |
+        echo ------------ uninstall
+        sudo apt-get remove nodejs || true
+        echo ------------ force remove
+        sudo rm -f /usr/local/bin/node || true
+        sudo rm -f /usr/local/bin/npm || true
+        sudo rm -f /usr/bin/node || true
+        sudo rm -f /usr/bin/npm || true
+        echo ------------ download
+        curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+        echo ------------ install
+        sudo apt-get install nodejs
+        echo ------------ node version check
+        which node || echo "----> Looks like node was not installed, next command will fail"
+        node --version
+        echo ------------ npm version check
+        which npm || echo "----> Looks like npm was not installed, next command will fail"
+        npm --version
+
+    - name: PY CHECKS
+      run: |
+        echo ------------ python version check
+        which python || echo "----> Looks like python was not installed, next command will fail"
+        python --version
+        echo ------------ python3 version check
+        which python3 || echo "----> Looks like python3 was not installed, next command will fail"
+        python3 --version
+
+    - name: SOLC CHECKS
+      run: |
+        echo ------------ solc install
+        # sudo npm install -g solc
+        sudo add-apt-repository ppa:ethereum/ethereum
+        sudo apt-get update
+        sudo apt-get install solc
+        echo ------------ solc version check
+        which solc || echo "----> Looks like solc was not installed, next command will fail"
+        solc --version
+
+    - name: INSTALL PREREQUISITES - PY
+      run: |
+        echo ------------ py3 installs
+        sudo apt-get install python3-pip python3-setuptools python3-dev
+        echo ------------ py3 wheel - apt
+        sudo apt-get install python3-wheel
+        echo ------------ py3 wheel - pip
+        pip3 install wheel
+        echo ------------ slither analyzer install
+        # pip3 install slither-analyzer
+        pip3 install slither-analyzer==0.6.8
+        echo ------------ slither search attempt
+        sudo find / -name slither || true
+        echo ------------ slither location detection - after install
+        export PATH=$PATH:/home/$USER/.local/bin
+        which slither || echo "----> Looks like slither was not installed, next command will fail"
+        echo ------------ slither version check - after install
+        slither --version || true
+
+    - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
+      run: |
+        cd proxy
+        bash ./scripts/copy.sh
+        cd ..
+
+    - name: INSTALL PREREQUISITES - PROXY - PACKAGES
+      run: |
+        cd proxy
+        echo ------------ yarn pass
+        yarn install
+        echo ------------ npx version check
+        which npx || echo "----> Looks like npx was not installed, next command will fail"
+        npx --version
+        echo ------------ buidler version check
+        npx buidler --version
+        cd ..
+
+    - name: INSTALL PREREQUISITES - AGENT - PACKAGES
+      run: |
+        cd agent 
+        npm install
+        cd ..
+
+    - name: INSTALL PREREQUISITES - SKALE-IMA - PACKAGES
+      run: |
+        cd npms/skale-ima
+        npm install
+        cd ../..
+
+    - name: START BACKGROUND GANACHE
+      run: |
+        echo ------------ ganache-cli install
+        sudo npm install -g ganache-cli
+        echo ------------ ganache-cli version check
+        which ganache-cli || echo "----> Looks like ganache-cli was not installed, next command will fail"
+        ganache-cli --version
+        echo ------------ ganache-cli startup
+        cd proxy
+        npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
+        cd ..
+
+    - name: PROXY - LINT
+      run: |
+        cd proxy
+        yarn lint #|| travis_terminate 1
+        cd ..
+
+    # - name: PROXY - SLITHER
+    #   run: |
+    #     cd proxy
+    #     echo ------------ slither version check - before run
+    #     which slither || echo "----> Looks like slither was not installed, next command will fail"
+    #     slither --version
+    #     echo ------------ slither steo 1
+    #     slither . --filter-path openzeppelin-solidity,@openzeppelin/contracts/ || true            
+    #     echo ------------ slither steo 2
+    #     slither . --filter-path openzeppelin-solidity,@openzeppelin/contracts/ --exclude-informational --exclude reentrancy-events,constant-function,calls-loop,reentrancy-benign,pragma,assembly,blank-lines,timestamp,external-function,constable-states,locked-ether,solc-version,too-many-digits,shadowing-state,shadowing-local,uninitialized-state || travis_terminate 7
+    #     cd ..
+
+    - name: PROXY - LINT-2
+      run: |
+        cd proxy
+        yarn tslint #|| travis_terminate 2            
+        cd ..
+
+    - name: PROXY - GENERATE
+      run: |
+        cd proxy
+        yarn generate
+        bash ./scripts/remove.sh
+        cd ..
+
+    - name: PROXY - TEST
+      run: |
+        cd proxy
+        RUNNING_NETWORK=test bash ./scripts/prepareSkaleManagerComponents.sh
+        yarn test #|| travis_terminate 3
+        cd ..
+
+    - name: TEST - PY - PRE-RUN
+      run: |
+        cd test
+        python3 ../scripts/config_from_accounts.py accounts.json config.json
+        pip3 install -r requirements.txt
+        cd ..
+
+    - name: TEST - PY - RUN
+      run: |
+        cd test
+        python3 test.py #|| travis_terminate 6
+        cd ..
+
+    - name: PROXY - COVERAGE
+      run: |
+        cd proxy
+        npx buidler coverage --solcoverjs .solcover.js #|| travis_terminate 4
+        cat coverage/lcov.info | npx codecov
+        cd ..
+
+    - name: DEPLOY
+      run: |
+        echo ------------ prepare version 1
+        export VERSION=$(cat VERSION)
+        echo $VERSION
+        echo ------------ prepare version 2
+        export VERSION=$( (test $GIT_CURRENT_BRANCH = "master" && echo $VERSION) || (test $GIT_CURRENT_BRANCH = "release-candidate" && ./calculate_version.sh rc $VERSION) || ./calculate_version.sh develop $VERSION)        
+        echo $VERSION
+        echo ------------ docker image
+        bash ./build_image.sh ${{ secrets.DOCKER_USERNAME }} ${{ secrets.DOCKER_PASSWORD }} #|| echo "----> Looks like deploy failed"
+
