@@ -63,7 +63,7 @@ function verify_arg_with_non_empty_value( joArg ) {
     }
 }
 
-function veryify_url_arg( joArg ) {
+function verify_url_arg( joArg ) {
     try {
         verify_arg_with_non_empty_value( joArg );
         var s = joArg.value;
@@ -77,7 +77,7 @@ function veryify_url_arg( joArg ) {
     }
 }
 
-function veryify_int_arg( joArg ) {
+function verify_int_arg( joArg ) {
     try {
         verify_arg_with_non_empty_value( joArg );
         joArg.value = parseInt( joArg.value );
@@ -86,7 +86,7 @@ function veryify_int_arg( joArg ) {
     }
 }
 
-function veryify_bool_arg( joArg ) {
+function verify_bool_arg( joArg ) {
     var b = false;
     try {
         var ch = joArg.value[ 0 ].toLowerCase();
@@ -99,7 +99,7 @@ function veryify_bool_arg( joArg ) {
     return b;
 }
 
-function veryify_arg_path_to_existing_file( strPath ) {
+function verify_arg_path_to_existing_file( strPath ) {
     try {
         stats = fs.lstatSync( strPath );
         if ( stats.isDirectory() )
@@ -158,21 +158,21 @@ function load_node_config( strPath ) {
         strPath = imaUtils.normalizePath( strPath );
         //
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "Loading values from S-Chain configuraton JSON file " ) + cc.note( strPath ) + cc.debug( "..." ) + "\n" );
+            log.write( strLogPrefix + cc.debug( "Loading values from S-Chain configuration JSON file " ) + cc.note( strPath ) + cc.debug( "..." ) + "\n" );
         var strJsonSChainNodeConfiguration = fs.readFileSync( strPath, "utf8" );
         var joSChainNodeConfiguration = JSON.parse( strJsonSChainNodeConfiguration );
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "S-Chain configuraton JSON: " ) + cc.j( joSChainNodeConfiguration ) + "\n" );
+            log.write( strLogPrefix + cc.debug( "S-Chain configuration JSON: " ) + cc.j( joSChainNodeConfiguration ) + "\n" );
         //
         imaState.nNodeNumber = find_node_index( joSChainNodeConfiguration );
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "....from S-Chain configuraton JSON file...." ) + cc.notice( "this node index" ) + cc.debug( " is " ) + cc.info( imaState.nNodeNumber ) + "\n" );
+            log.write( strLogPrefix + cc.debug( "....from S-Chain configuration JSON file...." ) + cc.notice( "this node index" ) + cc.debug( " is " ) + cc.info( imaState.nNodeNumber ) + "\n" );
         imaState.nNodesCount = joSChainNodeConfiguration.skaleConfig.sChain.nodes.length;
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "....from S-Chain configuraton JSON file...." ) + cc.notice( "nodes count" ) + cc.debug( " is " ) + cc.info( imaState.nNodesCount ) + "\n" );
+            log.write( strLogPrefix + cc.debug( "....from S-Chain configuration JSON file...." ) + cc.notice( "nodes count" ) + cc.debug( " is " ) + cc.info( imaState.nNodesCount ) + "\n" );
         //
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "Done" ) + cc.debug( " loading values from S-Chain configuraton JSON file " ) + cc.note( strPath ) + cc.debug( "." ) + "\n" );
+            log.write( strLogPrefix + cc.success( "Done" ) + cc.debug( " loading values from S-Chain configuration JSON file " ) + cc.note( strPath ) + cc.debug( "." ) + "\n" );
     } catch ( e ) {
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR: Exception in load_node_config():" ) + cc.error( e ) + "\n" );
@@ -202,11 +202,11 @@ function parse( joExternalHandlers ) {
             console.log( cc.sunny( "ERC721 INTERFACE" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "erc721-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( ".........." ) + cc.notice( "Path to JSON file containing ERC721 ABI of " ) + cc.note( "Main-net" ) + cc.notice( " for Web3." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "erc721-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "..........." ) + cc.notice( "Path to JSON file containing ERC721 ABI of " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "addr-erc721-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) + cc.debug( "..." ) + cc.notice( "Explict ERC721 address in " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "addr-erc721-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) + cc.debug( "..." ) + cc.notice( "Explicit ERC721 address in " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
             console.log( cc.sunny( "ERC20 INTERFACE" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "erc20-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "..........." ) + cc.notice( "Path to JSON file containing ERC20 ABI of " ) + cc.note( "Main-net" ) + cc.notice( " for Web3." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "erc20-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "............" ) + cc.notice( "Path to JSON file containing ERC20 ABI of " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "addr-erc20-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) + cc.debug( "...." ) + cc.notice( "Explict ERC20 address in " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "addr-erc20-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) + cc.debug( "...." ) + cc.notice( "Explicit ERC20 address in " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
             console.log( cc.sunny( "USER ACCOUNT" ) + cc.info( " options:" ) );
             /**/
             console.log( soi + cc.debug( "--" ) + cc.bright( "address-main-net" ) + cc.sunny( "=" ) + cc.warn( "value" ) + cc.debug( "........" ) + cc.notice( "Main-net user account address." ) );
@@ -226,16 +226,16 @@ function parse( joExternalHandlers ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "raw-transfer" ) + cc.debug( ".................." ) + cc.notice( "Perform raw ERC20/ERC721 token transfer to pre-deployed contract on S-Chain(do not instantiate new contract)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-raw-transfer" ) + cc.debug( "..............." ) + cc.notice( "Perform ERC20/ERC721 token transfer to auto instantiated contract on S-Chain." ) );
             console.log( cc.sunny( "REGISTRATION" ) + cc.info( " commands:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "register" ) + cc.debug( "......................" ) + cc.note( "Register" ) + cc.notice( "(peform all steps)" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "register1" ) + cc.debug( "....................." ) + cc.note( "Perorm registration step 1" ) + cc.notice( " - register S-Chain on Main-net." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "register2" ) + cc.debug( "....................." ) + cc.note( "Perorm registration step 2" ) + cc.notice( " - register S-Chain in deposit box." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "register3" ) + cc.debug( "....................." ) + cc.note( "Perorm registration step 3" ) + cc.notice( " - register Main-net deposit box on S-Chain." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration" ) + cc.debug( "............" ) + cc.note( "Registeration status check" ) + cc.notice( "(peform all steps)" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration1" ) + cc.debug( "..........." ) + cc.note( "Perorm registration status check step 1" ) + cc.notice( " - register S-Chain on Main-net." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration2" ) + cc.debug( "..........." ) + cc.note( "Perorm registration status check step 2" ) + cc.notice( " - register S-Chain in deposit box." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration3" ) + cc.debug( "..........." ) + cc.note( "Perorm registration status check step 3" ) + cc.notice( " - register Main-net deposit box on S-Chain." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "register" ) + cc.debug( "......................" ) + cc.note( "Register" ) + cc.notice( "(perform all steps)" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "register1" ) + cc.debug( "....................." ) + cc.note( "Perform registration step 1" ) + cc.notice( " - register S-Chain on Main-net." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "register2" ) + cc.debug( "....................." ) + cc.note( "Perform registration step 2" ) + cc.notice( " - register S-Chain in deposit box." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "register3" ) + cc.debug( "....................." ) + cc.note( "Perform registration step 3" ) + cc.notice( " - register Main-net deposit box on S-Chain." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration" ) + cc.debug( "............" ) + cc.note( "Registration status check" ) + cc.notice( "(perform all steps)" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration1" ) + cc.debug( "..........." ) + cc.note( "Perform registration status check step 1" ) + cc.notice( " - register S-Chain on Main-net." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration2" ) + cc.debug( "..........." ) + cc.note( "Perform registration status check step 2" ) + cc.notice( " - register S-Chain in deposit box." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration3" ) + cc.debug( "..........." ) + cc.note( "Perform registration status check step 3" ) + cc.notice( " - register Main-net deposit box on S-Chain." ) );
             console.log( cc.sunny( "ACTION" ) + cc.info( " commands:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "show-config" ) + cc.debug( "..................." ) + cc.notice( "Show " ) + cc.note( "onfiguration values" ) + cc.notice( " and exit." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "show-config" ) + cc.debug( "..................." ) + cc.notice( "Show " ) + cc.note( "configuration values" ) + cc.notice( " and exit." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-payment" ) + cc.debug( "..................." ) + cc.notice( "Do one " ) + cc.note( "payment from Main-net user account to S-chain" ) + cc.notice( " user account." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-payment" ) + cc.debug( "..................." ) + cc.notice( "Do one " ) + cc.note( "payment from S-chain user account to Main-net" ) + cc.notice( " user account." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-receive" ) + cc.debug( "..................." ) + cc.notice( "Receive one " ) + cc.note( "payment from S-chain user account to Main-net" ) + cc.notice( " user account(ETH only, receives all the ETH pending in transfer)." ) );
@@ -255,9 +255,9 @@ function parse( joExternalHandlers ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-await-blocks" ) + cc.debug( ".............." ) + cc.notice( "Maximal number of blocks to wait to appear in blockchain before transaction from Main-net to S-chain (0 is no wait)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-await-blocks" ) + cc.debug( ".............." ) + cc.notice( "Maximal number of blocks to wait to appear in blockchain before transaction from S-chain to Main-net (0 is no wait)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "await-blocks" ) + cc.debug( ".................." ) + cc.notice( "Maximal number of blocks to wait to appear in blockchain before transaction between both S-chain and Main-net (0 is no wait)." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-await-time" ) + cc.debug( "................" ) + cc.notice( "Minimal age of transaction message in seconds before it will be trasferred from Main-net to S-chain (0 is no wait)." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-await-time" ) + cc.debug( "................" ) + cc.notice( "Minimal age of transaction message in seconds before it will be trasferred from S-chain to Main-net (0 is no wait)." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "await-time" ) + cc.debug( "...................." ) + cc.notice( "Minimal age of transaction message in seconds before it will be trasferred between both S-chain and Main-net (0 is no wait)." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-await-time" ) + cc.debug( "................" ) + cc.notice( "Minimal age of transaction message in seconds before it will be transferred from Main-net to S-chain (0 is no wait)." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-await-time" ) + cc.debug( "................" ) + cc.notice( "Minimal age of transaction message in seconds before it will be transferred from S-chain to Main-net (0 is no wait)." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "await-time" ) + cc.debug( "...................." ) + cc.notice( "Minimal age of transaction message in seconds before it will be transferred between both S-chain and Main-net (0 is no wait)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "period" ) + cc.debug( "........................" ) + cc.notice( "Transfer " ) + cc.note( "loop period" ) + cc.notice( "(seconds)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "node-number" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.notice( "S-Chain " ) + cc.note( "node number" ) + cc.notice( "(zero based)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "nodes-count" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.notice( "S-Chain " ) + cc.note( "nodes count" ) + cc.notice( "." ) );
@@ -291,12 +291,12 @@ function parse( joExternalHandlers ) {
             return 0;
         }
         if ( joArg.name == "url-main-net" ) {
-            veryify_url_arg( joArg );
+            verify_url_arg( joArg );
             imaState.strURL_main_net = joArg.value;
             continue;
         }
         if ( joArg.name == "url-s-chain" ) {
-            veryify_url_arg( joArg );
+            verify_url_arg( joArg );
             imaState.strURL_s_chain = joArg.value;
             continue;
         }
@@ -311,12 +311,12 @@ function parse( joExternalHandlers ) {
             continue;
         }
         if ( joArg.name == "cid-s-chain" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.cid_s_chain = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "cid-main-net" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.cid_main_net = parseInt( joArg.value );
             continue;
         }
@@ -333,24 +333,24 @@ function parse( joExternalHandlers ) {
             continue;
         }
         if ( joArg.name == "abi-main-net" ) {
-            veryify_arg_path_to_existing_file( joArg );
+            verify_arg_path_to_existing_file( joArg );
             imaState.strPathAbiJson_main_net = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if ( joArg.name == "abi-s-chain" ) {
-            veryify_arg_path_to_existing_file( joArg );
+            verify_arg_path_to_existing_file( joArg );
             imaState.strPathAbiJson_s_chain = imaUtils.normalizePath( joArg.value );
             continue;
         }
         //
         //
         if ( joArg.name == "erc721-main-net" ) {
-            veryify_arg_path_to_existing_file( joArg );
+            verify_arg_path_to_existing_file( joArg );
             imaState.strPathJsonErc721_main_net = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if ( joArg.name == "erc721-s-chain" ) {
-            veryify_arg_path_to_existing_file( joArg );
+            verify_arg_path_to_existing_file( joArg );
             imaState.strPathJsonErc721_s_chain = imaUtils.normalizePath( joArg.value );
             continue;
         }
@@ -362,12 +362,12 @@ function parse( joExternalHandlers ) {
         //
         //
         if ( joArg.name == "erc20-main-net" ) {
-            veryify_arg_path_to_existing_file( joArg );
+            verify_arg_path_to_existing_file( joArg );
             imaState.strPathJsonErc20_main_net = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if ( joArg.name == "erc20-s-chain" ) {
-            veryify_arg_path_to_existing_file( joArg );
+            verify_arg_path_to_existing_file( joArg );
             imaState.strPathJsonErc20_s_chain = imaUtils.normalizePath( joArg.value );
             continue;
         }
@@ -451,97 +451,97 @@ function parse( joExternalHandlers ) {
             continue;
         }
         if ( joArg.name == "m2s-transfer-block-size" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nTransferBlockSizeM2S = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "s2m-transfer-block-size" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nTransferBlockSizeS2M = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "transfer-block-size" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nTransferBlockSizeM2S = imaState.nTransferBlockSizeS2M = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "m2s-max-transactions" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nMaxTransactionsM2S = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "s2m-max-transactions" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nMaxTransactionsS2M = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "max-transactions" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nMaxTransactionsM2S = imaState.nMaxTransactionsS2M = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "m2s-await-blocks" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nBlockAwaitDepthM2S = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "s2m-await-blocks" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nBlockAwaitDepthS2M = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "await-blocks" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nBlockAwaitDepthM2S = imaState.nBlockAwaitDepthS2M = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "m2s-await-time" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nBlockAgeM2S = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "s2m-await-time" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nBlockAgeS2M = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "await-time" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nBlockAgeM2S = imaState.nBlockAgeS2M = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "period" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nLoopPeriodSeconds = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "node-number" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nNodeNumber = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "nodes-count" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nNodesCount = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "time-framing" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nTimeFrameSeconds = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "time-gap" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nNextFrameGap = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "log-size" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nLogMaxSizeBeforeRotation = parseInt( joArg.value );
             continue;
         }
         if ( joArg.name == "log-files" ) {
-            veryify_int_arg( joArg );
+            verify_int_arg( joArg );
             imaState.nLogMaxFilesCount = parseInt( joArg.value );
             continue;
         }
@@ -555,17 +555,17 @@ function parse( joExternalHandlers ) {
             continue;
         }
         if ( joArg.name == "bls-glue" ) {
-            veryify_arg_path_to_existing_file( joArg );
+            verify_arg_path_to_existing_file( joArg );
             imaState.strPathBlsGlue = "" + joArg.value;
             continue;
         }
         if ( joArg.name == "hash-g1" ) {
-            veryify_arg_path_to_existing_file( joArg );
+            verify_arg_path_to_existing_file( joArg );
             imaState.strPathHashG1 = "" + joArg.value;
             continue;
         }
         if ( joArg.name == "bls-verify" ) {
-            veryify_arg_path_to_existing_file( joArg );
+            verify_arg_path_to_existing_file( joArg );
             imaState.strPathBlsVerify = "" + joArg.value;
             continue;
         }
@@ -590,7 +590,7 @@ function parse( joExternalHandlers ) {
             joExternalHandlers[joArg.name]();
             continue;
         }
-        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " unkonwn command line argument " ) + cc.info( joArg.name ) );
+        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " unknown command line argument " ) + cc.info( joArg.name ) );
         return 666;
     }
 }
@@ -631,6 +631,14 @@ function ima_common_init() {
     imaState.jo_lock_and_data_s_chain = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.lock_and_data_for_schain_abi, imaState.joTrufflePublishResult_s_chain.lock_and_data_for_schain_address );
     // imaState.eth_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.eth_erc721_abi, imaState.joTrufflePublishResult_s_chain.eth_erc721_address ); // only s-chain
     imaState.eth_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.eth_erc20_abi, imaState.joTrufflePublishResult_s_chain.eth_erc20_address ); // only s-chain
+
+    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBox" ) + cc.info( "   address is....." ) + cc.bright( imaState.jo_deposit_box.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManager" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_token_manager.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_message_proxy_main_net.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_message_proxy_s_chain.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( imaState.jo_lock_and_data_main_net.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( imaState.jo_lock_and_data_s_chain.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "ERC20" ) + cc.info( "        address is....." ) + cc.bright( imaState.eth_erc20.options.address ) + "\n" );
 
     //
     //
@@ -946,7 +954,7 @@ function ima_common_init() {
             ensure_have_value( "Loaded S-Chain  ERC721 ABI ", imaState.strCoinNameErc721_s_chain, false, true, null, ( x ) => {
                 return cc.attention( x );
             } );
-            ensure_have_value( "ERC721 tocken id ", imaState.idToken, false, true, null, ( x ) => {
+            ensure_have_value( "ERC721 token id ", imaState.idToken, false, true, null, ( x ) => {
                 return cc.info( x );
             } );
             if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
@@ -978,10 +986,10 @@ module.exports = {
     "print_about": print_about,
     "parse_command_line_argument": parse_command_line_argument,
     "verify_arg_with_non_empty_value": verify_arg_with_non_empty_value,
-    "veryify_url_arg": veryify_url_arg,
-    "veryify_int_arg": veryify_int_arg,
-    "veryify_bool_arg": veryify_bool_arg,
-    "veryify_arg_path_to_existing_file": veryify_arg_path_to_existing_file,
+    "verify_url_arg": verify_url_arg,
+    "verify_int_arg": verify_int_arg,
+    "verify_bool_arg": verify_bool_arg,
+    "verify_arg_path_to_existing_file": verify_arg_path_to_existing_file,
     "ensure_have_value": ensure_have_value,
     "find_node_index": find_node_index,
     "load_node_config": load_node_config,

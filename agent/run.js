@@ -36,7 +36,7 @@ const sleep = (milliseconds) => {
 };
 
 async function run() {
-  console.log('Initing IMA...');
+  console.log('Initializing IMA...');
   let sChainAbiFileExists = false;
 
   while (!sChainAbiFileExists) {

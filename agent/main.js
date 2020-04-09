@@ -45,8 +45,8 @@ let imaState = {
     "bIsNeededCommonInit": true,
     "bSignMessages": false, // use BLS message signing, turned on with --sign-messages
     "joSChainNetworkInfo": null, // scanned S-Chain network description
-    "strPathBlsGlue": "", // path to bls_glue app, nust have if --sign-messages specified
-    "strPathHashG1": "", // path to hash_g1 app, nust have if --sign-messages specified
+    "strPathBlsGlue": "", // path to bls_glue app, must have if --sign-messages specified
+    "strPathHashG1": "", // path to hash_g1 app, must have if --sign-messages specified
     "strPathBlsVerify": "", // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
 
     // TO-DO: the next ABI JSON should contain main-net only contract info - S-chain contract addresses must be downloaded from S-chain
@@ -74,7 +74,7 @@ let imaState = {
     "strPathAbiJson_main_net": imaUtils.normalizePath( "../proxy/data/proxyMainnet.json" ), // "./abi_main_net.json"
     "strPathAbiJson_s_chain": imaUtils.normalizePath( "../proxy/data/proxySchain.json" ), // "./abi_s_chain.json"
 
-    "bShowConfigMode": false, // true - just show configuratin values and exit
+    "bShowConfigMode": false, // true - just show configuration values and exit
 
     "strURL_main_net": "", // example: "http://127.0.0.1:8545"
     "strURL_s_chain": "", // example: "http://127.0.0.1:2231"
@@ -187,7 +187,7 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "Full registration status check(all steps)",
             "fn": async function() {
-                const b = await check_registeration_all();
+                const b = await check_registration_all();
                 const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
                 process.exit( nExitCode );
@@ -197,7 +197,7 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "Registration status check for step 1, register S-Chain on Main-net",
             "fn": async function() {
-                const b = await check_registeration_step1();
+                const b = await check_registration_step1();
                 const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
                 process.exit( nExitCode );
@@ -207,7 +207,7 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "Registration status check step 2, register S-Chain in deposit box",
             "fn": async function() {
-                const b = await check_registeration_step2();
+                const b = await check_registration_step2();
                 const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
                 process.exit( nExitCode );
@@ -217,7 +217,7 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "Registration status check step 3, register Main-net deposit box on S-Chain",
             "fn": async function() {
-                const b = await check_registeration_step3();
+                const b = await check_registration_step3();
                 const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
                 process.exit( nExitCode );
@@ -446,15 +446,15 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "M<->S transfer loop",
             "fn": async function() {
-                if( ! await check_registeration_step1() ) {
+                if( ! await check_registration_step1() ) {
                     if( ! await register_step1() )
                         return false;
                 }
-                if( ! await check_registeration_step2() ) {
+                if( ! await check_registration_step2() ) {
                     if( ! await register_step2() )
                         return false;
                 }
-                if( ! await check_registeration_step3() ) {
+                if( ! await check_registration_step3() ) {
                     if( ! await register_step3() )
                         return false;
                 }
@@ -540,7 +540,7 @@ if( imaState.bIsNeededCommonInit )
     imaCLI.ima_common_init();
 
 if ( imaState.bShowConfigMode ) {
-    // just show configuratin values and exit
+    // just show configuration values and exit
     return true;
 }
 
@@ -688,13 +688,21 @@ if( imaState.bSignMessages ) {
 
 async function register_step1() {
     let strLogPrefix = cc.info("Reg 1:") + " ";
-    var bRetVal = await IMA.register_s_chain_on_main_net( // step 1
+    let bRetVal1A = await IMA.register_s_chain_on_main_net( // step 1A
         imaState.w3_main_net,
         imaState.jo_message_proxy_main_net,
         imaState.joAccount_main_net,
         imaState.strChainID_s_chain,
         imaState.cid_main_net
     );
+    let bRetVal1B = await IMA.register_main_net_on_s_chain( // step 1B
+        imaState.w3_s_chain,
+        imaState.jo_message_proxy_s_chain,
+        imaState.joAccount_s_chain,
+        imaState.strChainID_main_net,
+        imaState.cid_s_chain
+    );
+    let bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
     if ( !bRetVal ) {
         var nRetCode = 1501;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain on Main-net, will return code " ) + cc.warn( nRetCode ) + "\n" );
@@ -704,7 +712,7 @@ async function register_step1() {
 }
 async function register_step2() {
     let strLogPrefix = cc.info("Reg 2:") + " ";
-    var bRetVal = await IMA.register_s_chain_in_deposit_box( // step 2
+    let bRetVal = await IMA.register_s_chain_in_deposit_box( // step 2
         imaState.w3_main_net,
         //imaState.jo_deposit_box, // only main net
         imaState.jo_lock_and_data_main_net,
@@ -714,7 +722,7 @@ async function register_step2() {
         imaState.cid_main_net
     );
     if ( !bRetVal ) {
-        var nRetCode = 1502;
+        let nRetCode = 1502;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain in deposit box, will return code " ) + cc.warn( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
@@ -722,7 +730,7 @@ async function register_step2() {
 }
 async function register_step3() {
     let strLogPrefix = cc.info("Reg 3:") + " ";
-    var bRetVal = await IMA.register_main_net_depositBox_on_s_chain( // step 3
+    let bRetVal = await IMA.register_main_net_depositBox_on_s_chain( // step 3
         imaState.w3_s_chain,
         //imaState.jo_token_manager, // only s-chain
         imaState.jo_deposit_box, // only main net
@@ -731,7 +739,7 @@ async function register_step3() {
         imaState.cid_s_chain
     );
     if ( !bRetVal ) {
-        var nRetCode = 1503;
+        let nRetCode = 1503;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register Main-net deposit box on S-Chain, will return code " ) + cc.warn( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
@@ -747,25 +755,32 @@ async function register_all() {
     return true;
 }
 
-async function check_registeration_all() {
-    const b1 = await check_registeration_step1();
-    const b2 = await check_registeration_step2();
-    const b3 = await check_registeration_step3();
+async function check_registration_all() {
+    const b1 = await check_registration_step1();
+    const b2 = await check_registration_step2();
+    const b3 = await check_registration_step3();
     if( ! (b1 && b2 && b3) )
         return false;
     return true;
 }
-async function check_registeration_step1() {
-    var bRetVal = await IMA.check_is_registered_s_chain_on_main_net( // step 1
+async function check_registration_step1() {
+    let bRetVal1A = await IMA.check_is_registered_s_chain_on_main_net( // step 1A
         imaState.w3_main_net,
         imaState.jo_message_proxy_main_net,
         imaState.joAccount_main_net,
         imaState.strChainID_s_chain
     );
+    let bRetVal1B = await IMA.check_is_registered_main_net_on_s_chain( // step 1B
+        imaState.w3_s_chain,
+        imaState.jo_message_proxy_s_chain,
+        imaState.joAccount_s_chain,
+        imaState.strChainID_main_net
+    );
+    let bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
     return bRetVal;
 }
-async function check_registeration_step2() {
-    var bRetVal = await IMA.check_is_registered_s_chain_in_deposit_box( // step 2
+async function check_registration_step2() {
+    let bRetVal = await IMA.check_is_registered_s_chain_in_deposit_box( // step 2
         imaState.w3_main_net,
         imaState.jo_lock_and_data_main_net,
         imaState.joAccount_main_net,
@@ -773,8 +788,8 @@ async function check_registeration_step2() {
     );
     return bRetVal;
 }
-async function check_registeration_step3() {
-    var bRetVal = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 3
+async function check_registration_step3() {
+    let bRetVal = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 3
         imaState.w3_s_chain,
         imaState.jo_lock_and_data_s_chain,
         imaState.joAccount_s_chain
