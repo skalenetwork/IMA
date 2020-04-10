@@ -71,11 +71,17 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
 
         it("should detect registration state by `isConnectedChain` function", async () => {
             const someCainID = randomString(10);
+            console.log( "------------- Will add chain ", someCainID );
             const isConnectedChain = await messageProxyForMainnet.isConnectedChain(someCainID);
+            console.log( "------------- Did added chain ", someCainID );
+            console.log( "------------- 1 - isConnectedChain is ", isConnectedChain );
             isConnectedChain.should.be.deep.equal(Boolean(false));
+            console.log( "------------- 2 - isConnectedChain is ", isConnectedChain );
             await messageProxyForMainnet.addConnectedChain(someCainID, publicKeyArray, {from: deployer});
             const connectedChain = await messageProxyForMainnet.isConnectedChain(someCainID);
+            console.log( "------------- 3 - isConnectedChain is ", connectedChain );
             connectedChain.should.be.deep.equal(Boolean(true));
+            console.log( "------------- 4 - isConnectedChain is ", connectedChain );
 
             // // main net does not have a public key and is implicitly connected:
             // await messageProxyForMainnet.isConnectedChain("Mainnet").should.be.rejected;
@@ -83,9 +89,13 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
 
         it("should add connected chain", async () => {
             const chainID = randomString(10);
+            console.log( "------------- Will add chain ", chainID );
             await messageProxyForMainnet.addConnectedChain(chainID, publicKeyArray, {from: deployer});
+            console.log( "------------- Did added chain ", chainID );
             const isConnectedChain = await messageProxyForMainnet.isConnectedChain(chainID);
+            console.log( "------------- 3 - isConnectedChain is ", isConnectedChain );
             isConnectedChain.should.be.deep.equal(Boolean(true));
+            console.log( "------------- 4 - isConnectedChain is ", isConnectedChain );
 
             // chain can't be connected twice:
             await messageProxyForMainnet.addConnectedChain(chainID, publicKeyArray, {from: deployer})
