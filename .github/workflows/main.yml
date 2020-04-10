@@ -219,7 +219,15 @@ jobs:
     - name: PROXY - TEST
       run: |
         cd proxy
+        ENV_FILE=.env
+        if test -f "$ENV_FILE"; then
+            echo "$ENV_FILE exist"
+        else
+            echo "$ENV_FILE does not exist"
+            touch "$ENV_FILE" || true
+        fi
         RUNNING_NETWORK=test bash ./scripts/prepareSkaleManagerComponents.sh
+          echo "--- will test now........"
         yarn test #|| travis_terminate 3
         cd ..
 
