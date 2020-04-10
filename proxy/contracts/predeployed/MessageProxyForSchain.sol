@@ -212,7 +212,7 @@ contract MessageProxyForSchain {
         // require(
         //     keccak256(abi.encodePacked(newChainID)) !=
         //     keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
-        if( keccak256(abi.encodePacked(newChainID)) ==
+        if ( keccak256(abi.encodePacked(newChainID)) ==
             keccak256(abi.encodePacked("Mainnet")) )
             return;
 
