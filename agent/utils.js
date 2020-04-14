@@ -129,7 +129,7 @@ function encodeUTF8( s ) { // marshals a string to an Uint8Array, see https://gi
 	return arrBytes.subarray( 0, i );
 }
 
-function decodeUTF8( arrBytes ) { // unmarshals a string from an Uint8Array, see https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
+function decodeUTF8( arrBytes ) { // un-marshals a string from an Uint8Array, see https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
 	var i = 0, s = "";
 	while ( i < arrBytes.length ) {
 		var c = arrBytes[i++];
@@ -147,7 +147,7 @@ function decodeUTF8( arrBytes ) { // unmarshals a string from an Uint8Array, see
 					throw new Error( "UTF-8 decode: incomplete 4-byte sequence" );
 				c = (c & 7) << 18 | (arrBytes[i++] & 63) << 12 | (arrBytes[i++] & 63) << 6 | arrBytes[i++] & 63;
 			} else
-                throw new Error( "UTF-8 decode: unknown multibyte start 0x" + c.toString(16) + " at index " + (i - 1) );
+                throw new Error( "UTF-8 decode: unknown multi-byte start 0x" + c.toString(16) + " at index " + (i - 1) );
 		}
 		if( c <= 0xffff )
             s += String.fromCharCode( c );
@@ -197,7 +197,7 @@ function bytesToHex( arrBytes, isInversiveOrder ) { // convert a byte array to a
     return hex.join( "" );
 }
 
-function bytesAlighLeftWithZeroes( arrBytes, cntMin ) {
+function bytesAlignLeftWithZeroes( arrBytes, cntMin ) {
     let arrOneZeroByte = new Uint8Array( 1 );
     arrOneZeroByte[0] = 0;
     while( arrBytes.length < cntMin )
@@ -205,7 +205,7 @@ function bytesAlighLeftWithZeroes( arrBytes, cntMin ) {
     return arrBytes;
 }
 
-function bytesAlighRightWithZeroes( arrBytes, cntMin ) {
+function bytesAlignRightWithZeroes( arrBytes, cntMin ) {
     let arrOneZeroByte = new Uint8Array( 1 );
     arrOneZeroByte[0] = 0;
     while( arrBytes.length < cntMin )
@@ -359,8 +359,8 @@ module.exports = {
     //
     "hexToBytes": hexToBytes,
     "bytesToHex": bytesToHex,
-    "bytesAlighLeftWithZeroes": bytesAlighLeftWithZeroes,
-    "bytesAlighRightWithZeroes": bytesAlighRightWithZeroes,
+    "bytesAlignLeftWithZeroes": bytesAlignLeftWithZeroes,
+    "bytesAlignRightWithZeroes": bytesAlignRightWithZeroes,
     "concatTypedArrays": concatTypedArrays,
     "concatByte": concatByte,
     "bytesConcat": bytesConcat,

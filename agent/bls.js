@@ -4,7 +4,7 @@ const url = require( "url" );
 const os = require( "os" );
 let child_process = require( "child_process" );
 let shell = require( "shelljs" );
-const {  Keccak } = require( "sha3" );
+const { Keccak } = require( "sha3" );
 
 let IMA = null;
 let imaState = null;
@@ -96,26 +96,26 @@ function compose_one_message_byte_sequence( joMessage ) {
 
     let bytesSender = imaUtils.hexToBytes( joMessage.sender );
     bytesSender = imaUtils.invertArrayItemsLR( bytesSender );
-    bytesSender = imaUtils.bytesAlighLeftWithZeroes( bytesSender, 32 )
+    bytesSender = imaUtils.bytesAlignLeftWithZeroes( bytesSender, 32 )
     bytesSender = imaUtils.invertArrayItemsLR( bytesSender );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesSender );
     //
     let bytesDestinationContract = imaUtils.hexToBytes( joMessage.destinationContract );
     bytesDestinationContract = imaUtils.invertArrayItemsLR( bytesDestinationContract );
-    bytesDestinationContract = imaUtils.bytesAlighLeftWithZeroes( bytesDestinationContract, 32 )
+    bytesDestinationContract = imaUtils.bytesAlignLeftWithZeroes( bytesDestinationContract, 32 )
     bytesDestinationContract = imaUtils.invertArrayItemsLR( bytesDestinationContract );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesDestinationContract );
     //
     let bytesTo = imaUtils.hexToBytes( joMessage.to );
     bytesTo = imaUtils.invertArrayItemsLR( bytesTo );
-    bytesTo = imaUtils.bytesAlighLeftWithZeroes( bytesTo, 32 )
+    bytesTo = imaUtils.bytesAlignLeftWithZeroes( bytesTo, 32 )
     bytesTo = imaUtils.invertArrayItemsLR( bytesTo );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesTo );
     //
     let strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString(16);
     let bytesAmount = imaUtils.hexToBytes( strHexAmount );
     //bytesAmount = imaUtils.invertArrayItemsLR( bytesAmount );
-    bytesAmount = imaUtils.bytesAlighLeftWithZeroes( bytesAmount, 32 )
+    bytesAmount = imaUtils.bytesAlignLeftWithZeroes( bytesAmount, 32 )
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesAmount );
     //
     let bytesData = imaUtils.hexToBytes( joMessage.data );
@@ -173,7 +173,7 @@ function perform_bls_glue( strDirection, jarrMessages, arrSignResults ) {
        log.write( strLogPrefix + cc.debug( "Original long message is ") + cc.info( compose_summary_message_to_sign( jarrMessages, false ) ) + "\n" );
     let strSummaryMessage = compose_summary_message_to_sign( jarrMessages, true );
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-       log.write( strLogPrefix + cc.debug( "Message hasn to sign is ") + cc.info( strSummaryMessage ) + "\n" );
+       log.write( strLogPrefix + cc.debug( "Message hash to sign is ") + cc.info( strSummaryMessage ) + "\n" );
     let strPWD = shell.pwd();
     let strActionDir = alloc_bls_tmp_action_dir();
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
@@ -259,7 +259,7 @@ function perform_bls_glue( strDirection, jarrMessages, arrSignResults ) {
         // }
         fnShellRestore();
     } catch( err ) {
-        log.write( strLogPrefix + cc.fatal("BLS glue CRITICAL ERROR:") + cc.error( " error description is: " ) + cc.warning( err ) + "\n" );
+        log.write( strLogPrefix + cc.fatal("BLS glue CRITICAL ERROR:") + cc.error( " error description is: " ) + cc.warning( err.toString() ) + "\n" );
         log.write( strLogPrefix + cc.error( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
         fnShellRestore();
         joGlueResult = null;
@@ -306,7 +306,7 @@ function perform_bls_verify_i( strDirection, nZeroBasedNodeIndex, joResultFromNo
         fnShellRestore();
         return true;
     } catch( err ) {
-        log.write( strLogPrefix + cc.fatal("CRITICAL ERROR: BLS node ") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.error(" verify error:") + cc.normal( " error description is: " ) + cc.warning( err ) + "\n" );
+        log.write( strLogPrefix + cc.fatal("CRITICAL ERROR: BLS node ") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.error(" verify error:") + cc.normal( " error description is: " ) + cc.warning( err.toString() ) + "\n" );
         log.write( strLogPrefix + cc.error( "CRITICAL ERROR: BLS node ") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.error(" verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         fnShellRestore();
     }
@@ -359,7 +359,7 @@ function perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonP
         fnShellRestore();
         return true;
     } catch( err ) {
-        log.write( strLogPrefix + cc.fatal("BLS/summary verify CRITICAL ERROR:") + cc.normal( " error description is: " ) + cc.warning( err ) + "\n" );
+        log.write( strLogPrefix + cc.fatal("BLS/summary verify CRITICAL ERROR:") + cc.normal( " error description is: " ) + cc.warning( err.toString() ) + "\n" );
         log.write( strLogPrefix + cc.error( "BLS/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         fnShellRestore();
     }
@@ -449,7 +449,7 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
     //     }, function( joIn, joOut, err ) {
     //         log.write( strLogPrefix + cc.debug( "S-Chain message verification test returned:" ) + cc.j( joOut ) + "\n" );
     //         if( err ) {
-    //             log.write( strLogPrefix + cc.fatal( "S-Chain message verification test failed with errpr:" ) + cc.error( err ) + "\n" );
+    //             log.write( strLogPrefix + cc.fatal( "S-Chain message verification test failed with error:" ) + cc.error( err ) + "\n" );
     //             return;
     //         }
     //         log.write( strLogPrefix + cc.success( "S-Chain message verification test passed:" ) + cc.j( joOut ) + "\n" );
@@ -585,7 +585,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                             let joPublicKey = discover_public_key_by_index( nZeroBasedNodeIndex, imaState.joSChainNetworkInfo )
                             if( perform_bls_verify_i( strDirection, nZeroBasedNodeIndex, joResultFromNode, jarrMessages, joPublicKey ) ) {
                                 //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                                    log.write( strLogPrefixA + cc.success( "Got succerssful BLS verification result for node " ) + cc.info(joNode.nodeID) + cc.success(" with index " ) + cc.info(nZeroBasedNodeIndex) + "\n" );
+                                    log.write( strLogPrefixA + cc.success( "Got successful BLS verification result for node " ) + cc.info(joNode.nodeID) + cc.success(" with index " ) + cc.info(nZeroBasedNodeIndex) + "\n" );
                                 bNodeSignatureOKay = true; // node verification passed
                             } else {
                                 strError = "BLS verify failed";
@@ -601,7 +601,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                         //
                         //
                         //
-                        // sign result for bls_glue shoild look like:
+                        // sign result for bls_glue should look like:
                         // {
                         //     "index": "1",
                         //     "signature": {
@@ -642,7 +642,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
 //console.log(joCommonPublicKey);
                     if( perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonPublicKey ) ) {
                         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                            log.write( strLogPrefixB + cc.success( "Got succerssful summary BLS verification result" ) + "\n" );
+                            log.write( strLogPrefixB + cc.success( "Got successful summary BLS verification result" ) + "\n" );
                     } else {
                         strError = "BLS verify failed";
                         log.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );

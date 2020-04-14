@@ -76,9 +76,8 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             await messageProxyForMainnet.addConnectedChain(someCainID, publicKeyArray, {from: deployer});
             const connectedChain = await messageProxyForMainnet.isConnectedChain(someCainID);
             connectedChain.should.be.deep.equal(Boolean(true));
-
-            // main net does not have a public key and is implicitly connected:
-            await messageProxyForMainnet.isConnectedChain("Mainnet").should.be.rejected;
+            // // main net does not have a public key and is implicitly connected:
+            // await messageProxyForMainnet.isConnectedChain("Mainnet").should.be.rejected;
         });
 
         it("should add connected chain", async () => {
@@ -91,9 +90,9 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             await messageProxyForMainnet.addConnectedChain(chainID, publicKeyArray, {from: deployer})
             .should.be.rejectedWith("Chain is already connected");
 
-            // main net does not have a public key and is implicitly connected:
-            await messageProxyForMainnet.addConnectedChain("Mainnet", publicKeyArray, {from: deployer})
-            .should.be.rejectedWith("SKALE chain name is incorrect. Inside in MessageProxy");
+            // // main net does not have a public key and is implicitly connected:
+            // await messageProxyForMainnet.addConnectedChain("Mainnet", publicKeyArray, {from: deployer})
+            // .should.be.rejectedWith("SKALE chain name is incorrect. Inside in MessageProxy");
         });
 
         it("should remove connected chain", async () => {
@@ -381,9 +380,8 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             await messageProxyForSchain.addConnectedChain(someCainID, publicKeyArray, {from: deployer});
             const connectedChain = await messageProxyForSchain.isConnectedChain(someCainID);
             connectedChain.should.be.deep.equal(Boolean(true));
-
-            // main net does not have a public key and is implicitly connected:
-            await messageProxyForSchain.isConnectedChain("Mainnet").should.be.rejected;
+            // // main net does not have a public key and is implicitly connected:
+            // await messageProxyForSchain.isConnectedChain("Mainnet").should.be.rejected;
         });
 
         it("should add connected chain", async () => {
@@ -391,14 +389,12 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
             const isConnectedChain = await messageProxyForSchain.isConnectedChain(chainID);
             isConnectedChain.should.be.deep.equal(Boolean(true));
-
             // chain can't be connected twice:
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer})
             .should.be.rejectedWith("Chain is already connected");
-
             // main net does not have a public key and is implicitly connected:
-            await messageProxyForSchain.addConnectedChain("Mainnet", publicKeyArray, {from: deployer})
-            .should.be.rejectedWith("SKALE chain name is incorrect. Inside in MessageProxy");
+            // await messageProxyForSchain.addConnectedChain("Mainnet", publicKeyArray, {from: deployer})
+            // .should.be.rejectedWith("SKALE chain name is incorrect. Inside in MessageProxy");
         });
 
         it("should remove connected chain", async () => {
