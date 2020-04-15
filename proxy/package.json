@@ -32,6 +32,7 @@
     "@nomiclabs/buidler": "^1.1.2",
     "@nomiclabs/buidler-truffle5": "^1.1.2",
     "@nomiclabs/buidler-web3": "^1.1.2",
+    "@types/underscore": "1.8.3",
     "@types/chai": "^4.1.7",
     "@types/chai-as-promised": "^7.1.0",
     "@types/minimist": "^1.2.0",
@@ -47,6 +48,7 @@
     "ts-node": "^8.3.0",
     "tslint": "^5.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",
-    "typechain": "^0.3.19"
+    "typechain": "^0.3.19",
+    "underscore": "1.8.3"
   }
 }
