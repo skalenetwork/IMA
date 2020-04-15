@@ -227,7 +227,8 @@ jobs:
             touch "$ENV_FILE" || true
         fi
         RUNNING_NETWORK=test bash ./scripts/prepareSkaleManagerComponents.sh
-          echo "--- will test now........"
+        echo "--- will test now........"
+        yarn install
         yarn test #|| travis_terminate 3
         cd ..
 
