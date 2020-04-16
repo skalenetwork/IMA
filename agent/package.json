@@ -18,6 +18,5 @@
     "shelljs": "0.8.3"
   },
   "devDependencies": {
-    "sinon": "^7.3.2"
   }
 }
