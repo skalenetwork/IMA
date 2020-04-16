@@ -4,7 +4,7 @@ const path = require( "path" );
 const url = require( "url" );
 const os = require( "os" );
 const w3mod = require( "web3" );
-let ethereumjs_tx = require( "ethereumjs-tx" );
+let ethereumjs_tx = require( "ethereumjs-tx" ).Transaction;
 let ethereumjs_wallet = require( "ethereumjs-wallet" );
 let ethereumjs_util = require( "ethereumjs-util" );
 
