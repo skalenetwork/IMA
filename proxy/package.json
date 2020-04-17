@@ -29,7 +29,7 @@
     "@nomiclabs/buidler": "^1.1.2",
     "@nomiclabs/buidler-truffle5": "^1.1.2",
     "@nomiclabs/buidler-web3": "^1.1.2",
-    "@types/chai": "^4.1.7",
+    "@types/chai": "^4.2.11",
     "@types/chai-as-promised": "^7.1.0",
     "@types/minimist": "^1.2.0",
     "@types/web3": "1.0.19",
