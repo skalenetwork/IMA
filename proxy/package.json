@@ -23,7 +23,7 @@
     "solc": "^0.5.4",
     "truffle": "^5.0.12",
     "truffle-hdwallet-provider": "^1.0.9",
-    "typescript": "^3.5.2"
+    "typescript": "^3.8.3"
   },
   "devDependencies": {
     "@nomiclabs/buidler": "^1.1.2",
