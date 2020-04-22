@@ -17,6 +17,7 @@ const fs = require( "fs" );
 const path = require( "path" );
 const url = require( "url" );
 const os = require( "os" );
+const owaspUtils = require( "../npms/skale-owasp" );
 const IMA = require( "../npms/skale-ima" );
 const imaUtils = require( "./utils.js" );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
