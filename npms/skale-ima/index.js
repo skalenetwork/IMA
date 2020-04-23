@@ -98,57 +98,6 @@ function verbose_list() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// utilities
-//
-function ensure_starts_with_0x( s ) {
-    if ( s == null || s == undefined || typeof s !== "string" )
-        return s;
-    if ( s.length < 2 )
-        return "0x" + s;
-    if ( s[ 0 ] == "0" && s[ 1 ] == "x" )
-        return s;
-    return "0x" + s;
-}
-
-function remove_starting_0x( s ) {
-    if ( s == null || s == undefined || typeof s !== "string" )
-        return s;
-    if ( s.length < 2 )
-        return s;
-    if ( s[ 0 ] == "0" && s[ 1 ] == "x" )
-        return s.substr( 2 );
-    return s;
-}
-
-function private_key_2_public_key( w3, keyPrivate ) {
-    if ( w3 == null || w3 == undefined || keyPrivate == null || keyPrivate == undefined )
-        return "";
-    // get a wallet instance from a private key
-    const privateKeyBuffer = ethereumjs_util.toBuffer( ensure_starts_with_0x( keyPrivate ) );
-    const wallet = ethereumjs_wallet.fromPrivateKey( privateKeyBuffer );
-    // get a public key
-    const keyPublic = wallet.getPublicKeyString();
-    return remove_starting_0x( keyPublic );
-}
-
-function public_key_2_account_address( w3, keyPublic ) {
-    if ( w3 == null || w3 == undefined || keyPublic == null || keyPublic == undefined )
-        return "";
-    const hash = w3.utils.sha3( ensure_starts_with_0x( keyPublic ) );
-    const strAddress = ensure_starts_with_0x( hash.substr( hash.length - 40 ) );
-    return strAddress;
-}
-
-function private_key_2_account_address( w3, keyPrivate ) {
-    const keyPublic = private_key_2_public_key( w3, keyPrivate );
-    const strAddress = public_key_2_account_address( w3, keyPublic );
-    return strAddress;
-}
-
-//
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
 
 async function get_contract_call_events( joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
     joFilter = joFilter || {};
@@ -1947,12 +1896,6 @@ module.exports.verbose_get = verbose_get;
 module.exports.verbose_set = verbose_set;
 module.exports.verbose_parse = verbose_parse;
 module.exports.verbose_list = verbose_list;
-
-module.exports.ensure_starts_with_0x = ensure_starts_with_0x;
-module.exports.remove_starting_0x = remove_starting_0x;
-module.exports.private_key_2_public_key = private_key_2_public_key;
-module.exports.public_key_2_account_address = public_key_2_account_address;
-module.exports.private_key_2_account_address = private_key_2_account_address;
 
 module.exports.register_s_chain_on_main_net = register_s_chain_on_main_net; // step 1A
 module.exports.check_is_registered_main_net_on_s_chain = check_is_registered_main_net_on_s_chain; // step 1B
