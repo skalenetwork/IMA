@@ -14,7 +14,7 @@ cc.enable( true );
 log.addStdout();
 //log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount );
 
-const owaspUtils = require( "../skale-owasp" );
+const owaspUtils = require( "../skale-owasp/owasp-util.js" );
 
 let g_mtaStrLongSeparator = "=======================================================================================================================";
 

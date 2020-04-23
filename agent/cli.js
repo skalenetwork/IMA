@@ -30,7 +30,7 @@ let g_strAppName = "SKALE Money Transfer Agent";
 let g_strVersion = "1.0";
 
 function print_about( isLog ) {
-    let isLog = isLog || false,
+    isLog = isLog || false,
         strMsg = cc.info( g_strAppName ) + cc.debug( " version " ) + cc.info( g_strVersion );
     if ( isLog )
         log.write( strMsg + "\n" );
