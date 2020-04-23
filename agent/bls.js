@@ -21,6 +21,7 @@ function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc, a_rpcCall, a_owaspU
     IMA = anIMA;
     w3mod = IMA.w3mod;
     if( ! w3mod )
+        throw new Error( "BLS MODULE cannot be initialized without valid reference to WEB3 MOD from IMA object" );
     imaState = an_imaState;
     imaUtils = an_imaUtils,
     log = a_log;
