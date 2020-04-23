@@ -545,6 +545,8 @@ function parse( joExternalHandlers ) {
 }
 
 function ima_common_init() {
+    let n1 = 0,
+        n2 = 0;
     imaState.joTrufflePublishResult_main_net = imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net, null, true );
     imaState.joTrufflePublishResult_s_chain = imaUtils.jsonFileLoad( imaState.strPathAbiJson_s_chain, null, true );
 
@@ -593,8 +595,8 @@ function ima_common_init() {
     //
     //
     if ( imaState.strPathJsonErc721_main_net.length > 0 /*&& imaState.strPathJsonErc721_s_chain.length > 0*/ ) {
-        let n1 = 0,
-            n2 = 0;
+        n1 = 0;
+        n2 = 0;
         if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
             log.write( cc.info( "Loading Main-net ERC721 ABI from " ) + cc.info( imaState.strPathJsonErc721_main_net ) + "\n" );
         imaState.joErc721_main_net = imaUtils.jsonFileLoad( imaState.strPathJsonErc721_main_net, null, true );
@@ -642,10 +644,9 @@ function ima_common_init() {
         }
     } else { // if( imaState.strPathJsonErc721_main_net.length > 0 /*&& imaState.strPathJsonErc721_s_chain.length > 0*/ )
         if ( imaState.strPathJsonErc721_s_chain.length > 0 ) {
-            let n1 = 0,
-                n2 = 0;
-
-            if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+            n1 = 0;
+            n2 = 0;
+                if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
                 log.write( cc.info( "Loading S-Chain ERC721 ABI from " ) + cc.info( imaState.strPathJsonErc721_s_chain ) + "\n" );
             imaState.joErc721_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc721_s_chain, null, true );
             n2 = Object.keys( imaState.joErc721_s_chain ).length;
@@ -696,8 +697,8 @@ function ima_common_init() {
     //
     //
     if ( imaState.strPathJsonErc20_main_net.length > 0 /*&& imaState.strPathJsonErc20_s_chain.length > 0*/ ) {
-        let n1 = 0,
-            n2 = 0;
+        n1 = 0;
+        n2 = 0;
         if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
             log.write( cc.info( "Loading Main-net ERC20 ABI from " ) + cc.info( imaState.strPathJsonErc20_main_net ) + "\n" );
         imaState.joErc20_main_net = imaUtils.jsonFileLoad( imaState.strPathJsonErc20_main_net, null, true );
@@ -745,9 +746,8 @@ function ima_common_init() {
         }
     } else { // if( imaState.strPathJsonErc20_main_net.length > 0 /*&& imaState.strPathJsonErc20_s_chain.length > 0*/ )
         if ( imaState.strPathJsonErc20_s_chain.length > 0 ) {
-            let n1 = 0,
-                n2 = 0;
-
+            n1 = 0;
+            n2 = 0;
             if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
                 log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( imaState.strPathJsonErc20_s_chain ) + "\n" );
             imaState.joErc20_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc20_s_chain, null, true );
