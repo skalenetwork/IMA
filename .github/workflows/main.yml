@@ -173,6 +173,12 @@ jobs:
         npm install
         cd ../..
 
+    - name: INSTALL PREREQUISITES - SKALE-OWASP - PACKAGES
+      run: |
+        cd npms/skale-owasp
+        npm install
+        cd ../..
+
     - name: START BACKGROUND GANACHE
       run: |
         echo ------------ ganache-cli install
