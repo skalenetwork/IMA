@@ -4,7 +4,11 @@
 // main PDF with rules to follow: https://www.gitbook.com/download/pdf/book/checkmarx/JS-SCP
 // top 10 hit parade: https://owasp.org/www-project-top-ten/
 
-let url = require( "url" );
+const fs = require( "fs" );
+const path = require( "path" );
+const url = require( "url" );
+const os = require( "os" );
+
 const cc = require( "../skale-cc/cc.js" );
 const w3mod = require( "web3" );
 let ethereumjs_tx = require( "ethereumjs-tx" ).Transaction;
@@ -135,60 +139,7 @@ function toURL( s ) {
 	}
 }
 
-// see https://ethereum.stackexchange.com/questions/1374/how-can-i-check-if-an-ethereum-address-is-valid
-function validateEthAddress( value ) {
-    if( ethereumjs_util.isValidAddress( value ) )
-        return true;
-    return false;
-}
-
-// see https://gist.github.com/miguelmota/20fcd7c5c2604907dcbba749ea3f1e8c
-function validateEthPrivateKey( value ) {
-    if( ethereumjs_util.isValidPrivate( value ) )
-        return true;
-    return false;
-}
-
-function verifyArgumentWithNonEmptyValue( joArg ) {
-    if( ( !joArg.value ) || ( typeof joArg.value == "string" && joArg.value.length == 0 ) ) {
-        console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value of argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
-        process.exit( 666 );
-    }
-}
-
-function verifyArgumentIsURL( joArg ) {
-    try {
-        verifyArgumentWithNonEmptyValue( joArg );
-        let u = toURL( joArg.value );
-        if( u == null ) {
-            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid URL" ) );
-            process.exit( 666 );
-        }
-        if( u.hostname.length <= 0 ) {
-            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid URL" ) );
-            process.exit( 666 );
-        }
-    } catch ( err ) {
-        console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid URL" ) );
-        process.exit( 666 );
-    }
-}
-
-function verifyArgumentIsInteger( joArg ) {
-    try {
-        verifyArgumentWithNonEmptyValue( joArg );
-        if( ! validateInteger( joArg.value ) ) {
-            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid integer" ) );
-            process.exit( 666 );
-        }
-        joArg.value = toInteger( joArg.value );
-    } catch ( err ) {
-        console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid integer" ) );
-        process.exit( 666 );
-    }
-}
-
-function verifyArgumentAsBoolean( joArg ) {
+function toBoolean( joArg ) {
     let b = false;
     try {
         if( typeof joArg.value == "string" ) {
@@ -210,6 +161,95 @@ function verifyArgumentAsBoolean( joArg ) {
     return b;
 }
 
+// see https://ethereum.stackexchange.com/questions/1374/how-can-i-check-if-an-ethereum-address-is-valid
+function validateEthAddress( value ) {
+    if( ethereumjs_util.isValidAddress( value ) )
+        return true;
+    return false;
+}
+
+// see https://gist.github.com/miguelmota/20fcd7c5c2604907dcbba749ea3f1e8c
+function validateEthPrivateKey( value ) {
+    if( ethereumjs_util.isValidPrivate( value ) )
+        return true;
+    return false;
+}
+
+function verifyArgumentWithNonEmptyValue( joArg ) {
+    if( ( !joArg.value ) || ( typeof joArg.value == "string" && joArg.value.length == 0 ) ) {
+        console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
+        process.exit( 666 );
+    }
+}
+
+function verifyArgumentIsURL( joArg ) {
+    try {
+        verifyArgumentWithNonEmptyValue( joArg );
+        let u = toURL( joArg.value );
+        if( u == null ) {
+            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid URL" ) );
+            process.exit( 666 );
+        }
+        if( u.hostname.length <= 0 ) {
+            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid URL" ) );
+            process.exit( 666 );
+        }
+    } catch ( err ) {
+        console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid URL" ) );
+        process.exit( 666 );
+    }
+}
+
+function verifyArgumentIsInteger( joArg ) {
+    try {
+        verifyArgumentWithNonEmptyValue( joArg );
+        if( ! validateInteger( joArg.value ) ) {
+            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid integer" ) );
+            process.exit( 666 );
+        }
+        joArg.value = toInteger( joArg.value );
+    } catch ( err ) {
+        console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid integer" ) );
+        process.exit( 666 );
+    }
+}
+
+function verifyArgumentIsPathToExistingFile( joArg ) {
+    try {
+        verifyArgumentWithNonEmptyValue( joArg );
+        stats = fs.lstatSync( joArg.value );
+        if( stats.isDirectory() ) {
+            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be path to existing file, path to folder provided" ) );
+            process.exit( 666 );
+        }
+        if( ! stats.isFile() ) {
+            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be path to existing file, bad path provided" ) );
+            process.exit( 666 );
+        }
+    } catch ( err ) {
+        console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be path to existing file" ) );
+        process.exit( 666 );
+    }
+}
+
+function verifyArgumentIsPathToExistingFolder( joArg ) {
+    try {
+        verifyArgumentWithNonEmptyValue( joArg );
+        stats = fs.lstatSync( joArg.value );
+        if( stats.isFile() ) {
+            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be path to existing folder, path to file provided" ) );
+            process.exit( 666 );
+        }
+        if( ! stats.isDirectory() ) {
+            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be path to existing folder, bad path provided" ) );
+            process.exit( 666 );
+        }
+    } catch ( err ) {
+        console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be path to existing folder" ) );
+        process.exit( 666 );
+    }
+}
+
 module.exports = {
     "cc": cc
     , "w3mod": w3mod
@@ -225,10 +265,12 @@ module.exports = {
     , "toFloat": toFloat
     , "validateURL": validateURL
     , "toURL": toURL
+    , "toBoolean": toBoolean
     , "validateEthAddress": validateEthAddress
     , "validateEthPrivateKey": validateEthPrivateKey
     , "verifyArgumentWithNonEmptyValue": verifyArgumentWithNonEmptyValue
     , "verifyArgumentIsURL": verifyArgumentIsURL
     , "verifyArgumentIsInteger": verifyArgumentIsInteger
-    , "verifyArgumentAsBoolean": verifyArgumentAsBoolean
+    , "verifyArgumentIsPathToExistingFile": verifyArgumentIsPathToExistingFile
+    , "verifyArgumentIsPathToExistingFolder": verifyArgumentIsPathToExistingFolder
 }; // module.exports

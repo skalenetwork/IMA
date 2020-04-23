@@ -413,7 +413,7 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
             log.write( strLogPrefix + cc.fatal( "BAD ERROR:" )
                 + cc.error( " Correctness validation failed for message " ) + cc.info( idxMessage )
                 + cc.error( ", message is: " ) + cc.j( joMessage )
-                + cc.error( ", error information: " ) + cc.warn( err.toString() )
+                + cc.error( ", error information: " ) + cc.warning( err.toString() )
                 + "\n" );
         }
     } // for( let i = 0; i < jarrMessages.length; ++ i )
@@ -559,7 +559,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                     ++ nCountErrors;
                     if( "error" in joOut && "message" in joOut.error )
                         log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" )
-                            + cc.error( "S-Chain reported wallet error: " ) + cc.warn( joOut.error.message ) );
+                            + cc.error( "S-Chain reported wallet error: " ) + cc.warning( joOut.error.message ) );
                     else
                         log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" )
                             + cc.error( "JSON RPC call to S-Chain failed with " ) + cc.warning( "unknown wallet error" ) );
@@ -598,7 +598,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                                 log.write( strLogPrefixA + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
                             }
                         } catch( err ) {
-                            log.write( strLogPrefixA + cc.fatal( "Node sign CRITICAL ERROR:" ) + cc.error( " partial signature fail from node ") + cc.info(joNode.nodeID) + cc.error(" with index " ) + cc.info(nZeroBasedNodeIndex) + cc.error(", error is " ) + cc.warn(err.toString()) + "\n" );
+                            log.write( strLogPrefixA + cc.fatal( "Node sign CRITICAL ERROR:" ) + cc.error( " partial signature fail from node ") + cc.info(joNode.nodeID) + cc.error(" with index " ) + cc.info(nZeroBasedNodeIndex) + cc.error(", error is " ) + cc.warning(err.toString()) + "\n" );
                         }
                         //
                         //
@@ -628,7 +628,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                     }
                 } catch( err ) {
                     ++ nCountErrors;
-                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " signature fail from node ") + cc.info(joNode.nodeID) + cc.error(", error is " ) + cc.warn(err.toString()) + "\n" );
+                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " signature fail from node ") + cc.info(joNode.nodeID) + cc.error(", error is " ) + cc.warning(err.toString()) + "\n" );
                 }
             } );
         } );

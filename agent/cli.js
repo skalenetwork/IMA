@@ -60,18 +60,6 @@ function parse_command_line_argument( s ) {
     return joArg;
 }
 
-function verify_arg_path_to_existing_file( strPath ) {
-    try {
-        stats = fs.lstatSync( strPath );
-        if ( stats.isDirectory() )
-            return false;
-        if ( !stats.isFile() )
-            return false;
-        return true;
-    } catch ( e ) {}
-    return false;
-}
-
 //
 //
 // validate command line arguments
@@ -170,9 +158,9 @@ function parse( joExternalHandlers ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "addr-erc20-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) + cc.debug( "...." ) + cc.notice( "Explicit ERC20 address in " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
             console.log( cc.sunny( "USER ACCOUNT" ) + cc.info( " options:" ) );
             /**/
-            console.log( soi + cc.debug( "--" ) + cc.bright( "address-main-net" ) + cc.sunny( "=" ) + cc.warn( "value" ) + cc.debug( "........" ) + cc.notice( "Main-net user account address." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "address-main-net" ) + cc.sunny( "=" ) + cc.warning( "value" ) + cc.debug( "........" ) + cc.notice( "Main-net user account address." ) );
             /**/
-            console.log( soi + cc.debug( "--" ) + cc.bright( "address-s-chain" ) + cc.sunny( "=" ) + cc.warn( "value" ) + cc.debug( "........." ) + cc.notice( "S-chain user account address." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "address-s-chain" ) + cc.sunny( "=" ) + cc.warning( "value" ) + cc.debug( "........." ) + cc.notice( "S-chain user account address." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "key-main-net" ) + cc.sunny( "=" ) + cc.error( "value" ) + cc.debug( "............" ) + cc.notice( "Private key for " ) + cc.note( "main-net user" ) + cc.notice( " account address." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "key-s-chain" ) + cc.sunny( "=" ) + cc.error( "value" ) + cc.debug( "............." ) + cc.notice( "Private key for " ) + cc.note( "S-Chain" ) + cc.notice( " user account address." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "wei" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "...................." ) + cc.notice( "Amount of " ) + cc.attention( "wei" ) + cc.notice( " to transfer." ) );
@@ -294,24 +282,24 @@ function parse( joExternalHandlers ) {
             continue;
         }
         if ( joArg.name == "abi-main-net" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathAbiJson_main_net = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if ( joArg.name == "abi-s-chain" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathAbiJson_s_chain = imaUtils.normalizePath( joArg.value );
             continue;
         }
         //
         //
         if ( joArg.name == "erc721-main-net" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathJsonErc721_main_net = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if ( joArg.name == "erc721-s-chain" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathJsonErc721_s_chain = imaUtils.normalizePath( joArg.value );
             continue;
         }
@@ -323,12 +311,12 @@ function parse( joExternalHandlers ) {
         //
         //
         if ( joArg.name == "erc20-main-net" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathJsonErc20_main_net = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if ( joArg.name == "erc20-s-chain" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathJsonErc20_s_chain = imaUtils.normalizePath( joArg.value );
             continue;
         }
@@ -516,17 +504,17 @@ function parse( joExternalHandlers ) {
             continue;
         }
         if ( joArg.name == "bls-glue" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathBlsGlue = "" + joArg.value;
             continue;
         }
         if ( joArg.name == "hash-g1" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathHashG1 = "" + joArg.value;
             continue;
         }
         if ( joArg.name == "bls-verify" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathBlsVerify = "" + joArg.value;
             continue;
         }
@@ -902,10 +890,10 @@ function ima_common_init() {
                 return cc.info( x );
             } );
             ensure_have_value( "Max size of log file path", imaState.nLogMaxSizeBeforeRotation, false, true, null, ( x ) => {
-                return ( x <= 0 ) ? cc.warn( "unlimited" ) : cc.note( x );
+                return ( x <= 0 ) ? cc.warning( "unlimited" ) : cc.note( x );
             } );
             ensure_have_value( "Max rotated count of log files", imaState.nLogMaxFilesCount, false, true, null, ( x ) => {
-                return ( x <= 1 ) ? cc.warn( "not set" ) : cc.note( x );
+                return ( x <= 1 ) ? cc.warning( "not set" ) : cc.note( x );
             } );
         }
         if ( imaState.strCoinNameErc721_main_net.length > 0 /*&& imaState.strCoinNameErc721_s_chain.length > 0*/ ) {
@@ -946,9 +934,6 @@ module.exports = {
     "init": init,
     "print_about": print_about,
     "parse_command_line_argument": parse_command_line_argument,
-    "owaspUtils.verifyArgumentWithNonEmptyValue": owaspUtils.verifyArgumentWithNonEmptyValue,
-    "owaspUtils.verifyArgumentIsURL": owaspUtils.verifyArgumentIsURL,
-    "verify_arg_path_to_existing_file": verify_arg_path_to_existing_file,
     "ensure_have_value": ensure_have_value,
     "find_node_index": find_node_index,
     "load_node_config": load_node_config,

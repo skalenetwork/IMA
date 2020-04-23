@@ -643,12 +643,12 @@ async function do_the_job() {
             } else {
                 ++cntFalse;
                 if ( IMA.verbose_get() >= IMA.RV_VERBOSE.error )
-                    log.write( strLogPrefix + cc.warn( "Failed action:" ) + " " + cc.info( joAction.name ) + "\n" );
+                    log.write( strLogPrefix + cc.warning( "Failed action:" ) + " " + cc.info( joAction.name ) + "\n" );
             }
         } catch ( e ) {
             ++cntFalse;
             if ( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal )
-                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR: Exception occurred while executing action:" ) + " " + cc.info( joAction.name ) + cc.error( ", error description: " ) + cc.warn( e ) + "\n" );
+                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR: Exception occurred while executing action:" ) + " " + cc.info( joAction.name ) + cc.error( ", error description: " ) + cc.warning( e ) + "\n" );
         }
     } // for( idxAction = 0; idxAction < cntActions; ++ idxAction )
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
@@ -706,7 +706,7 @@ async function register_step1() {
     let bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
     if ( !bRetVal ) {
         let nRetCode = 1501;
-        log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain on Main-net, will return code " ) + cc.warn( nRetCode ) + "\n" );
+        log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain on Main-net, will return code " ) + cc.warning( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
     return true;
@@ -724,7 +724,7 @@ async function register_step2() {
     );
     if ( !bRetVal ) {
         let nRetCode = 1502;
-        log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain in deposit box, will return code " ) + cc.warn( nRetCode ) + "\n" );
+        log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain in deposit box, will return code " ) + cc.warning( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
     return true;
@@ -741,7 +741,7 @@ async function register_step3() {
     );
     if ( !bRetVal ) {
         let nRetCode = 1503;
-        log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register Main-net deposit box on S-Chain, will return code " ) + cc.warn( nRetCode ) + "\n" );
+        log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register Main-net deposit box on S-Chain, will return code " ) + cc.warning( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
     return true;
@@ -852,7 +852,7 @@ async function single_transfer_loop() {
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
     if ( !check_time_framing() ) {
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.warn( "Skipped due to time framing" ) + "\n" );
+            log.write( strLogPrefix + cc.warning( "Skipped due to time framing" ) + "\n" );
         return true;
     }
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
