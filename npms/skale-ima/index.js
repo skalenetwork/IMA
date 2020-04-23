@@ -187,7 +187,7 @@ async function safe_send_signed_transaction( w3, serializedTx, strActionName, st
         } catch( err ) {
             if ( verbose_get() >= RV_VERBOSE.fatal )
                 log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " second attempt to send signed transaction failure during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-            throw "" + err.toString();
+            throw err;
         }
     }
     return joReceipt;

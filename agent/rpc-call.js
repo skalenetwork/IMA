@@ -104,7 +104,7 @@ async function do_call( joCall, joIn, fn ) {
 async function rpc_call_create( strURL, fn ) {
     fn = fn || function() {};
     if ( !( strURL && strURL.length > 0 ) )
-        throw "rpc_call_create() bad parameters";
+        throw new Error( "rpc_call_create() was invoked with bad parameters: " + JSON.stringify( arguments ) );
     let joCall = {
         "url": "" + strURL,
         "mapPendingByCallID": {},

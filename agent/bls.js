@@ -96,7 +96,7 @@ function discover_common_public_key( joSChainNetworkInfo ) {
 function compose_one_message_byte_sequence( joMessage ) {
     let w3 = imaState.w3_s_chain ? imaState.w3_s_chain : imaState.w3_main_net;
     if( ! w3 )
-        throw new Error( "w3.utils is needed for BN operations" );
+        throw new Error( "w3.utils is needed for BN operations but no w3 provided" );
     let arrBytes = new Uint8Array();
 
     let bytesSender = imaUtils.hexToBytes( joMessage.sender );
@@ -248,11 +248,12 @@ function perform_bls_glue( strDirection, jarrMessages, arrSignResults ) {
                 joGlueResult.hint = joResultHashG1.g1.hint;
             } else {
                 joGlueResult = null;
-                throw "malformed HashG1 result";
+                throw new Error( "malformed HashG1 result: " + JSON.stringify( joResultHashG1 ) );
             }
         } else {
+            let joSavedGlueResult = joGlueResult;
             joGlueResult = null;
-            throw "malformed BLS glue result";
+            throw new Error( "malformed BLS glue result: " + JSON.stringify( joSavedGlueResult ) );
         }
         //
         // typical glue result is:
@@ -406,7 +407,7 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
             let isValidMessage = await m.call( { "from": strCallerAccountAddress } );
             //console.log( "Got call result", isValidMessage );
             if(  ! isValidMessage )
-                throw "Bad message detected";
+                throw new Error( "Bad message detected, message is: " + JSON.stringify( joMessage ) );
         } catch( err ) {
             ++ cntBadMessages;
             log.write( strLogPrefix + cc.fatal( "BAD ERROR:" )
