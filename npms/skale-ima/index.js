@@ -930,7 +930,7 @@ async function do_erc721_payment_from_main_net(
         //
         //
 
-        // TODO: Fix event getting
+        // TO-DO: Fix event getting
         // if ( !isRawTokenTransfer ) {
         //     strActionName = "getPastEvents/ERC721TokenCreated";
         //     let joEvents = await jo_token_manager.getPastEvents( "ERC721TokenCreated", {
@@ -1108,7 +1108,7 @@ async function do_erc20_payment_from_main_net(
         //
         //
 
-        // TODO: Fix event getting
+        // TO-DO: Fix event getting
         // if ( !isRawTokenTransfer ) {
         //     strActionName = "getPastEvents/ERC20TokenCreated";
         //     let joEvents = await jo_token_manager.getPastEvents( "ERC20TokenCreated", {
@@ -1877,9 +1877,11 @@ async function do_transfer(
 //
 // init helpers
 //
+
 function noop() {
     return null;
 }
+
 module.exports.longSeparator = g_mtaStrLongSeparator;
 module.exports.noop = noop;
 module.exports.cc = cc;

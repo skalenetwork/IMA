@@ -62,7 +62,7 @@ function parse_command_line_argument( s ) {
 
 //
 //
-// validate command line arguments
+// check correctness of command line arguments
 function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColorizer, fnValueColorizer ) {
     isExitIfEmpty = isExitIfEmpty || false;
     isPrintValue = isPrintValue || false;
