@@ -631,7 +631,7 @@ async function do_the_job() {
     for ( idxAction = 0; idxAction < cntActions; ++idxAction ) {
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
-        var joAction = imaState.arrActions[ idxAction ],
+        let joAction = imaState.arrActions[ idxAction ],
             bOK = false;
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.notice( "Will execute action:" ) + " " + cc.info( joAction.name ) + cc.debug( " (" ) + cc.info( idxAction + 1 ) + cc.debug( " of " ) + cc.info( cntActions ) + cc.debug( ")" ) + "\n" );
@@ -705,7 +705,7 @@ async function register_step1() {
     );
     let bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
     if ( !bRetVal ) {
-        var nRetCode = 1501;
+        let nRetCode = 1501;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain on Main-net, will return code " ) + cc.warn( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
@@ -811,16 +811,16 @@ function check_time_framing( d ) {
             return true; // time framing is disabled
         if ( d = null || d == undefined )
             d = new Date(); // now
-        var nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
-        var nSecondsRangeForAllSChains = imaState.nTimeFrameSeconds * imaState.nNodesCount;
-        var nMod = Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
-        var nActiveNodeFrameIndex = Math.floor( nMod / imaState.nTimeFrameSeconds );
-        var bSkip = ( nActiveNodeFrameIndex != imaState.nNodeNumber ) ? true : false,
+        let nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
+        let nSecondsRangeForAllSChains = imaState.nTimeFrameSeconds * imaState.nNodesCount;
+        let nMod = Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
+        let nActiveNodeFrameIndex = Math.floor( nMod / imaState.nTimeFrameSeconds );
+        let bSkip = ( nActiveNodeFrameIndex != imaState.nNodeNumber ) ? true : false,
             bInsideGap = false;
         if ( !bSkip ) {
-            var nRangeStart = nUtcUnixTimeStamp - Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
-            var nFrameStart = nRangeStart + imaState.nNodeNumber * imaState.nTimeFrameSeconds;
-            var nGapStart = nFrameStart + imaState.nTimeFrameSeconds - imaState.nNextFrameGap;
+            let nRangeStart = nUtcUnixTimeStamp - Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
+            let nFrameStart = nRangeStart + imaState.nNodeNumber * imaState.nTimeFrameSeconds;
+            let nGapStart = nFrameStart + imaState.nTimeFrameSeconds - imaState.nNextFrameGap;
             if ( nUtcUnixTimeStamp >= nGapStart ) {
                 bSkip = true;
                 bInsideGap = true;
@@ -857,7 +857,7 @@ async function single_transfer_loop() {
     }
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
-    var b1 = await IMA.do_transfer( // main-net --> s-chain
+    let b1 = await IMA.do_transfer( // main-net --> s-chain
         /**/
         imaState.w3_main_net,
         imaState.jo_message_proxy_main_net,
@@ -882,7 +882,7 @@ async function single_transfer_loop() {
         log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf(b1) + "\n" );
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
-    var b2 = await IMA.do_transfer( // s-chain --> main-net
+    let b2 = await IMA.do_transfer( // s-chain --> main-net
         /**/
         imaState.w3_s_chain,
         imaState.jo_message_proxy_s_chain,
@@ -905,7 +905,7 @@ async function single_transfer_loop() {
     );
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf(b2) + "\n" );
-    var b3 = b1 && b2;
+    let b3 = b1 && b2;
     if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf(b3) + "\n" );
     return b3;

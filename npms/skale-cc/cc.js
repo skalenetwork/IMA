@@ -12,21 +12,21 @@ function _tf_( flag ) { if( ! g_bEnabled ) return flag; return flag ? module.exp
 function isInt( n ) { return ( Number(n) === n && n % 1 === 0 ) ? false : true; }
 function isFloat( n ) { return ( Number(n) === n && n % 1 !== 0 ) ? false : true; }
 function isInt2( n ) {
-    var intRegex = /^-?\d+$/;
+    let intRegex = /^-?\d+$/;
     if( ! intRegex.test( n ) )
         return false;
-    var intVal = parseInt( n, 10 );
+    let intVal = parseInt( n, 10 );
     return parseFloat( n ) == intVal && !isNaN(intVal);
 }
-function isFloat2( n ) { var val = parseFloat( n ); return isNaN( val ) ? false : true; }
+function isFloat2( n ) { let val = parseFloat( n ); return isNaN( val ) ? false : true; }
 
 function url2str( objURL ) {
-var strProtocol = ( objURL.protocol && objURL.protocol.length > 0 ) ? ( "" + objURL.protocol + "//" ) : "";
-var strUP = "";
-var strHost = ( objURL.hostname && objURL.hostname.length > 0 ) ? ( "" + objURL.hostname.toString() ) : "";
-var strPort = objURL.port ? ( ":" + objURL.port ) : "";
-var strPath =  ( objURL.pathname && objURL.pathname.length > 0 ) ? ( "" + objURL.pathname ) : "";
-var strSearch = ( objURL.search && objURL.search.length > 0 ) ? ( "" + objURL.search ) : "";
+let strProtocol = ( objURL.protocol && objURL.protocol.length > 0 ) ? ( "" + objURL.protocol + "//" ) : "";
+let strUP = "";
+let strHost = ( objURL.hostname && objURL.hostname.length > 0 ) ? ( "" + objURL.hostname.toString() ) : "";
+let strPort = objURL.port ? ( ":" + objURL.port ) : "";
+let strPath =  ( objURL.pathname && objURL.pathname.length > 0 ) ? ( "" + objURL.pathname ) : "";
+let strSearch = ( objURL.search && objURL.search.length > 0 ) ? ( "" + objURL.search ) : "";
 //cc.log( "username ", objURL.username );
 //cc.log( "password ", objURL.password );
 	if( objURL.username && objURL.username.length > 0 ) {
@@ -36,7 +36,7 @@ var strSearch = ( objURL.search && objURL.search.length > 0 ) ? ( "" + objURL.se
 		strUP += "@";
 	}
 //cc.log( "strUP ", strUP );
-var strURL = "" + strProtocol + strUP + strHost + strPort + strPath + strSearch;
+let strURL = "" + strProtocol + strUP + strHost + strPort + strPath + strSearch;
 //cc.log( "composed ", strURL );
 	return strURL;
 }
@@ -68,7 +68,7 @@ function url_obj_colorized( objURL ) {
 	return strURL;
 }
 function url_str_colorized( s ) {
-	var objURL = safeURL( s );
+	let objURL = safeURL( s );
 	if( ! objURL )
 		return "";
 	return url_obj_colorized( objURL );
@@ -81,12 +81,12 @@ function url_colorized( x ) {
 
 
 function url2strWithoutCredentials( objURL ) {
-var strProtocol = ( objURL.protocol && objURL.protocol.length > 0 ) ? ( "" + objURL.protocol + "//" ) : "";
-var strUP = "";
-var strHost = ( objURL.hostname && objURL.hostname.length > 0 ) ? ( "" + objURL.hostname.toString() ) : "";
-var strPort = objURL.port ? ( ":" + objURL.port ) : "";
-var strPath =  ( objURL.pathname && objURL.pathname.length > 0 ) ? ( "" + objURL.pathname ) : "";
-var strSearch = ( objURL.search && objURL.search.length > 0 ) ? ( "" + objURL.search ) : "";
+let strProtocol = ( objURL.protocol && objURL.protocol.length > 0 ) ? ( "" + objURL.protocol + "//" ) : "";
+let strUP = "";
+let strHost = ( objURL.hostname && objURL.hostname.length > 0 ) ? ( "" + objURL.hostname.toString() ) : "";
+let strPort = objURL.port ? ( ":" + objURL.port ) : "";
+let strPath =  ( objURL.pathname && objURL.pathname.length > 0 ) ? ( "" + objURL.pathname ) : "";
+let strSearch = ( objURL.search && objURL.search.length > 0 ) ? ( "" + objURL.search ) : "";
 //cc.log( "username ", objURL.username );
 //cc.log( "password ", objURL.password );
 	//if( objURL.username && objURL.username.length > 0 ) {
@@ -96,7 +96,7 @@ var strSearch = ( objURL.search && objURL.search.length > 0 ) ? ( "" + objURL.se
 	//	strUP += "@";
 	//}
 //cc.log( "strUP ", strUP );
-var strURL = "" + strProtocol + strUP + strHost + strPort + strPath + strSearch;
+let strURL = "" + strProtocol + strUP + strHost + strPort + strPath + strSearch;
 //cc.log( "composed ", strURL );
 	return strURL;
 }

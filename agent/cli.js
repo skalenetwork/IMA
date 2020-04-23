@@ -84,7 +84,7 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
     fnValueColorizer = fnValueColorizer || ( ( x ) => {
         return cc.notice( x );
     } );
-    var retVal = true;
+    let retVal = true;
     value = value.toString();
     if ( value.length == 0 ) {
         retVal = false;
@@ -92,7 +92,7 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
         if ( isExitIfEmpty )
             process.exit( 666 );
     }
-    var strDots = "...",
+    let strDots = "...",
         n = 50 - name.length;
     for ( ; n > 0; --n )
         strDots += ".";
@@ -102,10 +102,10 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
 
 function find_node_index( joSChainNodeConfiguration ) {
     try {
-        var searchID = joSChainNodeConfiguration.skaleConfig.nodeInfo.nodeID;
-        var cnt = joSChainNodeConfiguration.skaleConfig.sChain.nodes.length;
-        for ( var i = 0; i < cnt; ++i ) {
-            var joNodeDescription = joSChainNodeConfiguration.skaleConfig.sChain.nodes[ i ];
+        let searchID = joSChainNodeConfiguration.skaleConfig.nodeInfo.nodeID;
+        let cnt = joSChainNodeConfiguration.skaleConfig.sChain.nodes.length;
+        for ( let i = 0; i < cnt; ++i ) {
+            let joNodeDescription = joSChainNodeConfiguration.skaleConfig.sChain.nodes[ i ];
             if ( joNodeDescription.nodeID == searchID )
                 return i;
         }
@@ -120,8 +120,8 @@ function load_node_config( strPath ) {
         //
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "Loading values from S-Chain configuration JSON file " ) + cc.note( strPath ) + cc.debug( "..." ) + "\n" );
-        var strJsonSChainNodeConfiguration = fs.readFileSync( strPath, "utf8" );
-        var joSChainNodeConfiguration = JSON.parse( strJsonSChainNodeConfiguration );
+        let strJsonSChainNodeConfiguration = fs.readFileSync( strPath, "utf8" );
+        let joSChainNodeConfiguration = JSON.parse( strJsonSChainNodeConfiguration );
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "S-Chain configuration JSON: " ) + cc.j( joSChainNodeConfiguration ) + "\n" );
         //
@@ -143,10 +143,10 @@ function load_node_config( strPath ) {
 function parse( joExternalHandlers ) {
     let idxArg, cntArgs = process.argv.length;
     for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
-        var joArg = parse_command_line_argument( process.argv[ idxArg ] );
+        let joArg = parse_command_line_argument( process.argv[ idxArg ] );
         if ( joArg.name == "help" ) {
             print_about();
-            var soi = "    "; // options indent
+            let soi = "    "; // options indent
             console.log( cc.sunny( "GENERAL" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "help" ) + cc.debug( ".........................." ) + cc.notice( "Show this " ) + cc.note( "help info" ) + cc.notice( " and exit." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "version" ) + cc.debug( "......................." ) + cc.notice( "Show " ) + cc.note( "version info" ) + cc.notice( " and exit." ) );
@@ -605,7 +605,7 @@ function ima_common_init() {
     //
     //
     if ( imaState.strPathJsonErc721_main_net.length > 0 /*&& imaState.strPathJsonErc721_s_chain.length > 0*/ ) {
-        var n1 = 0,
+        let n1 = 0,
             n2 = 0;
         if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
             log.write( cc.info( "Loading Main-net ERC721 ABI from " ) + cc.info( imaState.strPathJsonErc721_main_net ) + "\n" );
@@ -654,7 +654,7 @@ function ima_common_init() {
         }
     } else { // if( imaState.strPathJsonErc721_main_net.length > 0 /*&& imaState.strPathJsonErc721_s_chain.length > 0*/ )
         if ( imaState.strPathJsonErc721_s_chain.length > 0 ) {
-            var n1 = 0,
+            let n1 = 0,
                 n2 = 0;
 
             if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
@@ -708,7 +708,7 @@ function ima_common_init() {
     //
     //
     if ( imaState.strPathJsonErc20_main_net.length > 0 /*&& imaState.strPathJsonErc20_s_chain.length > 0*/ ) {
-        var n1 = 0,
+        let n1 = 0,
             n2 = 0;
         if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
             log.write( cc.info( "Loading Main-net ERC20 ABI from " ) + cc.info( imaState.strPathJsonErc20_main_net ) + "\n" );
@@ -757,7 +757,7 @@ function ima_common_init() {
         }
     } else { // if( imaState.strPathJsonErc20_main_net.length > 0 /*&& imaState.strPathJsonErc20_s_chain.length > 0*/ )
         if ( imaState.strPathJsonErc20_s_chain.length > 0 ) {
-            var n1 = 0,
+            let n1 = 0,
                 n2 = 0;
 
             if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )

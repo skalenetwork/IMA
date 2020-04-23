@@ -7,7 +7,7 @@ let owaspUtils = null;
 
 function is_ws_url( strURL ) {
     try {
-        var u = new URL( strURL );
+        let u = new URL( strURL );
         if ( u.protocol == "ws:" || u.protocol == "wss:" )
             return true;
     } catch ( err ) {}

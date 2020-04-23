@@ -38,11 +38,11 @@ const VERBOSE = {
     9: "trace"
 };
 const RV_VERBOSE = function() {
-    var m = {};
-    for ( var key in VERBOSE ) {
+    let m = {};
+    for ( let key in VERBOSE ) {
         if ( !VERBOSE.hasOwnProperty( key ) )
             continue; // skip loop if the property is from prototype
-        var name = VERBOSE[ key ];
+        let name = VERBOSE[ key ];
         m[ name ] = key;
     }
     //
@@ -63,18 +63,18 @@ function verbose_set( x ) {
 }
 
 function verbose_parse( s ) {
-    var n = 5;
+    let n = 5;
     try {
-        var isNumbersOnly = /^\d+$/.test( s );
+        let isNumbersOnly = /^\d+$/.test( s );
         if ( isNumbersOnly ) {
             n = owaspUtils.toInteger( s );
         } else {
-            var ch0 = s[ 0 ].toLowerCase();
-            for ( var key in VERBOSE ) {
+            let ch0 = s[ 0 ].toLowerCase();
+            for ( let key in VERBOSE ) {
                 if ( !VERBOSE.hasOwnProperty( key ) )
                     continue; // skip loop if the property is from prototype
-                var name = VERBOSE[ key ];
-                var ch1 = name[ 0 ].toLowerCase();
+                let name = VERBOSE[ key ];
+                let ch1 = name[ 0 ].toLowerCase();
                 if ( ch0 == ch1 ) {
                     n = key;
                     break;
@@ -86,10 +86,10 @@ function verbose_parse( s ) {
 }
 
 function verbose_list() {
-    for ( var key in VERBOSE ) {
+    for ( let key in VERBOSE ) {
         if ( !VERBOSE.hasOwnProperty( key ) )
             continue; // skip loop if the property is from prototype
-        var name = VERBOSE[ key ];
+        let name = VERBOSE[ key ];
         console.log( "    " + cc.info( key ) + cc.sunny( "=" ) + cc.bright( name ) );
     }
 }
@@ -277,9 +277,9 @@ async function register_s_chain_on_main_net( // step 1A
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
+        let key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
+        let serializedTx = tx.serialize();
         strActionName = "reg-step1A:w3_main_net.eth.sendSignedTransaction()";
         //let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
@@ -376,9 +376,9 @@ async function register_main_net_on_s_chain( // step 1B
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = Buffer.from( joAccount_s_chain.privateKey, "hex" ); // convert private key to buffer
+        let key = Buffer.from( joAccount_s_chain.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
+        let serializedTx = tx.serialize();
         strActionName = "reg-step1B:w3_s_chain.eth.sendSignedTransaction()";
         //let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
@@ -473,9 +473,9 @@ async function register_s_chain_in_deposit_box( // step 2
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
+        let key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
+        let serializedTx = tx.serialize();
         strActionName = "reg-step2:w3_main_net.eth.sendSignedTransaction()";
         //let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
@@ -558,9 +558,9 @@ async function register_main_net_depositBox_on_s_chain( // step 3
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
+        let key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
+        let serializedTx = tx.serialize();
         strActionName = "reg-step3:w3_s_chain.eth.sendSignedTransaction()";
         //let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
@@ -628,9 +628,9 @@ async function do_eth_payment_from_main_net(
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        let key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
+        let serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction()";
         //let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
@@ -746,9 +746,9 @@ async function do_eth_payment_from_s_chain(
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        let key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
+        let serializedTx = tx.serialize();
         strActionName = "w3_s_chain.eth.sendSignedTransaction()";
         //let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
@@ -812,9 +812,9 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
+        let key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
+        let serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction()";
         //let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
@@ -952,7 +952,7 @@ async function do_erc721_payment_from_main_net(
         // sign transactions
         //
         strActionName = "sign transactions M->S";
-        var privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        let privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         const txApprove = new ethereumjs_tx( rawTxApprove );
         const txDeposit = new ethereumjs_tx( rawTxDeposit );
         txApprove.sign( privateKeyForMainnet );
@@ -1135,7 +1135,7 @@ async function do_erc20_payment_from_main_net(
         // sign transactions
         //
         strActionName = "sign transactions M->S";
-        var privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        let privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         const txApprove = new ethereumjs_tx( rawTxApprove );
         const txDeposit = new ethereumjs_tx( rawTxDeposit );
         txApprove.sign( privateKeyForMainnet );
@@ -1275,7 +1275,7 @@ async function do_erc20_payment_from_s_chain(
                     , accountForMainnet, "0x" + w3_main_net.utils.toBN( token_amount ).toString(16)
                 ).encodeABI();
         } else {
-            var function_call_trace = "exitToMainERC20(" +
+            let function_call_trace = "exitToMainERC20(" +
                 erc20Address_s_chain + ", " +
                 accountForMainnet + ", " +
                 w3_s_chain.utils.toBN( token_amount ).toString(10) + ")"
@@ -1315,7 +1315,7 @@ async function do_erc20_payment_from_s_chain(
         //
         //
         strActionName = "sign transactions S->M";
-        var privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        let privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         const txApprove = new ethereumjs_tx( rawTxApprove );
         const txDeposit = new ethereumjs_tx( rawTxDeposit );
         txApprove.sign( privateKeyForSchain );
@@ -1411,7 +1411,7 @@ async function do_erc721_payment_from_s_chain(
                     , accountForMainnet, "0x" + w3_main_net.utils.toBN( token_id ).toString(16)
                 ).encodeABI();
         } else {
-            var function_call_trace = "exitToMainERC721(" +
+            let function_call_trace = "exitToMainERC721(" +
                 erc721Address_s_chain + ", " +
                 accountForMainnet + ", " +
                 w3_s_chain.utils.toBN( token_id ).toString(10) + ")"
@@ -1451,7 +1451,7 @@ async function do_erc721_payment_from_s_chain(
         //
         //
         strActionName = "sign transactions S->M";
-        var privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        let privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         const txApprove = new ethereumjs_tx( rawTxApprove );
         const txDeposit = new ethereumjs_tx( rawTxDeposit );
         txApprove.sign( privateKeyForSchain );
@@ -1609,19 +1609,19 @@ async function do_transfer(
         //
         // outer loop is block former, then transfer
         nIdxCurrentMsg = nIncMsgCnt;
-        var cntProcessed = 0;
+        let cntProcessed = 0;
         while ( nIdxCurrentMsg < nOutMsgCnt ) {
             if ( verbose_get() >= RV_VERBOSE.trace )
                 log.write( strLogPrefix + cc.debug( "Entering block former iteration with " ) + cc.notice( "message counter" ) + cc.debug( " set to " ) + cc.info( nIdxCurrentMsg ) + "\n" );
-            var arrMessageCounters = [];
+            let arrMessageCounters = [];
             const messages = [];
-            var nIdxCurrentMsgBlockStart = 0 + nIdxCurrentMsg;
+            let nIdxCurrentMsgBlockStart = 0 + nIdxCurrentMsg;
             //
             //
             // inner loop wil create block of transactions
-            var cntAccumulatedForBlock = 0;
+            let cntAccumulatedForBlock = 0;
             for ( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++nIdxCurrentMsg, ++idxInBlock, ++cntAccumulatedForBlock ) {
-                var idxProcessing = cntProcessed + idxInBlock;
+                let idxProcessing = cntProcessed + idxInBlock;
                 if ( idxProcessing > nMaxTransactionsCount )
                     break;
                 //
@@ -1771,7 +1771,7 @@ async function do_transfer(
                     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
                 //
                 //
-                var nBlockSize = arrMessageCounters.length;
+                let nBlockSize = arrMessageCounters.length;
                 strActionName = "dst-chain.MessageProxy.postIncomingMessages()";
                 if ( verbose_get() >= RV_VERBOSE.trace )
                     log.write(
@@ -1839,9 +1839,9 @@ async function do_transfer(
                 if ( verbose_get() >= RV_VERBOSE.trace )
                     log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
                 let tx = new ethereumjs_tx( rawTx );
-                var key = Buffer.from( joAccountDst.privateKey, "hex" ); // convert private key to buffer ??????????????????????????????????
+                let key = Buffer.from( joAccountDst.privateKey, "hex" ); // convert private key to buffer ??????????????????????????????????
                 tx.sign( key ); // arg is privateKey as buffer
-                var serializedTx = tx.serialize();
+                let serializedTx = tx.serialize();
                 strActionName = "w3_dst.eth.sendSignedTransaction()";
                 //let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
                 let joReceipt = await safe_send_signed_transaction( w3_dst, serializedTx, strActionName, strLogPrefix );
