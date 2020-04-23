@@ -3,6 +3,7 @@ let request = require( "request" ); // https://www.npmjs.com/package/request
 
 let cc = null;
 let log = null;
+let owaspUtils = null;
 
 function is_ws_url( strURL ) {
     try {
@@ -13,11 +14,12 @@ function is_ws_url( strURL ) {
     return false;
 }
 
-function rpc_call_init( a_cc, a_log ) {
-    if ( !( a_cc && a_log ) )
-        throw "rpc_call_init() bad parameters";
+function rpc_call_init( a_cc, a_log, a_owaspUtils ) {
+    if ( !( a_cc && a_log && a_owaspUtils ) )
+        throw new Error( "JSON RPC CALLER module initializer was invoked with bad parameters: " + JSON.stringify( arguments ) );
     cc = a_cc;
     log = a_log;
+    owaspUtils = a_owaspUtils;
 }
 
 async function do_connect( joCall, fn ) {

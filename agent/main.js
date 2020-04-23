@@ -27,7 +27,7 @@ const w3mod = IMA.w3mod;
 const imaCLI = require( "./cli.js" );
 const imaBLS = require( "./bls.js" );
 let rpcCall = require( "./rpc-call.js" );
-rpcCall.init( cc, log );
+rpcCall.init( cc, log, owaspUtils );
 let ethereumjs_tx = IMA.ethereumjs_tx;
 let ethereumjs_wallet = IMA.ethereumjs_wallet;
 let ethereumjs_util = IMA.ethereumjs_util;
@@ -152,9 +152,9 @@ let imaState = {
     "arrActions": [] // array of actions to run
 };
 
-imaBLS.init( IMA, imaState, imaUtils, log, cc, rpcCall );
+imaBLS.init( IMA, imaState, imaUtils, log, cc, rpcCall, owaspUtils );
 
-imaCLI.init( IMA, imaState, imaUtils, log, cc, rpcCall );
+imaCLI.init( IMA, imaState, imaUtils, log, cc, rpcCall, owaspUtils );
 imaCLI.parse( {
     "register": function() {
         imaState.arrActions.push( {
