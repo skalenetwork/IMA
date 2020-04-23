@@ -30,7 +30,7 @@ let g_strAppName = "SKALE Money Transfer Agent";
 let g_strVersion = "1.0";
 
 function print_about( isLog ) {
-    var isLog = isLog || false,
+    let isLog = isLog || false,
         strMsg = cc.info( g_strAppName ) + cc.debug( " version " ) + cc.info( g_strVersion );
     if ( isLog )
         log.write( strMsg + "\n" );
@@ -39,7 +39,7 @@ function print_about( isLog ) {
 }
 
 function parse_command_line_argument( s ) {
-    var joArg = {
+    let joArg = {
         "name": "",
         "value": ""
     };
@@ -49,7 +49,7 @@ function parse_command_line_argument( s ) {
         s = "" + s;
         while ( s.length > 0 && s[ 0 ] == "-" )
             s = s.substring( 1 );
-        var n = s.indexOf( "=" );
+            let n = s.indexOf( "=" );
         if ( n < 0 ) {
             joArg.name = s;
             return joArg;
@@ -58,49 +58,6 @@ function parse_command_line_argument( s ) {
         joArg.value = s.substring( n + 1 );
     } catch ( e ) {}
     return joArg;
-}
-
-function verify_arg_with_non_empty_value( joArg ) {
-    if ( ( !joArg.value ) || joArg.value.length == 0 ) {
-        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " value of command line argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
-        process.exit( 666 );
-    }
-}
-
-function verify_url_arg( joArg ) {
-    try {
-        verify_arg_with_non_empty_value( joArg );
-        var s = joArg.value;
-        var u = url.parse( joArg.value );
-        if ( !u.hostname )
-            process.exit( 666 );
-        if ( !u.hostname.length )
-            process.exit( 666 );
-    } catch ( e ) {
-        process.exit( 666 );
-    }
-}
-
-function verify_int_arg( joArg ) {
-    try {
-        verify_arg_with_non_empty_value( joArg );
-        joArg.value = parseInt( joArg.value );
-    } catch ( e ) {
-        process.exit( 666 );
-    }
-}
-
-function verify_bool_arg( joArg ) {
-    var b = false;
-    try {
-        var ch = joArg.value[ 0 ].toLowerCase();
-        if ( ch == "y" || ch == "t" )
-            b = true
-        else
-            b = parseInt( joArg.value ) ? true : false;
-    } catch ( e ) {}
-    joArg.value = b ? true : false;
-    return b;
 }
 
 function verify_arg_path_to_existing_file( strPath ) {
@@ -295,44 +252,44 @@ function parse( joExternalHandlers ) {
             return 0;
         }
         if ( joArg.name == "url-main-net" ) {
-            verify_url_arg( joArg );
+            owaspUtils.verifyArgumentIsURL( joArg );
             imaState.strURL_main_net = joArg.value;
             continue;
         }
         if ( joArg.name == "url-s-chain" ) {
-            verify_url_arg( joArg );
+            owaspUtils.verifyArgumentIsURL( joArg );
             imaState.strURL_s_chain = joArg.value;
             continue;
         }
         if ( joArg.name == "id-s-chain" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.strChainID_s_chain = joArg.value;
             continue;
         }
         if ( joArg.name == "id-main-net" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.strChainID_main_net = joArg.value;
             continue;
         }
         if ( joArg.name == "cid-s-chain" ) {
-            verify_int_arg( joArg );
-            imaState.cid_s_chain = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.cid_s_chain = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "cid-main-net" ) {
-            verify_int_arg( joArg );
-            imaState.cid_main_net = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.cid_main_net = owaspUtils.toInteger( joArg.value );
             continue;
         }
         /**/
         if ( joArg.name == "address-main-net" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_main_net.address_ = joArg.value;
             continue;
         }
         /**/
         if ( joArg.name == "address-s-chain" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_s_chain.address_ = joArg.value;
             continue;
         }
@@ -359,7 +316,7 @@ function parse( joExternalHandlers ) {
             continue;
         }
         if ( joArg.name == "addr-erc721-s-chain" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.strAddrErc721_explicit = joArg.value;
             continue;
         }
@@ -376,64 +333,64 @@ function parse( joExternalHandlers ) {
             continue;
         }
         if ( joArg.name == "addr-erc20-s-chain" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.strAddrErc20_explicit = joArg.value;
             continue;
         }
         //
         //
         if ( joArg.name == "key-main-net" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_main_net.privateKey = joArg.value;
             continue;
         }
         if ( joArg.name == "key-s-chain" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_s_chain.privateKey = joArg.value;
             continue;
         }
         if ( joArg.name == "wei" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfWei = joArg.value;
             continue;
         }
         if ( joArg.name == "babbage" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfWei = joArg.value * 1000;
             continue;
         }
         if ( joArg.name == "lovelace" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfWei = joArg.value * 1000 * 1000;
             continue;
         }
         if ( joArg.name == "shannon" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000;
             continue;
         }
         if ( joArg.name == "szabo" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000;
             continue;
         }
         if ( joArg.name == "finney" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000;
             continue;
         }
         if ( joArg.name == "ether" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000 * 1000;
             continue;
         }
         if ( joArg.name == "amount" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfToken = joArg.value;
             continue;
         }
         if ( joArg.name == "tid" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.idToken = joArg.value;
             continue;
         }
@@ -450,107 +407,107 @@ function parse( joExternalHandlers ) {
             continue;
         }
         if ( joArg.name == "load-node-config" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             load_node_config( joArg.value );
             continue;
         }
         if ( joArg.name == "m2s-transfer-block-size" ) {
-            verify_int_arg( joArg );
-            imaState.nTransferBlockSizeM2S = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nTransferBlockSizeM2S = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "s2m-transfer-block-size" ) {
-            verify_int_arg( joArg );
-            imaState.nTransferBlockSizeS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nTransferBlockSizeS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "transfer-block-size" ) {
-            verify_int_arg( joArg );
-            imaState.nTransferBlockSizeM2S = imaState.nTransferBlockSizeS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nTransferBlockSizeM2S = imaState.nTransferBlockSizeS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "m2s-max-transactions" ) {
-            verify_int_arg( joArg );
-            imaState.nMaxTransactionsM2S = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nMaxTransactionsM2S = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "s2m-max-transactions" ) {
-            verify_int_arg( joArg );
-            imaState.nMaxTransactionsS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nMaxTransactionsS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "max-transactions" ) {
-            verify_int_arg( joArg );
-            imaState.nMaxTransactionsM2S = imaState.nMaxTransactionsS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nMaxTransactionsM2S = imaState.nMaxTransactionsS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "m2s-await-blocks" ) {
-            verify_int_arg( joArg );
-            imaState.nBlockAwaitDepthM2S = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nBlockAwaitDepthM2S = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "s2m-await-blocks" ) {
-            verify_int_arg( joArg );
-            imaState.nBlockAwaitDepthS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nBlockAwaitDepthS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "await-blocks" ) {
-            verify_int_arg( joArg );
-            imaState.nBlockAwaitDepthM2S = imaState.nBlockAwaitDepthS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nBlockAwaitDepthM2S = imaState.nBlockAwaitDepthS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "m2s-await-time" ) {
-            verify_int_arg( joArg );
-            imaState.nBlockAgeM2S = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nBlockAgeM2S = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "s2m-await-time" ) {
-            verify_int_arg( joArg );
-            imaState.nBlockAgeS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nBlockAgeS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "await-time" ) {
-            verify_int_arg( joArg );
-            imaState.nBlockAgeM2S = imaState.nBlockAgeS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nBlockAgeM2S = imaState.nBlockAgeS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "period" ) {
-            verify_int_arg( joArg );
-            imaState.nLoopPeriodSeconds = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nLoopPeriodSeconds = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "node-number" ) {
-            verify_int_arg( joArg );
-            imaState.nNodeNumber = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nNodeNumber = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "nodes-count" ) {
-            verify_int_arg( joArg );
-            imaState.nNodesCount = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nNodesCount = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "time-framing" ) {
-            verify_int_arg( joArg );
-            imaState.nTimeFrameSeconds = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nTimeFrameSeconds = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "time-gap" ) {
-            verify_int_arg( joArg );
-            imaState.nNextFrameGap = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nNextFrameGap = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "log-size" ) {
-            verify_int_arg( joArg );
-            imaState.nLogMaxSizeBeforeRotation = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nLogMaxSizeBeforeRotation = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "log-files" ) {
-            verify_int_arg( joArg );
-            imaState.nLogMaxFilesCount = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nLogMaxFilesCount = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "log" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.strLogFilePath = "" + joArg.value;
             continue;
         }
@@ -989,10 +946,8 @@ module.exports = {
     "init": init,
     "print_about": print_about,
     "parse_command_line_argument": parse_command_line_argument,
-    "verify_arg_with_non_empty_value": verify_arg_with_non_empty_value,
-    "verify_url_arg": verify_url_arg,
-    "verify_int_arg": verify_int_arg,
-    "verify_bool_arg": verify_bool_arg,
+    "owaspUtils.verifyArgumentWithNonEmptyValue": owaspUtils.verifyArgumentWithNonEmptyValue,
+    "owaspUtils.verifyArgumentIsURL": owaspUtils.verifyArgumentIsURL,
     "verify_arg_path_to_existing_file": verify_arg_path_to_existing_file,
     "ensure_have_value": ensure_have_value,
     "find_node_index": find_node_index,

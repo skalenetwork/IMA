@@ -14,6 +14,8 @@ cc.enable( true );
 log.addStdout();
 //log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount );
 
+const owaspUtils = require( "../skale-owasp" );
+
 let g_mtaStrLongSeparator = "=======================================================================================================================";
 
 //
@@ -65,7 +67,7 @@ function verbose_parse( s ) {
     try {
         var isNumbersOnly = /^\d+$/.test( s );
         if ( isNumbersOnly ) {
-            n = parseInt( s );
+            n = owaspUtils.toInteger( s );
         } else {
             var ch0 = s[ 0 ].toLowerCase();
             for ( var key in VERBOSE ) {
@@ -1567,30 +1569,40 @@ async function do_transfer(
         nIncMsgCnt = 0,
         idxLastToPopNotIncluding = 0;
     try {
+        let nPossibleIntegerValue = 0;
         log.write( cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_src.options.address ) + "\n" );
         log.write( cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_dst.options.address ) + "\n" );
         strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        nOutMsgCnt = parseInt( await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( {
+        nPossibleIntegerValue = await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( {
             "from": joAccountSrc.address( w3_src )
-        } ) );
+        } );
+        if( ! owaspUtils.validateInteger( nPossibleIntegerValue ) )
+            throw new Error( "DST chain " + chain_id_dst + " returned outgoing message counter " + nPossibleIntegerValue + " which is not a valid integer" );
+        nOutMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
         if ( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( nOutMsgCnt ) + "\n" );
         //
         strActionName = "dst-chain.MessageProxy.getIncomingMessagesCounter()";
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        nIncMsgCnt = parseInt( await jo_message_proxy_dst.methods.getIncomingMessagesCounter( chain_id_src ).call( {
+        nPossibleIntegerValue = await jo_message_proxy_dst.methods.getIncomingMessagesCounter( chain_id_src ).call( {
             "from": joAccountDst.address( w3_dst )
-        } ) );
+        } );
+        if( ! owaspUtils.validateInteger( nPossibleIntegerValue ) )
+            throw new Error( "SRC chain " + chain_id_src + " returned incoming message counter " + nPossibleIntegerValue + " which is not a valid integer" );
+        nIncMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
         if ( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( nIncMsgCnt ) + "\n" );
         //
         strActionName = "src-chain.MessageProxy.getIncomingMessagesCounter()";
-        idxLastToPopNotIncluding = parseInt( await jo_message_proxy_src.methods.getIncomingMessagesCounter( chain_id_dst ).call( {
+        nPossibleIntegerValue = await jo_message_proxy_src.methods.getIncomingMessagesCounter( chain_id_dst ).call( {
             "from": joAccountSrc.address( w3_src )
-        } ) );
+        } );
+        if( ! owaspUtils.validateInteger( nPossibleIntegerValue ) )
+            throw new Error( "DST chain " + chain_id_dst + " returned incoming message counter " + nPossibleIntegerValue + " which is not a valid integer" );
+        idxLastToPopNotIncluding = owaspUtils.toInteger( nPossibleIntegerValue );
         if ( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( idxLastToPopNotIncluding ) + "\n" );
         //
@@ -1685,7 +1697,9 @@ async function do_transfer(
                         //
                         //
                         const joBlock = await w3_src.eth.getBlock( blockNumber );
-                        const timestampBlock = parseInt( joBlock.timestamp );
+                        if( ! owaspUtils.validateInteger( joBlock.timestamp ) )
+                            throw new Error( "Block \"timestamp\" is not a valid integer value: " + joBlock.timestamp );
+                        const timestampBlock = owaspUtils.toInteger( joBlock.timestamp );
                         if ( verbose_get() >= RV_VERBOSE.trace )
                             log.write( strLogPrefix + cc.debug( "Block   TS is " ) + cc.info( timestampBlock ) + "\n" );
                         const timestampCurrent = parseInt( parseInt( Date.now().valueOf() ) / 1000 );
@@ -1921,6 +1935,7 @@ module.exports.longSeparator = g_mtaStrLongSeparator;
 module.exports.noop = noop;
 module.exports.cc = cc;
 module.exports.log = log;
+module.exports.owaspUtils = owaspUtils;
 module.exports.w3mod = w3mod;
 module.exports.ethereumjs_tx = ethereumjs_tx;
 module.exports.ethereumjs_wallet = ethereumjs_wallet;

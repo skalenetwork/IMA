@@ -255,9 +255,9 @@ function preventCircularJson( source, censoredMessage, censorTheseItems ) {
 	censorTheseItems = censorTheseItems || [source];
 	//default if none is specified
 	censoredMessage = censoredMessage || "CIRCULAR_REFERENCE_REMOVED";
-	//values that have allready apeared will be placed here:
+	//values that have already appeared will be placed here:
 	let recursiveItems = {};
-	//initaite a censored clone to return back
+	//initialize a censored clone to return back
 	let ret = {};
 	//traverse the object:
 	for (let key in source) {
@@ -274,7 +274,7 @@ function preventCircularJson( source, censoredMessage, censorTheseItems ) {
 	let censorChildItems = [];
 	for (let key in recursiveItems) {
 		let value = source[key];
-		//all complex child objects should not apear again in children:
+		//all complex child objects should not appear again in children:
 		censorChildItems.push(value);
 	}
 	//censor all circular values
