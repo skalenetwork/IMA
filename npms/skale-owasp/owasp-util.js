@@ -175,32 +175,45 @@ function toBoolean( value ) {
 
 // see https://ethereum.stackexchange.com/questions/1374/how-can-i-check-if-an-ethereum-address-is-valid
 function validateEthAddress( value ) {
-    if( ethereumjs_util.isValidAddress( value ) )
-        return true;
+    try {
+        if( ethereumjs_util.isValidAddress( value ) )
+            return true;
+    } catch ( err ) {
+    }
     return false;
 }
 
 // see https://gist.github.com/miguelmota/20fcd7c5c2604907dcbba749ea3f1e8c
 function validateEthPrivateKey( value ) {
-    value = "" + ( value ? value.toString() : "" );
-    if( ethereumjs_util.isValidPrivate( value ) )
-        return true;
+    try {
+        value = "" + ( value ? value.toString() : "" );
+        const buffer = new Buffer( remove_starting_0x( privateKey ), "hex" );
+        if( ethereumjs_util.isValidPrivate( buffer ) )
+            return true;
+    } catch ( err ) {
+    }
     return false;
 }
 
 function toEthAddress( value, defValue ) {
-    value = "" + ( value ? value.toString() : "" );
-    defValue = defValue || "";
-    if( ! validateEthAddress( value ) )
-        return defValue;
+    try {
+        value = "" + ( value ? value.toString() : "" );
+        defValue = defValue || "";
+        if( ! validateEthAddress( value ) )
+            return defValue;
+    } catch ( err ) {
+    }
     return value;
 }
 
 function toEthPrivateKey( value, defValue ) {
-    value = "" + ( value ? value.toString() : "" );
-    defValue = defValue || "";
-    if( ! validateEthPrivateKey( value ) )
-        return defValue;
+    try {
+        value = "" + ( value ? value.toString() : "" );
+        defValue = defValue || "";
+        if( ! validateEthPrivateKey( value ) )
+            return defValue;
+    } catch ( err ) {
+    }
     return value;
 }
 
