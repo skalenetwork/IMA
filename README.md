@@ -532,11 +532,11 @@ Message signing will work only on `S-Chain` where each **skaled** node configure
 - provide **IMA** signing APIs and parameters
 
 Here is example of correct **config.json** file for **skaled** node:
-```json
+```text
     "skaleConfig": {
         "nodeInfo": {
-            "nodeName": "...", "nodeID": ...,
-            "bindIP": "..., "bindIP6": "...", "basePort": ..., "basePort6": ...,
+            "nodeName": "...", "nodeID": 1234,
+            "bindIP": "...", "bindIP6": "...", "basePort": ..., "basePort6": ...,
             "logLevel": "trace", "logLevelProposal": "trace",
             "emptyBlockIntervalMs": ..., "ipc": false, "ipcpath": "./ipcx", "db-path": "./node",
             "httpRpcPort": ..., "httpsRpcPort": ..., "wsRpcPort": ..., "wssRpcPort": ...,
@@ -545,13 +545,13 @@ Here is example of correct **config.json** file for **skaled** node:
             "web3-trace": true, "enable-debug-behavior-apis": false, "unsafe-transactions": false,
             "aa": "always", "web3-shutdown": false,
             "imaMainNet": "..",
-            "imaMessageProxySChain":  "0x...,
+            "imaMessageProxySChain":  "0x...",
             "imaMessageProxyMainNet": "0x...",
             "imaCallerAddressSChain": "0x...",
             "imaCallerAddressMainNet": "0x...",
             "wallets": {
                 "ima": {
-                    "url": ""...", "keyShareName": "...", "t": 2, "n": 2,
+                    "url": "...", "keyShareName": "...", "t": 2, "n": 2,
                     "insecureBLSPublicKey1": "...",
                     "insecureBLSPublicKey2": "...",
                     "insecureBLSPublicKey3": "...",
@@ -566,12 +566,12 @@ Here is example of correct **config.json** file for **skaled** node:
         "sChain": {
             "schainID": 1234, "schainName": "...",
             "nodes": [ {
-                "schainIndex": 1, "nodeID": ...,
+                "schainIndex": 1, "nodeID": 3344,
                 "ip": "...", "ip6": "...", "basePort": ..., "basePort6": ...,
                 "httpRpcPort": ..., "httpsRpcPort": ..., "wsRpcPort": ..., "wssRpcPort": ...,
                 "httpRpcPort6": ..., "httpsRpcPort6": ..., "wsRpcPort6": ..., "wssRpcPort6": ...
             }, {
-                "schainIndex": 1, "nodeID": ...,
+                "schainIndex": 1, "nodeID": 4455,
                 "ip": "...", "ip6": "...", "basePort": ..., "basePort6": ...,
                 "httpRpcPort": ..., "httpsRpcPort": ..., "wsRpcPort": ..., "wssRpcPort": ...,
                 "httpRpcPort6": ..., "httpsRpcPort6": ..., "wsRpcPort6": ..., "wssRpcPort6": ...
