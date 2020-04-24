@@ -27,17 +27,13 @@ let strHost = ( objURL.hostname && objURL.hostname.length > 0 ) ? ( "" + objURL.
 let strPort = objURL.port ? ( ":" + objURL.port ) : "";
 let strPath =  ( objURL.pathname && objURL.pathname.length > 0 ) ? ( "" + objURL.pathname ) : "";
 let strSearch = ( objURL.search && objURL.search.length > 0 ) ? ( "" + objURL.search ) : "";
-//cc.log( "username ", objURL.username );
-//cc.log( "password ", objURL.password );
 	if( objURL.username && objURL.username.length > 0 ) {
 		strUP += "" + objURL.username;
 		if( objURL.password && objURL.password.length > 0 )
 			strUP += ":" + objURL.password;
 		strUP += "@";
 	}
-//cc.log( "strUP ", strUP );
 let strURL = "" + strProtocol + strUP + strHost + strPort + strPath + strSearch;
-//cc.log( "composed ", strURL );
 	return strURL;
 }
 
@@ -45,8 +41,8 @@ function url_obj_colorized( objURL ) {
 	let strURL = "";
 	if( ! objURL )
 		return strURL;
-	//if( objURL.strStrippedStringComma )
-	//	strURL += module.exports.normal(objURL.strStrippedStringComma);
+	// if( objURL.strStrippedStringComma )
+	// 	strURL += module.exports.normal(objURL.strStrippedStringComma);
 	if( objURL.protocol )
 		strURL += "" + module.exports.yellow( objURL.protocol ) + module.exports.normal("//");
 	if( objURL.username) {
@@ -63,8 +59,8 @@ function url_obj_colorized( objURL ) {
 		strURL += "" + module.exports.yellow( replaceAll( objURL.pathname, "/", module.exports.normal( "/" ) ) );
 	if( objURL.search )
 		strURL += "" + module.exports.magenta( objURL.search );
-	//if( objURL.strStrippedStringComma )
-	//	strURL += module.exports.normal(objURL.strStrippedStringComma);
+	// if( objURL.strStrippedStringComma )
+	// 	strURL += module.exports.normal(objURL.strStrippedStringComma);
 	return strURL;
 }
 function url_str_colorized( s ) {
@@ -81,23 +77,13 @@ function url_colorized( x ) {
 
 
 function url2strWithoutCredentials( objURL ) {
-let strProtocol = ( objURL.protocol && objURL.protocol.length > 0 ) ? ( "" + objURL.protocol + "//" ) : "";
-let strUP = "";
-let strHost = ( objURL.hostname && objURL.hostname.length > 0 ) ? ( "" + objURL.hostname.toString() ) : "";
-let strPort = objURL.port ? ( ":" + objURL.port ) : "";
-let strPath =  ( objURL.pathname && objURL.pathname.length > 0 ) ? ( "" + objURL.pathname ) : "";
-let strSearch = ( objURL.search && objURL.search.length > 0 ) ? ( "" + objURL.search ) : "";
-//cc.log( "username ", objURL.username );
-//cc.log( "password ", objURL.password );
-	//if( objURL.username && objURL.username.length > 0 ) {
-	//	strUP += "" + objURL.username;
-	//	if( objURL.password && objURL.password.length > 0 )
-	//		strUP += ":" + objURL.password;
-	//	strUP += "@";
-	//}
-//cc.log( "strUP ", strUP );
-let strURL = "" + strProtocol + strUP + strHost + strPort + strPath + strSearch;
-//cc.log( "composed ", strURL );
+	let strProtocol = ( objURL.protocol && objURL.protocol.length > 0 ) ? ( "" + objURL.protocol + "//" ) : "";
+	let strUP = "";
+	let strHost = ( objURL.hostname && objURL.hostname.length > 0 ) ? ( "" + objURL.hostname.toString() ) : "";
+	let strPort = objURL.port ? ( ":" + objURL.port ) : "";
+	let strPath =  ( objURL.pathname && objURL.pathname.length > 0 ) ? ( "" + objURL.pathname ) : "";
+	let strSearch = ( objURL.search && objURL.search.length > 0 ) ? ( "" + objURL.search ) : "";
+	let strURL = "" + strProtocol + strUP + strHost + strPort + strPath + strSearch;
 	return strURL;
 }
 
@@ -175,10 +161,10 @@ let i, cnt = arguments.length, s = "";
 			s += "" + module.exports.number( arg.valueOf() );
 			continue;
 		}
-		/*if( isNaN( arg ) ) {
-			s += "" + module.exports.nanval( arg );
-			continue;
-		}*/
+		// if( isNaN( arg ) ) {
+		// 	s += "" + module.exports.nanval( arg );
+		// 	continue;
+		// }
 		if( typeof arg === "string" || arg instanceof String ) {
 			let objURL = safeURL( arg );
 			if( objURL != null && objURL != undefined ) {
@@ -216,14 +202,14 @@ let i, cnt = arguments.length, s = "";
 				s += "" + module.exports.strval( arg );
 				continue;
 			}
-			/*if( isFloat( arg ) ) {
-				s += "" + module.exports.real( arg );
-				continue;
-			}
-			if( isInt( arg ) ) {
-				s += "" + module.exports.number( arg );
-				continue;
-			}*/
+			// if( isFloat( arg ) ) {
+			// 	s += "" + module.exports.real( arg );
+			// 	continue;
+			// }
+			// if( isInt( arg ) ) {
+			// 	s += "" + module.exports.number( arg );
+			// 	continue;
+			// }
 			if( isFloat2( arg ) ) {
 				s += "" + module.exports.real( arg );
 				continue;
@@ -234,7 +220,7 @@ let i, cnt = arguments.length, s = "";
 			}
 		}
 		if( Array.isArray( arg ) || typeof arg == "object" ) {
-			//s += JSON.stringify(arg);
+			// s += JSON.stringify(arg);
 			s += jsonColorizer.prettyPrintConsole( arg );
 			continue;
 		}
@@ -243,41 +229,39 @@ let i, cnt = arguments.length, s = "";
 	return s;
 }
 
-/**
- * Traverses a javascript object, and deletes all circular values
- * @param source object to remove circular references from
- * @param censoredMessage optional: what to put instead of censored values
- * @param censorTheseItems should be kept null, used in recursion
- * @returns {undefined}
- */
+// Traverses a javascript object, and deletes all circular values
+// @param source object to remove circular references from
+// @param censoredMessage optional: what to put instead of censored values
+// @param censorTheseItems should be kept null, used in recursion
+// @returns {undefined}
 function preventCircularJson( source, censoredMessage, censorTheseItems ) {
-	//init recursive value if this is the first call
+	// init recursive value if this is the first call
 	censorTheseItems = censorTheseItems || [source];
-	//default if none is specified
+	// default if none is specified
 	censoredMessage = censoredMessage || "CIRCULAR_REFERENCE_REMOVED";
-	//values that have already appeared will be placed here:
+	// values that have already appeared will be placed here:
 	let recursiveItems = {};
-	//initialize a censored clone to return back
+	// initialize a censored clone to return back
 	let ret = {};
-	//traverse the object:
+	// traverse the object:
 	for (let key in source) {
 		let value = source[key]
 		if (typeof value == "object") {
-			//re-examine all complex children again later:
+			// re-examine all complex children again later:
 			recursiveItems[key] = value;
 		} else {
-			//simple values copied as is
+			// simple values copied as is
 			ret[key] = value;
 		}
 	}
-	//create list of values to censor:
+	// create list of values to censor:
 	let censorChildItems = [];
 	for (let key in recursiveItems) {
 		let value = source[key];
-		//all complex child objects should not appear again in children:
+		// all complex child objects should not appear again in children:
 		censorChildItems.push(value);
 	}
-	//censor all circular values
+	// censor all circular values
 	for (let key in recursiveItems) {
 		let value = source[key];
 		let censored = false;
@@ -287,10 +271,10 @@ function preventCircularJson( source, censoredMessage, censorTheseItems ) {
 			}
 		});
 		if (censored) {
-			//change circular values to this
+			// change circular values to this
 			value = censoredMessage;
 		} else {
-			//recursion:
+			// recursion:
 			value = preventCircularJson(value, censoredMessage, censorChildItems.concat(censorTheseItems));
 		}
 		ret[key] = value

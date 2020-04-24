@@ -139,17 +139,17 @@ function toURL( s ) {
 	}
 }
 
-function toBoolean( joArg ) {
+function toBoolean( value ) {
     let b = false;
     try {
-        if( typeof joArg.value == "string" ) {
-            let ch = joArg.value[ 0 ].toLowerCase();
+        if( typeof value == "string" ) {
+            let ch = value[ 0 ].toLowerCase();
             if ( ch == "y" || ch == "t" )
                 b = true
-            else if( validateInteger( joArg.value) )
-                b = toInteger( joArg.value ) ? true : false;
-            else if( validateFloat( joArg.value) )
-                b = toFloat( joArg.value ) ? true : false;
+            else if( validateInteger( value) )
+                b = toInteger( value ) ? true : false;
+            else if( validateFloat( value) )
+                b = toFloat( value ) ? true : false;
             else
                 b = !!b;
         } else
@@ -157,7 +157,7 @@ function toBoolean( joArg ) {
     } catch ( err ) {
         b = false;
     }
-    joArg.value = b ? true : false;
+    b = b ? true : false;
     return b;
 }
 

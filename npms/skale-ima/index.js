@@ -12,13 +12,12 @@ const log = require( "../skale-log/log.js" );
 const cc = log.cc;
 cc.enable( true );
 log.addStdout();
-//log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount );
+// log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ); // example: log output to file
 
 const owaspUtils = require( "../skale-owasp/owasp-util.js" );
 
 let g_mtaStrLongSeparator = "=======================================================================================================================";
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -29,10 +28,8 @@ const VERBOSE = {
     2: "fatal",
     3: "error",
     4: "warning",
-    //4: "warn", // alias
     5: "attention",
     6: "information",
-    //6: "info", // alias
     7: "notice",
     8: "debug",
     9: "trace"
@@ -45,21 +42,18 @@ const RV_VERBOSE = function() {
         let name = VERBOSE[ key ];
         m[ name ] = key;
     }
-    //
-    // aliases
-    m["warn"] = m["warning"];
-    m["info"] = m["information"];
-    //
+    m["warn"] = m["warning"];     // alias
+    m["info"] = m["information"]; // alias
     return m;
 }();
-let verboseLevel = RV_VERBOSE[ "error" ];
+
+let g_verboseLevel = RV_VERBOSE[ "error" ];
 
 function verbose_get() {
-    return verboseLevel;
+    return g_verboseLevel;
 }
-
 function verbose_set( x ) {
-    verboseLevel = x;
+    g_verboseLevel = x;
 }
 
 function verbose_parse( s ) {
@@ -87,7 +81,7 @@ function verbose_parse( s ) {
 
 function verbose_list() {
     for ( let key in VERBOSE ) {
-        if ( !VERBOSE.hasOwnProperty( key ) )
+        if ( ! VERBOSE.hasOwnProperty( key ) )
             continue; // skip loop if the property is from prototype
         let name = VERBOSE[ key ];
         console.log( "    " + cc.info( key ) + cc.sunny( "=" ) + cc.bright( name ) );
@@ -115,14 +109,11 @@ async function get_contract_call_events( joContract, strEventName, nBlockNumber,
     return joAllTransactionEvents;
 }
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
 
 async function safe_send_signed_transaction( w3, serializedTx, strActionName, strLogPrefix ) {
     let strTX = "0x" + serializedTx.toString( "hex" ); // strTX is string starting from "0x"
-    //let joReceipt = await w3.eth.sendSignedTransaction( strTX );
     let joReceipt = null;
     let bHaveReceipt = false;
     try {
@@ -144,7 +135,6 @@ async function safe_send_signed_transaction( w3, serializedTx, strActionName, st
     return joReceipt;
 }
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -243,7 +233,6 @@ async function register_s_chain_on_main_net( // step 1A
 } // async function register_s_chain(...
 
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -346,7 +335,6 @@ async function register_main_net_on_s_chain( // step 1B
 // register direction for money transfer
 // main-net.DepositBox call: function addSchain(uint64 schainID, address tokenManagerAddress)
 //
-
 async function check_is_registered_s_chain_in_deposit_box( // step 2
     w3_main_net,
     jo_lock_and_data_main_net,
@@ -469,7 +457,7 @@ async function check_is_registered_main_net_depositBox_on_s_chain( // step 3
 
 async function register_main_net_depositBox_on_s_chain( // step 3
     w3_s_chain,
-    //jo_token_manager,
+    // excluded here: jo_token_manager,
     jo_deposit_box_main_net,
     jo_lock_and_data_s_chain,
     joAccount,
@@ -493,7 +481,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
-    let dataTx = jo_lock_and_data_s_chain.methods.addDepositBox(
+        let dataTx = jo_lock_and_data_s_chain.methods.addDepositBox(
             jo_deposit_box_main_net.options.address // call params
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
@@ -511,7 +499,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
         tx.sign( key ); // arg is privateKey as buffer
         let serializedTx = tx.serialize();
         strActionName = "reg-step3:w3_s_chain.eth.sendSignedTransaction()";
-        //let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
@@ -523,7 +511,6 @@ async function register_main_net_depositBox_on_s_chain( // step 3
     return true;
 }
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -643,7 +630,6 @@ async function do_eth_payment_from_main_net(
     return true;
 } // async function do_eth_payment_from_main_net(...
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -699,7 +685,7 @@ async function do_eth_payment_from_s_chain(
         tx.sign( key ); // arg is privateKey as buffer
         let serializedTx = tx.serialize();
         strActionName = "w3_s_chain.eth.sendSignedTransaction()";
-        //let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
@@ -724,8 +710,6 @@ async function do_eth_payment_from_s_chain(
     return true;
 } // async function do_eth_payment_from_s_chain(...
 
-
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -777,10 +761,9 @@ async function receive_eth_payment_from_s_chain_on_main_net(
     return true;
 }
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+
 async function view_eth_payment_from_s_chain_on_main_net(
     w3_main_net,
     joAccount_main_net,
@@ -813,10 +796,9 @@ async function view_eth_payment_from_s_chain_on_main_net(
     }
 }
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+
 async function do_erc721_payment_from_main_net(
     w3_main_net,
     w3_s_chain,
@@ -1056,7 +1038,6 @@ async function do_erc20_payment_from_main_net(
             ).encodeABI();
         }
         //
-        //
         // create raw transactions
         //
         strActionName = "create raw transactions M->S";
@@ -1079,7 +1060,6 @@ async function do_erc20_payment_from_main_net(
             "gasPrice": 0,
             "gas": 8000000
         }
-        //
         //
         // sign transactions
         //
@@ -1171,10 +1151,9 @@ async function do_erc20_payment_from_main_net(
     return true;
 } // async function do_erc20_payment_from_main_net(...
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+
 async function do_erc20_payment_from_s_chain(
     w3_main_net,
     w3_s_chain,
@@ -1209,7 +1188,9 @@ async function do_erc20_payment_from_s_chain(
         const erc20Address_s_chain = joErc20_s_chain[ strCoinNameErc20_s_chain + "_address" ];
         let tokenManagerAddress = jo_token_manager.options.address;
         let contractERC20 = new w3_s_chain.eth.Contract( erc20ABI, erc20Address_s_chain );
-        //prepare the smart contract function deposit(string schainID, address to)
+        //
+        // prepare the smart contract function deposit(string schainID, address to)
+        //
         let depositBoxAddress = jo_deposit_box.options.address;
         let approve =
             contractERC20.methods.approve(
@@ -1234,9 +1215,7 @@ async function do_erc20_payment_from_s_chain(
             ).encodeABI();
         }
         //
-        //
         // create raw transactions
-        //
         //
         strActionName = "create raw transactions S->M";
         const rawTxApprove = {
@@ -1259,9 +1238,7 @@ async function do_erc20_payment_from_s_chain(
             "gas": 8000000
         }
         //
-        //
         // sign transactions
-        //
         //
         strActionName = "sign transactions S->M";
         let privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
@@ -1272,7 +1249,6 @@ async function do_erc20_payment_from_s_chain(
         const serializedTxApprove = txApprove.serialize();
         const serializedTxDeposit = txDeposit.serialize();
         //
-        //
         // send transactions
         //
         strActionName = "w3_s_chain.eth.sendSignedTransaction()/Approve";
@@ -1281,7 +1257,7 @@ async function do_erc20_payment_from_s_chain(
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
         strActionName = "w3_s_chain.eth.sendSignedTransaction()/Deposit";
-        //let joReceiptDeposit = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        // let joReceiptDeposit = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
         let joReceiptDeposit = await safe_send_signed_transaction( w3_s_chain, serializedTxDeposit, strActionName, strLogPrefix );
         let joReceipt = joReceiptDeposit;
         if ( verbose_get() >= RV_VERBOSE.information )
@@ -1307,10 +1283,9 @@ async function do_erc20_payment_from_s_chain(
     return true;
 } // async function do_erc20_payment_from_s_chain(...
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+
 async function do_erc721_payment_from_s_chain(
     w3_main_net,
     w3_s_chain,
@@ -1370,9 +1345,7 @@ async function do_erc721_payment_from_s_chain(
             ).encodeABI();
         }
         //
-        //
         // create raw transactions
-        //
         //
         strActionName = "create raw transactions S->M";
         const rawTxApprove = {
@@ -1395,9 +1368,7 @@ async function do_erc721_payment_from_s_chain(
             "gas": 8000000
         }
         //
-        //
         // sign transactions
-        //
         //
         strActionName = "sign transactions S->M";
         let privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
@@ -1407,7 +1378,6 @@ async function do_erc721_payment_from_s_chain(
         txDeposit.sign( privateKeyForSchain );
         const serializedTxApprove = txApprove.serialize();
         const serializedTxDeposit = txDeposit.serialize();
-        //
         //
         // send transactions
         //
@@ -1445,8 +1415,6 @@ async function do_erc721_payment_from_s_chain(
     return true;
 } // async function do_erc721_payment_from_s_chain(...
 
-
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1467,14 +1435,13 @@ async function do_erc721_payment_from_s_chain(
 //            )
 //
 async function do_transfer(
-    /**/
     w3_src,
     jo_message_proxy_src,
     joAccountSrc,
     //
     w3_dst,
     jo_message_proxy_dst,
-    /**/
+    //
     joAccountDst,
     //
     chain_id_src,
@@ -1555,8 +1522,8 @@ async function do_transfer(
         if ( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( idxLastToPopNotIncluding ) + "\n" );
         //
+        // outer loop is block former/creator, then transfer
         //
-        // outer loop is block former, then transfer
         nIdxCurrentMsg = nIncMsgCnt;
         let cntProcessed = 0;
         while ( nIdxCurrentMsg < nOutMsgCnt ) {
@@ -1566,8 +1533,8 @@ async function do_transfer(
             const messages = [];
             let nIdxCurrentMsgBlockStart = 0 + nIdxCurrentMsg;
             //
-            //
             // inner loop wil create block of transactions
+            //
             let cntAccumulatedForBlock = 0;
             for ( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++nIdxCurrentMsg, ++idxInBlock, ++cntAccumulatedForBlock ) {
                 let idxProcessing = cntProcessed + idxInBlock;
@@ -1806,7 +1773,9 @@ async function do_transfer(
                 //
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.debug("Validating transfer from ") + cc.info(chain_id_src) + cc.debug(" to ") + cc.info(chain_id_dst) + cc.debug("...") + "\n" );
-// check DepositBox -> Error on Mainnet only
+                //
+                // check DepositBox -> Error on Mainnet only
+                //
                 if( chain_id_dst == "Mainnet" ) {
                     if ( verbose_get() >= RV_VERBOSE.information )
                         log.write( strLogPrefix + cc.debug("Validating transfer to Main Net via DepositBox error absence on Main Net...") + "\n" );
@@ -1826,10 +1795,10 @@ async function do_transfer(
                     } else
                         log.write( strLogPrefix + cc.console.warn("Cannot validate transfer to Main Net via DepositBox error absence on Main Net, no DepositBox provided") + "\n" );
                 } // if( chain_id_dst == "Mainnet" )
-                //
-                //
-// check TokenManager -> Error on Schain only
                 /*
+                //
+                // check TokenManager -> Error on Schain only
+                //
                 if( chain_id_dst != "Mainnet" ) {
                     if ( verbose_get() >= RV_VERBOSE.information )
                         log.write( strLogPrefix + cc.debug("Validating transfer to S-Chain via TokenManager error absence on S-Chain...") + "\n" );
@@ -1855,10 +1824,6 @@ async function do_transfer(
                 //
                 //
                 //
-                //
-                //
-                //
-                //
             } );
             if( bErrorInSigningMessages )
                 break;
@@ -1871,7 +1836,6 @@ async function do_transfer(
     return true;
 } // async function do_transfer( ...
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //

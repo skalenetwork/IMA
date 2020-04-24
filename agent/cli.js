@@ -157,9 +157,9 @@ function parse( joExternalHandlers ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "erc20-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "............" ) + cc.notice( "Path to JSON file containing ERC20 ABI of " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "addr-erc20-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) + cc.debug( "...." ) + cc.notice( "Explicit ERC20 address in " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
             console.log( cc.sunny( "USER ACCOUNT" ) + cc.info( " options:" ) );
-            /**/
+            //
             console.log( soi + cc.debug( "--" ) + cc.bright( "address-main-net" ) + cc.sunny( "=" ) + cc.warning( "value" ) + cc.debug( "........" ) + cc.notice( "Main-net user account address." ) );
-            /**/
+            //
             console.log( soi + cc.debug( "--" ) + cc.bright( "address-s-chain" ) + cc.sunny( "=" ) + cc.warning( "value" ) + cc.debug( "........." ) + cc.notice( "S-chain user account address." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "key-main-net" ) + cc.sunny( "=" ) + cc.error( "value" ) + cc.debug( "............" ) + cc.notice( "Private key for " ) + cc.note( "main-net user" ) + cc.notice( " account address." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "key-s-chain" ) + cc.sunny( "=" ) + cc.error( "value" ) + cc.debug( "............." ) + cc.notice( "Private key for " ) + cc.note( "S-Chain" ) + cc.notice( " user account address." ) );
@@ -269,13 +269,11 @@ function parse( joExternalHandlers ) {
             imaState.cid_main_net = owaspUtils.toInteger( joArg.value );
             continue;
         }
-        /**/
         if ( joArg.name == "address-main-net" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_main_net.address_ = joArg.value;
             continue;
         }
-        /**/
         if ( joArg.name == "address-s-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_s_chain.address_ = joArg.value;
@@ -798,7 +796,6 @@ function ima_common_init() {
     //
     //
     //
-
 
     if ( IMA.verbose_get() > IMA.RV_VERBOSE.information || imaState.bShowConfigMode ) {
         print_about( true );
