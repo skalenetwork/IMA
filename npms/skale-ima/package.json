@@ -29,8 +29,7 @@
         "log.js"
     ],
     "main": "index.js",
-    "scripts": {
-    },
+    "scripts": {},
     "dependencies": {
         "colors": "1.4.0",
         "ethereumjs-tx": "^2.1.2",
@@ -38,8 +37,7 @@
         "ethereumjs-wallet": "^0.6.3",
         "web3": "1.0.0-beta.37"
     },
-    "devDependencies": {
-    },
+    "devDependencies": {},
     "engines": {
         "node": ">= 8.0"
     }

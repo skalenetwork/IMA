@@ -10,9 +10,12 @@ let imaUtils = null;
 let log = null;
 let cc = null;
 let rpcCall = null;
+let owaspUtils = null;
 let w3mod = null;
 
-function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc, a_rpcCall ) {
+function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc, a_rpcCall, a_owaspUtils ) {
+    if ( !( anIMA && an_imaState && an_imaUtils && a_log && a_cc && a_rpcCall && a_owaspUtils ) )
+        throw new Error( "CLI module initializer was invoked with bad parameters: " + JSON.stringify( arguments ) );
     IMA = anIMA;
     w3mod = IMA.w3mod;
     imaState = an_imaState;
@@ -20,13 +23,14 @@ function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc, a_rpcCall ) {
     log = a_log;
     cc = a_cc;
     rpcCall = a_rpcCall;
+    owaspUtils = a_owaspUtils;
 }
 
 let g_strAppName = "SKALE Money Transfer Agent";
 let g_strVersion = "1.0";
 
 function print_about( isLog ) {
-    var isLog = isLog || false,
+    isLog = isLog || false,
         strMsg = cc.info( g_strAppName ) + cc.debug( " version " ) + cc.info( g_strVersion );
     if ( isLog )
         log.write( strMsg + "\n" );
@@ -35,7 +39,7 @@ function print_about( isLog ) {
 }
 
 function parse_command_line_argument( s ) {
-    var joArg = {
+    let joArg = {
         "name": "",
         "value": ""
     };
@@ -45,7 +49,7 @@ function parse_command_line_argument( s ) {
         s = "" + s;
         while ( s.length > 0 && s[ 0 ] == "-" )
             s = s.substring( 1 );
-        var n = s.indexOf( "=" );
+            let n = s.indexOf( "=" );
         if ( n < 0 ) {
             joArg.name = s;
             return joArg;
@@ -56,64 +60,9 @@ function parse_command_line_argument( s ) {
     return joArg;
 }
 
-function verify_arg_with_non_empty_value( joArg ) {
-    if ( ( !joArg.value ) || joArg.value.length == 0 ) {
-        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " value of command line argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
-        process.exit( 666 );
-    }
-}
-
-function verify_url_arg( joArg ) {
-    try {
-        verify_arg_with_non_empty_value( joArg );
-        var s = joArg.value;
-        var u = url.parse( joArg.value );
-        if ( !u.hostname )
-            process.exit( 666 );
-        if ( !u.hostname.length )
-            process.exit( 666 );
-    } catch ( e ) {
-        process.exit( 666 );
-    }
-}
-
-function verify_int_arg( joArg ) {
-    try {
-        verify_arg_with_non_empty_value( joArg );
-        joArg.value = parseInt( joArg.value );
-    } catch ( e ) {
-        process.exit( 666 );
-    }
-}
-
-function verify_bool_arg( joArg ) {
-    var b = false;
-    try {
-        var ch = joArg.value[ 0 ].toLowerCase();
-        if ( ch == "y" || ch == "t" )
-            b = true
-        else
-            b = parseInt( joArg.value ) ? true : false;
-    } catch ( e ) {}
-    joArg.value = b ? true : false;
-    return b;
-}
-
-function verify_arg_path_to_existing_file( strPath ) {
-    try {
-        stats = fs.lstatSync( strPath );
-        if ( stats.isDirectory() )
-            return false;
-        if ( !stats.isFile() )
-            return false;
-        return true;
-    } catch ( e ) {}
-    return false;
-}
-
 //
 //
-// validate command line arguments
+// check correctness of command line arguments
 function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColorizer, fnValueColorizer ) {
     isExitIfEmpty = isExitIfEmpty || false;
     isPrintValue = isPrintValue || false;
@@ -123,7 +72,7 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
     fnValueColorizer = fnValueColorizer || ( ( x ) => {
         return cc.notice( x );
     } );
-    var retVal = true;
+    let retVal = true;
     value = value.toString();
     if ( value.length == 0 ) {
         retVal = false;
@@ -131,7 +80,7 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
         if ( isExitIfEmpty )
             process.exit( 666 );
     }
-    var strDots = "...",
+    let strDots = "...",
         n = 50 - name.length;
     for ( ; n > 0; --n )
         strDots += ".";
@@ -141,10 +90,10 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
 
 function find_node_index( joSChainNodeConfiguration ) {
     try {
-        var searchID = joSChainNodeConfiguration.skaleConfig.nodeInfo.nodeID;
-        var cnt = joSChainNodeConfiguration.skaleConfig.sChain.nodes.length;
-        for ( var i = 0; i < cnt; ++i ) {
-            var joNodeDescription = joSChainNodeConfiguration.skaleConfig.sChain.nodes[ i ];
+        let searchID = joSChainNodeConfiguration.skaleConfig.nodeInfo.nodeID;
+        let cnt = joSChainNodeConfiguration.skaleConfig.sChain.nodes.length;
+        for ( let i = 0; i < cnt; ++i ) {
+            let joNodeDescription = joSChainNodeConfiguration.skaleConfig.sChain.nodes[ i ];
             if ( joNodeDescription.nodeID == searchID )
                 return i;
         }
@@ -159,8 +108,8 @@ function load_node_config( strPath ) {
         //
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "Loading values from S-Chain configuration JSON file " ) + cc.note( strPath ) + cc.debug( "..." ) + "\n" );
-        var strJsonSChainNodeConfiguration = fs.readFileSync( strPath, "utf8" );
-        var joSChainNodeConfiguration = JSON.parse( strJsonSChainNodeConfiguration );
+        let strJsonSChainNodeConfiguration = fs.readFileSync( strPath, "utf8" );
+        let joSChainNodeConfiguration = JSON.parse( strJsonSChainNodeConfiguration );
         if ( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "S-Chain configuration JSON: " ) + cc.j( joSChainNodeConfiguration ) + "\n" );
         //
@@ -182,20 +131,20 @@ function load_node_config( strPath ) {
 function parse( joExternalHandlers ) {
     let idxArg, cntArgs = process.argv.length;
     for ( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
-        var joArg = parse_command_line_argument( process.argv[ idxArg ] );
+        let joArg = parse_command_line_argument( process.argv[ idxArg ] );
         if ( joArg.name == "help" ) {
             print_about();
-            var soi = "    "; // options indent
+            let soi = "    "; // options indent
             console.log( cc.sunny( "GENERAL" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "help" ) + cc.debug( ".........................." ) + cc.notice( "Show this " ) + cc.note( "help info" ) + cc.notice( " and exit." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "version" ) + cc.debug( "......................." ) + cc.notice( "Show " ) + cc.note( "version info" ) + cc.notice( " and exit." ) );
             console.log( cc.sunny( "BLOCKCHAIN NETWORK" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( ".............." ) + cc.note( "Main-net URL" ) + cc.notice( " for Web3." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "..............." ) + cc.note( "S-chain URL" ) + cc.notice( " for Web3." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "id-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "id-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............." ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "cid-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "..........." ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "chain ID." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "cid-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "chain ID." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( ".............." ) + cc.note( "Main-net URL" ) + cc.notice( " for Web3. Value is automatically loaded from the " ) + cc.warning ("URL_W3_MAIN_NET" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "..............." ) + cc.note( "S-chain URL" ) + cc.notice( " for Web3. Value is automatically loaded from the " ) + cc.warning ("URL_W3_S_CHAIN" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "id-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning ("CHAIN_NAME_MAINNET" ) + cc.notice( " environment variable if not specified. Default value is " ) + cc.sunny( "\"Mainnet\"" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "id-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............." ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning ("CHAIN_NAME_SCHAIN" ) + cc.notice( " environment variable if not specified. Default value is " ) + cc.sunny( "\"id-S-chain\"" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "cid-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "..........." ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "chain ID" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning ("CID_MAINNET" ) + cc.notice( " environment variable if not specified. Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "cid-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "chain ID" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning ("CID_SCHAIN" ) + cc.notice( " environment variable if not specified. Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
             console.log( cc.sunny( "BLOCKCHAIN INTERFACE" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "abi-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "............." ) + cc.notice( "Path to JSON file containing IMA ABI of " ) + cc.note( "Main-net" ) + cc.notice( " for Web3." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "abi-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( ".............." ) + cc.notice( "Path to JSON file containing IMA ABI of " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
@@ -208,12 +157,13 @@ function parse( joExternalHandlers ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "erc20-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "............" ) + cc.notice( "Path to JSON file containing ERC20 ABI of " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "addr-erc20-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) + cc.debug( "...." ) + cc.notice( "Explicit ERC20 address in " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
             console.log( cc.sunny( "USER ACCOUNT" ) + cc.info( " options:" ) );
-            /**/
-            console.log( soi + cc.debug( "--" ) + cc.bright( "address-main-net" ) + cc.sunny( "=" ) + cc.warn( "value" ) + cc.debug( "........" ) + cc.notice( "Main-net user account address." ) );
-            /**/
-            console.log( soi + cc.debug( "--" ) + cc.bright( "address-s-chain" ) + cc.sunny( "=" ) + cc.warn( "value" ) + cc.debug( "........." ) + cc.notice( "S-chain user account address." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "key-main-net" ) + cc.sunny( "=" ) + cc.error( "value" ) + cc.debug( "............" ) + cc.notice( "Private key for " ) + cc.note( "main-net user" ) + cc.notice( " account address." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "key-s-chain" ) + cc.sunny( "=" ) + cc.error( "value" ) + cc.debug( "............." ) + cc.notice( "Private key for " ) + cc.note( "S-Chain" ) + cc.notice( " user account address." ) );
+            //
+            console.log( soi + cc.debug( "--" ) + cc.bright( "address-main-net" ) + cc.sunny( "=" ) + cc.warning( "value" ) + cc.debug( "........" ) + cc.notice( "Main-net user account address. Value is automatically loaded from the " ) + cc.warning ("ACCOUNT_FOR_MAINNET" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "address-s-chain" ) + cc.sunny( "=" ) + cc.warning( "value" ) + cc.debug( "........." ) + cc.notice( "S-chain user account address. Value is automatically loaded from the " ) + cc.warning ("ACCOUNT_FOR_SCHAIN" ) + cc.notice( " environment variable if not specified." ) );
+            //
+            console.log( soi + cc.debug( "--" ) + cc.bright( "key-main-net" ) + cc.sunny( "=" ) + cc.error( "value" ) + cc.debug( "............" ) + cc.notice( "Private key for " ) + cc.note( "main-net user" ) + cc.notice( " account address. Value is automatically loaded from the " ) + cc.warning ("INSECURE_PRIVATE_KEY_FOR_MAINNET" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "key-s-chain" ) + cc.sunny( "=" ) + cc.error( "value" ) + cc.debug( "............." ) + cc.notice( "Private key for " ) + cc.note( "S-Chain" ) + cc.notice( " user account address. Value is automatically loaded from the " ) + cc.warning ("INSECURE_PRIVATE_KEY_FOR_SCHAIN" ) + cc.notice( " environment variable if not specified." ) );
+            //
             console.log( soi + cc.debug( "--" ) + cc.bright( "wei" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "...................." ) + cc.notice( "Amount of " ) + cc.attention( "wei" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "babbage" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "................" ) + cc.notice( "Amount of " ) + cc.attention( "babbage" ) + cc.info( "(wei*1000)" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "lovelace" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "..............." ) + cc.notice( "Amount of " ) + cc.attention( "lovelace" ) + cc.info( "(wei*1000*1000)" ) + cc.notice( " to transfer." ) );
@@ -222,9 +172,9 @@ function parse( joExternalHandlers ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "finney" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "................." ) + cc.notice( "Amount of " ) + cc.attention( "finney" ) + cc.info( "(wei*1000*1000*1000*1000*1000)" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "ether" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( ".................." ) + cc.notice( "Amount of " ) + cc.attention( "ether" ) + cc.info( "(wei*1000*1000*1000*1000*1000*1000)" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "amount" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "................." ) + cc.notice( "Amount of " ) + cc.attention( "tokens" ) + cc.notice( " to transfer." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "tid" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "...................." ) + cc.attention( "ERC721" ) + cc.notice( "token id" ) + cc.notice( " to transfer." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "raw-transfer" ) + cc.debug( ".................." ) + cc.notice( "Perform raw ERC20/ERC721 token transfer to pre-deployed contract on S-Chain(do not instantiate new contract)." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "no-raw-transfer" ) + cc.debug( "..............." ) + cc.notice( "Perform ERC20/ERC721 token transfer to auto instantiated contract on S-Chain." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "tid" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "...................." ) + cc.attention( "ERC721" ) + cc.notice( " token id to transfer." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "raw-transfer" ) + cc.debug( ".................." ) + cc.notice( "Perform " ) + cc.error( "raw" ) + cc.notice( " " ) + cc.attention( "ERC20" ) + cc.notice( "/" ) + cc.attention( "ERC721" ) + cc.notice( " token transfer to pre-deployed contract on S-Chain(do not instantiate new contract)." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-raw-transfer" ) + cc.debug( "..............." ) + cc.notice( "Perform " ) + cc.attention( "ERC20" ) + cc.notice( "/" ) + cc.attention( "ERC721" ) + cc.notice( " token transfer to auto instantiated contract on S-Chain." ) );
             console.log( cc.sunny( "REGISTRATION" ) + cc.info( " commands:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "register" ) + cc.debug( "......................" ) + cc.note( "Register" ) + cc.notice( "(perform all steps)" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "register1" ) + cc.debug( "....................." ) + cc.note( "Perform registration step 1" ) + cc.notice( " - register S-Chain on Main-net." ) );
@@ -291,145 +241,143 @@ function parse( joExternalHandlers ) {
             return 0;
         }
         if ( joArg.name == "url-main-net" ) {
-            verify_url_arg( joArg );
+            owaspUtils.verifyArgumentIsURL( joArg );
             imaState.strURL_main_net = joArg.value;
             continue;
         }
         if ( joArg.name == "url-s-chain" ) {
-            verify_url_arg( joArg );
+            owaspUtils.verifyArgumentIsURL( joArg );
             imaState.strURL_s_chain = joArg.value;
             continue;
         }
         if ( joArg.name == "id-s-chain" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.strChainID_s_chain = joArg.value;
             continue;
         }
         if ( joArg.name == "id-main-net" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.strChainID_main_net = joArg.value;
             continue;
         }
         if ( joArg.name == "cid-s-chain" ) {
-            verify_int_arg( joArg );
-            imaState.cid_s_chain = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.cid_s_chain = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "cid-main-net" ) {
-            verify_int_arg( joArg );
-            imaState.cid_main_net = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.cid_main_net = owaspUtils.toInteger( joArg.value );
             continue;
         }
-        /**/
         if ( joArg.name == "address-main-net" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_main_net.address_ = joArg.value;
             continue;
         }
-        /**/
         if ( joArg.name == "address-s-chain" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_s_chain.address_ = joArg.value;
             continue;
         }
         if ( joArg.name == "abi-main-net" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathAbiJson_main_net = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if ( joArg.name == "abi-s-chain" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathAbiJson_s_chain = imaUtils.normalizePath( joArg.value );
             continue;
         }
         //
         //
         if ( joArg.name == "erc721-main-net" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathJsonErc721_main_net = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if ( joArg.name == "erc721-s-chain" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathJsonErc721_s_chain = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if ( joArg.name == "addr-erc721-s-chain" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.strAddrErc721_explicit = joArg.value;
             continue;
         }
         //
         //
         if ( joArg.name == "erc20-main-net" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathJsonErc20_main_net = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if ( joArg.name == "erc20-s-chain" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathJsonErc20_s_chain = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if ( joArg.name == "addr-erc20-s-chain" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.strAddrErc20_explicit = joArg.value;
             continue;
         }
         //
         //
         if ( joArg.name == "key-main-net" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_main_net.privateKey = joArg.value;
             continue;
         }
         if ( joArg.name == "key-s-chain" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_s_chain.privateKey = joArg.value;
             continue;
         }
         if ( joArg.name == "wei" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfWei = joArg.value;
             continue;
         }
         if ( joArg.name == "babbage" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfWei = joArg.value * 1000;
             continue;
         }
         if ( joArg.name == "lovelace" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfWei = joArg.value * 1000 * 1000;
             continue;
         }
         if ( joArg.name == "shannon" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000;
             continue;
         }
         if ( joArg.name == "szabo" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000;
             continue;
         }
         if ( joArg.name == "finney" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000;
             continue;
         }
         if ( joArg.name == "ether" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000 * 1000;
             continue;
         }
         if ( joArg.name == "amount" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nAmountOfToken = joArg.value;
             continue;
         }
         if ( joArg.name == "tid" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.idToken = joArg.value;
             continue;
         }
@@ -446,107 +394,107 @@ function parse( joExternalHandlers ) {
             continue;
         }
         if ( joArg.name == "load-node-config" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             load_node_config( joArg.value );
             continue;
         }
         if ( joArg.name == "m2s-transfer-block-size" ) {
-            verify_int_arg( joArg );
-            imaState.nTransferBlockSizeM2S = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nTransferBlockSizeM2S = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "s2m-transfer-block-size" ) {
-            verify_int_arg( joArg );
-            imaState.nTransferBlockSizeS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nTransferBlockSizeS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "transfer-block-size" ) {
-            verify_int_arg( joArg );
-            imaState.nTransferBlockSizeM2S = imaState.nTransferBlockSizeS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nTransferBlockSizeM2S = imaState.nTransferBlockSizeS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "m2s-max-transactions" ) {
-            verify_int_arg( joArg );
-            imaState.nMaxTransactionsM2S = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nMaxTransactionsM2S = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "s2m-max-transactions" ) {
-            verify_int_arg( joArg );
-            imaState.nMaxTransactionsS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nMaxTransactionsS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "max-transactions" ) {
-            verify_int_arg( joArg );
-            imaState.nMaxTransactionsM2S = imaState.nMaxTransactionsS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nMaxTransactionsM2S = imaState.nMaxTransactionsS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "m2s-await-blocks" ) {
-            verify_int_arg( joArg );
-            imaState.nBlockAwaitDepthM2S = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nBlockAwaitDepthM2S = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "s2m-await-blocks" ) {
-            verify_int_arg( joArg );
-            imaState.nBlockAwaitDepthS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nBlockAwaitDepthS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "await-blocks" ) {
-            verify_int_arg( joArg );
-            imaState.nBlockAwaitDepthM2S = imaState.nBlockAwaitDepthS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nBlockAwaitDepthM2S = imaState.nBlockAwaitDepthS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "m2s-await-time" ) {
-            verify_int_arg( joArg );
-            imaState.nBlockAgeM2S = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nBlockAgeM2S = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "s2m-await-time" ) {
-            verify_int_arg( joArg );
-            imaState.nBlockAgeS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nBlockAgeS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "await-time" ) {
-            verify_int_arg( joArg );
-            imaState.nBlockAgeM2S = imaState.nBlockAgeS2M = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nBlockAgeM2S = imaState.nBlockAgeS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "period" ) {
-            verify_int_arg( joArg );
-            imaState.nLoopPeriodSeconds = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nLoopPeriodSeconds = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "node-number" ) {
-            verify_int_arg( joArg );
-            imaState.nNodeNumber = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nNodeNumber = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "nodes-count" ) {
-            verify_int_arg( joArg );
-            imaState.nNodesCount = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nNodesCount = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "time-framing" ) {
-            verify_int_arg( joArg );
-            imaState.nTimeFrameSeconds = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nTimeFrameSeconds = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "time-gap" ) {
-            verify_int_arg( joArg );
-            imaState.nNextFrameGap = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nNextFrameGap = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "log-size" ) {
-            verify_int_arg( joArg );
-            imaState.nLogMaxSizeBeforeRotation = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nLogMaxSizeBeforeRotation = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "log-files" ) {
-            verify_int_arg( joArg );
-            imaState.nLogMaxFilesCount = parseInt( joArg.value );
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nLogMaxFilesCount = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if ( joArg.name == "log" ) {
-            verify_arg_with_non_empty_value( joArg );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.strLogFilePath = "" + joArg.value;
             continue;
         }
@@ -555,17 +503,17 @@ function parse( joExternalHandlers ) {
             continue;
         }
         if ( joArg.name == "bls-glue" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathBlsGlue = "" + joArg.value;
             continue;
         }
         if ( joArg.name == "hash-g1" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathHashG1 = "" + joArg.value;
             continue;
         }
         if ( joArg.name == "bls-verify" ) {
-            verify_arg_path_to_existing_file( joArg );
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathBlsVerify = "" + joArg.value;
             continue;
         }
@@ -596,6 +544,8 @@ function parse( joExternalHandlers ) {
 }
 
 function ima_common_init() {
+    let n1 = 0,
+        n2 = 0;
     imaState.joTrufflePublishResult_main_net = imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net, null, true );
     imaState.joTrufflePublishResult_s_chain = imaUtils.jsonFileLoad( imaState.strPathAbiJson_s_chain, null, true );
 
@@ -644,8 +594,8 @@ function ima_common_init() {
     //
     //
     if ( imaState.strPathJsonErc721_main_net.length > 0 /*&& imaState.strPathJsonErc721_s_chain.length > 0*/ ) {
-        var n1 = 0,
-            n2 = 0;
+        n1 = 0;
+        n2 = 0;
         if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
             log.write( cc.info( "Loading Main-net ERC721 ABI from " ) + cc.info( imaState.strPathJsonErc721_main_net ) + "\n" );
         imaState.joErc721_main_net = imaUtils.jsonFileLoad( imaState.strPathJsonErc721_main_net, null, true );
@@ -693,10 +643,9 @@ function ima_common_init() {
         }
     } else { // if( imaState.strPathJsonErc721_main_net.length > 0 /*&& imaState.strPathJsonErc721_s_chain.length > 0*/ )
         if ( imaState.strPathJsonErc721_s_chain.length > 0 ) {
-            var n1 = 0,
-                n2 = 0;
-
-            if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+            n1 = 0;
+            n2 = 0;
+                if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
                 log.write( cc.info( "Loading S-Chain ERC721 ABI from " ) + cc.info( imaState.strPathJsonErc721_s_chain ) + "\n" );
             imaState.joErc721_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc721_s_chain, null, true );
             n2 = Object.keys( imaState.joErc721_s_chain ).length;
@@ -747,8 +696,8 @@ function ima_common_init() {
     //
     //
     if ( imaState.strPathJsonErc20_main_net.length > 0 /*&& imaState.strPathJsonErc20_s_chain.length > 0*/ ) {
-        var n1 = 0,
-            n2 = 0;
+        n1 = 0;
+        n2 = 0;
         if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
             log.write( cc.info( "Loading Main-net ERC20 ABI from " ) + cc.info( imaState.strPathJsonErc20_main_net ) + "\n" );
         imaState.joErc20_main_net = imaUtils.jsonFileLoad( imaState.strPathJsonErc20_main_net, null, true );
@@ -796,9 +745,8 @@ function ima_common_init() {
         }
     } else { // if( imaState.strPathJsonErc20_main_net.length > 0 /*&& imaState.strPathJsonErc20_s_chain.length > 0*/ )
         if ( imaState.strPathJsonErc20_s_chain.length > 0 ) {
-            var n1 = 0,
-                n2 = 0;
-
+            n1 = 0;
+            n2 = 0;
             if ( IMA.verbose_get() > IMA.RV_VERBOSE.information )
                 log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( imaState.strPathJsonErc20_s_chain ) + "\n" );
             imaState.joErc20_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc20_s_chain, null, true );
@@ -849,7 +797,6 @@ function ima_common_init() {
     //
     //
     //
-
 
     if ( IMA.verbose_get() > IMA.RV_VERBOSE.information || imaState.bShowConfigMode ) {
         print_about( true );
@@ -941,10 +888,10 @@ function ima_common_init() {
                 return cc.info( x );
             } );
             ensure_have_value( "Max size of log file path", imaState.nLogMaxSizeBeforeRotation, false, true, null, ( x ) => {
-                return ( x <= 0 ) ? cc.warn( "unlimited" ) : cc.note( x );
+                return ( x <= 0 ) ? cc.warning( "unlimited" ) : cc.note( x );
             } );
             ensure_have_value( "Max rotated count of log files", imaState.nLogMaxFilesCount, false, true, null, ( x ) => {
-                return ( x <= 1 ) ? cc.warn( "not set" ) : cc.note( x );
+                return ( x <= 1 ) ? cc.warning( "not set" ) : cc.note( x );
             } );
         }
         if ( imaState.strCoinNameErc721_main_net.length > 0 /*&& imaState.strCoinNameErc721_s_chain.length > 0*/ ) {
@@ -985,11 +932,6 @@ module.exports = {
     "init": init,
     "print_about": print_about,
     "parse_command_line_argument": parse_command_line_argument,
-    "verify_arg_with_non_empty_value": verify_arg_with_non_empty_value,
-    "verify_url_arg": verify_url_arg,
-    "verify_int_arg": verify_int_arg,
-    "verify_bool_arg": verify_bool_arg,
-    "verify_arg_path_to_existing_file": verify_arg_path_to_existing_file,
     "ensure_have_value": ensure_have_value,
     "find_node_index": find_node_index,
     "load_node_config": load_node_config,

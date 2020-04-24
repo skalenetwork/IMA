@@ -3,26 +3,33 @@ let request = require( "request" ); // https://www.npmjs.com/package/request
 
 let cc = null;
 let log = null;
+let owaspUtils = null;
 
 function is_ws_url( strURL ) {
     try {
-        var u = new URL( strURL );
+        if( ! owaspUtils.validateURL( strURL ) )
+            return false;
+        let u = new URL( strURL );
         if ( u.protocol == "ws:" || u.protocol == "wss:" )
             return true;
-    } catch ( err ) {}
+    } catch ( err ) {
+    }
     return false;
 }
 
-function rpc_call_init( a_cc, a_log ) {
-    if ( !( a_cc && a_log ) )
-        throw "rpc_call_init() bad parameters";
+function rpc_call_init( a_cc, a_log, a_owaspUtils ) {
+    if ( !( a_cc && a_log && a_owaspUtils ) )
+        throw new Error( "JSON RPC CALLER module initializer was invoked with bad parameters: " + JSON.stringify( arguments ) );
     cc = a_cc;
     log = a_log;
+    owaspUtils = a_owaspUtils;
 }
 
 async function do_connect( joCall, fn ) {
     try {
         fn = fn || function() {};
+        if( ! owaspUtils.validateURL( joCall.url ) )
+            throw new Error( "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
         if ( is_ws_url( joCall.url ) ) {
             joCall.wsConn = new ws( joCall.url );
             joCall.wsConn.on( "open", function() {
@@ -57,11 +64,18 @@ async function do_connect( joCall, fn ) {
 }
 
 async function do_connect_if_needed( joCall, fn ) {
-    if ( is_ws_url( joCall.url ) && ( !joCall.wsConn ) ) {
-        joCall.reconnect( fn );
-        return;
+    try {
+        fn = fn || function() {};
+        if( ! owaspUtils.validateURL( joCall.url ) )
+            throw new Error( "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
+        if ( is_ws_url( joCall.url ) && ( !joCall.wsConn ) ) {
+            joCall.reconnect( fn );
+            return;
+        }
+        fn( joCall, null );
+    } catch ( err ) {
+        fn( joCall, err );
     }
-    fn( joCall, null );
 }
 
 async function do_call( joCall, joIn, fn ) {
@@ -79,6 +93,8 @@ async function do_call( joCall, joIn, fn ) {
         }, 20 * 1000 );
         joCall.wsConn.send( JSON.stringify( joIn ) );
     } else {
+        if( ! owaspUtils.validateURL( joCall.url ) )
+            throw new Error( "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url );
         request.post( {
                 "uri": joCall.url,
                 "content-type": "application/json",
@@ -100,9 +116,11 @@ async function do_call( joCall, joIn, fn ) {
 }
 
 async function rpc_call_create( strURL, fn ) {
+    if( ! owaspUtils.validateURL( strURL ) )
+        throw new Error( "JSON RPC CALLER cannot create a call object invalid URL: " + strURL );
     fn = fn || function() {};
     if ( !( strURL && strURL.length > 0 ) )
-        throw "rpc_call_create() bad parameters";
+        throw new Error( "rpc_call_create() was invoked with bad parameters: " + JSON.stringify( arguments ) );
     let joCall = {
         "url": "" + strURL,
         "mapPendingByCallID": {},

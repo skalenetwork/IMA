@@ -27,7 +27,7 @@ function normalizePath( strPath ) {
 function fileExists( strPath ) {
     try {
         if ( fs.existsSync( strPath ) ) {
-            var stats = fs.statSync( strPath );
+            let stats = fs.statSync( strPath );
             if ( stats.isFile() )
                 return true;
         }
@@ -62,7 +62,7 @@ function jsonFileLoad( strPath, joDefault, bLogOutput ) {
         log.write( cc.normal( "Will load JSON file " ) + cc.info( strPath ) + cc.normal( "..." ) + "\n" );
     if ( !fileExists( strPath ) ) {
         if ( bLogOutput )
-            log.write( cc.error( "Cannot load JSON file " ) + cc.info( strPath ) + cc.normal( ", it does not exist" ) + "\n" );
+            log.write( cc.error( "Cannot load JSON file " ) + cc.info( strPath ) + cc.error( ", it does not exist" ) + "\n" );
         return joDefault;
     }
     try {
@@ -75,7 +75,7 @@ function jsonFileLoad( strPath, joDefault, bLogOutput ) {
         return jo;
     } catch ( err ) {
         if ( bLogOutput )
-            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to load JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warn( err ) );
+            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to load JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( err ) );
     }
     return joDefault;
 }
@@ -93,7 +93,7 @@ function jsonFileSave( strPath, jo, bLogOutput ) {
         return true;
     } catch ( err ) {
         if ( bLogOutput )
-            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to save JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warn( err ) );
+            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to save JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( err ) );
     }
     return false;
 }
@@ -102,9 +102,9 @@ function jsonFileSave( strPath, jo, bLogOutput ) {
 ////////////////////////////////////////////////////////////////////////////////////
 
 function encodeUTF8( s ) { // marshals a string to an Uint8Array, see https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
-	var i = 0, arrBytes = new Uint8Array(s.length * 4);
-	for( var ci = 0; ci != s.length; ci++ ) {
-		var c = s.charCodeAt( ci );
+	let i = 0, arrBytes = new Uint8Array(s.length * 4);
+	for( let ci = 0; ci != s.length; ci++ ) {
+		let c = s.charCodeAt( ci );
 		if( c < 128 ) {
 			arrBytes[i++] = c;
 			continue;
@@ -115,7 +115,7 @@ function encodeUTF8( s ) { // marshals a string to an Uint8Array, see https://gi
 			if( c > 0xd7ff && c < 0xdc00 ) {
 				if( ++ci >= s.length )
 					throw new Error( "UTF-8 encode: incomplete surrogate pair" );
-				var c2 = s.charCodeAt( ci );
+				let c2 = s.charCodeAt( ci );
 				if( c2 < 0xdc00 || c2 > 0xdfff )
 					throw new Error( "UTF-8 encode: second surrogate character 0x" + c2.toString(16) + " at index " + ci + " out of range" );
 				c = 0x10000 + ((c & 0x03ff) << 10) + (c2 & 0x03ff);
@@ -130,9 +130,9 @@ function encodeUTF8( s ) { // marshals a string to an Uint8Array, see https://gi
 }
 
 function decodeUTF8( arrBytes ) { // un-marshals a string from an Uint8Array, see https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
-	var i = 0, s = "";
+	let i = 0, s = "";
 	while ( i < arrBytes.length ) {
-		var c = arrBytes[i++];
+		let c = arrBytes[i++];
 		if( c > 127 ) {
 			if( c > 191 && c < 224 ) {
 				if( i >= arrBytes.length )
@@ -182,8 +182,8 @@ function hexToBytes( strHex, isInversiveOrder ) { // convert a hex string to a b
 
 function bytesToHex( arrBytes, isInversiveOrder ) { // convert a byte array to a hex string
     isInversiveOrder = ( isInversiveOrder != null && isInversiveOrder != undefined && isInversiveOrder ) ? true : false;
-    for( var hex = [], i = 0; i < arrBytes.length; i++)  {
-        var current = arrBytes[i] < 0 ? arrBytes[i] + 256 : arrBytes[i];
+    for( let hex = [], i = 0; i < arrBytes.length; i++)  {
+        let current = arrBytes[i] < 0 ? arrBytes[i] + 256 : arrBytes[i];
         let c0 = ( current >>> 4 ).toString(16);
         let c1 = ( current & 0xF ).toString(16);
         if( isInversiveOrder ) {
@@ -214,14 +214,14 @@ function bytesAlignRightWithZeroes( arrBytes, cntMin ) {
 }
 
 function concatTypedArrays( a, b ) { // a, b TypedArray of same type
-    var c = new (a.constructor)(a.length + b.length);
+    let c = new (a.constructor)(a.length + b.length);
     c.set( a, 0 );
     c.set( b, a.length );
     return c;
 }
 
 function concatByte( ui8a, byte ) {
-    var b = new Uint8Array( 1 );
+    let b = new Uint8Array( 1 );
     b[0] = byte;
     return concatTypedArrays(ui8a, b);
 }
@@ -235,7 +235,7 @@ function bytesConcat( a1, a2 ) {
 function toArrayBuffer( buf ) { // see https://stackoverflow.com/questions/8609289/convert-a-binary-nodejs-buffer-to-javascript-arraybuffer
     let ab = new ArrayBuffer( buf.length );
     let view = new Uint8Array( ab );
-    for( var i = 0; i < buf.length; ++ i )
+    for( let i = 0; i < buf.length; ++ i )
         view[ i ] = buf[ i ];
     return ab;
 }
@@ -265,15 +265,15 @@ function invertArrayItemsLR( arr ) {
 function discover_in_json_coin_name( jo ) {
     if ( typeof jo !== "object" )
         return "";
-    var arrKeys = Object.keys( jo ),
+    let arrKeys = Object.keys( jo ),
         s1 = "",
         s2 = "";
-    var i, cnt = arrKeys.length,
+    let i, cnt = arrKeys.length,
         j;
     for ( i = 0; i < cnt; ++i ) {
         if ( s1.length > 0 && s2.length > 0 )
             break;
-        var k = arrKeys[ i ];
+        let k = arrKeys[ i ];
         j = k.indexOf( "_address" )
         if ( j > 0 ) {
             s1 = k.substring( 0, j );
@@ -303,9 +303,9 @@ function check_key_exist_in_abi( strName, strFile, joABI, strKey ) {
 }
 
 function check_keys_exist_in_abi( strName, strFile, joABI, arrKeys ) {
-    var cnt = arrKeys.length;
-    for ( var i = 0; i < cnt; ++i ) {
-        var strKey = arrKeys[ i ];
+    let cnt = arrKeys.length;
+    for ( let i = 0; i < cnt; ++i ) {
+        let strKey = arrKeys[ i ];
         check_key_exist_in_abi( strName, strFile, joABI, strKey );
     }
 }

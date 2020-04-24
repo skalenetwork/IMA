@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const child_process = require('child_process');
+const fs = require( "fs" );
+const path = require( "path" );
+const child_process = require( "child_process" );
 
 const SCHAIN_DIR = process.env.SCHAIN_DIR;
 
@@ -27,28 +27,28 @@ NODE_NUMBER: ${NODE_NUMBER},
 NODES_COUNT: ${NODES_COUNT},
 
 `;
-console.log(debugInfo);
+console.log( debugInfo );
 
 const CHECK_TIMEOUT = 4000;
 
-const sleep = (milliseconds) => {
-  return new Promise(resolve => setTimeout(resolve, milliseconds))
+const sleep = ( milliseconds ) => {
+  return new Promise( resolve => setTimeout( resolve, milliseconds ) )
 };
 
 async function run() {
-  console.log('Initializing IMA...');
+  console.log( "Initializing IMA..." );
   let sChainAbiFileExists = false;
 
-  while (!sChainAbiFileExists) {
-    console.log(`Waiting for ${SCHAIN_PROXY_PATH} file...`);
-    sChainAbiFileExists = fs.existsSync(SCHAIN_PROXY_PATH);
+  while ( !sChainAbiFileExists ) {
+    console.log( `Waiting for ${SCHAIN_PROXY_PATH} file...` );
+    sChainAbiFileExists = fs.existsSync( SCHAIN_PROXY_PATH );
 
-    if (sChainAbiFileExists) {
-      console.log('File found!');
+    if ( sChainAbiFileExists ) {
+      console.log( "File found!" );
 
-      let fileContents = await fs.promises.readFile(LOCAL_WALLET_PATH);
-      let localWallet = JSON.parse(fileContents);
-      let pk = localWallet['private_key'].slice(2);
+      let fileContents = await fs.promises.readFile( LOCAL_WALLET_PATH );
+      let localWallet = JSON.parse( fileContents );
+      let pk = localWallet[ "private_key" ].slice( 2 );
 
       let baseArgs = `--url-main-net=${MAINNET_RPC_URL} --url-s-chain=${SCHAIN_RPC_URL} \
       --id-main-net=Mainnet --id-s-chain=${SCHAIN_NAME} --abi-main-net=${MAINNET_PROXY_PATH} \
@@ -60,26 +60,24 @@ async function run() {
       let loopCmd = `${baseCmd} --loop ${baseArgs}`;
 
       // console.log(registerCmd); // todo: rm, tmp!
-      console.log(loopCmd); // todo: rm, tmp!
+      console.log( loopCmd ); // todo: rm, tmp!
 
       // child_process.execSync(
       //   registerCmd,
-      //   {stdio: 'inherit'}
+      //   {stdio: "inherit"}
       // );
 
       child_process.execSync(
-        loopCmd,
-        {stdio: 'inherit'}
+        loopCmd, {
+          stdio: "inherit"
+        }
       );
 
-
-      // todo: start IMA logic!!!
+      // TO-DO: start IMA logic!!!
     }
 
-    await sleep(CHECK_TIMEOUT);
+    await sleep( CHECK_TIMEOUT );
   }
 }
 
 run();
-
-
