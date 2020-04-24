@@ -43,7 +43,7 @@ function rxIsFloat( val ) {
 }
 
 function validateRadix( value, radix ) {
-    value = "" + value.toString();
+    value = "" + ( value ? value.toString() : "10" );
     value = value.trim();
     radix = ( radix == null || radix == undefined )
         ? ( ( value.length > 2 && value[0] == "0" && ( value[1] == "x" || value[1] == "X" ) ) ? 16 : 10 )
@@ -182,14 +182,14 @@ function validateEthAddress( value ) {
 
 // see https://gist.github.com/miguelmota/20fcd7c5c2604907dcbba749ea3f1e8c
 function validateEthPrivateKey( value ) {
-    value = "" + value.toString();
+    value = "" + ( value ? value.toString() : "" );
     if( ethereumjs_util.isValidPrivate( value ) )
         return true;
     return false;
 }
 
 function toEthAddress( value, defValue ) {
-    value = "" + value.toString();
+    value = "" + ( value ? value.toString() : "" );
     defValue = defValue || "";
     if( ! validateEthAddress( value ) )
         return defValue;
@@ -197,7 +197,7 @@ function toEthAddress( value, defValue ) {
 }
 
 function toEthPrivateKey( value, defValue ) {
-    value = "" + value.toString();
+    value = "" + ( value ? value.toString() : "" );
     defValue = defValue || "";
     if( ! validateEthPrivateKey( value ) )
         return defValue;
@@ -205,7 +205,7 @@ function toEthPrivateKey( value, defValue ) {
 }
 
 function verifyArgumentWithNonEmptyValue( joArg ) {
-    value = "" + value.toString();
+    value = "" + ( value ? value.toString() : "" );
     if( ( !joArg.value ) || ( typeof joArg.value == "string" && joArg.value.length == 0 ) ) {
         console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
         process.exit( 666 );
