@@ -108,7 +108,7 @@ function safeURL( arg ) {
 			return null;
 		objURL.strStrippedStringComma = null;
 		return objURL;
-	} catch( e ) {
+	} catch( err ) {
 		return null;
 	}
 }

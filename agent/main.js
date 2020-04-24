@@ -39,8 +39,8 @@ let imaState = {
     "strPathBlsVerify": "", // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
 
     // TO-DO: the next ABI JSON should contain main-net only contract info - S-chain contract addresses must be downloaded from S-chain
-    "joTrufflePublishResult_main_net": {},
-    "joTrufflePublishResult_s_chain": {},
+    "joTrufflePublishResult_main_net": { },
+    "joTrufflePublishResult_s_chain": { },
 
     "joErc20_main_net": null,
     "joErc20_s_chain": null,
@@ -65,13 +65,13 @@ let imaState = {
 
     "bShowConfigMode": false, // true - just show configuration values and exit
 
-    "strURL_main_net": "", // example: "http://127.0.0.1:8545"
-    "strURL_s_chain": "", // example: "http://127.0.0.1:2231"
+    "strURL_main_net": owaspUtils.toStringURL( process.env.URL_W3_MAIN_NET ), // example: "http://127.0.0.1:8545"
+    "strURL_s_chain": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ), // example: "http://127.0.0.1:2231"
 
-    "strChainID_main_net": "Mainnet",
-    "strChainID_s_chain": "id-S-chain",
-    "cid_main_net": -4,
-    "cid_s_chain": -4,
+    "strChainID_main_net": ( process.env.CHAIN_NAME_MAINNET || "Mainnet" ).toString().trim(),
+    "strChainID_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
+    "cid_main_net": owaspUtils.toInteger( process.env.CID_MAINNET ) || -4,
+    "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
 
     "strPathJsonErc20_main_net": "",
     "strPathJsonErc20_s_chain": "",
@@ -121,7 +121,7 @@ let imaState = {
     "eth_erc20": null, // only s-chain
 
     //
-    // examples:
+    // examples of valid values:
     //
     // "joAccount_main_net": { "name": "g3",    "privateKey": "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc", "address": fn_address_impl_ }, // "address": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
     // "joAccount_s_chain ": { "name": "Bob",   "privateKey": "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e", "address": fn_address_impl_ }, // "address": "0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852"
@@ -132,8 +132,13 @@ let imaState = {
     // "joAccount_main_net": { "name": "g1",    "privateKey": "2a95a383114492b90a6eecbc355d7b63501ffb72ed39a788e48aa3c286eb526d", "address": fn_address_impl_ }, // "address": "0x12b907ebaea975ce4d5de010cdf680ad21dc4ca1"
     // "joAccount_s_chain ": { "name": "Alex",  "privateKey": "d47f07804006486dbeba6b81e50fc93543657853a3d2f736d4fd68488ca94c17", "address": fn_address_impl_ }, // "address": "0x8e8311f4c4533f4C19363d6140e1D5FA16Aa4071"
     //
-    "joAccount_main_net": { "privateKey": "", "address": fn_address_impl_ },
-    "joAccount_s_chain": { "privateKey": "", "address": fn_address_impl_ },
+    // example of empty values to fill from command line arguments:
+    //
+    // "joAccount_main_net": { "privateKey": "", "address": fn_address_impl_ },
+    // "joAccount_s_chain": { "privateKey": "", "address": fn_address_impl_ },
+    //
+    "joAccount_main_net": { "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_MAINNET ), "address": fn_address_impl_ },
+    "joAccount_s_chain": { "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ), "address": fn_address_impl_ },
 
     //
     //

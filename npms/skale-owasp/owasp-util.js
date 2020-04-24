@@ -134,8 +134,20 @@ function toURL( s ) {
 			return null;
 		u.strStrippedStringComma = null;
 		return u;
-	} catch( e ) {
+	} catch( err ) {
 		return null;
+	}
+}
+
+function toStringURL( s, defValue ) {
+    defValue = defValue || "";
+	try {
+        let u = toURL( s );
+        if( u == null || u == undefined )
+            return defValue;
+        return u.toString();
+	} catch( err ) {
+        return defValue;
 	}
 }
 
@@ -170,12 +182,30 @@ function validateEthAddress( value ) {
 
 // see https://gist.github.com/miguelmota/20fcd7c5c2604907dcbba749ea3f1e8c
 function validateEthPrivateKey( value ) {
+    value = "" + value.toString();
     if( ethereumjs_util.isValidPrivate( value ) )
         return true;
     return false;
 }
 
+function toEthAddress( value, defValue ) {
+    value = "" + value.toString();
+    defValue = defValue || "";
+    if( ! validateEthAddress( value ) )
+        return defValue;
+    return value;
+}
+
+function toEthPrivateKey( value, defValue ) {
+    value = "" + value.toString();
+    defValue = defValue || "";
+    if( ! validateEthPrivateKey( value ) )
+        return defValue;
+    return value;
+}
+
 function verifyArgumentWithNonEmptyValue( joArg ) {
+    value = "" + value.toString();
     if( ( !joArg.value ) || ( typeof joArg.value == "string" && joArg.value.length == 0 ) ) {
         console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
         process.exit( 666 );
@@ -310,9 +340,12 @@ module.exports = {
     , "toFloat": toFloat
     , "validateURL": validateURL
     , "toURL": toURL
+    , "toStringURL": toStringURL
     , "toBoolean": toBoolean
     , "validateEthAddress": validateEthAddress
     , "validateEthPrivateKey": validateEthPrivateKey
+    , "toEthAddress": toEthAddress
+    , "toEthPrivateKey": toEthPrivateKey
     , "verifyArgumentWithNonEmptyValue": verifyArgumentWithNonEmptyValue
     , "verifyArgumentIsURL": verifyArgumentIsURL
     , "verifyArgumentIsInteger": verifyArgumentIsInteger

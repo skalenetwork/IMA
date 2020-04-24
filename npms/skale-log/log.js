@@ -42,10 +42,10 @@ let i = 0, cnt = 0;
 			try {
 				let objEntry = g_arrStreams[ i ];
 				objEntry.objStream.close();
-			} catch( e ) {
+			} catch( err ) {
 			}
 		}
-	} catch( e ) {
+	} catch( err ) {
 	}
 	g_arrStreams = [];
 }
@@ -58,10 +58,10 @@ function getStreamWithFilePath( strFilePath ) {
 				let objEntry = g_arrStreams[ i ];
 				if( objEntry.strPath === strFilePath )
 					return objEntry;
-			} catch( e ) {
+			} catch( err ) {
 			}
 		}
-	} catch( e ) {
+	} catch( err ) {
 	}
 	return null;
 }
@@ -76,15 +76,15 @@ function createStandardOutputStream() {
 			, "nMaxSizeBeforeRotation": -1
 			, "nMaxFilesCount": -1
 			, "objStream": null
-			, "write": function( s ) { let x = "" + s; try { if( this.objStream ) this.objStream.write( x ); } catch( e ) { } }
+			, "write": function( s ) { let x = "" + s; try { if( this.objStream ) this.objStream.write( x ); } catch( err ) { } }
 			, "close": function() { this.objStream = null; }
-			, "open": function() { try { this.objStream = process.stdout; } catch( e ) { } }
+			, "open": function() { try { this.objStream = process.stdout; } catch( err ) { } }
 			, "size": function() { return 0; }
 			, "rotate": function( nBytesToWrite ) { }
 		};
 		objEntry.open();
 		return objEntry;
-	} catch( e ) {
+	} catch( err ) {
 	}
 	return null;
 }
@@ -114,7 +114,7 @@ function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount )
 			, "write": function( s ) { let x = "" + s; this.rotate( x.length ); fs.appendFileSync( this.objStream, x, "utf8" ); }
 			, "close": function() { if( ! this.objStream ) return; fs.closeSync( this.objStream ); this.objStream = null; }
 			, "open": function() { this.objStream = fs.openSync( this.strPath, "a", C.O_NONBLOCK|C.O_WR ); }
-			, "size": function() { try { return fs.lstatSync( this.strPath ).size; } catch( e ) { return 0; } }
+			, "size": function() { try { return fs.lstatSync( this.strPath ).size; } catch( err ) { return 0; } }
 			, "rotate": function( nBytesToWrite ) {
 				try {
 					if( this.nMaxSizeBeforeRotation <= 0 || this.nMaxFilesCount <= 1 )
@@ -131,24 +131,24 @@ function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount )
 						let j = this.nMaxFilesCount - i - 1;
 						let strPath = "" + this.strPath + ( ( j == 0 ) ? "" : ( "." + j ) );
 						if( j == ( cnt - 1 ) ) {
-							try { fs.unlinkSync( strPath ); } catch( e ) { }
+							try { fs.unlinkSync( strPath ); } catch( err ) { }
 							continue;
 						}
 						let strPathPrev = "" + this.strPath +  "." + ( j + 1 );
-						try { fs.unlinkSync( strPathPrev ); } catch( e ) { }
-						try { fs.renameSync( strPath, strPathPrev ); } catch( e ) { }
+						try { fs.unlinkSync( strPathPrev ); } catch( err ) { }
+						try { fs.renameSync( strPath, strPathPrev ); } catch( err ) { }
 					} // for( i = 0; i < cnt; ++ i )
-				} catch( e ) {
+				} catch( err ) {
 				}
 				try {
 					this.open();
-				} catch( e ) {
+				} catch( err ) {
 				}
 			}
 		};
 		objEntry.open();
 		return objEntry;
-	} catch( e ) {
+	} catch( err ) {
 		console.log( "CRITICAL ERROR: Failed to open file system log stream for " + strFilePath + ", error is " + JSON.stringify(e) );
 	}
 	return null;
@@ -176,10 +176,10 @@ module.exports = {
 			for( i = 0; i < cnt; ++ i ) {
 				try {
 					s += arguments[ i ];
-				} catch( e ) {
+				} catch( err ) {
 				}
 			}
-		} catch( e ) {
+		} catch( err ) {
 		}
 		try {
 			if( s.length <= 0 )
@@ -189,10 +189,10 @@ module.exports = {
 				try {
 					let objEntry = g_arrStreams[ i ];
 					objEntry.write( s );
-				} catch( e ) {
+				} catch( err ) {
 				}
 			}
-		} catch( e ) {
+		} catch( err ) {
 		}
 	}, "removeAll": function() {
 		removeAllStreams();
