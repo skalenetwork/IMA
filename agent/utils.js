@@ -62,7 +62,7 @@ function jsonFileLoad( strPath, joDefault, bLogOutput ) {
         log.write( cc.normal( "Will load JSON file " ) + cc.info( strPath ) + cc.normal( "..." ) + "\n" );
     if ( !fileExists( strPath ) ) {
         if ( bLogOutput )
-            log.write( cc.error( "Cannot load JSON file " ) + cc.info( strPath ) + cc.normal( ", it does not exist" ) + "\n" );
+            log.write( cc.error( "Cannot load JSON file " ) + cc.info( strPath ) + cc.error( ", it does not exist" ) + "\n" );
         return joDefault;
     }
     try {

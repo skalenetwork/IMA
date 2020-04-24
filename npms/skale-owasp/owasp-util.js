@@ -218,11 +218,11 @@ function toEthPrivateKey( value, defValue ) {
 }
 
 function verifyArgumentWithNonEmptyValue( joArg ) {
-    value = "" + ( value ? value.toString() : "" );
     if( ( !joArg.value ) || ( typeof joArg.value == "string" && joArg.value.length == 0 ) ) {
         console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
         process.exit( 666 );
     }
+    return joArg;
 }
 
 function verifyArgumentIsURL( joArg ) {
@@ -237,6 +237,7 @@ function verifyArgumentIsURL( joArg ) {
             console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid URL" ) );
             process.exit( 666 );
         }
+        return joArg;
     } catch ( err ) {
         console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid URL" ) );
         process.exit( 666 );
@@ -251,6 +252,7 @@ function verifyArgumentIsInteger( joArg ) {
             process.exit( 666 );
         }
         joArg.value = toInteger( joArg.value );
+        return joArg;
     } catch ( err ) {
         console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid integer" ) );
         process.exit( 666 );
@@ -269,6 +271,7 @@ function verifyArgumentIsPathToExistingFile( joArg ) {
             console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be path to existing file, bad path provided" ) );
             process.exit( 666 );
         }
+        return joArg;
     } catch ( err ) {
         console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be path to existing file" ) );
         process.exit( 666 );
@@ -287,6 +290,7 @@ function verifyArgumentIsPathToExistingFolder( joArg ) {
             console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be path to existing folder, bad path provided" ) );
             process.exit( 666 );
         }
+        return joArg;
     } catch ( err ) {
         console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be path to existing folder" ) );
         process.exit( 666 );
