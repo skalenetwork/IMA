@@ -146,6 +146,13 @@ let imaState = {
     "arrActions": [] // array of actions to run
 };
 
+let tmp_address_MN_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_MAINNET );
+let tmp_address_SC_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN );
+if( tmp_address_MN_from_env && typeof tmp_address_MN_from_env == "string" && tmp_address_MN_from_env.length > 0 )
+    imaState.joAccount_main_net.address_ = "" + tmp_address_MN_from_env;
+if( tmp_address_SC_from_env && typeof tmp_address_SC_from_env == "string" && tmp_address_SC_from_env.length > 0 )
+    imaState.joAccount_s_chain.address_ = "" + tmp_address_SC_from_env;
+
 imaBLS.init( IMA, imaState, imaUtils, log, cc, rpcCall, owaspUtils );
 
 imaCLI.init( IMA, imaState, imaUtils, log, cc, rpcCall, owaspUtils );
