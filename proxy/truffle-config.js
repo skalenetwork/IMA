@@ -6,8 +6,8 @@ let schainName = process.env.SCHAIN_NAME;
 let schainRpcUrl = process.env.SCHAIN_RPC_URL;
 let mainnetRpcUrl = process.env.MAINNET_RPC_URL;
 
-let privateKeyForMainnet = process.env.PRIVATE_KEY_FOR_MAINNET;
-let privateKeyForSchain = process.env.PRIVATE_KEY_FOR_SCHAIN;
+let privateKeyForMainnet = process.env.INSECURE_PRIVATE_KEY_FOR_MAINNET;
+let privateKeyForSchain = process.env.INSECURE_PRIVATE_KEY_FOR_SCHAIN;
 
 let mnemonicForMainnet = process.env.MNEMONIC_FOR_MAINNET;
 let mnemonicForSchain = process.env.MNEMONIC_FOR_SCHAIN;

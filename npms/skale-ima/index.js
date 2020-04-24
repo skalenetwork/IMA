@@ -12,11 +12,12 @@ const log = require( "../skale-log/log.js" );
 const cc = log.cc;
 cc.enable( true );
 log.addStdout();
-//log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount );
+// log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ); // example: log output to file
+
+const owaspUtils = require( "../skale-owasp/owasp-util.js" );
 
 let g_mtaStrLongSeparator = "=======================================================================================================================";
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -27,52 +28,47 @@ const VERBOSE = {
     2: "fatal",
     3: "error",
     4: "warning",
-    //4: "warn", // alias
     5: "attention",
     6: "information",
-    //6: "info", // alias
     7: "notice",
     8: "debug",
     9: "trace"
 };
 const RV_VERBOSE = function() {
-    var m = {};
-    for ( var key in VERBOSE ) {
+    let m = {};
+    for ( let key in VERBOSE ) {
         if ( !VERBOSE.hasOwnProperty( key ) )
             continue; // skip loop if the property is from prototype
-        var name = VERBOSE[ key ];
+        let name = VERBOSE[ key ];
         m[ name ] = key;
     }
-    //
-    // aliases
-    m["warn"] = m["warning"];
-    m["info"] = m["information"];
-    //
+    m["warn"] = m["warning"];     // alias
+    m["info"] = m["information"]; // alias
     return m;
 }();
-let verboseLevel = RV_VERBOSE[ "error" ];
+
+let g_verboseLevel = RV_VERBOSE[ "error" ];
 
 function verbose_get() {
-    return verboseLevel;
+    return g_verboseLevel;
 }
-
 function verbose_set( x ) {
-    verboseLevel = x;
+    g_verboseLevel = x;
 }
 
 function verbose_parse( s ) {
-    var n = 5;
+    let n = 5;
     try {
-        var isNumbersOnly = /^\d+$/.test( s );
+        let isNumbersOnly = /^\d+$/.test( s );
         if ( isNumbersOnly ) {
-            n = parseInt( s );
+            n = owaspUtils.toInteger( s );
         } else {
-            var ch0 = s[ 0 ].toLowerCase();
-            for ( var key in VERBOSE ) {
+            let ch0 = s[ 0 ].toLowerCase();
+            for ( let key in VERBOSE ) {
                 if ( !VERBOSE.hasOwnProperty( key ) )
                     continue; // skip loop if the property is from prototype
-                var name = VERBOSE[ key ];
-                var ch1 = name[ 0 ].toLowerCase();
+                let name = VERBOSE[ key ];
+                let ch1 = name[ 0 ].toLowerCase();
                 if ( ch0 == ch1 ) {
                     n = key;
                     break;
@@ -84,63 +80,12 @@ function verbose_parse( s ) {
 }
 
 function verbose_list() {
-    for ( var key in VERBOSE ) {
-        if ( !VERBOSE.hasOwnProperty( key ) )
+    for ( let key in VERBOSE ) {
+        if ( ! VERBOSE.hasOwnProperty( key ) )
             continue; // skip loop if the property is from prototype
-        var name = VERBOSE[ key ];
+        let name = VERBOSE[ key ];
         console.log( "    " + cc.info( key ) + cc.sunny( "=" ) + cc.bright( name ) );
     }
-}
-
-//
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// utilities
-//
-function ensure_starts_with_0x( s ) {
-    if ( s == null || s == undefined || typeof s !== "string" )
-        return s;
-    if ( s.length < 2 )
-        return "0x" + s;
-    if ( s[ 0 ] == "0" && s[ 1 ] == "x" )
-        return s;
-    return "0x" + s;
-}
-
-function remove_starting_0x( s ) {
-    if ( s == null || s == undefined || typeof s !== "string" )
-        return s;
-    if ( s.length < 2 )
-        return s;
-    if ( s[ 0 ] == "0" && s[ 1 ] == "x" )
-        return s.substr( 2 );
-    return s;
-}
-
-function private_key_2_public_key( w3, keyPrivate ) {
-    if ( w3 == null || w3 == undefined || keyPrivate == null || keyPrivate == undefined )
-        return "";
-    // get a wallet instance from a private key
-    const privateKeyBuffer = ethereumjs_util.toBuffer( ensure_starts_with_0x( keyPrivate ) );
-    const wallet = ethereumjs_wallet.fromPrivateKey( privateKeyBuffer );
-    // get a public key
-    const keyPublic = wallet.getPublicKeyString();
-    return remove_starting_0x( keyPublic );
-}
-
-function public_key_2_account_address( w3, keyPublic ) {
-    if ( w3 == null || w3 == undefined || keyPublic == null || keyPublic == undefined )
-        return "";
-    const hash = w3.utils.sha3( ensure_starts_with_0x( keyPublic ) );
-    const strAddress = ensure_starts_with_0x( hash.substr( hash.length - 40 ) );
-    return strAddress;
-}
-
-function private_key_2_account_address( w3, keyPrivate ) {
-    const keyPublic = private_key_2_public_key( w3, keyPrivate );
-    const strAddress = public_key_2_account_address( w3, keyPublic );
-    return strAddress;
 }
 
 //
@@ -164,14 +109,11 @@ async function get_contract_call_events( joContract, strEventName, nBlockNumber,
     return joAllTransactionEvents;
 }
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
 
 async function safe_send_signed_transaction( w3, serializedTx, strActionName, strLogPrefix ) {
     let strTX = "0x" + serializedTx.toString( "hex" ); // strTX is string starting from "0x"
-    //let joReceipt = await w3.eth.sendSignedTransaction( strTX );
     let joReceipt = null;
     let bHaveReceipt = false;
     try {
@@ -187,13 +129,12 @@ async function safe_send_signed_transaction( w3, serializedTx, strActionName, st
         } catch( err ) {
             if ( verbose_get() >= RV_VERBOSE.fatal )
                 log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error( " second attempt to send signed transaction failure during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-            throw "" + err.toString();
+            throw err;
         }
     }
     return joReceipt;
 }
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -275,9 +216,9 @@ async function register_s_chain_on_main_net( // step 1A
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
+        let key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
+        let serializedTx = tx.serialize();
         strActionName = "reg-step1A:w3_main_net.eth.sendSignedTransaction()";
         //let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
@@ -292,7 +233,6 @@ async function register_s_chain_on_main_net( // step 1A
 } // async function register_s_chain(...
 
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -374,9 +314,9 @@ async function register_main_net_on_s_chain( // step 1B
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = Buffer.from( joAccount_s_chain.privateKey, "hex" ); // convert private key to buffer
+        let key = Buffer.from( joAccount_s_chain.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
+        let serializedTx = tx.serialize();
         strActionName = "reg-step1B:w3_s_chain.eth.sendSignedTransaction()";
         //let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
@@ -395,7 +335,6 @@ async function register_main_net_on_s_chain( // step 1B
 // register direction for money transfer
 // main-net.DepositBox call: function addSchain(uint64 schainID, address tokenManagerAddress)
 //
-
 async function check_is_registered_s_chain_in_deposit_box( // step 2
     w3_main_net,
     jo_lock_and_data_main_net,
@@ -471,9 +410,9 @@ async function register_s_chain_in_deposit_box( // step 2
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
+        let key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
+        let serializedTx = tx.serialize();
         strActionName = "reg-step2:w3_main_net.eth.sendSignedTransaction()";
         //let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
@@ -518,7 +457,7 @@ async function check_is_registered_main_net_depositBox_on_s_chain( // step 3
 
 async function register_main_net_depositBox_on_s_chain( // step 3
     w3_s_chain,
-    //jo_token_manager,
+    // excluded here: jo_token_manager,
     jo_deposit_box_main_net,
     jo_lock_and_data_s_chain,
     joAccount,
@@ -542,7 +481,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
-    let dataTx = jo_lock_and_data_s_chain.methods.addDepositBox(
+        let dataTx = jo_lock_and_data_s_chain.methods.addDepositBox(
             jo_deposit_box_main_net.options.address // call params
         ).encodeABI(); // the encoded ABI of the method
         let rawTx = {
@@ -556,11 +495,11 @@ async function register_main_net_depositBox_on_s_chain( // step 3
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
+        let key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
+        let serializedTx = tx.serialize();
         strActionName = "reg-step3:w3_s_chain.eth.sendSignedTransaction()";
-        //let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
@@ -572,7 +511,6 @@ async function register_main_net_depositBox_on_s_chain( // step 3
     return true;
 }
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -626,9 +564,9 @@ async function do_eth_payment_from_main_net(
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        let key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
+        let serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction()";
         //let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
@@ -668,7 +606,7 @@ async function do_eth_payment_from_main_net(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.success(" contract, no event found" ) + "\n" );
             } else {
-                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warning("Error") + cc.error(" event of the ") + cc.warning("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                 throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
             }
         } // if( jo_lock_and_data_main_net )
@@ -680,7 +618,7 @@ async function do_eth_payment_from_main_net(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.success(" contract, no event found" ) + "\n" );
             } else {
-                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warning("Error") + cc.error(" event of the ") + cc.warning("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                 throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box.options.address + " contract, no events found" );
             }
         } // if( jo_deposit_box )
@@ -692,7 +630,6 @@ async function do_eth_payment_from_main_net(
     return true;
 } // async function do_eth_payment_from_main_net(...
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -744,11 +681,11 @@ async function do_eth_payment_from_s_chain(
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        let key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
+        let serializedTx = tx.serialize();
         strActionName = "w3_s_chain.eth.sendSignedTransaction()";
-        //let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
@@ -773,8 +710,6 @@ async function do_eth_payment_from_s_chain(
     return true;
 } // async function do_eth_payment_from_s_chain(...
 
-
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -810,9 +745,9 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
         let tx = new ethereumjs_tx( rawTx );
-        var key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
+        let key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-        var serializedTx = tx.serialize();
+        let serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction()";
         //let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         let joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
@@ -826,10 +761,9 @@ async function receive_eth_payment_from_s_chain_on_main_net(
     return true;
 }
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+
 async function view_eth_payment_from_s_chain_on_main_net(
     w3_main_net,
     joAccount_main_net,
@@ -862,10 +796,9 @@ async function view_eth_payment_from_s_chain_on_main_net(
     }
 }
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+
 async function do_erc721_payment_from_main_net(
     w3_main_net,
     w3_s_chain,
@@ -950,7 +883,7 @@ async function do_erc721_payment_from_main_net(
         // sign transactions
         //
         strActionName = "sign transactions M->S";
-        var privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        let privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         const txApprove = new ethereumjs_tx( rawTxApprove );
         const txDeposit = new ethereumjs_tx( rawTxDeposit );
         txApprove.sign( privateKeyForMainnet );
@@ -968,7 +901,7 @@ async function do_erc721_payment_from_main_net(
         let joReceiptApprove = await safe_send_signed_transaction( w3_main_net, serializedTxApprove, strActionName, strLogPrefix );
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
-        log.write( cc.normal("Will send ERC721 signed transaction from ") + cc.warn(joAccountSrc.address( w3_main_net )) + "\n" );
+        log.write( cc.normal("Will send ERC721 signed transaction from ") + cc.warning(joAccountSrc.address( w3_main_net )) + "\n" );
         strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.normal( "Composed " ) + cc.info("rawTxDeposit") + cc.normal(" is: ") + cc.j( rawTxDeposit ) + "\n" );
@@ -979,7 +912,7 @@ async function do_erc721_payment_from_main_net(
         //
         //
 
-        // TODO: Fix event getting
+        // TO-DO: Fix event getting
         // if ( !isRawTokenTransfer ) {
         //     strActionName = "getPastEvents/ERC721TokenCreated";
         //     let joEvents = await jo_token_manager.getPastEvents( "ERC721TokenCreated", {
@@ -1018,7 +951,7 @@ async function do_erc721_payment_from_main_net(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.success(" contract, no event found" ) + "\n" );
             } else {
-                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warning("Error") + cc.error(" event of the ") + cc.warning("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                 throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
             }
         } // if( jo_lock_and_data_main_net )
@@ -1030,7 +963,7 @@ async function do_erc721_payment_from_main_net(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.success(" contract, no event found" ) + "\n" );
             } else {
-                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warning("Error") + cc.error(" event of the ") + cc.warning("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                 throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box.options.address + " contract, no events found" );
             }
         } // if( jo_deposit_box )
@@ -1105,7 +1038,6 @@ async function do_erc20_payment_from_main_net(
             ).encodeABI();
         }
         //
-        //
         // create raw transactions
         //
         strActionName = "create raw transactions M->S";
@@ -1129,11 +1061,10 @@ async function do_erc20_payment_from_main_net(
             "gas": 8000000
         }
         //
-        //
         // sign transactions
         //
         strActionName = "sign transactions M->S";
-        var privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        let privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         const txApprove = new ethereumjs_tx( rawTxApprove );
         const txDeposit = new ethereumjs_tx( rawTxDeposit );
         txApprove.sign( privateKeyForMainnet );
@@ -1157,7 +1088,7 @@ async function do_erc20_payment_from_main_net(
         //
         //
 
-        // TODO: Fix event getting
+        // TO-DO: Fix event getting
         // if ( !isRawTokenTransfer ) {
         //     strActionName = "getPastEvents/ERC20TokenCreated";
         //     let joEvents = await jo_token_manager.getPastEvents( "ERC20TokenCreated", {
@@ -1196,7 +1127,7 @@ async function do_erc20_payment_from_main_net(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.success(" contract, no event found" ) + "\n" );
             } else {
-                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warning("Error") + cc.error(" event of the ") + cc.warning("LockAndDataForMainnet") + cc.success("/") + cc.notice(jo_lock_and_data_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                 throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
             }
         } // if( jo_lock_and_data_main_net )
@@ -1208,7 +1139,7 @@ async function do_erc20_payment_from_main_net(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.success(" contract, no event found" ) + "\n" );
             } else {
-                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.error(" Error verification fail") + cc.error(" for the ") + cc.warning("Error") + cc.error(" event of the ") + cc.warning("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                 throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box.options.address + " contract, no events found" );
             }
         } // if( jo_deposit_box )
@@ -1220,10 +1151,9 @@ async function do_erc20_payment_from_main_net(
     return true;
 } // async function do_erc20_payment_from_main_net(...
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+
 async function do_erc20_payment_from_s_chain(
     w3_main_net,
     w3_s_chain,
@@ -1258,7 +1188,9 @@ async function do_erc20_payment_from_s_chain(
         const erc20Address_s_chain = joErc20_s_chain[ strCoinNameErc20_s_chain + "_address" ];
         let tokenManagerAddress = jo_token_manager.options.address;
         let contractERC20 = new w3_s_chain.eth.Contract( erc20ABI, erc20Address_s_chain );
-        //prepare the smart contract function deposit(string schainID, address to)
+        //
+        // prepare the smart contract function deposit(string schainID, address to)
+        //
         let depositBoxAddress = jo_deposit_box.options.address;
         let approve =
             contractERC20.methods.approve(
@@ -1273,7 +1205,7 @@ async function do_erc20_payment_from_s_chain(
                     , accountForMainnet, "0x" + w3_main_net.utils.toBN( token_amount ).toString(16)
                 ).encodeABI();
         } else {
-            var function_call_trace = "exitToMainERC20(" +
+            let function_call_trace = "exitToMainERC20(" +
                 erc20Address_s_chain + ", " +
                 accountForMainnet + ", " +
                 w3_s_chain.utils.toBN( token_amount ).toString(10) + ")"
@@ -1283,9 +1215,7 @@ async function do_erc20_payment_from_s_chain(
             ).encodeABI();
         }
         //
-        //
         // create raw transactions
-        //
         //
         strActionName = "create raw transactions S->M";
         const rawTxApprove = {
@@ -1308,19 +1238,16 @@ async function do_erc20_payment_from_s_chain(
             "gas": 8000000
         }
         //
-        //
         // sign transactions
         //
-        //
         strActionName = "sign transactions S->M";
-        var privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        let privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         const txApprove = new ethereumjs_tx( rawTxApprove );
         const txDeposit = new ethereumjs_tx( rawTxDeposit );
         txApprove.sign( privateKeyForSchain );
         txDeposit.sign( privateKeyForSchain );
         const serializedTxApprove = txApprove.serialize();
         const serializedTxDeposit = txDeposit.serialize();
-        //
         //
         // send transactions
         //
@@ -1330,7 +1257,7 @@ async function do_erc20_payment_from_s_chain(
         if ( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
         strActionName = "w3_s_chain.eth.sendSignedTransaction()/Deposit";
-        //let joReceiptDeposit = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        // let joReceiptDeposit = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
         let joReceiptDeposit = await safe_send_signed_transaction( w3_s_chain, serializedTxDeposit, strActionName, strLogPrefix );
         let joReceipt = joReceiptDeposit;
         if ( verbose_get() >= RV_VERBOSE.information )
@@ -1356,10 +1283,9 @@ async function do_erc20_payment_from_s_chain(
     return true;
 } // async function do_erc20_payment_from_s_chain(...
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+
 async function do_erc721_payment_from_s_chain(
     w3_main_net,
     w3_s_chain,
@@ -1409,7 +1335,7 @@ async function do_erc721_payment_from_s_chain(
                     , accountForMainnet, "0x" + w3_main_net.utils.toBN( token_id ).toString(16)
                 ).encodeABI();
         } else {
-            var function_call_trace = "exitToMainERC721(" +
+            let function_call_trace = "exitToMainERC721(" +
                 erc721Address_s_chain + ", " +
                 accountForMainnet + ", " +
                 w3_s_chain.utils.toBN( token_id ).toString(10) + ")"
@@ -1419,9 +1345,7 @@ async function do_erc721_payment_from_s_chain(
             ).encodeABI();
         }
         //
-        //
         // create raw transactions
-        //
         //
         strActionName = "create raw transactions S->M";
         const rawTxApprove = {
@@ -1444,19 +1368,16 @@ async function do_erc721_payment_from_s_chain(
             "gas": 8000000
         }
         //
-        //
         // sign transactions
         //
-        //
         strActionName = "sign transactions S->M";
-        var privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
+        let privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         const txApprove = new ethereumjs_tx( rawTxApprove );
         const txDeposit = new ethereumjs_tx( rawTxDeposit );
         txApprove.sign( privateKeyForSchain );
         txDeposit.sign( privateKeyForSchain );
         const serializedTxApprove = txApprove.serialize();
         const serializedTxDeposit = txDeposit.serialize();
-        //
         //
         // send transactions
         //
@@ -1494,8 +1415,6 @@ async function do_erc721_payment_from_s_chain(
     return true;
 } // async function do_erc721_payment_from_s_chain(...
 
-
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1516,14 +1435,13 @@ async function do_erc721_payment_from_s_chain(
 //            )
 //
 async function do_transfer(
-    /**/
     w3_src,
     jo_message_proxy_src,
     joAccountSrc,
     //
     w3_dst,
     jo_message_proxy_dst,
-    /**/
+    //
     joAccountDst,
     //
     chain_id_src,
@@ -1567,49 +1485,59 @@ async function do_transfer(
         nIncMsgCnt = 0,
         idxLastToPopNotIncluding = 0;
     try {
+        let nPossibleIntegerValue = 0;
         log.write( cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_src.options.address ) + "\n" );
         log.write( cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_dst.options.address ) + "\n" );
         strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        nOutMsgCnt = parseInt( await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( {
+        nPossibleIntegerValue = await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( {
             "from": joAccountSrc.address( w3_src )
-        } ) );
+        } );
+        if( ! owaspUtils.validateInteger( nPossibleIntegerValue ) )
+            throw new Error( "DST chain " + chain_id_dst + " returned outgoing message counter " + nPossibleIntegerValue + " which is not a valid integer" );
+        nOutMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
         if ( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( nOutMsgCnt ) + "\n" );
         //
         strActionName = "dst-chain.MessageProxy.getIncomingMessagesCounter()";
         if ( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        nIncMsgCnt = parseInt( await jo_message_proxy_dst.methods.getIncomingMessagesCounter( chain_id_src ).call( {
+        nPossibleIntegerValue = await jo_message_proxy_dst.methods.getIncomingMessagesCounter( chain_id_src ).call( {
             "from": joAccountDst.address( w3_dst )
-        } ) );
+        } );
+        if( ! owaspUtils.validateInteger( nPossibleIntegerValue ) )
+            throw new Error( "SRC chain " + chain_id_src + " returned incoming message counter " + nPossibleIntegerValue + " which is not a valid integer" );
+        nIncMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
         if ( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( nIncMsgCnt ) + "\n" );
         //
         strActionName = "src-chain.MessageProxy.getIncomingMessagesCounter()";
-        idxLastToPopNotIncluding = parseInt( await jo_message_proxy_src.methods.getIncomingMessagesCounter( chain_id_dst ).call( {
+        nPossibleIntegerValue = await jo_message_proxy_src.methods.getIncomingMessagesCounter( chain_id_dst ).call( {
             "from": joAccountSrc.address( w3_src )
-        } ) );
+        } );
+        if( ! owaspUtils.validateInteger( nPossibleIntegerValue ) )
+            throw new Error( "DST chain " + chain_id_dst + " returned incoming message counter " + nPossibleIntegerValue + " which is not a valid integer" );
+        idxLastToPopNotIncluding = owaspUtils.toInteger( nPossibleIntegerValue );
         if ( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( idxLastToPopNotIncluding ) + "\n" );
         //
+        // outer loop is block former/creator, then transfer
         //
-        // outer loop is block former, then transfer
         nIdxCurrentMsg = nIncMsgCnt;
-        var cntProcessed = 0;
+        let cntProcessed = 0;
         while ( nIdxCurrentMsg < nOutMsgCnt ) {
             if ( verbose_get() >= RV_VERBOSE.trace )
                 log.write( strLogPrefix + cc.debug( "Entering block former iteration with " ) + cc.notice( "message counter" ) + cc.debug( " set to " ) + cc.info( nIdxCurrentMsg ) + "\n" );
-            var arrMessageCounters = [];
+            let arrMessageCounters = [];
             const messages = [];
-            var nIdxCurrentMsgBlockStart = 0 + nIdxCurrentMsg;
-            //
+            let nIdxCurrentMsgBlockStart = 0 + nIdxCurrentMsg;
             //
             // inner loop wil create block of transactions
-            var cntAccumulatedForBlock = 0;
+            //
+            let cntAccumulatedForBlock = 0;
             for ( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++nIdxCurrentMsg, ++idxInBlock, ++cntAccumulatedForBlock ) {
-                var idxProcessing = cntProcessed + idxInBlock;
+                let idxProcessing = cntProcessed + idxInBlock;
                 if ( idxProcessing > nMaxTransactionsCount )
                     break;
                 //
@@ -1685,7 +1613,9 @@ async function do_transfer(
                         //
                         //
                         const joBlock = await w3_src.eth.getBlock( blockNumber );
-                        const timestampBlock = parseInt( joBlock.timestamp );
+                        if( ! owaspUtils.validateInteger( joBlock.timestamp ) )
+                            throw new Error( "Block \"timestamp\" is not a valid integer value: " + joBlock.timestamp );
+                        const timestampBlock = owaspUtils.toInteger( joBlock.timestamp );
                         if ( verbose_get() >= RV_VERBOSE.trace )
                             log.write( strLogPrefix + cc.debug( "Block   TS is " ) + cc.info( timestampBlock ) + "\n" );
                         const timestampCurrent = parseInt( parseInt( Date.now().valueOf() ) / 1000 );
@@ -1757,7 +1687,7 @@ async function do_transfer(
                     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
                 //
                 //
-                var nBlockSize = arrMessageCounters.length;
+                let nBlockSize = arrMessageCounters.length;
                 strActionName = "dst-chain.MessageProxy.postIncomingMessages()";
                 if ( verbose_get() >= RV_VERBOSE.trace )
                     log.write(
@@ -1825,9 +1755,9 @@ async function do_transfer(
                 if ( verbose_get() >= RV_VERBOSE.trace )
                     log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
                 let tx = new ethereumjs_tx( rawTx );
-                var key = Buffer.from( joAccountDst.privateKey, "hex" ); // convert private key to buffer ??????????????????????????????????
+                let key = Buffer.from( joAccountDst.privateKey, "hex" ); // convert private key to buffer ??????????????????????????????????
                 tx.sign( key ); // arg is privateKey as buffer
-                var serializedTx = tx.serialize();
+                let serializedTx = tx.serialize();
                 strActionName = "w3_dst.eth.sendSignedTransaction()";
                 //let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
                 let joReceipt = await safe_send_signed_transaction( w3_dst, serializedTx, strActionName, strLogPrefix );
@@ -1843,7 +1773,9 @@ async function do_transfer(
                 //
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.debug("Validating transfer from ") + cc.info(chain_id_src) + cc.debug(" to ") + cc.info(chain_id_dst) + cc.debug("...") + "\n" );
-// check DepositBox -> Error on Mainnet only
+                //
+                // check DepositBox -> Error on Mainnet only
+                //
                 if( chain_id_dst == "Mainnet" ) {
                     if ( verbose_get() >= RV_VERBOSE.information )
                         log.write( strLogPrefix + cc.debug("Validating transfer to Main Net via DepositBox error absence on Main Net...") + "\n" );
@@ -1855,7 +1787,7 @@ async function do_transfer(
                             if ( verbose_get() >= RV_VERBOSE.information )
                                 log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("DepositBox") + cc.success("/") + cc.notice(jo_deposit_box_main_net.options.address) + cc.success(" contract, no events found" ) + "\n" );
                         } else {
-                            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.warn(" Failed") + cc.error(" verification of the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("DepositBox") + cc.error("/") + cc.notice(jo_deposit_box_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.warning(" Failed") + cc.error(" verification of the ") + cc.warning("Error") + cc.error(" event of the ") + cc.warning("DepositBox") + cc.error("/") + cc.notice(jo_deposit_box_main_net.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                             throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_main_net.options.address + " contract, error events found" );
                         }
                         if ( verbose_get() >= RV_VERBOSE.information )
@@ -1863,10 +1795,10 @@ async function do_transfer(
                     } else
                         log.write( strLogPrefix + cc.console.warn("Cannot validate transfer to Main Net via DepositBox error absence on Main Net, no DepositBox provided") + "\n" );
                 } // if( chain_id_dst == "Mainnet" )
-                //
-                //
-// check TokenManager -> Error on Schain only
                 /*
+                //
+                // check TokenManager -> Error on Schain only
+                //
                 if( chain_id_dst != "Mainnet" ) {
                     if ( verbose_get() >= RV_VERBOSE.information )
                         log.write( strLogPrefix + cc.debug("Validating transfer to S-Chain via TokenManager error absence on S-Chain...") + "\n" );
@@ -1878,7 +1810,7 @@ async function do_transfer(
                             if ( verbose_get() >= RV_VERBOSE.information )
                                 log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("TokenManager") + cc.success("/") + cc.notice(jo_token_manager_schain.options.address) + cc.success(" contract, no events found" ) + "\n" );
                         } else {
-                            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.warn(" Failed") + cc.error(" verification of the ") + cc.warn("Error") + cc.error(" event of the ") + cc.warn("TokenManager") + cc.error("/") + cc.notice(jo_token_manager_schain.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.warning(" Failed") + cc.error(" verification of the ") + cc.warning("Error") + cc.error(" event of the ") + cc.warning("TokenManager") + cc.error("/") + cc.notice(jo_token_manager_schain.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                             throw new Error( "Verification failed for the \"Error\" event of the \"TokenManager\"/" + jo_token_manager_schain.options.address + " contract, error events found" );
                         }
                         if ( verbose_get() >= RV_VERBOSE.information )
@@ -1889,10 +1821,6 @@ async function do_transfer(
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Done, validated transfer from ") + cc.info(chain_id_src) + cc.debug(" to ") + cc.info(chain_id_dst) + cc.debug(", everything is OKay") + "\n" );
                 */
-                //
-                //
-                //
-                //
                 //
                 //
                 //
@@ -1908,19 +1836,21 @@ async function do_transfer(
     return true;
 } // async function do_transfer( ...
 
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // init helpers
 //
+
 function noop() {
     return null;
 }
+
 module.exports.longSeparator = g_mtaStrLongSeparator;
 module.exports.noop = noop;
 module.exports.cc = cc;
 module.exports.log = log;
+module.exports.owaspUtils = owaspUtils;
 module.exports.w3mod = w3mod;
 module.exports.ethereumjs_tx = ethereumjs_tx;
 module.exports.ethereumjs_wallet = ethereumjs_wallet;
@@ -1932,12 +1862,6 @@ module.exports.verbose_get = verbose_get;
 module.exports.verbose_set = verbose_set;
 module.exports.verbose_parse = verbose_parse;
 module.exports.verbose_list = verbose_list;
-
-module.exports.ensure_starts_with_0x = ensure_starts_with_0x;
-module.exports.remove_starting_0x = remove_starting_0x;
-module.exports.private_key_2_public_key = private_key_2_public_key;
-module.exports.public_key_2_account_address = public_key_2_account_address;
-module.exports.private_key_2_account_address = private_key_2_account_address;
 
 module.exports.register_s_chain_on_main_net = register_s_chain_on_main_net; // step 1A
 module.exports.check_is_registered_main_net_on_s_chain = check_is_registered_main_net_on_s_chain; // step 1B
