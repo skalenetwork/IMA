@@ -34,7 +34,7 @@ module.exports = {
             }
         } ],
         "space-before-blocks": [ "error", "always" ],
-        "array-bracket-spacing": [ "error", "always", { "singleValue": true } ],
+        "array-bracket-spacing": [ "error", "always" ],
         "object-curly-spacing": [ "error", "always" ],
         "space-unary-ops": "off",
         "spaced-comment": "off",
