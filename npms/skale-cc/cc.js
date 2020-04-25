@@ -131,7 +131,7 @@ function safeURL( arg ) {
             }
             return null;
         }
-        const objURL = new url.URL( arg );
+        const objURL = new URL( arg );
         if( !objURL.hostname ) {
             return null;
         }

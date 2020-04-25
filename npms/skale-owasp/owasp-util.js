@@ -113,7 +113,7 @@ function toURL( s ) {
             }
             return null;
         }
-        const u = url.URL( s );
+        const u = new URL( s );
         if( !u.hostname ) { return null; }
         if( u.hostname.length == 0 ) { return null; }
         u.strStrippedStringComma = null;
