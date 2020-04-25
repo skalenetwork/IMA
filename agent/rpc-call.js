@@ -7,16 +7,16 @@ let owaspUtils = null;
 
 function is_ws_url( strURL ) {
     try {
-        if( !owaspUtils.validateURL( strURL ) ) { return false; }
+        if( !owaspUtils.validateURL( strURL ) ) return false;
         const u = new URL( strURL );
-        if( u.protocol == "ws:" || u.protocol == "wss:" ) { return true; }
+        if( u.protocol == "ws:" || u.protocol == "wss:" ) return true;
     } catch ( err ) {
     }
     return false;
 }
 
 function rpc_call_init( a_cc, a_log, a_owaspUtils ) {
-    if( !( a_cc && a_log && a_owaspUtils ) ) { throw new Error( "JSON RPC CALLER module initializer was invoked with bad parameters: " + JSON.stringify( arguments ) ); }
+    if( !( a_cc && a_log && a_owaspUtils ) ) throw new Error( "JSON RPC CALLER module initializer was invoked with bad parameters: " + JSON.stringify( arguments ) );
     cc = a_cc;
     log = a_log;
     owaspUtils = a_owaspUtils;
@@ -26,7 +26,7 @@ function rpc_call_init( a_cc, a_log, a_owaspUtils ) {
 async function do_connect( joCall, fn ) {
     try {
         fn = fn || function() {};
-        if( !owaspUtils.validateURL( joCall.url ) ) { throw new Error( "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url ); }
+        if( !owaspUtils.validateURL( joCall.url ) ) throw new Error( "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
         if( is_ws_url( joCall.url ) ) {
             joCall.wsConn = new ws( joCall.url );
             joCall.wsConn.on( "open", function() {
@@ -63,7 +63,7 @@ async function do_connect( joCall, fn ) {
 async function do_connect_if_needed( joCall, fn ) {
     try {
         fn = fn || function() {};
-        if( !owaspUtils.validateURL( joCall.url ) ) { throw new Error( "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url ); }
+        if( !owaspUtils.validateURL( joCall.url ) ) throw new Error( "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
         if( is_ws_url( joCall.url ) && ( !joCall.wsConn ) ) {
             joCall.reconnect( fn );
             return;
@@ -89,14 +89,14 @@ async function do_call( joCall, joIn, fn ) {
         }, 20 * 1000 );
         joCall.wsConn.send( JSON.stringify( joIn ) );
     } else {
-        if( !owaspUtils.validateURL( joCall.url ) ) { throw new Error( "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url ); }
+        if( !owaspUtils.validateURL( joCall.url ) ) throw new Error( "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url );
         request.post( {
             uri: joCall.url,
             "content-type": "application/json",
             body: JSON.stringify( joIn )
         },
         function( err, response, body ) {
-            if( response && response.statusCode && response.statusCode != 200 ) { log.write( cc.error( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" ); }
+            if( response && response.statusCode && response.statusCode != 200 ) log.write( cc.error( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" );
             if( err ) {
                 log.write( cc.u( joCall.url ) + cc.error( " REST error " ) + cc.warning( err ) + "\n" );
                 fn( joIn, null, err );
@@ -109,9 +109,9 @@ async function do_call( joCall, joIn, fn ) {
 }
 
 async function rpc_call_create( strURL, fn ) {
-    if( !owaspUtils.validateURL( strURL ) ) { throw new Error( "JSON RPC CALLER cannot create a call object invalid URL: " + strURL ); }
+    if( !owaspUtils.validateURL( strURL ) ) throw new Error( "JSON RPC CALLER cannot create a call object invalid URL: " + strURL );
     fn = fn || function() {};
-    if( !( strURL && strURL.length > 0 ) ) { throw new Error( "rpc_call_create() was invoked with bad parameters: " + JSON.stringify( arguments ) ); }
+    if( !( strURL && strURL.length > 0 ) ) throw new Error( "rpc_call_create() was invoked with bad parameters: " + JSON.stringify( arguments ) );
     const joCall = {
         url: "" + strURL,
         mapPendingByCallID: {},
@@ -147,8 +147,8 @@ function generate_random_rpc_call_id() {
 }
 
 function enrich_top_level_json_fields( jo ) {
-    if( ( !( "jsonrpc" in jo ) ) || ( typeof jo.jsonrpc !== "string" ) || jo.jsonrpc.length == 0 ) { jo.jsonrpc = "2.0"; }
-    if( ( !( "id" in jo ) ) || ( typeof jo.id !== "number" ) || jo.id <= 0 ) { jo.id = generate_random_rpc_call_id(); }
+    if( ( !( "jsonrpc" in jo ) ) || ( typeof jo.jsonrpc !== "string" ) || jo.jsonrpc.length == 0 ) jo.jsonrpc = "2.0";
+    if( ( !( "id" in jo ) ) || ( typeof jo.id !== "number" ) || jo.id <= 0 ) jo.id = generate_random_rpc_call_id();
     return jo;
 }
 

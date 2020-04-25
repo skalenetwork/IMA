@@ -7,7 +7,7 @@ let g_arrStreams = [];
 
 function n2s( n, sz ) {
     let s = "" + n;
-    while( s.length < sz ) { s = "0" + s; }
+    while( s.length < sz ) s = "0" + s;
     return s;
 }
 
@@ -54,7 +54,7 @@ function getStreamWithFilePath( strFilePath ) {
         for( i = 0; i < cnt; ++i ) {
             try {
                 const objEntry = g_arrStreams[i];
-                if( objEntry.strPath === strFilePath ) { return objEntry; }
+                if( objEntry.strPath === strFilePath ) return objEntry;
             } catch ( err ) {
             }
         }
@@ -88,9 +88,9 @@ function createStandardOutputStream() {
 
 function insertStandardOutputStream() {
     let objEntry = getStreamWithFilePath( "stdout" );
-    if( objEntry !== null ) { return true; }
+    if( objEntry !== null ) return true;
     objEntry = createStandardOutputStream();
-    if( !objEntry ) { return false; }
+    if( !objEntry ) return false;
     g_arrStreams.push( objEntry );
     return true;
 }
@@ -112,7 +112,7 @@ function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount )
 			  size: function() { try { return fs.lstatSync( this.strPath ).size; } catch ( err ) { return 0; } },
 			  rotate: function( nBytesToWrite ) {
                 try {
-                    if( this.nMaxSizeBeforeRotation <= 0 || this.nMaxFilesCount <= 1 ) { return; }
+                    if( this.nMaxSizeBeforeRotation <= 0 || this.nMaxFilesCount <= 1 ) return;
                     this.close();
                     const nFileSize = this.size();
                     const nNextSize = nFileSize + nBytesToWrite;
@@ -149,9 +149,9 @@ function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount )
 }
 function insertFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
     let objEntry = getStreamWithFilePath( "" + strFilePath );
-    if( objEntry !== null ) { return true; }
+    if( objEntry !== null ) return true;
     objEntry = createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount );
-    if( !objEntry ) { return false; }
+    if( !objEntry ) return false;
     g_arrStreams.push( objEntry );
     return true;
 }
@@ -174,7 +174,7 @@ module.exports = {
         } catch ( err ) {
         }
         try {
-            if( s.length <= 0 ) { return; }
+            if( s.length <= 0 ) return;
             cnt = g_arrStreams.length;
             for( i = 0; i < cnt; ++i ) {
                 try {

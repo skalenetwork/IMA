@@ -26,9 +26,9 @@ function _tf_( flag ) {
 
 function isInt2( n ) {
     const intRegex = /^-?\d+$/;
-    if( !intRegex.test( n ) ) {
+    if( !intRegex.test( n ) )
         return false;
-    }
+
     const intVal = parseInt( n, 10 );
     return parseFloat( n ) == intVal && !isNaN( intVal );
 }
@@ -58,33 +58,33 @@ function isFloat2( n ) {
 
 function url_obj_colorized( objURL ) {
     let strURL = "";
-    if( !objURL ) {
+    if( !objURL )
         return strURL;
-    }
+
     // if( objURL.strStrippedStringComma )
     //     strURL += module.exports.normal(objURL.strStrippedStringComma);
-    if( objURL.protocol ) {
+    if( objURL.protocol )
         strURL += "" + module.exports.yellow( objURL.protocol ) + module.exports.normal( "//" );
-    }
+
     if( objURL.username ) {
         strURL += "" + module.exports.magenta( objURL.username );
-        if( objURL.password ) {
+        if( objURL.password )
             strURL += module.exports.normal( ":" ) + module.exports.yellow( objURL.password );
-        }
+
         strURL += module.exports.normal( "@" );
     }
-    if( objURL.hostname ) {
+    if( objURL.hostname )
         strURL += "" + module.exports.magenta( log_arg_to_str_as_ipv4( objURL.hostname ) );
-    }
-    if( objURL.port ) {
+
+    if( objURL.port )
         strURL += module.exports.normal( ":" ) + log_arg_to_str( objURL.port );
-    }
-    if( objURL.pathname ) {
+
+    if( objURL.pathname )
         strURL += "" + module.exports.yellow( replaceAll( objURL.pathname, "/", module.exports.normal( "/" ) ) );
-    }
-    if( objURL.search ) {
+
+    if( objURL.search )
         strURL += "" + module.exports.magenta( objURL.search );
-    }
+
     // if( objURL.strStrippedStringComma )
     //     strURL += module.exports.normal(objURL.strStrippedStringComma);
     return strURL;
@@ -92,16 +92,16 @@ function url_obj_colorized( objURL ) {
 
 function url_str_colorized( s ) {
     const objURL = safeURL( s );
-    if( !objURL ) {
+    if( !objURL )
         return "";
-    }
+
     return url_obj_colorized( objURL );
 }
 
 function url_colorized( x ) {
-    if( typeof x === "string" || x instanceof String ) {
+    if( typeof x === "string" || x instanceof String )
         return url_str_colorized( x );
-    }
+
     return url_obj_colorized( x );
 }
 
@@ -124,20 +124,20 @@ function safeURL( arg ) {
             if( arg[cnt - 1] == sc ) {
                 const ss = arg.substring( 1, cnt - 1 );
                 const objURL = safeURL( ss );
-                if( objURL != null && objURL != undefined ) {
+                if( objURL != null && objURL != undefined )
                     objURL.strStrippedStringComma = sc;
-                }
+
                 return objURL;
             }
             return null;
         }
         const objURL = new URL( arg );
-        if( !objURL.hostname ) {
+        if( !objURL.hostname )
             return null;
-        }
-        if( objURL.hostname.length == 0 ) {
+
+        if( objURL.hostname.length == 0 )
             return null;
-        }
+
         objURL.strStrippedStringComma = null;
         return objURL;
     } catch ( err ) {
@@ -148,9 +148,9 @@ function safeURL( arg ) {
 function to_ipv4_arr( s ) {
     if( /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test( s ) ) {
         const arr = s.split( "." );
-        if( ( !arr ) || arr.length != 4 ) {
+        if( ( !arr ) || arr.length != 4 )
             return null;
-        }
+
         return arr;
     }
     return null;
@@ -158,14 +158,14 @@ function to_ipv4_arr( s ) {
 
 function log_arg_to_str_as_ipv4( arg ) {
     const arr = to_ipv4_arr( arg );
-    if( !arr ) {
+    if( !arr )
         return arg;
-    }
+
     let s = "";
     for( let i = 0; i < 4; ++i ) {
-        if( i > 0 ) {
+        if( i > 0 )
             s += module.exports.normal( "." );
-        }
+
         s += log_arg_to_str( arr[i] );
     }
     return s;
@@ -189,9 +189,9 @@ function log_arg_to_str() {
             s += "" + _tf_( arg );
             continue;
         }
-        if( typeof arg === "object" && typeof arg.valueOf() === "boolean" ) {
+        if( typeof arg === "object" && typeof arg.valueOf() === "boolean" )
             s += "" + _tf_( arg.valueOf() );
-        }
+
         if( typeof arg === "number" ) {
             s += "" + module.exports.number( arg );
             continue;
@@ -208,34 +208,34 @@ function log_arg_to_str() {
             const objURL = safeURL( arg );
             if( objURL != null && objURL != undefined ) {
                 let strURL = "";
-                if( objURL.strStrippedStringComma ) {
+                if( objURL.strStrippedStringComma )
                     strURL += module.exports.normal( objURL.strStrippedStringComma );
-                }
-                if( objURL.protocol ) {
+
+                if( objURL.protocol )
                     strURL += "" + module.exports.yellow( objURL.protocol ) + module.exports.normal( "//" );
-                }
+
                 if( objURL.username ) {
                     strURL += "" + module.exports.magenta( objURL.username );
-                    if( objURL.password ) {
+                    if( objURL.password )
                         strURL += module.exports.normal( ":" ) + module.exports.yellow( objURL.password );
-                    }
+
                     strURL += module.exports.normal( "@" );
                 }
-                if( objURL.hostname ) {
+                if( objURL.hostname )
                     strURL += "" + module.exports.magenta( log_arg_to_str_as_ipv4( objURL.hostname ) );
-                }
-                if( objURL.port ) {
+
+                if( objURL.port )
                     strURL += module.exports.normal( ":" ) + log_arg_to_str( objURL.port );
-                }
-                if( objURL.pathname ) {
+
+                if( objURL.pathname )
                     strURL += "" + module.exports.yellow( replaceAll( objURL.pathname, "/", module.exports.normal( "/" ) ) );
-                }
-                if( objURL.search ) {
+
+                if( objURL.search )
                     strURL += "" + module.exports.magenta( objURL.search );
-                }
-                if( objURL.strStrippedStringComma ) {
+
+                if( objURL.strStrippedStringComma )
                     strURL += module.exports.normal( objURL.strStrippedStringComma );
-                }
+
                 s += strURL;
                 continue;
             }
@@ -334,12 +334,12 @@ const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
     censor: ( censor ) => {
         let i = 0;
         return ( key, value ) => {
-            if( i !== 0 && typeof ( censor ) === "object" && typeof ( value ) === "object" && censor == value ) {
+            if( i !== 0 && typeof ( censor ) === "object" && typeof ( value ) === "object" && censor == value )
                 return "[Circular]";
-            }
-            if( i >= jsonColorizer.cntCensoredMax ) {
+
+            if( i >= jsonColorizer.cntCensoredMax )
                 return "[Unknown]";
-            }
+
             ++i; // so we know we aren't using the original object anymore
             return value;
         };
@@ -349,12 +349,12 @@ const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
         const val = "<span class=json-value>";
         const str = "<span class=json-string>";
         let r = pIndent || "";
-        if( pKey ) {
+        if( pKey )
             r = r + key + pKey.replace( /[": ]/g, "" ) + "</span>: ";
-        }
-        if( pVal ) {
+
+        if( pVal )
             r = r + ( pVal[0] == "\"" ? str : val ) + pVal + "</span>";
-        }
+
         return r + ( pEnd || "" );
     },
     prettyPrintHTML: ( obj ) => {
@@ -368,12 +368,12 @@ const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
     },
     replacerConsole: ( match, pIndent, pKey, pVal, pEnd ) => {
         let r = pIndent || "";
-        if( pKey ) {
+        if( pKey )
             r = r + log_arg_to_str( pKey.replace( /[": ]/g, "" ) ) + ": ";
-        }
-        if( pVal ) {
+
+        if( pVal )
             r = r + log_arg_to_str( pVal );
-        }
+
         return r + ( pEnd || "" );
     },
     prettyPrintConsole: ( obj ) => {
