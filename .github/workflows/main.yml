@@ -114,6 +114,11 @@ jobs:
         sudo npm install -g eslint
         eslint --version
 
+    - name: INSTALL PREREQUISITES - ROOT - PACKAGES
+      run: |
+        yarn install
+        ls -1
+
     - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
       run: |
         cd proxy
@@ -131,11 +136,6 @@ jobs:
         echo ------------ buidler version check
         npx buidler --version
         cd ..
-
-    - name: INSTALL PREREQUISITES - ROOT - PACKAGES
-      run: |
-        yarn install
-        ls -1
 
     - name: INSTALL PREREQUISITES - PROXY - PACKAGES
       run: |
