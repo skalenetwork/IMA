@@ -114,50 +114,6 @@ jobs:
         sudo npm install -g eslint
         eslint --version
 
-    - name: LINT CHECK EVERYTHING JS WITH ESLINT
-      run: |
-        yarn run lint-check
-        echo "Looks like no JS code formatting errors so far)"
-
-    - name: PY CHECKS
-      run: |
-        echo ------------ python version check
-        which python || echo "----> Looks like python was not installed, next command will fail"
-        python --version
-        echo ------------ python3 version check
-        which python3 || echo "----> Looks like python3 was not installed, next command will fail"
-        python3 --version
-
-    - name: SOLC CHECKS
-      run: |
-        echo ------------ solc install
-        # sudo npm install -g solc
-        sudo add-apt-repository ppa:ethereum/ethereum
-        sudo apt-get update
-        sudo apt-get install solc
-        echo ------------ solc version check
-        which solc || echo "----> Looks like solc was not installed, next command will fail"
-        solc --version
-
-    - name: INSTALL PREREQUISITES - PY
-      run: |
-        echo ------------ py3 installs
-        sudo apt-get install python3-pip python3-setuptools python3-dev
-        echo ------------ py3 wheel - apt
-        sudo apt-get install python3-wheel
-        echo ------------ py3 wheel - pip
-        pip3 install wheel
-        echo ------------ slither analyzer install
-        # pip3 install slither-analyzer
-        pip3 install slither-analyzer==0.6.8
-        echo ------------ slither search attempt
-        sudo find / -name slither || true
-        echo ------------ slither location detection - after install
-        export PATH=$PATH:/home/$USER/.local/bin
-        which slither || echo "----> Looks like slither was not installed, next command will fail"
-        echo ------------ slither version check - after install
-        slither --version || true
-
     - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
       run: |
         cd proxy
@@ -204,6 +160,50 @@ jobs:
         cd npms/skale-owasp
         yarn install
         cd ../..
+
+    - name: LINT CHECK EVERYTHING JS WITH ESLINT
+      run: |
+        yarn run lint-check
+        echo "Looks like no JS code formatting errors so far)"
+
+    - name: PY CHECKS
+      run: |
+        echo ------------ python version check
+        which python || echo "----> Looks like python was not installed, next command will fail"
+        python --version
+        echo ------------ python3 version check
+        which python3 || echo "----> Looks like python3 was not installed, next command will fail"
+        python3 --version
+
+    - name: SOLC CHECKS
+      run: |
+        echo ------------ solc install
+        # sudo npm install -g solc
+        sudo add-apt-repository ppa:ethereum/ethereum
+        sudo apt-get update
+        sudo apt-get install solc
+        echo ------------ solc version check
+        which solc || echo "----> Looks like solc was not installed, next command will fail"
+        solc --version
+
+    - name: INSTALL PREREQUISITES - PY
+      run: |
+        echo ------------ py3 installs
+        sudo apt-get install python3-pip python3-setuptools python3-dev
+        echo ------------ py3 wheel - apt
+        sudo apt-get install python3-wheel
+        echo ------------ py3 wheel - pip
+        pip3 install wheel
+        echo ------------ slither analyzer install
+        # pip3 install slither-analyzer
+        pip3 install slither-analyzer==0.6.8
+        echo ------------ slither search attempt
+        sudo find / -name slither || true
+        echo ------------ slither location detection - after install
+        export PATH=$PATH:/home/$USER/.local/bin
+        which slither || echo "----> Looks like slither was not installed, next command will fail"
+        echo ------------ slither version check - after install
+        slither --version || true
 
     - name: START BACKGROUND GANACHE
       run: |
