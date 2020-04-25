@@ -125,11 +125,11 @@ jobs:
         bash ./scripts/copy.sh
         cd ..
 
-    - name: INSTALL PREREQUISITES - PROXY - PACKAGES
+    - name: INSTALL PREREQUISITES - PROXY - NPX SPECIFIC STEPS
       run: |
         cd proxy
-        echo ------------ yarn pass
-        yarn install
+        #echo ------------ yarn pass
+        #yarn install
         echo ------------ npx version check
         which npx || echo "----> Looks like npx was not installed, next command will fail"
         npx --version
@@ -137,31 +137,7 @@ jobs:
         npx buidler --version
         cd ..
 
-    - name: INSTALL PREREQUISITES - PROXY - PACKAGES
-      run: |
-        cd proxy 
-        yarn install
-        cd ..
-
-    - name: INSTALL PREREQUISITES - AGENT - PACKAGES
-      run: |
-        cd agent 
-        yarn install
-        cd ..
-
-    - name: INSTALL PREREQUISITES - SKALE-IMA - PACKAGES
-      run: |
-        cd npms/skale-ima
-        yarn install
-        cd ../..
-
-    - name: INSTALL PREREQUISITES - SKALE-OWASP - PACKAGES
-      run: |
-        cd npms/skale-owasp
-        yarn install
-        cd ../..
-
-    - name: LINT CHECK EVERYTHING JS WITH ESLINT
+    - name: JS LINT CHECK EVERYTHING IN AGENT AND NPMS WITH ESLINT
       run: |
         yarn run lint-check
         echo "Looks like no JS code formatting errors so far)"
