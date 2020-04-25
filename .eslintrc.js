@@ -34,11 +34,12 @@ module.exports = {
             }
         } ],
         "space-before-blocks": [ "error", "always" ],
-        "array-bracket-spacing": [ "error", "always" ],
+        "array-bracket-spacing": [ "error", "always", { "singleValue": true } ],
         "object-curly-spacing": [ "error", "always" ],
         "space-unary-ops": "off",
         "spaced-comment": "off",
         "curly": [ "error", "multi-or-nest" ],
+        "nonblock-statement-body-position": [ "error", "below" ],
         "one-var": "off",
         "no-unneeded-ternary": "off",
         "no-cond-assign": [ "error", "always" ],

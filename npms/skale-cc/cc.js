@@ -7,12 +7,14 @@ function replaceAll( str, find, replace ) {
 }
 
 function _yn_( flag ) {
-    if( !g_bEnabled ) return flag;
+    if( !g_bEnabled )
+        return flag;
     return flag ? module.exports.yes( "yes" ) : module.exports.no( "no" );
 }
 
 function _tf_( flag ) {
-    if( !g_bEnabled ) return flag;
+    if( !g_bEnabled )
+        return flag;
     return flag ? module.exports.yes( "true" ) : module.exports.no( "false" );
 }
 
@@ -377,7 +379,8 @@ const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
         return r + ( pEnd || "" );
     },
     prettyPrintConsole: ( obj ) => {
-        if( !g_bEnabled ) return obj;
+        if( !g_bEnabled )
+            return obj;
         const jsonLine = /^( *)("[\w]+": )?("[^"]*"|[\w.+-]*)?([,[{])?$/mg;
         const s =
             JSON.stringify( obj, ( jsonColorizer.cntCensoredMax > 0 ) ? jsonColorizer.censor( obj ) : null, 4 )
@@ -417,127 +420,158 @@ module.exports = {
     bgCyan: "\x1b[46m",
     bBgWhite: "\x1b[47m",
     normal: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgWhite + s + this.reset;
     },
     trace: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgWhite + s + this.reset;
     },
     debug: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgBlack + this.enlight + s + this.reset;
     },
     note: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgBlue + s + this.reset;
     },
     notice: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgMagenta + s + this.reset;
     },
     info: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgBlue + this.enlight + s + this.reset;
     },
     warning: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgYellow + s + this.reset;
     },
     warn: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgYellow + s + this.reset;
     },
     error: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgRed + s + this.reset;
     },
     fatal: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.bgRed + this.fgYellow + this.enlight + s + this.reset;
     },
     success: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgGreen + this.enlight + s + this.reset;
     },
     attention: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgCyan + s + this.reset;
     },
     bright: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgWhite + this.enlight + s + this.reset;
     },
     sunny: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgYellow + this.enlight + s + this.reset;
     },
     rx: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgMagenta + s + this.reset;
     },
     rxa: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgMagenta + this.enlight + s + this.reset;
     },
     tx: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgGreen + s + this.reset;
     },
     txa: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgGreen + this.enlight + s + this.reset;
     },
     date: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgYellow + s + this.reset;
     },
     time: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgMagenta + this.enlight + s + this.reset;
     },
     frac_time: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgMagenta + s + this.reset;
     },
     yes: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgGreen + this.enlight + s + this.reset;
     },
     no: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgBlue + s + this.reset;
     },
     real: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgMagenta + s + this.reset;
     },
     undefval: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgGreen + this.enlight + s + this.reset;
     },
     nullval: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgGreen + this.enlight + s + this.reset;
     },
     yellow: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgYellow + s + this.reset;
     },
     magenta: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgMagenta + s + this.reset;
     },
     cla: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgBlue + this.dim + s + this.reset;
     },
     kk: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgYellow + this.enlight + s + this.reset;
     },
     strval: function( s ) {
-        if( !g_bEnabled ) return s;
+        if( !g_bEnabled )
+            return s;
         return "" + this.fgYellow + s + this.reset;
     },
     j: function( x ) {

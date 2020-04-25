@@ -7,7 +7,8 @@ let g_arrStreams = [];
 
 function n2s( n, sz ) {
     let s = "" + n;
-    while( s.length < sz ) s = "0" + s;
+    while( s.length < sz )
+        s = "0" + s;
     return s;
 }
 
@@ -54,7 +55,8 @@ function getStreamWithFilePath( strFilePath ) {
         for( i = 0; i < cnt; ++i ) {
             try {
                 const objEntry = g_arrStreams[i];
-                if( objEntry.strPath === strFilePath ) return objEntry;
+                if( objEntry.strPath === strFilePath )
+                    return objEntry;
             } catch ( err ) {
             }
         }
@@ -73,7 +75,12 @@ function createStandardOutputStream() {
 			  nMaxSizeBeforeRotation: -1,
 			  nMaxFilesCount: -1,
 			  objStream: null,
-			  write: function( s ) { const x = "" + s; try { if( this.objStream ) this.objStream.write( x ); } catch ( err ) { } },
+			  write: function( s ) {
+                const x = "" + s; try {
+                    if( this.objStream )
+                        this.objStream.write( x );
+                } catch ( err ) { }
+            },
 			  close: function() { this.objStream = null; },
 			  open: function() { try { this.objStream = process.stdout; } catch ( err ) { } },
 			  size: function() { return 0; },
@@ -88,9 +95,11 @@ function createStandardOutputStream() {
 
 function insertStandardOutputStream() {
     let objEntry = getStreamWithFilePath( "stdout" );
-    if( objEntry !== null ) return true;
+    if( objEntry !== null )
+        return true;
     objEntry = createStandardOutputStream();
-    if( !objEntry ) return false;
+    if( !objEntry )
+        return false;
     g_arrStreams.push( objEntry );
     return true;
 }
@@ -107,12 +116,16 @@ function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount )
 			  nMaxFilesCount: 0 + nMaxFilesCount,
 			  objStream: null,
 			  write: function( s ) { const x = "" + s; this.rotate( x.length ); fs.appendFileSync( this.objStream, x, "utf8" ); },
-			  close: function() { if( !this.objStream ) return; fs.closeSync( this.objStream ); this.objStream = null; },
+			  close: function() {
+                if( !this.objStream )
+                    return; fs.closeSync( this.objStream ); this.objStream = null;
+            },
 			  open: function() { this.objStream = fs.openSync( this.strPath, "a", fs.constants.O_NONBLOCK | fs.constants.O_WR ); },
 			  size: function() { try { return fs.lstatSync( this.strPath ).size; } catch ( err ) { return 0; } },
 			  rotate: function( nBytesToWrite ) {
                 try {
-                    if( this.nMaxSizeBeforeRotation <= 0 || this.nMaxFilesCount <= 1 ) return;
+                    if( this.nMaxSizeBeforeRotation <= 0 || this.nMaxFilesCount <= 1 )
+                        return;
                     this.close();
                     const nFileSize = this.size();
                     const nNextSize = nFileSize + nBytesToWrite;
@@ -149,9 +162,11 @@ function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount )
 }
 function insertFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
     let objEntry = getStreamWithFilePath( "" + strFilePath );
-    if( objEntry !== null ) return true;
+    if( objEntry !== null )
+        return true;
     objEntry = createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount );
-    if( !objEntry ) return false;
+    if( !objEntry )
+        return false;
     g_arrStreams.push( objEntry );
     return true;
 }
@@ -174,7 +189,8 @@ module.exports = {
         } catch ( err ) {
         }
         try {
-            if( s.length <= 0 ) return;
+            if( s.length <= 0 )
+                return;
             cnt = g_arrStreams.length;
             for( i = 0; i < cnt; ++i ) {
                 try {

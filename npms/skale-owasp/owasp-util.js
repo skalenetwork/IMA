@@ -17,9 +17,11 @@ const ethereumjs_util = require( "ethereumjs-util" );
 function rxIsInt( val ) {
     try {
         const intRegex = /^-?\d+$/;
-        if( !intRegex.test( val ) ) return false;
+        if( !intRegex.test( val ) )
+            return false;
         const intVal = parseInt( val, 10 );
-        if( parseFloat( val ) == intVal && ( !isNaN( intVal ) ) ) return true;
+        if( parseFloat( val ) == intVal && ( !isNaN( intVal ) ) )
+            return true;
     } catch ( err ) {
     }
     return false;
@@ -28,9 +30,11 @@ function rxIsInt( val ) {
 function rxIsFloat( val ) {
     try {
         const floatRegex = /^-?\d+(?:[.,]\d*?)?$/;
-        if( !floatRegex.test( val ) ) return false;
+        if( !floatRegex.test( val ) )
+            return false;
         val = parseFloat( val );
-        if( isNaN( val ) ) return false;
+        if( isNaN( val ) )
+            return false;
         return true;
     } catch ( err ) {
     }
@@ -50,12 +54,14 @@ function validateInteger( value, radix ) {
     try {
         value = "" + value;
         value = value.trim();
-        if( value.length < 1 ) return false;
+        if( value.length < 1 )
+            return false;
         radix = validateRadix( value, radix );
         if( ( !isNaN( value ) ) &&
             ( parseInt( Number( value ), radix ) == value || radix != 10 ) &&
             ( !isNaN( parseInt( value, radix ) ) )
-        ) return true;
+        )
+            return true;
     } catch ( err ) {
     }
     return false;
@@ -64,7 +70,8 @@ function validateInteger( value, radix ) {
 function toInteger( value, radix ) {
     try {
         radix = validateRadix( value, radix );
-        if( !validateInteger( value, radix ) ) return NaN;
+        if( !validateInteger( value, radix ) )
+            return NaN;
         return parseInt( value, radix );
     } catch ( err ) {
     }
@@ -74,7 +81,8 @@ function toInteger( value, radix ) {
 function validateFloat( value ) {
     try {
         const f = parseFloat( value );
-        if( isNaN( f ) ) return false;
+        if( isNaN( f ) )
+            return false;
         return true;
     } catch ( err ) {
     }
@@ -92,30 +100,37 @@ function toFloat( value ) {
 
 function validateURL( s ) {
     const u = toURL( s );
-    if( u == null ) return false;
+    if( u == null )
+        return false;
     return true;
 }
 
 function toURL( s ) {
     try {
-        if( s == null || s == undefined ) return null;
-        if( typeof s !== "string" ) return null;
+        if( s == null || s == undefined )
+            return null;
+        if( typeof s !== "string" )
+            return null;
         s = s.trim();
-        if( s.length <= 0 ) return null;
+        if( s.length <= 0 )
+            return null;
         const sc = s[0];
         if( sc == "\"" || sc == "'" ) {
             const cnt = s.length;
             if( s[cnt - 1] == sc ) {
                 const ss = s.substring( 1, cnt - 1 );
                 const u = toURL( ss );
-                if( u != null && u != undefined ) u.strStrippedStringComma = sc;
+                if( u != null && u != undefined )
+                    u.strStrippedStringComma = sc;
                 return u;
             }
             return null;
         }
         const u = new URL( s );
-        if( !u.hostname ) return null;
-        if( u.hostname.length == 0 ) return null;
+        if( !u.hostname )
+            return null;
+        if( u.hostname.length == 0 )
+            return null;
         u.strStrippedStringComma = null;
         return u;
     } catch ( err ) {
@@ -127,7 +142,8 @@ function toStringURL( s, defValue ) {
     defValue = defValue || "";
     try {
         const u = toURL( s );
-        if( u == null || u == undefined ) return defValue;
+        if( u == null || u == undefined )
+            return defValue;
         return u.toString();
     } catch ( err ) {
         return defValue;
@@ -139,8 +155,13 @@ function toBoolean( value ) {
     try {
         if( typeof value === "string" ) {
             const ch = value[0].toLowerCase();
-            if( ch == "y" || ch == "t" ) b = true; else if( validateInteger( value ) ) b = !!toInteger( value ); else if( validateFloat( value ) ) b = !!toFloat( value ); else b = !!b;
-        } else b = !!b;
+            if( ch == "y" || ch == "t" )
+                b = true; else if( validateInteger( value ) )
+                b = !!toInteger( value ); else if( validateFloat( value ) )
+                b = !!toFloat( value ); else
+                b = !!b;
+        } else
+            b = !!b;
     } catch ( err ) {
         b = false;
     }
@@ -151,7 +172,8 @@ function toBoolean( value ) {
 // see https://ethereum.stackexchange.com/questions/1374/how-can-i-check-if-an-ethereum-address-is-valid
 function validateEthAddress( value ) {
     try {
-        if( ethereumjs_util.isValidAddress( value ) ) return true;
+        if( ethereumjs_util.isValidAddress( value ) )
+            return true;
     } catch ( err ) {
     }
     return false;
@@ -162,7 +184,8 @@ function validateEthPrivateKey( value ) {
     try {
         value = "" + ( value ? value.toString() : "" );
         const buffer = Buffer.from( remove_starting_0x( value ), "hex" );
-        if( ethereumjs_util.isValidPrivate( buffer ) ) return true;
+        if( ethereumjs_util.isValidPrivate( buffer ) )
+            return true;
     } catch ( err ) {
     }
     return false;
@@ -172,7 +195,8 @@ function toEthAddress( value, defValue ) {
     try {
         value = "" + ( value ? value.toString() : "" );
         defValue = defValue || "";
-        if( !validateEthAddress( value ) ) return defValue;
+        if( !validateEthAddress( value ) )
+            return defValue;
     } catch ( err ) {
     }
     return value;
@@ -182,7 +206,8 @@ function toEthPrivateKey( value, defValue ) {
     try {
         value = "" + ( value ? value.toString() : "" );
         defValue = defValue || "";
-        if( !validateEthPrivateKey( value ) ) return defValue;
+        if( !validateEthPrivateKey( value ) )
+            return defValue;
     } catch ( err ) {
     }
     return value;
@@ -269,21 +294,28 @@ function verifyArgumentIsPathToExistingFolder( joArg ) {
 }
 
 function ensure_starts_with_0x( s ) {
-    if( s == null || s == undefined || typeof s !== "string" ) return s;
-    if( s.length < 2 ) return "0x" + s;
-    if( s[0] == "0" && s[1] == "x" ) return s;
+    if( s == null || s == undefined || typeof s !== "string" )
+        return s;
+    if( s.length < 2 )
+        return "0x" + s;
+    if( s[0] == "0" && s[1] == "x" )
+        return s;
     return "0x" + s;
 }
 
 function remove_starting_0x( s ) {
-    if( s == null || s == undefined || typeof s !== "string" ) return s;
-    if( s.length < 2 ) return s;
-    if( s[0] == "0" && s[1] == "x" ) return s.substr( 2 );
+    if( s == null || s == undefined || typeof s !== "string" )
+        return s;
+    if( s.length < 2 )
+        return s;
+    if( s[0] == "0" && s[1] == "x" )
+        return s.substr( 2 );
     return s;
 }
 
 function private_key_2_public_key( w3, keyPrivate ) {
-    if( w3 == null || w3 == undefined || keyPrivate == null || keyPrivate == undefined ) return "";
+    if( w3 == null || w3 == undefined || keyPrivate == null || keyPrivate == undefined )
+        return "";
     // get a wallet instance from a private key
     const privateKeyBuffer = ethereumjs_util.toBuffer( ensure_starts_with_0x( keyPrivate ) );
     const wallet = ethereumjs_wallet.fromPrivateKey( privateKeyBuffer );
@@ -293,7 +325,8 @@ function private_key_2_public_key( w3, keyPrivate ) {
 }
 
 function public_key_2_account_address( w3, keyPublic ) {
-    if( w3 == null || w3 == undefined || keyPublic == null || keyPublic == undefined ) return "";
+    if( w3 == null || w3 == undefined || keyPublic == null || keyPublic == undefined )
+        return "";
     const hash = w3.utils.sha3( ensure_starts_with_0x( keyPublic ) );
     const strAddress = ensure_starts_with_0x( hash.substr( hash.length - 40 ) );
     return strAddress;

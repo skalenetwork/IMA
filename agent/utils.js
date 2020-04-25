@@ -28,7 +28,8 @@ function fileExists( strPath ) {
     try {
         if( fs.existsSync( strPath ) ) {
             const stats = fs.statSync( strPath );
-            if( stats.isFile() ) return true;
+            if( stats.isFile() )
+                return true;
         }
     } catch ( err ) {}
     return false;
@@ -36,7 +37,8 @@ function fileExists( strPath ) {
 
 function fileLoad( strPath, strDefault ) {
     strDefault = strDefault || "";
-    if( !fileExists( strPath ) ) return strDefault;
+    if( !fileExists( strPath ) )
+        return strDefault;
     try {
         const s = fs.readFileSync( strPath );
         return s;
@@ -53,35 +55,45 @@ function fileSave( strPath, s ) {
 }
 
 function jsonFileLoad( strPath, joDefault, bLogOutput ) {
-    if( bLogOutput == undefined || bLogOutput == null ) bLogOutput = false;
+    if( bLogOutput == undefined || bLogOutput == null )
+        bLogOutput = false;
     joDefault = joDefault || {};
-    if( bLogOutput ) log.write( cc.normal( "Will load JSON file " ) + cc.info( strPath ) + cc.normal( "..." ) + "\n" );
+    if( bLogOutput )
+        log.write( cc.normal( "Will load JSON file " ) + cc.info( strPath ) + cc.normal( "..." ) + "\n" );
     if( !fileExists( strPath ) ) {
-        if( bLogOutput ) log.write( cc.error( "Cannot load JSON file " ) + cc.info( strPath ) + cc.error( ", it does not exist" ) + "\n" );
+        if( bLogOutput )
+            log.write( cc.error( "Cannot load JSON file " ) + cc.info( strPath ) + cc.error( ", it does not exist" ) + "\n" );
         return joDefault;
     }
     try {
         const s = fs.readFileSync( strPath );
-        if( bLogOutput ) log.write( cc.normal( "Did loaded content of JSON file " ) + cc.info( strPath ) + cc.normal( ", will parse it..." ) + "\n" );
+        if( bLogOutput )
+            log.write( cc.normal( "Did loaded content of JSON file " ) + cc.info( strPath ) + cc.normal( ", will parse it..." ) + "\n" );
         const jo = JSON.parse( s );
-        if( bLogOutput ) log.write( cc.success( "Done, loaded content of JSON file " ) + cc.info( strPath ) + cc.success( "." ) + "\n" );
+        if( bLogOutput )
+            log.write( cc.success( "Done, loaded content of JSON file " ) + cc.info( strPath ) + cc.success( "." ) + "\n" );
         return jo;
     } catch ( err ) {
-        if( bLogOutput ) console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to load JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( err ) );
+        if( bLogOutput )
+            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to load JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( err ) );
     }
     return joDefault;
 }
 
 function jsonFileSave( strPath, jo, bLogOutput ) {
-    if( bLogOutput == undefined || bLogOutput == null ) bLogOutput = false;
-    if( bLogOutput ) log.write( cc.normal( "Will save JSON file " ) + cc.info( strPath ) + cc.normal( "..." ) + "\n" );
+    if( bLogOutput == undefined || bLogOutput == null )
+        bLogOutput = false;
+    if( bLogOutput )
+        log.write( cc.normal( "Will save JSON file " ) + cc.info( strPath ) + cc.normal( "..." ) + "\n" );
     try {
         const s = JSON.stringify( jo, null, 4 );
         fs.writeFileSync( strPath, s );
-        if( bLogOutput ) log.write( cc.success( "Done, saved content of JSON file " ) + cc.info( strPath ) + cc.success( "." ) + "\n" );
+        if( bLogOutput )
+            log.write( cc.success( "Done, saved content of JSON file " ) + cc.info( strPath ) + cc.success( "." ) + "\n" );
         return true;
     } catch ( err ) {
-        if( bLogOutput ) console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to save JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( err ) );
+        if( bLogOutput )
+            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to save JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( err ) );
     }
     return false;
 }
@@ -97,15 +109,19 @@ function encodeUTF8( s ) { // marshals a string to an Uint8Array, see https://gi
             arrBytes[i++] = c;
             continue;
         }
-        if( c < 2048 ) arrBytes[i++] = c >> 6 | 192; else {
+        if( c < 2048 )
+            arrBytes[i++] = c >> 6 | 192; else {
             if( c > 0xd7ff && c < 0xdc00 ) {
-                if( ++ci >= s.length ) throw new Error( "UTF-8 encode: incomplete surrogate pair" );
+                if( ++ci >= s.length )
+                    throw new Error( "UTF-8 encode: incomplete surrogate pair" );
                 const c2 = s.charCodeAt( ci );
-                if( c2 < 0xdc00 || c2 > 0xdfff ) throw new Error( "UTF-8 encode: second surrogate character 0x" + c2.toString( 16 ) + " at index " + ci + " out of range" );
+                if( c2 < 0xdc00 || c2 > 0xdfff )
+                    throw new Error( "UTF-8 encode: second surrogate character 0x" + c2.toString( 16 ) + " at index " + ci + " out of range" );
                 c = 0x10000 + ( ( c & 0x03ff ) << 10 ) + ( c2 & 0x03ff );
                 arrBytes[i++] = c >> 18 | 240;
                 arrBytes[i++] = c >> 12 & 63 | 128;
-            } else arrBytes[i++] = c >> 12 | 224;
+            } else
+                arrBytes[i++] = c >> 12 | 224;
             arrBytes[i++] = c >> 6 & 63 | 128;
         }
         arrBytes[i++] = c & 63 | 128;
@@ -119,21 +135,27 @@ function decodeUTF8( arrBytes ) { // un-marshals a string from an Uint8Array, se
         let c = arrBytes[i++];
         if( c > 127 ) {
             if( c > 191 && c < 224 ) {
-                if( i >= arrBytes.length ) throw new Error( "UTF-8 decode: incomplete 2-byte sequence" );
+                if( i >= arrBytes.length )
+                    throw new Error( "UTF-8 decode: incomplete 2-byte sequence" );
                 c = ( c & 31 ) << 6 | arrBytes[i++] & 63;
             } else if( c > 223 && c < 240 ) {
-                if( i + 1 >= arrBytes.length ) throw new Error( "UTF-8 decode: incomplete 3-byte sequence" );
+                if( i + 1 >= arrBytes.length )
+                    throw new Error( "UTF-8 decode: incomplete 3-byte sequence" );
                 c = ( c & 15 ) << 12 | ( arrBytes[i++] & 63 ) << 6 | arrBytes[i++] & 63;
             } else if( c > 239 && c < 248 ) {
-                if( i + 2 >= arrBytes.length ) throw new Error( "UTF-8 decode: incomplete 4-byte sequence" );
+                if( i + 2 >= arrBytes.length )
+                    throw new Error( "UTF-8 decode: incomplete 4-byte sequence" );
                 c = ( c & 7 ) << 18 | ( arrBytes[i++] & 63 ) << 12 | ( arrBytes[i++] & 63 ) << 6 | arrBytes[i++] & 63;
-            } else throw new Error( "UTF-8 decode: unknown multi-byte start 0x" + c.toString( 16 ) + " at index " + ( i - 1 ) );
+            } else
+                throw new Error( "UTF-8 decode: unknown multi-byte start 0x" + c.toString( 16 ) + " at index " + ( i - 1 ) );
         }
-        if( c <= 0xffff ) s += String.fromCharCode( c ); else if( c <= 0x10ffff ) {
+        if( c <= 0xffff )
+            s += String.fromCharCode( c ); else if( c <= 0x10ffff ) {
             c -= 0x10000;
             s += String.fromCharCode( c >> 10 | 0xd800 );
             s += String.fromCharCode( c & 0x3FF | 0xdc00 );
-        } else throw new Error( "UTF-8 decode: code point 0x" + c.toString( 16 ) + " exceeds UTF-16 reach" );
+        } else
+            throw new Error( "UTF-8 decode: code point 0x" + c.toString( 16 ) + " exceeds UTF-16 reach" );
     }
     return s;
 }
@@ -146,11 +168,14 @@ function hexToBytes( strHex, isInversiveOrder ) { // convert a hex string to a b
     strHex = strHex || "";
     strHex = "" + strHex;
     strHex = strHex.trim().toLowerCase();
-    if( strHex.length > 1 && strHex[0] == 0 && strHex[1] == "x" ) strHex = strHex.substr( 2, strHex.length - 2 );
-    if( ( strHex.length & 1 ) != 0 ) strHex = "0" + strHex;
+    if( strHex.length > 1 && strHex[0] == 0 && strHex[1] == "x" )
+        strHex = strHex.substr( 2, strHex.length - 2 );
+    if( ( strHex.length & 1 ) != 0 )
+        strHex = "0" + strHex;
     let i; let j; const cnt = strHex.length;
     const arrBytes = new Uint8Array( cnt / 2 );
-    for( i = 0, j = 0; i < cnt; ++j, i += 2 ) arrBytes[isInversiveOrder ? ( cnt - j - 1 ) : j] = parseInt( strHex.substr( i, 2 ), 16 );
+    for( i = 0, j = 0; i < cnt; ++j, i += 2 )
+        arrBytes[isInversiveOrder ? ( cnt - j - 1 ) : j] = parseInt( strHex.substr( i, 2 ), 16 );
     return arrBytes;
 }
 
@@ -175,14 +200,16 @@ function bytesToHex( arrBytes, isInversiveOrder ) { // convert a byte array to a
 function bytesAlignLeftWithZeroes( arrBytes, cntMin ) {
     const arrOneZeroByte = new Uint8Array( 1 );
     arrOneZeroByte[0] = 0;
-    while( arrBytes.length < cntMin ) arrBytes = bytesConcat( arrOneZeroByte, arrBytes );
+    while( arrBytes.length < cntMin )
+        arrBytes = bytesConcat( arrOneZeroByte, arrBytes );
     return arrBytes;
 }
 
 function bytesAlignRightWithZeroes( arrBytes, cntMin ) {
     const arrOneZeroByte = new Uint8Array( 1 );
     arrOneZeroByte[0] = 0;
-    while( arrBytes.length < cntMin ) arrBytes = bytesConcat( arrBytes, arrOneZeroByte );
+    while( arrBytes.length < cntMin )
+        arrBytes = bytesConcat( arrBytes, arrOneZeroByte );
     return arrBytes;
 }
 
@@ -208,14 +235,16 @@ function bytesConcat( a1, a2 ) {
 function toArrayBuffer( buf ) { // see https://stackoverflow.com/questions/8609289/convert-a-binary-nodejs-buffer-to-javascript-arraybuffer
     const ab = new ArrayBuffer( buf.length );
     const view = new Uint8Array( ab );
-    for( let i = 0; i < buf.length; ++i ) view[i] = buf[i];
+    for( let i = 0; i < buf.length; ++i )
+        view[i] = buf[i];
     return ab;
 }
 
 function toBuffer( ab ) {
     const buf = Buffer.alloc( ab.byteLength );
     const view = new Uint8Array( ab );
-    for( let i = 0; i < buf.length; ++i ) buf[i] = view[i];
+    for( let i = 0; i < buf.length; ++i )
+        buf[i] = view[i];
     return buf;
 }
 
@@ -234,14 +263,16 @@ function invertArrayItemsLR( arr ) {
 ////////////////////////////////////////////////////////////////////////////////////
 
 function discover_in_json_coin_name( jo ) {
-    if( typeof jo !== "object" ) return "";
+    if( typeof jo !== "object" )
+        return "";
     const arrKeys = Object.keys( jo );
     let s1 = "";
     let s2 = "";
     let i; const cnt = arrKeys.length;
     let j;
     for( i = 0; i < cnt; ++i ) {
-        if( s1.length > 0 && s2.length > 0 ) break;
+        if( s1.length > 0 && s2.length > 0 )
+            break;
         const k = arrKeys[i];
         j = k.indexOf( "_address" );
         if( j > 0 ) {
@@ -254,14 +285,17 @@ function discover_in_json_coin_name( jo ) {
             continue;
         }
     }
-    if( s1.length == 0 || s2.length == 0 ) return "";
-    if( s1 !== s2 ) return "";
+    if( s1.length == 0 || s2.length == 0 )
+        return "";
+    if( s1 !== s2 )
+        return "";
     return s1;
 }
 
 function check_key_exist_in_abi( strName, strFile, joABI, strKey ) {
     try {
-        if( strKey in joABI ) return;
+        if( strKey in joABI )
+            return;
     } catch ( err ) {
     }
     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Loaded " ) + cc.warning( strName ) + cc.error( " ABI JSON file " ) + cc.info( strFile ) + cc.error( " does not contain needed key " ) + cc.warning( strKey ) + "\n" );
@@ -281,16 +315,24 @@ function check_keys_exist_in_abi( strName, strFile, joABI, arrKeys ) {
 
 function compose_schain_node_url( joNode ) {
     if( "ip" in joNode && typeof joNode.ip === "string" && joNode.ip.length > 0 ) {
-        if( "wssRpcPort" in joNode && typeof joNode.wssRpcPort === "number" && joNode.wssRpcPort > 0 ) return "wss://" + joNode.ip + ":" + joNode.wssRpcPort;
-        if( "wsRpcPort" in joNode && typeof joNode.wsRpcPort === "number" && joNode.wsRpcPort > 0 ) return "ws://" + joNode.ip + ":" + joNode.wsRpcPort;
-        if( "httpsRpcPort" in joNode && typeof joNode.httpsRpcPort === "number" && joNode.httpsRpcPort > 0 ) return "https://" + joNode.ip + ":" + joNode.httpsRpcPort;
-        if( "httpRpcPort" in joNode && typeof joNode.httpRpcPort === "number" && joNode.httpRpcPort > 0 ) return "http://" + joNode.ip + ":" + joNode.httpRpcPort;
+        if( "wssRpcPort" in joNode && typeof joNode.wssRpcPort === "number" && joNode.wssRpcPort > 0 )
+            return "wss://" + joNode.ip + ":" + joNode.wssRpcPort;
+        if( "wsRpcPort" in joNode && typeof joNode.wsRpcPort === "number" && joNode.wsRpcPort > 0 )
+            return "ws://" + joNode.ip + ":" + joNode.wsRpcPort;
+        if( "httpsRpcPort" in joNode && typeof joNode.httpsRpcPort === "number" && joNode.httpsRpcPort > 0 )
+            return "https://" + joNode.ip + ":" + joNode.httpsRpcPort;
+        if( "httpRpcPort" in joNode && typeof joNode.httpRpcPort === "number" && joNode.httpRpcPort > 0 )
+            return "http://" + joNode.ip + ":" + joNode.httpRpcPort;
     }
     if( "ip6" in joNode && typeof joNode.ip6 === "string" && joNode.ip6.length > 0 ) {
-        if( "wssRpcPort6" in joNode && typeof joNode.wssRpcPort6 === "number" && joNode.wssRpcPort6 > 0 ) return "wss://[" + joNode.ip6 + "]:" + joNode.wssRpcPort6;
-        if( "wsRpcPort6" in joNode && typeof joNode.wsRpcPort6 === "number" && joNode.wsRpcPort6 > 0 ) return "ws://[" + joNode.ip6 + "]:" + joNode.wsRpcPort6;
-        if( "httpsRpcPort6" in joNode && typeof joNode.httpsRpcPort6 === "number" && joNode.httpsRpcPort6 > 0 ) return "https://[" + joNode.ip6 + "]:" + joNode.httpsRpcPort6;
-        if( "httpRpcPort6" in joNode && typeof joNode.httpRpcPort6 === "number" && joNode.httpRpcPort6 > 0 ) return "http://[" + joNode.ip6 + "]:" + joNode.httpRpcPort6;
+        if( "wssRpcPort6" in joNode && typeof joNode.wssRpcPort6 === "number" && joNode.wssRpcPort6 > 0 )
+            return "wss://[" + joNode.ip6 + "]:" + joNode.wssRpcPort6;
+        if( "wsRpcPort6" in joNode && typeof joNode.wsRpcPort6 === "number" && joNode.wsRpcPort6 > 0 )
+            return "ws://[" + joNode.ip6 + "]:" + joNode.wsRpcPort6;
+        if( "httpsRpcPort6" in joNode && typeof joNode.httpsRpcPort6 === "number" && joNode.httpsRpcPort6 > 0 )
+            return "https://[" + joNode.ip6 + "]:" + joNode.httpsRpcPort6;
+        if( "httpRpcPort6" in joNode && typeof joNode.httpRpcPort6 === "number" && joNode.httpRpcPort6 > 0 )
+            return "http://[" + joNode.ip6 + "]:" + joNode.httpRpcPort6;
     }
     return "";
 }
