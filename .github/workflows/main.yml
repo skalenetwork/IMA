@@ -111,7 +111,7 @@ jobs:
 
     - name: ESLINT
       run: |
-        #sudo npm install -g eslint
+        sudo npm install -g eslint
         eslint --version
 
     - name: INSTALL PREREQUISITES - ROOT - PACKAGES
@@ -163,7 +163,7 @@ jobs:
 
     - name: LINT CHECK EVERYTHING JS WITH ESLINT
       run: |
-        yarn run lint-check
+        #yarn run lint-check
         echo "Looks like no JS code formatting errors so far)"
 
     - name: PY CHECKS
