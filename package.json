@@ -4,9 +4,8 @@
     "license": "AGPL-3.0",
     "author": "SKALE Labs and contributors",
     "scripts": {
-      "postinstall": "echo \"----- installing in agent\n\" && cd ./agent && yarn install && cd .. && echo \"----- installing in proxy\n\" && cd ./proxy && yarn install && cd .."
+        "postinstall": "echo \"----- installing in agent\n\" && cd ./agent && yarn install && cd .. && echo \"----- installing in proxy\n\" && cd ./proxy && yarn install && cd .."
     },
     "dependencies": {},
     "devDependencies": {}
-  }
-  
+}

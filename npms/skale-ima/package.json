@@ -2,7 +2,7 @@
     "name": "skale-ima-core",
     "version": "1.0.1",
     "private": true,
-    "description": "SKALE Interchain Messaging Agent NPMs",
+    "description": "SKALE Inter-chain Messaging Agent NPMs",
     "keywords": [
         "S-Chain",
         "SKALE",
