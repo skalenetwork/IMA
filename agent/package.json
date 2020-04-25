@@ -16,7 +16,7 @@
     "ws": "^7.2.3",
     "request": "^2.88.2",
     "sha3": "2.1.2",
-    "shelljs": "0.8.3"
+    "shelljs": "0.8.4"
   },
   "devDependencies": {}
 }
