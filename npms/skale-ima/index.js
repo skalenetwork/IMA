@@ -147,7 +147,7 @@ async function check_is_registered_s_chain_on_main_net( // step 1A
         log.write( strLogPrefix + cc.bright( "check_is_registered_s_chain_on_main_net(reg-step1A)" ) + "\n" );
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
-    let r; let strActionName = "";
+    let strActionName = "";
     try {
         log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_main_net.options.address ) + "\n" );
         log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
@@ -177,7 +177,7 @@ async function register_s_chain_on_main_net( // step 1A
         log.write( strLogPrefix + cc.bright( "register_s_chain_on_main_net" ) + "\n" );
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
-    let r; let strActionName = "";
+    let strActionName = "";
     try {
         log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_main_net.options.address ) + "\n" );
         log.write( cc.info( "Main-net " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( cid_main_net ) + "\n" );
@@ -237,7 +237,7 @@ async function check_is_registered_main_net_on_s_chain( // step 1B
         log.write( strLogPrefix + cc.bright( "check_is_registered_main_net_on_s_chain(reg-step1B)" ) + "\n" );
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
-    let r; let strActionName = "";
+    let strActionName = "";
     try {
         log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_s_chain.options.address ) + "\n" );
         log.write( cc.info( "Main-net " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_main_net ) + "\n" );
@@ -267,7 +267,7 @@ async function register_main_net_on_s_chain( // step 1B
         log.write( strLogPrefix + cc.bright( "register_main_net_on_s_chain" ) + "\n" );
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
-    let r; let strActionName = "";
+    let strActionName = "";
     try {
         log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_s_chain.options.address ) + "\n" );
         log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( cid_s_chain ) + "\n" );
@@ -327,7 +327,7 @@ async function check_is_registered_s_chain_in_deposit_box( // step 2
         log.write( strLogPrefix + cc.bright( "check_is_registered_s_chain_in_deposit_box(reg-step2)" ) + "\n" );
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
-    let r; let strActionName = "";
+    let strActionName = "";
     try {
         strActionName = "check_is_registered_s_chain_in_deposit_box(reg-step2)";
         const addressFrom = joAccount_main_net.address( w3_main_net );
@@ -359,7 +359,7 @@ async function register_s_chain_in_deposit_box( // step 2
         log.write( strLogPrefix + cc.bright( "reg-step2:register_s_chain_in_deposit_box" ) + "\n" );
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
-    let r; let strActionName = "";
+    let strActionName = "";
     try {
         strActionName = "reg-step2:w3_main_net.eth.getTransactionCount()";
         if( verbose_get() >= RV_VERBOSE.trace ) { log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" ); }
