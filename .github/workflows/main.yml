@@ -106,7 +106,7 @@ jobs:
 
     - name: YARN
       run: |
-          sudo npm install -g yarn
+          #sudo npm install -g yarn
           yarn --version
 
     - name: ESLINT
