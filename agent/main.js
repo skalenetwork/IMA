@@ -463,21 +463,21 @@ imaCLI.parse( {
             }
         } );
     },
-     "loop": function() {
+    "loop": function() {
         imaState.arrActions.push( {
             "name": "M<->S transfer loop",
             "fn": async function() {
-                if( ! await check_registration_step1() ) {
+                if( !await check_registration_step1() ) {
                     if( !await register_step1() ) {
                         return false;
                     }
                 }
-                if( ! await check_registration_step2() ) {
+                if( !await check_registration_step2() ) {
                     if( !await register_step2() ) {
                         return false;
+                    }
                 }
-            }
-                if( ! await check_registration_step3() ) {
+                if( !await check_registration_step3() ) {
                     if( !await register_step3() ) {
                         return false;
                     }
@@ -491,12 +491,12 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "Brows S-Chain network",
             "fn": async function() {
-                let strLogPrefix = cc.info("S Browse:") + " ";
+                const strLogPrefix = cc.info( "S Browse:" ) + " ";
                 if( imaState.strURL_s_chain.length == 0 ) {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing S-Chain URL, please specify " ) + cc.info( "url-s-chain" ) );
                     process.exit( 501 );
                 }
-                log.write( strLogPrefix + cc.normal( "Downloading S-Chain network information " )  + cc.normal( "..." ) + "\n" ); // just print value
+                log.write( strLogPrefix + cc.normal( "Downloading S-Chain network information " ) + cc.normal( "..." ) + "\n" ); // just print value
                 //
                 await rpcCall.create( imaState.strURL_s_chain, async function( joCall, err ) {
                     if( err ) {
@@ -511,12 +511,12 @@ imaCLI.parse( {
                             console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
                             process.exit( 1 );
                         }
-                        log.write( strLogPrefix + cc.normal( "S-Chain network information: " )  + cc.j( joOut.result ) + "\n" );
+                        log.write( strLogPrefix + cc.normal( "S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
                         let nCountReceivedImaDescriptions = 0;
-                        let jarrNodes = joOut.result.network;
+                        const jarrNodes = joOut.result.network;
                         for( let i = 0; i < jarrNodes.length; ++ i ) {
-                            let joNode = jarrNodes[ i ];
-                            let strNodeURL = imaUtils.compose_schain_node_url( joNode );
+                            const joNode = jarrNodes[i];
+                            const strNodeURL = imaUtils.compose_schain_node_url( joNode );
                             await rpcCall.create( strNodeURL, async function( joCall, err ) {
                                 if( err ) {
                                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
@@ -531,13 +531,13 @@ imaCLI.parse( {
                                         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
                                         process.exit( 1 );
                                     }
-                                    log.write( strLogPrefix + cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " )  + cc.j( joOut.result ) + "\n" );
+                                    log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " IMA information: " ) + cc.j( joOut.result ) + "\n" );
                                     //process.exit( 0 );
                                 } );
                             } );
                         }
                         //process.exit( 0 );
-                        let iv = setInterval( function() {
+                        const iv = setInterval( function() {
                             if( nCountReceivedImaDescriptions == jarrNodes.length ) {
                                 clearInterval( iv );
                                 process.exit( 0 );
@@ -559,8 +559,9 @@ if( imaState.strLogFilePath.length > 0 ) {
     log.add( imaState.strLogFilePath, imaState.nLogMaxSizeBeforeRotation, imaState.nLogMaxFilesCount );
 }
 
-if( imaState.bIsNeededCommonInit )
+if( imaState.bIsNeededCommonInit ) {
     imaCLI.ima_common_init();
+}
 
 if( imaState.bShowConfigMode ) {
     // just show configuration values and exit
@@ -571,12 +572,12 @@ if( imaState.bShowConfigMode ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function discover_s_chain_network( fnAfter ) {
-    let strLogPrefix = cc.info("S net discover:") + " ";
+    const strLogPrefix = cc.info( "S net discover:" ) + " ";
     fnAfter = fnAfter || function() {};
     let joSChainNetworkInfo = null;
     await rpcCall.create( imaState.strURL_s_chain, async function( joCall, err ) {
         if( err ) {
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed: " ) + cc.warning(err) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed: " ) + cc.warning( err ) + "\n" );
             fnAfter( err, null );
             return;
         }
@@ -589,16 +590,17 @@ async function discover_s_chain_network( fnAfter ) {
                 fnAfter( err, null );
                 return;
             }
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                log.write( strLogPrefix + cc.normal( "OK, got S-Chain network information: " )  + cc.j( joOut.result ) + "\n" );
-            else if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace ) {
+                log.write( strLogPrefix + cc.normal( "OK, got S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
+            } else if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
                 log.write( strLogPrefix + cc.success( "OK, got S-Chain network information." ) + "\n" );
+            }
             let nCountReceivedImaDescriptions = 0;
             joSChainNetworkInfo = joOut.result;
-            let jarrNodes = joSChainNetworkInfo.network;
+            const jarrNodes = joSChainNetworkInfo.network;
             for( let i = 0; i < jarrNodes.length; ++ i ) {
-                let joNode = jarrNodes[ i ];
-                let strNodeURL = imaUtils.compose_schain_node_url( joNode );
+                const joNode = jarrNodes[i];
+                const strNodeURL = imaUtils.compose_schain_node_url( joNode );
                 await rpcCall.create( strNodeURL, function( joCall, err ) {
                     if( err ) {
                         log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
@@ -616,17 +618,18 @@ async function discover_s_chain_network( fnAfter ) {
                             return;
                         }
                         //if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                        //    log.write( strLogPrefix + cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " )  + cc.j( joOut.result ) + "\n" );
+                        //    log.write( strLogPrefix + cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " ) + cc.j( joOut.result ) + "\n" );
                         joNode.imaInfo = joOut.result;
                         //joNode.joCall = joCall;
-                        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                            log.write( strLogPrefix + cc.success( "OK, got node ") + cc.info(joNode.nodeID) + cc.success(" IMA information(") + cc.info(nCountReceivedImaDescriptions) + cc.success(" of ") + cc.info(jarrNodes.length) + cc.success(")." ) + "\n" );
+                        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+                            log.write( strLogPrefix + cc.success( "OK, got node " ) + cc.info( joNode.nodeID ) + cc.success( " IMA information(" ) + cc.info( nCountReceivedImaDescriptions ) + cc.success( " of " ) + cc.info( jarrNodes.length ) + cc.success( ")." ) + "\n" );
+                        }
                     } );
                 } );
             }
-            //process.exit( 0 );
-            let iv = setInterval( function() {
-                if( nCountReceivedImaDescriptions == jarrNodes.length  ) {
+            // process.exit( 0 );
+            const iv = setInterval( function() {
+                if( nCountReceivedImaDescriptions == jarrNodes.length ) {
                     clearInterval( iv );
                     fnAfter( null, joSChainNetworkInfo );
                 }
@@ -641,14 +644,16 @@ async function discover_s_chain_network( fnAfter ) {
 // register S-Chain 1 on main net
 //
 async function do_the_job() {
-    let strLogPrefix = cc.info("Job 1:") + " ";
-    let idxAction, cntActions = imaState.arrActions.length,
-        cntFalse = 0,
-        cntTrue = 0;
-    for ( idxAction = 0; idxAction < cntActions; ++idxAction ) {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+    const strLogPrefix = cc.info( "Job 1:" ) + " ";
+    let idxAction = 0;
+    const cntActions = imaState.arrActions.length;
+    let cntFalse = 0;
+    let cntTrue = 0;
+    for( idxAction = 0; idxAction < cntActions; ++idxAction ) {
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
             log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
-        const joAction = imaState.arrActions[ idxAction ];
+        }
+        const joAction = imaState.arrActions[idxAction];
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug ) {
             log.write( strLogPrefix + cc.notice( "Will execute action:" ) + " " + cc.info( joAction.name ) + cc.debug( " (" ) + cc.info( idxAction + 1 ) + cc.debug( " of " ) + cc.info( cntActions ) + cc.debug( ")" ) + "\n" );
         }
@@ -697,16 +702,15 @@ if( imaState.bSignMessages ) {
         if( err ) {
             process.exit( 1 ); // error information is printed by discover_s_chain_network()
         }
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( cc.success( "S-Chain network was discovered: " ) + cc.j( joSChainNetworkInfo ) + "\n" );
-        }
         imaState.joSChainNetworkInfo = joSChainNetworkInfo;
         do_the_job();
         return 0; // FINISH
     } );
 } else {
     do_the_job();
-    // process.exit( 0 ); // FINISH
+    // process.exit( 0 ); // FINISH (skip exit here to avoid early termination while tasks ase still running)
 }
 
 async function register_step1() {
@@ -824,8 +828,8 @@ async function check_registration_step3() {
     return bRetVal;
 }
 
-/// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Run transfer loop
 //
