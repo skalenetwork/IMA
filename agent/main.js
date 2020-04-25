@@ -468,16 +468,19 @@ imaCLI.parse( {
             "name": "M<->S transfer loop",
             "fn": async function() {
                 if( ! await check_registration_step1() ) {
-                    if( ! await register_step1() )
+                    if( !await register_step1() ) {
                         return false;
+                    }
                 }
                 if( ! await check_registration_step2() ) {
-                    if( ! await register_step2() )
+                    if( !await register_step2() ) {
                         return false;
                 }
+            }
                 if( ! await check_registration_step3() ) {
-                    if( ! await register_step3() )
+                    if( !await register_step3() ) {
                         return false;
+                    }
                 }
                 return await run_transfer_loop();
             }
