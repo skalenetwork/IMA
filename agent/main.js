@@ -645,24 +645,27 @@ async function do_the_job() {
     for ( idxAction = 0; idxAction < cntActions; ++idxAction ) {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
-        let joAction = imaState.arrActions[ idxAction ],
-            bOK = false;
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+        const joAction = imaState.arrActions[ idxAction ];
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug ) {
             log.write( strLogPrefix + cc.notice( "Will execute action:" ) + " " + cc.info( joAction.name ) + cc.debug( " (" ) + cc.info( idxAction + 1 ) + cc.debug( " of " ) + cc.info( cntActions ) + cc.debug( ")" ) + "\n" );
+        }
         try {
             if( await joAction.fn() ) {
                 ++cntTrue;
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
                     log.write( strLogPrefix + cc.success( "Succeeded action:" ) + " " + cc.info( joAction.name ) + "\n" );
+                }
             } else {
                 ++cntFalse;
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error )
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
                     log.write( strLogPrefix + cc.warning( "Failed action:" ) + " " + cc.info( joAction.name ) + "\n" );
+                }
             }
         } catch ( e ) {
             ++cntFalse;
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal )
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal ) {
                 log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR: Exception occurred while executing action:" ) + " " + cc.info( joAction.name ) + cc.error( ", error description: " ) + cc.warning( e ) + "\n" );
+            }
         }
     } // for( idxAction = 0; idxAction < cntActions; ++ idxAction )
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
@@ -673,7 +676,7 @@ async function do_the_job() {
         log.write( strLogPrefix + cc.info( cntFalse ) + cc.error( " task(s) failed" ) + "\n" );
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
     }
-    if(cntFalse > 0) {
+    if( cntFalse > 0 ) {
         process.exitCode = cntFalse;
     }
 }
@@ -688,46 +691,48 @@ if( imaState.bSignMessages ) {
         process.exit( 666 );
     }
     discover_s_chain_network( function( err, joSChainNetworkInfo ) {
-        if( err )
+        if( err ) {
             process.exit( 1 ); // error information is printed by discover_s_chain_network()
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( cc.success( "S-Chain network was discovered: " )  + cc.j( joSChainNetworkInfo ) + "\n" );
+        }
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+            log.write( cc.success( "S-Chain network was discovered: " ) + cc.j( joSChainNetworkInfo ) + "\n" );
+        }
         imaState.joSChainNetworkInfo = joSChainNetworkInfo;
         do_the_job();
         return 0; // FINISH
     } );
 } else {
     do_the_job();
-    process.exit( 0 ); // FINISH
+    // process.exit( 0 ); // FINISH
 }
 
 async function register_step1() {
-    let strLogPrefix = cc.info("Reg 1:") + " ";
-    let bRetVal1A = await IMA.register_s_chain_on_main_net( // step 1A
+    const strLogPrefix = cc.info( "Reg 1:" ) + " ";
+    const bRetVal1A = await IMA.register_s_chain_on_main_net( // step 1A
         imaState.w3_main_net,
         imaState.jo_message_proxy_main_net,
         imaState.joAccount_main_net,
         imaState.strChainID_s_chain,
         imaState.cid_main_net
     );
-    let bRetVal1B = await IMA.register_main_net_on_s_chain( // step 1B
+    const bRetVal1B = await IMA.register_main_net_on_s_chain( // step 1B
         imaState.w3_s_chain,
         imaState.jo_message_proxy_s_chain,
         imaState.joAccount_s_chain,
         imaState.strChainID_main_net,
         imaState.cid_s_chain
     );
-    let bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
+    const bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
     if( !bRetVal ) {
-        let nRetCode = 1501;
+        const nRetCode = 1501;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain on Main-net, will return code " ) + cc.warning( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
     return true;
 }
 async function register_step2() {
-    let strLogPrefix = cc.info("Reg 2:") + " ";
-    let bRetVal = await IMA.register_s_chain_in_deposit_box( // step 2
+    const strLogPrefix = cc.info( "Reg 2:" ) + " ";
+    const bRetVal = await IMA.register_s_chain_in_deposit_box( // step 2
         imaState.w3_main_net,
         // imaState.jo_deposit_box - only main net
         imaState.jo_lock_and_data_main_net,
@@ -737,36 +742,39 @@ async function register_step2() {
         imaState.cid_main_net
     );
     if( !bRetVal ) {
-        let nRetCode = 1502;
+        const nRetCode = 1502;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain in deposit box, will return code " ) + cc.warning( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
     return true;
 }
 async function register_step3() {
-    let strLogPrefix = cc.info("Reg 3:") + " ";
-    let bRetVal = await IMA.register_main_net_depositBox_on_s_chain( // step 3
+    const strLogPrefix = cc.info( "Reg 3:" ) + " ";
+    const bRetVal = await IMA.register_main_net_depositBox_on_s_chain( // step 3
         imaState.w3_s_chain,
-        //imaState.jo_token_manager - only s-chain
+        // imaState.jo_token_manager - only s-chain
         imaState.jo_deposit_box, // only main net
         imaState.jo_lock_and_data_s_chain,
         imaState.joAccount_s_chain,
         imaState.cid_s_chain
     );
     if( !bRetVal ) {
-        let nRetCode = 1503;
+        const nRetCode = 1503;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register Main-net deposit box on S-Chain, will return code " ) + cc.warning( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
     return true;
 }
 async function register_all() {
-    if( ! await register_step1() )
+    if( !await register_step1() ) {
         return false;
-    if( !await register_step2() )
+    }
+    if( !await register_step2() ) {
         return false;
-    if( !await register_step3() )
+    }
+    if( !await register_step3() ) {
         return false;
+    }
     return true;
 }
 
@@ -774,28 +782,29 @@ async function check_registration_all() {
     const b1 = await check_registration_step1();
     const b2 = await check_registration_step2();
     const b3 = await check_registration_step3();
-    if( ! (b1 && b2 && b3) )
+    if( !( b1 && b2 && b3 ) ) {
         return false;
+    }
     return true;
 }
 async function check_registration_step1() {
-    let bRetVal1A = await IMA.check_is_registered_s_chain_on_main_net( // step 1A
+    const bRetVal1A = await IMA.check_is_registered_s_chain_on_main_net( // step 1A
         imaState.w3_main_net,
         imaState.jo_message_proxy_main_net,
         imaState.joAccount_main_net,
         imaState.strChainID_s_chain
     );
-    let bRetVal1B = await IMA.check_is_registered_main_net_on_s_chain( // step 1B
+    const bRetVal1B = await IMA.check_is_registered_main_net_on_s_chain( // step 1B
         imaState.w3_s_chain,
         imaState.jo_message_proxy_s_chain,
         imaState.joAccount_s_chain,
         imaState.strChainID_main_net
     );
-    let bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
+    const bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
     return bRetVal;
 }
 async function check_registration_step2() {
-    let bRetVal = await IMA.check_is_registered_s_chain_in_deposit_box( // step 2
+    const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_box( // step 2
         imaState.w3_main_net,
         imaState.jo_lock_and_data_main_net,
         imaState.joAccount_main_net,
@@ -804,7 +813,7 @@ async function check_registration_step2() {
     return bRetVal;
 }
 async function check_registration_step3() {
-    let bRetVal = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 3
+    const bRetVal = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 3
         imaState.w3_s_chain,
         imaState.jo_lock_and_data_s_chain,
         imaState.joAccount_s_chain
@@ -812,34 +821,36 @@ async function check_registration_step3() {
     return bRetVal;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Run transfer loop
 //
 
 function check_time_framing( d ) {
     try {
-        if( imaState.nTimeFrameSeconds <= 0 || imaState.nNodesCount <= 1 )
+        if( imaState.nTimeFrameSeconds <= 0 || imaState.nNodesCount <= 1 ) {
             return true; // time framing is disabled
-        if( d = null || d == undefined )
+        }
+        if( d == null || d == undefined ) {
             d = new Date(); // now
-        let nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
-        let nSecondsRangeForAllSChains = imaState.nTimeFrameSeconds * imaState.nNodesCount;
-        let nMod = Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
-        let nActiveNodeFrameIndex = Math.floor( nMod / imaState.nTimeFrameSeconds );
-        let bSkip = ( nActiveNodeFrameIndex != imaState.nNodeNumber ) ? true : false,
-            bInsideGap = false;
+        }
+        const nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
+        const nSecondsRangeForAllSChains = imaState.nTimeFrameSeconds * imaState.nNodesCount;
+        const nMod = Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
+        const nActiveNodeFrameIndex = Math.floor( nMod / imaState.nTimeFrameSeconds );
+        let bSkip = ( nActiveNodeFrameIndex != imaState.nNodeNumber ) ? true : false;
+        let bInsideGap = false;
         if( !bSkip ) {
-            let nRangeStart = nUtcUnixTimeStamp - Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
-            let nFrameStart = nRangeStart + imaState.nNodeNumber * imaState.nTimeFrameSeconds;
-            let nGapStart = nFrameStart + imaState.nTimeFrameSeconds - imaState.nNextFrameGap;
+            const nRangeStart = nUtcUnixTimeStamp - Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
+            const nFrameStart = nRangeStart + imaState.nNodeNumber * imaState.nTimeFrameSeconds;
+            const nGapStart = nFrameStart + imaState.nTimeFrameSeconds - imaState.nNextFrameGap;
             if( nUtcUnixTimeStamp >= nGapStart ) {
                 bSkip = true;
                 bInsideGap = true;
             }
         }
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace ) {
             log.write(
                 "\n" +
                 cc.info( "Unix UTC time stamp" ) + cc.debug( "........" ) + cc.notice( nUtcUnixTimeStamp ) + "\n" +
@@ -850,27 +861,33 @@ function check_time_framing( d ) {
                 cc.info( "Is skip" ) + cc.debug( "...................." ) + cc.yn( bSkip ) + "\n" +
                 cc.info( "Is inside gap" ) + cc.debug( ".............." ) + cc.yn( bInsideGap ) + "\n"
             );
-        if( bSkip )
+        }
+        if( bSkip ) {
             return false;
+        }
     } catch ( e ) {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal ) {
             log.write( cc.fatal( "Exception in check_time_framing():" ) + cc.error( e ) + "\n" );
+        }
     }
     return true;
 }
 
 async function single_transfer_loop() {
-    let strLogPrefix = cc.attention("Single Loop:") + " ";
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+    const strLogPrefix = cc.attention( "Single Loop:" ) + " ";
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug ) {
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
+    }
     if( !check_time_framing() ) {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug ) {
             log.write( strLogPrefix + cc.warning( "Skipped due to time framing" ) + "\n" );
+        }
         return true;
     }
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
         log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
-    let b1 = await IMA.do_transfer( // main-net --> s-chain
+    }
+    const b1 = await IMA.do_transfer( // main-net --> s-chain
         //
         imaState.w3_main_net,
         imaState.jo_message_proxy_main_net,
@@ -891,11 +908,13 @@ async function single_transfer_loop() {
         imaState.nBlockAgeM2S,
         imaBLS.do_sign_messages_m2s // fn_sign_messages
     );
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf(b1) + "\n" );
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+        log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
+    }
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
         log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
-    let b2 = await IMA.do_transfer( // s-chain --> main-net
+    }
+    const b2 = await IMA.do_transfer( // s-chain --> main-net
         //
         imaState.w3_s_chain,
         imaState.jo_message_proxy_s_chain,
@@ -916,11 +935,13 @@ async function single_transfer_loop() {
         imaState.nBlockAgeS2M,
         imaBLS.do_sign_messages_s2m // fn_sign_messages
     );
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf(b2) + "\n" );
-    let b3 = b1 && b2;
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf(b3) + "\n" );
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+        log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
+    }
+    const b3 = b1 && b2;
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+        log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( b3 ) + "\n" );
+    }
     return b3;
 }
 async function single_transfer_loop_with_repeat() {
@@ -929,9 +950,10 @@ async function single_transfer_loop_with_repeat() {
 };
 async function run_transfer_loop( isDelayFirstRun ) {
     isDelayFirstRun = owaspUtils.toBoolean( isDelayFirstRun );
-    if( isDelayFirstRun )
-        setTimeout( single_transfer_loop_with_repeat, imaState.nLoopPeriodSeconds*1000 );
-    else
+    if( isDelayFirstRun ) {
+        setTimeout( single_transfer_loop_with_repeat, imaState.nLoopPeriodSeconds * 1000 );
+    } else {
         await single_transfer_loop_with_repeat();
+    }
     return true;
 }

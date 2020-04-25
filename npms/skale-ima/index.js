@@ -193,7 +193,7 @@ async function register_s_chain_on_main_net( // step 1A
         // https://ethereum.stackexchange.com/questions/47426/call-contract-function-signed-on-client-side-web3-js-1-0
         // https://ethereum.stackexchange.com/questions/25839/how-to-make-transactions-using-private-key-in-web3
         const dataTx = jo_message_proxy_main_net.methods.addConnectedChain(
-            chain_id_s_chain, [0, 0, 0, 0] // call params
+            chain_id_s_chain, [ 0, 0, 0, 0 ] // call params
         ).encodeABI(); // the encoded ABI of the method
         const rawTx = {
             chainId: cid_main_net,
@@ -283,7 +283,7 @@ async function register_main_net_on_s_chain( // step 1B
         // https://ethereum.stackexchange.com/questions/47426/call-contract-function-signed-on-client-side-web3-js-1-0
         // https://ethereum.stackexchange.com/questions/25839/how-to-make-transactions-using-private-key-in-web3
         const dataTx = jo_message_proxy_s_chain.methods.addConnectedChain(
-            chain_id_main_net, [0, 0, 0, 0] // call params
+            chain_id_main_net, [ 0, 0, 0, 0 ] // call params
         ).encodeABI(); // the encoded ABI of the method
         const rawTx = {
             chainId: cid_s_chain,
@@ -408,7 +408,7 @@ async function check_is_registered_main_net_depositBox_on_s_chain( // step 3
         log.write( strLogPrefix + cc.bright( "check_is_registered_main_net_depositBox_on_s_chain(reg-step3)" ) + "\n" );
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
-    let r; let strActionName = "";
+    let strActionName = "";
     try {
         strActionName = "check_is_registered_main_net_depositBox_on_s_chain(reg-step3)";
         const addressFrom = joAccount.address( w3_s_chain );
@@ -439,7 +439,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
         log.write( strLogPrefix + cc.bright( "register_main_net_depositBox_on_s_chain" ) + "\n" );
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
-    let r; let strActionName = "";
+    let strActionName = "";
     try {
         strActionName = "reg-step3:w3_s_chain.eth.getTransactionCount()/register_main_net_depositBox_on_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace ) { log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" ); }
@@ -498,7 +498,7 @@ async function do_eth_payment_from_main_net(
     chain_id_s_chain,
     wei_how_much // how much WEI money to send
 ) {
-    let r; let strActionName = ""; const strLogPrefix = cc.info( "M2S ETH Payment:" ) + " ";
+    let strActionName = ""; const strLogPrefix = cc.info( "M2S ETH Payment:" ) + " ";
     try {
         log.write( strLogPrefix + cc.debug( "Doing payment from mainnet with " ) + cc.notice( "chain_id_s_chain" ) + cc.debug( "=" ) + cc.notice( chain_id_s_chain ) + cc.debug( "..." ) + "\n" );
         //
@@ -599,7 +599,7 @@ async function do_eth_payment_from_s_chain(
     jo_message_proxy_s_chain, // for checking logs
     wei_how_much // how much WEI money to send
 ) {
-    let r; let strActionName = ""; const strLogPrefix = cc.info( "S2M ETH Payment:" ) + " ";
+    let strActionName = ""; const strLogPrefix = cc.info( "S2M ETH Payment:" ) + " ";
     try {
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_eth_payment_from_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace ) { log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" ); }
@@ -659,7 +659,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
     joAccount_main_net,
     jo_lock_and_data_main_net
 ) {
-    let r; let strActionName = ""; const strLogPrefix = cc.info( "M2S ETH Receive:" ) + " ";
+    let strActionName = ""; const strLogPrefix = cc.info( "M2S ETH Receive:" ) + " ";
     try {
         strActionName = "w3_main_net.eth.getTransactionCount()/receive_eth_payment_from_s_chain_on_main_net";
         if( verbose_get() >= RV_VERBOSE.trace ) { log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" ); }
@@ -704,7 +704,7 @@ async function view_eth_payment_from_s_chain_on_main_net(
     joAccount_main_net,
     jo_lock_and_data_main_net
 ) {
-    let r; let strActionName = ""; const strLogPrefix = cc.info( "S ETH View:" ) + " ";
+    let strActionName = ""; const strLogPrefix = cc.info( "S ETH View:" ) + " ";
     try {
         strActionName = "w3_main_net.eth.getTransactionCount()/view_eth_payment_from_s_chain_on_main_net";
         if( verbose_get() >= RV_VERBOSE.trace ) { log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" ); }
@@ -748,7 +748,7 @@ async function do_erc721_payment_from_main_net(
     erc721PrivateTestnetJson_s_chain,
     isRawTokenTransfer
 ) {
-    let r; let strActionName = ""; const strLogPrefix = cc.info( "M2S ERC721 Payment:" ) + " ";
+    let strActionName = ""; const strLogPrefix = cc.info( "M2S ERC721 Payment:" ) + " ";
     try {
         strActionName = "w3_main_net.eth.getTransactionCount()/do_erc721_payment_from_main_net";
         if( verbose_get() >= RV_VERBOSE.trace ) { log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" ); }
@@ -914,7 +914,7 @@ async function do_erc20_payment_from_main_net(
     erc20PrivateTestnetJson_s_chain,
     isRawTokenTransfer
 ) {
-    let r; let strActionName = ""; const strLogPrefix = cc.info( "M2S ERC20 Payment:" ) + " ";
+    let strActionName = ""; const strLogPrefix = cc.info( "M2S ERC20 Payment:" ) + " ";
     try {
         strActionName = "w3_main_net.eth.getTransactionCount()/do_erc20_payment_from_main_net";
         if( verbose_get() >= RV_VERBOSE.trace ) { log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" ); }
@@ -1075,7 +1075,7 @@ async function do_erc20_payment_from_s_chain(
     joErc20_s_chain,
     isRawTokenTransfer
 ) {
-    let r; let strActionName = ""; const strLogPrefix = cc.info( "S2M ERC20 Payment:" ) + " ";
+    let strActionName = ""; const strLogPrefix = cc.info( "S2M ERC20 Payment:" ) + " ";
     try {
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_erc20_payment_from_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace ) { log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" ); }
@@ -1093,7 +1093,7 @@ async function do_erc20_payment_from_s_chain(
         //
         // prepare the smart contract function deposit(string schainID, address to)
         //
-        const depositBoxAddress = jo_deposit_box.options.address;
+        // const depositBoxAddress = jo_deposit_box.options.address;
         const approve =
             contractERC20.methods.approve(
                 tokenManagerAddress, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
@@ -1107,10 +1107,10 @@ async function do_erc20_payment_from_s_chain(
                     , accountForMainnet, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
                 ).encodeABI();
         } else {
-            const function_call_trace = "exitToMainERC20(" +
-                erc20Address_s_chain + ", " +
-                accountForMainnet + ", " +
-                w3_s_chain.utils.toBN( token_amount ).toString( 10 ) + ")";
+            // const function_call_trace = "exitToMainERC20(" +
+            //     erc20Address_s_chain + ", " +
+            //     accountForMainnet + ", " +
+            //     w3_s_chain.utils.toBN( token_amount ).toString( 10 ) + ")";
             deposit = // beta version
             jo_token_manager.methods.exitToMainERC20(
                 erc20Address_s_chain, accountForMainnet, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
@@ -1199,7 +1199,7 @@ async function do_erc721_payment_from_s_chain(
     joErc721_s_chain,
     isRawTokenTransfer
 ) {
-    let r; let strActionName = ""; const strLogPrefix = cc.info( "S2M ERC721 Payment:" ) + " ";
+    let strActionName = ""; const strLogPrefix = cc.info( "S2M ERC721 Payment:" ) + " ";
     try {
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_erc721_payment_from_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace ) { log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" ); }
@@ -1215,7 +1215,7 @@ async function do_erc721_payment_from_s_chain(
         const tokenManagerAddress = jo_token_manager.options.address;
         const contractERC721 = new w3_s_chain.eth.Contract( erc721ABI, erc721Address_s_chain );
         // prepare the smart contract function deposit(string schainID, address to)
-        const depositBoxAddress = jo_deposit_box.options.address;
+        // const depositBoxAddress = jo_deposit_box.options.address;
         const approve =
             contractERC721.methods.transferFrom(
                 accountForSchain, tokenManagerAddress, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
@@ -1229,10 +1229,10 @@ async function do_erc721_payment_from_s_chain(
                     , accountForMainnet, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
                 ).encodeABI();
         } else {
-            const function_call_trace = "exitToMainERC721(" +
-                erc721Address_s_chain + ", " +
-                accountForMainnet + ", " +
-                w3_s_chain.utils.toBN( token_id ).toString( 10 ) + ")";
+            // const function_call_trace = "exitToMainERC721(" +
+            //     erc721Address_s_chain + ", " +
+            //     accountForMainnet + ", " +
+            //     w3_s_chain.utils.toBN( token_id ).toString( 10 ) + ")";
             deposit = // beta version
             jo_token_manager.methods.exitToMainERC721(
                 erc721Address_s_chain, accountForMainnet, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
@@ -1418,8 +1418,8 @@ async function do_transfer(
                 if( verbose_get() >= RV_VERBOSE.trace ) { log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event now..." ) + "\n" ); }
                 r = await jo_message_proxy_src.getPastEvents( "OutgoingMessage", {
                     filter: {
-                        dstChainHash: [w3_src.utils.soliditySha3( chain_id_dst )],
-                        msgCounter: [nIdxCurrentMsg]
+                        dstChainHash: [ w3_src.utils.soliditySha3( chain_id_dst ) ],
+                        msgCounter: [ nIdxCurrentMsg ]
                     },
                     fromBlock: 0,
                     toBlock: "latest"
@@ -1507,8 +1507,7 @@ async function do_transfer(
                         cc.success( "Got event details from " ) + cc.notice( "getPastEvents()" ) +
                         cc.success( " event invoked with " ) + cc.notice( "msgCounter" ) + cc.success( " set to " ) + cc.info( nIdxCurrentMsg ) +
                         cc.success( " and " ) + cc.notice( "dstChain" ) + cc.success( " set to " ) + cc.info( chain_id_dst ) +
-                        cc.success( ", event description: " ) + cc.j( joValues ) // + cc.j(evs)
-                        +
+                        cc.success( ", event description: " ) + cc.j( joValues ) + // + cc.j(evs) +
                         "\n"
                     );
                 }
@@ -1560,7 +1559,7 @@ async function do_transfer(
                 let hint = joGlueResult ? joGlueResult.hint : null;
                 if( !hint ) { hint = "0"; }
                 const sign = {
-                    blsSignature: [signature.X, signature.Y], // BLS glue of signatures
+                    blsSignature: [ signature.X, signature.Y ], // BLS glue of signatures
                     hashA: hashPoint.X, // G1.X from joGlueResult.hashSrc
                     hashB: hashPoint.Y, // G1.Y from joGlueResult.hashSrc
                     counter: hint
@@ -1580,7 +1579,7 @@ async function do_transfer(
                         chain_id_dst,
                         nIdxCurrentMsgBlockStart,
                         jarrMessages, // messages
-                        [signature.X, signature.Y], // BLS glue of signatures
+                        [ signature.X, signature.Y ], // BLS glue of signatures
                         hashPoint.X, // G1.X from joGlueResult.hashSrc
                         hashPoint.Y, // G1.Y from joGlueResult.hashSrc
                         hint

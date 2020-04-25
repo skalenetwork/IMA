@@ -14,9 +14,9 @@ module.exports = {
     },
     "rules": {
         "indent": ["error", 4],
-        "linebreak-style": ["error", "unix"],
-        "quotes": ["error", "double"],
-        "semi": ["error", "always"],
+        "linebreak-style": [ "error", "unix" ],
+        "quotes": [ "error", "double" ],
+        "semi": [ "error", "always" ],
         "camelcase": "off",
         // "no-unused-vars": "off",
         "eqeqeq": "off",
@@ -33,9 +33,10 @@ module.exports = {
                 , "while": { "before": false, "after": false }
             }
         } ],
-        "space-before-blocks": ["error", "always"],
-        "object-curly-spacing": ["error", "always"],
-        "no-cond-assign": ["error", "always"],
+        "space-before-blocks": [ "error", "always" ],
+        "array-bracket-spacing": [ "error", "always" ],
+        "object-curly-spacing": [ "error", "always" ],
+        "no-cond-assign": [ "error", "always" ],
         "no-console": "off",
         "new-cap": "off",
         "no-tabs": "off",
