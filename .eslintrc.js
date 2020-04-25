@@ -40,6 +40,7 @@ module.exports = {
         "new-cap": "off",
         "no-tabs": "off",
         "no-mixed-spaces-and-tabs": "off",
-        "no-prototype-builtins": "off"
+        "no-prototype-builtins": "off",
+        "quote-props": "off"
     }
 };
