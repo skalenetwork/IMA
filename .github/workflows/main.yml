@@ -111,7 +111,7 @@ jobs:
 
     - name: ESLINT
       run: |
-        sudo npm install -g eslint
+        #sudo npm install -g eslint
         eslint --version
 
     - name: INSTALL PREREQUISITES - ROOT - PACKAGES
