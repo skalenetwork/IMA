@@ -5,6 +5,7 @@
     "author": "SKALE Labs and contributors",
     "scripts": {
         "lint-check": "eslint ./agent/*.js ./npms/skale-*/*.js",
+        "lint-fix": "eslint ./agent/*.js ./npms/skale-*/*.js --fix",
         "postinstall": "echo \"----- installing in agent\n\" && cd ./agent && yarn install && cd .. && echo \"----- installing in proxy\n\" && cd ./proxy && yarn install && cd .."
     },
     "dependencies": {},

@@ -114,6 +114,11 @@ jobs:
         sudo npm install -g eslint
         eslint --version
 
+    - name: LINT CHECK EVERYTHING JS WITH ESLINT
+      run: |
+        yarn run lint-check
+        echo "Looks like no JS code formatting errors so far)"
+
     - name: PY CHECKS
       run: |
         echo ------------ python version check
