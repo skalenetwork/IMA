@@ -104,6 +104,16 @@ jobs:
         which npm || echo "----> Looks like npm was not installed, next command will fail"
         npm --version
 
+    - name: YARN
+      run: |
+          sudo npm install -g yarn
+          yarn --version
+
+    - name: ESLINT
+      run: |
+        sudo npm install -g eslint
+        eslint --version
+
     - name: PY CHECKS
       run: |
         echo ------------ python version check
@@ -161,22 +171,33 @@ jobs:
         npx buidler --version
         cd ..
 
+    - name: INSTALL PREREQUISITES - ROOT - PACKAGES
+      run: |
+        yarn install
+        ls -1
+
+    - name: INSTALL PREREQUISITES - PROXY - PACKAGES
+      run: |
+        cd proxy 
+        yarn install
+        cd ..
+
     - name: INSTALL PREREQUISITES - AGENT - PACKAGES
       run: |
         cd agent 
-        npm install
+        yarn install
         cd ..
 
     - name: INSTALL PREREQUISITES - SKALE-IMA - PACKAGES
       run: |
         cd npms/skale-ima
-        npm install
+        yarn install
         cd ../..
 
     - name: INSTALL PREREQUISITES - SKALE-OWASP - PACKAGES
       run: |
         cd npms/skale-owasp
-        npm install
+        yarn install
         cd ../..
 
     - name: START BACKGROUND GANACHE
