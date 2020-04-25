@@ -32,7 +32,7 @@ console.log( debugInfo );
 const CHECK_TIMEOUT = 4000;
 
 const sleep = ( milliseconds ) => {
-    return new Promise( function( resolve ) { setTimeout( resolve, milliseconds ); } );
+    return new Promise( resolve => setTimeout( resolve, milliseconds ) );
 };
 
 async function run() {
@@ -51,9 +51,9 @@ async function run() {
             const pk = localWallet.private_key.slice( 2 );
 
             const baseArgs = `--url-main-net=${MAINNET_RPC_URL} --url-s-chain=${SCHAIN_RPC_URL} \
-      --id-main-net=Mainnet --id-s-chain=${SCHAIN_NAME} --abi-main-net=${MAINNET_PROXY_PATH} \
-      --node-number=${NODE_NUMBER} --nodes-count=${NODES_COUNT}  \
-      --abi-s-chain=${SCHAIN_PROXY_PATH} --key-main-net=${pk} --key-s-chain=${pk} --period 5`;
+            --id-main-net=Mainnet --id-s-chain=${SCHAIN_NAME} --abi-main-net=${MAINNET_PROXY_PATH} \
+            --node-number=${NODE_NUMBER} --nodes-count=${NODES_COUNT}  \
+            --abi-s-chain=${SCHAIN_PROXY_PATH} --key-main-net=${pk} --key-s-chain=${pk} --period 5`;
 
             const baseCmd = `node ${__dirname}/main.js`;
             // const registerCmd = `${baseCmd} --register ${baseArgs}`;
@@ -72,10 +72,8 @@ async function run() {
                     stdio: "inherit"
                 }
             );
-
             // TO-DO: start IMA logic!!!
         }
-
         await sleep( CHECK_TIMEOUT );
     }
 }
