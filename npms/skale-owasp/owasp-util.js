@@ -4,9 +4,9 @@
 // top 10 hit parade: https://owasp.org/www-project-top-ten/
 
 const fs = require( "fs" );
-const path = require( "path" );
-const url = require( "url" );
-const os = require( "os" );
+// const path = require( "path" );
+// const url = require( "url" );
+// const os = require( "os" );
 
 const cc = require( "../skale-cc/cc.js" );
 const w3mod = require( "web3" );
@@ -311,6 +311,7 @@ module.exports = {
     ethereumjs_tx: ethereumjs_tx,
     ethereumjs_wallet: ethereumjs_wallet,
     ethereumjs_util: ethereumjs_util,
+    owaspAddUsageRef: function() { },
     rxIsInt: rxIsInt,
     rxIsFloat: rxIsFloat,
     validateRadix: validateRadix,

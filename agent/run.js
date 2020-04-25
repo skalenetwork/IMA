@@ -1,5 +1,5 @@
 const fs = require( "fs" );
-const path = require( "path" );
+// const path = require( "path" );
 const child_process = require( "child_process" );
 
 const SCHAIN_DIR = process.env.SCHAIN_DIR;
@@ -56,7 +56,7 @@ async function run() {
       --abi-s-chain=${SCHAIN_PROXY_PATH} --key-main-net=${pk} --key-s-chain=${pk} --period 5`;
 
             const baseCmd = `node ${__dirname}/main.js`;
-            const registerCmd = `${baseCmd} --register ${baseArgs}`;
+            // const registerCmd = `${baseCmd} --register ${baseArgs}`;
             const loopCmd = `${baseCmd} --loop ${baseArgs}`;
 
             // console.log(registerCmd); // todo: rm, tmp!

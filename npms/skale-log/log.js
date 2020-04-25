@@ -100,7 +100,7 @@ function insertStandardOutputStream() {
 
 function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
     try {
-        const fd = fs.openSync( "" + strFilePath, "a", fs.constants.O_NONBLOCK | fs.constants.O_WR );
+        // const fd = fs.openSync( "" + strFilePath, "a", fs.constants.O_NONBLOCK | fs.constants.O_WR );
         const objEntry = {
 			  strPath: "" + strFilePath,
 			  nMaxSizeBeforeRotation: 0 + nMaxSizeBeforeRotation,

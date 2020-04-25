@@ -18,7 +18,7 @@ module.exports = {
         "quotes": ["error", "double"],
         "semi": ["error", "always"],
         "camelcase": "off",
-        //"no-unused-vars": "off",
+        // "no-unused-vars": "off",
         "eqeqeq": "off",
         "comma-dangle": [ "error", "never" ],
         "comma-style": [ "error", "last" ],

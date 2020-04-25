@@ -1,24 +1,24 @@
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 
-const fs = require( "fs" );
-const path = require( "path" );
-const url = require( "url" );
-const os = require( "os" );
+// const fs = require( "fs" );
+// const path = require( "path" );
+// const url = require( "url" );
+// const os = require( "os" );
 const IMA = require( "../npms/skale-ima" );
 const owaspUtils = IMA.owaspUtils;
 const imaUtils = require( "./utils.js" );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
 const log = imaUtils.log;
 const cc = imaUtils.cc;
-const w3mod = IMA.w3mod;
+// const w3mod = IMA.w3mod;
 const imaCLI = require( "./cli.js" );
 const imaBLS = require( "./bls.js" );
 const rpcCall = require( "./rpc-call.js" );
 rpcCall.init( cc, log, owaspUtils );
-const ethereumjs_tx = IMA.ethereumjs_tx;
-const ethereumjs_wallet = IMA.ethereumjs_wallet;
-const ethereumjs_util = IMA.ethereumjs_util;
+// const ethereumjs_tx = IMA.ethereumjs_tx;
+// const ethereumjs_wallet = IMA.ethereumjs_wallet;
+// const ethereumjs_util = IMA.ethereumjs_util;
 
 function fn_address_impl_( w3 ) {
     if( this.address_ == undefined || this.address_ == null ) { this.address_ = "" + owaspUtils.private_key_2_account_address( w3, this.privateKey ); }
@@ -628,8 +628,7 @@ async function do_the_job() {
     let cntTrue = 0;
     for( idxAction = 0; idxAction < cntActions; ++idxAction ) {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) { log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" ); }
-        const joAction = imaState.arrActions[idxAction]
-            ; const bOK = false;
+        const joAction = imaState.arrActions[idxAction];
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug ) { log.write( strLogPrefix + cc.notice( "Will execute action:" ) + " " + cc.info( joAction.name ) + cc.debug( " (" ) + cc.info( idxAction + 1 ) + cc.debug( " of " ) + cc.info( cntActions ) + cc.debug( ")" ) + "\n" ); }
         try {
             if( await joAction.fn() ) {

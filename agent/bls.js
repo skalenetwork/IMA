@@ -1,7 +1,7 @@
-const fs = require( "fs" );
+// const fs = require( "fs" );
 const path = require( "path" );
-const url = require( "url" );
-const os = require( "os" );
+// const url = require( "url" );
+// const os = require( "os" );
 const child_process = require( "child_process" );
 const shell = require( "shelljs" );
 const { Keccak } = require( "sha3" );
@@ -25,7 +25,9 @@ function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc, a_rpcCall, a_owaspU
     log = a_log;
     cc = a_cc;
     rpcCall = a_rpcCall;
+    rpcCall.rpcCallAddUsageRef();
     owaspUtils = a_owaspUtils;
+    owaspUtils.owaspAddUsageRef();
 }
 
 function discover_bls_threshold( joSChainNetworkInfo ) {
@@ -168,7 +170,7 @@ function alloc_bls_tmp_action_dir() {
 function perform_bls_glue( strDirection, jarrMessages, arrSignResults ) {
     const strLogPrefix = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.attention( "Glue" ) + cc.debug( ":" ) + " ";
     let joGlueResult = null;
-    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    // const jarrNodes = imaState.joSChainNetworkInfo.network;
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) { log.write( strLogPrefix + cc.debug( "Original long message is " ) + cc.info( compose_summary_message_to_sign( jarrMessages, false ) ) + "\n" ); }

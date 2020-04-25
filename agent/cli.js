@@ -1,8 +1,8 @@
 const fs = require( "fs" );
-const path = require( "path" );
-const url = require( "url" );
-const os = require( "os" );
-const shell = require( "shelljs" );
+// const path = require( "path" );
+// const url = require( "url" );
+// const os = require( "os" );
+// const shell = require( "shelljs" );
 
 let IMA = null;
 let imaState = null;
@@ -22,7 +22,9 @@ function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc, a_rpcCall, a_owaspU
     log = a_log;
     cc = a_cc;
     rpcCall = a_rpcCall;
+    rpcCall.rpcCallAddUsageRef();
     owaspUtils = a_owaspUtils;
+    owaspUtils.owaspAddUsageRef();
 }
 
 const g_strAppName = "SKALE Money Transfer Agent";

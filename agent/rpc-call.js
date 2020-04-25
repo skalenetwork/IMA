@@ -20,6 +20,7 @@ function rpc_call_init( a_cc, a_log, a_owaspUtils ) {
     cc = a_cc;
     log = a_log;
     owaspUtils = a_owaspUtils;
+    owaspUtils.owaspAddUsageRef();
 }
 
 async function do_connect( joCall, fn ) {
@@ -152,6 +153,7 @@ function enrich_top_level_json_fields( jo ) {
 }
 
 module.exports = {
+    rpcCallAddUsageRef: function() { },
     init: rpc_call_init,
     create: rpc_call_create,
     generate_random_integer_in_range: generate_random_integer_in_range,
