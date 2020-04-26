@@ -57,7 +57,8 @@ module.exports = {
         "no-fallthrough": "off",
         "no-useless-catch": "off",
         "padded-blocks": "off",
-        "no-use-before-define": "off", // ["error", { "variables": false,  "functions": false }],
+        "no-use-before-define": "off", // [ "error", { "variables": false,  "functions": false } ],
+        "lines-between-class-members": [ "error", "never" ],
         "no-var": "error",
         "no-unused-vars": "error"
 }
