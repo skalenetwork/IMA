@@ -48,6 +48,17 @@ module.exports = {
         "no-tabs": "off",
         "no-mixed-spaces-and-tabs": "off",
         "no-prototype-builtins": "off",
-        "quote-props": "off"
-    }
+        "quote-props": "off",
+        "no-undef": "off",
+        "no-useless-return": "off",
+        "no-new": "off",
+        "no-useless-constructor": "off",
+        "no-lone-blocks": "off",
+        "no-fallthrough": "off",
+        "no-useless-catch": "off",
+        "padded-blocks": "off",
+        "no-use-before-define": "off", // ["error", { "variables": false,  "functions": false }],
+        "no-var": "error",
+        "no-unused-vars": "error"
+}
 };
