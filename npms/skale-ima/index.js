@@ -1924,8 +1924,10 @@ class TransactionCustomizer {
         this.gasPriceMultiplier = gasPriceMultiplier ? ( 0.0 + gasPriceMultiplier ) : null; // null means use current gasPrice or recommendedGasPrice
     }
     async computeGasPrice( w3, recommendedGasPrice ) {
-        if( this.gasPriceMultiplier != null && recommendedGasPrice != null && recommendedGasPrice != undefined )
+        if( this.gasPriceMultiplier != null && this.gasPriceMultiplier != undefined && this.gasPriceMultiplier >= 0 && recommendedGasPrice != null && recommendedGasPrice != undefined )
             return parseInt( recommendedGasPrice );
+        if( this.gasPriceMultiplier <= 0 )
+            return 0;
         let gasPrice = parseInt( await w3.eth.getGasPrice() );
         gasPrice *= this.gasPriceMultiplier;
         return gasPrice;
