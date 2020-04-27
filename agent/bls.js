@@ -1,9 +1,9 @@
-const fs = require( "fs" );
+// const fs = require( "fs" );
 const path = require( "path" );
-const url = require( "url" );
-const os = require( "os" );
-let child_process = require( "child_process" );
-let shell = require( "shelljs" );
+// const url = require( "url" );
+// const os = require( "os" );
+const child_process = require( "child_process" );
+const shell = require( "shelljs" );
 const { Keccak } = require( "sha3" );
 
 let IMA = null;
@@ -16,112 +16,116 @@ let owaspUtils = null;
 let w3mod = null;
 
 function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc, a_rpcCall, a_owaspUtils ) {
-    if ( !( anIMA && an_imaState && an_imaUtils && a_log && a_cc && a_rpcCall && a_owaspUtils ) )
+    if( !( anIMA && an_imaState && an_imaUtils && a_log && a_cc && a_rpcCall && a_owaspUtils ) )
         throw new Error( "BLS module initializer was invoked with bad parameters: " + JSON.stringify( arguments ) );
     IMA = anIMA;
     w3mod = IMA.w3mod;
-    if( ! w3mod )
+    if( !w3mod )
         throw new Error( "BLS MODULE cannot be initialized without valid reference to WEB3 MOD from IMA object" );
     imaState = an_imaState;
-    imaUtils = an_imaUtils,
+    imaUtils = an_imaUtils;
     log = a_log;
     cc = a_cc;
     rpcCall = a_rpcCall;
+    rpcCall.rpcCallAddUsageRef();
     owaspUtils = a_owaspUtils;
+    owaspUtils.owaspAddUsageRef();
 }
 
 function discover_bls_threshold( joSChainNetworkInfo ) {
-    let jarrNodes = imaState.joSChainNetworkInfo.network;
-    for( let i = 0; i < jarrNodes.length; ++ i ) {
-        let joNode = jarrNodes[ i ];
-        if( "imaInfo" in joNode && typeof joNode.imaInfo == "object"
-            &&  "t" in joNode.imaInfo && typeof joNode.imaInfo.t == "number"
-            &&  joNode.imaInfo.t > 0
-            )
+    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    for( let i = 0; i < jarrNodes.length; ++i ) {
+        const joNode = jarrNodes[i];
+        if( "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
+            "t" in joNode.imaInfo && typeof joNode.imaInfo.t === "number" &&
+            joNode.imaInfo.t > 0
+        )
             return joNode.imaInfo.t;
     }
     return -1;
 }
 
 function discover_bls_participants( joSChainNetworkInfo ) {
-    let jarrNodes = imaState.joSChainNetworkInfo.network;
-    for( let i = 0; i < jarrNodes.length; ++ i ) {
-        let joNode = jarrNodes[ i ];
-        if( "imaInfo" in joNode && typeof joNode.imaInfo == "object"
-            &&  "n" in joNode.imaInfo && typeof joNode.imaInfo.n == "number"
-            &&  joNode.imaInfo.n > 0
-            )
+    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    for( let i = 0; i < jarrNodes.length; ++i ) {
+        const joNode = jarrNodes[i];
+        if( "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
+            "n" in joNode.imaInfo && typeof joNode.imaInfo.n === "number" &&
+            joNode.imaInfo.n > 0
+        )
             return joNode.imaInfo.n;
     }
     return -1;
 }
 
 function discover_public_key_by_index( nNodeIndex, joSChainNetworkInfo ) {
-    let jarrNodes = imaState.joSChainNetworkInfo.network;
-    let joNode = jarrNodes[ nNodeIndex ];
-    if( "imaInfo" in joNode && typeof joNode.imaInfo == "object"
-        &&  "insecureBLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey0 == "string" && joNode.imaInfo.insecureBLSPublicKey0.length > 0
-        &&  "insecureBLSPublicKey1" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey1 == "string" && joNode.imaInfo.insecureBLSPublicKey1.length > 0
-        &&  "insecureBLSPublicKey2" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey2 == "string" && joNode.imaInfo.insecureBLSPublicKey2.length > 0
-        &&  "insecureBLSPublicKey3" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey3 == "string" && joNode.imaInfo.insecureBLSPublicKey3.length > 0
-        )
+    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    const joNode = jarrNodes[nNodeIndex];
+    if( "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
+        "insecureBLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey0 === "string" && joNode.imaInfo.insecureBLSPublicKey0.length > 0 &&
+        "insecureBLSPublicKey1" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey1 === "string" && joNode.imaInfo.insecureBLSPublicKey1.length > 0 &&
+        "insecureBLSPublicKey2" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey2 === "string" && joNode.imaInfo.insecureBLSPublicKey2.length > 0 &&
+        "insecureBLSPublicKey3" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey3 === "string" && joNode.imaInfo.insecureBLSPublicKey3.length > 0
+    ) {
         return {
-            "insecureBLSPublicKey0": joNode.imaInfo.insecureBLSPublicKey0,
-            "insecureBLSPublicKey1": joNode.imaInfo.insecureBLSPublicKey1,
-            "insecureBLSPublicKey2": joNode.imaInfo.insecureBLSPublicKey2,
-            "insecureBLSPublicKey3": joNode.imaInfo.insecureBLSPublicKey3
-            };
+            insecureBLSPublicKey0: joNode.imaInfo.insecureBLSPublicKey0,
+            insecureBLSPublicKey1: joNode.imaInfo.insecureBLSPublicKey1,
+            insecureBLSPublicKey2: joNode.imaInfo.insecureBLSPublicKey2,
+            insecureBLSPublicKey3: joNode.imaInfo.insecureBLSPublicKey3
+        };
+    }
     return null;
 }
 
 function discover_common_public_key( joSChainNetworkInfo ) {
-    let jarrNodes = imaState.joSChainNetworkInfo.network;
-    for( let i = 0; i < jarrNodes.length; ++ i ) {
-        let joNode = jarrNodes[ i ];
-        if( "imaInfo" in joNode && typeof joNode.imaInfo == "object"
-            &&  "insecureCommonBLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey0 == "string" && joNode.imaInfo.insecureCommonBLSPublicKey0.length > 0
-            &&  "insecureCommonBLSPublicKey1" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey1 == "string" && joNode.imaInfo.insecureCommonBLSPublicKey1.length > 0
-            &&  "insecureCommonBLSPublicKey2" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey2 == "string" && joNode.imaInfo.insecureCommonBLSPublicKey2.length > 0
-            &&  "insecureCommonBLSPublicKey3" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey3 == "string" && joNode.imaInfo.insecureCommonBLSPublicKey3.length > 0
-            )
+    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    for( let i = 0; i < jarrNodes.length; ++i ) {
+        const joNode = jarrNodes[i];
+        if( "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
+            "insecureCommonBLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey0 === "string" && joNode.imaInfo.insecureCommonBLSPublicKey0.length > 0 &&
+            "insecureCommonBLSPublicKey1" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey1 === "string" && joNode.imaInfo.insecureCommonBLSPublicKey1.length > 0 &&
+            "insecureCommonBLSPublicKey2" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey2 === "string" && joNode.imaInfo.insecureCommonBLSPublicKey2.length > 0 &&
+            "insecureCommonBLSPublicKey3" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey3 === "string" && joNode.imaInfo.insecureCommonBLSPublicKey3.length > 0
+        ) {
             return {
-                "insecureCommonBLSPublicKey0": joNode.imaInfo.insecureCommonBLSPublicKey0,
-                "insecureCommonBLSPublicKey1": joNode.imaInfo.insecureCommonBLSPublicKey1,
-                "insecureCommonBLSPublicKey2": joNode.imaInfo.insecureCommonBLSPublicKey2,
-                "insecureCommonBLSPublicKey3": joNode.imaInfo.insecureCommonBLSPublicKey3
-                };
+                insecureCommonBLSPublicKey0: joNode.imaInfo.insecureCommonBLSPublicKey0,
+                insecureCommonBLSPublicKey1: joNode.imaInfo.insecureCommonBLSPublicKey1,
+                insecureCommonBLSPublicKey2: joNode.imaInfo.insecureCommonBLSPublicKey2,
+                insecureCommonBLSPublicKey3: joNode.imaInfo.insecureCommonBLSPublicKey3
+            };
+        }
     }
     return null;
 }
 
 function compose_one_message_byte_sequence( joMessage ) {
-    let w3 = imaState.w3_s_chain ? imaState.w3_s_chain : imaState.w3_main_net;
-    if( ! w3 )
+    const w3 = imaState.w3_s_chain ? imaState.w3_s_chain : imaState.w3_main_net;
+    if( !w3 )
         throw new Error( "w3.utils is needed for BN operations but no w3 provided" );
     let arrBytes = new Uint8Array();
 
     let bytesSender = imaUtils.hexToBytes( joMessage.sender );
     bytesSender = imaUtils.invertArrayItemsLR( bytesSender );
-    bytesSender = imaUtils.bytesAlignLeftWithZeroes( bytesSender, 32 )
+    bytesSender = imaUtils.bytesAlignLeftWithZeroes( bytesSender, 32 );
     bytesSender = imaUtils.invertArrayItemsLR( bytesSender );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesSender );
     //
     let bytesDestinationContract = imaUtils.hexToBytes( joMessage.destinationContract );
     bytesDestinationContract = imaUtils.invertArrayItemsLR( bytesDestinationContract );
-    bytesDestinationContract = imaUtils.bytesAlignLeftWithZeroes( bytesDestinationContract, 32 )
+    bytesDestinationContract = imaUtils.bytesAlignLeftWithZeroes( bytesDestinationContract, 32 );
     bytesDestinationContract = imaUtils.invertArrayItemsLR( bytesDestinationContract );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesDestinationContract );
     //
     let bytesTo = imaUtils.hexToBytes( joMessage.to );
     bytesTo = imaUtils.invertArrayItemsLR( bytesTo );
-    bytesTo = imaUtils.bytesAlignLeftWithZeroes( bytesTo, 32 )
+    bytesTo = imaUtils.bytesAlignLeftWithZeroes( bytesTo, 32 );
     bytesTo = imaUtils.invertArrayItemsLR( bytesTo );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesTo );
     //
-    let strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString(16);
+    const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
     let bytesAmount = imaUtils.hexToBytes( strHexAmount );
     // bytesAmount = imaUtils.invertArrayItemsLR( bytesAmount );
-    bytesAmount = imaUtils.bytesAlignLeftWithZeroes( bytesAmount, 32 )
+    bytesAmount = imaUtils.bytesAlignLeftWithZeroes( bytesAmount, 32 );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesAmount );
     //
     let bytesData = imaUtils.hexToBytes( joMessage.data );
@@ -133,10 +137,10 @@ function compose_one_message_byte_sequence( joMessage ) {
 
 function compose_summary_message_to_sign( jarrMessages, isHash ) {
     let arrBytes = "";
-    let i = 0, cnt = jarrMessages.length;
-    for( i = 0; i < cnt; ++ i ) {
-        let joMessage = jarrMessages[ i ];
-        let arrMessageBytes = compose_one_message_byte_sequence( joMessage );
+    let i = 0; const cnt = jarrMessages.length;
+    for( i = 0; i < cnt; ++i ) {
+        const joMessage = jarrMessages[i];
+        const arrMessageBytes = compose_one_message_byte_sequence( joMessage );
         arrBytes = imaUtils.bytesConcat( arrBytes, arrMessageBytes );
     }
     let strSummaryMessage = "";
@@ -150,41 +154,41 @@ function compose_summary_message_to_sign( jarrMessages, isHash ) {
 }
 
 function split_signature_share( signatureShare ) {
-    let jarr = signatureShare.split( ":" );
+    const jarr = signatureShare.split( ":" );
     return {
-        "X": jarr[0],
-        "Y": jarr[1]
+        X: jarr[0],
+        Y: jarr[1]
     };
 }
 
 function get_bls_glue_tmp_dir() {
-    let strTmpDir = path.resolve( __dirname ) + "/tmp";
+    const strTmpDir = path.resolve( __dirname ) + "/tmp";
     shell.mkdir( "-p", strTmpDir );
     return strTmpDir;
 }
 
 function alloc_bls_tmp_action_dir() {
-    let strActionDir = get_bls_glue_tmp_dir() + "/" + imaUtils.replaceAll( imaUtils.uuid(), "-", "" );
+    const strActionDir = get_bls_glue_tmp_dir() + "/" + imaUtils.replaceAll( imaUtils.uuid(), "-", "" );
     shell.mkdir( "-p", strActionDir );
     return strActionDir;
 }
 
 function perform_bls_glue( strDirection, jarrMessages, arrSignResults ) {
-    let strLogPrefix = cc.bright(strDirection) + cc.debug("/") + cc.info("BLS") + cc.debug("/") + cc.attention("Glue") + cc.debug(":") + " ";
+    const strLogPrefix = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.attention( "Glue" ) + cc.debug( ":" ) + " ";
     let joGlueResult = null;
-    let jarrNodes = imaState.joSChainNetworkInfo.network;
-    let nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
-    let nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "Original long message is ") + cc.info( compose_summary_message_to_sign( jarrMessages, false ) ) + "\n" );
-    let strSummaryMessage = compose_summary_message_to_sign( jarrMessages, true );
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "Message hash to sign is ") + cc.info( strSummaryMessage ) + "\n" );
-    let strPWD = shell.pwd();
-    let strActionDir = alloc_bls_tmp_action_dir();
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "perform_bls_glue will work in ") + cc.info(strActionDir) + cc.debug(" director with ") + cc.info(arrSignResults.length) + cc.debug(" sign results..." ) + "\n" );
-    let fnShellRestore = function() {
+    // const jarrNodes = imaState.joSChainNetworkInfo.network;
+    const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
+    const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        log.write( strLogPrefix + cc.debug( "Original long message is " ) + cc.info( compose_summary_message_to_sign( jarrMessages, false ) ) + "\n" );
+    const strSummaryMessage = compose_summary_message_to_sign( jarrMessages, true );
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        log.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strSummaryMessage ) + "\n" );
+    const strPWD = shell.pwd();
+    const strActionDir = alloc_bls_tmp_action_dir();
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        log.write( strLogPrefix + cc.debug( "perform_bls_glue will work in " ) + cc.info( strActionDir ) + cc.debug( " director with " ) + cc.info( arrSignResults.length ) + cc.debug( " sign results..." ) + "\n" );
+    const fnShellRestore = function() {
         shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
@@ -192,59 +196,59 @@ function perform_bls_glue( strDirection, jarrMessages, arrSignResults ) {
     try {
         shell.cd( strActionDir );
         let strInput = "";
-        let i = 0, cnt = arrSignResults.length;
-        for( i = 0; i < cnt; ++ i ) {
-            let jo = arrSignResults[ i ];
-            let strPath = strActionDir + "/sign-result" + jo.index + ".json";
-            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug(" file..." ) + "\n" );
+        let i = 0; const cnt = arrSignResults.length;
+        for( i = 0; i < cnt; ++i ) {
+            const jo = arrSignResults[i];
+            const strPath = strActionDir + "/sign-result" + jo.index + ".json";
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug( " file..." ) + "\n" );
             imaUtils.jsonFileSave( strPath, jo );
             strInput += " --input " + strPath;
         }
-        let strGlueCommand =
+        const strGlueCommand =
             imaState.strPathBlsGlue +
             " --t " + nThreshold +
             " --n " + nParticipants +
             strInput +
             " --output " + strActionDir + "/glue-result.json";
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.normal( "Will execute BLS glue command:\n" ) + cc.notice( strGlueCommand ) + "\n" );
         strOutput = child_process.execSync( strGlueCommand );
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.normal( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
         joGlueResult = imaUtils.jsonFileLoad( strActionDir + "/glue-result.json" );
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.normal( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
-        if ( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) {
-            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "BLS glue success" )  + "\n" );
+        if( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) {
+            // if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.success( "BLS glue success" ) + "\n" );
             joGlueResult.hashSrc = strSummaryMessage;
             //
             //
             //
-            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Computing " ) + cc.info("G1") + cc.debug(" hash point...") + "\n" );
-            let strPath = strActionDir + "/hash.json";
-            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug(" file..." ) + "\n" );
-            imaUtils.jsonFileSave( strPath, { "message": strSummaryMessage } );
-            let strHasG1Command =
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug( "Computing " ) + cc.info( "G1" ) + cc.debug( " hash point..." ) + "\n" );
+            const strPath = strActionDir + "/hash.json";
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug( " file..." ) + "\n" );
+            imaUtils.jsonFileSave( strPath, { message: strSummaryMessage } );
+            const strHasG1Command =
                 imaState.strPathHashG1 +
                 " --t " + nThreshold +
                 " --n " + nParticipants;
-            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.normal( "Will execute HashG1 command:\n" ) + cc.notice( strHasG1Command ) + "\n" );
             strOutput = child_process.execSync( strHasG1Command );
-            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.normal( "HashG1 output is:\n" ) + cc.notice( strOutput ) + "\n" );
-            let joResultHashG1 = imaUtils.jsonFileLoad( strActionDir + "/g1.json" );
-            //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.normal( "HashG1 result is: " ) + cc.j( joResultHashG1 ) + "\n" );
+            const joResultHashG1 = imaUtils.jsonFileLoad( strActionDir + "/g1.json" );
+            // if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.normal( "HashG1 result is: " ) + cc.j( joResultHashG1 ) + "\n" );
             //
             //
             //
-            if ( "g1" in joResultHashG1 && "hint" in joResultHashG1.g1 && "hashPoint" in joResultHashG1.g1
-                && "X" in joResultHashG1.g1.hashPoint && "Y" in joResultHashG1.g1.hashPoint ) {
+            if( "g1" in joResultHashG1 && "hint" in joResultHashG1.g1 && "hashPoint" in joResultHashG1.g1 &&
+                "X" in joResultHashG1.g1.hashPoint && "Y" in joResultHashG1.g1.hashPoint ) {
                 joGlueResult.hashPoint = joResultHashG1.g1.hashPoint;
                 joGlueResult.hint = joResultHashG1.g1.hint;
             } else {
@@ -252,7 +256,7 @@ function perform_bls_glue( strDirection, jarrMessages, arrSignResults ) {
                 throw new Error( "malformed HashG1 result: " + JSON.stringify( joResultHashG1 ) );
             }
         } else {
-            let joSavedGlueResult = joGlueResult;
+            const joSavedGlueResult = joGlueResult;
             joGlueResult = null;
             throw new Error( "malformed BLS glue result: " + JSON.stringify( joSavedGlueResult ) );
         }
@@ -266,8 +270,8 @@ function perform_bls_glue( strDirection, jarrMessages, arrSignResults ) {
         // }
         //
         fnShellRestore();
-    } catch( err ) {
-        log.write( strLogPrefix + cc.fatal("BLS glue CRITICAL ERROR:") + cc.error( " error description is: " ) + cc.warning( err.toString() ) + "\n" );
+    } catch ( err ) {
+        log.write( strLogPrefix + cc.fatal( "BLS glue CRITICAL ERROR:" ) + cc.error( " error description is: " ) + cc.warning( err.toString() ) + "\n" );
         log.write( strLogPrefix + cc.error( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
         fnShellRestore();
         joGlueResult = null;
@@ -276,98 +280,98 @@ function perform_bls_glue( strDirection, jarrMessages, arrSignResults ) {
 }
 
 function perform_bls_verify_i( strDirection, nZeroBasedNodeIndex, joResultFromNode, jarrMessages, joPublicKey ) {
-    if( ! joResultFromNode )
+    if( !joResultFromNode )
         return true;
-    let strLogPrefix = cc.bright(strDirection) + cc.debug("/") + cc.info("BLS") + cc.debug("/") + cc.notice("#") + cc.bright(nZeroBasedNodeIndex) + cc.debug(":") + " ";
-    let nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
-    let nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-    let strPWD = shell.pwd();
-    let strActionDir = alloc_bls_tmp_action_dir();
-    let fnShellRestore = function() {
+    const strLogPrefix = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
+    const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
+    const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
+    const strPWD = shell.pwd();
+    const strActionDir = alloc_bls_tmp_action_dir();
+    const fnShellRestore = function() {
         shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     try {
         shell.cd( strActionDir );
-        let joMsg = { "message" : compose_summary_message_to_sign( jarrMessages, true ) };
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "BLS node ") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.debug(" verify message " ) + cc.j( joMsg ) + cc.debug(" composed from ") + cc.j(jarrMessages) + cc.debug(" using glue ") + cc.j( joResultFromNode) + cc.debug(" and public key ") + cc.j( joPublicKey) + "\n" );
-        let strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
+        const joMsg = { message: compose_summary_message_to_sign( jarrMessages, true ) };
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( jarrMessages ) + cc.debug( " using glue " ) + cc.j( joResultFromNode ) + cc.debug( " and public key " ) + cc.j( joPublicKey ) + "\n" );
+        const strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
         imaUtils.jsonFileSave( strSignResultFileName, joResultFromNode );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
         imaUtils.jsonFileSave( strActionDir + "/BLS_keys" + nZeroBasedNodeIndex + ".json", joPublicKey );
-        let strVerifyCommand = ""
-            + imaState.strPathBlsVerify
-            + " --t " + nThreshold
-            + " --n " + nParticipants
-            + " --j " + nZeroBasedNodeIndex
-            + " --input " + strSignResultFileName
+        const strVerifyCommand = "" +
+            imaState.strPathBlsVerify +
+            " --t " + nThreshold +
+            " --n " + nParticipants +
+            " --j " + nZeroBasedNodeIndex +
+            " --input " + strSignResultFileName
             ;
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.normal( "Will execute node ") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.normal(" BLS verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.normal( "Will execute node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " BLS verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
         strOutput = child_process.execSync( strVerifyCommand );
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.normal( "BLS node ") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.normal(" verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "BLS node ") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.success(" verify success" )  + "\n" );
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.normal( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.success( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.success( " verify success" ) + "\n" );
         fnShellRestore();
         return true;
-    } catch( err ) {
-        log.write( strLogPrefix + cc.fatal("CRITICAL ERROR: BLS node ") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.error(" verify error:") + cc.normal( " error description is: " ) + cc.warning( err.toString() ) + "\n" );
-        log.write( strLogPrefix + cc.error( "CRITICAL ERROR: BLS node ") + cc.notice("#") + cc.info(nZeroBasedNodeIndex) + cc.error(" verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+    } catch ( err ) {
+        log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR: BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.normal( " error description is: " ) + cc.warning( err.toString() ) + "\n" );
+        log.write( strLogPrefix + cc.error( "CRITICAL ERROR: BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         fnShellRestore();
     }
     return false;
 }
 
 function perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonPublicKey ) {
-    if( ! joGlueResult )
+    if( !joGlueResult )
         return true;
-    let nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
-    let nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-    let strPWD = shell.pwd();
-    let strActionDir = alloc_bls_tmp_action_dir();
-    let fnShellRestore = function() {
+    const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
+    const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
+    const strPWD = shell.pwd();
+    const strActionDir = alloc_bls_tmp_action_dir();
+    const fnShellRestore = function() {
         shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
-    let strLogPrefix = cc.bright(strDirection) + cc.debug("/") + cc.info("BLS") + cc.debug("/") + cc.sunny("Summary") + cc.debug(":") + " ";
+    const strLogPrefix = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
     try {
         shell.cd( strActionDir );
-        let joMsg = { "message" : compose_summary_message_to_sign( jarrMessages, true ) };
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "BLS/summary verify message " ) + cc.j( joMsg ) + cc.debug(" composed from ") + cc.j(jarrMessages) + cc.debug(" using glue ") + cc.j( joGlueResult) + cc.debug(" and common public key ") + cc.j( joCommonPublicKey) + "\n" );
+        const joMsg = { message: compose_summary_message_to_sign( jarrMessages, true ) };
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( "BLS/summary verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( jarrMessages ) + cc.debug( " using glue " ) + cc.j( joGlueResult ) + cc.debug( " and common public key " ) + cc.j( joCommonPublicKey ) + "\n" );
         imaUtils.jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
         // let joCommonPublicKey_for_O = joCommonPublicKey;
-        let joCommonPublicKey_for_O = {
+        const joCommonPublicKey_for_O = {
             insecureCommonBLSPublicKey0: joCommonPublicKey.insecureCommonBLSPublicKey1,
             insecureCommonBLSPublicKey1: joCommonPublicKey.insecureCommonBLSPublicKey0,
             insecureCommonBLSPublicKey2: joCommonPublicKey.insecureCommonBLSPublicKey3,
             insecureCommonBLSPublicKey3: joCommonPublicKey.insecureCommonBLSPublicKey2
         };
         imaUtils.jsonFileSave( strActionDir + "/common_public_key.json", joCommonPublicKey_for_O );
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.normal( "BLS common public key for verification is:\n" ) + cc.j( joCommonPublicKey ) + "\n" );
-        let strVerifyCommand = ""
-            + imaState.strPathBlsVerify
-            + " --t " + nThreshold
-            + " --n " + nParticipants
-            + " --input " + "./glue-result.json"
+        const strVerifyCommand = "" +
+            imaState.strPathBlsVerify +
+            " --t " + nThreshold +
+            " --n " + nParticipants +
+            " --input " + "./glue-result.json"
             ;
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.normal( "Will execute BLS/summary verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
         strOutput = child_process.execSync( strVerifyCommand );
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.normal( "BLS/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "BLS/summary verify success" )  + "\n" );
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.success( "BLS/summary verify success" ) + "\n" );
         fnShellRestore();
         return true;
-    } catch( err ) {
-        log.write( strLogPrefix + cc.fatal("BLS/summary verify CRITICAL ERROR:") + cc.normal( " error description is: " ) + cc.warning( err.toString() ) + "\n" );
+    } catch ( err ) {
+        log.write( strLogPrefix + cc.fatal( "BLS/summary verify CRITICAL ERROR:" ) + cc.normal( " error description is: " ) + cc.warning( err.toString() ) + "\n" );
         log.write( strLogPrefix + cc.error( "BLS/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         fnShellRestore();
     }
@@ -375,7 +379,7 @@ function perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonP
 }
 
 async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart ) {
-    let w3 = null, joMessageProxy = null, joAccount = null;
+    let w3 = null; let joMessageProxy = null; let joAccount = null;
     if( strDirection == "M2S" ) {
         w3 = imaState.w3_main_net;
         joMessageProxy = imaState.jo_message_proxy_main_net;
@@ -385,20 +389,20 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
         joMessageProxy = imaState.jo_message_proxy_s_chain;
         joAccount = imaState.joAccount_s_chain;
     }
-    let strCallerAccountAddress = joAccount.address( w3 );
-    log.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " message correctness validation through call to " )
-        + cc.notice( "verifyOutgoingMessageData" ) + cc.debug( " method of " ) + cc.bright( "MessageProxy" )
-        + cc.debug( " contract with address " ) + cc.notice( joMessageProxy.options.address )
-        + cc.debug( ", caller account address is " ) + cc.info( joMessageProxy.options.address )
-        + cc.debug( ", message(s) count is " ) + cc.info( jarrMessages.length )
-        + cc.debug( ", message(s) to process:" ) + cc.j( jarrMessages )
-        + "\n" );
-    let cntBadMessages = 0, i = 0, cnt = jarrMessages.length;
-    for( i = 0; i < cnt; ++ i ) {
-        let joMessage = jarrMessages[ i ], idxMessage = nIdxCurrentMsgBlockStart + i;
+    const strCallerAccountAddress = joAccount.address( w3 );
+    log.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " message correctness validation through call to " ) +
+        cc.notice( "verifyOutgoingMessageData" ) + cc.debug( " method of " ) + cc.bright( "MessageProxy" ) +
+        cc.debug( " contract with address " ) + cc.notice( joMessageProxy.options.address ) +
+        cc.debug( ", caller account address is " ) + cc.info( joMessageProxy.options.address ) +
+        cc.debug( ", message(s) count is " ) + cc.info( jarrMessages.length ) +
+        cc.debug( ", message(s) to process:" ) + cc.j( jarrMessages ) +
+        "\n" );
+    let cntBadMessages = 0; let i = 0; const cnt = jarrMessages.length;
+    for( i = 0; i < cnt; ++i ) {
+        const joMessage = jarrMessages[i]; const idxMessage = nIdxCurrentMsgBlockStart + i;
         try {
-            let strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString(16);
-            let m = joMessageProxy.methods.verifyOutgoingMessageData(
+            const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
+            const m = joMessageProxy.methods.verifyOutgoingMessageData(
                 idxMessage,
                 joMessage.sender,
                 joMessage.destinationContract,
@@ -406,38 +410,39 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
                 strHexAmount
             );
             // console.log( "Will do call", m );
-            let isValidMessage = await m.call( { "from": strCallerAccountAddress } );
+            const isValidMessage = await m.call( { from: strCallerAccountAddress } );
             // console.log( "Got call result", isValidMessage );
-            if(  ! isValidMessage )
+            if( !isValidMessage )
                 throw new Error( "Bad message detected, message is: " + JSON.stringify( joMessage ) );
-        } catch( err ) {
-            ++ cntBadMessages;
-            log.write( strLogPrefix + cc.fatal( "BAD ERROR:" )
-                + cc.error( " Correctness validation failed for message " ) + cc.info( idxMessage )
-                + cc.error( ", message is: " ) + cc.j( joMessage )
-                + cc.error( ", error information: " ) + cc.warning( err.toString() )
-                + "\n" );
+        } catch ( err ) {
+            ++cntBadMessages;
+            log.write( strLogPrefix + cc.fatal( "BAD ERROR:" ) +
+                cc.error( " Correctness validation failed for message " ) + cc.info( idxMessage ) +
+                cc.error( ", message is: " ) + cc.j( joMessage ) +
+                cc.error( ", error information: " ) + cc.warning( err.toString() ) +
+                "\n" );
         }
     } // for( let i = 0; i < jarrMessages.length; ++ i )
-    if( cntBadMessages > 0 )
-        log.write( strLogPrefix + cc.fatal( "BAD ERROR:" )
-            + cc.error( " Correctness validation failed for " ) + cc.info( cntBadMessages )
-            + cc.error( " of " ) + cc.info( cnt ) + cc.error( " message(s)" ) + "\n" );
-    else
+    if( cntBadMessages > 0 ) {
+        log.write( strLogPrefix + cc.fatal( "BAD ERROR:" ) +
+            cc.error( " Correctness validation failed for " ) + cc.info( cntBadMessages ) +
+            cc.error( " of " ) + cc.info( cnt ) + cc.error( " message(s)" ) + "\n" );
+    } else
         log.write( strLogPrefix + cc.success( "Correctness validation passed for " ) + cc.info( cnt ) + cc.success( " message(s)" ) + "\n" );
 }
 
 async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsgBlockStart, fn ) {
-    let strLogPrefix = cc.bright(strDirection) + " " + cc.info("Sign msgs:") + " ";
+    const strLogPrefix = cc.bright( strDirection ) + " " + cc.info( "Sign msgs:" ) + " ";
     fn = fn || function() {};
-    if( ! ( imaState.bSignMessages && imaState.strPathBlsGlue.length > 0 && imaState.joSChainNetworkInfo ) ) {
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "BLS message signing is " ) + cc.error( "turned off" )
-                + cc.debug( ", message start index is " ) + cc.info(nIdxCurrentMsgBlockStart)
-                + cc.debug( ", have " ) + cc.info( jarrMessages.length )
-                + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) + "\n" );
+    if( !( imaState.bSignMessages && imaState.strPathBlsGlue.length > 0 && imaState.joSChainNetworkInfo ) ) {
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+            log.write( strLogPrefix + cc.debug( "BLS message signing is " ) + cc.error( "turned off" ) +
+                cc.debug( ", message start index is " ) + cc.info( nIdxCurrentMsgBlockStart ) +
+                cc.debug( ", have " ) + cc.info( jarrMessages.length ) +
+                cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) + "\n" );
+        }
         await check_correctness_of_messages_to_sign( strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart );
-        await fn( null, jarrMessages, null )
+        await fn( null, jarrMessages, null );
         return;
     }
     await check_correctness_of_messages_to_sign( strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart );
@@ -462,34 +467,34 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
     //     }
     // }
     //
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "Will sign ") + cc.info(jarrMessages.length) + cc.debug(" message(s)..." ) + "\n" );
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        log.write( strLogPrefix + cc.debug( "Will sign " ) + cc.info( jarrMessages.length ) + cc.debug( " message(s)..." ) + "\n" );
     let nCountReceived = 0; // including errors
     let nCountErrors = 0;
-    let arrSignResults = [];
-    let jarrNodes = imaState.joSChainNetworkInfo.network;
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "Will query to sign ") + cc.info(jarrNodes.length) + cc.debug(" skaled node(s)..." ) + "\n" );
-    let nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "Discovered BLS threshold is ") + cc.info(nThreshold) + cc.debug("." ) + "\n" );
+    const arrSignResults = [];
+    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        log.write( strLogPrefix + cc.debug( "Will query to sign " ) + cc.info( jarrNodes.length ) + cc.debug( " skaled node(s)..." ) + "\n" );
+    const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        log.write( strLogPrefix + cc.debug( "Discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
     if( nThreshold <= 0 ) {
         await fn( "signature error, S-Chain information was not discovered properly and BLS threshold is unknown", jarrMessages, null );
         return;
     }
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-        log.write( strLogPrefix + cc.debug( "Will collect " ) + cc.info(nThreshold) + cc.debug(" from ") + cc.info(jarrNodes.length) + cc.debug("nodes") + "\n" );
-    for( let i = 0; i < jarrNodes.length; ++ i ) {
-        let joNode = jarrNodes[ i ];
-        let strNodeURL = imaUtils.compose_schain_node_url( joNode );
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+        log.write( strLogPrefix + cc.debug( "Will collect " ) + cc.info( nThreshold ) + cc.debug( " from " ) + cc.info( jarrNodes.length ) + cc.debug( "nodes" ) + "\n" );
+    for( let i = 0; i < jarrNodes.length; ++i ) {
+        const joNode = jarrNodes[i];
+        const strNodeURL = imaUtils.compose_schain_node_url( joNode );
         await rpcCall.create( strNodeURL, async function( joCall, err ) {
             if( err ) {
-                ++ nCountReceived; // including errors
-                ++ nCountErrors;
+                ++nCountReceived; // including errors
+                ++nCountErrors;
                 log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) + "\n" );
                 return;
             }
-            let dstChainID = "", srcChainID = "";
+            let dstChainID = ""; let srcChainID = "";
             if( strDirection == "M2S" ) {
                 dstChainID = "" + ( imaState.strChainID_s_chain ? imaState.strChainID_s_chain : "" );
                 srcChainID = "" + ( imaState.strChainID_main_net ? imaState.strChainID_main_net : "" );
@@ -499,62 +504,63 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
             }
 
             await joCall.call( {
-                "method": "skale_imaVerifyAndSign",
-                "params": {
-                    "direction": "" + strDirection,
-                    "startMessageIdx": nIdxCurrentMsgBlockStart,
-                    "dstChainID": dstChainID,
-                    "srcChainID": srcChainID,
-                    "messages": jarrMessages
+                method: "skale_imaVerifyAndSign",
+                params: {
+                    direction: "" + strDirection,
+                    startMessageIdx: nIdxCurrentMsgBlockStart,
+                    dstChainID: dstChainID,
+                    srcChainID: srcChainID,
+                    messages: jarrMessages
                 }
             }, function( joIn, joOut, err ) {
-                ++ nCountReceived; // including errors
+                ++nCountReceived; // including errors
                 if( err ) {
-                    ++ nCountErrors;
+                    ++nCountErrors;
                     log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
                     return;
                 }
-                if( joOut.result == null || joOut.result == undefined || ( ! typeof joOut.result == "object" ) ) {
-                    ++ nCountErrors;
-                    if( "error" in joOut && "message" in joOut.error )
-                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" )
-                            + cc.error( "S-Chain reported wallet error: " ) + cc.warning( joOut.error.message ) );
-                    else
-                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" )
-                            + cc.error( "JSON RPC call to S-Chain failed with " ) + cc.warning( "unknown wallet error" ) );
+                if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {
+                    ++nCountErrors;
+                    if( "error" in joOut && "message" in joOut.error ) {
+                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) +
+                            cc.error( "S-Chain reported wallet error: " ) + cc.warning( joOut.error.message ) );
+                    } else {
+                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) +
+                            cc.error( "JSON RPC call to S-Chain failed with " ) + cc.warning( "unknown wallet error" ) );
+                    }
                     return;
                 }
-                log.write( strLogPrefix + cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" sign result: " )  + cc.j( joOut.result ? joOut.result : null ) + "\n" );
+                log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " sign result: " ) + cc.j( joOut.result ? joOut.result : null ) + "\n" );
                 try {
                     if( joOut.result.signResult.signatureShare.length > 0 && joOut.result.signResult.status == 0 ) {
-                        let nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
+                        const nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
                         //
                         // partial BLS verification for one participant
                         //
                         let bNodeSignatureOKay = false; // initially assume signature is wrong
-                        let strLogPrefixA = cc.bright(strDirection) + cc.debug("/") + cc.info("BLS") + cc.debug("/") + cc.notice("#") + cc.bright(nZeroBasedNodeIndex) + cc.debug(":") + " ";
+                        const strLogPrefixA = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
                         try {
-                            let arrTmp = joOut.result.signResult.signatureShare.split(":");
-                            let joResultFromNode = {
-                                "index": "" + nZeroBasedNodeIndex,
-                                "signature": {
-                                    "X": arrTmp[0],
-                                    "Y": arrTmp[1]
+                            const arrTmp = joOut.result.signResult.signatureShare.split( ":" );
+                            const joResultFromNode = {
+                                index: "" + nZeroBasedNodeIndex,
+                                signature: {
+                                    X: arrTmp[0],
+                                    Y: arrTmp[1]
                                 }
                             };
-                            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                                log.write( strLogPrefixA + cc.info( "Will verify sign result for node " ) + cc.info(nZeroBasedNodeIndex) + "\n" );
-                            let joPublicKey = discover_public_key_by_index( nZeroBasedNodeIndex, imaState.joSChainNetworkInfo )
+                            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                                log.write( strLogPrefixA + cc.info( "Will verify sign result for node " ) + cc.info( nZeroBasedNodeIndex ) + "\n" );
+                            const joPublicKey = discover_public_key_by_index( nZeroBasedNodeIndex, imaState.joSChainNetworkInfo );
                             if( perform_bls_verify_i( strDirection, nZeroBasedNodeIndex, joResultFromNode, jarrMessages, joPublicKey ) ) {
-                                //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                                    log.write( strLogPrefixA + cc.success( "Got successful BLS verification result for node " ) + cc.info(joNode.nodeID) + cc.success(" with index " ) + cc.info(nZeroBasedNodeIndex) + "\n" );
+                                // if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                                log.write( strLogPrefixA + cc.success( "Got successful BLS verification result for node " ) + cc.info( joNode.nodeID ) + cc.success( " with index " ) + cc.info( nZeroBasedNodeIndex ) + "\n" );
                                 bNodeSignatureOKay = true; // node verification passed
                             } else {
-                                strError = "BLS verify failed";
-                                log.write( strLogPrefixA + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError) + "\n" );
+                                const strError = "BLS verify failed";
+                                log.write( strLogPrefixA + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
                             }
-                        } catch( err ) {
-                            log.write( strLogPrefixA + cc.fatal( "Node sign CRITICAL ERROR:" ) + cc.error( " partial signature fail from node ") + cc.info(joNode.nodeID) + cc.error(" with index " ) + cc.info(nZeroBasedNodeIndex) + cc.error(", error is " ) + cc.warning(err.toString()) + "\n" );
+                        } catch ( err ) {
+                            log.write( strLogPrefixA + cc.fatal( "Node sign CRITICAL ERROR:" ) + cc.error( " partial signature fail from node " ) + cc.info( joNode.nodeID ) + cc.error( " with index " ) + cc.info( nZeroBasedNodeIndex ) + cc.error( ", error is " ) + cc.warning( err.toString() ) + "\n" );
                         }
                         //
                         // sign result for bls_glue should look like:
@@ -566,38 +572,38 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                         //     }
                         // }
                         //
-                        if( bNodeSignatureOKay )
+                        if( bNodeSignatureOKay ) {
                             arrSignResults.push( {
-                                "index": "" + nZeroBasedNodeIndex,
-                                "signature": split_signature_share( joOut.result.signResult.signatureShare ),
-                                "fromNode": joNode, // extra, not needed for bls_glue
-                                "signResult": joOut.result.signResult
+                                index: "" + nZeroBasedNodeIndex,
+                                signature: split_signature_share( joOut.result.signResult.signatureShare ),
+                                fromNode: joNode, // extra, not needed for bls_glue
+                                signResult: joOut.result.signResult
                             } );
-                        else
-                            ++ nCountErrors;
+                        } else
+                            ++nCountErrors;
                     }
-                } catch( err ) {
-                    ++ nCountErrors;
-                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " signature fail from node ") + cc.info(joNode.nodeID) + cc.error(", error is " ) + cc.warning(err.toString()) + "\n" );
+                } catch ( err ) {
+                    ++nCountErrors;
+                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) + cc.error( ", error is " ) + cc.warning( err.toString() ) + "\n" );
                 }
             } );
         } );
     }
-    let iv = setInterval( async function() {
-        let cntSuccess = nCountReceived - nCountErrors;
+    const iv = setInterval( async function() {
+        const cntSuccess = nCountReceived - nCountErrors;
         if( cntSuccess >= nThreshold ) {
-            let strLogPrefixB = cc.bright(strDirection) + cc.debug("/") + cc.info("BLS") + cc.debug("/") + cc.sunny("Summary") + cc.debug(":") + " ";
+            const strLogPrefixB = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
             clearInterval( iv );
             let strError = null;
-            let joGlueResult = perform_bls_glue( strDirection, jarrMessages, arrSignResults );
+            const joGlueResult = perform_bls_glue( strDirection, jarrMessages, arrSignResults );
             if( joGlueResult ) {
-                if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                     log.write( strLogPrefixB + cc.success( "Got BLS glue result: " ) + cc.j( joGlueResult ) + "\n" );
                 if( imaState.strPathBlsVerify.length > 0 ) {
-                    let joCommonPublicKey = discover_common_public_key( imaState.joSChainNetworkInfo );
+                    const joCommonPublicKey = discover_common_public_key( imaState.joSChainNetworkInfo );
                     // console.log(joCommonPublicKey);
                     if( perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonPublicKey ) ) {
-                        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                             log.write( strLogPrefixB + cc.success( "Got successful summary BLS verification result" ) + "\n" );
                     } else {
                         strError = "BLS verify failed";
@@ -614,7 +620,6 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
         if( nCountReceived >= jarrNodes.length ) {
             clearInterval( iv );
             await fn( "signature error in " + nCountErrors + " node(s) of " + jarrNodes.length + " node(s)", jarrMessages, null );
-            return;
         }
     }, 100 );
 }
@@ -628,7 +633,7 @@ async function do_sign_messages_s2m( jarrMessages, nIdxCurrentMsgBlockStart, fn 
 }
 
 module.exports = {
-    "init": init,
-    "do_sign_messages_m2s": do_sign_messages_m2s,
-    "do_sign_messages_s2m": do_sign_messages_s2m
+    init: init,
+    do_sign_messages_m2s: do_sign_messages_m2s,
+    do_sign_messages_s2m: do_sign_messages_s2m
 }; // module.exports
