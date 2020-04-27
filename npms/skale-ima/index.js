@@ -177,7 +177,8 @@ async function register_s_chain_on_main_net( // step 1A
     jo_message_proxy_main_net,
     joAccount_main_net,
     chain_id_s_chain,
-    cid_main_net
+    cid_main_net,
+    tc_main_net
 ) {
     const strLogPrefix = cc.sunny( "Reg S on M:" ) + " ";
     if( verbose_get() >= RV_VERBOSE.debug ) {
@@ -205,10 +206,15 @@ async function register_s_chain_on_main_net( // step 1A
         const dataTx = jo_message_proxy_main_net.methods.addConnectedChain(
             chain_id_s_chain, [ 0, 0, 0, 0 ] // call params
         ).encodeABI(); // the encoded ABI of the method
+        //
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
         const rawTx = {
             chainId: cid_main_net,
-            nonce: tcnt, // 0x00, ...
-            gasPrice: 10000000000,
+            nonce: tcnt,
+            gasPrice: gasPrice,
             gasLimit: 3000000,
             to: jo_message_proxy_main_net.options.address, // contract address
             data: dataTx
@@ -274,7 +280,8 @@ async function register_main_net_on_s_chain( // step 1B
     jo_message_proxy_s_chain,
     joAccount_s_chain,
     chain_id_main_net,
-    cid_s_chain
+    cid_s_chain,
+    tc_s_chain
 ) {
     const strLogPrefix = cc.sunny( "Reg M on S:" ) + " ";
     if( verbose_get() >= RV_VERBOSE.debug ) {
@@ -302,10 +309,15 @@ async function register_main_net_on_s_chain( // step 1B
         const dataTx = jo_message_proxy_s_chain.methods.addConnectedChain(
             chain_id_main_net, [ 0, 0, 0, 0 ] // call params
         ).encodeABI(); // the encoded ABI of the method
+        //
+        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
         const rawTx = {
             chainId: cid_s_chain,
-            nonce: tcnt, // 0x00, ...
-            gasPrice: 10000000000,
+            nonce: tcnt,
+            gasPrice: gasPrice,
             gasLimit: 3000000,
             to: jo_message_proxy_s_chain.options.address, // contract address
             data: dataTx
@@ -371,7 +383,8 @@ async function register_s_chain_in_deposit_box( // step 2
     joAccount_main_net,
     jo_token_manager, // only s-chain
     chain_id_s_chain,
-    cid_main_net
+    cid_main_net,
+    tc_main_net
 ) {
     log.write( cc.info( "Main-net " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( jo_lock_and_data_main_net.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
@@ -397,10 +410,15 @@ async function register_s_chain_in_deposit_box( // step 2
         const dataTx = jo_lock_and_data_main_net.methods.addSchain(
             chain_id_s_chain, jo_token_manager.options.address // call params
         ).encodeABI(); // the encoded ABI of the method
+        //
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
         const rawTx = {
             chainId: cid_main_net,
-            nonce: tcnt, // 0x00, ...
-            gasPrice: 10000000000,
+            nonce: tcnt,
+            gasPrice: gasPrice,
             gasLimit: 3000000,
             to: jo_lock_and_data_main_net.options.address, // contract address
             data: dataTx
@@ -459,7 +477,8 @@ async function register_main_net_depositBox_on_s_chain( // step 3
     jo_deposit_box_main_net,
     jo_lock_and_data_s_chain,
     joAccount,
-    cid_s_chain
+    cid_s_chain,
+    tc_s_chain
 ) {
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( jo_lock_and_data_s_chain.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( cid_s_chain ) + "\n" );
@@ -482,10 +501,15 @@ async function register_main_net_depositBox_on_s_chain( // step 3
         const dataTx = jo_lock_and_data_s_chain.methods.addDepositBox(
             jo_deposit_box_main_net.options.address // call params
         ).encodeABI(); // the encoded ABI of the method
+        //
+        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
         const rawTx = {
             chainId: cid_s_chain,
-            nonce: tcnt, // 0x00, ...
-            gasPrice: 10000000000,
+            nonce: tcnt,
+            gasPrice: gasPrice,
             gasLimit: 3000000,
             to: jo_lock_and_data_s_chain.options.address, // contract address
             data: dataTx
@@ -531,7 +555,8 @@ async function do_eth_payment_from_main_net(
     jo_message_proxy_main_net, // for checking logs
     jo_lock_and_data_main_net, // for checking logs
     chain_id_s_chain,
-    wei_how_much // how much WEI money to send
+    wei_how_much, // how much WEI money to send
+    tc_main_net
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "M2S ETH Payment:" ) + " ";
     try {
@@ -549,11 +574,16 @@ async function do_eth_payment_from_main_net(
             // call params, last is destination account on S-chain
             chain_id_s_chain, joAccountDst.address( w3_main_net ), w3_main_net.utils.fromAscii( "" ) // TO-DO: string is "data" parameter, we need to allow user to specify it
         ).encodeABI(); // the encoded ABI of the method
+        //
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
         const rawTx = {
             chainId: cid_main_net,
-            nonce: tcnt, // 0x00, ...
-            gas: 3000000, // 2100000,
-            gasPrice: 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
+            nonce: tcnt,
+            gas: 3000000, // 2100000
+            gasPrice: gasPrice,
             gasLimit: 3000000,
             to: jo_deposit_box.options.address, // contract address
             data: dataTx,
@@ -647,7 +677,8 @@ async function do_eth_payment_from_s_chain(
     joAccountDst,
     jo_token_manager,
     jo_message_proxy_s_chain, // for checking logs
-    wei_how_much // how much WEI money to send
+    wei_how_much, // how much WEI money to send
+    tc_s_chain
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "S2M ETH Payment:" ) + " ";
     try {
@@ -666,11 +697,16 @@ async function do_eth_payment_from_s_chain(
             "0x" + w3_s_chain.utils.toBN( wei_how_much ).toString( 16 ),
             "0x" // w3_s_chain.utils.fromAscii( "" ) // TO-DO: string is "data" parameter, we need to allow user to specify it
         ).encodeABI(); // the encoded ABI of the method
+        //
+        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
         const rawTx = {
             chainId: cid_s_chain,
-            nonce: tcnt, // 0x00, ...
+            nonce: tcnt,
             gas: 6000000, // 2100000
-            gasPrice: 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
+            gasPrice: tc_s_chain,
             // "gasLimit": 3000000,
             to: jo_token_manager.options.address, // contract address
             data: dataTx,
@@ -715,7 +751,8 @@ async function receive_eth_payment_from_s_chain_on_main_net(
     w3_main_net,
     cid_main_net,
     joAccount_main_net,
-    jo_lock_and_data_main_net
+    jo_lock_and_data_main_net,
+    tc_main_net
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "M2S ETH Receive:" ) + " ";
     try {
@@ -730,11 +767,16 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         const dataTx = jo_lock_and_data_main_net.methods.getMyEth(
             // call params(empty)
         ).encodeABI(); // the encoded ABI of the method
+        //
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
         const rawTx = {
             chainId: cid_main_net,
-            nonce: tcnt, // 0x00, ...
+            nonce: tcnt,
             gas: 2100000,
-            gasPrice: 10000000000, // not w3.eth.gasPrice ... got from truffle.js network_name gasPrice
+            gasPrice: gasPrice,
             gasLimit: 3000000,
             to: jo_lock_and_data_main_net.options.address, // contract address
             data: dataTx,
@@ -814,7 +856,8 @@ async function do_erc721_payment_from_main_net(
     erc721PrivateTestnetJson_main_net,
     strCoinNameErc721_s_chain,
     erc721PrivateTestnetJson_s_chain,
-    isRawTokenTransfer
+    isRawTokenTransfer,
+    tc_main_net
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "M2S ERC721 Payment:" ) + " ";
     try {
@@ -856,13 +899,18 @@ async function do_erc721_payment_from_main_net(
         // create raw transactions
         //
         strActionName = "create raw transactions M->S";
+        //
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 0 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
         const rawTxApprove = {
             chainId: cid_main_net,
             from: joAccountSrc.address( w3_main_net ), // accountForMainnet
             nonce: "0x" + tcnt.toString( 16 ),
             data: approve,
             to: erc721Address_main_net,
-            gasPrice: 0,
+            gasPrice: gasPrice, // 0
             gas: 8000000
         };
         tcnt += 1;
@@ -872,7 +920,7 @@ async function do_erc721_payment_from_main_net(
             nonce: "0x" + tcnt.toString( 16 ),
             data: deposit,
             to: depositBoxAddress,
-            gasPrice: 0,
+            gasPrice: gasPrice, // 0
             gas: 8000000,
             value: 2000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" )
         };
@@ -994,7 +1042,8 @@ async function do_erc20_payment_from_main_net(
     erc20PrivateTestnetJson_main_net,
     strCoinNameErc20_s_chain,
     erc20PrivateTestnetJson_s_chain,
-    isRawTokenTransfer
+    isRawTokenTransfer,
+    tc_main_net
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "M2S ERC20 Payment:" ) + " ";
     try {
@@ -1039,13 +1088,18 @@ async function do_erc20_payment_from_main_net(
         // create raw transactions
         //
         strActionName = "create raw transactions M->S";
+        //
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 0 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
         const rawTxApprove = {
             chainId: cid_main_net,
             from: joAccountSrc.address( w3_main_net ), // accountForMainnet
             nonce: "0x" + tcnt.toString( 16 ),
             data: approve,
             to: erc20Address_main_net,
-            gasPrice: 0,
+            gasPrice: gasPrice, // 0
             gas: 8000000
         };
         tcnt += 1;
@@ -1055,7 +1109,7 @@ async function do_erc20_payment_from_main_net(
             nonce: "0x" + tcnt.toString( 16 ),
             data: deposit,
             to: depositBoxAddress,
-            gasPrice: 0,
+            gasPrice: gasPrice, // 0
             gas: 8000000
         };
         //
@@ -1167,7 +1221,8 @@ async function do_erc20_payment_from_s_chain(
     joErc20_main_net,
     strCoinNameErc20_s_chain,
     joErc20_s_chain,
-    isRawTokenTransfer
+    isRawTokenTransfer,
+    tc_s_chain
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "S2M ERC20 Payment:" ) + " ";
     try {
@@ -1216,13 +1271,18 @@ async function do_erc20_payment_from_s_chain(
         // create raw transactions
         //
         strActionName = "create raw transactions S->M";
+        //
+        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
         const rawTxApprove = {
             chainId: cid_s_chain,
             from: accountForSchain,
             nonce: "0x" + tcnt.toString( 16 ),
             data: approve,
             to: erc20Address_s_chain,
-            gasPrice: 10000000000,
+            gasPrice: gasPrice,
             gas: 8000000
         };
         tcnt += 1;
@@ -1232,7 +1292,7 @@ async function do_erc20_payment_from_s_chain(
             nonce: "0x" + tcnt.toString( 16 ),
             data: deposit,
             to: tokenManagerAddress,
-            gasPrice: 10000000000,
+            gasPrice: gasPrice,
             gas: 8000000
         };
         //
@@ -1299,7 +1359,8 @@ async function do_erc721_payment_from_s_chain(
     joErc721_main_net,
     strCoinNameErc721_s_chain,
     joErc721_s_chain,
-    isRawTokenTransfer
+    isRawTokenTransfer,
+    tc_s_chain
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "S2M ERC721 Payment:" ) + " ";
     try {
@@ -1345,6 +1406,11 @@ async function do_erc721_payment_from_s_chain(
         //
         // create raw transactions
         //
+        //
+        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
         strActionName = "create raw transactions S->M";
         const rawTxApprove = {
             chainId: cid_s_chain,
@@ -1352,7 +1418,7 @@ async function do_erc721_payment_from_s_chain(
             nonce: "0x" + tcnt.toString( 16 ),
             data: approve,
             to: erc721Address_s_chain,
-            gasPrice: 10000000000,
+            gasPrice: gasPrice,
             gas: 8000000
         };
         tcnt += 1;
@@ -1362,7 +1428,7 @@ async function do_erc721_payment_from_s_chain(
             nonce: "0x" + tcnt.toString( 16 ),
             data: deposit,
             to: tokenManagerAddress,
-            gasPrice: 10000000000,
+            gasPrice: gasPrice,
             gas: 8000000
         };
         //
@@ -1436,7 +1502,6 @@ async function do_transfer(
     w3_src,
     jo_message_proxy_src,
     joAccountSrc,
-    //
     w3_dst,
     jo_message_proxy_dst,
     //
@@ -1454,7 +1519,9 @@ async function do_transfer(
     nMaxTransactionsCount,
     nBlockAwaitDepth,
     nBlockAge,
-    fn_sign_messages
+    fn_sign_messages,
+    //
+    tc_dst // same as w3_dst
 ) {
     let bErrorInSigningMessages = false; const strLogPrefix = cc.info( "Transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
@@ -1741,11 +1808,15 @@ async function do_transfer(
                         cc.j( joDebugArgs ) + "\n" );
                 }
                 //
+                const gasPrice = await tc_dst.computeGasPrice( w3_dst, 10000000000 );
+                if( verbose_get() >= RV_VERBOSE.debug )
+                    log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+                //
                 const rawTx = {
                     chainId: cid_dst,
-                    nonce: tcnt, // 0x00, ...
+                    nonce: tcnt,
                     gas: 6000000,
-                    gasPrice: 10000000000, // not w3_dst.eth.gasPrice ... got from truffle.js network_name gasPrice
+                    gasPrice: gasPrice,
                     // "gasLimit": 3000000,
                     to: jo_message_proxy_dst.options.address, // contract address
                     data: dataTx //,
@@ -1845,6 +1916,28 @@ function noop() {
     return null;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class TransactionCustomizer {
+    constructor( gasPriceMultiplier ) {
+        this.gasPriceMultiplier = gasPriceMultiplier ? ( 0.0 + gasPriceMultiplier ) : null; // null means use current gasPrice or recommendedGasPrice
+    }
+    async computeGasPrice( w3, recommendedGasPrice ) {
+        if( this.gasPriceMultiplier != null && recommendedGasPrice != null && recommendedGasPrice != undefined )
+            return parseInt( recommendedGasPrice );
+        let gasPrice = parseInt( await web3.eth.getGasPrice() );
+        gasPrice *= this.gasPriceMultiplier;
+        return gasPrice;
+    }
+};
+
+const tc_main_net = new IMA.TransactionCustomizer( 1.25 );
+const tc_s_chain = new IMA.TransactionCustomizer( null );
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 module.exports.longSeparator = g_mtaStrLongSeparator;
 module.exports.noop = noop;
 module.exports.cc = cc;
@@ -1881,3 +1974,10 @@ module.exports.do_erc20_payment_from_main_net = do_erc20_payment_from_main_net;
 module.exports.do_erc20_payment_from_s_chain = do_erc20_payment_from_s_chain;
 module.exports.do_erc721_payment_from_s_chain = do_erc721_payment_from_s_chain;
 module.exports.do_transfer = do_transfer;
+
+module.exports.TransactionCustomizer = TransactionCustomizer;
+module.exports.tc_main_net = tc_main_net;
+module.exports.tc_s_chain = tc_s_chain;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
