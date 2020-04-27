@@ -19,7 +19,7 @@
     "dependencies": {
     "dotenv": "^7.0.0",
         "ethereumjs-tx": "^2.1.2",
-        "openzeppelin-solidity": "^2.2.0",
+        "openzeppelin-solidity": "^3.0.0",
         "solc": "^0.5.4",
         "truffle": "^5.1.22",
         "truffle-hdwallet-provider": "^1.0.9",
