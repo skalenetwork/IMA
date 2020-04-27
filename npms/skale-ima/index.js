@@ -1926,7 +1926,7 @@ class TransactionCustomizer {
     async computeGasPrice( w3, recommendedGasPrice ) {
         if( this.gasPriceMultiplier != null && recommendedGasPrice != null && recommendedGasPrice != undefined )
             return parseInt( recommendedGasPrice );
-        let gasPrice = parseInt( await web3.eth.getGasPrice() );
+        let gasPrice = parseInt( await w3.eth.getGasPrice() );
         gasPrice *= this.gasPriceMultiplier;
         return gasPrice;
     }
