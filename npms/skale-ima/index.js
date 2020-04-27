@@ -706,7 +706,7 @@ async function do_eth_payment_from_s_chain(
             chainId: cid_s_chain,
             nonce: tcnt,
             gas: 6000000, // 2100000
-            gasPrice: tc_s_chain,
+            gasPrice: gasPrice,
             // "gasLimit": 3000000,
             to: jo_token_manager.options.address, // contract address
             data: dataTx,
