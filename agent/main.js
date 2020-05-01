@@ -23,7 +23,6 @@ rpcCall.init( cc, log, owaspUtils );
 function fn_address_impl_( w3 ) {
     if( this.address_ == undefined || this.address_ == null )
         this.address_ = "" + owaspUtils.private_key_2_account_address( w3, this.privateKey );
-
     return this.address_;
 }
 
@@ -141,6 +140,10 @@ const imaState = {
     "joAccount_main_net": { "privateKey": owaspUtils.toEthPrivateKey( process.env.INSECURE_PRIVATE_KEY_FOR_MAINNET ), "address": fn_address_impl_ },
     "joAccount_s_chain": { "privateKey": owaspUtils.toEthPrivateKey( process.env.INSECURE_PRIVATE_KEY_FOR_SCHAIN ), "address": fn_address_impl_ },
 
+    //
+    //
+    "tc_main_net": IMA.tc_main_net, // new IMA.TransactionCustomizer( 1.25 ),
+    "tc_s_chain": IMA.tc_s_chain, // new IMA.TransactionCustomizer( null ),
     //
     //
 
@@ -261,7 +264,8 @@ imaCLI.parse( {
                         imaState.joErc721_main_net,
                         imaState.strCoinNameErc721_s_chain,
                         imaState.joErc721_s_chain,
-                        imaState.isRawTokenTransfer
+                        imaState.isRawTokenTransfer,
+                        imaState.tc_main_net
                     );
                 }
                 if( imaState.strCoinNameErc20_main_net.length > 0
@@ -286,7 +290,8 @@ imaCLI.parse( {
                         imaState.joErc20_main_net,
                         imaState.strCoinNameErc20_s_chain,
                         imaState.joErc20_s_chain,
-                        imaState.isRawTokenTransfer
+                        imaState.isRawTokenTransfer,
+                        imaState.tc_main_net
                     );
                 }
                 // ETH payment
@@ -300,7 +305,8 @@ imaCLI.parse( {
                     imaState.jo_message_proxy_main_net, // for checking logs
                     imaState.jo_lock_and_data_main_net, // for checking logs
                     imaState.strChainID_s_chain,
-                    imaState.nAmountOfWei // how much WEI money to send
+                    imaState.nAmountOfWei, // how much WEI money to send
+                    imaState.tc_main_net
                 );
             }
         } );
@@ -327,7 +333,8 @@ imaCLI.parse( {
                         imaState.joErc721_main_net,
                         imaState.strCoinNameErc721_s_chain,
                         imaState.joErc721_s_chain,
-                        imaState.isRawTokenTransfer
+                        imaState.isRawTokenTransfer,
+                        imaState.tc_s_chain
                     );
                 }
                 if( imaState.strCoinNameErc20_s_chain.length > 0 ) {
@@ -348,7 +355,8 @@ imaCLI.parse( {
                         imaState.joErc20_main_net,
                         imaState.strCoinNameErc20_s_chain,
                         imaState.joErc20_s_chain,
-                        imaState.isRawTokenTransfer
+                        imaState.isRawTokenTransfer,
+                        imaState.tc_s_chain
                     );
                 }
                 // ETH payment
@@ -360,7 +368,8 @@ imaCLI.parse( {
                     imaState.joAccount_main_net,
                     imaState.jo_token_manager, // only s-chain
                     imaState.jo_message_proxy_s_chain, // for checking logs
-                    imaState.nAmountOfWei // how much WEI money to send
+                    imaState.nAmountOfWei, // how much WEI money to send
+                    imaState.tc_s_chain
                 );
             }
         } );
@@ -374,7 +383,8 @@ imaCLI.parse( {
                     imaState.w3_main_net,
                     imaState.cid_main_net,
                     imaState.joAccount_main_net,
-                    imaState.jo_lock_and_data_main_net
+                    imaState.jo_lock_and_data_main_net,
+                    imaState.tc_main_net
                 );
             }
         } );
@@ -421,7 +431,8 @@ imaCLI.parse( {
                     imaState.nMaxTransactionsM2S,
                     imaState.nBlockAwaitDepthM2S,
                     imaState.nBlockAgeM2S,
-                    imaBLS.do_sign_messages_m2s // fn_sign_messages
+                    imaBLS.do_sign_messages_m2s, // fn_sign_messages
+                    imaState.tc_s_chain
                 );
             }
         } );
@@ -449,7 +460,8 @@ imaCLI.parse( {
                     imaState.nMaxTransactionsS2M,
                     imaState.nBlockAwaitDepthS2M,
                     imaState.nBlockAgeS2M,
-                    imaBLS.do_sign_messages_s2m // fn_sign_messages
+                    imaBLS.do_sign_messages_s2m, // fn_sign_messages
+                    imaState.tc_main_net
                 );
             }
         } );
@@ -709,14 +721,16 @@ async function register_step1() {
         imaState.jo_message_proxy_main_net,
         imaState.joAccount_main_net,
         imaState.strChainID_s_chain,
-        imaState.cid_main_net
+        imaState.cid_main_net,
+        imaState.tc_main_net
     );
     const bRetVal1B = await IMA.register_main_net_on_s_chain( // step 1B
         imaState.w3_s_chain,
         imaState.jo_message_proxy_s_chain,
         imaState.joAccount_s_chain,
         imaState.strChainID_main_net,
-        imaState.cid_s_chain
+        imaState.cid_s_chain,
+        imaState.tc_s_chain
     );
     const bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
     if( !bRetVal ) {
@@ -735,7 +749,8 @@ async function register_step2() {
         imaState.joAccount_main_net,
         imaState.jo_token_manager, // only s-chain
         imaState.strChainID_s_chain,
-        imaState.cid_main_net
+        imaState.cid_main_net,
+        imaState.tc_main_net
     );
     if( !bRetVal ) {
         const nRetCode = 1502;
@@ -752,7 +767,8 @@ async function register_step3() {
         imaState.jo_deposit_box, // only main net
         imaState.jo_lock_and_data_s_chain,
         imaState.joAccount_s_chain,
-        imaState.cid_s_chain
+        imaState.cid_s_chain,
+        imaState.tc_s_chain
     );
     if( !bRetVal ) {
         const nRetCode = 1503;
@@ -900,7 +916,8 @@ async function single_transfer_loop() {
         imaState.nMaxTransactionsM2S,
         imaState.nBlockAwaitDepthM2S,
         imaState.nBlockAgeM2S,
-        imaBLS.do_sign_messages_m2s // fn_sign_messages
+        imaBLS.do_sign_messages_m2s, // fn_sign_messages
+        imaState.tc_s_chain
     );
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
@@ -927,7 +944,8 @@ async function single_transfer_loop() {
         imaState.nMaxTransactionsS2M,
         imaState.nBlockAwaitDepthS2M,
         imaState.nBlockAgeS2M,
-        imaBLS.do_sign_messages_s2m // fn_sign_messages
+        imaBLS.do_sign_messages_s2m, // fn_sign_messages
+        imaState.tc_main_net
     );
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
