@@ -4,6 +4,8 @@ const expect = require('chai').expect;
 const IMA = require( "../../npms/skale-ima" );
 // const w3 = require("web3")
 const w3mod = IMA.w3mod
+const tc_main_net = IMA.tc_main_net;
+const tc_s_chain = IMA.tc_s_chain;
 
 // 
 let chain_id_s_chain = "blah_blah_blah_schain_name"; // 1;
@@ -210,47 +212,47 @@ describe('tests for `npms/skale-ima`', function () {
 
     it('should invoke `ensure_starts_with_0x`', async function () {
         let string = "123456789"
-        expect(IMA.ensure_starts_with_0x(string)).to.be.equal("0x" + string);
+        expect(IMA.owaspUtils.ensure_starts_with_0x(string)).to.be.equal("0x" + string);
     });
 
     it('should invoke `remove_starting_0x`', async function () {
         let string = "0x123456789"
-        expect(IMA.remove_starting_0x(string)).to.be.equal(string.substr(2));
+        expect(IMA.owaspUtils.remove_starting_0x(string)).to.be.equal(string.substr(2));
         // not string
-        expect(IMA.remove_starting_0x(321)).to.be.equal(321);
+        expect(IMA.owaspUtils.remove_starting_0x(321)).to.be.equal(321);
         // short string less than 2
-        expect(IMA.remove_starting_0x("1")).to.be.equal("1");
+        expect(IMA.owaspUtils.remove_starting_0x("1")).to.be.equal("1");
     });
 
     it('should invoke `private_key_2_public_key`', async function () {
         let keyPrivate = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
         let keyPrivateUnd; // undefined
-        let w3modund; // undefined
+        let w3mod_undefined; // undefined
         // if w3mod `undefined` or `null`
-        expect(IMA.private_key_2_public_key(w3modund, keyPrivate)).to.be.empty;
+        expect(IMA.owaspUtils.private_key_2_public_key(w3mod_undefined, keyPrivate)).to.be.empty;
         // if keyPrivate `undefined` or `null`
-        expect(IMA.private_key_2_public_key(w3mod, keyPrivateUnd)).to.be.empty;
+        expect(IMA.owaspUtils.private_key_2_public_key(w3mod, keyPrivateUnd)).to.be.empty;
         // when all parameters is OK
-        expect(IMA.private_key_2_public_key(w3mod, keyPrivate)).to.have.lengthOf(128);
+        expect(IMA.owaspUtils.private_key_2_public_key(w3mod, keyPrivate)).to.have.lengthOf(128);
     });
 
     it('should invoke `public_key_2_account_address`', async function () {
         let keyPublic = "5dd431d36ce6b88f27d351051b31a26848c4a886f0dd0bc87a7d5a9d821417c9" +
             "e807e8589f680ab0f2ab29831231ad7b3d6659990ee830582fede785fc3c33c4";
         let keyPublicUnd; // undefined
-        let w3modund; // undefined
+        let w3mod_undefined; // undefined
         // if w3mod `undefined` or `null`
-        expect(IMA.public_key_2_account_address(w3modund, keyPublic)).to.be.empty;
+        expect(IMA.owaspUtils.public_key_2_account_address(w3mod_undefined, keyPublic)).to.be.empty;
         // if keyPrivate `undefined` or `null`
-        expect(IMA.public_key_2_account_address(w3mod, keyPublicUnd)).to.be.empty;
+        expect(IMA.owaspUtils.public_key_2_account_address(w3mod, keyPublicUnd)).to.be.empty;
         // when all parameters is OK
-        expect(IMA.public_key_2_account_address(w3mod, keyPublic)).to.include("0x");
+        expect(IMA.owaspUtils.public_key_2_account_address(w3mod, keyPublic)).to.include("0x");
     });
 
     it('should invoke `private_key_2_account_address`', async function () {
         let keyPrivate = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
         //
-        expect(IMA.private_key_2_account_address(w3mod, keyPrivate)).to.include("0x");
+        expect(IMA.owaspUtils.private_key_2_account_address(w3mod, keyPrivate)).to.include("0x");
     });
 
     it('should return `false` invoke `check_is_registered_s_chain_on_main_net`', async function () {
@@ -286,7 +288,8 @@ describe('tests for `npms/skale-ima`', function () {
                 w3_main_net,
                 jo_message_proxy_main_net,
                 joAccount_main_net,
-                chain_id_s_chain
+                chain_id_s_chain,
+                tc_main_net
             )
         ).to.be.false;
     });
@@ -298,7 +301,8 @@ describe('tests for `npms/skale-ima`', function () {
                 w3_main_net,
                 jo_message_proxy_main_net,
                 joAccount_main_net,
-                chain_id_s_chain
+                chain_id_s_chain,
+                tc_main_net
             )
         ).to.be.true;
     });
@@ -337,7 +341,8 @@ describe('tests for `npms/skale-ima`', function () {
                 jo_lock_and_data_main_net,
                 joAccount_main_net,
                 jo_token_manager,
-                chain_id_s_chain
+                chain_id_s_chain,
+                tc_main_net
             )
         ).to.be.false;
     });
@@ -350,7 +355,8 @@ describe('tests for `npms/skale-ima`', function () {
                 jo_lock_and_data_main_net,
                 joAccount_main_net,
                 jo_token_manager,
-                chain_id_s_chain
+                chain_id_s_chain,
+                tc_main_net
             )
         ).to.be.true;
     });
@@ -386,7 +392,9 @@ describe('tests for `npms/skale-ima`', function () {
                 w3_s_chain,
                 jo_deposit_box_main_net,
                 jo_lock_and_data_s_chain,
-                joAccount
+                joAccount,
+                -4,
+                tc_s_chain
             )
         ).to.be.false;
     });
@@ -399,7 +407,9 @@ describe('tests for `npms/skale-ima`', function () {
                 w3_s_chain,
                 jo_deposit_box_main_net,
                 jo_lock_and_data_s_chain,
-                joAccount
+                joAccount,
+                -4,
+                tc_s_chain
             )
         ).to.be.true;
     });
@@ -414,7 +424,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccountDst,
                 jo_deposit_box,
                 chain_id_s_chain,
-                wei_how_much // how much WEI money to send
+                wei_how_much, // how much WEI money to send
+                tc_main_net
             )
         ).to.be.false;
     });
@@ -429,7 +440,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccountDst,
                 jo_deposit_box,
                 chain_id_s_chain,
-                wei_how_much // how much WEI money to send
+                wei_how_much, // how much WEI money to send
+                tc_main_net
             )
         ).to.be.true;
     });
@@ -443,7 +455,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccountSrc,
                 joAccountDst,
                 jo_token_manager,
-                wei_how_much // how much WEI money to send
+                wei_how_much, // how much WEI money to send
+                tc_s_chain
             )
         ).to.be.false;
     });
@@ -457,7 +470,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccountSrc,
                 joAccountDst,
                 jo_token_manager,
-                wei_how_much // how much WEI money to send
+                wei_how_much, // how much WEI money to send
+                tc_s_chain
             )
         ).to.be.true;
     });
@@ -469,7 +483,8 @@ describe('tests for `npms/skale-ima`', function () {
             receive_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
                 joAccount_main_net,
-                jo_lock_and_data_main_net
+                jo_lock_and_data_main_net,
+                tc_main_net
             )
         ).to.be.false;
     });
@@ -480,7 +495,8 @@ describe('tests for `npms/skale-ima`', function () {
             receive_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
                 joAccount_main_net,
-                jo_lock_and_data_main_net
+                jo_lock_and_data_main_net,
+                tc_main_net
             )
         ).to.be.true;
     });
@@ -530,7 +546,8 @@ describe('tests for `npms/skale-ima`', function () {
                 erc20PrivateTestnetJson_main_net,
                 strCoinNameErc20_s_chain,
                 erc20PrivateTestnetJson_s_chain,
-                isRawTokenTransfer
+                isRawTokenTransfer,
+                tc_main_net
             )
         ).to.be.false;
     });
@@ -559,7 +576,8 @@ describe('tests for `npms/skale-ima`', function () {
                 erc20PrivateTestnetJson_main_net,
                 strCoinNameErc20_s_chain,
                 erc20PrivateTestnetJson_s_chain,
-                isRawTokenTransfer
+                isRawTokenTransfer,
+                tc_main_net
             )
         ).to.be.true;
     });
@@ -585,7 +603,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joErc20_main_net,
                 strCoinNameErc20_s_chain,
                 joErc20_s_chain,
-                isRawTokenTransfer
+                isRawTokenTransfer,
+                tc_s_chain
             )
         ).to.be.false;
     });
@@ -613,7 +632,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joErc20_main_net,
                 strCoinNameErc20_s_chain,
                 joErc20_s_chain,
-                isRawTokenTransfer
+                isRawTokenTransfer,
+                tc_s_chain
             )
         ).to.be.true;
     });
@@ -629,7 +649,6 @@ describe('tests for `npms/skale-ima`', function () {
         // 
         expect(await IMA.
             do_transfer(
-                /**/
                 w3_src,
                 jo_message_proxy_src,
                 joAccountSrc,
@@ -640,11 +659,17 @@ describe('tests for `npms/skale-ima`', function () {
                 //
                 chain_id_src,
                 chain_id_dst,
+                -4,
+                -4,
+                null, // jo_deposit_box - for logs validation on mainnet
+                null, //jo_token_manager - for logs validation on s-chain
                 //
                 nTransactionsCountInBlock,
                 nMaxTransactionsCount,
                 nBlockAwaitDepth,
-                nBlockAge
+                nBlockAge,
+                null, // fn_sign_messages or null
+                tc_main_net // or tc_s_chain
             )
         ).to.be.false;
     });
@@ -659,7 +684,6 @@ describe('tests for `npms/skale-ima`', function () {
         // 
         expect(await IMA.
             do_transfer(
-                /**/
                 w3_src,
                 jo_message_proxy_src,
                 joAccountSrc,
@@ -670,11 +694,17 @@ describe('tests for `npms/skale-ima`', function () {
                 //
                 chain_id_src,
                 chain_id_dst,
+                -4,
+                -4,
+                null, // jo_deposit_box - for logs validation on mainnet
+                null, //jo_token_manager - for logs validation on s-chain
                 //
                 nTransactionsCountInBlock,
                 nMaxTransactionsCount,
                 nBlockAwaitDepth,
-                nBlockAge
+                nBlockAge,
+                null, // fn_sign_messages or null
+                tc_main_net // or tc_s_chain
             )
         ).to.be.true;
     });
