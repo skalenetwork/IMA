@@ -164,19 +164,19 @@ jobs:
     - name: INSTALL PREREQUISITES - AGENT - PACKAGES
       run: |
         cd agent 
-        npm install
+        yarn install
         cd ..
 
     - name: INSTALL PREREQUISITES - SKALE-IMA - PACKAGES
       run: |
         cd npms/skale-ima
-        npm install
+        yarn install
         cd ../..
 
     - name: INSTALL PREREQUISITES - SKALE-OWASP - PACKAGES
       run: |
         cd npms/skale-owasp
-        npm install
+        yarn install
         cd ../..
 
     - name: START BACKGROUND GANACHE

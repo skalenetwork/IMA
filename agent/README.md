@@ -33,15 +33,19 @@ Third, install required **Node JS** everywhere they needed:
     #
     cd $IMA_ROOT/proxy
     rm -rf ./node_modules &> /dev/null
-    npm install
+    yarn install
+    #
+    cd $IMA_ROOT/npms/skale-owasp
+    rm -rf ./node_modules &> /dev/null
+    yarn install
     #
     cd $IMA_ROOT/npms/skale-ima
     rm -rf ./node_modules &> /dev/null
-    npm install
+    yarn install
     #
     cd $IMA_ROOT/agent
     rm -rf ./node_modules &> /dev/null
-    npm install
+    yarn install
 
 
 Fourth, edit the *$IMA_ROOT/proxy/truffle-config.js* and specify needed networks (Mainnet and SKALE Chain) and account addresses which will own contracts on these blockchains:
@@ -103,7 +107,7 @@ Fifth, try rebuild all the contracts once to ensure everything initialized OK:
 For mainnet, invoke:
 
     cd $IMA_ROOT/proxy
-    npm run deploy-to-mainnet
+    yarn run deploy-to-mainnet
     ls -1 ./data/
 
 You should see **proxyMainnet.json** file listed.
@@ -111,7 +115,7 @@ You should see **proxyMainnet.json** file listed.
 For SKALE chain, invoke:
 
     cd $IMA_ROOT/proxy
-    npm run deploy-to-schain
+    yarn run deploy-to-schain
     ls -1 ./data/
 
 You should see **proxySchain.json** file listed.
