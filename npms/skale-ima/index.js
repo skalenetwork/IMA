@@ -112,17 +112,31 @@ async function get_contract_call_events( joContract, strEventName, nBlockNumber,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function dry_run_call( methodWithArguments ) {
-    const strLogPrefix = cc.attention( "DRY RUN:" );
+function extract_dry_run_method_name( methodWithArguments ) {
     try {
+        const s = "" + methodWithArguments._method.name;
+        return s;
+    } catch ( err ) {
+    }
+    return "N/A-method-name";
+}
+
+async function dry_run_call( methodWithArguments ) {
+    const strLogPrefix = cc.attention( "DRY RUN CALL TO THE " ) + cc.bright( extract_dry_run_method_name( methodWithArguments ) ) + cc.attention( " METHOD:" );
+    try {
+        // console.log( methodWithArguments );
+        if( verbose_get() >= RV_VERBOSE.information ) {
+            log.write( strLogPrefix + cc.debug( " will call method" ) +
+            // cc.debug( " with data " ) + cc.normal( cc.safeStringifyJSON( methodWithArguments ) ) +
+            "\n" );
+        }
+        const joResult = await methodWithArguments.call();
         if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( " will invoke method with data " ) + cc.j( methodWithArguments ) + "\n" );
-        const joResult = methodWithArguments.call();
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( " got result " ) + cc.j( joResult ) + "\n" );
+            log.write( strLogPrefix + cc.success( " got result " ) + cc.normal( cc.safeStringifyJSON( joResult ) ) + "\n" );
+
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.error )
-            log.write( strLogPrefix + cc.error( " failed with error " ) + cc.j( err ) + "\n" );
+            log.write( strLogPrefix + " " + cc.fatal( "FAILED:" ) + " " + cc.error( err ) + "\n" );
     }
 }
 
@@ -1997,6 +2011,9 @@ module.exports.verbose_get = verbose_get;
 module.exports.verbose_set = verbose_set;
 module.exports.verbose_parse = verbose_parse;
 module.exports.verbose_list = verbose_list;
+
+module.exports.dry_run_call = dry_run_call;
+module.exports.safe_send_signed_transaction = safe_send_signed_transaction;
 
 module.exports.register_s_chain_on_main_net = register_s_chain_on_main_net; // step 1A
 module.exports.check_is_registered_main_net_on_s_chain = check_is_registered_main_net_on_s_chain; // step 1B
