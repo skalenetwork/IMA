@@ -123,7 +123,7 @@ function dry_run_enable( isEnable ) {
     return g_bDryRunIsEnabled ? true : false;
 }
 
-let g_bDryRunIsIgnored = false;
+let g_bDryRunIsIgnored = true;
 
 function dry_run_is_ignored() {
     return g_bDryRunIsIgnored ? true : false;
