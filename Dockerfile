@@ -3,6 +3,7 @@ FROM node:10.15.1
 RUN mkdir /ima
 WORKDIR /ima
 
+COPY proxy proxy
 COPY agent agent
 COPY npms npms
 
