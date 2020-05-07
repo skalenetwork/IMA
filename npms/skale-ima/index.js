@@ -167,7 +167,7 @@ async function dry_run_call( w3, methodWithArguments, joAccount ) {
             log.write( strLogPrefix + cc.success( " got result " ) + cc.normal( cc.safeStringifyJSON( joResult ) ) + "\n" );
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.error )
-            log.write( strLogPrefix + " " + cc.fatal( "FAILED:" ) + " " + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + " " + cc.fatal( "FAILED DRY RUN: " ) + " " + cc.error( err ) + "\n" );
         if( ! dry_run_is_ignored() )
             throw new Error( "Failed dry run the \"" + strMethodName + "\" method: " + err.toString() );
     }
@@ -1541,7 +1541,7 @@ async function do_erc721_payment_from_s_chain(
         const joReceiptExitToMainERC721 = await safe_send_signed_transaction( w3_s_chain, serializedTxExitToMainERC721, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC721: " ) + cc.j( joReceiptExitToMainERC721 ) + "\n" );
-        const joReceipt = joReceiptDeposit;
+        const joReceipt = joReceiptExitToMainERC721;
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC721: " ) + cc.j( joReceiptExitToMainERC721 ) + "\n" );
         //
