@@ -161,8 +161,8 @@ async function dry_run_call( w3, methodWithArguments, joAccount ) {
             "\n" );
         }
         const joResult = await methodWithArguments.call( {
-            from: addressFrom,
-            gas: 8000000
+            from: addressFrom
+            //, gas: 8000000
         } );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( " got result " ) + cc.normal( cc.safeStringifyJSON( joResult ) ) + "\n" );
@@ -854,7 +854,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         const rawTx = {
             chainId: cid_main_net,
             nonce: tcnt,
-            gas: 8000000, // 2100000,
+            gas: 2100000,
             gasPrice: gasPrice,
             gasLimit: 3000000,
             to: jo_lock_and_data_main_net.options.address, // contract address
