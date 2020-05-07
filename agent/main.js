@@ -147,6 +147,9 @@ const imaState = {
     //
     //
 
+    "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
+    "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
+
     "arrActions": [] // array of actions to run
 };
 

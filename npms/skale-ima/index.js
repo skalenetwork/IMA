@@ -112,6 +112,28 @@ async function get_contract_call_events( joContract, strEventName, nBlockNumber,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+let g_bDryRunIsEnabled = true;
+
+function dry_run_is_enabled() {
+    return g_bDryRunIsEnabled ? true : false;
+}
+
+function dry_run_enable( isEnable ) {
+    g_bDryRunIsEnabled = ( isEnable != null && isEnable != undefined ) ? ( isEnable ? true : false ) : true;
+    return g_bDryRunIsEnabled ? true : false;
+}
+
+let g_bDryRunIsIgnored = false;
+
+function dry_run_is_ignored() {
+    return g_bDryRunIsIgnored ? true : false;
+}
+
+function dry_run_ignore( isIgnored ) {
+    g_bDryRunIsIgnored = ( isIgnored != null && isIgnored != undefined ) ? ( isIgnored ? true : false ) : true;
+    return g_bDryRunIsIgnored ? true : false;
+}
+
 function extract_dry_run_method_name( methodWithArguments ) {
     try {
         const s = "" + methodWithArguments._method.name;
@@ -122,7 +144,13 @@ function extract_dry_run_method_name( methodWithArguments ) {
 }
 
 async function dry_run_call( methodWithArguments ) {
-    const strLogPrefix = cc.attention( "DRY RUN CALL TO THE " ) + cc.bright( extract_dry_run_method_name( methodWithArguments ) ) + cc.attention( " METHOD:" );
+    const strMethodName = extract_dry_run_method_name( methodWithArguments );
+    const strLogPrefix = cc.attention( "DRY RUN CALL TO THE " ) + cc.bright( strMethodName ) + cc.attention( " METHOD:" );
+    if( ! dry_run_is_enabled() ) {
+        if( verbose_get() >= RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.success( " Skipped, dry run is disabled" ) + "\n" );
+        return;
+    }
     try {
         // console.log( methodWithArguments );
         if( verbose_get() >= RV_VERBOSE.information ) {
@@ -133,10 +161,11 @@ async function dry_run_call( methodWithArguments ) {
         const joResult = await methodWithArguments.call();
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( " got result " ) + cc.normal( cc.safeStringifyJSON( joResult ) ) + "\n" );
-
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.error )
             log.write( strLogPrefix + " " + cc.fatal( "FAILED:" ) + " " + cc.error( err ) + "\n" );
+        if( ! dry_run_is_ignored() )
+            throw new Error( "Failed dry run the \"" + strMethodName + "\" method: " + err.toString() );
     }
 }
 
@@ -2012,6 +2041,10 @@ module.exports.verbose_set = verbose_set;
 module.exports.verbose_parse = verbose_parse;
 module.exports.verbose_list = verbose_list;
 
+module.exports.dry_run_is_enabled = dry_run_is_enabled;
+module.exports.dry_run_enable = dry_run_enable;
+module.exports.dry_run_is_ignored = dry_run_is_ignored;
+module.exports.dry_run_ignore = dry_run_ignore;
 module.exports.dry_run_call = dry_run_call;
 module.exports.safe_send_signed_transaction = safe_send_signed_transaction;
 
