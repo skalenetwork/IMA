@@ -4,6 +4,8 @@ const expect = require('chai').expect;
 const IMA = require( "../../npms/skale-ima" );
 // const w3 = require("web3")
 const w3mod = IMA.w3mod
+const tc_main_net = IMA.tc_main_net;
+const tc_s_chain = IMA.tc_s_chain;
 
 // 
 let chain_id_s_chain = "blah_blah_blah_schain_name"; // 1;
@@ -286,7 +288,8 @@ describe('tests for `npms/skale-ima`', function () {
                 w3_main_net,
                 jo_message_proxy_main_net,
                 joAccount_main_net,
-                chain_id_s_chain
+                chain_id_s_chain,
+                tc_main_net
             )
         ).to.be.false;
     });
@@ -298,7 +301,8 @@ describe('tests for `npms/skale-ima`', function () {
                 w3_main_net,
                 jo_message_proxy_main_net,
                 joAccount_main_net,
-                chain_id_s_chain
+                chain_id_s_chain,
+                tc_main_net
             )
         ).to.be.true;
     });
@@ -337,7 +341,8 @@ describe('tests for `npms/skale-ima`', function () {
                 jo_lock_and_data_main_net,
                 joAccount_main_net,
                 jo_token_manager,
-                chain_id_s_chain
+                chain_id_s_chain,
+                tc_main_net
             )
         ).to.be.false;
     });
@@ -350,7 +355,8 @@ describe('tests for `npms/skale-ima`', function () {
                 jo_lock_and_data_main_net,
                 joAccount_main_net,
                 jo_token_manager,
-                chain_id_s_chain
+                chain_id_s_chain,
+                tc_main_net
             )
         ).to.be.true;
     });
@@ -386,7 +392,9 @@ describe('tests for `npms/skale-ima`', function () {
                 w3_s_chain,
                 jo_deposit_box_main_net,
                 jo_lock_and_data_s_chain,
-                joAccount
+                joAccount,
+                -4,
+                tc_s_chain
             )
         ).to.be.false;
     });
@@ -399,7 +407,9 @@ describe('tests for `npms/skale-ima`', function () {
                 w3_s_chain,
                 jo_deposit_box_main_net,
                 jo_lock_and_data_s_chain,
-                joAccount
+                joAccount,
+                -4,
+                tc_s_chain
             )
         ).to.be.true;
     });
@@ -414,7 +424,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccountDst,
                 jo_deposit_box,
                 chain_id_s_chain,
-                wei_how_much // how much WEI money to send
+                wei_how_much, // how much WEI money to send
+                tc_main_net
             )
         ).to.be.false;
     });
@@ -429,7 +440,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccountDst,
                 jo_deposit_box,
                 chain_id_s_chain,
-                wei_how_much // how much WEI money to send
+                wei_how_much, // how much WEI money to send
+                tc_main_net
             )
         ).to.be.true;
     });
@@ -443,7 +455,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccountSrc,
                 joAccountDst,
                 jo_token_manager,
-                wei_how_much // how much WEI money to send
+                wei_how_much, // how much WEI money to send
+                tc_s_chain
             )
         ).to.be.false;
     });
@@ -457,7 +470,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccountSrc,
                 joAccountDst,
                 jo_token_manager,
-                wei_how_much // how much WEI money to send
+                wei_how_much, // how much WEI money to send
+                tc_s_chain
             )
         ).to.be.true;
     });
@@ -469,7 +483,8 @@ describe('tests for `npms/skale-ima`', function () {
             receive_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
                 joAccount_main_net,
-                jo_lock_and_data_main_net
+                jo_lock_and_data_main_net,
+                tc_main_net
             )
         ).to.be.false;
     });
@@ -480,7 +495,8 @@ describe('tests for `npms/skale-ima`', function () {
             receive_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
                 joAccount_main_net,
-                jo_lock_and_data_main_net
+                jo_lock_and_data_main_net,
+                tc_main_net
             )
         ).to.be.true;
     });
@@ -530,7 +546,8 @@ describe('tests for `npms/skale-ima`', function () {
                 erc20PrivateTestnetJson_main_net,
                 strCoinNameErc20_s_chain,
                 erc20PrivateTestnetJson_s_chain,
-                isRawTokenTransfer
+                isRawTokenTransfer,
+                tc_main_net
             )
         ).to.be.false;
     });
@@ -559,7 +576,8 @@ describe('tests for `npms/skale-ima`', function () {
                 erc20PrivateTestnetJson_main_net,
                 strCoinNameErc20_s_chain,
                 erc20PrivateTestnetJson_s_chain,
-                isRawTokenTransfer
+                isRawTokenTransfer,
+                tc_main_net
             )
         ).to.be.true;
     });
@@ -585,7 +603,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joErc20_main_net,
                 strCoinNameErc20_s_chain,
                 joErc20_s_chain,
-                isRawTokenTransfer
+                isRawTokenTransfer,
+                tc_s_chain
             )
         ).to.be.false;
     });
@@ -613,7 +632,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joErc20_main_net,
                 strCoinNameErc20_s_chain,
                 joErc20_s_chain,
-                isRawTokenTransfer
+                isRawTokenTransfer,
+                tc_s_chain
             )
         ).to.be.true;
     });
@@ -639,11 +659,17 @@ describe('tests for `npms/skale-ima`', function () {
                 //
                 chain_id_src,
                 chain_id_dst,
+                -4,
+                -4,
+                null, // jo_deposit_box - for logs validation on mainnet
+                null, //jo_token_manager - for logs validation on s-chain
                 //
                 nTransactionsCountInBlock,
                 nMaxTransactionsCount,
                 nBlockAwaitDepth,
-                nBlockAge
+                nBlockAge,
+                null, // fn_sign_messages or null
+                tc_main_net // or tc_s_chain
             )
         ).to.be.false;
     });
@@ -668,11 +694,17 @@ describe('tests for `npms/skale-ima`', function () {
                 //
                 chain_id_src,
                 chain_id_dst,
+                -4,
+                -4,
+                null, // jo_deposit_box - for logs validation on mainnet
+                null, //jo_token_manager - for logs validation on s-chain
                 //
                 nTransactionsCountInBlock,
                 nMaxTransactionsCount,
                 nBlockAwaitDepth,
-                nBlockAge
+                nBlockAge,
+                null, // fn_sign_messages or null
+                tc_main_net // or tc_s_chain
             )
         ).to.be.true;
     });

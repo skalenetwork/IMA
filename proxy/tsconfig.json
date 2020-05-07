@@ -1,21 +1,21 @@
 {
-  "compilerOptions": {
-    "target": "es2017",
-    "module": "commonjs",
-    "strict": true,
-    "moduleResolution": "node",
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "forceConsistentCasingInFileNames": true,    
-    "resolveJsonModule": true,
-    "lib": ["es2015", "esnext.asynciterable"],
-    "sourceMap": true,
-    "typeRoots": ["./node_modules/@types", "./types", "./customTypes"],
-    "types": ["node", "truffle-contracts"],
-    "esModuleInterop": false
-  },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules", "example", "build"]
+    "compilerOptions": {
+        "target": "es2017",
+        "module": "commonjs",
+        "strict": true,
+        "moduleResolution": "node",
+        "noImplicitThis": true,
+        "alwaysStrict": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "forceConsistentCasingInFileNames": true,    
+        "resolveJsonModule": true,
+        "lib": ["es2015", "esnext.asynciterable"],
+        "sourceMap": true,
+        "typeRoots": ["./node_modules/@types", "./types", "./customTypes"],
+        "types": ["node", "truffle-contracts"],
+        "esModuleInterop": false
+    },
+    "include": ["**/*.ts"],
+    "exclude": ["node_modules", "example", "build"]
 }
