@@ -113,7 +113,17 @@ async function get_contract_call_events( joContract, strEventName, nBlockNumber,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function dry_run_call( methodWithArguments ) {
-
+    const strLogPrefix = cc.attention( "DRY RUN:" );
+    try {
+        if( verbose_get() >= RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( " will invoke method with data " ) + cc.j( methodWithArguments ) + "\n" );
+        const joResult = methodWithArguments.call();
+        if( verbose_get() >= RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.success( " got result " ) + cc.j( joResult ) + "\n" );
+    } catch ( err ) {
+        if( verbose_get() >= RV_VERBOSE.error )
+            log.write( strLogPrefix + cc.error( " failed with error " ) + cc.j( err ) + "\n" );
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
