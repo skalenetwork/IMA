@@ -1905,7 +1905,7 @@ async function do_transfer(
                 const rawTx = {
                     chainId: cid_dst,
                     nonce: tcnt,
-                    gas: 8000000, // 6000000,
+                    gas: 6000000, // 8000000
                     gasPrice: gasPrice,
                     // "gasLimit": 3000000,
                     to: jo_message_proxy_dst.options.address, // contract address
