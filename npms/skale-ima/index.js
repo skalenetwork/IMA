@@ -794,7 +794,7 @@ async function do_eth_payment_from_s_chain(
             "0x" + w3_s_chain.utils.toBN( wei_how_much ).toString( 16 ),
             "0x" // w3_s_chain.utils.fromAscii( "" ) // TO-DO: string is "data" parameter, we need to allow user to specify it
         );
-        const isIgnore = false;
+        const isIgnore = true;
         const strDRC = "do_eth_payment_from_s_chain, exitToMain";
         await dry_run_call( w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
@@ -1384,7 +1384,7 @@ async function do_erc20_payment_from_s_chain(
                 erc20Address_s_chain, erc20Address_main_net // specific for rawExitToMainERC20() only
                 , accountForMainnet, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             );
-            const isIgnore_rawExitToMainERC20 = false;
+            const isIgnore_rawExitToMainERC20 = true;
             const strDRC_rawExitToMainERC20 = "do_erc20_payment_from_s_chain, rawExitToMainERC20";
             await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20 );
             dataExitToMainERC20 = methodWithArguments_rawExitToMainERC20.encodeABI();
@@ -1393,7 +1393,7 @@ async function do_erc20_payment_from_s_chain(
             const methodWithArguments_exitToMainERC20 = jo_token_manager.methods.exitToMainERC20(
                 erc20Address_s_chain, accountForMainnet, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             );
-            const isIgnore_exitToMainERC20 = false;
+            const isIgnore_exitToMainERC20 = true;
             const strDRC_exitToMainERC20 = "do_erc20_payment_from_s_chain, exitToMainERC20";
             await dry_run_call( w3_s_chain, methodWithArguments_exitToMainERC20, joAccountSrc, strDRC_exitToMainERC20, isIgnore_exitToMainERC20 );
             dataExitToMainERC20 = methodWithArguments_exitToMainERC20.encodeABI();
@@ -1526,7 +1526,7 @@ async function do_erc721_payment_from_s_chain(
                 erc721Address_s_chain, erc721Address_main_net // specific for rawExitToMainERC721() only
                 , accountForMainnet, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
             );
-            const isIgnore_rawExitToMainERC721 = false;
+            const isIgnore_rawExitToMainERC721 = true;
             const strDRC_rawExitToMainERC721 = "erc721_payment_from_s_chain, rawExitToMainERC721";
             await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721 );
             dataTxExitToMainERC721 = methodWithArguments_rawExitToMainERC721.encodeABI();
@@ -1535,7 +1535,7 @@ async function do_erc721_payment_from_s_chain(
             const methodWithArguments_exitToMainERC721 = jo_token_manager.methods.exitToMainERC721(
                 erc721Address_s_chain, accountForMainnet, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
             );
-            const isIgnore_exitToMainERC721 = false;
+            const isIgnore_exitToMainERC721 = true;
             const strDRC_exitToMainERC721 = "erc721_payment_from_s_chain, exitToMainERC721";
             await dry_run_call( w3_s_chain, methodWithArguments_exitToMainERC721, joAccountSrc, strDRC_exitToMainERC721, isIgnore_exitToMainERC721 );
             dataTxExitToMainERC721 = methodWithArguments_exitToMainERC721.encodeABI();
