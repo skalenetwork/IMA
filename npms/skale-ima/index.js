@@ -794,9 +794,9 @@ async function do_eth_payment_from_s_chain(
             "0x" + w3_s_chain.utils.toBN( wei_how_much ).toString( 16 ),
             "0x" // w3_s_chain.utils.fromAscii( "" ) // TO-DO: string is "data" parameter, we need to allow user to specify it
         );
-        const isIgnore_ = false;
-        const strDRC_ = "do_eth_payment_from_s_chain, exitToMain";
-        await dry_run_call( w3_s_chain, methodWithArguments, joAccountSrc );
+        const isIgnore = false;
+        const strDRC = "do_eth_payment_from_s_chain, exitToMain";
+        await dry_run_call( w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
