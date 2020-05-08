@@ -1964,7 +1964,7 @@ async function do_transfer(
                     // "value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
                 };
                 if( verbose_get() >= RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
+                    log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx_postIncomingMessages ) + "\n" );
                 const tx_postIncomingMessages = new ethereumjs_tx( rawTx_postIncomingMessages );
                 const key = Buffer.from( joAccountDst.privateKey, "hex" ); // convert private key to buffer ??????????????????????????????????
                 tx_postIncomingMessages.sign( key ); // arg is privateKey as buffer
