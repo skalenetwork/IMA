@@ -30,8 +30,8 @@ let lockAndDataForSchainABI = schainData.lock_and_data_for_schain_abi;
 let web3Mainnet = new Web3(new Web3.providers.HttpProvider(mainnetRPC));
 let web3Schain = new Web3(new Web3.providers.HttpProvider(schainRPC));
 
-let privateKeyMainnetBuffer = new Buffer(privateKeyForMainnet, 'hex');
-let privateKeySchainBuffer = new Buffer(privateKeyForSchain, 'hex');
+let privateKeyMainnetBuffer = Buffer.from(privateKeyForMainnet, 'hex');
+let privateKeySchainBuffer = Buffer.from(privateKeyForSchain, 'hex');
 
 let DepositBox = new web3Mainnet.eth.Contract(depositBoxABI, depositBoxAddress);
 let LockAndDataForMainnet = new web3Mainnet.eth.Contract(lockAndDataForMainnetABI, "0x488c5733FB48f84F836E22531E226063Cb3856f6");

@@ -1,32 +1,32 @@
 
-process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0; // allow self-signed wss and https
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 
-const fs = require( "fs" );
-const path = require( "path" );
-const url = require( "url" );
-const os = require( "os" );
+// const fs = require( "fs" );
+// const path = require( "path" );
+// const url = require( "url" );
+// const os = require( "os" );
 const IMA = require( "../npms/skale-ima" );
 const owaspUtils = IMA.owaspUtils;
 const imaUtils = require( "./utils.js" );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
 const log = imaUtils.log;
 const cc = imaUtils.cc;
-const w3mod = IMA.w3mod;
+// const w3mod = IMA.w3mod;
 const imaCLI = require( "./cli.js" );
 const imaBLS = require( "./bls.js" );
-let rpcCall = require( "./rpc-call.js" );
+const rpcCall = require( "./rpc-call.js" );
 rpcCall.init( cc, log, owaspUtils );
-let ethereumjs_tx = IMA.ethereumjs_tx;
-let ethereumjs_wallet = IMA.ethereumjs_wallet;
-let ethereumjs_util = IMA.ethereumjs_util;
+// let ethereumjs_tx = IMA.ethereumjs_tx;
+// let ethereumjs_wallet = IMA.ethereumjs_wallet;
+// let ethereumjs_util = IMA.ethereumjs_util;
 
 function fn_address_impl_( w3 ) {
-    if ( this.address_ == undefined || this.address_ == null )
+    if( this.address_ == undefined || this.address_ == null )
         this.address_ = "" + owaspUtils.private_key_2_account_address( w3, this.privateKey );
     return this.address_;
 }
 
-let imaState = {
+const imaState = {
     "strLogFilePath": "",
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,
@@ -142,14 +142,19 @@ let imaState = {
 
     //
     //
+    "tc_main_net": IMA.tc_main_net, // new IMA.TransactionCustomizer( 1.25 ),
+    "tc_s_chain": IMA.tc_s_chain, // new IMA.TransactionCustomizer( null ),
+    //
+    //
 
     "arrActions": [] // array of actions to run
 };
 
-let tmp_address_MN_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_MAINNET );
-let tmp_address_SC_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN );
+const tmp_address_MN_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_MAINNET );
+const tmp_address_SC_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN );
 if( tmp_address_MN_from_env && typeof tmp_address_MN_from_env == "string" && tmp_address_MN_from_env.length > 0 )
     imaState.joAccount_main_net.address_ = "" + tmp_address_MN_from_env;
+
 if( tmp_address_SC_from_env && typeof tmp_address_SC_from_env == "string" && tmp_address_SC_from_env.length > 0 )
     imaState.joAccount_s_chain.address_ = "" + tmp_address_SC_from_env;
 
@@ -164,28 +169,32 @@ imaCLI.parse( {
                 return await register_all();
             }
         } );
-    }, "register1": function() {
+    },
+    "register1": function() {
         imaState.arrActions.push( {
             "name": "Registration step 1, register S-Chain on Main-net",
             "fn": async function() {
                 return await register_step1();
             }
         } );
-    }, "register2": function() {
+    },
+    "register2": function() {
         imaState.arrActions.push( {
             "name": "Registration step 2, register S-Chain in deposit box",
             "fn": async function() {
                 return await register_step2();
             }
         } );
-    }, "register3": function() {
+    },
+    "register3": function() {
         imaState.arrActions.push( {
             "name": "Registration step 3, register Main-net deposit box on S-Chain",
             "fn": async function() {
                 return await register_step3();
             }
         } );
-    }, "check-registration": function() {
+    },
+    "check-registration": function() {
         imaState.arrActions.push( {
             "name": "Full registration status check(all steps)",
             "fn": async function() {
@@ -195,7 +204,8 @@ imaCLI.parse( {
                 process.exit( nExitCode );
             }
         } );
-    }, "check-registration1": function() {
+    },
+    "check-registration1": function() {
         imaState.arrActions.push( {
             "name": "Registration status check for step 1, register S-Chain on Main-net",
             "fn": async function() {
@@ -205,7 +215,8 @@ imaCLI.parse( {
                 process.exit( nExitCode );
             }
         } );
-    }, "check-registration2": function() {
+    },
+    "check-registration2": function() {
         imaState.arrActions.push( {
             "name": "Registration status check step 2, register S-Chain in deposit box",
             "fn": async function() {
@@ -215,7 +226,8 @@ imaCLI.parse( {
                 process.exit( nExitCode );
             }
         } );
-    }, "check-registration3": function() {
+    },
+    "check-registration3": function() {
         imaState.arrActions.push( {
             "name": "Registration status check step 3, register Main-net deposit box on S-Chain",
             "fn": async function() {
@@ -225,13 +237,14 @@ imaCLI.parse( {
                 process.exit( nExitCode );
             }
         } );
-    }, "m2s-payment": function() {
+    },
+    "m2s-payment": function() {
         imaState.arrActions.push( {
             "name": "one M->S single payment",
             "fn": async function() {
-                if ( imaState.strCoinNameErc721_main_net.length > 0
-                    //&& imaState.strCoinNameErc721_s_chain.length > 0
-                    ) {
+                if( imaState.strCoinNameErc721_main_net.length > 0
+                // && imaState.strCoinNameErc721_s_chain.length > 0
+                ) {
                     // ERC721 payment
                     log.write( cc.info( "one M->S single ERC721 payment: " ) + cc.sunny( imaState.idToken ) + "\n" ); // just print value
                     return await IMA.do_erc721_payment_from_main_net(
@@ -251,12 +264,13 @@ imaCLI.parse( {
                         imaState.joErc721_main_net,
                         imaState.strCoinNameErc721_s_chain,
                         imaState.joErc721_s_chain,
-                        imaState.isRawTokenTransfer
+                        imaState.isRawTokenTransfer,
+                        imaState.tc_main_net
                     );
                 }
-                if ( imaState.strCoinNameErc20_main_net.length > 0
-                    // && imaState.strCoinNameErc20_s_chain.length > 0
-                    ) {
+                if( imaState.strCoinNameErc20_main_net.length > 0
+                // && imaState.strCoinNameErc20_s_chain.length > 0
+                ) {
                     // ERC20 payment
                     log.write( cc.info( "one M->S single ERC20 payment: " ) + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
                     return await IMA.do_erc20_payment_from_main_net(
@@ -276,7 +290,8 @@ imaCLI.parse( {
                         imaState.joErc20_main_net,
                         imaState.strCoinNameErc20_s_chain,
                         imaState.joErc20_s_chain,
-                        imaState.isRawTokenTransfer
+                        imaState.isRawTokenTransfer,
+                        imaState.tc_main_net
                     );
                 }
                 // ETH payment
@@ -290,15 +305,17 @@ imaCLI.parse( {
                     imaState.jo_message_proxy_main_net, // for checking logs
                     imaState.jo_lock_and_data_main_net, // for checking logs
                     imaState.strChainID_s_chain,
-                    imaState.nAmountOfWei // how much WEI money to send
+                    imaState.nAmountOfWei, // how much WEI money to send
+                    imaState.tc_main_net
                 );
             }
         } );
-    }, "s2m-payment": function() {
+    },
+    "s2m-payment": function() {
         imaState.arrActions.push( {
             "name": "one S->M single payment",
             "fn": async function() {
-                if ( imaState.strCoinNameErc721_s_chain.length > 0 ) {
+                if( imaState.strCoinNameErc721_s_chain.length > 0 ) {
                     // ERC721 payment
                     log.write( cc.info( "one S->M single ERC721 payment: " ) + cc.sunny( imaState.idToken ) + "\n" ); // just print value
                     return await IMA.do_erc721_payment_from_s_chain(
@@ -316,10 +333,11 @@ imaCLI.parse( {
                         imaState.joErc721_main_net,
                         imaState.strCoinNameErc721_s_chain,
                         imaState.joErc721_s_chain,
-                        imaState.isRawTokenTransfer
+                        imaState.isRawTokenTransfer,
+                        imaState.tc_s_chain
                     );
                 }
-                if ( imaState.strCoinNameErc20_s_chain.length > 0 ) {
+                if( imaState.strCoinNameErc20_s_chain.length > 0 ) {
                     // ERC20 payment
                     log.write( cc.info( "one S->M single ERC20 payment: " ) + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
                     return await IMA.do_erc20_payment_from_s_chain(
@@ -337,7 +355,8 @@ imaCLI.parse( {
                         imaState.joErc20_main_net,
                         imaState.strCoinNameErc20_s_chain,
                         imaState.joErc20_s_chain,
-                        imaState.isRawTokenTransfer
+                        imaState.isRawTokenTransfer,
+                        imaState.tc_s_chain
                     );
                 }
                 // ETH payment
@@ -349,11 +368,13 @@ imaCLI.parse( {
                     imaState.joAccount_main_net,
                     imaState.jo_token_manager, // only s-chain
                     imaState.jo_message_proxy_s_chain, // for checking logs
-                    imaState.nAmountOfWei // how much WEI money to send
+                    imaState.nAmountOfWei, // how much WEI money to send
+                    imaState.tc_s_chain
                 );
             }
         } );
-    }, "s2m-receive": function() {
+    },
+    "s2m-receive": function() {
         imaState.arrActions.push( {
             "name": "receive one S->M single ETH payment",
             "fn": async function() {
@@ -362,39 +383,43 @@ imaCLI.parse( {
                     imaState.w3_main_net,
                     imaState.cid_main_net,
                     imaState.joAccount_main_net,
-                    imaState.jo_lock_and_data_main_net
+                    imaState.jo_lock_and_data_main_net,
+                    imaState.tc_main_net
                 );
             }
         } );
-    }, "s2m-view": function() {
+    },
+    "s2m-view": function() {
         imaState.arrActions.push( {
             "name": "view one S->M single ETH payment",
             "fn": async function() {
                 log.write( cc.info( "view one S->M single ETH payment: " ) + "\n" ); // just print value
-                let xWei = await IMA.view_eth_payment_from_s_chain_on_main_net(
+                const xWei = await IMA.view_eth_payment_from_s_chain_on_main_net(
                     imaState.w3_main_net,
                     imaState.joAccount_main_net,
                     imaState.jo_lock_and_data_main_net
                 );
-                if ( xWei === null || xWei === undefined )
+                if( xWei === null || xWei === undefined )
                     return false;
-                let xEth = imaState.w3_main_net.utils.fromWei( xWei, "ether" );
+
+                const xEth = imaState.w3_main_net.utils.fromWei( xWei, "ether" );
                 log.write( cc.success( "Main-net user can receive: " ) + cc.attention( xWei ) + cc.success( " wei = " ) + cc.attention( xEth ) + cc.success( " eth" ) + "\n" );
                 return true;
             }
         } );
-    }, "m2s-transfer": function() {
+    },
+    "m2s-transfer": function() {
         imaState.arrActions.push( {
             "name": "single M->S transfer loop",
             "fn": async function() {
                 return await IMA.do_transfer( // main-net --> s-chain
-                    //////
+                    //
                     imaState.w3_main_net,
                     imaState.jo_message_proxy_main_net,
                     imaState.joAccount_main_net,
                     imaState.w3_s_chain,
                     imaState.jo_message_proxy_s_chain,
-                    //////
+                    //
                     imaState.joAccount_s_chain,
                     imaState.strChainID_main_net,
                     imaState.strChainID_s_chain,
@@ -406,11 +431,13 @@ imaCLI.parse( {
                     imaState.nMaxTransactionsM2S,
                     imaState.nBlockAwaitDepthM2S,
                     imaState.nBlockAgeM2S,
-                    imaBLS.do_sign_messages_m2s // fn_sign_messages
+                    imaBLS.do_sign_messages_m2s, // fn_sign_messages
+                    imaState.tc_s_chain
                 );
             }
         } );
-    }, "s2m-transfer": function() {
+    },
+    "s2m-transfer": function() {
         imaState.arrActions.push( {
             "name": "single S->M transfer loop",
             "fn": async function() {
@@ -433,47 +460,51 @@ imaCLI.parse( {
                     imaState.nMaxTransactionsS2M,
                     imaState.nBlockAwaitDepthS2M,
                     imaState.nBlockAgeS2M,
-                    imaBLS.do_sign_messages_s2m // fn_sign_messages
+                    imaBLS.do_sign_messages_s2m, // fn_sign_messages
+                    imaState.tc_main_net
                 );
             }
         } );
-    }, "transfer": function() {
+    },
+    "transfer": function() {
         imaState.arrActions.push( {
             "name": "Single M<->S transfer loop iteration",
             "fn": async function() {
                 return await single_transfer_loop();
             }
         } );
-    }, "loop": function() {
+    },
+    "loop": function() {
         imaState.arrActions.push( {
             "name": "M<->S transfer loop",
             "fn": async function() {
-                if( ! await check_registration_step1() ) {
-                    if( ! await register_step1() )
+                if( !await check_registration_step1() ) {
+                    if( !await register_step1() )
                         return false;
                 }
-                if( ! await check_registration_step2() ) {
-                    if( ! await register_step2() )
+                if( !await check_registration_step2() ) {
+                    if( !await register_step2() )
                         return false;
                 }
-                if( ! await check_registration_step3() ) {
-                    if( ! await register_step3() )
+                if( !await check_registration_step3() ) {
+                    if( !await register_step3() )
                         return false;
                 }
                 return await run_transfer_loop();
             }
         } );
-    }, "browse-s-chain": function() {
+    },
+    "browse-s-chain": function() {
         imaState.bIsNeededCommonInit = false;
         imaState.arrActions.push( {
             "name": "Brows S-Chain network",
             "fn": async function() {
-                let strLogPrefix = cc.info("S Browse:") + " ";
+                const strLogPrefix = cc.info( "S Browse:" ) + " ";
                 if( imaState.strURL_s_chain.length == 0 ) {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing S-Chain URL, please specify " ) + cc.info( "url-s-chain" ) );
                     process.exit( 501 );
                 }
-                log.write( strLogPrefix + cc.normal( "Downloading S-Chain network information " )  + cc.normal( "..." ) + "\n" ); // just print value
+                log.write( strLogPrefix + cc.normal( "Downloading S-Chain network information " ) + cc.normal( "..." ) + "\n" ); // just print value
                 //
                 await rpcCall.create( imaState.strURL_s_chain, async function( joCall, err ) {
                     if( err ) {
@@ -488,12 +519,12 @@ imaCLI.parse( {
                             console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
                             process.exit( 1 );
                         }
-                        log.write( strLogPrefix + cc.normal( "S-Chain network information: " )  + cc.j( joOut.result ) + "\n" );
+                        log.write( strLogPrefix + cc.normal( "S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
                         let nCountReceivedImaDescriptions = 0;
-                        let jarrNodes = joOut.result.network;
+                        const jarrNodes = joOut.result.network;
                         for( let i = 0; i < jarrNodes.length; ++ i ) {
-                            let joNode = jarrNodes[ i ];
-                            let strNodeURL = imaUtils.compose_schain_node_url( joNode );
+                            const joNode = jarrNodes[i];
+                            const strNodeURL = imaUtils.compose_schain_node_url( joNode );
                             await rpcCall.create( strNodeURL, async function( joCall, err ) {
                                 if( err ) {
                                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
@@ -508,13 +539,13 @@ imaCLI.parse( {
                                         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
                                         process.exit( 1 );
                                     }
-                                    log.write( strLogPrefix + cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " )  + cc.j( joOut.result ) + "\n" );
+                                    log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " IMA information: " ) + cc.j( joOut.result ) + "\n" );
                                     //process.exit( 0 );
                                 } );
                             } );
                         }
                         //process.exit( 0 );
-                        let iv = setInterval( function() {
+                        const iv = setInterval( function() {
                             if( nCountReceivedImaDescriptions == jarrNodes.length ) {
                                 clearInterval( iv );
                                 process.exit( 0 );
@@ -531,7 +562,7 @@ imaCLI.parse( {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-if ( imaState.strLogFilePath.length > 0 ) {
+if( imaState.strLogFilePath.length > 0 ) {
     log.write( cc.debug( "Will print message to file " ) + cc.info( imaState.strLogFilePath ) + "\n" );
     log.add( imaState.strLogFilePath, imaState.nLogMaxSizeBeforeRotation, imaState.nLogMaxFilesCount );
 }
@@ -539,21 +570,21 @@ if ( imaState.strLogFilePath.length > 0 ) {
 if( imaState.bIsNeededCommonInit )
     imaCLI.ima_common_init();
 
-if ( imaState.bShowConfigMode ) {
+if( imaState.bShowConfigMode ) {
     // just show configuration values and exit
-    return true;
+    process.exit( 0 );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function discover_s_chain_network( fnAfter ) {
-    let strLogPrefix = cc.info("S net discover:") + " ";
+    const strLogPrefix = cc.info( "S net discover:" ) + " ";
     fnAfter = fnAfter || function() {};
     let joSChainNetworkInfo = null;
     await rpcCall.create( imaState.strURL_s_chain, async function( joCall, err ) {
         if( err ) {
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed: " ) + cc.warning(err) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed: " ) + cc.warning( err ) + "\n" );
             fnAfter( err, null );
             return;
         }
@@ -566,16 +597,17 @@ async function discover_s_chain_network( fnAfter ) {
                 fnAfter( err, null );
                 return;
             }
-            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                log.write( strLogPrefix + cc.normal( "OK, got S-Chain network information: " )  + cc.j( joOut.result ) + "\n" );
-            else if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                log.write( strLogPrefix + cc.normal( "OK, got S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
+            else if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.success( "OK, got S-Chain network information." ) + "\n" );
+
             let nCountReceivedImaDescriptions = 0;
             joSChainNetworkInfo = joOut.result;
-            let jarrNodes = joSChainNetworkInfo.network;
+            const jarrNodes = joSChainNetworkInfo.network;
             for( let i = 0; i < jarrNodes.length; ++ i ) {
-                let joNode = jarrNodes[ i ];
-                let strNodeURL = imaUtils.compose_schain_node_url( joNode );
+                const joNode = jarrNodes[i];
+                const strNodeURL = imaUtils.compose_schain_node_url( joNode );
                 await rpcCall.create( strNodeURL, function( joCall, err ) {
                     if( err ) {
                         log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
@@ -592,18 +624,18 @@ async function discover_s_chain_network( fnAfter ) {
                             fnAfter( err, null );
                             return;
                         }
-                        //if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                        //    log.write( strLogPrefix + cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " )  + cc.j( joOut.result ) + "\n" );
+                        //if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                        //    log.write( strLogPrefix + cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " ) + cc.j( joOut.result ) + "\n" );
                         joNode.imaInfo = joOut.result;
                         //joNode.joCall = joCall;
-                        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                           log.write( strLogPrefix + cc.success( "OK, got node ") + cc.info(joNode.nodeID) + cc.success(" IMA information(") + cc.info(nCountReceivedImaDescriptions) + cc.success(" of ") + cc.info(jarrNodes.length) + cc.success(")." ) + "\n" );
+                        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                            log.write( strLogPrefix + cc.success( "OK, got node " ) + cc.info( joNode.nodeID ) + cc.success( " IMA information(" ) + cc.info( nCountReceivedImaDescriptions ) + cc.success( " of " ) + cc.info( jarrNodes.length ) + cc.success( ")." ) + "\n" );
                     } );
                 } );
             }
-            //process.exit( 0 );
-            let iv = setInterval( function() {
-                if( nCountReceivedImaDescriptions == jarrNodes.length  ) {
+            // process.exit( 0 );
+            const iv = setInterval( function() {
+                if( nCountReceivedImaDescriptions == jarrNodes.length ) {
                     clearInterval( iv );
                     fnAfter( null, joSChainNetworkInfo );
                 }
@@ -618,34 +650,36 @@ async function discover_s_chain_network( fnAfter ) {
 // register S-Chain 1 on main net
 //
 async function do_the_job() {
-    let strLogPrefix = cc.info("Job 1:") + " ";
-    let idxAction, cntActions = imaState.arrActions.length,
-        cntFalse = 0,
-        cntTrue = 0;
-    for ( idxAction = 0; idxAction < cntActions; ++idxAction ) {
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+    const strLogPrefix = cc.info( "Job 1:" ) + " ";
+    let idxAction = 0;
+    const cntActions = imaState.arrActions.length;
+    let cntFalse = 0;
+    let cntTrue = 0;
+    for( idxAction = 0; idxAction < cntActions; ++idxAction ) {
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
-        let joAction = imaState.arrActions[ idxAction ],
-            bOK = false;
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+
+        const joAction = imaState.arrActions[idxAction];
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.notice( "Will execute action:" ) + " " + cc.info( joAction.name ) + cc.debug( " (" ) + cc.info( idxAction + 1 ) + cc.debug( " of " ) + cc.info( cntActions ) + cc.debug( ")" ) + "\n" );
+
         try {
-            if ( await joAction.fn() ) {
+            if( await joAction.fn() ) {
                 ++cntTrue;
-                if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success( "Succeeded action:" ) + " " + cc.info( joAction.name ) + "\n" );
             } else {
                 ++cntFalse;
-                if ( IMA.verbose_get() >= IMA.RV_VERBOSE.error )
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error )
                     log.write( strLogPrefix + cc.warning( "Failed action:" ) + " " + cc.info( joAction.name ) + "\n" );
             }
         } catch ( e ) {
             ++cntFalse;
-            if ( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal )
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal )
                 log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR: Exception occurred while executing action:" ) + " " + cc.info( joAction.name ) + cc.error( ", error description: " ) + cc.warning( e ) + "\n" );
         }
     } // for( idxAction = 0; idxAction < cntActions; ++ idxAction )
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
         log.write( strLogPrefix + cc.info( "FINISH:" ) + "\n" );
         log.write( strLogPrefix + cc.info( cntActions ) + cc.notice( " task(s) executed" ) + "\n" );
@@ -653,9 +687,8 @@ async function do_the_job() {
         log.write( strLogPrefix + cc.info( cntFalse ) + cc.error( " task(s) failed" ) + "\n" );
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
     }
-    if (cntFalse > 0) {
+    if( cntFalse > 0 )
         process.exitCode = cntFalse;
-    }
 }
 
 if( imaState.bSignMessages ) {
@@ -670,83 +703,90 @@ if( imaState.bSignMessages ) {
     discover_s_chain_network( function( err, joSChainNetworkInfo ) {
         if( err )
             process.exit( 1 ); // error information is printed by discover_s_chain_network()
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( cc.success( "S-Chain network was discovered: " )  + cc.j( joSChainNetworkInfo ) + "\n" );
+
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( cc.success( "S-Chain network was discovered: " ) + cc.j( joSChainNetworkInfo ) + "\n" );
         imaState.joSChainNetworkInfo = joSChainNetworkInfo;
         do_the_job();
         return 0; // FINISH
     } );
-} else {
+} else
     do_the_job();
-    return 0; // FINISH
-}
+    // process.exit( 0 ); // FINISH (skip exit here to avoid early termination while tasks ase still running)
 
 async function register_step1() {
-    let strLogPrefix = cc.info("Reg 1:") + " ";
-    let bRetVal1A = await IMA.register_s_chain_on_main_net( // step 1A
+    const strLogPrefix = cc.info( "Reg 1:" ) + " ";
+    const bRetVal1A = await IMA.register_s_chain_on_main_net( // step 1A
         imaState.w3_main_net,
         imaState.jo_message_proxy_main_net,
         imaState.joAccount_main_net,
         imaState.strChainID_s_chain,
-        imaState.cid_main_net
+        imaState.cid_main_net,
+        imaState.tc_main_net
     );
-    let bRetVal1B = await IMA.register_main_net_on_s_chain( // step 1B
+    const bRetVal1B = await IMA.register_main_net_on_s_chain( // step 1B
         imaState.w3_s_chain,
         imaState.jo_message_proxy_s_chain,
         imaState.joAccount_s_chain,
         imaState.strChainID_main_net,
-        imaState.cid_s_chain
+        imaState.cid_s_chain,
+        imaState.tc_s_chain
     );
-    let bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
-    if ( !bRetVal ) {
-        let nRetCode = 1501;
+    const bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
+    if( !bRetVal ) {
+        const nRetCode = 1501;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain on Main-net, will return code " ) + cc.warning( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
     return true;
 }
 async function register_step2() {
-    let strLogPrefix = cc.info("Reg 2:") + " ";
-    let bRetVal = await IMA.register_s_chain_in_deposit_box( // step 2
+    const strLogPrefix = cc.info( "Reg 2:" ) + " ";
+    const bRetVal = await IMA.register_s_chain_in_deposit_box( // step 2
         imaState.w3_main_net,
         // imaState.jo_deposit_box - only main net
         imaState.jo_lock_and_data_main_net,
         imaState.joAccount_main_net,
         imaState.jo_token_manager, // only s-chain
         imaState.strChainID_s_chain,
-        imaState.cid_main_net
+        imaState.cid_main_net,
+        imaState.tc_main_net
     );
-    if ( !bRetVal ) {
-        let nRetCode = 1502;
+    if( !bRetVal ) {
+        const nRetCode = 1502;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain in deposit box, will return code " ) + cc.warning( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
     return true;
 }
 async function register_step3() {
-    let strLogPrefix = cc.info("Reg 3:") + " ";
-    let bRetVal = await IMA.register_main_net_depositBox_on_s_chain( // step 3
+    const strLogPrefix = cc.info( "Reg 3:" ) + " ";
+    const bRetVal = await IMA.register_main_net_depositBox_on_s_chain( // step 3
         imaState.w3_s_chain,
-        //imaState.jo_token_manager - only s-chain
+        // imaState.jo_token_manager - only s-chain
         imaState.jo_deposit_box, // only main net
         imaState.jo_lock_and_data_s_chain,
         imaState.joAccount_s_chain,
-        imaState.cid_s_chain
+        imaState.cid_s_chain,
+        imaState.tc_s_chain
     );
-    if ( !bRetVal ) {
-        let nRetCode = 1503;
+    if( !bRetVal ) {
+        const nRetCode = 1503;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register Main-net deposit box on S-Chain, will return code " ) + cc.warning( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
     return true;
 }
 async function register_all() {
-    if ( ! await register_step1() )
+    if( !await register_step1() )
         return false;
-    if ( !await register_step2() )
+
+    if( !await register_step2() )
         return false;
-    if ( !await register_step3() )
+
+    if( !await register_step3() )
         return false;
+
     return true;
 }
 
@@ -754,28 +794,29 @@ async function check_registration_all() {
     const b1 = await check_registration_step1();
     const b2 = await check_registration_step2();
     const b3 = await check_registration_step3();
-    if( ! (b1 && b2 && b3) )
+    if( !( b1 && b2 && b3 ) )
         return false;
+
     return true;
 }
 async function check_registration_step1() {
-    let bRetVal1A = await IMA.check_is_registered_s_chain_on_main_net( // step 1A
+    const bRetVal1A = await IMA.check_is_registered_s_chain_on_main_net( // step 1A
         imaState.w3_main_net,
         imaState.jo_message_proxy_main_net,
         imaState.joAccount_main_net,
         imaState.strChainID_s_chain
     );
-    let bRetVal1B = await IMA.check_is_registered_main_net_on_s_chain( // step 1B
+    const bRetVal1B = await IMA.check_is_registered_main_net_on_s_chain( // step 1B
         imaState.w3_s_chain,
         imaState.jo_message_proxy_s_chain,
         imaState.joAccount_s_chain,
         imaState.strChainID_main_net
     );
-    let bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
+    const bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
     return bRetVal;
 }
 async function check_registration_step2() {
-    let bRetVal = await IMA.check_is_registered_s_chain_in_deposit_box( // step 2
+    const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_box( // step 2
         imaState.w3_main_net,
         imaState.jo_lock_and_data_main_net,
         imaState.joAccount_main_net,
@@ -784,7 +825,7 @@ async function check_registration_step2() {
     return bRetVal;
 }
 async function check_registration_step3() {
-    let bRetVal = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 3
+    const bRetVal = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 3
         imaState.w3_s_chain,
         imaState.jo_lock_and_data_s_chain,
         imaState.joAccount_s_chain
@@ -800,26 +841,28 @@ async function check_registration_step3() {
 
 function check_time_framing( d ) {
     try {
-        if ( imaState.nTimeFrameSeconds <= 0 || imaState.nNodesCount <= 1 )
+        if( imaState.nTimeFrameSeconds <= 0 || imaState.nNodesCount <= 1 )
             return true; // time framing is disabled
-        if ( d = null || d == undefined )
+
+        if( d == null || d == undefined )
             d = new Date(); // now
-        let nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
-        let nSecondsRangeForAllSChains = imaState.nTimeFrameSeconds * imaState.nNodesCount;
-        let nMod = Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
-        let nActiveNodeFrameIndex = Math.floor( nMod / imaState.nTimeFrameSeconds );
-        let bSkip = ( nActiveNodeFrameIndex != imaState.nNodeNumber ) ? true : false,
-            bInsideGap = false;
-        if ( !bSkip ) {
-            let nRangeStart = nUtcUnixTimeStamp - Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
-            let nFrameStart = nRangeStart + imaState.nNodeNumber * imaState.nTimeFrameSeconds;
-            let nGapStart = nFrameStart + imaState.nTimeFrameSeconds - imaState.nNextFrameGap;
-            if ( nUtcUnixTimeStamp >= nGapStart ) {
+
+        const nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
+        const nSecondsRangeForAllSChains = imaState.nTimeFrameSeconds * imaState.nNodesCount;
+        const nMod = Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
+        const nActiveNodeFrameIndex = Math.floor( nMod / imaState.nTimeFrameSeconds );
+        let bSkip = ( nActiveNodeFrameIndex != imaState.nNodeNumber ) ? true : false;
+        let bInsideGap = false;
+        if( !bSkip ) {
+            const nRangeStart = nUtcUnixTimeStamp - Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
+            const nFrameStart = nRangeStart + imaState.nNodeNumber * imaState.nTimeFrameSeconds;
+            const nGapStart = nFrameStart + imaState.nTimeFrameSeconds - imaState.nNextFrameGap;
+            if( nUtcUnixTimeStamp >= nGapStart ) {
                 bSkip = true;
                 bInsideGap = true;
             }
         }
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace ) {
             log.write(
                 "\n" +
                 cc.info( "Unix UTC time stamp" ) + cc.debug( "........" ) + cc.notice( nUtcUnixTimeStamp ) + "\n" +
@@ -830,27 +873,31 @@ function check_time_framing( d ) {
                 cc.info( "Is skip" ) + cc.debug( "...................." ) + cc.yn( bSkip ) + "\n" +
                 cc.info( "Is inside gap" ) + cc.debug( ".............." ) + cc.yn( bInsideGap ) + "\n"
             );
-        if ( bSkip )
+        }
+        if( bSkip )
             return false;
     } catch ( e ) {
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal )
             log.write( cc.fatal( "Exception in check_time_framing():" ) + cc.error( e ) + "\n" );
     }
     return true;
 }
 
 async function single_transfer_loop() {
-    let strLogPrefix = cc.attention("Single Loop:") + " ";
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+    const strLogPrefix = cc.attention( "Single Loop:" ) + " ";
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
-    if ( !check_time_framing() ) {
-        if ( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+
+    if( !check_time_framing() ) {
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.warning( "Skipped due to time framing" ) + "\n" );
+
         return true;
     }
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
-    let b1 = await IMA.do_transfer( // main-net --> s-chain
+
+    const b1 = await IMA.do_transfer( // main-net --> s-chain
         //
         imaState.w3_main_net,
         imaState.jo_message_proxy_main_net,
@@ -869,13 +916,16 @@ async function single_transfer_loop() {
         imaState.nMaxTransactionsM2S,
         imaState.nBlockAwaitDepthM2S,
         imaState.nBlockAgeM2S,
-        imaBLS.do_sign_messages_m2s // fn_sign_messages
+        imaBLS.do_sign_messages_m2s, // fn_sign_messages
+        imaState.tc_s_chain
     );
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf(b1) + "\n" );
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
+
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
-    let b2 = await IMA.do_transfer( // s-chain --> main-net
+
+    const b2 = await IMA.do_transfer( // s-chain --> main-net
         //
         imaState.w3_s_chain,
         imaState.jo_message_proxy_s_chain,
@@ -894,13 +944,16 @@ async function single_transfer_loop() {
         imaState.nMaxTransactionsS2M,
         imaState.nBlockAwaitDepthS2M,
         imaState.nBlockAgeS2M,
-        imaBLS.do_sign_messages_s2m // fn_sign_messages
+        imaBLS.do_sign_messages_s2m, // fn_sign_messages
+        imaState.tc_main_net
     );
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf(b2) + "\n" );
-    let b3 = b1 && b2;
-    if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf(b3) + "\n" );
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
+
+    const b3 = b1 && b2;
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( b3 ) + "\n" );
+
     return b3;
 }
 async function single_transfer_loop_with_repeat() {
@@ -910,8 +963,9 @@ async function single_transfer_loop_with_repeat() {
 async function run_transfer_loop( isDelayFirstRun ) {
     isDelayFirstRun = owaspUtils.toBoolean( isDelayFirstRun );
     if( isDelayFirstRun )
-        setTimeout( single_transfer_loop_with_repeat, imaState.nLoopPeriodSeconds*1000 );
+        setTimeout( single_transfer_loop_with_repeat, imaState.nLoopPeriodSeconds * 1000 );
     else
         await single_transfer_loop_with_repeat();
+
     return true;
 }
