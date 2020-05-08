@@ -1370,8 +1370,7 @@ async function do_erc20_payment_from_s_chain(
             data: dataTxApprove,
             to: erc20Address_s_chain,
             gasPrice: gasPrice,
-            joAccountSrc
-
+            gas: 8000000
         };
         tcnt += 1;
         const rawTxExitToMainERC20 = {
