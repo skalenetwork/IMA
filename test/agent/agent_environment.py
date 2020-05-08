@@ -10,9 +10,21 @@ class AgentEnvironment(Environment):
 
     def prepare(self):
         chdir(self.config.skale_ima_root)
-        execute('rm -r node_modules')
-        execute('npm install')
+        execute('rm -rf node_modules')
+        execute('yarn install')
+
+        chdir(self.config.agent_root + '/proxy')
+        execute('rm -rf node_modules')
+        execute('yarn install')
+
+        chdir(self.config.agent_root + '/npms/skale-owasp')
+        execute('rm -rf node_modules')
+        execute('yarn install')
+
+        chdir(self.config.agent_root + '/npms/skale-ima')
+        execute('rm -rf node_modules')
+        execute('yarn install')
 
         chdir(self.config.agent_root)
-        execute('rm -r node_modules')
-        execute('npm install')
+        execute('rm -rf node_modules')
+        execute('yarn install')

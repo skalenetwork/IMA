@@ -181,6 +181,42 @@ jobs:
         echo ------------ slither version check - after install
         slither --version || true
 
+    - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
+      run: |
+        cd proxy
+        bash ./scripts/copy.sh
+        cd ..
+
+    - name: INSTALL PREREQUISITES - PROXY - PACKAGES
+      run: |
+        cd proxy
+        echo ------------ yarn pass
+        yarn install
+        echo ------------ npx version check
+        which npx || echo "----> Looks like npx was not installed, next command will fail"
+        npx --version
+        echo ------------ buidler version check
+        npx buidler --version
+        cd ..
+
+    - name: INSTALL PREREQUISITES - AGENT - PACKAGES
+      run: |
+        cd agent 
+        yarn install
+        cd ..
+
+    - name: INSTALL PREREQUISITES - SKALE-IMA - PACKAGES
+      run: |
+        cd npms/skale-ima
+        yarn install
+        cd ../..
+
+    - name: INSTALL PREREQUISITES - SKALE-OWASP - PACKAGES
+      run: |
+        cd npms/skale-owasp
+        yarn install
+        cd ../..
+
     - name: START BACKGROUND GANACHE
       run: |
         echo ------------ ganache-cli install

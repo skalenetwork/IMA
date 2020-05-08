@@ -389,6 +389,27 @@ const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
     }
 };
 
+function safeStringifyJSON( jo ) {
+    try {
+        const getCircularReplacer = () => {
+            const seen = new WeakSet();
+            return ( key, value ) => {
+                if( typeof value === "object" && value !== null ) {
+                    if( seen.has( value ) )
+                        return;
+
+                    seen.add( value );
+                }
+                return value;
+            };
+        };
+        const s = "" + JSON.stringify( jo, getCircularReplacer() );
+        return s;
+    } catch ( err ) {
+    }
+    return undefined;
+}
+
 module.exports = {
     enable: function( b ) {
         g_bEnabled = !!b;
@@ -396,6 +417,7 @@ module.exports = {
     isEnabled: function() {
         return !!g_bEnabled;
     },
+    safeStringifyJSON: safeStringifyJSON,
     reset: "\x1b[0m",
     enlight: "\x1b[1m",
     dim: "\x1b[2m",
