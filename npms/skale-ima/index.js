@@ -123,7 +123,7 @@ function dry_run_enable( isEnable ) {
     return g_bDryRunIsEnabled ? true : false;
 }
 
-let g_bDryRunIsIgnored = true;
+let g_bDryRunIsIgnored = false;
 
 function dry_run_is_ignored() {
     return g_bDryRunIsIgnored ? true : false;
@@ -143,12 +143,17 @@ function extract_dry_run_method_name( methodWithArguments ) {
     return "N/A-method-name";
 }
 
-async function dry_run_call( w3, methodWithArguments, joAccount ) {
+async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnore ) {
+    isIgnore = ( isIgnore != null && isIgnore != undefined ) ? ( isIgnore ? true : false ) : false;
     const strMethodName = extract_dry_run_method_name( methodWithArguments );
-    const strLogPrefix = cc.attention( "DRY RUN CALL TO THE " ) + cc.bright( strMethodName ) + cc.attention( " METHOD:" );
+    const strWillBeIgnored = isIgnore ? "IGNORED " : "";
+    let strLogPrefix = cc.attention( strWillBeIgnored + "DRY RUN CALL TO THE " ) + cc.bright( strMethodName ) + cc.attention( " METHOD" );
+    if( strDRC && typeof strDRC == "string" && strDRC.length )
+        strLogPrefix += cc.normal( "(" ) + cc.debug( strDRC ) + cc.normal( ")" );
+    strLogPrefix += cc.attention( ":" ) + " ";
     if( ! dry_run_is_enabled() ) {
         if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( " Skipped, dry run is disabled" ) + "\n" );
+            log.write( strLogPrefix + cc.success( "Skipped, dry run is disabled" ) + "\n" );
         return;
     }
     try {
@@ -165,12 +170,19 @@ async function dry_run_call( w3, methodWithArguments, joAccount ) {
             //, gas: 8000000
         } );
         if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( " got result " ) + cc.normal( cc.safeStringifyJSON( joResult ) ) + "\n" );
+            log.write( strLogPrefix + cc.success( "got result " ) + cc.normal( cc.safeStringifyJSON( joResult ) ) + "\n" );
     } catch ( err ) {
-        if( verbose_get() >= RV_VERBOSE.error )
-            log.write( strLogPrefix + " " + cc.fatal( "FAILED DRY RUN: " ) + " " + cc.error( err ) + "\n" );
-        if( ! dry_run_is_ignored() )
-            throw new Error( "Failed dry run the \"" + strMethodName + "\" method: " + err.toString() );
+        if( verbose_get() >= RV_VERBOSE.error ) {
+            let strErrorMessage = "" + strLogPrefix;
+            if( isIgnore )
+                strErrorMessage += cc.warning( "IGNORED DRY RUN FAIL:" );
+            else
+                strErrorMessage += cc.fatal( "CRITICAL DRY RUN FAIL:" );
+            strErrorMessage += " " + cc.error( err ) + "\n";
+            log.write( strErrorMessage );
+        }
+        if( ! ( isIgnore || dry_run_is_ignored() ) )
+            throw new Error( "CRITICAL DRY RUN FAIL invoking the \"" + strMethodName + "\" method: " + err.toString() );
     }
 }
 
@@ -271,7 +283,9 @@ async function register_s_chain_on_main_net( // step 1A
         const methodWithArguments = jo_message_proxy_main_net.methods.addConnectedChain(
             chain_id_s_chain, [ 0, 0, 0, 0 ] // call params
         );
-        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net );
+        const isIgnore = false;
+        const strDRC = "register_s_chain_on_main_net, step 1A, addConnectedChain";
+        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
@@ -376,7 +390,9 @@ async function register_main_net_on_s_chain( // step 1B
         const methodWithArguments = jo_message_proxy_s_chain.methods.addConnectedChain(
             chain_id_main_net, [ 0, 0, 0, 0 ] // call params
         );
-        await dry_run_call( w3_s_chain, methodWithArguments, joAccount_s_chain );
+        const isIgnore = false;
+        const strDRC = "register_main_net_on_s_chain, step 1B, addConnectedChain";
+        await dry_run_call( w3_s_chain, methodWithArguments, joAccount_s_chain, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
@@ -479,7 +495,9 @@ async function register_s_chain_in_deposit_box( // step 2
         const methodWithArguments = jo_lock_and_data_main_net.methods.addSchain(
             chain_id_s_chain, jo_token_manager.options.address // call params
         );
-        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net );
+        const isIgnore = false;
+        const strDRC = "register_s_chain_in_deposit_box, step 2, addSchain";
+        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
@@ -572,7 +590,9 @@ async function register_main_net_depositBox_on_s_chain( // step 3
         const methodWithArguments = jo_lock_and_data_s_chain.methods.addDepositBox(
             jo_deposit_box_main_net.options.address // call params
         );
-        await dry_run_call( w3_s_chain, methodWithArguments, joAccount );
+        const isIgnore = false;
+        const strDRC = "register_main_net_depositBox_on_s_chain, step 3, addDepositBox";
+        await dry_run_call( w3_s_chain, methodWithArguments, joAccount, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
@@ -647,7 +667,9 @@ async function do_eth_payment_from_main_net(
             // call params, last is destination account on S-chain
             chain_id_s_chain, joAccountDst.address( w3_main_net ), w3_main_net.utils.fromAscii( "" ) // TO-DO: string is "data" parameter, we need to allow user to specify it
         );
-        await dry_run_call( w3_main_net, methodWithArguments, joAccountSrc );
+        const isIgnore = true;
+        const strDRC = "do_eth_payment_from_main_net, deposit";
+        await dry_run_call( w3_main_net, methodWithArguments, joAccountSrc, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
@@ -772,6 +794,8 @@ async function do_eth_payment_from_s_chain(
             "0x" + w3_s_chain.utils.toBN( wei_how_much ).toString( 16 ),
             "0x" // w3_s_chain.utils.fromAscii( "" ) // TO-DO: string is "data" parameter, we need to allow user to specify it
         );
+        const isIgnore_ = false;
+        const strDRC_ = "do_eth_payment_from_s_chain, exitToMain";
         await dry_run_call( w3_s_chain, methodWithArguments, joAccountSrc );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
@@ -844,7 +868,9 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         const methodWithArguments = jo_lock_and_data_main_net.methods.getMyEth(
             // call params(empty)
         );
-        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net );
+        const isIgnore = false;
+        const strDRC = "receive_eth_payment_from_s_chain_on_main_net, getMyEth";
+        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
@@ -959,7 +985,9 @@ async function do_erc721_payment_from_main_net(
             joAccountSrc.address( w3_main_net ), depositBoxAddress, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
         );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
-        await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc );
+        const isIgnore_approve = false;
+        const strDRC_approve = "do_erc721_payment_from_main_net, transferFrom";
+        await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve );
         let dataTxDeposit = null;
         if( isRawTokenTransfer ) {
             const erc721Address_s_chain = erc721PrivateTestnetJson_s_chain[strCoinNameErc721_s_chain + "_address"];
@@ -967,14 +995,18 @@ async function do_erc721_payment_from_main_net(
                 chain_id_s_chain, erc721Address_main_net, erc721Address_s_chain // specific for rawDepositERC721() only
                 , accountForSchain, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
             );
-            await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc );
+            const isIgnore_rawDepositERC721 = true;
+            const strDRC_rawDepositERC721 = "do_erc721_payment_from_main_net, rawDepositERC721";
+            await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721 );
             dataTxDeposit = methodWithArguments_rawDepositERC721.encodeABI();
         } else {
             // TO-DO: this is beta version, need to re-check and improve it later
             const methodWithArguments_depositERC721 = jo_deposit_box.methods.depositERC721(
                 chain_id_s_chain, erc721Address_main_net, accountForSchain, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
             );
-            await dry_run_call( w3_main_net, methodWithArguments_depositERC721, joAccountSrc );
+            const isIgnore_depositERC721 = true;
+            const strDRC_depositERC721 = "do_erc721_payment_from_main_net, depositERC721";
+            await dry_run_call( w3_main_net, methodWithArguments_depositERC721, joAccountSrc, strDRC_depositERC721, isIgnore_depositERC721 );
             dataTxDeposit = methodWithArguments_depositERC721.encodeABI();
         }
         //
@@ -1151,7 +1183,9 @@ async function do_erc20_payment_from_main_net(
         const methodWithArguments_approve = contractERC20.methods.approve(
             depositBoxAddress, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
-        await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc );
+        const isIgnore_approve = false;
+        const strDRC_approve = "do_erc20_payment_from_main_net, ";
+        await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
         let dataTxDeposit = null;
         log.write( strLogPrefix + cc.normal( "isRawTokenTransfer = " ) + cc.info( isRawTokenTransfer ) + "\n" );
@@ -1161,14 +1195,18 @@ async function do_erc20_payment_from_main_net(
                 chain_id_s_chain, erc20Address_main_net, erc20Address_s_chain // specific for rawDepositERC20() only
                 , accountForSchain, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             );
-            await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc );
+            const isIgnore_rawDepositERC20 = true;
+            const strDRC_rawDepositERC20 = "do_erc20_payment_from_main_net, ";
+            await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20 );
             dataTxDeposit = methodWithArguments_rawDepositERC20.encodeABI();
         } else {
             // TO-DO: this is beta version, need to re-check and improve it later
             const methodWithArguments_depositERC20 = jo_deposit_box.methods.depositERC20(
                 chain_id_s_chain, erc20Address_main_net, accountForSchain, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             );
-            await dry_run_call( w3_main_net, methodWithArguments_depositERC20, joAccountSrc );
+            const isIgnore_depositERC20 = true;
+            const strDRC_depositERC20 = "do_erc20_payment_from_main_net, ";
+            await dry_run_call( w3_main_net, methodWithArguments_depositERC20, joAccountSrc, strDRC_depositERC20, isIgnore_depositERC20 );
             dataTxDeposit = methodWithArguments_depositERC20.encodeABI();
         }
         //
@@ -1335,7 +1373,9 @@ async function do_erc20_payment_from_s_chain(
         const methodWithArguments_approve = contractERC20.methods.approve(
             tokenManagerAddress, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
-        await dry_run_call( w3_s_chain, methodWithArguments_approve, joAccountSrc );
+        const isIgnore_approve = false;
+        const strDRC_approve = "do_erc20_payment_from_s_chain, approve";
+        await dry_run_call( w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
         let dataExitToMainERC20 = null;
         if( isRawTokenTransfer ) {
@@ -1344,14 +1384,18 @@ async function do_erc20_payment_from_s_chain(
                 erc20Address_s_chain, erc20Address_main_net // specific for rawExitToMainERC20() only
                 , accountForMainnet, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             );
-            await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc );
+            const isIgnore_rawExitToMainERC20 = false;
+            const strDRC_rawExitToMainERC20 = "do_erc20_payment_from_s_chain, rawExitToMainERC20";
+            await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20 );
             dataExitToMainERC20 = methodWithArguments_rawExitToMainERC20.encodeABI();
         } else {
             // TO-DO: this is beta version, need to re-check and improve it later
             const methodWithArguments_exitToMainERC20 = jo_token_manager.methods.exitToMainERC20(
                 erc20Address_s_chain, accountForMainnet, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             );
-            await dry_run_call( w3_s_chain, methodWithArguments_exitToMainERC20, joAccountSrc );
+            const isIgnore_exitToMainERC20 = false;
+            const strDRC_exitToMainERC20 = "do_erc20_payment_from_s_chain, exitToMainERC20";
+            await dry_run_call( w3_s_chain, methodWithArguments_exitToMainERC20, joAccountSrc, strDRC_exitToMainERC20, isIgnore_exitToMainERC20 );
             dataExitToMainERC20 = methodWithArguments_exitToMainERC20.encodeABI();
         }
         //
@@ -1471,7 +1515,9 @@ async function do_erc721_payment_from_s_chain(
         const methodWithArguments_transferFrom = contractERC721.methods.transferFrom(
             accountForSchain, tokenManagerAddress, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
         );
-        await dry_run_call( w3_s_chain, methodWithArguments_transferFrom, joAccountSrc );
+        const isIgnore_transferFrom = false;
+        const strDRC_transferFrom = "erc721_payment_from_s_chain, transferFrom";
+        await dry_run_call( w3_s_chain, methodWithArguments_transferFrom, joAccountSrc, strDRC_transferFrom,isIgnore_transferFrom );
         const dataTxTransferFrom = methodWithArguments_transferFrom.encodeABI();
         let dataTxExitToMainERC721 = null;
         if( isRawTokenTransfer ) {
@@ -1480,14 +1526,18 @@ async function do_erc721_payment_from_s_chain(
                 erc721Address_s_chain, erc721Address_main_net // specific for rawExitToMainERC721() only
                 , accountForMainnet, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
             );
-            await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc );
+            const isIgnore_rawExitToMainERC721 = false;
+            const strDRC_rawExitToMainERC721 = "erc721_payment_from_s_chain, rawExitToMainERC721";
+            await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721 );
             dataTxExitToMainERC721 = methodWithArguments_rawExitToMainERC721.encodeABI();
         } else {
             // TO-DO: this is beta version, need to re-check and improve it later
             const methodWithArguments_exitToMainERC721 = jo_token_manager.methods.exitToMainERC721(
                 erc721Address_s_chain, accountForMainnet, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
             );
-            await dry_run_call( w3_s_chain, methodWithArguments_exitToMainERC721, joAccountSrc );
+            const isIgnore_exitToMainERC721 = false;
+            const strDRC_exitToMainERC721 = "erc721_payment_from_s_chain, exitToMainERC721";
+            await dry_run_call( w3_s_chain, methodWithArguments_exitToMainERC721, joAccountSrc, strDRC_exitToMainERC721, isIgnore_exitToMainERC721 );
             dataTxExitToMainERC721 = methodWithArguments_exitToMainERC721.encodeABI();
         }
         //
@@ -1868,7 +1918,7 @@ async function do_transfer(
                     hashB: hashPoint.Y, // G1.Y from joGlueResult.hashSrc
                     counter: hint
                 };
-                const methodWithArguments = jo_message_proxy_dst.methods.postIncomingMessages(
+                const methodWithArguments_postIncomingMessages = jo_message_proxy_dst.methods.postIncomingMessages(
                     // call params
                     chain_id_src,
                     nIdxCurrentMsgBlockStart,
@@ -1876,8 +1926,10 @@ async function do_transfer(
                     sign, // bls signature components
                     idxLastToPopNotIncluding
                 );
-                await dry_run_call( w3_dst, methodWithArguments, joAccountDst );
-                const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+                const isIgnore_postIncomingMessages = false;
+                const strDRC_postIncomingMessages = "postIncomingMessages in message signer";
+                await dry_run_call( w3_dst, methodWithArguments_postIncomingMessages, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages );
+                const dataTx_postIncomingMessages = methodWithArguments_postIncomingMessages.encodeABI(); // the encoded ABI of the method
                 //
                 if( verbose_get() >= RV_VERBOSE.trace ) {
                     const joDebugArgs = [
@@ -1901,25 +1953,25 @@ async function do_transfer(
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
                 //
-                const rawTx = {
+                const rawTx_postIncomingMessages = {
                     chainId: cid_dst,
                     nonce: tcnt,
                     gas: 6000000, // 8000000
                     gasPrice: gasPrice,
                     // "gasLimit": 3000000,
                     to: jo_message_proxy_dst.options.address, // contract address
-                    data: dataTx //,
+                    data: dataTx_postIncomingMessages //,
                     // "value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
                 };
                 if( verbose_get() >= RV_VERBOSE.trace )
                     log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
-                const tx = new ethereumjs_tx( rawTx );
+                const tx_postIncomingMessages = new ethereumjs_tx( rawTx_postIncomingMessages );
                 const key = Buffer.from( joAccountDst.privateKey, "hex" ); // convert private key to buffer ??????????????????????????????????
-                tx.sign( key ); // arg is privateKey as buffer
-                const serializedTx = tx.serialize();
+                tx_postIncomingMessages.sign( key ); // arg is privateKey as buffer
+                const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
                 strActionName = "w3_dst.eth.sendSignedTransaction()";
-                // let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-                const joReceipt = await safe_send_signed_transaction( w3_dst, serializedTx, strActionName, strLogPrefix );
+                // let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx_postIncomingMessages.toString( "hex" ) );
+                const joReceipt = await safe_send_signed_transaction( w3_dst, serializedTx_postIncomingMessages, strActionName, strLogPrefix );
                 if( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
                 cntProcessed += cntAccumulatedForBlock;
