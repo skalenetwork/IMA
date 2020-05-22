@@ -516,7 +516,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 ++nCountReceived; // including errors
                 if( err ) {
                     ++nCountErrors;
-                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
+                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err.toString() ) + "\n" );
                     return;
                 }
                 if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {

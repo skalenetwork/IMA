@@ -519,7 +519,7 @@ imaCLI.parse( {
                         "params": { }
                     }, async function( joIn, joOut, err ) {
                         if( err ) {
-                            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err.toString() ) );
                             process.exit( 1 );
                         }
                         log.write( strLogPrefix + cc.normal( "S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
@@ -539,7 +539,7 @@ imaCLI.parse( {
                                 }, function( joIn, joOut, err ) {
                                     ++ nCountReceivedImaDescriptions;
                                     if( err ) {
-                                        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                                        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err.toString() ) );
                                         process.exit( 1 );
                                     }
                                     log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " IMA information: " ) + cc.j( joOut.result ) + "\n" );
@@ -587,7 +587,7 @@ async function discover_s_chain_network( fnAfter ) {
     let joSChainNetworkInfo = null;
     await rpcCall.create( imaState.strURL_s_chain, async function( joCall, err ) {
         if( err ) {
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed: " ) + cc.warning( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed: " ) + cc.warning( err.toString() ) + "\n" );
             fnAfter( err, null );
             return;
         }
@@ -596,7 +596,7 @@ async function discover_s_chain_network( fnAfter ) {
             "params": { }
         }, async function( joIn, joOut, err ) {
             if( err ) {
-                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
+                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err.toString() ) + "\n" );
                 fnAfter( err, null );
                 return;
             }
@@ -623,7 +623,7 @@ async function discover_s_chain_network( fnAfter ) {
                     }, function( joIn, joOut, err ) {
                         ++ nCountReceivedImaDescriptions;
                         if( err ) {
-                            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
+                            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err.toString() ) + "\n" );
                             fnAfter( err, null );
                             return;
                         }

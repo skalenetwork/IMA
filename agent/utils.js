@@ -75,7 +75,7 @@ function jsonFileLoad( strPath, joDefault, bLogOutput ) {
         return jo;
     } catch ( err ) {
         if( bLogOutput )
-            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to load JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( err ) );
+            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to load JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( err.toString() ) );
     }
     return joDefault;
 }
@@ -93,7 +93,7 @@ function jsonFileSave( strPath, jo, bLogOutput ) {
         return true;
     } catch ( err ) {
         if( bLogOutput )
-            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to save JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( err ) );
+            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to save JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( err.toString() ) );
     }
     return false;
 }

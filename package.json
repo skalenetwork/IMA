@@ -4,8 +4,8 @@
     "license": "AGPL-3.0",
     "author": "SKALE Labs and contributors",
     "scripts": {
-        "lint-check": "eslint ./agent/*.js ./npms/skale-*/*.js",
-        "lint-fix": "eslint ./agent/*.js ./npms/skale-*/*.js --fix",
+        "lint-check": "eslint ./agent/*.js ./npms/skale-cc/*.js ./npms/skale-log/*.js ./npms/skale-owasp/*.js ./npms/skale-ima/*.js",
+        "lint-fix": "eslint ./agent/*.js ./npms/skale-cc/*.js ./npms/skale-log/*.js ./npms/skale-owasp/*.js ./npms/skale-ima/*.js --fix",
         "postinstall": "echo \"----- installing in agent\n\" && cd ./agent && yarn install && cd .. && echo \"----- installing in proxy\n\" && cd ./proxy && yarn install && cd .."
     },
     "dependencies": {},

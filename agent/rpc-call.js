@@ -40,10 +40,10 @@ async function do_connect( joCall, fn ) {
                 joCall.wsConn = 0;
             } );
             joCall.wsConn.on( "error", function( err ) {
-                log.write( cc.u( joCall.url ) + cc.error( " WS error " ) + cc.warning( err ) + "\n" );
+                log.write( cc.u( joCall.url ) + cc.error( " WS error " ) + cc.warning( err.toString() ) + "\n" );
             } );
             joCall.wsConn.on( "fail", function( err ) {
-                log.write( cc.u( joCall.url ) + cc.error( " WS fail " ) + cc.warning( err ) + "\n" );
+                log.write( cc.u( joCall.url ) + cc.error( " WS fail " ) + cc.warning( err.toString() ) + "\n" );
             } );
             joCall.wsConn.on( "message", function incoming( data ) {
                 // log.write( cc.info( "WS message " ) + cc.attention( data ) + "\n" );
@@ -105,7 +105,7 @@ async function do_call( joCall, joIn, fn ) {
             if( response && response.statusCode && response.statusCode != 200 )
                 log.write( cc.error( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" );
             if( err ) {
-                log.write( cc.u( joCall.url ) + cc.error( " REST error " ) + cc.warning( err ) + "\n" );
+                log.write( cc.u( joCall.url ) + cc.error( " REST error " ) + cc.warning( err.toString() ) + "\n" );
                 fn( joIn, null, err );
                 return;
             }
