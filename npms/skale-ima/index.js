@@ -237,9 +237,11 @@ async function check_account_funds( w3, strAddress_or_joAccount, balanceMinimal,
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.attention( "current balance" ) + cc.bright( " = " ) + bnBalance2colored( bnBalance ) + "\n" );
         const bnBalanceMinimal = w3.utils.toBN( balanceMinimal );
         if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Got " ) + cc.attention( "minimal balance" ) + cc.bright( " = " ) + bnBalance2colored( bnBalance ) + "\n" );
+            log.write( strLogPrefix + cc.debug( "Got " ) + cc.attention( "minimal balance" ) + cc.bright( " = " ) + bnBalance2colored( bnBalanceMinimal ) + "\n" );
         if( bnBalanceMinimal.gt( bnBalance ) )
-            throw new Error( "account ballance is less than minimal" );
+            throw new Error( "account balance is less than minimal" );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.success( "Account balance OKay" ) + "\n" );
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( err.toString() ) + "\n" );
