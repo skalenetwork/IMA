@@ -215,43 +215,34 @@ async function safe_send_signed_transaction( w3, serializedTx, strActionName, st
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function provider2url( provider ) {
+async function check_account_funds( w3, strAddress_or_joAccount, balanceMinimal, strParentActionDescription ) {
+    let strLogPrefix = cc.debug( "Account funds check" ) + " ";
     try {
-        if( provider == null || provider == undefined )
-            return "<N/A>";
-        if( "host" in provider && provider.host && typeof provider.host == "string" && provider.host.length > 0 )
-            return "" + provider.host;
-        if( "connection" in provider && provider.connection && typeof provider.connection == "object" &&
-            "url" in provider.connection && provider.connection.url && typeof provider.connection.url == "string" && provider.connection.url.length > 0
-        )
-            return "" + provider.connection.url;
-        if( "connection" in provider && provider.connection && typeof provider.connection == "object" &&
-            "_url" in provider.connection && provider.connection._url && typeof provider.connection._url == "string" && provider.connection._url.length > 0
-        )
-            return "" + provider.connection.url;
-    } catch ( err ) {
-    }
-    return "<unknown>";
-}
-
-async function check_account_funds( w3, strAddress_or_joAccount, strParentActionDescription ) {
-    let strLogPrefix = cc.debug( "Account funds check" );
-    try {
-        const addressFrom = ensure_starts_with_0x( ( typeof strAddress_or_joAccount == "string" ) ? ( "" + strAddress_or_joAccount ) : strAddress_or_joAccount.address( w3 ) );
-        const strURL = "" + provider2url( w3.currentProvider );
-        strLogPrefix += " " + cc.debug( "for account" ) + " " + cc.info( addressFrom ) + " " + cc.debug( "via Web3" ) + " " + cc.u( strURL ) + cc.debug( ":" ) + " ";
-        const ballance = await w3.eth.getBallance( addressFrom );
-        const bnBallance = w3.utils.toBN( ballance );
-        if( verbose_get() >= RV_VERBOSE.debug ) {
-            log.write( strLogPrefix + cc.debug( "Got " ) + cc.attention( "ballance" ) +
-                cc.debug( "=" ) + cc.info( bnBallance.toString( 10 ) ) +
-                cc.debug( "=" ) + cc.info( ensure_starts_with_0x( bnBallance.toString( 16 ) ) ) +
-                "\n" );
-        }
+        const bnBalance2colored = function( bnBalance ) {
+            const strBalanceWei16 = owaspUtils.ensure_starts_with_0x( bnBalance.toString( 16 ) );
+            const strBalanceWei10 = bnBalance.toString( 10 );
+            const strBalanceGWei10 = w3.utils.fromWei( bnBalance, "gwei" ).toString( 10 );
+            const strBalanceEth10 = w3.utils.fromWei( bnBalance, "ether" ).toString( 10 );
+            return cc.sunny( strBalanceWei16 ) + " " + cc.attention( "Wei" ) +
+                cc.bright( " = " ) + cc.sunny( strBalanceWei10 ) + " " + cc.attention( "Wei" ) +
+                cc.bright( " = " ) + cc.sunny( strBalanceGWei10 ) + " " + cc.attention( "GWei" ) +
+                cc.bright( " = " ) + cc.sunny( strBalanceEth10 ) + " " + cc.attention( "ETH" );
+        };
+        const addressFrom = owaspUtils.ensure_starts_with_0x( ( typeof strAddress_or_joAccount == "string" ) ? ( "" + strAddress_or_joAccount ) : strAddress_or_joAccount.address( w3 ) );
+        const strURL = "" + owaspUtils.provider2url( w3.currentProvider );
+        strLogPrefix += cc.debug( "for account" ) + " " + cc.info( addressFrom ) + " " + cc.debug( "via Web3" ) + " " + cc.u( strURL ) + cc.debug( ":" ) + " ";
+        const balance = await w3.eth.getBalance( addressFrom );
+        const bnBalance = w3.utils.toBN( balance );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Got " ) + cc.attention( "current balance" ) + cc.bright( " = " ) + bnBalance2colored( bnBalance ) + "\n" );
+        const bnBalanceMinimal = w3.utils.toBN( balanceMinimal );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Got " ) + cc.attention( "minimal balance" ) + cc.bright( " = " ) + bnBalance2colored( bnBalance ) + "\n" );
+        if( bnBalanceMinimal.gt( bnBalance ) )
+            throw new Error( "account ballance is less than minimal" );
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( err.toString() ) + "\n" );
-
     }
 }
 
@@ -298,7 +289,8 @@ async function register_s_chain_on_main_net( // step 1A
     joAccount_main_net,
     chain_id_s_chain,
     cid_main_net,
-    tc_main_net
+    tc_main_net,
+    balanceMinimalMN
 ) {
     const strLogPrefix = cc.sunny( "Reg S on M:" ) + " ";
     if( verbose_get() >= RV_VERBOSE.debug ) {
@@ -311,7 +303,7 @@ async function register_s_chain_on_main_net( // step 1A
         log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_main_net.options.address ) + "\n" );
         log.write( cc.info( "Main-net " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( cid_main_net ) + "\n" );
         log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
-        await check_account_funds( w3_main_net, joAccount_main_net, "reg-step1A / main-ne" );
+        await check_account_funds( w3_main_net, joAccount_main_net, balanceMinimalMN, "reg-step1A / main-ne" );
         strActionName = "reg-step1A / main-net / getTransactionCount";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -405,7 +397,8 @@ async function register_main_net_on_s_chain( // step 1B
     joAccount_s_chain,
     chain_id_main_net,
     cid_s_chain,
-    tc_s_chain
+    tc_s_chain,
+    balanceMinimalSC
 ) {
     const strLogPrefix = cc.sunny( "Reg M on S:" ) + " ";
     if( verbose_get() >= RV_VERBOSE.debug ) {
@@ -418,7 +411,7 @@ async function register_main_net_on_s_chain( // step 1B
         log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_s_chain.options.address ) + "\n" );
         log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( cid_s_chain ) + "\n" );
         log.write( cc.info( "Main-net " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_main_net ) + "\n" );
-        await check_account_funds( w3_s_chain, joAccount_s_chain, "reg-step1B / S-Chain" );
+        await check_account_funds( w3_s_chain, joAccount_s_chain, balanceMinimalSC, "reg-step1B / S-Chain" );
         strActionName = "reg-step1B / S-Chain / getTransactionCount";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -512,7 +505,8 @@ async function register_s_chain_in_deposit_box( // step 2
     jo_token_manager, // only s-chain
     chain_id_s_chain,
     cid_main_net,
-    tc_main_net
+    tc_main_net,
+    balanceMinimalMN
 ) {
     log.write( cc.info( "Main-net " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( jo_lock_and_data_main_net.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
@@ -525,7 +519,7 @@ async function register_s_chain_in_deposit_box( // step 2
     let strActionName = "";
     try {
         strActionName = "reg-step2 / main-net / getTransactionCount";
-        await check_account_funds( w3_main_net, joAccount_main_net, "reg-step2 / main-net" );
+        await check_account_funds( w3_main_net, joAccount_main_net, balanceMinimalMN, "reg-step2 / main-net" );
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         const tcnt = await w3_main_net.eth.getTransactionCount( joAccount_main_net.address( w3_main_net ), null );
@@ -608,9 +602,10 @@ async function register_main_net_depositBox_on_s_chain( // step 3
     // excluded here: jo_token_manager,
     jo_deposit_box_main_net,
     jo_lock_and_data_s_chain,
-    joAccount,
+    joAccount, // joAccount_s_chain
     cid_s_chain,
-    tc_s_chain
+    tc_s_chain,
+    balanceMinimalSC
 ) {
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( jo_lock_and_data_s_chain.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( cid_s_chain ) + "\n" );
@@ -622,7 +617,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
     }
     let strActionName = "";
     try {
-        await check_account_funds( w3_s_chain, joAccount, "reg-step3 / S-Chain" );
+        await check_account_funds( w3_s_chain, joAccount, balanceMinimalSC, "reg-step3 / S-Chain" );
         strActionName = "reg-step3 / S-Chain / getTransactionCount / register_main_net_depositBox_on_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -685,20 +680,21 @@ async function register_main_net_depositBox_on_s_chain( // step 3
 async function do_eth_payment_from_main_net(
     w3_main_net,
     cid_main_net,
-    joAccountSrc,
-    joAccountDst,
+    joAccountSrc, // joAccount_main_net
+    joAccountDst, // joAccount_s_chain
     jo_deposit_box,
     jo_message_proxy_main_net, // for checking logs
     jo_lock_and_data_main_net, // for checking logs
     chain_id_s_chain,
     wei_how_much, // how much WEI money to send
-    tc_main_net
+    tc_main_net,
+    balanceMinimalMN
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "M2S ETH Payment:" ) + " ";
     try {
         log.write( strLogPrefix + cc.debug( "Doing payment from mainnet with " ) + cc.notice( "chain_id_s_chain" ) + cc.debug( "=" ) + cc.notice( chain_id_s_chain ) + cc.debug( "..." ) + "\n" );
         //
-        await check_account_funds( w3_main_net, joAccountSrc, "ETH payment from main-net" );
+        await check_account_funds( w3_main_net, joAccountSrc, balanceMinimalMN, "ETH payment from main-net" );
         strActionName = "main-net / getTransactionCount";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -813,16 +809,17 @@ async function do_eth_payment_from_main_net(
 async function do_eth_payment_from_s_chain(
     w3_s_chain,
     cid_s_chain,
-    joAccountSrc,
-    joAccountDst,
+    joAccountSrc, // joAccount_s_chain
+    joAccountDst, // joAccount_main_net
     jo_token_manager,
     jo_message_proxy_s_chain, // for checking logs
     wei_how_much, // how much WEI money to send
-    tc_s_chain
+    tc_s_chain,
+    balanceMinimalSC
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "S2M ETH Payment:" ) + " ";
     try {
-        await check_account_funds( w3_s_chain, joAccountSrc, "ETH payment from S-Chain" );
+        await check_account_funds( w3_s_chain, joAccountSrc, balanceMinimalSC, "ETH payment from S-Chain" );
         strActionName = "S-Chain / getTransactionCount / do_eth_payment_from_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -896,11 +893,12 @@ async function receive_eth_payment_from_s_chain_on_main_net(
     cid_main_net,
     joAccount_main_net,
     jo_lock_and_data_main_net,
-    tc_main_net
+    tc_main_net,
+    balanceMinimalMN
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "M2S ETH Receive:" ) + " ";
     try {
-        await check_account_funds( w3_main_net, joAccount_main_net, "receive ETH payment from S-Chain on main-net" );
+        await check_account_funds( w3_main_net, joAccount_main_net, balanceMinimalMN, "receive ETH payment from S-Chain on main-net" );
         strActionName = "main-net / getTransactionCount / receive_eth_payment_from_s_chain_on_main_net";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -992,8 +990,8 @@ async function do_erc721_payment_from_main_net(
     w3_s_chain,
     cid_main_net,
     cid_s_chain,
-    joAccountSrc,
-    joAccountDst,
+    joAccountSrc, // joAccount_main_net
+    joAccountDst, // joAccount_s_chain
     jo_deposit_box,
     jo_message_proxy_main_net, // for checking logs
     jo_lock_and_data_main_net, // for checking logs
@@ -1005,12 +1003,14 @@ async function do_erc721_payment_from_main_net(
     strCoinNameErc721_s_chain,
     erc721PrivateTestnetJson_s_chain,
     isRawTokenTransfer,
-    tc_main_net
+    tc_main_net,
+    balanceMinimalMN,
+    balanceMinimalSC
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "M2S ERC721 Payment:" ) + " ";
     try {
-        await check_account_funds( w3_main_net, joAccountSrc, "ERC721 payment from main-net" );
-        await check_account_funds( w3_s_chain, joAccountDst, "ERC721 payment from main-net" );
+        await check_account_funds( w3_main_net, joAccountSrc, balanceMinimalMN, "ERC721 payment from main-net" );
+        await check_account_funds( w3_s_chain, joAccountDst, balanceMinimalSC, "ERC721 payment from main-net" );
         strActionName = "main-net / getTransactionCount / do_erc721_payment_from_main_net";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -1188,8 +1188,8 @@ async function do_erc20_payment_from_main_net(
     w3_s_chain,
     cid_main_net,
     cid_s_chain,
-    joAccountSrc,
-    joAccountDst,
+    joAccountSrc, // joAccount_main_net
+    joAccountDst, // joAccount_s_chain
     jo_deposit_box,
     jo_message_proxy_main_net, // for checking logs
     jo_lock_and_data_main_net, // for checking logs
@@ -1201,12 +1201,14 @@ async function do_erc20_payment_from_main_net(
     strCoinNameErc20_s_chain,
     erc20PrivateTestnetJson_s_chain,
     isRawTokenTransfer,
-    tc_main_net
+    tc_main_net,
+    balanceMinimalMN,
+    balanceMinimalSC
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "M2S ERC20 Payment:" ) + " ";
     try {
-        await check_account_funds( w3_main_net, joAccountSrc, "ERC20 payment from main-net" );
-        await check_account_funds( w3_s_chain, joAccountDst, "ERC20 payment from main-net" );
+        await check_account_funds( w3_main_net, joAccountSrc, balanceMinimalMN, "ERC20 payment from main-net" );
+        await check_account_funds( w3_s_chain, joAccountDst, balanceMinimalSC, "ERC20 payment from main-net" );
         strActionName = "main-net / getTransactionCount / do_erc20_payment_from_main_net";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -1379,8 +1381,8 @@ async function do_erc20_payment_from_s_chain(
     w3_s_chain,
     cid_main_net,
     cid_s_chain,
-    joAccountSrc,
-    joAccountDst,
+    joAccountSrc, // joAccount_s_chain
+    joAccountDst, // joAccount_main_net
     jo_token_manager, // only s-chain
     jo_message_proxy_s_chain, // for checking logs
     jo_deposit_box, // only main net
@@ -1390,12 +1392,14 @@ async function do_erc20_payment_from_s_chain(
     strCoinNameErc20_s_chain,
     joErc20_s_chain,
     isRawTokenTransfer,
-    tc_s_chain
+    tc_s_chain,
+    balanceMinimalMN,
+    balanceMinimalSC
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "S2M ERC20 Payment:" ) + " ";
     try {
-        await check_account_funds( w3_main_net, joAccountSrc, "ERC20 payment from S-Chain" );
-        await check_account_funds( w3_s_chain, joAccountDst, "ERC20 payment from S-Chain" );
+        await check_account_funds( w3_main_net, joAccountDst, balanceMinimalMN, "ERC20 payment from S-Chain" );
+        await check_account_funds( w3_s_chain, joAccountSrc, balanceMinimalSC, "ERC20 payment from S-Chain" );
         strActionName = "S-Chain / getTransactionCount / do_erc20_payment_from_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -1523,8 +1527,8 @@ async function do_erc721_payment_from_s_chain(
     w3_s_chain,
     cid_main_net,
     cid_s_chain,
-    joAccountSrc,
-    joAccountDst,
+    joAccountSrc, // joAccount_s_chain
+    joAccountDst, // joAccount_main_net
     jo_token_manager, // only s-chain
     jo_message_proxy_s_chain, // for checking logs
     jo_deposit_box, // only main net
@@ -1534,12 +1538,14 @@ async function do_erc721_payment_from_s_chain(
     strCoinNameErc721_s_chain,
     joErc721_s_chain,
     isRawTokenTransfer,
-    tc_s_chain
+    tc_s_chain,
+    balanceMinimalMN,
+    balanceMinimalSC
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "S2M ERC721 Payment:" ) + " ";
     try {
-        await check_account_funds( w3_main_net, joAccountSrc, "ERC721 payment from S-Chain" );
-        await check_account_funds( w3_s_chain, joAccountDst, "ERC721 payment from S-Chain" );
+        await check_account_funds( w3_main_net, joAccountDst, balanceMinimalMN, "ERC721 payment from S-Chain" );
+        await check_account_funds( w3_s_chain, joAccountSrc, balanceMinimalSC, "ERC721 payment from S-Chain" );
         strActionName = "S-Chain / getTransactionCount / do_erc721_payment_from_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -1701,7 +1707,9 @@ async function do_transfer(
     nBlockAge,
     fn_sign_messages,
     //
-    tc_dst // same as w3_dst
+    tc_dst, // same as w3_dst
+    balanceMinimal_src,
+    balanceMinimal_dst
 ) {
     let bErrorInSigningMessages = false; const strLogPrefix = cc.info( "Transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
@@ -1730,8 +1738,8 @@ async function do_transfer(
     let nIncMsgCnt = 0;
     let idxLastToPopNotIncluding = 0;
     try {
-        await check_account_funds( w3_src, joAccountSrc, "transfer step / preliminary" );
-        await check_account_funds( w3_dst, joAccountDst, "transfer step / preliminary" );
+        await check_account_funds( w3_src, joAccountSrc, balanceMinimal_src, "transfer step / preliminary" );
+        await check_account_funds( w3_dst, joAccountDst, balanceMinimal_dst, "transfer step / preliminary" );
         let nPossibleIntegerValue = 0;
         log.write( cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_src.options.address ) + "\n" );
         log.write( cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_dst.options.address ) + "\n" );
@@ -2082,8 +2090,8 @@ async function do_transfer(
             } );
             if( bErrorInSigningMessages )
                 break;
-            await check_account_funds( w3_src, joAccountSrc, "transfer step / message " + nIdxCurrentMsg + " of " + nOutMsgCnt );
-            await check_account_funds( w3_dst, joAccountDst, "transfer step / message " + nIdxCurrentMsg + " of " + nOutMsgCnt );
+            await check_account_funds( w3_src, joAccountSrc, balanceMinimal_src, "transfer step / message " + nIdxCurrentMsg + " of " + nOutMsgCnt );
+            await check_account_funds( w3_dst, joAccountDst, balanceMinimal_dst, "transfer step / message " + nIdxCurrentMsg + " of " + nOutMsgCnt );
         } // while( nIdxCurrentMsg < nOutMsgCnt )
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )

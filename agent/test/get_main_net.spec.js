@@ -2,10 +2,12 @@
 const assert = require('chai').assert;
 const expect = require('chai').expect;
 const IMA = require( "../../npms/skale-ima" );
+const owaspUtils = require( "../../npms/skale-owasp" );
 // const w3 = require("web3")
 const w3mod = IMA.w3mod
 const tc_main_net = IMA.tc_main_net;
 const tc_s_chain = IMA.tc_s_chain;
+const mabUniversal = owaspUtils.parseMoneySpecToWei( w3mod, "0.01ether" );
 
 // 
 let chain_id_s_chain = "blah_blah_blah_schain_name"; // 1;
@@ -289,7 +291,8 @@ describe('tests for `npms/skale-ima`', function () {
                 jo_message_proxy_main_net,
                 joAccount_main_net,
                 chain_id_s_chain,
-                tc_main_net
+                tc_main_net,
+                mabUniversal
             )
         ).to.be.false;
     });
@@ -302,7 +305,8 @@ describe('tests for `npms/skale-ima`', function () {
                 jo_message_proxy_main_net,
                 joAccount_main_net,
                 chain_id_s_chain,
-                tc_main_net
+                tc_main_net,
+                mabUniversal
             )
         ).to.be.true;
     });
@@ -342,7 +346,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccount_main_net,
                 jo_token_manager,
                 chain_id_s_chain,
-                tc_main_net
+                tc_main_net,
+                mabUniversal
             )
         ).to.be.false;
     });
@@ -356,7 +361,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccount_main_net,
                 jo_token_manager,
                 chain_id_s_chain,
-                tc_main_net
+                tc_main_net,
+                mabUniversal
             )
         ).to.be.true;
     });
@@ -394,7 +400,8 @@ describe('tests for `npms/skale-ima`', function () {
                 jo_lock_and_data_s_chain,
                 joAccount,
                 -4,
-                tc_s_chain
+                tc_s_chain,
+                mabUniversal
             )
         ).to.be.false;
     });
@@ -409,7 +416,8 @@ describe('tests for `npms/skale-ima`', function () {
                 jo_lock_and_data_s_chain,
                 joAccount,
                 -4,
-                tc_s_chain
+                tc_s_chain,
+                mabUniversal
             )
         ).to.be.true;
     });
@@ -425,7 +433,8 @@ describe('tests for `npms/skale-ima`', function () {
                 jo_deposit_box,
                 chain_id_s_chain,
                 wei_how_much, // how much WEI money to send
-                tc_main_net
+                tc_main_net,
+                mabUniversal
             )
         ).to.be.false;
     });
@@ -441,7 +450,8 @@ describe('tests for `npms/skale-ima`', function () {
                 jo_deposit_box,
                 chain_id_s_chain,
                 wei_how_much, // how much WEI money to send
-                tc_main_net
+                tc_main_net,
+                mabUniversal
             )
         ).to.be.true;
     });
@@ -456,7 +466,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccountDst,
                 jo_token_manager,
                 wei_how_much, // how much WEI money to send
-                tc_s_chain
+                tc_s_chain,
+                mabUniversal
             )
         ).to.be.false;
     });
@@ -471,7 +482,8 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccountDst,
                 jo_token_manager,
                 wei_how_much, // how much WEI money to send
-                tc_s_chain
+                tc_s_chain,
+                mabUniversal
             )
         ).to.be.true;
     });
@@ -484,7 +496,8 @@ describe('tests for `npms/skale-ima`', function () {
                 w3_main_net,
                 joAccount_main_net,
                 jo_lock_and_data_main_net,
-                tc_main_net
+                tc_main_net,
+                mabUniversal
             )
         ).to.be.false;
     });
@@ -496,7 +509,8 @@ describe('tests for `npms/skale-ima`', function () {
                 w3_main_net,
                 joAccount_main_net,
                 jo_lock_and_data_main_net,
-                tc_main_net
+                tc_main_net,
+                mabUniversal
             )
         ).to.be.true;
     });
@@ -547,7 +561,9 @@ describe('tests for `npms/skale-ima`', function () {
                 strCoinNameErc20_s_chain,
                 erc20PrivateTestnetJson_s_chain,
                 isRawTokenTransfer,
-                tc_main_net
+                tc_main_net,
+                mabUniversal,
+                mabUniversal
             )
         ).to.be.false;
     });
@@ -577,7 +593,9 @@ describe('tests for `npms/skale-ima`', function () {
                 strCoinNameErc20_s_chain,
                 erc20PrivateTestnetJson_s_chain,
                 isRawTokenTransfer,
-                tc_main_net
+                tc_main_net,
+                mabUniversal,
+                mabUniversal
             )
         ).to.be.true;
     });
@@ -604,7 +622,9 @@ describe('tests for `npms/skale-ima`', function () {
                 strCoinNameErc20_s_chain,
                 joErc20_s_chain,
                 isRawTokenTransfer,
-                tc_s_chain
+                tc_s_chain,
+                mabUniversal,
+                mabUniversal
             )
         ).to.be.false;
     });
@@ -669,7 +689,9 @@ describe('tests for `npms/skale-ima`', function () {
                 nBlockAwaitDepth,
                 nBlockAge,
                 null, // fn_sign_messages or null
-                tc_main_net // or tc_s_chain
+                tc_main_net, // or tc_s_chain
+                mabUniversal,
+                mabUniversal
             )
         ).to.be.false;
     });
@@ -704,7 +726,9 @@ describe('tests for `npms/skale-ima`', function () {
                 nBlockAwaitDepth,
                 nBlockAge,
                 null, // fn_sign_messages or null
-                tc_main_net // or tc_s_chain
+                tc_main_net, // or tc_s_chain
+                mabUniversal,
+                mabUniversal
             )
         ).to.be.true;
     });

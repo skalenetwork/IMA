@@ -338,6 +338,142 @@ function private_key_2_account_address( w3, keyPrivate ) {
     return strAddress;
 }
 
+function provider2url( provider ) {
+    try {
+        if( provider == null || provider == undefined )
+            return "<N/A>";
+        if( "host" in provider && provider.host && typeof provider.host == "string" && provider.host.length > 0 )
+            return "" + provider.host;
+        if( "connection" in provider && provider.connection && typeof provider.connection == "object" &&
+            "url" in provider.connection && provider.connection.url && typeof provider.connection.url == "string" && provider.connection.url.length > 0
+        )
+            return "" + provider.connection.url;
+        if( "connection" in provider && provider.connection && typeof provider.connection == "object" &&
+            "_url" in provider.connection && provider.connection._url && typeof provider.connection._url == "string" && provider.connection._url.length > 0
+        )
+            return "" + provider.connection.url;
+    } catch ( err ) {
+    }
+    return "<unknown>";
+}
+
+function is_numeric( s ) {
+    return /^\d+$/.test( s );
+}
+
+// example: "1ether" -> "1000000000000000000"
+// supported suffixes, lowercase
+// const g_arrMoneyNameSuffixes = [ "ether", "finney", "szabo", "shannon", "lovelace", "babbage", "wei" ];
+
+// supported suffix aliases, lowercase
+const g_mapMoneyNameSuffixAliases = {
+    "ethe": "ether",
+    "ethr": "ether",
+    "eth": "ether",
+    "eter": "ether",
+    "ete": "ether",
+    "et": "ether",
+    "eh": "ether",
+    "er": "ether",
+    // "e": "ether",
+    "finne": "finney",
+    "finn": "finney",
+    "fin": "finney",
+    "fn": "finney",
+    "fi": "finney",
+    // "f": "finney",
+    "szab": "szabo",
+    "szb": "szabo",
+    "sza": "szabo",
+    "sz": "szabo",
+    "shanno": "shannon",
+    "shannn": "shannon",
+    "shann": "shannon",
+    "shan": "shannon",
+    "sha": "shannon",
+    "shn": "shannon",
+    "sh": "shannon",
+    "lovelac": "lovelace",
+    "lovela": "lovelace",
+    "lovel": "lovelace",
+    "love": "lovelace",
+    "lovl": "lovelace",
+    "lvl": "lovelace",
+    "lvla": "lovelace",
+    "lvlc": "lovelace",
+    "lvc": "lovelace",
+    "lv": "lovelace",
+    "lo": "lovelace",
+    "lc": "lovelace",
+    "ll": "lovelace",
+    // "l": "lovelace",
+    "babbag": "babbage",
+    "babba": "babbage",
+    "babbg": "babbage",
+    "babb": "babbage",
+    "bab": "babbage",
+    "bag": "babbage",
+    "bbb": "babbage",
+    "bb": "babbage",
+    "bg": "babbage",
+    "ba": "babbage",
+    "be": "babbage",
+    // "b": "babbage",
+    "we": "wei",
+    "wi": "wei"
+    // "w": "wei"
+};
+
+function parseMoneyUnitName( s ) {
+    s = s.trim().toLowerCase();
+    if( s == "" )
+        return "wei";
+    if( s in g_mapMoneyNameSuffixAliases ) {
+        s = g_mapMoneyNameSuffixAliases[s];
+        return s;
+    }
+    // if( g_arrMoneyNameSuffixes.indexOf( s ) >= 0 )
+    //     return s;
+    // throw new Error( "\"" + s + "\" is unknown money unit name" );
+    return s;
+}
+
+function parseMoneySpecToWei( w3, s, isThrowException ) {
+    try {
+        isThrowException = isThrowException ? true : false;
+        if( s == null || s == undefined ) {
+            if( isThrowException )
+                throw new Error( "no parse-able value provided" );
+            return "0";
+        }
+        s = s.toString().trim();
+        let strNumber = "";
+        while( s.length > 0 ) {
+            const chr = s[0];
+            if( is_numeric( chr ) || chr == "." ) {
+                strNumber += chr;
+                s = s.substr( 1 ); // remove first character
+                continue;
+            }
+            if( chr == " " || chr == "\t" || chr == "\r" || chr == "\n" )
+                s = s.substr( 1 ); // remove first character
+            s = s.trim().toLowerCase();
+            break;
+        }
+        // here s is rest suffix string, number is number as string or empty string
+        if( strNumber == "" )
+            throw new Error( "no number or float value found" );
+        s = parseMoneyUnitName( s );
+        s = w3.utils.toWei( strNumber, s );
+        s = s.toString( 10 );
+        return s;
+    } catch ( err ) {
+        if( isThrowException )
+            throw new Error( "Parse error in parseMoneySpecToWei(\"" + s + "\"), error is: " + err.toString() );
+    }
+    return "0";
+}
+
 module.exports = {
     cc: cc,
     w3mod: w3mod,
@@ -369,5 +505,8 @@ module.exports = {
     remove_starting_0x: remove_starting_0x,
     private_key_2_public_key: private_key_2_public_key,
     public_key_2_account_address: public_key_2_account_address,
-    private_key_2_account_address: private_key_2_account_address
+    private_key_2_account_address: private_key_2_account_address,
+    provider2url: provider2url,
+    is_numeric: is_numeric,
+    parseMoneySpecToWei: parseMoneySpecToWei
 }; // module.exports

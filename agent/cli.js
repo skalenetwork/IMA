@@ -180,6 +180,10 @@ function parse( joExternalHandlers ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "gas-price-multiplier-mn" ) + cc.debug( "......." ) + cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( " transactions, Default value is " ) + cc.info( "1.25" ) + cc.notice( ". Specify value " ) + cc.info( "0.0" ) + cc.notice( " to disable " ) + cc.attention( "Gas Price Customization" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "gas-price-multiplier-sc" ) + cc.debug( "......." ) + cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) + cc.notice( " for " ) + cc.attention( "S-Chain" ) + cc.notice( " transactions, Default value is " ) + cc.info( "0.0" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "gas-price-multiplier" ) + cc.debug( ".........." ) + cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) + cc.notice( " for both " ) + cc.attention( "Main Net" ) + cc.notice( " and " ) + cc.attention( "S-Chain" ) + cc.notice( "." ) );
+            console.log( cc.sunny( "BALANCE SAFETY" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "mab-mn" ) + cc.sunny( "=" ) + cc.warning( "\"number <unit name>\"" ) + cc.debug( "..." ) + cc.notice( "Sets " ) + cc.attention( "Minimal Account Ballance" ) + cc.notice( " for " ) + cc.attention( "S-Chain" ) + cc.notice( ". Default value is same as following example: " ) + cc.attention( "--mab-mn=0.01ether" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "mab-sc" ) + cc.sunny( "=" ) + cc.warning( "\"number <unit name>\"" ) + cc.debug( "..." ) + cc.notice( "Sets " ) + cc.attention( "Minimal Account Ballance" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( ". Default value is same as following example: " ) + cc.attention( "--mab-sc=0.01ether" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "mab" ) + cc.sunny( "=" ) + cc.warning( "\"number <unit name>\"" ) + cc.debug( "......" ) + cc.notice( "Sets " ) + cc.attention( "Minimal Account Ballance" ) + cc.notice( " for both " ) + cc.attention( "Main Net" ) + cc.notice( " and " ) + cc.attention( "S-Chain" ) + cc.notice( ". Quotes are optional if unit name follows number. Supported unit names are \"ether\", \"finney\", \"szabo\", \"shannon\", \"lovelace\", \"babbage\" and \"wei\". No unit name means use \"wei\". Example: " ) + cc.attention( "--mab=1000000000000wei" ) );
             console.log( cc.sunny( "REGISTRATION" ) + cc.info( " commands:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "register" ) + cc.debug( "......................" ) + cc.note( "Register" ) + cc.notice( "(perform all steps)" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "register1" ) + cc.debug( "....................." ) + cc.note( "Perform registration step 1" ) + cc.notice( " - register S-Chain on Main-net." ) );
@@ -416,6 +420,18 @@ function parse( joExternalHandlers ) {
             if( gasPriceMultiplier < 0.0 )
                 gasPriceMultiplier = 0.0;
             imaState.tc_main_net.gasPriceMultiplier = imaState.tc_s_chain.gasPriceMultiplier = gasPriceMultiplier;
+            continue;
+        }
+        if( joArg.name == "mab-mn" ) {
+            imaState.mabMN = owaspUtils.parseMoneySpecToWei( w3mod, joArg.value );
+            continue;
+        }
+        if( joArg.name == "mab-sc" ) {
+            imaState.mabSC = owaspUtils.parseMoneySpecToWei( w3mod, joArg.value );
+            continue;
+        }
+        if( joArg.name == "mab" ) {
+            imaState.mabMN = imaState.mabSC = owaspUtils.parseMoneySpecToWei( w3mod, joArg.value );
             continue;
         }
         if( joArg.name == "show-config" ) {
