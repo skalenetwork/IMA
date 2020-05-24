@@ -1,3 +1,5 @@
-# NPMs directory
+<!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
 
-This directory contains NPM modules which are parts of IMA
+# SKALE IMA NPM directory
+
+This directory contains NPM modules which are parts of SKALE IMA
