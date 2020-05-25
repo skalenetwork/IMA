@@ -1,67 +1,65 @@
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
 
-# SKALE Interchain Messaging Agent
+# IMA Deployment and Initialization
 
-## Overview
+## Deployment Overview
 
-This article refers to **SKALE Interchain Messaging Agent** as **IMA**.
+Deploy process includes:
 
-**IMA** consists of the following parts:
+1) Prepare prerequisites
+2) Deploy contracts to the `Main Net`
+3) Deploy contracts to the `S-Chain`
+4) Initialize IMA Agent application
+5) Run IMA Agent application in message processing loop mode
 
-- Contracts on Mainnet
-- Contracts on a SKALE Chain
-- NodeJS based app
+## Prerequisites
 
-## Contracts installation
+1) `Main Net` Ethereum network with known HTTP(S) URL of **Web3** interface.
+2) `S-Chain` network with known HTTP(S) URL of **Web3** interface.
+3) Preliminary deployed **Skale Manager** software with known address of **ContractManager** smart contract saved into the `proxy/data/skaleManagerComponents.json` file like shown in the following example:
 
-### Contracts prerequisites
+```json
+    {
+        "contract_manager_address": "0xe89d660C1a4642C12A2846e8AF4d3F76c6BDbeF2"
+    }
+```
 
-First of all, we need special truffle version **5.0.12** (notice, the *-g* option of *npm* may require *sudo*):
+4) `libBLS` command utilities
+5) Truffle version **5.0.12** is recommended to install (notice, the _-g_ option of _npm_ may require _sudo_):
 
+```bash
     sudo npm uninstall -g truffle
     sudo npm install -g truffle@5.0.12
     truffle --version
+```
 
-Second, get source code of Solidity contracts and install dependencies:
+6) Node modules should be initialized in the following folders:
 
-    git clone git@github.com:skalenetwork/IMA.git
-    cd ./IMA
-
-### Node JS prerequisites
-
-Third, install required **Node JS** everywhere they needed:
-
+```bash
     export IMA_ROOT=.....
-    #
-    cd $IMA_ROOT/proxy
-    rm -rf ./node_modules &> /dev/null
-    yarn install
-    #
-    cd $IMA_ROOT/npms/skale-owasp
-    rm -rf ./node_modules &> /dev/null
-    yarn install
-    #
-    cd $IMA_ROOT/npms/skale-ima
-    rm -rf ./node_modules &> /dev/null
-    yarn install
-    #
-    cd $IMA_ROOT/agent
-    rm -rf ./node_modules &> /dev/null
-    yarn install
+    cd $IMA_ROOT/proxy; npm install
+    cd $IMA_ROOT/npms/skale-owasp; npm install
+    cd $IMA_ROOT/npms/skale-ima; npm install
+    cd $IMA_ROOT/agent; npm install
+```
 
+## Smart Contracts Installation
 
-Fourth, edit the *$IMA_ROOT/proxy/truffle-config.js* and specify needed networks (Mainnet and SKALE Chain) and account addresses which will own contracts on these blockchains:
+### Configure Truffle
 
+Edit the `$IMA_ROOT/proxy/truffle-config.js` and specify needed networks (`Mainnet` and `S-Chain`) and account addresses which will own contracts on these blockchains:
+
+```bash
     cd $IMA_ROOT/proxy
     nano ./truffle-config.js
+```
 
-We will use networks called **MainNet** and **S-Chain** in this documentation:
+Here is example of networks called `Main Net` and `S-Chain`:
 
-    var privateKey_main_net = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
-    var privateKey_skalechain  = "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e";
-
+```bash
+    var privateKey_main_net = "[YOUR_ETH_PRIVATE_KEY]";
+    var privateKey_skalechain  = "[YOUR_SKALE_CHAIN_PRIVATE_KEY]";
 ...
-
     mainnet: { # for Mainnet
         gasPrice: 10000000000,
         gas: 8000000,
@@ -76,58 +74,48 @@ We will use networks called **MainNet** and **S-Chain** in this documentation:
         name: schainName,
         network_id: "*"
     },
+```
 
-Fourth, export required environment variables:
+Initialize required environment variables. Example of `.env` file can be found in the `$IMA_ROOT/agent` folder.
 
-    export NETWORK_FOR_MAINNET="mainnet"
-    export ETH_PRIVATE_KEY_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
-    export NETWORK_FOR_SCHAIN="schain"
-    export ETH_PRIVATE_KEY_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
-    export SCHAIN_NAME="Bob"
+Build all the contracts once to ensure everything initialized OK:
 
-    export MAINNET_RPC_URL="http://127.0.0.1:8545"
-    export SCHAIN_RPC_URL="http://127.0.0.1:15000"
-    export SCHAIN_NAME="Bob"
-    export INSECURE_PRIVATE_KEY_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
-    export INSECURE_PRIVATE_KEY_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
-    export ACCOUNT_FOR_MAINNET="0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
-    export ACCOUNT_FOR_SCHAIN="0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852"
-    export MNEMONIC_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
-    export MNEMONIC_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
-
-Fifth, try rebuild all the contracts once to ensure everything initialized OK:
-
+```bash
     cd $IMA_ROOT/proxy
     mkdir -p data || true
     rm -rf ./build
     rm -rf ./data/proxy*
     truffle compile
     ls -1 ./data/
+```
 
-### Contracts pre-installation on Mainnet and SKALE Chain
+### Smart contract Deployment for Main Net
 
-For mainnet, invoke:
-
+```bash
     cd $IMA_ROOT/proxy
-    yarn run deploy-to-mainnet
+    npm run deploy-to-mainnet
     ls -1 ./data/
+```
 
 You should see **proxyMainnet.json** file listed.
 
-For SKALE chain, invoke:
+#### Smart contract Deployment for S-Chain
 
+```bash
     cd $IMA_ROOT/proxy
-    yarn run deploy-to-schain
+    npm run deploy-to-schain
     ls -1 ./data/
+```
 
 You should see **proxySchain.json** file listed.
 
 ## IMA installation
 
-### Bind IMA to Main-net
+### Bind IMA to Main Net
 
 You can check whether **IMA** is already bound with:
 
+```bash
     node ./main.js --verbose=9 \
         --check-registration \
         --url-main-net=http://127.0.0.1:8545 \
@@ -138,11 +126,13 @@ You can check whether **IMA** is already bound with:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-main-net=[YOUR_PRIVATE_KEY] \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+```
 
-**IMA** works as S-Chain extension. It should be registered on Main-net before performing any money transfers between blockchains:
+**IMA** works as `S-Chain` extension. It should be registered on `Main Net` before performing any money transfers between blockchains:
 
+```bash
     node ./main.js --verbose=9 \
         --register \
         --url-main-net=http://127.0.0.1:8545 \
@@ -153,13 +143,15 @@ You can check whether **IMA** is already bound with:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+```
 
-### Run IMA for particular S-Chain
+#### Run IMA for Particular S-Chain
 
 Performed with the **--loop** command line option:
 
+```bash
     node ./main.js --verbose=9 \
         --loop \
         --url-main-net=http://127.0.0.1:8545 \
@@ -170,35 +162,43 @@ Performed with the **--loop** command line option:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+```
 
 Notice: the command above can be run in forever while loop of shell script or became a part of daemon service file.
 
-## Other IMA tasks
+### IMA Tasks
 
-### Getting command line help
+#### Get Command Line Help
 
+```bash
     node ./main.js --help
+```
 
-### Displaying run-time variables and arguments
+#### Display Run-time Variables and Arguments
 
+```bash
     node ./main.js --show-config
+```
 
-### Listing available output detail options
+#### List Available Output Detail Options
 
+```bash
     node ./main.js --verbose-list
+```
 
-### Specifying logging options
+#### Specify Logging Options
 
 Log output is always printed to standard output. Log also can be mirrored to file using **--log**=**path** command line option.
 
 By default mirrored log file grows with no limit and no log rotation is performed. To turn log rotation on and specify maximal size of log in bytes you should use the **--log-size**=**value** and **--log-files**=**value** command line options.
 
-### Money transfer from Main-net account to S-Chain
+#### Money transfer from Main Net Account to S-Chain
 
 Performed with the **--m2s-payment** command line option:
 
+```bash
     node ./main.js --verbose=9 \
         --m2s-payment \
         --ether=1 \
@@ -210,15 +210,17 @@ Performed with the **--m2s-payment** command line option:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
         --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852
+```
 
-Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside Main-net blockchain using the **--key-main-net** command line argument. Target S-chain account is specified as address with the **--address-s-chain** command line argument. We don't need to specify private key for target account.
+Notice: The command above does payment from `Main Net` and that is why we need to specify private key for source account inside `Main Net` blockchain using the **--key-main-net** command line argument. Target `S-Chain` account is specified as address with the **--address-s-chain** command line argument. We don't need to specify private key for target account.
 
-### Money transfer from S-Chain account to Main-net
+#### Money Transfer From S-Chain Account to Main Net
 
 Performed with the **--s2m-payment** command line option:
 
+```bash
     node ./main.js --verbose=9 \
         --s2m-payment \
         --ether=1 \
@@ -232,13 +234,15 @@ Performed with the **--s2m-payment** command line option:
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+```
 
-Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
+Notice: The command above does payment from `Main Net` and that is why we need to specify private key for source account inside `S-Chain` blockchain using the **--key-s-chain** command line argument. Target `Main Net` account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
 
-### View how much ETH you can receive from S-Chain account to Main-net
+#### View How Much ETH You Can Receive From S-Chain Account to Main Net
 
 Performed with the **--s2m-view** command line option:
 
+```bash
     node ./main.js --verbose=9 \
         --s2m-view \
         --url-main-net=http://127.0.0.1:8545 \
@@ -249,14 +253,16 @@ Performed with the **--s2m-view** command line option:
         --id-s-chain=Bob \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc
+        --key-main-net=[YOUR_ETH_PRIVATE_KEY]
+```
 
 Notice: this operation is related to ETH transfers only.
 
-### Receive money transfer from S-Chain account to Main-net
+#### Receive Money Transfer From S-Chain Account to Main Net
 
 Performed with the **--s2m-receive** command line option:
 
+```bash
     node ./main.js --verbose=9 \
         --s2m-receive \
         --url-main-net=http://127.0.0.1:8545 \
@@ -268,13 +274,15 @@ Performed with the **--s2m-receive** command line option:
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc
+```
 
 Notice: this operation is related to ETH transfers only.
 
-### Money amount specification for transfer operations
+#### Money Amount Specification for Transfer Operations
 
 Amount of money should be specified with one of the following command line options
 
+```bash
         --wei=number...................Amount of wei to transfer.
         --babbage=number...............Amount of babbage(wei*1000) to transfer.
         --lovelace=number..............Amount of lovelace(wei*1000*1000) to transfer.
@@ -282,15 +290,17 @@ Amount of money should be specified with one of the following command line optio
         --szabo=number.................Amount of szabo(wei*1000*1000*1000*1000) to transfer.
         --finney=number................Amount of finney(wei*1000*1000*1000*1000*1000) to transfer.
         --ether=number.................Amount of ether(wei*1000*1000*1000*1000*1000*1000) to transfer.
+```
 
-### Single transfer loops
+#### Single Transfer Loop Execution
 
 Single transfer operations are similar to the **--loop** normal mode but perform single loop iteration and exit.
 
-#### Single transfer iteration from Main-net to S-chain
+##### Single Transfer Iteration from Main Net to S-Chain
 
 Performed with the **--m2s-transfer** command line option:
 
+```bash
     node ./main.js --verbose=9 \
         --m2s-transfer \
         --url-main-net=http://127.0.0.1:8545 \
@@ -301,13 +311,15 @@ Performed with the **--m2s-transfer** command line option:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+```
 
-#### Single transfer iteration from S-chain to Main-net
+##### Single Transfer Iteration from S-Chain to Main Net
 
 Performed with the **--s2m-transfer** command line option:
 
+```bash
     node ./main.js --verbose=9 \
         --s2m-transfer \
         --url-main-net=http://127.0.0.1:8545 \
@@ -318,13 +330,15 @@ Performed with the **--s2m-transfer** command line option:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+```
 
-#### Single bidirectional transfer iteration between Main-net and S-chain
+##### Single Bi-directional Transfer Iteration Between Main Net and S-Chain
 
 Performed with the **--transfer** command line option:
 
+```bash
     node ./main.js --verbose=9 \
         --transfer \
         --url-main-net=http://127.0.0.1:8545 \
@@ -335,41 +349,41 @@ Performed with the **--transfer** command line option:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+```
 
-### Transfer loop parameters
+#### Transfer Loop Customization
 
-    --skip-dry-run..................Skip dry run contract method calls.
-    --ignore-dry-run................Ignore result of dry run contract method calls and continue execute.
-    --dry-run.......................Use error results of dry run contract method calls as actual errors and stop execute.
-
-    --m2s-transfer-block-size.......Number of transactions in one block to use in money transfer loop from Main-net to S-chain.
-    --s2m-transfer-block-size.......Number of transactions in one block to use in money transfer loop from S-chain to Main-net.
+```html
+    --m2s-transfer-block-size.......Number of transactions in one block to use in money transfer loop from Main Net to S-Chain.
+    --s2m-transfer-block-size.......Number of transactions in one block to use in money transfer loop from S-Chain to Main Net.
     --transfer-block-size...........Number of transactions in one block to use in both money transfer loops.
 
-    --m2s-max-transactions..........Maximal number of transactions to do in money transfer loop from Main-net to S-chain (0 is unlimited).
-    --s2m-max-transactions..........Maximal number of transactions to do in money transfer loop from S-chain to Main-net (0 is unlimited).
+    --m2s-max-transactions..........Maximal number of transactions to do in money transfer loop from Main Net to S-Chain (0 is unlimited).
+    --s2m-max-transactions..........Maximal number of transactions to do in money transfer loop from S-Chain to Main Net (0 is unlimited).
     --max-transactions..............Maximal number of transactions to do in both money transfer loops (0 is unlimited).
 
-    --m2s-await-blocks..............Maximal number of blocks to wait to appear in blockchain before transaction from Main-net to S-chain (0 is no wait).
-    --s2m-await-blocks..............Maximal number of blocks to wait to appear in blockchain before transaction from S-chain to Main-net (0 is no wait).
-    --await-blocks..................Maximal number of blocks to wait to appear in blockchain before transaction between both S-chain and Main-net (0 is no wait).
+    --m2s-await-blocks..............Maximal number of blocks to wait to appear in blockchain before transaction from Main Net to S-Chain (0 is no wait).
+    --s2m-await-blocks..............Maximal number of blocks to wait to appear in blockchain before transaction from S-Chain to Main Net (0 is no wait).
+    --await-blocks..................Maximal number of blocks to wait to appear in blockchain before transaction between both S-Chain and Main Net (0 is no wait).
 
     --period........................Transfer loop period(seconds).
     --node-number=value.............S-Chain node number(zero based).
     --nodes-count=value.............S-Chain nodes count.
     --time-framing=value............Specifies period(in seconds) for time framing. Zero means disable time framing.
     --time-gap=value................Specifies gap(in seconds) before next time frame.
+```
 
-### S-Chain specific configuration for more then one node S-Chains
+#### S-Chain specific Configuration for Multi-node S-Chains
 
 The **--node-number** and **--nodes-count** must me used for **IMA** instances running on S-Chain nodes which are part of multi-node S-Chain.
 
-### ERC20 default transfer from Main-net account to S-Chain
+#### ERC20 Default Transfer from Main Net Account to S-Chain
 
 Performed with the **--m2s-payment** and **--no-raw-transfer** command line options:
 
+```bash
     node ./main.js --verbose=9 \
         --m2s-payment \
         --amount=1 \
@@ -382,20 +396,22 @@ Performed with the **--m2s-payment** and **--no-raw-transfer** command line opti
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
         --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852 \
         --no-raw-transfer
+```
 
-Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside Main-net blockchain using the **--key-main-net** command line argument. Target S-chain account is specified as address with the **--address-s-chain** command line argument. We don't need to specify private key for target account.
+Notice: The command above does payment from `Main Net` and that is why we need to specify private key for source account inside `Main Net` blockchain using the **--key-main-net** command line argument. Target `S-Chain` account is specified as address with the **--address-s-chain** command line argument. We don't need to specify private key for target account.
 
-### ERC721 default transfer from Main-net account to S-Chain
+#### ERC721 Default Transfer from Main Net Account to S-Chain
 
 Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
 
-### ERC20 default transfer from S-Chain account to Main-net
+#### ERC20 Default Transfer from S-Chain Account to Main Net
 
 Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s-chain** command line options:
 
+```bash
     node ./main.js --verbose=9 \
         --s2m-payment \
         --amount=1 \
@@ -412,17 +428,19 @@ Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s
         --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
         --no-raw-transfer
+```
 
-Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
+Notice: The command above does payment from `Main Net` and that is why we need to specify private key for source account inside `S-Chain` blockchain using the **--key-s-chain** command line argument. Target `Main Net` account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
 
-### ERC721 default transfer from S-Chain account to Main-net
+#### ERC721 Default Transfer from S-Chain Account to Main Net
 
 Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
 
-### ERC20 raw transfer from Main-net account to S-Chain
+#### ERC20 raw transfer from Main Net account to S-Chain
 
 Performed with the **--m2s-payment** and **--raw-transfer** command line options:
 
+```bash
     node ./main.js --verbose=9 \
         --m2s-payment \
         --amount=1 \
@@ -436,20 +454,22 @@ Performed with the **--m2s-payment** and **--raw-transfer** command line options
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
         --erc20-s-chain=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
         --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852 \
         --raw-transfer
+```
 
-Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside Main-net blockchain using the **--key-main-net** command line argument. Target S-chain account is specified as address with the **--address-s-chain** command line argument. We don't need to specify private key for target account.
+Notice: The command above does payment from `Main Net` and that is why we need to specify private key for source account inside `Main Net` blockchain using the **--key-main-net** command line argument. Target `S-Chain` account is specified as address with the **--address-s-chain** command line argument. We don't need to specify private key for target account.
 
-### ERC721 raw transfer from Main-net account to S-Chain
+#### ERC721 Raw Transfer from Main Net Account to S-Chain
 
 Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
 
-### ERC20 raw transfer from S-Chain account to Main-net
+#### ERC20 Raw Transfer from S-Chain Account to Main Net
 
 Performed with the **--s2m-payment** and **--raw-transfer** command line options:
 
+```bash
     node ./main.js --verbose=9 \
         --s2m-payment \
         --amount=1 \
@@ -466,30 +486,31 @@ Performed with the **--s2m-payment** and **--raw-transfer** command line options
         --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
         --raw-transfer
+```
 
-Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
+Notice: The command above does payment from `Main Net` and that is why we need to specify private key for source account inside `S-Chain` blockchain using the **--key-s-chain** command line argument. Target `Main Net` account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
 
-### ERC721 raw transfer from S-Chain account to Main-net
+#### ERC721 Raw Transfer From S-Chain Account to Main Net
 
 Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
 
-## Other options and commands
+### Other options and commands
 
-### Browse S-Chain network
+#### Browse S-Chain network
 
-You can ask agent app to scan **S-Chain** network information and parameters, print it and exit:
+You can ask agent app to scan `S-Chain` network information and parameters, print it and exit:
 
     node ./main.js --verbose=9 --url-s-chain=http://127.0.0.1:15000 -- browse-s-chain
 
-This information is used to sign messages on all **S-Chain** nodes.
+This information is used to sign messages on all `S-Chain` nodes.
 
-### Sign messages
+#### Sign messages
 
-Message signing performed only for message sent from **S-Chain** to **MainNet**.
+Message signing performed only for message sent from `S-Chain` to `Main Net`.
 
 Adding **--sign-messages** command line parameter turns on **BLS message signing** algorithm.
-Agent app will scan **S-Chain** network and ask each of nodes to sign messages transferred from **MainNet** to **S-Chain**.
-This options requires all **S-Chain** nodes to be configured with **SGX Wallet** or **Emu Wallet** access information.
+Agent app will scan `S-Chain` network and ask each of nodes to sign messages transferred from `Main Net` to `S-Chain`.
+This options requires all `S-Chain` nodes to be configured with **SGX Wallet** or **Emu Wallet** access information.
 
 The **--bls-glue** command line parameter must be used to specify path to the **bls_glue** application.
 This parameter must be specified if **--sign-messages** parameter is present.
@@ -499,61 +520,64 @@ This parameter is optional. If it was specified, then **IMA Agent** application 
 
 The **--hash-g1** command line parameter must be used to specify path to the **hash_g1** application.
 
-Message signing will work only on **S-Chain** where each **skaled** node configured properly and able to:
+Message signing will work only on `S-Chain` where each **skaled** node configured properly and able to:
 
-    - provide brows information for entire **S-Chain** network
-    - provide **IMA** signing APIs and parameters
+-   provide browse information for entire `S-Chain` network
+-   provide **IMA** signing APIs and parameters
 
 Here is example of correct **config.json** file for **skaled** node:
 
+```text
     "skaleConfig": {
         "nodeInfo": {
-            "nodeName": "???????????", "nodeID": ????,
-            "bindIP": "??.??.??.??, "bindIP6": "???????????", "basePort": ????, "basePort6": ????,
+            "nodeName": "...", "nodeID": 1234,
+            "bindIP": "...", "bindIP6": "...", "basePort": ..., "basePort6": ...,
             "logLevel": "trace", "logLevelProposal": "trace",
-            "emptyBlockIntervalMs": ?????, "ipc": false, "ipcpath": "./ipcx", "db-path": "./node",
-            "httpRpcPort": ????, "httpsRpcPort": ????, "wsRpcPort": ????, "wssRpcPort": ????,
-            "httpRpcPort6": ????, "httpsRpcPort6": ????, "wsRpcPort6": ????, "wssRpcPort6": ????,
+            "emptyBlockIntervalMs": ..., "ipc": false, "ipcpath": "./ipcx", "db-path": "./node",
+            "httpRpcPort": ..., "httpsRpcPort": ..., "wsRpcPort": ..., "wssRpcPort": ...,
+            "httpRpcPort6": ..., "httpsRpcPort6": ..., "wsRpcPort6": ..., "wssRpcPort6": ...,
             "acceptors": 1, "max-connections": 0,
             "web3-trace": true, "enable-debug-behavior-apis": false, "unsafe-transactions": false,
             "aa": "always", "web3-shutdown": false,
-            "imaMainNet": "????://??.??.??.??:????",
-            "imaMessageProxySChain":  "0x????????????????????????????????????????,
-            "imaMessageProxyMainNet": "0x????????????????????????????????????????",
-            "imaCallerAddressSChain": "0x????????????????????????????????????????",
-            "imaCallerAddressMainNet": "0x????????????????????????????????????????",
+            "imaMainNet": "..",
+            "imaMessageProxySChain":  "0x...",
+            "imaMessageProxyMainNet": "0x...",
+            "imaCallerAddressSChain": "0x...",
+            "imaCallerAddressMainNet": "0x...",
             "wallets": {
                 "ima": {
-                    "url": ""????://??.??.??.??:????" "keyShareName": "???????????????", "t": 2, "n": 2,
-                    "insecureBLSPublicKey1": "?????????????????????????????????????????????????????????????????????????????",
-                    "insecureBLSPublicKey2": "?????????????????????????????????????????????????????????????????????????????",
-                    "insecureBLSPublicKey3": "?????????????????????????????????????????????????????????????????????????????",
-                    "insecureBLSPublicKey4": "?????????????????????????????????????????????????????????????????????????????",
-                    "insecureCommonBLSPublicKey0": "?????????????????????????????????????????????????????????????????????????????",
-                    "insecureCommonBLSPublicKey1": "?????????????????????????????????????????????????????????????????????????????",
-                    "insecureCommonBLSPublicKey2": "?????????????????????????????????????????????????????????????????????????????",
-                    "insecureCommonBLSPublicKey3": "?????????????????????????????????????????????????????????????????????????????"
+                    "url": "...", "keyShareName": "...", "t": 2, "n": 2,
+                    "insecureBLSPublicKey1": "...",
+                    "insecureBLSPublicKey2": "...",
+                    "insecureBLSPublicKey3": "...",
+                    "insecureBLSPublicKey4": "...",
+                    "insecureCommonBLSPublicKey0": "...",
+                    "insecureCommonBLSPublicKey1": "...",
+                    "insecureCommonBLSPublicKey2": "...",
+                    "insecureCommonBLSPublicKey3": "..."
                 }
             }
         },
         "sChain": {
-            "schainID": 1234, "schainName": "????????????????????",
+            "schainID": 1234, "schainName": "...",
             "nodes": [ {
-                "schainIndex": 1, "nodeID": ????,
-                "ip": "??.??.??.??", "ip6": "????????????????????", "basePort": ????, "basePort6": ????,
-                "httpRpcPort": ????, "httpsRpcPort": ????, "wsRpcPort": ????, "wssRpcPort": ????,
-                "httpRpcPort6": ????, "httpsRpcPort6": ????, "wsRpcPort6": ????, "wssRpcPort6": ????
+                "schainIndex": 1, "nodeID": 3344,
+                "ip": "...", "ip6": "...", "basePort": ..., "basePort6": ...,
+                "httpRpcPort": ..., "httpsRpcPort": ..., "wsRpcPort": ..., "wssRpcPort": ...,
+                "httpRpcPort6": ..., "httpsRpcPort6": ..., "wsRpcPort6": ..., "wssRpcPort6": ...
             }, {
-                "schainIndex": 1, "nodeID": ????,
-                "ip": "??.??.??.??", "ip6": "????????????????????", "basePort": ????, "basePort6": ????,
-                "httpRpcPort": ????, "httpsRpcPort": ????, "wsRpcPort": ????, "wssRpcPort": ????,
-                "httpRpcPort6": ????, "httpsRpcPort6": ????, "wsRpcPort6": ????, "wssRpcPort6": ????
+                "schainIndex": 1, "nodeID": 4455,
+                "ip": "...", "ip6": "...", "basePort": ..., "basePort6": ...,
+                "httpRpcPort": ..., "httpsRpcPort": ..., "wsRpcPort": ..., "wssRpcPort": ...,
+                "httpRpcPort6": ..., "httpsRpcPort6": ..., "wsRpcPort6": ..., "wssRpcPort6": ...
             } ]
         }
     }
+```
 
 Here is example of IMA message processing loop invocation with BLS support:
 
+```bash
     reset; node ./main.js --verbose=9 \
         --loop \
         --url-main-net=http://127.0.0.1:8545 \
@@ -564,7 +588,7 @@ Here is example of IMA message processing loop invocation with BLS support:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
         --sign-messages \
         --bls-glue=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/bls_glue \
@@ -581,9 +605,10 @@ Here is example of IMA message processing loop invocation with BLS support:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
         --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
         --sign-messages \
         --bls-glue=/home/serge/Work/skaled/build/libconsensus/libBLS/bls_glue \
         --hash-g1=/home/serge/Work/skaled/build/libconsensus/libBLS/hash_g1 \
         --bls-verify=/home/serge/Work/skaled/build/libconsensus/libBLS/verify_bls
+```

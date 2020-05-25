@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
+
 # SKALE-IMA NPM module
 
 Implements **SKALE Interchain Messaging Agent** APIs.
@@ -32,7 +34,7 @@ The **joTrufflePublishResult_main_net** and **joTrufflePublishResult_s_chain** A
     let g_jo_message_proxy_main_net = new g_w3_main_net.eth.Contract( joTrufflePublishResult_main_net.message_proxy_mainnet_abi, joTrufflePublishResult_main_net.message_proxy_mainnet_address );
     let g_jo_message_proxy_s_chain  = new g_w3_s_chain .eth.Contract( joTrufflePublishResult_s_chain .message_proxy_chain_abi,   joTrufflePublishResult_s_chain .message_proxy_chain_address   );
 
-The following function registers new **S-Chain** on *Mainnet* and vice versa:
+The following function registers new **S-Chain** on _Mainnet_ and vice versa:
 
     async function register_all() {
         var b1 = await IMA.register_s_chain_on_main_net(
