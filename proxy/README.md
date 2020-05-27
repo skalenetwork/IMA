@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
+
 # SKALE IMA Proxy
 
 SKALE Interchain Messaging Smart Contracts
@@ -6,7 +8,7 @@ Proxy is a library with smart contracts for the SKALE Interchain Messaging Agent
 
 Smart contract language - Solidity 0.5.10
 NodeJS version - 10.16.0
-NPM verion - 6.9.0
+NPM version - 6.9.0
 
 ## Message Proxy system
 
@@ -52,7 +54,7 @@ function postMessage(
 This system sends and receives ETH, ERC20, and ERC721 tokens from other chains.
 It consists of 3 additional smart contracts (not including MessageProxy contract):
 1) `DepositBox.sol` - contract only on a mainnet:
-    DespositBox can transfer ETH and ERC20, ERC721 tokens to other chains.
+    DepositBox can transfer ETH and ERC20, ERC721 tokens to other chains.
      \- `deposit(string memory schainID, address to)` - transfer ETH.
      ...
 2) `TokenManager.sol`
