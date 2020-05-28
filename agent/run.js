@@ -29,7 +29,6 @@ const child_process = require( "child_process" );
 
 const SCHAIN_DIR = process.env.SCHAIN_DIR;
 
-const LOCAL_WALLET_PATH = process.env.LOCAL_WALLET_PATH;
 const MAINNET_PROXY_PATH = process.env.MAINNET_PROXY_PATH;
 const SCHAIN_PROXY_PATH = process.env.SCHAIN_PROXY_PATH;
 const SCHAIN_NAME = process.env.SCHAIN_ID;
@@ -40,8 +39,7 @@ const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL;
 const NODE_NUMBER = process.env.NODE_NUMBER;
 const NODES_COUNT = process.env.NODES_COUNT;
 
-const debugInfo = `LOCAL_WALLET_PATH: ${LOCAL_WALLET_PATH},
-MAINNET_PROXY_PATH: ${MAINNET_PROXY_PATH},
+const debugInfo = `MAINNET_PROXY_PATH: ${MAINNET_PROXY_PATH},
 SCHAIN_PROXY_PATH: ${SCHAIN_PROXY_PATH},
 SCHAIN_DIR: ${SCHAIN_DIR},
 SCHAIN_NAME: ${SCHAIN_NAME},
@@ -70,15 +68,10 @@ async function run() {
 
         if( sChainAbiFileExists ) {
             console.log( "File found!" );
-
-            const fileContents = await fs.promises.readFile( LOCAL_WALLET_PATH );
-            const localWallet = JSON.parse( fileContents );
-            const pk = localWallet.private_key.slice( 2 );
-
             const baseArgs = `--url-main-net=${MAINNET_RPC_URL} --url-s-chain=${SCHAIN_RPC_URL} \
             --id-main-net=Mainnet --id-s-chain=${SCHAIN_NAME} --abi-main-net=${MAINNET_PROXY_PATH} \
             --node-number=${NODE_NUMBER} --nodes-count=${NODES_COUNT}  \
-            --abi-s-chain=${SCHAIN_PROXY_PATH} --key-main-net=${pk} --key-s-chain=${pk} --period 5`;
+            --abi-s-chain=${SCHAIN_PROXY_PATH} --period 5`;
 
             const baseCmd = `node ${__dirname}/main.js`;
             // const registerCmd = `${baseCmd} --register ${baseArgs}`;

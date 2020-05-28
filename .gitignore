@@ -71,3 +71,6 @@ test/config.json
 actions-runner/
 
 
+bls_glue
+hash_g1
+verify_bls
