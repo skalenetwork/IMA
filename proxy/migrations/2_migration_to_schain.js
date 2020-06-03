@@ -23,7 +23,8 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-let fs = require("fs");
+let fs = require( "fs" );
+let path = require( "path" );
 require('dotenv').config();
 const fsPromises = fs.promises;
 
@@ -79,6 +80,19 @@ async function deploy(deployer, network) {
         await deployer.deploy(TokenFactory, inst.address, {gas: gasLimit * gasMultiplier});
         await inst.setContract("TokenFactory", TokenFactory.address);
 
+        const strPathToBuildDir = path.join( __dirname, "../build/contracts" );
+        const strPathToERC20OnChainJSON = path.join( strPathToBuildDir, "ERC20OnChain.json" );
+        const strPathToERC721OnChainJSON = path.join( strPathToBuildDir, "ERC721OnChain.json" );
+        console.log( "Loading auto-instantiated token ERC20OnChain..." );
+        const joBuiltERC20OnChain = JSON.parse( fs.readFileSync( strPathToERC20OnChainJSON, "utf8" ) )
+        console.log( "Loading auto-instantiated token ERC20OnChain..." );
+        const joBuiltERC721OnChain = JSON.parse( fs.readFileSync( strPathToERC721OnChainJSON, "utf8" ) )
+        console.log( "Done loading auto-instantiated tokens." );
+        if( ! ( "abi" in joBuiltERC20OnChain ) || ( ! ( joBuiltERC20OnChain.abi ) ) || typeof joBuiltERC20OnChain.abi != "object" )
+            throw new Error( "ABI is not found in \"" + strPathToERC20OnChainJSON + "\"" );
+        if( ! ( "abi" in joBuiltERC721OnChain ) || ( ! ( joBuiltERC721OnChain.abi ) ) || typeof joBuiltERC721OnChain.abi != "object" )
+            throw new Error( "ABI is not found in \"" + strPathToERC721OnChainJSON + "\"" );
+
         let jsonObject = {
             lock_and_data_for_schain_address: LockAndDataForSchain.address,
             lock_and_data_for_schain_abi: LockAndDataForSchain.abi,
@@ -99,7 +113,10 @@ async function deploy(deployer, network) {
             // erc721_on_chain_address: ERC721OnChain.address,
             // erc721_on_chain_abi: ERC721OnChain.abi,
             message_proxy_chain_address: MessageProxyForSchain.address,
-            message_proxy_chain_abi: MessageProxyForSchain.abi
+            message_proxy_chain_abi: MessageProxyForSchain.abi,
+            //
+            ERC20OnChain_abi: joBuiltERC20OnChain.abi,
+            ERC721OnChain_abi: joBuiltERC721OnChain.abi
         }
 
         let jsonObject2 = {
