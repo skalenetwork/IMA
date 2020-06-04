@@ -57,8 +57,8 @@ Fourth, edit the *$IMA_ROOT/proxy/truffle-config.js* and specify needed networks
 
 We will use networks called **MainNet** and **S-Chain** in this documentation:
 
-    var privateKey_main_net = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
-    var privateKey_skalechain  = "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e";
+    let privateKey_main_net = process.env.INSECURE_PRIVATE_KEY_FOR_MAINNET;
+    let privateKey_skalechain  = process.env.INSECURE_PRIVATE_KEY_FOR_SCHAIN;
 
 ...
 
@@ -66,11 +66,11 @@ We will use networks called **MainNet** and **S-Chain** in this documentation:
         gasPrice: 10000000000,
         gas: 8000000,
         network_id: "*",
-        provider: () => { return new HDWalletProvider( privateKey_main_net, "http://127.0.0.1:8545" ); },
+        provider: () => { return new HDWalletProvider( privateKey_main_net, process.env.URL_W3_MAIN_NET ); },
         skipDryRun: true
     },
     schain: { # for SKALE Chain
-        provider: () => { return new privateKeyProvider(privateKeyForSchain, schainRpcUrl); },
+        provider: () => { return new privateKeyProvider(privateKeyForSchain, process.env.URL_W3_S_CHAIN ); },
         gasPrice: 1000000000,
         gas: 8000000,
         name: schainName,
@@ -80,20 +80,15 @@ We will use networks called **MainNet** and **S-Chain** in this documentation:
 Fourth, export required environment variables:
 
     export NETWORK_FOR_MAINNET="mainnet"
-    export ETH_PRIVATE_KEY_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
-    export NETWORK_FOR_SCHAIN="schain"
-    export ETH_PRIVATE_KEY_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
-    export SCHAIN_NAME="Bob"
-
-    export MAINNET_RPC_URL="http://127.0.0.1:8545"
-    export SCHAIN_RPC_URL="http://127.0.0.1:15000"
-    export SCHAIN_NAME="Bob"
     export INSECURE_PRIVATE_KEY_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
+    export NETWORK_FOR_SCHAIN="schain"
     export INSECURE_PRIVATE_KEY_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
+    export CHAIN_NAME_SCHAIN="Bob"
+    export URL_W3_MAIN_NET="http://127.0.0.1:8545"
+    export URL_W3_S_CHAIN="http://127.0.0.1:15000"
+
     export ACCOUNT_FOR_MAINNET="0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
     export ACCOUNT_FOR_SCHAIN="0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852"
-    export MNEMONIC_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
-    export MNEMONIC_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
 
 Fifth, try rebuild all the contracts once to ensure everything initialized OK:
 
@@ -130,31 +125,31 @@ You can check whether **IMA** is already bound with:
 
     node ./main.js --verbose=9 \
         --check-registration \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_MAINNET \
+        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
 
 **IMA** works as S-Chain extension. It should be registered on Main-net before performing any money transfers between blockchains:
 
     node ./main.js --verbose=9 \
         --register \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_MAINNET \
+        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
 
 ### Run IMA for particular S-Chain
 
@@ -162,16 +157,16 @@ Performed with the **--loop** command line option:
 
     node ./main.js --verbose=9 \
         --loop \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_MAINNET \
+        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
 
 Notice: the command above can be run in forever while loop of shell script or became a part of daemon service file.
 
@@ -202,15 +197,15 @@ Performed with the **--m2s-payment** command line option:
     node ./main.js --verbose=9 \
         --m2s-payment \
         --ether=1 \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_MAINNET \
         --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside Main-net blockchain using the **--key-main-net** command line argument. Target S-chain account is specified as address with the **--address-s-chain** command line argument. We don't need to specify private key for target account.
@@ -222,8 +217,8 @@ Performed with the **--s2m-payment** command line option:
     node ./main.js --verbose=9 \
         --s2m-payment \
         --ether=1 \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
@@ -231,7 +226,7 @@ Performed with the **--s2m-payment** command line option:
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
 
@@ -241,15 +236,15 @@ Performed with the **--s2m-view** command line option:
 
     node ./main.js --verbose=9 \
         --s2m-view \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --cid-main-net=-4 \
         --cid-s-chain=-4 \
         --id-s-chain=Bob \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc
+        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_MAINNET
 
 Notice: this operation is related to ETH transfers only.
 
@@ -259,15 +254,15 @@ Performed with the **--s2m-receive** command line option:
 
     node ./main.js --verbose=9 \
         --s2m-receive \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc
+        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_MAINNET
 
 Notice: this operation is related to ETH transfers only.
 
@@ -293,16 +288,16 @@ Performed with the **--m2s-transfer** command line option:
 
     node ./main.js --verbose=9 \
         --m2s-transfer \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+        --key-main-net=INSECURE_PRIVATE_KEY_FOR_MAINNET \
+        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
 
 #### Single transfer iteration from S-chain to Main-net
 
@@ -310,16 +305,16 @@ Performed with the **--s2m-transfer** command line option:
 
     node ./main.js --verbose=9 \
         --s2m-transfer \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_MAINNET \
+        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
 
 #### Single bidirectional transfer iteration between Main-net and S-chain
 
@@ -327,16 +322,16 @@ Performed with the **--transfer** command line option:
 
     node ./main.js --verbose=9 \
         --transfer \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_MAINNET \
+        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
 
 ### Transfer loop parameters
 
@@ -373,8 +368,8 @@ Performed with the **--m2s-payment** and **--no-raw-transfer** command line opti
     node ./main.js --verbose=9 \
         --m2s-payment \
         --amount=1 \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
@@ -382,7 +377,7 @@ Performed with the **--m2s-payment** and **--no-raw-transfer** command line opti
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_MAINNET \
         --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852 \
         --no-raw-transfer
 
@@ -399,8 +394,8 @@ Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s
     node ./main.js --verbose=9 \
         --s2m-payment \
         --amount=1 \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
@@ -410,7 +405,7 @@ Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
         --addr-erc20-s-chain=0xFB1c9F1141eCF906b90a06469DC1fad82470cb73 \
         --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
+        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN \
         --no-raw-transfer
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
@@ -426,8 +421,8 @@ Performed with the **--m2s-payment** and **--raw-transfer** command line options
     node ./main.js --verbose=9 \
         --m2s-payment \
         --amount=1 \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
@@ -436,7 +431,7 @@ Performed with the **--m2s-payment** and **--raw-transfer** command line options
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
         --erc20-s-chain=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
+        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_MAINNET \
         --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852 \
         --raw-transfer
 
@@ -453,8 +448,8 @@ Performed with the **--s2m-payment** and **--raw-transfer** command line options
     node ./main.js --verbose=9 \
         --s2m-payment \
         --amount=1 \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
@@ -464,7 +459,7 @@ Performed with the **--s2m-payment** and **--raw-transfer** command line options
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
         --erc20-s-chain=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
         --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
+        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN \
         --raw-transfer
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
@@ -479,7 +474,7 @@ Same as above. But use **721** instead of **20** in command names. Also use **--
 
 You can ask agent app to scan **S-Chain** network information and parameters, print it and exit:
 
-    node ./main.js --verbose=9 --url-s-chain=http://127.0.0.1:15000 -- browse-s-chain
+    node ./main.js --verbose=9 --url-s-chain=$URL_W3_S_CHAIN -- browse-s-chain
 
 This information is used to sign messages on all **S-Chain** nodes.
 
@@ -556,16 +551,16 @@ Here is example of IMA message processing loop invocation with BLS support:
 
     reset; node ./main.js --verbose=9 \
         --loop \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
+        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_MAINNET \
+        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN \
         --sign-messages \
         --bls-glue=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/bls_glue \
         --hash-g1=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/hash_g1 \
@@ -573,16 +568,16 @@ Here is example of IMA message processing loop invocation with BLS support:
 
     reset; node ./main.js --verbose=9 \
         --loop \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
+        --url-main-net=$URL_W3_MAIN_NET \
+        --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
         --id-s-chain=Bob \
         --cid-main-net=-4 \
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
+        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_MAINNET \
+        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN \
         --sign-messages \
         --bls-glue=/home/serge/Work/skaled/build/libconsensus/libBLS/bls_glue \
         --hash-g1=/home/serge/Work/skaled/build/libconsensus/libBLS/hash_g1 \

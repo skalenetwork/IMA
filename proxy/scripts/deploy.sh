@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
 : "${DIRECTION:?Provide DIRECTION to deploy}"
-#: "${ETH_PRIVATE_KEY_FOR_MAINNET:?Provide ETH_PRIVATE_KEY_FOR_MAINNET to deploy}"
-#: "${SCHAIN_NAME:?Provide SCHAIN_NAME to deploy}"
+#: "${INSECURE_PRIVATE_KEY_FOR_MAINNET:?Provide INSECURE_PRIVATE_KEY_FOR_MAINNET to deploy}"
+#: "${CHAIN_NAME_SCHAIN:?Provide CHAIN_NAME_SCHAIN to deploy}"
 #: "${NETWORK_FOR_SCHAIN:?Provide NETWORK_FOR_SCHAIN to deploy}"
-#: "${ETH_PRIVATE_KEY_FOR_SCHAIN:?Provide ETH_PRIVATE_KEY_FOR_SCHAIN to deploy}"
+#: "${INSECURE_PRIVATE_KEY_FOR_SCHAIN:?Provide INSECURE_PRIVATE_KEY_FOR_SCHAIN to deploy}"
 
-#NETWORK=${NETWORK_FOR_MAINNET} ETH_PRIVATE_KEY=${ETH_PRIVATE_KEY_FOR_MAINNET} node migrations/1_deploy_contracts_to_mainnet.js
+#NETWORK=${NETWORK_FOR_MAINNET} ETH_PRIVATE_KEY=${INSECURE_PRIVATE_KEY_FOR_MAINNET} node migrations/1_deploy_contracts_to_mainnet.js
 #node scripts/1_deploy_contracts_to_mainnet.js
-#NETWORK=${NETWORK_FOR_SCHAIN} ETH_PRIVATE_KEY=${ETH_PRIVATE_KEY_FOR_SCHAIN} node migrations/2_deploy_contracts_to_schain.js
+#NETWORK=${NETWORK_FOR_SCHAIN} ETH_PRIVATE_KEY=${INSECURE_PRIVATE_KEY_FOR_SCHAIN} node migrations/2_deploy_contracts_to_schain.js
 #node scripts/2_deploy_contracts_to_schain.js
 
 if [[ ! ${DIRECTION} =~ ^(main|schain|both)$ ]]; then
