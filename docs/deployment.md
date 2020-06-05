@@ -127,7 +127,7 @@ You can check whether **IMA** is already bound with:
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=[YOUR_PRIVATE_KEY] \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+        --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
 
 **IMA** works as `S-Chain` extension. It should be registered on `Main Net` before performing any money transfers between blockchains:
@@ -144,7 +144,7 @@ You can check whether **IMA** is already bound with:
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+        --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
 
 #### Run IMA for Particular S-Chain
@@ -163,7 +163,7 @@ Performed with the **--loop** command line option:
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+        --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
 
 Notice: the command above can be run in forever while loop of shell script or became a part of daemon service file.
@@ -232,8 +232,8 @@ Performed with the **--s2m-payment** command line option:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+        --address-main-net=[ADDRESS] \
+        --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
 
 Notice: The command above does payment from `Main Net` and that is why we need to specify private key for source account inside `S-Chain` blockchain using the **--key-s-chain** command line argument. Target `Main Net` account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
@@ -273,7 +273,7 @@ Performed with the **--s2m-receive** command line option:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc
+        --key-main-net=[YOUR_ETH_PRIVATE_KEY]
 ```
 
 Notice: this operation is related to ETH transfers only.
@@ -312,7 +312,7 @@ Performed with the **--m2s-transfer** command line option:
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+        --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
 
 ##### Single Transfer Iteration from S-Chain to Main Net
@@ -331,7 +331,7 @@ Performed with the **--s2m-transfer** command line option:
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+        --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
 
 ##### Single Bi-directional Transfer Iteration Between Main Net and S-Chain
@@ -350,7 +350,7 @@ Performed with the **--transfer** command line option:
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e
+        --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
 
 #### Transfer Loop Customization
@@ -424,9 +424,9 @@ Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
-        --addr-erc20-s-chain=0xFB1c9F1141eCF906b90a06469DC1fad82470cb73 \
-        --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
+        --addr-erc20-s-chain=[ADDRESS] \
+        --address-main-net=[ADDRESS] \
+        --key-s-chain=[YOUR_PRIVATE_KEY] \
         --no-raw-transfer
 ```
 
@@ -483,8 +483,8 @@ Performed with the **--s2m-payment** and **--raw-transfer** command line options
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
         --erc20-s-chain=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
-        --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
+        --address-main-net=[ADDRESS] \
+        --key-s-chain=[YOUR_PRIVATE_KEY] \
         --raw-transfer
 ```
 
@@ -589,7 +589,7 @@ Here is example of IMA message processing loop invocation with BLS support:
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
+        --key-s-chain=[YOUR_PRIVATE_KEY] \
         --sign-messages \
         --bls-glue=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/bls_glue \
         --hash-g1=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/hash_g1 \
@@ -606,7 +606,7 @@ Here is example of IMA message processing loop invocation with BLS support:
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
-        --key-s-chain=80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e \
+        --key-s-chain=[YOUR_PRIVATE_KEY] \
         --sign-messages \
         --bls-glue=/home/serge/Work/skaled/build/libconsensus/libBLS/bls_glue \
         --hash-g1=/home/serge/Work/skaled/build/libconsensus/libBLS/hash_g1 \

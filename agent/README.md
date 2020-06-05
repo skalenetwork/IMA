@@ -80,15 +80,16 @@ We will use networks called **MainNet** and **S-Chain** in this documentation:
 Fourth, export required environment variables:
 
     export NETWORK_FOR_MAINNET="mainnet"
-    export INSECURE_PRIVATE_KEY_FOR_MAINNET="23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc"
+    export INSECURE_PRIVATE_KEY_FOR_MAINNET="<YOUR_PRIVATE_KEY_HERE>"
     export NETWORK_FOR_SCHAIN="schain"
-    export INSECURE_PRIVATE_KEY_FOR_SCHAIN="80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e"
+    export INSECURE_PRIVATE_KEY_FOR_SCHAIN="<YOUR_PRIVATE_KEY_HERE>"
     export CHAIN_NAME_SCHAIN="Bob"
     export URL_W3_MAIN_NET="http://127.0.0.1:8545"
     export URL_W3_S_CHAIN="http://127.0.0.1:15000"
+    export ACCOUNT_FOR_MAINNET="<ACCOUNT_ADDRESS_HERE>"
+    export ACCOUNT_FOR_SCHAIN=""<ACCOUNT_ADDRESS_HERE>"
 
-    export ACCOUNT_FOR_MAINNET="0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
-    export ACCOUNT_FOR_SCHAIN="0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852"
+Notice: ACCOUNT_FOR_MAINNET address corresponds to INSECURE_PRIVATE_KEY_FOR_MAINNET private key, ACCOUNT_FOR_SCHAIN address corresponds to INSECURE_PRIVATE_KEY_FOR_SCHAIN private key.
 
 Fifth, try rebuild all the contracts once to ensure everything initialized OK:
 
@@ -225,7 +226,7 @@ Performed with the **--s2m-payment** command line option:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
+        --address-main-net=$ACCOUNT_FOR_MAINNET \
         --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
@@ -403,8 +404,8 @@ Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
-        --addr-erc20-s-chain=0xFB1c9F1141eCF906b90a06469DC1fad82470cb73 \
-        --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
+        --addr-erc20-s-chain=...ADDRESS... \
+        --address-main-net=$ACCOUNT_FOR_MAINNET \
         --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN \
         --no-raw-transfer
 
@@ -458,7 +459,7 @@ Performed with the **--s2m-payment** and **--raw-transfer** command line options
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
         --erc20-s-chain=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
-        --address-main-net=0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f \
+        --address-main-net=$ACCOUNT_FOR_MAINNET \
         --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN \
         --raw-transfer
 
