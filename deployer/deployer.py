@@ -37,7 +37,7 @@ def deploy_IMA_on_schain(schain_creds):
 
 
 def deploy_IMA_contracts_on_schain(rpc_ip, rpc_port, schain_name):
-    deploy_cmd = f'cd {PROJECT_PROXY_PATH} && SCHAIN_RPC_IP={rpc_ip} SCHAIN_RPC_PORT={rpc_port} SCHAIN_NAME={schain_name} NETWORK=schain bash deploy.sh'
+    deploy_cmd = f'cd {PROJECT_PROXY_PATH} && SCHAIN_RPC_IP={rpc_ip} SCHAIN_RPC_PORT={rpc_port} CHAIN_NAME_SCHAIN={schain_name} NETWORK=schain bash deploy.sh'
     print(LONG_LINE, '\n', deploy_cmd)
     os.system(deploy_cmd)
 

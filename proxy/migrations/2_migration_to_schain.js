@@ -53,13 +53,13 @@ async function deploy(deployer, network) {
         return;
     }
     
-    if (process.env.SCHAIN_NAME == undefined || process.env.SCHAIN_NAME == "") {
+    if (process.env.CHAIN_NAME_SCHAIN == undefined || process.env.CHAIN_NAME_SCHAIN == "") {
         console.log(network);
         console.log(networks['networks'][network]);
-        console.log("Please set SCHAIN_NAME to .env file");
+        console.log("Please set CHAIN_NAME_SCHAIN to .env file");
         process.exit(1);
     }
-    let schainName = process.env.SCHAIN_NAME;
+    let schainName = process.env.CHAIN_NAME_SCHAIN;
     await deployer.deploy(MessageProxyForSchain, schainName, "0x0000000000000000000000000000000000000000", {gas: gasLimit}).then(async function() {
         return await deployer.deploy(LockAndDataForSchain, {gas: gasLimit});
     }).then(async function(inst) {

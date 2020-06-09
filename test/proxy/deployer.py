@@ -47,11 +47,11 @@ class Deployer:
     def _prepare_env_file(self):
         env_file = [f'NETWORK_FOR_MAINNET="{self.config.network_for_mainnet}"',
                     f'NETWORK_FOR_SCHAIN="{self.config.network_for_schain}"',
-                    f'MNEMONIC_FOR_MAINNET="{self.config.mainnet_key}"',
-                    f'MAINNET_RPC_URL="{self.config.mainnet_rpc_url}"',
-                    f'MNEMONIC_FOR_SCHAIN="{self.config.schain_key}"',
-                    f'SCHAIN_RPC_URL="{self.config.schain_rpc_url}"',
-                    f'SCHAIN_NAME="{self.config.schain_name}"']
+                    f'INSECURE_PRIVATE_KEY_FOR_MAINNET="{self.config.mainnet_key}"',
+                    f'URL_W3_MAIN_NET="{self.config.mainnet_rpc_url}"',
+                    f'INSECURE_PRIVATE_KEY_FOR_SCHAIN="{self.config.schain_key}"',
+                    f'URL_W3_S_CHAIN="{self.config.schain_rpc_url}"',
+                    f'CHAIN_NAME_SCHAIN="{self.config.schain_name}"']
 
         with open('.env', 'w') as dot_env:
             dot_env.write('\n'.join(env_file))

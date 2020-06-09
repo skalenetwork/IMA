@@ -29,13 +29,13 @@ const Tx = require('ethereumjs-tx');
 let mainnetData = require("../data/proxyMainnet.json");
 let schainData = require("../data/proxySchain_WYTE8K6S.json");
 
-let mainnetRPC = process.env.MAINNET_RPC_URL;
-let schainRPC = process.env.SCHAIN_RPC_URL;
+let mainnetRPC = process.env.URL_W3_MAIN_NET;
+let schainRPC = process.env.URL_W3_S_CHAIN;
 let accountMainnet = process.env.ACCOUNT_FOR_MAINNET;
 let accountSchain = process.env.ACCOUNT_FOR_SCHAIN;
-let schainName = process.env.SCHAIN_NAME;
-let privateKeyForMainnet = process.env.MNEMONIC_FOR_MAINNET;
-let privateKeyForSchain = process.env.MNEMONIC_FOR_SCHAIN;
+let schainName = process.env.CHAIN_NAME_SCHAIN;
+let privateKeyForMainnet = process.env.INSECURE_PRIVATE_KEY_FOR_MAINNET;
+let privateKeyForSchain = process.env.INSECURE_PRIVATE_KEY_FOR_SCHAIN;
 
 let messageProxyMainnetAddress = mainnetData.message_proxy_mainnet_address;
 let messageProxyMainnetABI = mainnetData.message_proxy_mainnet_abi;
