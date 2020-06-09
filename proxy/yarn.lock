@@ -50,10 +50,12 @@
     ethereumjs-util "^6.1.0"
     fs-extra "^7.0.1"
 
-"@nomiclabs/buidler-web3@^1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler-web3/-/buidler-web3-1.1.2.tgz#053706408fceb43bfb64b9a32f1a57c260c591ef"
-  integrity sha512-u4wl3T5Q2CKIKAzk8+dV/IUl2yetZL6eQGa56AMBOx3Sh/xq1WLpaT4GaWhRIKfrAjRrSF1jBDgPYBmZx3zLrA==
+"@nomiclabs/buidler-web3@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/buidler-web3/-/buidler-web3-1.2.0.tgz#ee2a1dc1c55bd960dbffb3cb198c68d0e5aff146"
+  integrity sha512-RS5OzaR2LYeb59lXFmIZrIewGEYGWfXCLq46uVkdotCx7uIEKgz1KgV0VhylfIGnUA1w1kklZhD2PcOeT9A7JA==
+  dependencies:
+    "@types/bignumber.js" "^5.0.0"
 
 "@nomiclabs/buidler@^1.2.0":
   version "1.2.0"
@@ -214,6 +216,13 @@
     "@truffle/error" "^0.0.7"
     "@truffle/interface-adapter" "^0.3.0"
     web3 "1.2.1"
+
+"@types/bignumber.js@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@types/bignumber.js/-/bignumber.js-5.0.0.tgz#d9f1a378509f3010a3255e9cc822ad0eeb4ab969"
+  integrity sha512-0DH7aPGCClywOFaxxjE6UwpN2kQYe9LwuDQMv+zYA97j5GkOMo8e66LYT+a8JYU7jfmUFRZLa9KycxHDsKXJCA==
+  dependencies:
+    bignumber.js "*"
 
 "@types/bn.js@*", "@types/bn.js@^4.11.3", "@types/bn.js@^4.11.4", "@types/bn.js@^4.11.5":
   version "4.11.6"
@@ -763,15 +772,15 @@ bcrypt-pbkdf@^1.0.0:
   dependencies:
     tweetnacl "^0.14.3"
 
+bignumber.js@*, bignumber.js@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-9.0.0.tgz#805880f84a329b5eac6e7cb6f8274b6d82bdf075"
+  integrity sha512-t/OYhhJ2SD+YGBQcjY8GzzDHEk9f3nerxjtfa6tlMXfe7frs/WozhvCNoGvpM0P3bNf3Gq5ZRMlGr5f3r4/N8A==
+
 bignumber.js@^7.2.1:
   version "7.2.1"
   resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-7.2.1.tgz#80c048759d826800807c4bfd521e50edbba57a5f"
   integrity sha512-S4XzBk5sMB+Rcb/LNcpzXr57VRTxgAvaAEDAl1AwRx27j00hT84O6OkteE7u8UB3NuaaygCRrEpqox4uDOrbdQ==
-
-bignumber.js@^9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-9.0.0.tgz#805880f84a329b5eac6e7cb6f8274b6d82bdf075"
-  integrity sha512-t/OYhhJ2SD+YGBQcjY8GzzDHEk9f3nerxjtfa6tlMXfe7frs/WozhvCNoGvpM0P3bNf3Gq5ZRMlGr5f3r4/N8A==
 
 binary-extensions@^1.0.0:
   version "1.13.1"
