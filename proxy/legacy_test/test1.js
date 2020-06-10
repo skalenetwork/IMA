@@ -25,7 +25,7 @@
 
 require('dotenv').config();
 const networkName = process.env.NETWORK_FOR_MAINNET;
-const privateKey =  process.env.ETH_PRIVATE_KEY_FOR_MAINNET;
+const privateKey =  process.env.$INSECURE_PRIVATE_KEY_FOR_MAINNET;
 
 let networks = require("../truffle-config.js");
 let currentNetwork = networks['networks'][networkName];
