@@ -395,7 +395,7 @@ Performed with the **--m2s-payment** and **--no-raw-transfer** command line opti
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
+        --erc20-main-net=data-mn.json \
         --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
         --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852 \
         --no-raw-transfer
@@ -423,7 +423,7 @@ Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
+        --erc20-main-net=data-mn.json \
         --addr-erc20-s-chain=[ADDRESS] \
         --address-main-net=[ADDRESS] \
         --key-s-chain=[YOUR_PRIVATE_KEY] \
@@ -452,8 +452,8 @@ Performed with the **--m2s-payment** and **--raw-transfer** command line options
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
-        --erc20-s-chain=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
+        --erc20-main-net=data-mn.json \
+        --erc20-s-chain=data-sc.json \
         --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
         --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852 \
         --raw-transfer
@@ -481,8 +481,8 @@ Performed with the **--s2m-payment** and **--raw-transfer** command line options
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
-        --erc20-s-chain=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
+        --erc20-main-net=data-mn.json \
+        --erc20-s-chain=data-sc.json \
         --address-main-net=[ADDRESS] \
         --key-s-chain=[YOUR_PRIVATE_KEY] \
         --raw-transfer
@@ -591,9 +591,9 @@ Here is example of IMA message processing loop invocation with BLS support:
         --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
         --key-s-chain=[YOUR_PRIVATE_KEY] \
         --sign-messages \
-        --bls-glue=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/bls_glue \
-        --hash-g1=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/hash_g1 \
-        --bls-verify=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/verify_bls
+        --bls-glue=libBLS/bls_glue \
+        --hash-g1=libBLS/hash_g1 \
+        --bls-verify=libBLS/verify_bls
 
     reset; node ./main.js --verbose=9 \
         --loop \
@@ -608,7 +608,7 @@ Here is example of IMA message processing loop invocation with BLS support:
         --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
         --key-s-chain=[YOUR_PRIVATE_KEY] \
         --sign-messages \
-        --bls-glue=/home/serge/Work/skaled/build/libconsensus/libBLS/bls_glue \
-        --hash-g1=/home/serge/Work/skaled/build/libconsensus/libBLS/hash_g1 \
-        --bls-verify=/home/serge/Work/skaled/build/libconsensus/libBLS/verify_bls
+        --bls-glue=libBLS/bls_glue \
+        --hash-g1=libBLS/hash_g1 \
+        --bls-verify=libBLS/verify_bls
 ```
