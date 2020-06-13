@@ -20,7 +20,7 @@
     "dotenv": "^7.0.0",
         "ethereumjs-tx": "^2.1.2",
         "openzeppelin-solidity": "^2.2.0",
-        "solc": "^0.5.4",
+        "solc": "^0.6.10",
         "truffle": "^5.1.22",
         "truffle-hdwallet-provider": "^1.0.9",
         "typescript": "^3.8.3"
