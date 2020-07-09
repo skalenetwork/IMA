@@ -21,7 +21,7 @@
         "ethereumjs-tx": "^2.1.2",
         "openzeppelin-solidity": "^2.2.0",
         "solc": "^0.5.4",
-        "truffle": "^5.1.22",
+        "truffle": "^5.1.33",
         "truffle-hdwallet-provider": "^1.0.9",
         "typescript": "^3.8.3"
     },
