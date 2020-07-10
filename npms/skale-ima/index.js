@@ -1104,16 +1104,12 @@ async function do_erc721_payment_from_main_net(
         // send transactions
         //
         strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.normal( "Composed " ) + cc.info( "rawTxApprove" ) + cc.normal( " is: " ) + cc.j( rawTxApprove ) + "\n" );
         // let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
         const joReceiptApprove = await safe_send_signed_transaction( w3_main_net, serializedTxApprove, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
         log.write( cc.normal( "Will send ERC721 signed transaction from " ) + cc.warning( joAccountSrc.address( w3_main_net ) ) + "\n" );
         strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.normal( "Composed " ) + cc.info( "rawTxDeposit" ) + cc.normal( " is: " ) + cc.j( rawTxDeposit ) + "\n" );
         // let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
         const joReceiptDeposit = await safe_send_signed_transaction( w3_main_net, serializedTxDeposit, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
