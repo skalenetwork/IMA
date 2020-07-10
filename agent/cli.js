@@ -29,27 +29,8 @@ const fs = require( "fs" );
 // const os = require( "os" );
 // const shell = require( "shelljs" );
 
-let IMA = null;
-let imaState = null;
-let imaUtils = null;
-let log = null;
-let cc = null;
-let rpcCall = null;
-let owaspUtils = null;
-let w3mod = null;
-
-function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc, a_rpcCall, a_owaspUtils ) {
-    if( !( anIMA && an_imaState && an_imaUtils && a_log && a_cc && a_rpcCall && a_owaspUtils ) )
-        throw new Error( "CLI module initializer was invoked with bad parameters: " + JSON.stringify( arguments ) );
-    IMA = anIMA;
-    w3mod = IMA.w3mod;
-    imaState = an_imaState;
-    imaUtils = an_imaUtils;
-    log = a_log;
-    cc = a_cc;
-    rpcCall = a_rpcCall;
+function init() {
     rpcCall.rpcCallAddUsageRef();
-    owaspUtils = a_owaspUtils;
     owaspUtils.owaspAddUsageRef();
 }
 

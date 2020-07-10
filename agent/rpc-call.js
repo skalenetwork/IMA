@@ -26,10 +26,6 @@
 const ws = require( "ws" ); // https://www.npmjs.com/package/ws
 const request = require( "request" ); // https://www.npmjs.com/package/request
 
-let cc = null;
-let log = null;
-let owaspUtils = null;
-
 function is_ws_url( strURL ) {
     try {
         if( !owaspUtils.validateURL( strURL ) )
@@ -42,12 +38,7 @@ function is_ws_url( strURL ) {
     return false;
 }
 
-function rpc_call_init( a_cc, a_log, a_owaspUtils ) {
-    if( !( a_cc && a_log && a_owaspUtils ) )
-        throw new Error( "JSON RPC CALLER module initializer was invoked with bad parameters: " + JSON.stringify( arguments ) );
-    cc = a_cc;
-    log = a_log;
-    owaspUtils = a_owaspUtils;
+function rpc_call_init() {
     owaspUtils.owaspAddUsageRef();
 }
 

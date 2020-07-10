@@ -137,6 +137,52 @@ async function get_contract_call_events( joContract, strEventName, nBlockNumber,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function compose_tx_instance( strLogPrefix, rawTx ) {
+    strLogPrefix = strLogPrefix || "";
+    rawTx = JSON.parse( JSON.stringify( rawTx ) ); // clone
+    let joOpts = null;
+    if( "chainId" in rawTx && typeof rawTx.chainId == "number" ) {
+        switch ( rawTx.chainId ) {
+        case 1:
+            delete rawTx.chainId;
+            joOpts = joOpts || { };
+            joOpts.chain = "mainnet";
+            break;
+        case 3:
+            delete rawTx.chainId;
+            joOpts = joOpts || { };
+            joOpts.chain = "ropsten";
+            break;
+        case 4:
+            delete rawTx.chainId;
+            joOpts = joOpts || { };
+            joOpts.chain = "rinkeby";
+            break;
+        case 5:
+            delete rawTx.chainId;
+            joOpts = joOpts || { };
+            joOpts.chain = "goerli";
+            break;
+        case 2018:
+            delete rawTx.chainId;
+            joOpts = joOpts || { };
+            joOpts.chain = "dev";
+            break;
+        } // switch( rawTx.chainId )
+    }
+    if( verbose_get() >= RV_VERBOSE.trace )
+        log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + cc.debug( " with opts " ) + cc.j( joOpts ) + "\n" );
+    let tx = null;
+    if( joOpts )
+        tx = new ethereumjs_tx( rawTx, joOpts );
+    else
+        tx = new ethereumjs_tx( rawTx );
+    return tx;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 let g_bDryRunIsEnabled = true;
 
 function dry_run_is_enabled() {
@@ -317,17 +363,14 @@ async function register_s_chain_on_main_net( // step 1A
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const rawTx = {
+        const tx = compose_tx_instance( strLogPrefix, {
             chainId: cid_main_net,
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
             to: jo_message_proxy_main_net.options.address, // contract address
             data: dataTx
-        };
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
-        const tx = new ethereumjs_tx( rawTx );
+        } );
         const key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         const serializedTx = tx.serialize();
@@ -424,17 +467,14 @@ async function register_main_net_on_s_chain( // step 1B
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const rawTx = {
+        const tx = compose_tx_instance( strLogPrefix, {
             chainId: cid_s_chain,
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
             to: jo_message_proxy_s_chain.options.address, // contract address
             data: dataTx
-        };
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
-        const tx = new ethereumjs_tx( rawTx );
+        } );
         const key = Buffer.from( joAccount_s_chain.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         const serializedTx = tx.serialize();
@@ -529,17 +569,14 @@ async function register_s_chain_in_deposit_box( // step 2
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const rawTx = {
+        const tx = compose_tx_instance( strLogPrefix, {
             chainId: cid_main_net,
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
             to: jo_lock_and_data_main_net.options.address, // contract address
             data: dataTx
-        };
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
-        const tx = new ethereumjs_tx( rawTx );
+        } );
         const key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         const serializedTx = tx.serialize();
@@ -624,17 +661,14 @@ async function register_main_net_depositBox_on_s_chain( // step 3
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const rawTx = {
+        const tx = compose_tx_instance( strLogPrefix, {
             chainId: cid_s_chain,
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
             to: jo_lock_and_data_s_chain.options.address, // contract address
             data: dataTx
-        };
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
-        const tx = new ethereumjs_tx( rawTx );
+        } );
         const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         const serializedTx = tx.serialize();
@@ -701,7 +735,7 @@ async function do_eth_payment_from_main_net(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const rawTx = {
+        const tx = compose_tx_instance( strLogPrefix, {
             chainId: cid_main_net,
             nonce: tcnt,
             gas: 3000000, // 2100000
@@ -710,10 +744,7 @@ async function do_eth_payment_from_main_net(
             to: jo_deposit_box.options.address, // contract address
             data: dataTx,
             value: wei_how_much // how much money to send
-        };
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
-        const tx = new ethereumjs_tx( rawTx );
+        } );
         const key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         const serializedTx = tx.serialize();
@@ -828,7 +859,7 @@ async function do_eth_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const rawTx = {
+        const tx = compose_tx_instance( strLogPrefix, {
             chainId: cid_s_chain,
             nonce: tcnt,
             gas: 6000000, // 2100000
@@ -837,10 +868,7 @@ async function do_eth_payment_from_s_chain(
             to: jo_token_manager.options.address, // contract address
             data: dataTx,
             value: 0 // how much money to send
-        };
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
-        const tx = new ethereumjs_tx( rawTx );
+        } );
         const key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         const serializedTx = tx.serialize();
@@ -902,7 +930,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const rawTx = {
+        const tx = compose_tx_instance( strLogPrefix, {
             chainId: cid_main_net,
             nonce: tcnt,
             gas: 2100000,
@@ -911,10 +939,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             to: jo_lock_and_data_main_net.options.address, // contract address
             data: dataTx,
             value: 0 // how much money to send
-        };
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + "\n" );
-        const tx = new ethereumjs_tx( rawTx );
+        } );
         const key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
         const serializedTx = tx.serialize();
@@ -1044,7 +1069,7 @@ async function do_erc721_payment_from_main_net(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const rawTxApprove = {
+        const txApprove = compose_tx_instance( strLogPrefix, {
             chainId: cid_main_net,
             from: joAccountSrc.address( w3_main_net ), // accountForMainnet
             nonce: "0x" + tcnt.toString( 16 ),
@@ -1052,9 +1077,9 @@ async function do_erc721_payment_from_main_net(
             to: erc721Address_main_net,
             gasPrice: gasPrice, // 0
             gas: 8000000
-        };
+        } );
         tcnt += 1;
-        const rawTxDeposit = {
+        const txDeposit = compose_tx_instance( strLogPrefix, {
             chainId: cid_main_net,
             from: joAccountSrc.address( w3_main_net ), // accountForMainnet
             nonce: "0x" + tcnt.toString( 16 ),
@@ -1063,15 +1088,13 @@ async function do_erc721_payment_from_main_net(
             gasPrice: gasPrice, // 0
             gas: 8000000,
             value: 2000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" )
-        };
+        } );
         //
         //
         // sign transactions
         //
         strActionName = "sign transactions M->S";
         const privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
-        const txApprove = new ethereumjs_tx( rawTxApprove );
-        const txDeposit = new ethereumjs_tx( rawTxDeposit );
         txApprove.sign( privateKeyForMainnet );
         txDeposit.sign( privateKeyForMainnet );
         const serializedTxApprove = txApprove.serialize();
@@ -1243,7 +1266,7 @@ async function do_erc20_payment_from_main_net(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const rawTxApprove = {
+        const txApprove = compose_tx_instance( strLogPrefix, {
             chainId: cid_main_net,
             from: joAccountSrc.address( w3_main_net ), // accountForMainnet
             nonce: "0x" + tcnt.toString( 16 ),
@@ -1251,9 +1274,9 @@ async function do_erc20_payment_from_main_net(
             to: erc20Address_main_net,
             gasPrice: gasPrice, // 0
             gas: 8000000
-        };
+        } );
         tcnt += 1;
-        const rawTxDeposit = {
+        const txDeposit = compose_tx_instance( strLogPrefix, {
             chainId: cid_main_net,
             from: joAccountSrc.address( w3_main_net ), // accountForMainnet
             nonce: "0x" + tcnt.toString( 16 ),
@@ -1261,14 +1284,12 @@ async function do_erc20_payment_from_main_net(
             to: depositBoxAddress,
             gasPrice: gasPrice, // 0
             gas: 8000000
-        };
+        } );
         //
         // sign transactions
         //
         strActionName = "sign transactions M->S";
         const privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
-        const txApprove = new ethereumjs_tx( rawTxApprove );
-        const txDeposit = new ethereumjs_tx( rawTxDeposit );
         txApprove.sign( privateKeyForMainnet );
         txDeposit.sign( privateKeyForMainnet );
         const serializedTxApprove = txApprove.serialize();
@@ -1432,7 +1453,7 @@ async function do_erc20_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const rawTxApprove = {
+        const txApprove = compose_tx_instance( strLogPrefix, {
             chainId: cid_s_chain,
             from: accountForSchain,
             nonce: "0x" + tcnt.toString( 16 ),
@@ -1440,9 +1461,9 @@ async function do_erc20_payment_from_s_chain(
             to: erc20Address_s_chain,
             gasPrice: gasPrice,
             gas: 8000000
-        };
+        } );
         tcnt += 1;
-        const rawTxExitToMainERC20 = {
+        const txExitToMainERC20 = compose_tx_instance( strLogPrefix, {
             chainId: cid_s_chain,
             from: accountForSchain,
             nonce: "0x" + tcnt.toString( 16 ),
@@ -1450,14 +1471,12 @@ async function do_erc20_payment_from_s_chain(
             to: tokenManagerAddress,
             gasPrice: gasPrice,
             gas: 8000000
-        };
+        } );
         //
         // sign transactions
         //
         strActionName = "sign transactions S->M";
         const privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
-        const txApprove = new ethereumjs_tx( rawTxApprove );
-        const txExitToMainERC20 = new ethereumjs_tx( rawTxExitToMainERC20 );
         txApprove.sign( privateKeyForSchain );
         txExitToMainERC20.sign( privateKeyForSchain );
         const serializedTxApprove = txApprove.serialize();
@@ -1574,7 +1593,7 @@ async function do_erc721_payment_from_s_chain(
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
         strActionName = "create raw transactions S->M";
-        const rawTxTransferFrom = {
+        const txTransferFrom = compose_tx_instance( strLogPrefix, {
             chainId: cid_s_chain,
             from: accountForSchain,
             nonce: "0x" + tcnt.toString( 16 ),
@@ -1582,9 +1601,9 @@ async function do_erc721_payment_from_s_chain(
             to: erc721Address_s_chain,
             gasPrice: gasPrice,
             gas: 8000000
-        };
+        } );
         tcnt += 1;
-        const rawTxExitToMainERC721 = {
+        const txExitToMainERC721 = compose_tx_instance( strLogPrefix, {
             chainId: cid_s_chain,
             from: accountForSchain,
             nonce: "0x" + tcnt.toString( 16 ),
@@ -1592,14 +1611,12 @@ async function do_erc721_payment_from_s_chain(
             to: tokenManagerAddress,
             gasPrice: gasPrice,
             gas: 8000000
-        };
+        } );
         //
         // sign transactions
         //
         strActionName = "sign transactions S->M";
         const privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
-        const txTransferFrom = new ethereumjs_tx( rawTxTransferFrom );
-        const txExitToMainERC721 = new ethereumjs_tx( rawTxExitToMainERC721 );
         txTransferFrom.sign( privateKeyForSchain );
         txExitToMainERC721.sign( privateKeyForSchain );
         const serializedTxTransferFrom = txTransferFrom.serialize();
@@ -1978,7 +1995,7 @@ async function do_transfer(
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
                 //
-                const rawTx_postIncomingMessages = {
+                const tx_postIncomingMessages = compose_tx_instance( strLogPrefix, {
                     chainId: cid_dst,
                     nonce: tcnt,
                     gas: 6000000, // 8000000
@@ -1987,10 +2004,7 @@ async function do_transfer(
                     to: jo_message_proxy_dst.options.address, // contract address
                     data: dataTx_postIncomingMessages //,
                     // "value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
-                };
-                if( verbose_get() >= RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx_postIncomingMessages ) + "\n" );
-                const tx_postIncomingMessages = new ethereumjs_tx( rawTx_postIncomingMessages );
+                } );
                 const key = Buffer.from( joAccountDst.privateKey, "hex" ); // convert private key to buffer ??????????????????????????????????
                 tx_postIncomingMessages.sign( key ); // arg is privateKey as buffer
                 const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
@@ -2153,6 +2167,8 @@ module.exports.do_transfer = do_transfer;
 module.exports.TransactionCustomizer = TransactionCustomizer;
 module.exports.tc_main_net = tc_main_net;
 module.exports.tc_s_chain = tc_s_chain;
+
+module.exports.compose_tx_instance = compose_tx_instance;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
