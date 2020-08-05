@@ -1,3 +1,27 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
+/**
+ * @license
+ * SKALE IMA
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file main.js
+ * @copyright SKALE Labs 2019-Present
+ */
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 
@@ -5,20 +29,21 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 // const path = require( "path" );
 // const url = require( "url" );
 // const os = require( "os" );
-const IMA = require( "../npms/skale-ima" );
-const owaspUtils = IMA.owaspUtils;
-const imaUtils = require( "./utils.js" );
+global.IMA = require( "../npms/skale-ima" );
+global.w3mod = IMA.w3mod;
+global.ethereumjs_tx = IMA.ethereumjs_tx;
+global.ethereumjs_wallet = IMA.ethereumjs_wallet;
+global.ethereumjs_util = IMA.ethereumjs_util;
+global.compose_tx_instance = IMA.compose_tx_instance;
+global.owaspUtils = IMA.owaspUtils;
+global.imaUtils = require( "./utils.js" );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
-const log = imaUtils.log;
-const cc = imaUtils.cc;
-// const w3mod = IMA.w3mod;
-const imaCLI = require( "./cli.js" );
-const imaBLS = require( "./bls.js" );
-const rpcCall = require( "./rpc-call.js" );
-rpcCall.init( cc, log, owaspUtils );
-// let ethereumjs_tx = IMA.ethereumjs_tx;
-// let ethereumjs_wallet = IMA.ethereumjs_wallet;
-// let ethereumjs_util = IMA.ethereumjs_util;
+global.log = global.imaUtils.log;
+global.cc = global.imaUtils.cc;
+global.imaCLI = require( "./cli.js" );
+global.imaBLS = require( "./bls.js" );
+global.rpcCall = require( "./rpc-call.js" );
+global.rpcCall.init();
 
 function fn_address_impl_( w3 ) {
     if( this.address_ == undefined || this.address_ == null )
@@ -26,7 +51,7 @@ function fn_address_impl_( w3 ) {
     return this.address_;
 }
 
-const imaState = {
+global.imaState = {
     "strLogFilePath": "",
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,
@@ -121,16 +146,11 @@ const imaState = {
     "eth_erc20": null, // only s-chain
 
     //
-    // examples of valid values:
+    // example:
     //
-    // "joAccount_main_net": { "name": "g3",    "privateKey": "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc", "address": fn_address_impl_ }, // "address": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
-    // "joAccount_s_chain ": { "name": "Bob",   "privateKey": "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e", "address": fn_address_impl_ }, // "address": "0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852"
+    // "joAccount_main_net": { "name": "g3",    "privateKey": "<YOUR_PRIVATE_KEY_HERE>", "address": fn_address_impl_ },
+    // "joAccount_s_chain ": { "name": "Bob",   "privateKey": "<YOUR_PRIVATE_KEY_HERE>", "address": fn_address_impl_ },
     //
-    // "joAccount_main_net": { "name": "g2",    "privateKey": "39cb49d82f7e20ad26f2863f74de198f7d5be3aa9b3ec58fbd641950da30acd8", "address": fn_address_impl_ }, // "address": "0x6595b3d58c80db0cc6d50ca5e5f422e6134b07a8"
-    // "joAccount_s_chain ": { "name": "Alice", "privateKey": "1800d6337966f6410905a6bf9af370ac2f55c7428854d995cfa719e061ac0dca", "address": fn_address_impl_ }, // "address": "0x651054E818a0E022Bbb681Aa3b657386f20845F5"
-    //
-    // "joAccount_main_net": { "name": "g1",    "privateKey": "2a95a383114492b90a6eecbc355d7b63501ffb72ed39a788e48aa3c286eb526d", "address": fn_address_impl_ }, // "address": "0x12b907ebaea975ce4d5de010cdf680ad21dc4ca1"
-    // "joAccount_s_chain ": { "name": "Alex",  "privateKey": "d47f07804006486dbeba6b81e50fc93543657853a3d2f736d4fd68488ca94c17", "address": fn_address_impl_ }, // "address": "0x8e8311f4c4533f4C19363d6140e1D5FA16Aa4071"
     //
     // example of empty values to fill from command line arguments:
     //
@@ -161,9 +181,9 @@ if( tmp_address_MN_from_env && typeof tmp_address_MN_from_env == "string" && tmp
 if( tmp_address_SC_from_env && typeof tmp_address_SC_from_env == "string" && tmp_address_SC_from_env.length > 0 )
     imaState.joAccount_s_chain.address_ = "" + tmp_address_SC_from_env;
 
-imaBLS.init( IMA, imaState, imaUtils, log, cc, rpcCall, owaspUtils );
+imaBLS.init();
 
-imaCLI.init( IMA, imaState, imaUtils, log, cc, rpcCall, owaspUtils );
+imaCLI.init();
 imaCLI.parse( {
     "register": function() {
         imaState.arrActions.push( {

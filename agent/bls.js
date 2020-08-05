@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
+/**
+ * @license
+ * SKALE IMA
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file bls.js
+ * @copyright SKALE Labs 2019-Present
+ */
+
 // const fs = require( "fs" );
 const path = require( "path" );
 // const url = require( "url" );
@@ -6,29 +31,7 @@ const child_process = require( "child_process" );
 const shell = require( "shelljs" );
 const { Keccak } = require( "sha3" );
 
-let IMA = null;
-let imaState = null;
-let imaUtils = null;
-let log = null;
-let cc = null;
-let rpcCall = null;
-let owaspUtils = null;
-let w3mod = null;
-
-function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc, a_rpcCall, a_owaspUtils ) {
-    if( !( anIMA && an_imaState && an_imaUtils && a_log && a_cc && a_rpcCall && a_owaspUtils ) )
-        throw new Error( "BLS module initializer was invoked with bad parameters: " + JSON.stringify( arguments ) );
-    IMA = anIMA;
-    w3mod = IMA.w3mod;
-    if( !w3mod )
-        throw new Error( "BLS MODULE cannot be initialized without valid reference to WEB3 MOD from IMA object" );
-    imaState = an_imaState;
-    imaUtils = an_imaUtils;
-    log = a_log;
-    cc = a_cc;
-    rpcCall = a_rpcCall;
-    rpcCall.rpcCallAddUsageRef();
-    owaspUtils = a_owaspUtils;
+function init() {
     owaspUtils.owaspAddUsageRef();
 }
 

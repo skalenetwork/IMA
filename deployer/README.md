@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
+
 # SKALE IMA Deployer
 
 These helper scripts will deploy `IMA` on a SKALE chain.

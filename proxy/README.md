@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
+
 # SKALE IMA Proxy
 
 SKALE Interchain Messaging Smart Contracts
@@ -6,7 +8,7 @@ Proxy is a library with smart contracts for the SKALE Interchain Messaging Agent
 
 Smart contract language - Solidity 0.5.10
 NodeJS version - 10.16.0
-NPM verion - 6.9.0
+NPM version - 6.9.0
 
 ## Message Proxy system
 
@@ -52,7 +54,7 @@ function postMessage(
 This system sends and receives ETH, ERC20, and ERC721 tokens from other chains.
 It consists of 3 additional smart contracts (not including MessageProxy contract):
 1) `DepositBox.sol` - contract only on a mainnet:
-    DespositBox can transfer ETH and ERC20, ERC721 tokens to other chains.
+    DepositBox can transfer ETH and ERC20, ERC721 tokens to other chains.
      \- `deposit(string memory schainID, address to)` - transfer ETH.
      ...
 2) `TokenManager.sol`
@@ -73,15 +75,13 @@ There are several example networks in comments.
 The `.env` file should include the following variables:
 
 ```bash
-MAINNET_RPC_URL="your mainnet RPC url, it also can be an infura endpoint"
-SCHAIN_RPC_URL="your SKALE chain RPC url, it also can be an infura endpoint"
-SCHAIN_NAME="your SKALE chain name"
+URL_W3_MAIN_NET="your mainnet RPC url, it also can be an infura endpoint"
+URL_W3_S_CHAIN="your SKALE chain RPC url, it also can be an infura endpoint"
+CHAIN_NAME_SCHAIN="your SKALE chain name"
 INSECURE_PRIVATE_KEY_FOR_MAINNET="your private key for mainnet"
 INSECURE_PRIVATE_KEY_FOR_SCHAIN="your private key for SKALE chain"
 ACCOUNT_FOR_MAINNET="your account for mainnet"
 ACCOUNT_FOR_SCHAIN="your account for SKALE chain"
-MNEMONIC_FOR_MAINNET="your mnemonic for mainnet"
-MNEMONIC_FOR_SCHAIN="your mnemonic for SKALE chain"
 NETWORK_FOR_MAINNET="your created network for mainnet"
 NETWORK_FOR_SCHAIN="your created network for SKALE chain"
 ```

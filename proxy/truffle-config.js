@@ -2,15 +2,15 @@ require('dotenv').config();
 require("ts-node/register");
 const Web3 = require('web3');
 let hdwalletProvider = require('truffle-hdwallet-provider');
-let schainName = process.env.SCHAIN_NAME;
-let schainRpcUrl = process.env.SCHAIN_RPC_URL;
-let mainnetRpcUrl = process.env.MAINNET_RPC_URL;
+let schainName = process.env.CHAIN_NAME_SCHAIN;
+let schainRpcUrl = process.env.URL_W3_S_CHAIN;
+let mainnetRpcUrl = process.env.URL_W3_MAIN_NET;
 
 let privateKeyForMainnet = process.env.INSECURE_PRIVATE_KEY_FOR_MAINNET;
 let privateKeyForSchain = process.env.INSECURE_PRIVATE_KEY_FOR_SCHAIN;
 
-let mnemonicForMainnet = process.env.MNEMONIC_FOR_MAINNET;
-let mnemonicForSchain = process.env.MNEMONIC_FOR_SCHAIN;
+let mnemonicForMainnet = process.env.INSECURE_PRIVATE_KEY_FOR_MAINNET;
+let mnemonicForSchain = process.env.INSECURE_PRIVATE_KEY_FOR_SCHAIN;
 
 let accountForMainnet = process.env.ACCOUNT_FOR_MAINNET;
 let accountForSchain = process.env.ACCOUNT_FOR_SCHAIN;

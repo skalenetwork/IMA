@@ -1,30 +1,36 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
+/**
+ * @license
+ * SKALE IMA
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file cli.js
+ * @copyright SKALE Labs 2019-Present
+ */
+
 const fs = require( "fs" );
 // const path = require( "path" );
 // const url = require( "url" );
 // const os = require( "os" );
 // const shell = require( "shelljs" );
 
-let IMA = null;
-let imaState = null;
-let imaUtils = null;
-let log = null;
-let cc = null;
-let rpcCall = null;
-let owaspUtils = null;
-let w3mod = null;
-
-function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc, a_rpcCall, a_owaspUtils ) {
-    if( !( anIMA && an_imaState && an_imaUtils && a_log && a_cc && a_rpcCall && a_owaspUtils ) )
-        throw new Error( "CLI module initializer was invoked with bad parameters: " + JSON.stringify( arguments ) );
-    IMA = anIMA;
-    w3mod = IMA.w3mod;
-    imaState = an_imaState;
-    imaUtils = an_imaUtils;
-    log = a_log;
-    cc = a_cc;
-    rpcCall = a_rpcCall;
+function init() {
     rpcCall.rpcCallAddUsageRef();
-    owaspUtils = a_owaspUtils;
     owaspUtils.owaspAddUsageRef();
 }
 
