@@ -31,29 +31,7 @@ const child_process = require( "child_process" );
 const shell = require( "shelljs" );
 const { Keccak } = require( "sha3" );
 
-let IMA = null;
-let imaState = null;
-let imaUtils = null;
-let log = null;
-let cc = null;
-let rpcCall = null;
-let owaspUtils = null;
-let w3mod = null;
-
-function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc, a_rpcCall, a_owaspUtils ) {
-    if( !( anIMA && an_imaState && an_imaUtils && a_log && a_cc && a_rpcCall && a_owaspUtils ) )
-        throw new Error( "BLS module initializer was invoked with bad parameters: " + JSON.stringify( arguments ) );
-    IMA = anIMA;
-    w3mod = IMA.w3mod;
-    if( !w3mod )
-        throw new Error( "BLS MODULE cannot be initialized without valid reference to WEB3 MOD from IMA object" );
-    imaState = an_imaState;
-    imaUtils = an_imaUtils;
-    log = a_log;
-    cc = a_cc;
-    rpcCall = a_rpcCall;
-    rpcCall.rpcCallAddUsageRef();
-    owaspUtils = a_owaspUtils;
+function init() {
     owaspUtils.owaspAddUsageRef();
 }
 

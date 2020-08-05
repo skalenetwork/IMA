@@ -29,20 +29,21 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 // const path = require( "path" );
 // const url = require( "url" );
 // const os = require( "os" );
-const IMA = require( "../npms/skale-ima" );
-const owaspUtils = IMA.owaspUtils;
-const imaUtils = require( "./utils.js" );
+global.IMA = require( "../npms/skale-ima" );
+global.w3mod = IMA.w3mod;
+global.ethereumjs_tx = IMA.ethereumjs_tx;
+global.ethereumjs_wallet = IMA.ethereumjs_wallet;
+global.ethereumjs_util = IMA.ethereumjs_util;
+global.compose_tx_instance = IMA.compose_tx_instance;
+global.owaspUtils = IMA.owaspUtils;
+global.imaUtils = require( "./utils.js" );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
-const log = imaUtils.log;
-const cc = imaUtils.cc;
-// const w3mod = IMA.w3mod;
-const imaCLI = require( "./cli.js" );
-const imaBLS = require( "./bls.js" );
-const rpcCall = require( "./rpc-call.js" );
-rpcCall.init( cc, log, owaspUtils );
-// let ethereumjs_tx = IMA.ethereumjs_tx;
-// let ethereumjs_wallet = IMA.ethereumjs_wallet;
-// let ethereumjs_util = IMA.ethereumjs_util;
+global.log = global.imaUtils.log;
+global.cc = global.imaUtils.cc;
+global.imaCLI = require( "./cli.js" );
+global.imaBLS = require( "./bls.js" );
+global.rpcCall = require( "./rpc-call.js" );
+global.rpcCall.init();
 
 function fn_address_impl_( w3 ) {
     if( this.address_ == undefined || this.address_ == null )
@@ -50,7 +51,7 @@ function fn_address_impl_( w3 ) {
     return this.address_;
 }
 
-const imaState = {
+global.imaState = {
     "strLogFilePath": "",
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,
@@ -180,9 +181,9 @@ if( tmp_address_MN_from_env && typeof tmp_address_MN_from_env == "string" && tmp
 if( tmp_address_SC_from_env && typeof tmp_address_SC_from_env == "string" && tmp_address_SC_from_env.length > 0 )
     imaState.joAccount_s_chain.address_ = "" + tmp_address_SC_from_env;
 
-imaBLS.init( IMA, imaState, imaUtils, log, cc, rpcCall, owaspUtils );
+imaBLS.init();
 
-imaCLI.init( IMA, imaState, imaUtils, log, cc, rpcCall, owaspUtils );
+imaCLI.init();
 imaCLI.parse( {
     "register": function() {
         imaState.arrActions.push( {
