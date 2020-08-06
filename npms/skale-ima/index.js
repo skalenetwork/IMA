@@ -29,8 +29,8 @@
 // const url = require( "url" );
 // const os = require( "os" );
 const w3mod = require( "web3" );
-const ethereumjs_tx = require( "ethereumjs-tx" ).Transaction;
-const ethereumjs_wallet = require( "ethereumjs-wallet" ).default;
+const ethereumjs_tx = require( "ethereumjs-tx" );
+const ethereumjs_wallet = require( "ethereumjs-wallet" );
 const ethereumjs_util = require( "ethereumjs-util" );
 
 const log = require( "../skale-log/log.js" );
@@ -138,6 +138,8 @@ async function get_contract_call_events( joContract, strEventName, nBlockNumber,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function compose_tx_instance( strLogPrefix, rawTx ) {
+    if( verbose_get() >= RV_VERBOSE.trace )
+        log.write( cc.attention( "TRANSACTION COMPOSER" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3mod.version ) + "\n" );
     strLogPrefix = strLogPrefix || "";
     rawTx = JSON.parse( JSON.stringify( rawTx ) ); // clone
     let joOpts = null;
@@ -170,6 +172,10 @@ function compose_tx_instance( strLogPrefix, rawTx ) {
             break;
         } // switch( rawTx.chainId )
     }
+    // if( rawTx.chainId && Number(rawTx.chainId) > 1 ) {
+    //     rawTx.nonce += 1048576; // see https://ethereum.stackexchange.com/questions/12810/need-help-signing-a-raw-transaction-with-ethereumjs-tx
+    //     rawTx.nonce = w3mod.utils.toHex( rawTx.nonce );
+    // }
     if( verbose_get() >= RV_VERBOSE.trace )
         log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + cc.debug( " with opts " ) + cc.j( joOpts ) + "\n" );
     let tx = null;
@@ -215,6 +221,8 @@ function extract_dry_run_method_name( methodWithArguments ) {
 }
 
 async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnore ) {
+    if( verbose_get() >= RV_VERBOSE.information )
+        log.write( cc.attention( "DRY RUN" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version ) + "\n" );
     isIgnore = ( isIgnore != null && isIgnore != undefined ) ? ( isIgnore ? true : false ) : false;
     const strMethodName = extract_dry_run_method_name( methodWithArguments );
     const strWillBeIgnored = isIgnore ? "IGNORED " : "";
@@ -237,8 +245,8 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
             "\n" );
         }
         const joResult = await methodWithArguments.call( {
-            from: addressFrom
-            , gas: 8000000
+            from: addressFrom,
+            gas: 8000000
         } );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "got result " ) + cc.normal( cc.safeStringifyJSON( joResult ) ) + "\n" );
@@ -261,6 +269,8 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function safe_send_signed_transaction( w3, serializedTx, strActionName, strLogPrefix ) {
+    if( verbose_get() >= RV_VERBOSE.information )
+        log.write( cc.attention( "SEND TRANSACTION" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version ) + "\n" );
     const strTX = "0x" + serializedTx.toString( "hex" ); // strTX is string starting from "0x"
     let joReceipt = null;
     let bHaveReceipt = false;

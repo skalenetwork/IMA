@@ -34,12 +34,12 @@ function init() {
     owaspUtils.owaspAddUsageRef();
 }
 
-const g_strAppName = "SKALE Money Transfer Agent";
+const g_strAppName = "IMA AGENT";
 const g_strVersion = "1.0";
 
 function print_about( isLog ) {
     isLog = isLog || false;
-    const strMsg = cc.info( g_strAppName ) + cc.debug( " version " ) + cc.info( g_strVersion );
+    const strMsg = cc.attention( g_strAppName ) + cc.normal( " version " ) + cc.sunny( g_strVersion );
     if( isLog )
         log.write( strMsg + "\n" ); else
         console.log( strMsg );
@@ -844,6 +844,7 @@ function ima_common_init() {
 
     if( IMA.verbose_get() > IMA.RV_VERBOSE.information || imaState.bShowConfigMode ) {
         print_about( true );
+        log.write( cc.attention( "IMA AGENT" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( IMA.w3mod.version ) + "\n" );
         ensure_have_value( "App path", __filename, false, true, null, ( x ) => {
             return cc.normal( x );
         } );
