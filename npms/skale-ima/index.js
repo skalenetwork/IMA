@@ -378,7 +378,7 @@ async function register_s_chain_on_main_net( // step 1A
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
-            gas: 8000000, // xxx
+            gas: 8000000, // we specify gas everywhere
             to: jo_message_proxy_main_net.options.address, // contract address
             data: dataTx
         } );
@@ -483,7 +483,7 @@ async function register_main_net_on_s_chain( // step 1B
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
-            gas: 8000000, // xxx
+            gas: 8000000, // we specify gas everywhere
             to: jo_message_proxy_s_chain.options.address, // contract address
             data: dataTx
         } );
@@ -586,7 +586,7 @@ async function register_s_chain_in_deposit_box( // step 2
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
-            gas: 8000000, // xxx
+            gas: 8000000, // we specify gas everywhere
             to: jo_lock_and_data_main_net.options.address, // contract address
             data: dataTx
         } );
@@ -679,7 +679,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
-            gas: 8000000, // xxx
+            gas: 8000000, // we specify gas everywhere
             to: jo_lock_and_data_s_chain.options.address, // contract address
             data: dataTx
         } );
@@ -755,7 +755,6 @@ async function do_eth_payment_from_main_net(
             gasPrice: gasPrice,
             gasLimit: 3000000,
             gas: 3000000, // 2100000
-            // gas: 8000000, // xxx
             to: jo_deposit_box.options.address, // contract address
             data: dataTx,
             value: wei_how_much // how much money to send
@@ -880,7 +879,6 @@ async function do_eth_payment_from_s_chain(
             gasPrice: gasPrice,
             // "gasLimit": 3000000,
             gas: 6000000, // 2100000
-            // gas: 8000000, // xxx
             to: jo_token_manager.options.address, // contract address
             data: dataTx,
             value: 0 // how much money to send
@@ -949,7 +947,6 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         const tx = compose_tx_instance( strLogPrefix, {
             chainId: cid_main_net,
             nonce: tcnt,
-            // gas: 8000000, // xxx
             gas: 2100000,
             gasPrice: gasPrice,
             gasLimit: 3000000,
@@ -1093,7 +1090,6 @@ async function do_erc721_payment_from_main_net(
             data: dataTxApprove,
             to: erc721Address_main_net,
             gasPrice: gasPrice, // 0
-            // gas: 8000000, // xxx
             gas: 8000000
         } );
         tcnt += 1;
@@ -1105,7 +1101,6 @@ async function do_erc721_payment_from_main_net(
             to: depositBoxAddress,
             gasPrice: gasPrice, // 0
             gas: 8000000,
-            // gas: 8000000, // xxx
             value: 2000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" )
         } );
         //
@@ -1288,7 +1283,6 @@ async function do_erc20_payment_from_main_net(
             data: dataTxApprove,
             to: erc20Address_main_net,
             gasPrice: gasPrice, // 0
-            // gas: 8000000, // xxx
             gas: 8000000
         } );
         tcnt += 1;
@@ -1299,7 +1293,6 @@ async function do_erc20_payment_from_main_net(
             data: dataTxDeposit,
             to: depositBoxAddress,
             gasPrice: gasPrice, // 0
-            // gas: 8000000, // xxx
             gas: 8000000
         } );
         //
@@ -1477,7 +1470,6 @@ async function do_erc20_payment_from_s_chain(
             data: dataTxApprove,
             to: erc20Address_s_chain,
             gasPrice: gasPrice,
-            // gas: 8000000, // xxx
             gas: 8000000
         } );
         tcnt += 1;
@@ -1488,7 +1480,6 @@ async function do_erc20_payment_from_s_chain(
             data: dataExitToMainERC20,
             to: tokenManagerAddress,
             gasPrice: gasPrice,
-            // gas: 8000000, // xxx
             gas: 8000000
         } );
         //
@@ -1619,7 +1610,6 @@ async function do_erc721_payment_from_s_chain(
             data: dataTxTransferFrom,
             to: erc721Address_s_chain,
             gasPrice: gasPrice,
-            // gas: 8000000, // xxx
             gas: 8000000
         } );
         tcnt += 1;
@@ -1630,7 +1620,6 @@ async function do_erc721_payment_from_s_chain(
             data: dataTxExitToMainERC721,
             to: tokenManagerAddress,
             gasPrice: gasPrice,
-            // gas: 8000000, // xxx
             gas: 8000000
         } );
         //
@@ -2019,7 +2008,6 @@ async function do_transfer(
                 const tx_postIncomingMessages = compose_tx_instance( strLogPrefix, {
                     chainId: cid_dst,
                     nonce: tcnt,
-                    // gas: 8000000, // xxx
                     gas: 6000000, // 8000000
                     gasPrice: gasPrice,
                     // "gasLimit": 3000000,
