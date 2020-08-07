@@ -6,14 +6,6 @@ let schainName = process.env.CHAIN_NAME_SCHAIN;
 let schainRpcUrl = process.env.URL_W3_S_CHAIN;
 let mainnetRpcUrl = process.env.URL_W3_MAIN_NET;
 
-console.log( "URL_W3_MAIN_NET                  =", process.env.URL_W3_MAIN_NET                  );
-console.log( "URL_W3_S_CHAIN                   =", process.env.URL_W3_S_CHAIN                   );
-console.log( "CHAIN_NAME_SCHAIN                =", process.env.CHAIN_NAME_SCHAIN                );
-console.log( "INSECURE_PRIVATE_KEY_FOR_MAINNET =", process.env.INSECURE_PRIVATE_KEY_FOR_MAINNET );
-console.log( "INSECURE_PRIVATE_KEY_FOR_SCHAIN  =", process.env.INSECURE_PRIVATE_KEY_FOR_SCHAIN  );
-console.log( "ACCOUNT_FOR_MAINNET              =", process.env.ACCOUNT_FOR_MAINNET              );
-console.log( "ACCOUNT_FOR_SCHAIN               =", process.env.ACCOUNT_FOR_SCHAIN               );
-
 let privateKeyForMainnet = process.env.INSECURE_PRIVATE_KEY_FOR_MAINNET;
 let privateKeyForSchain = process.env.INSECURE_PRIVATE_KEY_FOR_SCHAIN;
 
