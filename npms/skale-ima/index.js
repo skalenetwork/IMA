@@ -378,7 +378,7 @@ async function register_s_chain_on_main_net( // step 1A
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
-            gas: 8000000, // we specify gas everywhere
+            // gas: 8000000, // gas is optional here
             to: jo_message_proxy_main_net.options.address, // contract address
             data: dataTx
         } );
@@ -483,7 +483,7 @@ async function register_main_net_on_s_chain( // step 1B
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
-            gas: 8000000, // we specify gas everywhere
+            // gas: 8000000, // gas is optional here
             to: jo_message_proxy_s_chain.options.address, // contract address
             data: dataTx
         } );
@@ -586,7 +586,7 @@ async function register_s_chain_in_deposit_box( // step 2
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
-            gas: 8000000, // we specify gas everywhere
+            // gas: 8000000, // gas is optional here
             to: jo_lock_and_data_main_net.options.address, // contract address
             data: dataTx
         } );
@@ -679,7 +679,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
-            gas: 8000000, // we specify gas everywhere
+            // gas: 8000000, // gas is optional here
             to: jo_lock_and_data_s_chain.options.address, // contract address
             data: dataTx
         } );
