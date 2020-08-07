@@ -29,7 +29,7 @@
 // const url = require( "url" );
 // const os = require( "os" );
 const w3mod = require( "web3" );
-const ethereumjs_tx = require( "ethereumjs-tx" ).Transaction;
+const ethereumjs_tx = require( "ethereumjs-tx" );
 const ethereumjs_wallet = require( "ethereumjs-wallet" );
 const ethereumjs_util = require( "ethereumjs-util" );
 
@@ -138,6 +138,8 @@ async function get_contract_call_events( joContract, strEventName, nBlockNumber,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function compose_tx_instance( strLogPrefix, rawTx ) {
+    if( verbose_get() >= RV_VERBOSE.trace )
+        log.write( cc.attention( "TRANSACTION COMPOSER" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3mod.version ) + "\n" );
     strLogPrefix = strLogPrefix || "";
     rawTx = JSON.parse( JSON.stringify( rawTx ) ); // clone
     let joOpts = null;
@@ -170,6 +172,10 @@ function compose_tx_instance( strLogPrefix, rawTx ) {
             break;
         } // switch( rawTx.chainId )
     }
+    // if( rawTx.chainId && Number(rawTx.chainId) > 1 ) {
+    //     rawTx.nonce += 1048576; // see https://ethereum.stackexchange.com/questions/12810/need-help-signing-a-raw-transaction-with-ethereumjs-tx
+    //     rawTx.nonce = w3mod.utils.toHex( rawTx.nonce );
+    // }
     if( verbose_get() >= RV_VERBOSE.trace )
         log.write( strLogPrefix + cc.debug( "....composed " ) + cc.j( rawTx ) + cc.debug( " with opts " ) + cc.j( joOpts ) + "\n" );
     let tx = null;
@@ -215,6 +221,8 @@ function extract_dry_run_method_name( methodWithArguments ) {
 }
 
 async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnore ) {
+    if( verbose_get() >= RV_VERBOSE.information )
+        log.write( cc.attention( "DRY RUN" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version ) + "\n" );
     isIgnore = ( isIgnore != null && isIgnore != undefined ) ? ( isIgnore ? true : false ) : false;
     const strMethodName = extract_dry_run_method_name( methodWithArguments );
     const strWillBeIgnored = isIgnore ? "IGNORED " : "";
@@ -237,8 +245,8 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
             "\n" );
         }
         const joResult = await methodWithArguments.call( {
-            from: addressFrom
-            //, gas: 8000000
+            from: addressFrom,
+            gas: 8000000
         } );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "got result " ) + cc.normal( cc.safeStringifyJSON( joResult ) ) + "\n" );
@@ -261,6 +269,8 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function safe_send_signed_transaction( w3, serializedTx, strActionName, strLogPrefix ) {
+    if( verbose_get() >= RV_VERBOSE.information )
+        log.write( cc.attention( "SEND TRANSACTION" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version ) + "\n" );
     const strTX = "0x" + serializedTx.toString( "hex" ); // strTX is string starting from "0x"
     let joReceipt = null;
     let bHaveReceipt = false;
@@ -368,6 +378,7 @@ async function register_s_chain_on_main_net( // step 1A
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
+            gas: 8000000, // we specify gas everywhere
             to: jo_message_proxy_main_net.options.address, // contract address
             data: dataTx
         } );
@@ -472,6 +483,7 @@ async function register_main_net_on_s_chain( // step 1B
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
+            gas: 8000000, // we specify gas everywhere
             to: jo_message_proxy_s_chain.options.address, // contract address
             data: dataTx
         } );
@@ -574,6 +586,7 @@ async function register_s_chain_in_deposit_box( // step 2
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
+            gas: 8000000, // we specify gas everywhere
             to: jo_lock_and_data_main_net.options.address, // contract address
             data: dataTx
         } );
@@ -666,6 +679,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             nonce: tcnt,
             gasPrice: gasPrice,
             gasLimit: 3000000,
+            gas: 8000000, // we specify gas everywhere
             to: jo_lock_and_data_s_chain.options.address, // contract address
             data: dataTx
         } );
@@ -738,9 +752,9 @@ async function do_eth_payment_from_main_net(
         const tx = compose_tx_instance( strLogPrefix, {
             chainId: cid_main_net,
             nonce: tcnt,
-            gas: 3000000, // 2100000
             gasPrice: gasPrice,
             gasLimit: 3000000,
+            gas: 3000000, // 2100000
             to: jo_deposit_box.options.address, // contract address
             data: dataTx,
             value: wei_how_much // how much money to send
@@ -862,9 +876,9 @@ async function do_eth_payment_from_s_chain(
         const tx = compose_tx_instance( strLogPrefix, {
             chainId: cid_s_chain,
             nonce: tcnt,
-            gas: 6000000, // 2100000
             gasPrice: gasPrice,
             // "gasLimit": 3000000,
+            gas: 6000000, // 2100000
             to: jo_token_manager.options.address, // contract address
             data: dataTx,
             value: 0 // how much money to send

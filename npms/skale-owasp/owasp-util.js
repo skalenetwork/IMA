@@ -35,7 +35,7 @@ const fs = require( "fs" );
 
 const cc = require( "../skale-cc/cc.js" );
 const w3mod = require( "web3" );
-const ethereumjs_tx = require( "ethereumjs-tx" ).Transaction;
+const ethereumjs_tx = require( "ethereumjs-tx" );
 const ethereumjs_wallet = require( "ethereumjs-wallet" );
 const ethereumjs_util = require( "ethereumjs-util" );
 

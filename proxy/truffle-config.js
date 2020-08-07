@@ -1,7 +1,7 @@
 require('dotenv').config();
 require("ts-node/register");
 const Web3 = require('web3');
-let hdwalletProvider = require('truffle-hdwallet-provider');
+let hdwalletProvider = require('@truffle/hdwallet-provider');
 let schainName = process.env.CHAIN_NAME_SCHAIN;
 let schainRpcUrl = process.env.URL_W3_S_CHAIN;
 let mainnetRpcUrl = process.env.URL_W3_MAIN_NET;
