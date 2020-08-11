@@ -1500,7 +1500,7 @@ async function do_erc20_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
 const sleep = function( ms ) { return new Promise( resolve => setTimeout( resolve, ms ) ); };
-const nSleepBetween = 10 & 1000;
+const nSleepBetween = 10 * 1000;
 log.write( cc.normal( "Sleeping " ) + cc.info( nSleepBetween ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
 await sleep( nSleepBetween );
         strActionName = "w3_s_chain.eth.sendSignedTransaction()/ExitToMainERC20";
