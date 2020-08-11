@@ -49,7 +49,6 @@ Third, install required **Node JS** everywhere they needed:
     rm -rf ./node_modules &> /dev/null
     yarn install
 
-
 Fourth, edit the *$IMA_ROOT/proxy/truffle-config.js* and specify needed networks (Mainnet and SKALE Chain) and account addresses which will own contracts on these blockchains:
 
     cd $IMA_ROOT/proxy

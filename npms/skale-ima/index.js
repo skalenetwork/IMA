@@ -1410,7 +1410,7 @@ async function do_erc20_payment_from_s_chain(
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_erc20_payment_from_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        let tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null );
+        let tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -1472,7 +1472,7 @@ async function do_erc20_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: 8000000
         } );
-        tcnt += 1;
+        ++ tcnt;
         const txExitToMainERC20 = compose_tx_instance( strLogPrefix, {
             chainId: cid_s_chain,
             from: accountForSchain,
@@ -1499,6 +1499,10 @@ async function do_erc20_payment_from_s_chain(
         const joReceiptApprove = await safe_send_signed_transaction( w3_s_chain, serializedTxApprove, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+const sleep = function( ms ) { return new Promise( resolve => setTimeout( resolve, ms ) ); };
+const nSleepBetween = 10 & 1000;
+log.write( cc.normal( "Sleeping " ) + cc.info( nSleepBetween ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
+await sleep( nSleepBetween );
         strActionName = "w3_s_chain.eth.sendSignedTransaction()/ExitToMainERC20";
         // let joReceiptExitToMainERC20 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC20.toString( "hex" ) );
         const joReceiptExitToMainERC20 = await safe_send_signed_transaction( w3_s_chain, serializedTxExitToMainERC20, strActionName, strLogPrefix );
