@@ -1531,7 +1531,7 @@ async function do_erc20_payment_from_s_chain(
             data: dataExitToMainERC20,
             to: tokenManagerAddress,
             gasPrice: gasPrice,
-            gas: "0x" + w3_main_net.utils.toBN( "12000000" ).toString( 16 ) // 8000000
+            gas: 8000000
         } );
         txExitToMainERC20.sign( privateKeyForSchain );
         const serializedTxExitToMainERC20 = txExitToMainERC20.serialize();
