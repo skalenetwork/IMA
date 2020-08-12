@@ -41,7 +41,7 @@ async function deploy(deployer, network) {
 
     await deployer.deploy(ContractManager, {gas: gasLimit}).then(async function(instCM) {
         await deployer.deploy(SkaleVerifier, {gas: gasLimit});
-        instCM.setContractsAddress("SkaleVerifier", SkaleVerifier.address);
+        instCM.setContractsAddress("Schains", SkaleVerifier.address);
         
         let jsonObject = {
             contract_manager_address: ContractManager.address,
