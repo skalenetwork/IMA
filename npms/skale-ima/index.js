@@ -121,14 +121,21 @@ const g_bWaitForNextBlockOnSChain = false;
 
 const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
+function parseIntSafer( s ) {
+    s = s.trim();
+    if( s.length > 2 && s[0] == "0" && ( s[1] == "x" || s[1] == "X" ) )
+        return parseInt( s, 10 );
+    return parseInt( s, 16 );
+}
+
 async function wait_for_next_block_to_appear( w3 ) {
     const nBlockNumber = await w3.eth.getBlockNumber();
     log.write( cc.debug( "Waiting for next block to appear..." ) + "\n" );
-    log.write( cc.debug( "    ...have block " ) + cc.info( parseInt( nBlockNumber ) ) + "\n" );
+    log.write( cc.debug( "    ...have block " ) + cc.info( parseIntSafer( nBlockNumber ) ) + "\n" );
     for( ; true; ) {
         await sleep( 1000 );
         const nBlockNumber2 = await w3.eth.getBlockNumber();
-        log.write( cc.debug( "    ...have block " ) + cc.info( parseInt( nBlockNumber2 ) ) + "\n" );
+        log.write( cc.debug( "    ...have block " ) + cc.info( parseIntSafer( nBlockNumber2 ) ) + "\n" );
         if( nBlockNumber2 > nBlockNumber )
             break;
     }
@@ -1524,7 +1531,7 @@ async function do_erc20_payment_from_s_chain(
             data: dataExitToMainERC20,
             to: tokenManagerAddress,
             gasPrice: gasPrice,
-            gas: 12000000 // 8000000
+            gas: "0x" + w3_main_net.utils.toBN( 12000000 ).toString( 16 ) // 8000000
         } );
         txExitToMainERC20.sign( privateKeyForSchain );
         const serializedTxExitToMainERC20 = txExitToMainERC20.serialize();
