@@ -407,9 +407,8 @@ const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
         if( !g_bEnabled )
             return obj;
         const jsonLine = /^( *)("[\w]+": )?("[^"]*"|[\w.+-]*)?([,[{])?$/mg;
-        const s =
-            JSON.stringify( obj, ( jsonColorizer.cntCensoredMax > 0 ) ? jsonColorizer.censor( obj ) : null, 4 )
-                .replace( jsonLine, jsonColorizer.replacerConsole );
+        const tmp = JSON.stringify( obj, ( jsonColorizer.cntCensoredMax > 0 ) ? jsonColorizer.censor( obj ) : null, 4 );
+        const s = tmp ? tmp.replace( jsonLine, jsonColorizer.replacerConsole ) : ( "" + tmp );
         return s;
     }
 };
