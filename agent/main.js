@@ -222,9 +222,9 @@ imaCLI.parse( {
             "name": "Full registration status check(all steps)",
             "fn": async function() {
                 const b = await check_registration_all();
-                const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
+                const nExitCode = b ? 0 : 150; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-                process.exit( nExitCode );
+                process.exit( nExitCode ); // 150
             }
         } );
     },
@@ -233,9 +233,9 @@ imaCLI.parse( {
             "name": "Registration status check for step 1, register S-Chain on Main-net",
             "fn": async function() {
                 const b = await check_registration_step1();
-                const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
+                const nExitCode = b ? 0 : 151; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-                process.exit( nExitCode );
+                process.exit( nExitCode ); // 151
             }
         } );
     },
@@ -244,9 +244,9 @@ imaCLI.parse( {
             "name": "Registration status check step 2, register S-Chain in deposit box",
             "fn": async function() {
                 const b = await check_registration_step2();
-                const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
+                const nExitCode = b ? 0 : 152; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-                process.exit( nExitCode );
+                process.exit( nExitCode ); // 152
             }
         } );
     },
@@ -255,9 +255,9 @@ imaCLI.parse( {
             "name": "Registration status check step 3, register Main-net deposit box on S-Chain",
             "fn": async function() {
                 const b = await check_registration_step3();
-                const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
+                const nExitCode = b ? 0 : 153; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-                process.exit( nExitCode );
+                process.exit( nExitCode ); // 153
             }
         } );
     },
@@ -525,14 +525,14 @@ imaCLI.parse( {
                 const strLogPrefix = cc.info( "S Browse:" ) + " ";
                 if( imaState.strURL_s_chain.length == 0 ) {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing S-Chain URL, please specify " ) + cc.info( "url-s-chain" ) );
-                    process.exit( 501 );
+                    process.exit( 154 );
                 }
                 log.write( strLogPrefix + cc.normal( "Downloading S-Chain network information " ) + cc.normal( "..." ) + "\n" ); // just print value
                 //
                 await rpcCall.create( imaState.strURL_s_chain, async function( joCall, err ) {
                     if( err ) {
                         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
-                        process.exit( 1 );
+                        process.exit( 155 );
                     }
                     await joCall.call( {
                         "method": "skale_nodesRpcInfo",
@@ -540,7 +540,7 @@ imaCLI.parse( {
                     }, async function( joIn, joOut, err ) {
                         if( err ) {
                             console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
-                            process.exit( 1 );
+                            process.exit( 156 );
                         }
                         log.write( strLogPrefix + cc.normal( "S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
                         let nCountReceivedImaDescriptions = 0;
@@ -551,7 +551,7 @@ imaCLI.parse( {
                             await rpcCall.create( strNodeURL, async function( joCall, err ) {
                                 if( err ) {
                                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
-                                    process.exit( 1 );
+                                    process.exit( 157 );
                                 }
                                 await joCall.call( {
                                     "method": "skale_imaInfo",
@@ -560,7 +560,7 @@ imaCLI.parse( {
                                     ++ nCountReceivedImaDescriptions;
                                     if( err ) {
                                         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
-                                        process.exit( 1 );
+                                        process.exit( 158 );
                                     }
                                     log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " IMA information: " ) + cc.j( joOut.result ) + "\n" );
                                     //process.exit( 0 );
@@ -717,15 +717,15 @@ async function do_the_job() {
 if( imaState.bSignMessages ) {
     if( imaState.strPathBlsGlue.length == 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " please specify --bls-glue parameter." ) + "\n" );
-        process.exit( 666 );
+        process.exit( 159 );
     }
     if( imaState.strPathHashG1.length == 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " please specify --hash-g1 parameter." ) + "\n" );
-        process.exit( 666 );
+        process.exit( 160 );
     }
     discover_s_chain_network( function( err, joSChainNetworkInfo ) {
         if( err )
-            process.exit( 1 ); // error information is printed by discover_s_chain_network()
+            process.exit( 161 ); // error information is printed by discover_s_chain_network()
 
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( cc.success( "S-Chain network was discovered: " ) + cc.j( joSChainNetworkInfo ) + "\n" );
@@ -757,9 +757,9 @@ async function register_step1() {
     );
     const bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
     if( !bRetVal ) {
-        const nRetCode = 1501;
+        const nRetCode = 162;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain on Main-net, will return code " ) + cc.warning( nRetCode ) + "\n" );
-        process.exit( nRetCode );
+        process.exit( nRetCode ); // 162
     }
     return true;
 }
@@ -776,9 +776,9 @@ async function register_step2() {
         imaState.tc_main_net
     );
     if( !bRetVal ) {
-        const nRetCode = 1502;
+        const nRetCode = 163;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain in deposit box, will return code " ) + cc.warning( nRetCode ) + "\n" );
-        process.exit( nRetCode );
+        process.exit( nRetCode ); // 163
     }
     return true;
 }
@@ -794,9 +794,9 @@ async function register_step3() {
         imaState.tc_s_chain
     );
     if( !bRetVal ) {
-        const nRetCode = 1503;
+        const nRetCode = 164;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register Main-net deposit box on S-Chain, will return code " ) + cc.warning( nRetCode ) + "\n" );
-        process.exit( nRetCode );
+        process.exit( nRetCode ); // 164
     }
     return true;
 }

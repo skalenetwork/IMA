@@ -85,7 +85,7 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
         retVal = false;
         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing value for " ) + fnNameColorizer( name ) );
         if( isExitIfEmpty )
-            process.exit( 666 );
+            process.exit( 126 );
     }
     let strDots = "...";
     let n = 50 - name.length;
@@ -606,11 +606,11 @@ function ima_common_init() {
 
     if( imaState.strURL_main_net.length == 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Missing " ) + cc.warning( "Main-net" ) + cc.error( " URL in command line arguments" ) + "\n" );
-        process.exit( 501 );
+        process.exit( 126 );
     }
     if( imaState.strURL_s_chain.length == 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Missing " ) + cc.warning( "S-Chain" ) + cc.error( " URL in command line arguments" ) + "\n" );
-        process.exit( 501 );
+        process.exit( 126 );
     }
 
     imaState.w3http_main_net = new w3mod.providers.HttpProvider( imaState.strURL_main_net );
@@ -674,7 +674,7 @@ function ima_common_init() {
                 imaState.joErc721_s_chain = null;
                 imaState.strCoinNameErc721_main_net = "";
                 imaState.strCoinNameErc721_s_chain = "";
-                process.exit( 666 );
+                process.exit( 126 );
             }
         } else {
             if( n1 == 0 )
@@ -685,7 +685,7 @@ function ima_common_init() {
             imaState.joErc721_s_chain = null;
             imaState.strCoinNameErc721_main_net = "";
             imaState.strCoinNameErc721_s_chain = "";
-            process.exit( 666 );
+            process.exit( 126 );
         }
     } else { // if( imaState.strPathJsonErc721_main_net.length > 0 /*&& imaState.strPathJsonErc721_s_chain.length > 0*/ )
         if( imaState.strPathJsonErc721_s_chain.length > 0 ) {
@@ -707,7 +707,7 @@ function ima_common_init() {
                     imaState.joErc721_s_chain = null;
                     imaState.strCoinNameErc721_main_net = "";
                     imaState.strCoinNameErc721_s_chain = "";
-                    process.exit( 667 );
+                    process.exit( 126 );
                 }
             }
         }
@@ -775,7 +775,7 @@ function ima_common_init() {
                 imaState.joErc20_s_chain = null;
                 imaState.strCoinNameErc20_main_net = "";
                 imaState.strCoinNameErc20_s_chain = "";
-                process.exit( 666 );
+                process.exit( 126 );
             }
         } else {
             if( n1 == 0 )
@@ -786,7 +786,7 @@ function ima_common_init() {
             imaState.joErc20_s_chain = null;
             imaState.strCoinNameErc20_main_net = "";
             imaState.strCoinNameErc20_s_chain = "";
-            process.exit( 666 );
+            process.exit( 126 );
         }
     } else { // if( imaState.strPathJsonErc20_main_net.length > 0 /*&& imaState.strPathJsonErc20_s_chain.length > 0*/ )
         if( imaState.strPathJsonErc20_s_chain.length > 0 ) {
@@ -808,7 +808,7 @@ function ima_common_init() {
                     imaState.joErc20_s_chain = null;
                     imaState.strCoinNameErc20_main_net = "";
                     imaState.strCoinNameErc20_s_chain = "";
-                    process.exit( 667 );
+                    process.exit( 126 );
                 }
             }
         }

@@ -57,7 +57,7 @@ async function deploy(deployer, network) {
         console.log(network);
         console.log(networks['networks'][network]);
         console.log("Please set CHAIN_NAME_SCHAIN to .env file");
-        process.exit(1);
+        process.exit( 126 );
     }
     let schainName = process.env.CHAIN_NAME_SCHAIN;
     await deployer.deploy(MessageProxyForSchain, schainName, "0x0000000000000000000000000000000000000000", {gas: gasLimit}).then(async function() {
