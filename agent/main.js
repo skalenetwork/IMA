@@ -93,9 +93,9 @@ global.imaState = {
     "strURL_main_net": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ), // example: "http://127.0.0.1:8545"
     "strURL_s_chain": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ), // example: "http://127.0.0.1:2231"
 
-    "strChainID_main_net": ( process.env.CHAIN_NAME_ETHEREUMM || "Mainnet" ).toString().trim(),
+    "strChainID_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
     "strChainID_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
-    "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUMM ) || -4,
+    "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
     "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
 
     "strPathJsonErc20_main_net": "",
@@ -157,7 +157,7 @@ global.imaState = {
     // "joAccount_main_net": { "privateKey": "", "address": fn_address_impl_ },
     // "joAccount_s_chain": { "privateKey": "", "address": fn_address_impl_ },
     //
-    "joAccount_main_net": { "privateKey": owaspUtils.toEthPrivateKey( process.env.INSECURE_PRIVATE_KEY_FOR_ETHEREUMM ), "address": fn_address_impl_ },
+    "joAccount_main_net": { "privateKey": owaspUtils.toEthPrivateKey( process.env.INSECURE_PRIVATE_KEY_FOR_ETHEREUM ), "address": fn_address_impl_ },
     "joAccount_s_chain": { "privateKey": owaspUtils.toEthPrivateKey( process.env.INSECURE_PRIVATE_KEY_FOR_SCHAIN ), "address": fn_address_impl_ },
 
     //
@@ -173,7 +173,7 @@ global.imaState = {
     "arrActions": [] // array of actions to run
 };
 
-const tmp_address_MN_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_ETHEREUMM );
+const tmp_address_MN_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_ETHEREUM );
 const tmp_address_SC_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN );
 if( tmp_address_MN_from_env && typeof tmp_address_MN_from_env == "string" && tmp_address_MN_from_env.length > 0 )
     imaState.joAccount_main_net.address_ = "" + tmp_address_MN_from_env;

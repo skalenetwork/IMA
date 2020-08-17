@@ -547,14 +547,14 @@ Here is example of correct **config.json** file for **skaled** node:
             "wallets": {
                 "ima": {
                     "url": "...", "keyShareName": "...", "t": 2, "n": 2,
-                    "insecureBLSPublicKey1": "...",
-                    "insecureBLSPublicKey2": "...",
-                    "insecureBLSPublicKey3": "...",
-                    "insecureBLSPublicKey4": "...",
-                    "insecureCommonBLSPublicKey0": "...",
-                    "insecureCommonBLSPublicKey1": "...",
-                    "insecureCommonBLSPublicKey2": "...",
-                    "insecureCommonBLSPublicKey3": "..."
+                    "BLSPublicKey",
+                    "BLSPublicKey",
+                    "BLSPublicKey",
+                    "BLSPublicKey",
+                    "commonBLSPublicKey",
+                    "commonBLSPublicKey",
+                    "commonBLSPublicKey",
+                    "commonBLSPublicKey"
                 }
             }
         },

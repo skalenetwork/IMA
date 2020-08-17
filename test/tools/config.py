@@ -46,11 +46,11 @@ class Config:
         self.test_working_dir = self.test_root + '/' + self.test_working_dir
         self.test_resource_dir = self.test_root + '/' + self.test_resource_dir
 
-        if 'NETWORK_FOR_ETHEREUMM' in config_json:
-            self.network_for_mainnet = config_json['NETWORK_FOR_ETHEREUMM']
+        if 'NETWORK_FOR_ETHEREUM' in config_json:
+            self.network_for_mainnet = config_json['NETWORK_FOR_ETHEREUM']
         if 'NETWORK_FOR_SCHAIN' in config_json:
             self.network_for_schain = config_json['NETWORK_FOR_SCHAIN']
-        self.mainnet_key = config_json['INSECURE_PRIVATE_KEY_FOR_ETHEREUMM']
+        self.mainnet_key = config_json['INSECURE_PRIVATE_KEY_FOR_ETHEREUM']
         if 'URL_W3_ETHEREUM' in config_json:
             self.mainnet_rpc_url = config_json['URL_W3_ETHEREUM']
         self.schain_key = config_json['INSECURE_PRIVATE_KEY_FOR_SCHAIN']

@@ -1,6 +1,6 @@
 {  
-  "NETWORK_FOR_ETHEREUMM": "mainnet",
-  "INSECURE_PRIVATE_KEY_FOR_ETHEREUMM": "{private_key}",
+  "NETWORK_FOR_ETHEREUM": "mainnet",
+  "INSECURE_PRIVATE_KEY_FOR_ETHEREUM": "{private_key}",
   "URL_W3_ETHEREUM": "http://localhost:8545",
   "NETWORK_FOR_SCHAIN": "schain",
   "INSECURE_PRIVATE_KEY_FOR_SCHAIN": "{private_key}",
