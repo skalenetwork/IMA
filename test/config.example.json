@@ -1,9 +1,9 @@
 {  
   "NETWORK_FOR_ETHEREUM": "mainnet",
-  "INSECURE_PRIVATE_KEY_FOR_ETHEREUM": "{private_key}",
+  "PRIVATE_KEY_FOR_ETHEREUM": "{private_key}",
   "URL_W3_ETHEREUM": "http://localhost:8545",
   "NETWORK_FOR_SCHAIN": "schain",
-  "INSECURE_PRIVATE_KEY_FOR_SCHAIN": "{private_key}",
+  "PRIVATE_KEY_FOR_SCHAIN": "{private_key}",
   "URL_W3_S_CHAIN": "http://localhost:8545",
   "CHAIN_NAME_SCHAIN": "SKALE",
   "user_key": "{private_key}"

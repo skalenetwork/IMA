@@ -6,11 +6,11 @@ let schainName = process.env.CHAIN_NAME_SCHAIN;
 let schainRpcUrl = process.env.URL_W3_S_CHAIN;
 let mainnetRpcUrl = process.env.URL_W3_ETHEREUM;
 
-let privateKeyForMainnet = process.env.INSECURE_PRIVATE_KEY_FOR_ETHEREUM;
-let privateKeyForSchain = process.env.INSECURE_PRIVATE_KEY_FOR_SCHAIN;
+let privateKeyForMainnet = process.env.PRIVATE_KEY_FOR_ETHEREUM;
+let privateKeyForSchain = process.env.PRIVATE_KEY_FOR_SCHAIN;
 
-let mnemonicForMainnet = process.env.INSECURE_PRIVATE_KEY_FOR_ETHEREUM;
-let mnemonicForSchain = process.env.INSECURE_PRIVATE_KEY_FOR_SCHAIN;
+let mnemonicForMainnet = process.env.PRIVATE_KEY_FOR_ETHEREUM;
+let mnemonicForSchain = process.env.PRIVATE_KEY_FOR_SCHAIN;
 
 let accountForMainnet = process.env.ACCOUNT_FOR_ETHEREUM;
 let accountForSchain = process.env.ACCOUNT_FOR_SCHAIN;

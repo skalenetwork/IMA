@@ -157,8 +157,8 @@ global.imaState = {
     // "joAccount_main_net": { "privateKey": "", "address": fn_address_impl_ },
     // "joAccount_s_chain": { "privateKey": "", "address": fn_address_impl_ },
     //
-    "joAccount_main_net": { "privateKey": owaspUtils.toEthPrivateKey( process.env.INSECURE_PRIVATE_KEY_FOR_ETHEREUM ), "address": fn_address_impl_ },
-    "joAccount_s_chain": { "privateKey": owaspUtils.toEthPrivateKey( process.env.INSECURE_PRIVATE_KEY_FOR_SCHAIN ), "address": fn_address_impl_ },
+    "joAccount_main_net": { "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ), "address": fn_address_impl_ },
+    "joAccount_s_chain": { "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ), "address": fn_address_impl_ },
 
     //
     //

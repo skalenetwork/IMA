@@ -33,8 +33,8 @@ def main():
     with open(accounts_filename) as accounts_file:
         accounts = json.load(accounts_file)
         addresses = list(accounts['private_keys'].keys())
-        config = {'INSECURE_PRIVATE_KEY_FOR_ETHEREUM': accounts['private_keys'][addresses[0]],
-                  'INSECURE_PRIVATE_KEY_FOR_SCHAIN': accounts['private_keys'][addresses[1]]}
+        config = {'PRIVATE_KEY_FOR_ETHEREUM': accounts['private_keys'][addresses[0]],
+                  'PRIVATE_KEY_FOR_SCHAIN': accounts['private_keys'][addresses[1]]}
         with open(config_filename, 'w') as config_file:
             json.dump(config, config_file)
 

@@ -50,10 +50,10 @@ class Config:
             self.network_for_mainnet = config_json['NETWORK_FOR_ETHEREUM']
         if 'NETWORK_FOR_SCHAIN' in config_json:
             self.network_for_schain = config_json['NETWORK_FOR_SCHAIN']
-        self.mainnet_key = config_json['INSECURE_PRIVATE_KEY_FOR_ETHEREUM']
+        self.mainnet_key = config_json['PRIVATE_KEY_FOR_ETHEREUM']
         if 'URL_W3_ETHEREUM' in config_json:
             self.mainnet_rpc_url = config_json['URL_W3_ETHEREUM']
-        self.schain_key = config_json['INSECURE_PRIVATE_KEY_FOR_SCHAIN']
+        self.schain_key = config_json['PRIVATE_KEY_FOR_SCHAIN']
         if 'URL_W3_S_CHAIN' in config_json:
             self.schain_rpc_url = config_json['URL_W3_S_CHAIN']
         if 'CHAIN_NAME_SCHAIN' in config_json:

@@ -56,8 +56,8 @@ Fourth, edit the *$IMA_ROOT/proxy/truffle-config.js* and specify needed networks
 
 We will use networks called **MainNet** and **S-Chain** in this documentation:
 
-    let privateKey_main_net = process.env.INSECURE_PRIVATE_KEY_FOR_ETHEREUM;
-    let privateKey_skalechain  = process.env.INSECURE_PRIVATE_KEY_FOR_SCHAIN;
+    let privateKey_main_net = process.env.PRIVATE_KEY_FOR_ETHEREUM;
+    let privateKey_skalechain  = process.env.PRIVATE_KEY_FOR_SCHAIN;
 
 ...
 
@@ -79,16 +79,16 @@ We will use networks called **MainNet** and **S-Chain** in this documentation:
 Fourth, export required environment variables:
 
     export NETWORK_FOR_ETHEREUM="mainnet"
-    export INSECURE_PRIVATE_KEY_FOR_ETHEREUM="<YOUR_PRIVATE_KEY_HERE>"
+    export PRIVATE_KEY_FOR_ETHEREUM="<YOUR_PRIVATE_KEY_HERE>"
     export NETWORK_FOR_SCHAIN="schain"
-    export INSECURE_PRIVATE_KEY_FOR_SCHAIN="<YOUR_PRIVATE_KEY_HERE>"
+    export PRIVATE_KEY_FOR_SCHAIN="<YOUR_PRIVATE_KEY_HERE>"
     export CHAIN_NAME_SCHAIN="Bob"
     export URL_W3_ETHEREUM="http://127.0.0.1:8545"
     export URL_W3_S_CHAIN="http://127.0.0.1:15000"
     export ACCOUNT_FOR_ETHEREUM="<ACCOUNT_ADDRESS_HERE>"
     export ACCOUNT_FOR_SCHAIN=""<ACCOUNT_ADDRESS_HERE>"
 
-Notice: ACCOUNT_FOR_ETHEREUM address corresponds to INSECURE_PRIVATE_KEY_FOR_ETHEREUM private key, ACCOUNT_FOR_SCHAIN address corresponds to INSECURE_PRIVATE_KEY_FOR_SCHAIN private key.
+Notice: ACCOUNT_FOR_ETHEREUM address corresponds to PRIVATE_KEY_FOR_ETHEREUM private key, ACCOUNT_FOR_SCHAIN address corresponds to PRIVATE_KEY_FOR_SCHAIN private key.
 
 Fifth, try rebuild all the contracts once to ensure everything initialized OK:
 
@@ -133,8 +133,8 @@ You can check whether **IMA** is already bound with:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_ETHEREUM \
-        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
+        --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
+        --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN
 
 **IMA** works as S-Chain extension. It should be registered on Main-net before performing any money transfers between blockchains:
 
@@ -148,8 +148,8 @@ You can check whether **IMA** is already bound with:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_ETHEREUM \
-        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
+        --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
+        --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN
 
 ### Run IMA for particular S-Chain
 
@@ -165,8 +165,8 @@ Performed with the **--loop** command line option:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_ETHEREUM \
-        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
+        --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
+        --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN
 
 Notice: the command above can be run in forever while loop of shell script or became a part of daemon service file.
 
@@ -205,7 +205,7 @@ Performed with the **--m2s-payment** command line option:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_ETHEREUM \
+        --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
         --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside Main-net blockchain using the **--key-main-net** command line argument. Target S-chain account is specified as address with the **--address-s-chain** command line argument. We don't need to specify private key for target account.
@@ -226,7 +226,7 @@ Performed with the **--s2m-payment** command line option:
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --address-main-net=$ACCOUNT_FOR_ETHEREUM \
-        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
+        --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
 
@@ -244,7 +244,7 @@ Performed with the **--s2m-view** command line option:
         --id-s-chain=Bob \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_ETHEREUM
+        --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM
 
 Notice: this operation is related to ETH transfers only.
 
@@ -262,7 +262,7 @@ Performed with the **--s2m-receive** command line option:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_ETHEREUM
+        --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM
 
 Notice: this operation is related to ETH transfers only.
 
@@ -296,8 +296,8 @@ Performed with the **--m2s-transfer** command line option:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=INSECURE_PRIVATE_KEY_FOR_ETHEREUM \
-        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
+        --key-main-net=PRIVATE_KEY_FOR_ETHEREUM \
+        --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN
 
 #### Single transfer iteration from S-chain to Main-net
 
@@ -313,8 +313,8 @@ Performed with the **--s2m-transfer** command line option:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_ETHEREUM \
-        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
+        --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
+        --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN
 
 #### Single bidirectional transfer iteration between Main-net and S-chain
 
@@ -330,8 +330,8 @@ Performed with the **--transfer** command line option:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_ETHEREUM \
-        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN
+        --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
+        --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN
 
 ### Transfer loop parameters
 
@@ -377,7 +377,7 @@ Performed with the **--m2s-payment** and **--no-raw-transfer** command line opti
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
-        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_ETHEREUM \
+        --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
         --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852 \
         --no-raw-transfer
 
@@ -405,7 +405,7 @@ Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
         --addr-erc20-s-chain=...ADDRESS... \
         --address-main-net=$ACCOUNT_FOR_ETHEREUM \
-        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN \
+        --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN \
         --no-raw-transfer
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
@@ -431,7 +431,7 @@ Performed with the **--m2s-payment** and **--raw-transfer** command line options
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
         --erc20-s-chain=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
-        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_ETHEREUM \
+        --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
         --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852 \
         --raw-transfer
 
@@ -459,7 +459,7 @@ Performed with the **--s2m-payment** and **--raw-transfer** command line options
         --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
         --erc20-s-chain=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
         --address-main-net=$ACCOUNT_FOR_ETHEREUM \
-        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN \
+        --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN \
         --raw-transfer
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside S-chain blockchain using the **--key-s-chain** command line argument. Target Main-net account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
@@ -559,8 +559,8 @@ Here is example of IMA message processing loop invocation with BLS support:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_ETHEREUM \
-        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN \
+        --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
+        --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN \
         --sign-messages \
         --bls-glue=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/bls_glue \
         --hash-g1=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/hash_g1 \
@@ -576,8 +576,8 @@ Here is example of IMA message processing loop invocation with BLS support:
         --cid-s-chain=-4 \
         --abi-main-net=../proxy/data/proxyMainnet.json \
         --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --key-main-net=$INSECURE_PRIVATE_KEY_FOR_ETHEREUM \
-        --key-s-chain=$INSECURE_PRIVATE_KEY_FOR_SCHAIN \
+        --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
+        --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN \
         --sign-messages \
         --bls-glue=/home/serge/Work/skaled/build/libconsensus/libBLS/bls_glue \
         --hash-g1=/home/serge/Work/skaled/build/libconsensus/libBLS/hash_g1 \
