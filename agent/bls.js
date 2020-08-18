@@ -65,16 +65,16 @@ function discover_public_key_by_index( nNodeIndex, joSChainNetworkInfo ) {
     const jarrNodes = imaState.joSChainNetworkInfo.network;
     const joNode = jarrNodes[nNodeIndex];
     if( "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
-        "insecureBLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey0 === "string" && joNode.imaInfo.insecureBLSPublicKey0.length > 0 &&
-        "insecureBLSPublicKey1" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey1 === "string" && joNode.imaInfo.insecureBLSPublicKey1.length > 0 &&
-        "insecureBLSPublicKey2" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey2 === "string" && joNode.imaInfo.insecureBLSPublicKey2.length > 0 &&
-        "insecureBLSPublicKey3" in joNode.imaInfo && typeof joNode.imaInfo.insecureBLSPublicKey3 === "string" && joNode.imaInfo.insecureBLSPublicKey3.length > 0
+        "BLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.BLSPublicKey0 === "string" && joNode.imaInfo.BLSPublicKey0.length > 0 &&
+        "BLSPublicKey1" in joNode.imaInfo && typeof joNode.imaInfo.BLSPublicKey1 === "string" && joNode.imaInfo.BLSPublicKey1.length > 0 &&
+        "BLSPublicKey2" in joNode.imaInfo && typeof joNode.imaInfo.BLSPublicKey2 === "string" && joNode.imaInfo.BLSPublicKey2.length > 0 &&
+        "BLSPublicKey3" in joNode.imaInfo && typeof joNode.imaInfo.BLSPublicKey3 === "string" && joNode.imaInfo.BLSPublicKey3.length > 0
     ) {
         return {
-            insecureBLSPublicKey0: joNode.imaInfo.insecureBLSPublicKey0,
-            insecureBLSPublicKey1: joNode.imaInfo.insecureBLSPublicKey1,
-            insecureBLSPublicKey2: joNode.imaInfo.insecureBLSPublicKey2,
-            insecureBLSPublicKey3: joNode.imaInfo.insecureBLSPublicKey3
+            BLSPublicKey0: joNode.imaInfo.BLSPublicKey0,
+            BLSPublicKey1: joNode.imaInfo.BLSPublicKey1,
+            BLSPublicKey2: joNode.imaInfo.BLSPublicKey2,
+            BLSPublicKey3: joNode.imaInfo.BLSPublicKey3
         };
     }
     return null;
@@ -85,16 +85,16 @@ function discover_common_public_key( joSChainNetworkInfo ) {
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         if( "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
-            "insecureCommonBLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey0 === "string" && joNode.imaInfo.insecureCommonBLSPublicKey0.length > 0 &&
-            "insecureCommonBLSPublicKey1" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey1 === "string" && joNode.imaInfo.insecureCommonBLSPublicKey1.length > 0 &&
-            "insecureCommonBLSPublicKey2" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey2 === "string" && joNode.imaInfo.insecureCommonBLSPublicKey2.length > 0 &&
-            "insecureCommonBLSPublicKey3" in joNode.imaInfo && typeof joNode.imaInfo.insecureCommonBLSPublicKey3 === "string" && joNode.imaInfo.insecureCommonBLSPublicKey3.length > 0
+            "commonBLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.commonBLSPublicKey0 === "string" && joNode.imaInfo.commonBLSPublicKey0.length > 0 &&
+            "commonBLSPublicKey1" in joNode.imaInfo && typeof joNode.imaInfo.commonBLSPublicKey1 === "string" && joNode.imaInfo.commonBLSPublicKey1.length > 0 &&
+            "commonBLSPublicKey2" in joNode.imaInfo && typeof joNode.imaInfo.commonBLSPublicKey2 === "string" && joNode.imaInfo.commonBLSPublicKey2.length > 0 &&
+            "commonBLSPublicKey3" in joNode.imaInfo && typeof joNode.imaInfo.commonBLSPublicKey3 === "string" && joNode.imaInfo.commonBLSPublicKey3.length > 0
         ) {
             return {
-                insecureCommonBLSPublicKey0: joNode.imaInfo.insecureCommonBLSPublicKey0,
-                insecureCommonBLSPublicKey1: joNode.imaInfo.insecureCommonBLSPublicKey1,
-                insecureCommonBLSPublicKey2: joNode.imaInfo.insecureCommonBLSPublicKey2,
-                insecureCommonBLSPublicKey3: joNode.imaInfo.insecureCommonBLSPublicKey3
+                commonBLSPublicKey0: joNode.imaInfo.commonBLSPublicKey0,
+                commonBLSPublicKey1: joNode.imaInfo.commonBLSPublicKey1,
+                commonBLSPublicKey2: joNode.imaInfo.commonBLSPublicKey2,
+                commonBLSPublicKey3: joNode.imaInfo.commonBLSPublicKey3
             };
         }
     }
@@ -350,10 +350,10 @@ function perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonP
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
         // let joCommonPublicKey_for_O = joCommonPublicKey;
         const joCommonPublicKey_for_O = {
-            insecureCommonBLSPublicKey0: joCommonPublicKey.insecureCommonBLSPublicKey1,
-            insecureCommonBLSPublicKey1: joCommonPublicKey.insecureCommonBLSPublicKey0,
-            insecureCommonBLSPublicKey2: joCommonPublicKey.insecureCommonBLSPublicKey3,
-            insecureCommonBLSPublicKey3: joCommonPublicKey.insecureCommonBLSPublicKey2
+            commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey1,
+            commonBLSPublicKey1: joCommonPublicKey.commonBLSPublicKey0,
+            commonBLSPublicKey2: joCommonPublicKey.commonBLSPublicKey3,
+            commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey2
         };
         imaUtils.jsonFileSave( strActionDir + "/common_public_key.json", joCommonPublicKey_for_O );
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )

@@ -75,14 +75,14 @@ There are several example networks in comments.
 The `.env` file should include the following variables:
 
 ```bash
-URL_W3_MAIN_NET="your mainnet RPC url, it also can be an infura endpoint"
+URL_W3_ETHEREUM="your mainnet RPC url, it also can be an infura endpoint"
 URL_W3_S_CHAIN="your SKALE chain RPC url, it also can be an infura endpoint"
 CHAIN_NAME_SCHAIN="your SKALE chain name"
-INSECURE_PRIVATE_KEY_FOR_MAINNET="your private key for mainnet"
-INSECURE_PRIVATE_KEY_FOR_SCHAIN="your private key for SKALE chain"
-ACCOUNT_FOR_MAINNET="your account for mainnet"
+PRIVATE_KEY_FOR_ETHEREUM="your private key for mainnet"
+PRIVATE_KEY_FOR_SCHAIN="your private key for SKALE chain"
+ACCOUNT_FOR_ETHEREUM="your account for mainnet"
 ACCOUNT_FOR_SCHAIN="your account for SKALE chain"
-NETWORK_FOR_MAINNET="your created network for mainnet"
+NETWORK_FOR_ETHEREUM="your created network for mainnet"
 NETWORK_FOR_SCHAIN="your created network for SKALE chain"
 ```
 
