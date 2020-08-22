@@ -26,7 +26,7 @@
         "typescript": "^3.8.3"
     },
     "devDependencies": {
-        "@nomiclabs/buidler": "^1.2.0",
+        "@nomiclabs/buidler": "^1.4.4",
         "@nomiclabs/buidler-truffle5": "^1.1.2",
         "@nomiclabs/buidler-web3": "^1.1.2",
         "@types/chai": "^4.2.12",
