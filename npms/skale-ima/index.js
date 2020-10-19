@@ -2262,7 +2262,7 @@ function compose_gas_usage_report_from_array( strName, jarrReceipts ) {
         return "";
     let i, sumGasUsed = 0, s = "\n\n" + cc.info( "GAS USAGE REPORT FOR " ) + cc.attention( strName ) + "\n";
     for( i = 0; i < jarrReceipts.length; ++ i ) {
-        sumGasUsed += parseInt( jarrReceipts[i].receipt.gasUsed );
+        sumGasUsed += parseInt( jarrReceipts[i].receipt.gasUsed, 10 );
         s += cc.notice( jarrReceipts[i].description ) + cc.debug( "....." ) + cc.info( jarrReceipts[i].receipt.gasUsed ) + "\n";
     }
     s += cc.attention( "SUM" ) + cc.debug( "....." ) + cc.info( sumGasUsed ) + "\n\n";
