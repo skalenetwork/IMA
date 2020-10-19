@@ -366,6 +366,7 @@ async function register_s_chain_on_main_net( // step 1A
     cid_main_net,
     tc_main_net
 ) {
+    const jarrReceipts = []; // register_s_chain_on_main_net
     const strLogPrefix = cc.sunny( "Reg S on M:" ) + " ";
     if( verbose_get() >= RV_VERBOSE.debug ) {
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
@@ -418,12 +419,18 @@ async function register_s_chain_on_main_net( // step 1A
         const joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+            jarrReceipts.push( {
+                "description": "register_s_chain_on_main_net",
+                "receipt": joReceipt
+            } );
+        }
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_s_chain_on_main_net() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-        return false;
+        return null;
     }
-    return true;
+    return jarrReceipts;
 } // async function register_s_chain(...
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -460,7 +467,7 @@ async function check_is_registered_main_net_on_s_chain( // step 1B
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in check_is_registered_main_net_on_s_chain(reg-step1B)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
     }
-    return false;
+    return null;
 }
 
 async function register_main_net_on_s_chain( // step 1B
@@ -471,6 +478,7 @@ async function register_main_net_on_s_chain( // step 1B
     cid_s_chain,
     tc_s_chain
 ) {
+    const jarrReceipts = []; // register_main_net_on_s_chain
     const strLogPrefix = cc.sunny( "Reg M on S:" ) + " ";
     if( verbose_get() >= RV_VERBOSE.debug ) {
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
@@ -523,12 +531,18 @@ async function register_main_net_on_s_chain( // step 1B
         const joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+            jarrReceipts.push( {
+                "description": "register_main_net_on_s_chain",
+                "receipt": joReceipt
+            } );
+        }
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_main_net_on_s_chain() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-        return false;
+        return null;
     }
-    return true;
+    return jarrReceipts;
 } // async function register_s_chain(...
 
 //
@@ -576,6 +590,7 @@ async function register_s_chain_in_deposit_box( // step 2
     cid_main_net,
     tc_main_net
 ) {
+    const jarrReceipts = []; // register_s_chain_in_deposit_box
     log.write( cc.info( "Main-net " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( jo_lock_and_data_main_net.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
     const strLogPrefix = cc.sunny( "Reg S in depositBox:" ) + " ";
@@ -626,12 +641,18 @@ async function register_s_chain_in_deposit_box( // step 2
         const joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+            jarrReceipts.push( {
+                "description": "register_s_chain_in_deposit_box",
+                "receipt": joReceipt
+            } );
+        }
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_s_chain_in_deposit_box() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-        return false;
+        return null;
     }
-    return true;
+    return jarrReceipts;
 } // async function register_deposit_box_on_s_chain(...
 
 async function check_is_registered_main_net_depositBox_on_s_chain( // step 3
@@ -672,6 +693,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
     cid_s_chain,
     tc_s_chain
 ) {
+    const jarrReceipts = []; // register_main_net_depositBox_on_s_chain
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( jo_lock_and_data_s_chain.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( cid_s_chain ) + "\n" );
     const strLogPrefix = cc.sunny( "Reg MS depositBox on S:" ) + " ";
@@ -719,12 +741,18 @@ async function register_main_net_depositBox_on_s_chain( // step 3
         const joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+            jarrReceipts.push( {
+                "description": "register_main_net_depositBox_on_s_chain",
+                "receipt": joReceipt
+            } );
+        }
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_main_net_depositBox_on_s_chain() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-        return false;
+        return null;
     }
-    return true;
+    return jarrReceipts;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -752,6 +780,7 @@ async function do_eth_payment_from_main_net(
     wei_how_much, // how much WEI money to send
     tc_main_net
 ) {
+    const jarrReceipts = []; // do_eth_payment_from_main_net
     let strActionName = ""; const strLogPrefix = cc.info( "M2S ETH Payment:" ) + " ";
     try {
         log.write( strLogPrefix + cc.debug( "Doing payment from mainnet with " ) + cc.notice( "chain_id_s_chain" ) + cc.debug( "=" ) + cc.notice( chain_id_s_chain ) + cc.debug( "..." ) + "\n" );
@@ -795,6 +824,12 @@ async function do_eth_payment_from_main_net(
         const joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+            jarrReceipts.push( {
+                "description": "do_eth_payment_from_main_net",
+                "receipt": joReceipt
+            } );
+        }
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
@@ -850,6 +885,7 @@ async function do_eth_payment_from_main_net(
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
+    print_gas_usage_report_from_array( "ETH PAYMENT FROM MAIN NET", jarrReceipts );
     return true;
 } // async function do_eth_payment_from_main_net(...
 
@@ -875,6 +911,7 @@ async function do_eth_payment_from_s_chain(
     wei_how_much, // how much WEI money to send
     tc_s_chain
 ) {
+    const jarrReceipts = []; // do_eth_payment_from_s_chain
     let strActionName = ""; const strLogPrefix = cc.info( "S2M ETH Payment:" ) + " ";
     try {
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_eth_payment_from_s_chain";
@@ -919,6 +956,12 @@ async function do_eth_payment_from_s_chain(
         const joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+            jarrReceipts.push( {
+                "description": "do_eth_payment_from_s_chain",
+                "receipt": joReceipt
+            } );
+        }
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
@@ -937,6 +980,7 @@ async function do_eth_payment_from_s_chain(
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
+    print_gas_usage_report_from_array( "ETH PAYMENT FROM S-CHAIN", jarrReceipts );
     return true;
 } // async function do_eth_payment_from_s_chain(...
 
@@ -950,6 +994,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
     jo_lock_and_data_main_net,
     tc_main_net
 ) {
+    const jarrReceipts = []; // receive_eth_payment_from_s_chain_on_main_net
     let strActionName = ""; const strLogPrefix = cc.info( "M2S ETH Receive:" ) + " ";
     try {
         strActionName = "w3_main_net.eth.getTransactionCount()/receive_eth_payment_from_s_chain_on_main_net";
@@ -990,11 +1035,18 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         const joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+            jarrReceipts.push( {
+                "description": "receive_eth_payment_from_s_chain_on_main_net",
+                "receipt": joReceipt
+            } );
+        }
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Receive payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
+    print_gas_usage_report_from_array( "RECEIVE ETH ON MAIN NET", jarrReceipts );
     return true;
 }
 
@@ -1056,6 +1108,7 @@ async function do_erc721_payment_from_main_net(
     isRawTokenTransfer,
     tc_main_net
 ) {
+    const jarrReceipts = []; // do_erc721_payment_from_main_net
     let strActionName = ""; const strLogPrefix = cc.info( "M2S ERC721 Payment:" ) + " ";
     try {
         strActionName = "w3_main_net.eth.getTransactionCount()/do_erc721_payment_from_main_net";
@@ -1150,12 +1203,24 @@ async function do_erc721_payment_from_main_net(
         const joReceiptApprove = await safe_send_signed_transaction( w3_main_net, serializedTxApprove, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
+            jarrReceipts.push( {
+                "description": "do_erc721_payment_from_main_net/approve",
+                "receipt": joReceiptApprove
+            } );
+        }
         log.write( cc.normal( "Will send ERC721 signed transaction from " ) + cc.warning( joAccountSrc.address( w3_main_net ) ) + "\n" );
         strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
         // let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
         const joReceiptDeposit = await safe_send_signed_transaction( w3_main_net, serializedTxDeposit, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+        if( joReceiptDeposit && typeof joReceiptDeposit == "object" && "gasUsed" in joReceiptDeposit ) {
+            jarrReceipts.push( {
+                "description": "do_erc721_payment_from_main_net/deposit",
+                "receipt": joReceiptDeposit
+            } );
+        }
         //
         //
 
@@ -1219,6 +1284,7 @@ async function do_erc721_payment_from_main_net(
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
+    print_gas_usage_report_from_array( "ERC-721 PAYMENT FROM MAIN NET", jarrReceipts );
     return true;
 } // async function do_erc721_payment_from_main_net(...
 
@@ -1246,6 +1312,7 @@ async function do_erc20_payment_from_main_net(
     isRawTokenTransfer,
     tc_main_net
 ) {
+    const jarrReceipts = []; // do_erc20_payment_from_main_net
     let strActionName = ""; const strLogPrefix = cc.info( "M2S ERC20 Payment:" ) + " ";
     try {
         strActionName = "w3_main_net.eth.getTransactionCount()/do_erc20_payment_from_main_net";
@@ -1341,11 +1408,23 @@ async function do_erc20_payment_from_main_net(
         const joReceiptApprove = await safe_send_signed_transaction( w3_main_net, serializedTxApprove, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
+            jarrReceipts.push( {
+                "description": "do_erc20_payment_from_main_net/approve",
+                "receipt": joReceiptApprove
+            } );
+        }
         strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
         // let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
         const joReceiptDeposit = await safe_send_signed_transaction( w3_main_net, serializedTxDeposit, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+        if( joReceiptDeposit && typeof joReceiptDeposit == "object" && "gasUsed" in joReceiptDeposit ) {
+            jarrReceipts.push( {
+                "description": "do_erc20_payment_from_main_net/deposit",
+                "receipt": joReceiptDeposit
+            } );
+        }
         //
         //
 
@@ -1409,6 +1488,7 @@ async function do_erc20_payment_from_main_net(
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
+    print_gas_usage_report_from_array( "ERC-20 PAYMENT FROM MAIN NET", jarrReceipts );
     return true;
 } // async function do_erc20_payment_from_main_net(...
 
@@ -1433,6 +1513,7 @@ async function do_erc20_payment_from_s_chain(
     isRawTokenTransfer,
     tc_s_chain
 ) {
+    const jarrReceipts = []; // do_erc20_payment_from_s_chain
     let strActionName = ""; const strLogPrefix = cc.info( "S2M ERC20 Payment:" ) + " ";
     try {
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_erc20_payment_from_s_chain";
@@ -1511,6 +1592,12 @@ async function do_erc20_payment_from_s_chain(
         const joReceiptApprove = await safe_send_signed_transaction( w3_s_chain, serializedTxApprove, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
+            jarrReceipts.push( {
+                "description": "do_erc20_payment_from_s_chain/approve",
+                "receipt": joReceiptApprove
+            } );
+        }
         //
         if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
             log.write( cc.normal( "Sleeping " ) + cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
@@ -1537,6 +1624,12 @@ async function do_erc20_payment_from_s_chain(
         const serializedTxExitToMainERC20 = txExitToMainERC20.serialize();
         // let joReceiptExitToMainERC20 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC20.toString( "hex" ) );
         const joReceiptExitToMainERC20 = await safe_send_signed_transaction( w3_s_chain, serializedTxExitToMainERC20, strActionName, strLogPrefix );
+        if( joReceiptExitToMainERC20 && typeof joReceiptExitToMainERC20 == "object" && "gasUsed" in joReceiptExitToMainERC20 ) {
+            jarrReceipts.push( {
+                "description": "do_erc20_payment_from_s_chain/exit-to-main",
+                "receipt": joReceiptExitToMainERC20
+            } );
+        }
         const joReceipt = joReceiptExitToMainERC20;
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC20: " ) + cc.j( joReceiptExitToMainERC20 ) + "\n" );
@@ -1558,6 +1651,7 @@ async function do_erc20_payment_from_s_chain(
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
+    print_gas_usage_report_from_array( "ERC-20 PAYMENT FROM S-CHAIN", jarrReceipts );
     return true;
 } // async function do_erc20_payment_from_s_chain(...
 
@@ -1582,6 +1676,7 @@ async function do_erc721_payment_from_s_chain(
     isRawTokenTransfer,
     tc_s_chain
 ) {
+    const jarrReceipts = []; // do_erc721_payment_from_s_chain
     let strActionName = ""; const strLogPrefix = cc.info( "S2M ERC721 Payment:" ) + " ";
     try {
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_erc721_payment_from_s_chain";
@@ -1657,6 +1752,12 @@ async function do_erc721_payment_from_s_chain(
         const joReceiptTransferFrom = await safe_send_signed_transaction( w3_s_chain, serializedTxTransferFrom, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for TransferFrom: " ) + cc.j( joReceiptTransferFrom ) + "\n" );
+        if( joReceiptTransferFrom && typeof joReceiptTransferFrom == "object" && "gasUsed" in joReceiptTransferFrom ) {
+            jarrReceipts.push( {
+                "description": "do_erc721_payment_from_s_chain/transfer-from",
+                "receipt": joReceiptTransferFrom
+            } );
+        }
         //
         if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
             log.write( cc.normal( "Sleeping " ) + cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
@@ -1688,6 +1789,12 @@ async function do_erc721_payment_from_s_chain(
         const joReceipt = joReceiptExitToMainERC721;
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC721: " ) + cc.j( joReceiptExitToMainERC721 ) + "\n" );
+        if( joReceiptExitToMainERC721 && typeof joReceiptExitToMainERC721 == "object" && "gasUsed" in joReceiptExitToMainERC721 ) {
+            jarrReceipts.push( {
+                "description": "do_erc721_payment_from_s_chain/exit-to-main",
+                "receipt": joReceiptExitToMainERC721
+            } );
+        }
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
@@ -1706,6 +1813,7 @@ async function do_erc721_payment_from_s_chain(
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
+    print_gas_usage_report_from_array( "ERC-721 PAYMENT FROM S-CHAIN", jarrReceipts );
     return true;
 } // async function do_erc721_payment_from_s_chain(...
 
@@ -1753,6 +1861,7 @@ async function do_transfer(
     //
     tc_dst // same as w3_dst
 ) {
+    const jarrReceipts = []; // do_transfer
     let bErrorInSigningMessages = false; const strLogPrefix = cc.info( "Transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
         if( verbose_get() >= RV_VERBOSE.information )
@@ -2064,6 +2173,13 @@ async function do_transfer(
                 const joReceipt = await safe_send_signed_transaction( w3_dst, serializedTx_postIncomingMessages, strActionName, strLogPrefix );
                 if( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+                if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+                    jarrReceipts.push( {
+                        "description": "do_transfer/postIncomingMessages",
+                        "receipt": joReceipt
+                    } );
+                    print_gas_usage_report_from_array( "(intermediate result) TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
+                }
                 cntProcessed += cntAccumulatedForBlock;
                 //
                 //
@@ -2134,8 +2250,30 @@ async function do_transfer(
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return false;
     }
+    print_gas_usage_report_from_array( "TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
     return true;
 } // async function do_transfer( ...
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function compose_gas_usage_report_from_array( strName, jarrReceipts ) {
+    if( ! ( strName && typeof strName == "string" && jarrReceipts ) )
+        return "";
+    let i, sumGasUsed = 0, s = "\n\n" + cc.info( "GAS USAGE REPORT FOR " ) + cc.attention( strName ) + "\n";
+    for( i = 0; i < jarrReceipts.length; ++ i ) {
+        sumGasUsed += parseInt( jarrReceipts[i].receipt.gasUsed );
+        s += cc.notice( jarrReceipts[i].description ) + cc.debug( "....." ) + cc.info( jarrReceipts[i].receipt.gasUsed ) + "\n";
+    }
+    s += cc.attention( "SUM" ) + cc.debug( "....." ) + cc.info( sumGasUsed ) + "\n\n";
+    return s;
+}
+
+function print_gas_usage_report_from_array( strName, jarrReceipts ) {
+    const s = compose_gas_usage_report_from_array( strName, jarrReceipts );
+    if( s && s.length > 0 )
+        log.write( s );
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2214,6 +2352,9 @@ module.exports.do_erc20_payment_from_main_net = do_erc20_payment_from_main_net;
 module.exports.do_erc20_payment_from_s_chain = do_erc20_payment_from_s_chain;
 module.exports.do_erc721_payment_from_s_chain = do_erc721_payment_from_s_chain;
 module.exports.do_transfer = do_transfer;
+
+module.exports.compose_gas_usage_report_from_array = compose_gas_usage_report_from_array;
+module.exports.print_gas_usage_report_from_array = print_gas_usage_report_from_array;
 
 module.exports.TransactionCustomizer = TransactionCustomizer;
 module.exports.tc_main_net = tc_main_net;
