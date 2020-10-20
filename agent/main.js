@@ -1084,6 +1084,10 @@ async function run_transfer_loop( isDelayFirstRun ) {
 
 async function wait_until_s_chain_started() {
     log.write( cc.debug( "Checking " ) + cc.info( "S-Chain" ) + cc.debug( " is accessible and sane..." ) + "\n" );
+    if( imaState.strURL_s_chain == undefined || imaState.strURL_s_chain == null || imaState.strURL_s_chain.length == 0 ) {
+        log.write( cc.warning( "Skipped, " ) + cc.info( "S-Chain" ) + cc.warning( " URL was not provided." ) + "\n" );
+        return;
+    }
     let bSuccess = false;
     for( ; !bSuccess; ) {
         await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
@@ -1093,7 +1097,7 @@ async function wait_until_s_chain_started() {
         if( !bSuccess )
             await IMA.sleep( 1000 );
     }
-    log.write( cc.success( "Done " ) + cc.info( "S-Chain" ) + cc.success( " is accessible and sane." ) + "\n" );
+    log.write( cc.success( "Done, " ) + cc.info( "S-Chain" ) + cc.success( " is accessible and sane." ) + "\n" );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
