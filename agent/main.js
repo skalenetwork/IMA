@@ -668,6 +668,13 @@ async function discover_s_chain_network( fnAfter, isSilent ) {
 
             let nCountReceivedImaDescriptions = 0;
             joSChainNetworkInfo = joOut.result;
+            if( ! joSChainNetworkInfo ) {
+                const err2 = new Error( "Got wrong response, network information description was not detected" );
+                if( ! isSilent )
+                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Network was not detected " ) + cc.warning( err2 ) + "\n" );
+                fnAfter( err2, null );
+                return;
+            }
             const jarrNodes = joSChainNetworkInfo.network;
             for( let i = 0; i < jarrNodes.length; ++ i ) {
                 const joNode = jarrNodes[i];
