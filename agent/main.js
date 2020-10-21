@@ -94,6 +94,7 @@ global.imaState = {
     "bShowConfigMode": false, // true - just show configuration values and exit
 
     "bNoWaitSChainStarted": false,
+    "nMaxWaitSChainAttempts": 10,
 
     "strURL_main_net": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ), // example: "http://127.0.0.1:8545"
     "strURL_s_chain": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ), // example: "http://127.0.0.1:2231"
@@ -1083,22 +1084,27 @@ async function run_transfer_loop( isDelayFirstRun ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function wait_until_s_chain_started() {
-    return; // tmp
-    // log.write( cc.debug( "Checking " ) + cc.info( "S-Chain" ) + cc.debug( " is accessible and sane..." ) + "\n" );
-    // if( ( !imaState.strURL_s_chain ) || imaState.strURL_s_chain.length === 0 ) {
-    //     log.write( cc.warning( "Skipped, " ) + cc.info( "S-Chain" ) + cc.warning( " URL was not provided." ) + "\n" );
-    //     return;
-    // }
-    // let bSuccess = false;
-    // for( ; !bSuccess; ) {
-    //     await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
-    //         if( ! err )
-    //             bSuccess = true;
-    //     }, true );
-    //     if( !bSuccess )
-    //         await IMA.sleep( 1000 );
-    // }
-    // log.write( cc.success( "Done, " ) + cc.info( "S-Chain" ) + cc.success( " is accessible and sane." ) + "\n" );
+    log.write( cc.debug( "Checking " ) + cc.info( "S-Chain" ) + cc.debug( " is accessible and sane..." ) + "\n" );
+    if( ( !imaState.strURL_s_chain ) || imaState.strURL_s_chain.length === 0 ) {
+        log.write( cc.warning( "Skipped, " ) + cc.info( "S-Chain" ) + cc.warning( " URL was not provided." ) + "\n" );
+        return;
+    }
+    let bSuccess = false;
+    let idxWaitAttempt = 0;
+    for( ; !bSuccess; ) {
+        await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
+            if( ! err )
+                bSuccess = true;
+        }, true );
+        if( !bSuccess )
+            ++ idxWaitAttempt;
+        if( idxWaitAttempt >= imaState.nMaxWaitSChainAttempts ) {
+            log.write( cc.warning( "Incomplete, " ) + cc.info( "S-Chain" ) + cc.warning( " sanity check failed after " ) + cc.info( idxWaitAttempt ) + cc.warning( " attempts." ) + "\n" );
+            return;
+        }
+        await IMA.sleep( 1000 );
+    }
+    log.write( cc.success( "Done, " ) + cc.info( "S-Chain" ) + cc.success( " is accessible and sane." ) + "\n" );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
