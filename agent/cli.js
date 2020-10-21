@@ -29,36 +29,17 @@ const fs = require( "fs" );
 // const os = require( "os" );
 // const shell = require( "shelljs" );
 
-let IMA = null;
-let imaState = null;
-let imaUtils = null;
-let log = null;
-let cc = null;
-let rpcCall = null;
-let owaspUtils = null;
-let w3mod = null;
-
-function init( anIMA, an_imaState, an_imaUtils, a_log, a_cc, a_rpcCall, a_owaspUtils ) {
-    if( !( anIMA && an_imaState && an_imaUtils && a_log && a_cc && a_rpcCall && a_owaspUtils ) )
-        throw new Error( "CLI module initializer was invoked with bad parameters: " + JSON.stringify( arguments ) );
-    IMA = anIMA;
-    w3mod = IMA.w3mod;
-    imaState = an_imaState;
-    imaUtils = an_imaUtils;
-    log = a_log;
-    cc = a_cc;
-    rpcCall = a_rpcCall;
+function init() {
     rpcCall.rpcCallAddUsageRef();
-    owaspUtils = a_owaspUtils;
     owaspUtils.owaspAddUsageRef();
 }
 
-const g_strAppName = "SKALE Money Transfer Agent";
+const g_strAppName = "IMA AGENT";
 const g_strVersion = "1.0";
 
 function print_about( isLog ) {
     isLog = isLog || false;
-    const strMsg = cc.info( g_strAppName ) + cc.debug( " version " ) + cc.info( g_strVersion );
+    const strMsg = cc.attention( g_strAppName ) + cc.normal( " version " ) + cc.sunny( g_strVersion );
     if( isLog )
         log.write( strMsg + "\n" ); else
         console.log( strMsg );
@@ -104,7 +85,7 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
         retVal = false;
         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing value for " ) + fnNameColorizer( name ) );
         if( isExitIfEmpty )
-            process.exit( 666 );
+            process.exit( 126 );
     }
     let strDots = "...";
     let n = 50 - name.length;
@@ -165,11 +146,11 @@ function parse( joExternalHandlers ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "help" ) + cc.debug( ".........................." ) + cc.notice( "Show this " ) + cc.note( "help info" ) + cc.notice( " and exit." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "version" ) + cc.debug( "......................." ) + cc.notice( "Show " ) + cc.note( "version info" ) + cc.notice( " and exit." ) );
             console.log( cc.sunny( "BLOCKCHAIN NETWORK" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( ".............." ) + cc.note( "Main-net URL" ) + cc.notice( " for Web3. Value is automatically loaded from the " ) + cc.warning( "URL_W3_MAIN_NET" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( ".............." ) + cc.note( "Main-net URL" ) + cc.notice( " for Web3. Value is automatically loaded from the " ) + cc.warning( "URL_W3_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "..............." ) + cc.note( "S-chain URL" ) + cc.notice( " for Web3. Value is automatically loaded from the " ) + cc.warning( "URL_W3_S_CHAIN" ) + cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "id-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CHAIN_NAME_MAINNET" ) + cc.notice( " environment variable if not specified. Default value is " ) + cc.sunny( "\"Mainnet\"" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "id-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CHAIN_NAME_ETHEREUM" ) + cc.notice( " environment variable if not specified. Default value is " ) + cc.sunny( "\"Mainnet\"" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "id-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............." ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CHAIN_NAME_SCHAIN" ) + cc.notice( " environment variable if not specified. Default value is " ) + cc.sunny( "\"id-S-chain\"" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "cid-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "..........." ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "chain ID" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CID_MAINNET" ) + cc.notice( " environment variable if not specified. Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "cid-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "..........." ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "chain ID" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CID_ETHEREUM" ) + cc.notice( " environment variable if not specified. Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "cid-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "............" ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "chain ID" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CID_SCHAIN" ) + cc.notice( " environment variable if not specified. Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
             console.log( cc.sunny( "BLOCKCHAIN INTERFACE" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "abi-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "............." ) + cc.notice( "Path to JSON file containing IMA ABI of " ) + cc.note( "Main-net" ) + cc.notice( " for Web3." ) );
@@ -184,11 +165,11 @@ function parse( joExternalHandlers ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "addr-erc20-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) + cc.debug( "...." ) + cc.notice( "Explicit ERC20 address in " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
             console.log( cc.sunny( "USER ACCOUNT" ) + cc.info( " options:" ) );
             //
-            console.log( soi + cc.debug( "--" ) + cc.bright( "address-main-net" ) + cc.sunny( "=" ) + cc.warning( "value" ) + cc.debug( "........" ) + cc.notice( "Main-net user account address. Value is automatically loaded from the " ) + cc.warning( "ACCOUNT_FOR_MAINNET" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "address-main-net" ) + cc.sunny( "=" ) + cc.warning( "value" ) + cc.debug( "........" ) + cc.notice( "Main-net user account address. Value is automatically loaded from the " ) + cc.warning( "ACCOUNT_FOR_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "address-s-chain" ) + cc.sunny( "=" ) + cc.warning( "value" ) + cc.debug( "........." ) + cc.notice( "S-chain user account address. Value is automatically loaded from the " ) + cc.warning( "ACCOUNT_FOR_SCHAIN" ) + cc.notice( " environment variable if not specified." ) );
             //
-            console.log( soi + cc.debug( "--" ) + cc.bright( "key-main-net" ) + cc.sunny( "=" ) + cc.error( "value" ) + cc.debug( "............" ) + cc.notice( "Private key for " ) + cc.note( "main-net user" ) + cc.notice( " account address. Value is automatically loaded from the " ) + cc.warning( "INSECURE_PRIVATE_KEY_FOR_MAINNET" ) + cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "key-s-chain" ) + cc.sunny( "=" ) + cc.error( "value" ) + cc.debug( "............." ) + cc.notice( "Private key for " ) + cc.note( "S-Chain" ) + cc.notice( " user account address. Value is automatically loaded from the " ) + cc.warning( "INSECURE_PRIVATE_KEY_FOR_SCHAIN" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "key-main-net" ) + cc.sunny( "=" ) + cc.error( "value" ) + cc.debug( "............" ) + cc.notice( "Private key for " ) + cc.note( "main-net user" ) + cc.notice( " account address. Value is automatically loaded from the " ) + cc.warning( "PRIVATE_KEY_FOR_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "key-s-chain" ) + cc.sunny( "=" ) + cc.error( "value" ) + cc.debug( "............." ) + cc.notice( "Private key for " ) + cc.note( "S-Chain" ) + cc.notice( " user account address. Value is automatically loaded from the " ) + cc.warning( "PRIVATE_KEY_FOR_SCHAIN" ) + cc.notice( " environment variable if not specified." ) );
             //
             console.log( soi + cc.debug( "--" ) + cc.bright( "wei" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "...................." ) + cc.notice( "Amount of " ) + cc.attention( "wei" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "babbage" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "................" ) + cc.notice( "Amount of " ) + cc.attention( "babbage" ) + cc.info( "(wei*1000)" ) + cc.notice( " to transfer." ) );
@@ -625,11 +606,11 @@ function ima_common_init() {
 
     if( imaState.strURL_main_net.length == 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Missing " ) + cc.warning( "Main-net" ) + cc.error( " URL in command line arguments" ) + "\n" );
-        process.exit( 501 );
+        process.exit( 126 );
     }
     if( imaState.strURL_s_chain.length == 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Missing " ) + cc.warning( "S-Chain" ) + cc.error( " URL in command line arguments" ) + "\n" );
-        process.exit( 501 );
+        process.exit( 126 );
     }
 
     imaState.w3http_main_net = new w3mod.providers.HttpProvider( imaState.strURL_main_net );
@@ -693,7 +674,7 @@ function ima_common_init() {
                 imaState.joErc721_s_chain = null;
                 imaState.strCoinNameErc721_main_net = "";
                 imaState.strCoinNameErc721_s_chain = "";
-                process.exit( 666 );
+                process.exit( 126 );
             }
         } else {
             if( n1 == 0 )
@@ -704,7 +685,7 @@ function ima_common_init() {
             imaState.joErc721_s_chain = null;
             imaState.strCoinNameErc721_main_net = "";
             imaState.strCoinNameErc721_s_chain = "";
-            process.exit( 666 );
+            process.exit( 126 );
         }
     } else { // if( imaState.strPathJsonErc721_main_net.length > 0 /*&& imaState.strPathJsonErc721_s_chain.length > 0*/ )
         if( imaState.strPathJsonErc721_s_chain.length > 0 ) {
@@ -726,7 +707,7 @@ function ima_common_init() {
                     imaState.joErc721_s_chain = null;
                     imaState.strCoinNameErc721_main_net = "";
                     imaState.strCoinNameErc721_s_chain = "";
-                    process.exit( 667 );
+                    process.exit( 126 );
                 }
             }
         }
@@ -794,7 +775,7 @@ function ima_common_init() {
                 imaState.joErc20_s_chain = null;
                 imaState.strCoinNameErc20_main_net = "";
                 imaState.strCoinNameErc20_s_chain = "";
-                process.exit( 666 );
+                process.exit( 126 );
             }
         } else {
             if( n1 == 0 )
@@ -805,7 +786,7 @@ function ima_common_init() {
             imaState.joErc20_s_chain = null;
             imaState.strCoinNameErc20_main_net = "";
             imaState.strCoinNameErc20_s_chain = "";
-            process.exit( 666 );
+            process.exit( 126 );
         }
     } else { // if( imaState.strPathJsonErc20_main_net.length > 0 /*&& imaState.strPathJsonErc20_s_chain.length > 0*/ )
         if( imaState.strPathJsonErc20_s_chain.length > 0 ) {
@@ -827,7 +808,7 @@ function ima_common_init() {
                     imaState.joErc20_s_chain = null;
                     imaState.strCoinNameErc20_main_net = "";
                     imaState.strCoinNameErc20_s_chain = "";
-                    process.exit( 667 );
+                    process.exit( 126 );
                 }
             }
         }
@@ -863,6 +844,7 @@ function ima_common_init() {
 
     if( IMA.verbose_get() > IMA.RV_VERBOSE.information || imaState.bShowConfigMode ) {
         print_about( true );
+        log.write( cc.attention( "IMA AGENT" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( IMA.w3mod.version ) + "\n" );
         ensure_have_value( "App path", __filename, false, true, null, ( x ) => {
             return cc.normal( x );
         } );

@@ -29,20 +29,21 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 // const path = require( "path" );
 // const url = require( "url" );
 // const os = require( "os" );
-const IMA = require( "../npms/skale-ima" );
-const owaspUtils = IMA.owaspUtils;
-const imaUtils = require( "./utils.js" );
+global.IMA = require( "../npms/skale-ima" );
+global.w3mod = IMA.w3mod;
+global.ethereumjs_tx = IMA.ethereumjs_tx;
+global.ethereumjs_wallet = IMA.ethereumjs_wallet;
+global.ethereumjs_util = IMA.ethereumjs_util;
+global.compose_tx_instance = IMA.compose_tx_instance;
+global.owaspUtils = IMA.owaspUtils;
+global.imaUtils = require( "./utils.js" );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
-const log = imaUtils.log;
-const cc = imaUtils.cc;
-// const w3mod = IMA.w3mod;
-const imaCLI = require( "./cli.js" );
-const imaBLS = require( "./bls.js" );
-const rpcCall = require( "./rpc-call.js" );
-rpcCall.init( cc, log, owaspUtils );
-// let ethereumjs_tx = IMA.ethereumjs_tx;
-// let ethereumjs_wallet = IMA.ethereumjs_wallet;
-// let ethereumjs_util = IMA.ethereumjs_util;
+global.log = global.imaUtils.log;
+global.cc = global.imaUtils.cc;
+global.imaCLI = require( "./cli.js" );
+global.imaBLS = require( "./bls.js" );
+global.rpcCall = require( "./rpc-call.js" );
+global.rpcCall.init();
 
 function fn_address_impl_( w3 ) {
     if( this.address_ == undefined || this.address_ == null )
@@ -50,7 +51,7 @@ function fn_address_impl_( w3 ) {
     return this.address_;
 }
 
-const imaState = {
+global.imaState = {
     "strLogFilePath": "",
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,
@@ -89,12 +90,12 @@ const imaState = {
 
     "bShowConfigMode": false, // true - just show configuration values and exit
 
-    "strURL_main_net": owaspUtils.toStringURL( process.env.URL_W3_MAIN_NET ), // example: "http://127.0.0.1:8545"
+    "strURL_main_net": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ), // example: "http://127.0.0.1:8545"
     "strURL_s_chain": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ), // example: "http://127.0.0.1:2231"
 
-    "strChainID_main_net": ( process.env.CHAIN_NAME_MAINNET || "Mainnet" ).toString().trim(),
+    "strChainID_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
     "strChainID_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
-    "cid_main_net": owaspUtils.toInteger( process.env.CID_MAINNET ) || -4,
+    "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
     "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
 
     "strPathJsonErc20_main_net": "",
@@ -145,24 +146,19 @@ const imaState = {
     "eth_erc20": null, // only s-chain
 
     //
-    // examples of valid values:
+    // example:
     //
-    // "joAccount_main_net": { "name": "g3",    "privateKey": "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc", "address": fn_address_impl_ }, // "address": "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f"
-    // "joAccount_s_chain ": { "name": "Bob",   "privateKey": "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e", "address": fn_address_impl_ }, // "address": "0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852"
+    // "joAccount_main_net": { "name": "g3",    "privateKey": "<YOUR_PRIVATE_KEY_HERE>", "address": fn_address_impl_ },
+    // "joAccount_s_chain ": { "name": "Bob",   "privateKey": "<YOUR_PRIVATE_KEY_HERE>", "address": fn_address_impl_ },
     //
-    // "joAccount_main_net": { "name": "g2",    "privateKey": "39cb49d82f7e20ad26f2863f74de198f7d5be3aa9b3ec58fbd641950da30acd8", "address": fn_address_impl_ }, // "address": "0x6595b3d58c80db0cc6d50ca5e5f422e6134b07a8"
-    // "joAccount_s_chain ": { "name": "Alice", "privateKey": "1800d6337966f6410905a6bf9af370ac2f55c7428854d995cfa719e061ac0dca", "address": fn_address_impl_ }, // "address": "0x651054E818a0E022Bbb681Aa3b657386f20845F5"
-    //
-    // "joAccount_main_net": { "name": "g1",    "privateKey": "2a95a383114492b90a6eecbc355d7b63501ffb72ed39a788e48aa3c286eb526d", "address": fn_address_impl_ }, // "address": "0x12b907ebaea975ce4d5de010cdf680ad21dc4ca1"
-    // "joAccount_s_chain ": { "name": "Alex",  "privateKey": "d47f07804006486dbeba6b81e50fc93543657853a3d2f736d4fd68488ca94c17", "address": fn_address_impl_ }, // "address": "0x8e8311f4c4533f4C19363d6140e1D5FA16Aa4071"
     //
     // example of empty values to fill from command line arguments:
     //
     // "joAccount_main_net": { "privateKey": "", "address": fn_address_impl_ },
     // "joAccount_s_chain": { "privateKey": "", "address": fn_address_impl_ },
     //
-    "joAccount_main_net": { "privateKey": owaspUtils.toEthPrivateKey( process.env.INSECURE_PRIVATE_KEY_FOR_MAINNET ), "address": fn_address_impl_ },
-    "joAccount_s_chain": { "privateKey": owaspUtils.toEthPrivateKey( process.env.INSECURE_PRIVATE_KEY_FOR_SCHAIN ), "address": fn_address_impl_ },
+    "joAccount_main_net": { "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ), "address": fn_address_impl_ },
+    "joAccount_s_chain": { "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ), "address": fn_address_impl_ },
 
     //
     //
@@ -177,7 +173,7 @@ const imaState = {
     "arrActions": [] // array of actions to run
 };
 
-const tmp_address_MN_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_MAINNET );
+const tmp_address_MN_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_ETHEREUM );
 const tmp_address_SC_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN );
 if( tmp_address_MN_from_env && typeof tmp_address_MN_from_env == "string" && tmp_address_MN_from_env.length > 0 )
     imaState.joAccount_main_net.address_ = "" + tmp_address_MN_from_env;
@@ -185,15 +181,15 @@ if( tmp_address_MN_from_env && typeof tmp_address_MN_from_env == "string" && tmp
 if( tmp_address_SC_from_env && typeof tmp_address_SC_from_env == "string" && tmp_address_SC_from_env.length > 0 )
     imaState.joAccount_s_chain.address_ = "" + tmp_address_SC_from_env;
 
-imaBLS.init( IMA, imaState, imaUtils, log, cc, rpcCall, owaspUtils );
+imaBLS.init();
 
-imaCLI.init( IMA, imaState, imaUtils, log, cc, rpcCall, owaspUtils );
+imaCLI.init();
 imaCLI.parse( {
     "register": function() {
         imaState.arrActions.push( {
             "name": "Full registration(all steps)",
             "fn": async function() {
-                return await register_all();
+                return await register_all( true );
             }
         } );
     },
@@ -201,7 +197,7 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "Registration step 1, register S-Chain on Main-net",
             "fn": async function() {
-                return await register_step1();
+                return await register_step1( true );
             }
         } );
     },
@@ -209,7 +205,7 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "Registration step 2, register S-Chain in deposit box",
             "fn": async function() {
-                return await register_step2();
+                return await register_step2( true );
             }
         } );
     },
@@ -217,7 +213,7 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "Registration step 3, register Main-net deposit box on S-Chain",
             "fn": async function() {
-                return await register_step3();
+                return await register_step3( true );
             }
         } );
     },
@@ -226,9 +222,9 @@ imaCLI.parse( {
             "name": "Full registration status check(all steps)",
             "fn": async function() {
                 const b = await check_registration_all();
-                const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
+                const nExitCode = b ? 0 : 150; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-                process.exit( nExitCode );
+                process.exit( nExitCode ); // 150
             }
         } );
     },
@@ -237,9 +233,9 @@ imaCLI.parse( {
             "name": "Registration status check for step 1, register S-Chain on Main-net",
             "fn": async function() {
                 const b = await check_registration_step1();
-                const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
+                const nExitCode = b ? 0 : 151; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-                process.exit( nExitCode );
+                process.exit( nExitCode ); // 151
             }
         } );
     },
@@ -248,9 +244,9 @@ imaCLI.parse( {
             "name": "Registration status check step 2, register S-Chain in deposit box",
             "fn": async function() {
                 const b = await check_registration_step2();
-                const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
+                const nExitCode = b ? 0 : 152; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-                process.exit( nExitCode );
+                process.exit( nExitCode ); // 152
             }
         } );
     },
@@ -259,9 +255,9 @@ imaCLI.parse( {
             "name": "Registration status check step 3, register Main-net deposit box on S-Chain",
             "fn": async function() {
                 const b = await check_registration_step3();
-                const nExitCode = b ? 0 : 1; // 0 - OKay - registered; non-zero -  not registered or error
+                const nExitCode = b ? 0 : 153; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-                process.exit( nExitCode );
+                process.exit( nExitCode ); // 153
             }
         } );
     },
@@ -505,18 +501,24 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "M<->S transfer loop",
             "fn": async function() {
+                let isPrintSummaryRegistrationCosts = false;
                 if( !await check_registration_step1() ) {
-                    if( !await register_step1() )
+                    if( !await register_step1( false ) )
                         return false;
+                    isPrintSummaryRegistrationCosts = true;
                 }
                 if( !await check_registration_step2() ) {
-                    if( !await register_step2() )
+                    if( !await register_step2( false ) )
                         return false;
+                    isPrintSummaryRegistrationCosts = true;
                 }
                 if( !await check_registration_step3() ) {
-                    if( !await register_step3() )
+                    if( !await register_step3( false ) )
                         return false;
+                    isPrintSummaryRegistrationCosts = true;
                 }
+                if( isPrintSummaryRegistrationCosts )
+                    print_summary_registration_costs();
                 return await run_transfer_loop();
             }
         } );
@@ -529,14 +531,14 @@ imaCLI.parse( {
                 const strLogPrefix = cc.info( "S Browse:" ) + " ";
                 if( imaState.strURL_s_chain.length == 0 ) {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing S-Chain URL, please specify " ) + cc.info( "url-s-chain" ) );
-                    process.exit( 501 );
+                    process.exit( 154 );
                 }
                 log.write( strLogPrefix + cc.normal( "Downloading S-Chain network information " ) + cc.normal( "..." ) + "\n" ); // just print value
                 //
                 await rpcCall.create( imaState.strURL_s_chain, async function( joCall, err ) {
                     if( err ) {
                         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
-                        process.exit( 1 );
+                        process.exit( 155 );
                     }
                     await joCall.call( {
                         "method": "skale_nodesRpcInfo",
@@ -544,7 +546,7 @@ imaCLI.parse( {
                     }, async function( joIn, joOut, err ) {
                         if( err ) {
                             console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
-                            process.exit( 1 );
+                            process.exit( 156 );
                         }
                         log.write( strLogPrefix + cc.normal( "S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
                         let nCountReceivedImaDescriptions = 0;
@@ -555,7 +557,7 @@ imaCLI.parse( {
                             await rpcCall.create( strNodeURL, async function( joCall, err ) {
                                 if( err ) {
                                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
-                                    process.exit( 1 );
+                                    process.exit( 157 );
                                 }
                                 await joCall.call( {
                                     "method": "skale_imaInfo",
@@ -564,7 +566,7 @@ imaCLI.parse( {
                                     ++ nCountReceivedImaDescriptions;
                                     if( err ) {
                                         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
-                                        process.exit( 1 );
+                                        process.exit( 158 );
                                     }
                                     log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " IMA information: " ) + cc.j( joOut.result ) + "\n" );
                                     //process.exit( 0 );
@@ -721,15 +723,15 @@ async function do_the_job() {
 if( imaState.bSignMessages ) {
     if( imaState.strPathBlsGlue.length == 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " please specify --bls-glue parameter." ) + "\n" );
-        process.exit( 666 );
+        process.exit( 159 );
     }
     if( imaState.strPathHashG1.length == 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " please specify --hash-g1 parameter." ) + "\n" );
-        process.exit( 666 );
+        process.exit( 160 );
     }
     discover_s_chain_network( function( err, joSChainNetworkInfo ) {
         if( err )
-            process.exit( 1 ); // error information is printed by discover_s_chain_network()
+            process.exit( 161 ); // error information is printed by discover_s_chain_network()
 
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( cc.success( "S-Chain network was discovered: " ) + cc.j( joSChainNetworkInfo ) + "\n" );
@@ -741,9 +743,14 @@ if( imaState.bSignMessages ) {
     do_the_job();
     // process.exit( 0 ); // FINISH (skip exit here to avoid early termination while tasks ase still running)
 
-async function register_step1() {
+const g_registrationCostInfo = {
+    mn: [],
+    sc: []
+};
+
+async function register_step1( isPrintSummaryRegistrationCosts ) {
     const strLogPrefix = cc.info( "Reg 1:" ) + " ";
-    const bRetVal1A = await IMA.register_s_chain_on_main_net( // step 1A
+    const jarrReceipts1A = await IMA.register_s_chain_on_main_net( // step 1A
         imaState.w3_main_net,
         imaState.jo_message_proxy_main_net,
         imaState.joAccount_main_net,
@@ -751,7 +758,10 @@ async function register_step1() {
         imaState.cid_main_net,
         imaState.tc_main_net
     );
-    const bRetVal1B = await IMA.register_main_net_on_s_chain( // step 1B
+    const bSuccess1A = ( jarrReceipts1A != null && jarrReceipts1A.length > 0 ) ? true : false;
+    if( bSuccess1A )
+        g_registrationCostInfo.mn = g_registrationCostInfo.mn.concat( g_registrationCostInfo.mn, jarrReceipts1A );
+    const jarrReceipts1B = await IMA.register_main_net_on_s_chain( // step 1B
         imaState.w3_s_chain,
         imaState.jo_message_proxy_s_chain,
         imaState.joAccount_s_chain,
@@ -759,17 +769,22 @@ async function register_step1() {
         imaState.cid_s_chain,
         imaState.tc_s_chain
     );
-    const bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
-    if( !bRetVal ) {
-        const nRetCode = 1501;
+    const bSuccess1B = ( jarrReceipts1B != null && jarrReceipts1B.length > 0 ) ? true : false;
+    if( bSuccess1B )
+        g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts1B );
+    const bSuccess = ( bSuccess1A && bSuccess1B ) ? true : false;
+    if( isPrintSummaryRegistrationCosts )
+        print_summary_registration_costs();
+    if( !bSuccess ) {
+        const nRetCode = 162;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain on Main-net, will return code " ) + cc.warning( nRetCode ) + "\n" );
-        process.exit( nRetCode );
+        process.exit( nRetCode ); // 162
     }
     return true;
 }
-async function register_step2() {
+async function register_step2( isPrintSummaryRegistrationCosts ) {
     const strLogPrefix = cc.info( "Reg 2:" ) + " ";
-    const bRetVal = await IMA.register_s_chain_in_deposit_box( // step 2
+    const jarrReceipts = await IMA.register_s_chain_in_deposit_box( // step 2
         imaState.w3_main_net,
         // imaState.jo_deposit_box - only main net
         imaState.jo_lock_and_data_main_net,
@@ -779,16 +794,22 @@ async function register_step2() {
         imaState.cid_main_net,
         imaState.tc_main_net
     );
-    if( !bRetVal ) {
-        const nRetCode = 1502;
+    const bSuccess = ( jarrReceipts != null && jarrReceipts.length > 0 ) ? true : false;
+    if( !bSuccess ) {
+        if( isPrintSummaryRegistrationCosts )
+            print_summary_registration_costs();
+        const nRetCode = 163;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain in deposit box, will return code " ) + cc.warning( nRetCode ) + "\n" );
-        process.exit( nRetCode );
+        process.exit( nRetCode ); // 163
     }
+    g_registrationCostInfo.mn = g_registrationCostInfo.mn.concat( g_registrationCostInfo.mn, jarrReceipts );
+    if( isPrintSummaryRegistrationCosts )
+        print_summary_registration_costs();
     return true;
 }
-async function register_step3() {
+async function register_step3( isPrintSummaryRegistrationCosts ) {
     const strLogPrefix = cc.info( "Reg 3:" ) + " ";
-    const bRetVal = await IMA.register_main_net_depositBox_on_s_chain( // step 3
+    const jarrReceipts = await IMA.register_main_net_depositBox_on_s_chain( // step 3
         imaState.w3_s_chain,
         // imaState.jo_token_manager - only s-chain
         imaState.jo_deposit_box, // only main net
@@ -797,23 +818,28 @@ async function register_step3() {
         imaState.cid_s_chain,
         imaState.tc_s_chain
     );
-    if( !bRetVal ) {
-        const nRetCode = 1503;
+    const bSuccess = ( jarrReceipts != null && jarrReceipts.length > 0 ) ? true : false;
+    if( !bSuccess ) {
+        if( isPrintSummaryRegistrationCosts )
+            print_summary_registration_costs();
+        const nRetCode = 164;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register Main-net deposit box on S-Chain, will return code " ) + cc.warning( nRetCode ) + "\n" );
-        process.exit( nRetCode );
+        process.exit( nRetCode ); // 164
     }
+    g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts );
+    if( isPrintSummaryRegistrationCosts )
+        print_summary_registration_costs();
     return true;
 }
-async function register_all() {
-    if( !await register_step1() )
+async function register_all( isPrintSummaryRegistrationCosts ) {
+    if( !await register_step1( false ) )
         return false;
-
-    if( !await register_step2() )
+    if( !await register_step2( false ) )
         return false;
-
-    if( !await register_step3() )
+    if( !await register_step3( false ) )
         return false;
-
+    if( isPrintSummaryRegistrationCosts )
+        print_summary_registration_costs();
     return true;
 }
 
@@ -858,6 +884,11 @@ async function check_registration_step3() {
         imaState.joAccount_s_chain
     );
     return bRetVal;
+}
+
+function print_summary_registration_costs() {
+    IMA.print_gas_usage_report_from_array( "Main Net REGISTRATION", g_registrationCostInfo.mn );
+    IMA.print_gas_usage_report_from_array( "S-Chain REGISTRATION", g_registrationCostInfo.sc );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

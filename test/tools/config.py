@@ -46,18 +46,18 @@ class Config:
         self.test_working_dir = self.test_root + '/' + self.test_working_dir
         self.test_resource_dir = self.test_root + '/' + self.test_resource_dir
 
-        if 'NETWORK_FOR_MAINNET' in config_json:
-            self.network_for_mainnet = config_json['NETWORK_FOR_MAINNET']
+        if 'NETWORK_FOR_ETHEREUM' in config_json:
+            self.network_for_mainnet = config_json['NETWORK_FOR_ETHEREUM']
         if 'NETWORK_FOR_SCHAIN' in config_json:
             self.network_for_schain = config_json['NETWORK_FOR_SCHAIN']
-        self.mainnet_key = config_json['ETH_PRIVATE_KEY_FOR_MAINNET']
-        if 'MAINNET_RPC_URL' in config_json:
-            self.mainnet_rpc_url = config_json['MAINNET_RPC_URL']
-        self.schain_key = config_json['ETH_PRIVATE_KEY_FOR_SCHAIN']
-        if 'SCHAIN_RPC_URL' in config_json:
-            self.schain_rpc_url = config_json['SCHAIN_RPC_URL']
-        if 'SCHAIN_NAME' in config_json:
-            self.schain_name = config_json['SCHAIN_NAME']
+        self.mainnet_key = config_json['PRIVATE_KEY_FOR_ETHEREUM']
+        if 'URL_W3_ETHEREUM' in config_json:
+            self.mainnet_rpc_url = config_json['URL_W3_ETHEREUM']
+        self.schain_key = config_json['PRIVATE_KEY_FOR_SCHAIN']
+        if 'URL_W3_S_CHAIN' in config_json:
+            self.schain_rpc_url = config_json['URL_W3_S_CHAIN']
+        if 'CHAIN_NAME_SCHAIN' in config_json:
+            self.schain_name = config_json['CHAIN_NAME_SCHAIN']
         if 'user_key' in config_json:
             self.user_key = config_json['user_key']
 
