@@ -1083,6 +1083,7 @@ async function run_transfer_loop( isDelayFirstRun ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function wait_until_s_chain_started() {
+    return; // tmp
     log.write( cc.debug( "Checking " ) + cc.info( "S-Chain" ) + cc.debug( " is accessible and sane..." ) + "\n" );
     if( ( !imaState.strURL_s_chain ) || imaState.strURL_s_chain.length === 0 ) {
         log.write( cc.warning( "Skipped, " ) + cc.info( "S-Chain" ) + cc.warning( " URL was not provided." ) + "\n" );
