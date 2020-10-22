@@ -2313,6 +2313,7 @@ module.exports.longSeparator = g_mtaStrLongSeparator;
 module.exports.noop = noop;
 module.exports.cc = cc;
 module.exports.log = log;
+module.exports.sleep = sleep;
 module.exports.owaspUtils = owaspUtils;
 module.exports.w3mod = w3mod;
 module.exports.ethereumjs_tx = ethereumjs_tx;

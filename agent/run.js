@@ -75,7 +75,7 @@ async function run() {
             const localWallet = JSON.parse( fileContents );
             const pk = localWallet.private_key.slice( 2 );
 
-            const baseArgs = `--url-main-net=${URL_W3_ETHEREUM} --url-s-chain=${URL_W3_S_CHAIN} \
+            const baseArgs = `--url-main-net=${URL_W3_ETHEREUM} --url-s-chain=${URL_W3_S_CHAIN} --max-wait-attempts=10 \
             --id-main-net=Mainnet --id-s-chain=${CHAIN_NAME_SCHAIN} --abi-main-net=${ETHEREUM_PROXY_PATH} \
             --node-number=${NODE_NUMBER} --nodes-count=${NODES_COUNT}  \
             --abi-s-chain=${SCHAIN_PROXY_PATH} --key-main-net=${pk} --key-s-chain=${pk} --period 5`;
