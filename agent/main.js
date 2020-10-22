@@ -94,7 +94,7 @@ global.imaState = {
     "bShowConfigMode": false, // true - just show configuration values and exit
 
     "bNoWaitSChainStarted": false,
-    "nMaxWaitSChainAttempts": 10,
+    "nMaxWaitSChainAttempts": 300,
 
     "strURL_main_net": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ), // example: "http://127.0.0.1:8545"
     "strURL_s_chain": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ), // example: "http://127.0.0.1:2231"
