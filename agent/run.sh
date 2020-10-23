@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-CHECK_TIMEOUT=5
 
 : "${SCHAIN_DIR?Need to set SCHAIN_DIR}"
 
@@ -16,7 +15,15 @@ CHECK_TIMEOUT=5
 : "${NODE_NUMBER?Need to set NODE_NUMBER}"
 : "${NODES_COUNT?Need to set NODES_COUNT}"
 
-echo Starting IMA
+echo $(date) - Starting IMA agent...
+echo Params provided to the run.sh:
+echo MAINNET_PROXY_PATH: $MAINNET_PROXY_PATH
+echo SCHAIN_PROXY_PATH: $SCHAIN_PROXY_PATH
+echo SCHAIN_NAME: $SCHAIN_NAME
+echo SCHAIN_RPC_URL: $SCHAIN_RPC_URL
+echo MAINNET_RPC_URL: $MAINNET_RPC_URL
+echo NODE_NUMBER: $NODE_NUMBER
+echo NODES_COUNT: $NODES_COUNT
 
 $DIR/main.js --url-main-net=$MAINNET_RPC_URL --url-s-chain=$SCHAIN_RPC_URL \
             --id-main-net=Mainnet --id-s-chain=$SCHAIN_NAME --abi-main-net=$MAINNET_PROXY_PATH \
