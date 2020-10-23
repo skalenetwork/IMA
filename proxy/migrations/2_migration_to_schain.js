@@ -23,7 +23,8 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-let fs = require("fs");
+let fs = require( "fs" );
+let path = require( "path" );
 require('dotenv').config();
 const fsPromises = fs.promises;
 
@@ -52,13 +53,13 @@ async function deploy(deployer, network) {
         return;
     }
     
-    if (process.env.SCHAIN_NAME == undefined || process.env.SCHAIN_NAME == "") {
+    if (process.env.CHAIN_NAME_SCHAIN == undefined || process.env.CHAIN_NAME_SCHAIN == "") {
         console.log(network);
         console.log(networks['networks'][network]);
-        console.log("Please set SCHAIN_NAME to .env file");
-        process.exit(1);
+        console.log("Please set CHAIN_NAME_SCHAIN to .env file");
+        process.exit( 126 );
     }
-    let schainName = process.env.SCHAIN_NAME;
+    let schainName = process.env.CHAIN_NAME_SCHAIN;
     await deployer.deploy(MessageProxyForSchain, schainName, "0x0000000000000000000000000000000000000000", {gas: gasLimit}).then(async function() {
         return await deployer.deploy(LockAndDataForSchain, {gas: gasLimit});
     }).then(async function(inst) {
@@ -78,6 +79,19 @@ async function deploy(deployer, network) {
         await inst.setContract("LockAndDataERC721", LockAndDataForSchainERC721.address);
         await deployer.deploy(TokenFactory, inst.address, {gas: gasLimit * gasMultiplier});
         await inst.setContract("TokenFactory", TokenFactory.address);
+
+        const strPathToBuildDir = path.join( __dirname, "../build/contracts" );
+        const strPathToERC20OnChainJSON = path.join( strPathToBuildDir, "ERC20OnChain.json" );
+        const strPathToERC721OnChainJSON = path.join( strPathToBuildDir, "ERC721OnChain.json" );
+        console.log( "Loading auto-instantiated token ERC20OnChain..." );
+        const joBuiltERC20OnChain = JSON.parse( fs.readFileSync( strPathToERC20OnChainJSON, "utf8" ) )
+        console.log( "Loading auto-instantiated token ERC20OnChain..." );
+        const joBuiltERC721OnChain = JSON.parse( fs.readFileSync( strPathToERC721OnChainJSON, "utf8" ) )
+        console.log( "Done loading auto-instantiated tokens." );
+        if( ! ( "abi" in joBuiltERC20OnChain ) || ( ! ( joBuiltERC20OnChain.abi ) ) || typeof joBuiltERC20OnChain.abi != "object" )
+            throw new Error( "ABI is not found in \"" + strPathToERC20OnChainJSON + "\"" );
+        if( ! ( "abi" in joBuiltERC721OnChain ) || ( ! ( joBuiltERC721OnChain.abi ) ) || typeof joBuiltERC721OnChain.abi != "object" )
+            throw new Error( "ABI is not found in \"" + strPathToERC721OnChainJSON + "\"" );
 
         let jsonObject = {
             lock_and_data_for_schain_address: LockAndDataForSchain.address,
@@ -99,7 +113,10 @@ async function deploy(deployer, network) {
             // erc721_on_chain_address: ERC721OnChain.address,
             // erc721_on_chain_abi: ERC721OnChain.abi,
             message_proxy_chain_address: MessageProxyForSchain.address,
-            message_proxy_chain_abi: MessageProxyForSchain.abi
+            message_proxy_chain_abi: MessageProxyForSchain.abi,
+            //
+            ERC20OnChain_abi: joBuiltERC20OnChain.abi,
+            ERC721OnChain_abi: joBuiltERC721OnChain.abi
         }
 
         let jsonObject2 = {

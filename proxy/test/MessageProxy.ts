@@ -88,7 +88,7 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
         beforeEach(async () => {
             contractManager = await ContractManager.new({from: deployer});
             skaleVerifier = await SkaleVerifier.new({from: deployer});
-            await contractManager.setContractsAddress("SkaleVerifier", skaleVerifier.address, {from: deployer});
+            await contractManager.setContractsAddress("Schains", skaleVerifier.address, {from: deployer});
             messageProxyForMainnet = await MessageProxyForMainnet.new("Mainnet", contractManager.address,
                 {from: deployer});
             lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer});

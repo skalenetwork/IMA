@@ -324,7 +324,7 @@ function check_key_exist_in_abi( strName, strFile, joABI, strKey ) {
     } catch ( err ) {
     }
     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Loaded " ) + cc.warning( strName ) + cc.error( " ABI JSON file " ) + cc.info( strFile ) + cc.error( " does not contain needed key " ) + cc.warning( strKey ) + "\n" );
-    process.exit( 123 );
+    process.exit( 126 );
 }
 
 function check_keys_exist_in_abi( strName, strFile, joABI, arrKeys ) {

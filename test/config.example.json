@@ -1,10 +1,10 @@
 {  
-  "NETWORK_FOR_MAINNET": "mainnet",
-  "ETH_PRIVATE_KEY_FOR_MAINNET": "{private_key}",
-  "MAINNET_RPC_URL": "http://localhost:8545",
+  "NETWORK_FOR_ETHEREUM": "mainnet",
+  "PRIVATE_KEY_FOR_ETHEREUM": "{private_key}",
+  "URL_W3_ETHEREUM": "http://localhost:8545",
   "NETWORK_FOR_SCHAIN": "schain",
-  "ETH_PRIVATE_KEY_FOR_SCHAIN": "{private_key}",
-  "SCHAIN_RPC_URL": "http://localhost:8545",
-  "SCHAIN_NAME": "SKALE",
+  "PRIVATE_KEY_FOR_SCHAIN": "{private_key}",
+  "URL_W3_S_CHAIN": "http://localhost:8545",
+  "CHAIN_NAME_SCHAIN": "SKALE",
   "user_key": "{private_key}"
 }
