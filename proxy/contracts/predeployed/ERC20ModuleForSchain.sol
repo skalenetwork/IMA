@@ -61,20 +61,20 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         bool isRAW) external allow("TokenManager") returns (bytes memory data)
         {
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        uint256 contractPosition = ILockAndDataERC20S(lockAndDataERC20).erc20Mapper(contractHere);
+        require(contractPosition > 0, "Not existing ERC-20 contract");
+        require(ILockAndDataERC20S(lockAndDataERC20).receiveERC20(contractHere, amount), "Cound not receive ERC20 Token");
         if (!isRAW) {
-            uint256 contractPosition = ILockAndDataERC20S(lockAndDataERC20).erc20Mapper(contractHere);
-            require(contractPosition > 0, "Not existing ERC-20 contract");
-            require(ILockAndDataERC20S(lockAndDataERC20).receiveERC20(contractHere, amount), "Cound not receive ERC20 Token");
-            data = encodeData(
+            data = encodeCreationData(
                 contractHere,
                 contractPosition,
                 to,
-                amount);
-            return data;
+                amount
+            );
         } else {
-            data = encodeRawData(to, amount);
-            return data;
+            data = encodeRegularData(to, contractPosition, amount);
         }
+        return data;
     }
 
     function sendERC20(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
@@ -116,12 +116,16 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         }
     }
 
-    function encodeData(
+    function encodeCreationData(
         address contractHere,
         uint256 contractPosition,
         address to,
-        uint256 amount) internal view returns (bytes memory data)
-        {
+        uint256 amount
+    )
+        internal
+        view
+        returns (bytes memory data)
+    {
         string memory name = ERC20Detailed(contractHere).name();
         uint8 decimals = ERC20Detailed(contractHere).decimals();
         string memory symbol = ERC20Detailed(contractHere).symbol();
@@ -140,9 +144,18 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         );
     }
 
-    function encodeRawData(address to, uint256 amount) internal pure returns (bytes memory data) {
+    function encodeRegularData(
+        address to,
+        uint256 contractPosition,
+        uint256 amount
+    )
+        internal
+        pure
+        returns (bytes memory data)
+    {
         data = abi.encodePacked(
             bytes1(uint8(19)),
+            bytes32(contractPosition),
             bytes32(bytes20(to)),
             bytes32(amount)
         );
