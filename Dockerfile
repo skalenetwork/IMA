@@ -17,5 +17,3 @@ RUN cd agent && yarn install && cd ..
 
 
 CMD ["bash", "/ima/agent/run.sh"]
-#CMD exec /bin/bash -c "trap : TERM INT; sleep infinity & wait"
-
