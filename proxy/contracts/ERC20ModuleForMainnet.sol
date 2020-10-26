@@ -23,7 +23,6 @@ pragma solidity ^0.5.3;
 
 import "./PermissionsForMainnet.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
-import "@nomiclabs/buidler/console.sol";
 
 interface ILockAndDataERC20M {
     function erc20Tokens(uint256 index) external returns (address);
