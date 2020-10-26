@@ -103,3 +103,12 @@ npm run deploy-to-schain
 ```bash
 npm run deploy-to-both
 ```
+
+### Generate IMA data file for skale-node
+
+Results will be saved to `[RESULTS_FOLDER]/ima_data.json`
+
+```bash
+cd proxy
+python ima_datafile_generator.py [ARTIFACTS_FOLDER] [RESULTS_FOLDER]
+```
