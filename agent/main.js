@@ -95,6 +95,7 @@ global.imaState = {
 
     "bNoWaitSChainStarted": false,
     "nMaxWaitSChainAttempts": 20,
+    "isPreventExitAfterLastAction": false,
 
     "strURL_main_net": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ), // example: "http://127.0.0.1:8545"
     "strURL_s_chain": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ), // example: "http://127.0.0.1:2231"
@@ -532,6 +533,7 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "M<->S transfer loop",
             "fn": async function() {
+                IMA.isPreventExitAfterLastAction = true;
                 if( ! imaState.bNoWaitSChainStarted )
                     await wait_until_s_chain_started(); // M<->S transfer loop
                 let isPrintSummaryRegistrationCosts = false;
@@ -762,8 +764,9 @@ async function do_the_job() {
         log.write( strLogPrefix + cc.info( cntFalse ) + cc.error( " task(s) failed" ) + "\n" );
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
     }
-    if( cntFalse > 0 )
-        process.exitCode = cntFalse;
+    process.exitCode = ( cntFalse > 0 ) ? cntFalse : 0;
+    if( ! IMA.isPreventExitAfterLastAction )
+        process.exit( process.exitCode );
 }
 
 if( imaState.bSignMessages ) {
