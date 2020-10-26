@@ -83,9 +83,9 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         address contractAddress;
         address receiver;
         uint256 amount;
+        (contractPosition, receiver, amount) = fallbackDataParser(data);
+        contractAddress = ILockAndDataERC20S(lockAndDataERC20).erc20Tokens(contractPosition);
         if (to == address(0)) {
-            (contractPosition, receiver, amount) = fallbackDataParser(data);
-            contractAddress = ILockAndDataERC20S(lockAndDataERC20).erc20Tokens(contractPosition);
             if (contractAddress == address(0)) {
                 address tokenFactoryAddress = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("TokenFactory")));
                 contractAddress = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(data);
@@ -99,21 +99,24 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
             }
             emit ERC20TokenReceived(contractPosition, contractAddress, amount);
         } else {
-            (receiver, amount) = fallbackRawDataParser(data);
-            contractAddress = to;
+            // (receiver, amount) = fallbackRawDataParser(data);
+            if (contractAddress == address(0)) {
+                ILockAndDataERC20S(lockAndDataERC20).addERC20Token(to, contractPosition);
+                contractAddress = to;
+            }
             emit ERC20TokenReceived(0, contractAddress, amount);
         }
         return ILockAndDataERC20S(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
     }
 
-    function getReceiver(address to, bytes calldata data) external pure returns (address receiver) {
+    function getReceiver(address to, bytes calldata data) external view returns (address receiver) {
         uint256 contractPosition;
         uint256 amount;
-        if (to == address(0)) {
-            (contractPosition, receiver, amount) = fallbackDataParser(data);
-        } else {
-            (receiver, amount) = fallbackRawDataParser(data);
-        }
+        (contractPosition, receiver, amount) = fallbackDataParser(data);
+        // if (to == address(0)) {
+        // } else {
+        //     (receiver, amount) = fallbackRawDataParser(data);
+        // }
     }
 
     function encodeCreationData(

@@ -28,7 +28,6 @@ import "./interfaces/IERC721Module.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
 
-
 interface ILockAndDataDB {
     function setContract(string calldata contractName, address newContract) external;
     function tokenManagerAddresses(bytes32 schainHash) external returns (address);

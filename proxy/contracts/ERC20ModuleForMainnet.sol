@@ -23,6 +23,7 @@ pragma solidity ^0.5.3;
 
 import "./PermissionsForMainnet.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
+import "@nomiclabs/buidler/console.sol";
 
 interface ILockAndDataERC20M {
     function erc20Tokens(uint256 index) external returns (address);
@@ -79,12 +80,12 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         address contractAddress;
         address receiver;
         uint256 amount;
-        if (to == address(0)) {
-            (contractPosition, receiver, amount) = fallbackDataParser(data);
-            contractAddress = ILockAndDataERC20M(lockAndDataERC20).erc20Tokens(contractPosition);
-        } else {
-            (receiver, amount) = fallbackRawDataParser(data);
-            contractAddress = to;
+        (contractPosition, receiver, amount) = fallbackDataParser(data);
+        contractAddress = ILockAndDataERC20M(lockAndDataERC20).erc20Tokens(contractPosition);
+        if (to != address(0)) {
+            if (contractAddress == address(0)) {
+                contractAddress = to;
+            }
         }
         bool variable = ILockAndDataERC20M(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
         return variable;
@@ -93,11 +94,11 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
     function getReceiver(address to, bytes calldata data) external pure returns (address receiver) {
         uint256 contractPosition;
         uint256 amount;
-        if (to == address(0)) {
-            (contractPosition, receiver, amount) = fallbackDataParser(data);
-        } else {
-            (receiver, amount) = fallbackRawDataParser(data);
-        }
+        (contractPosition, receiver, amount) = fallbackDataParser(data);
+        // if (to == address(0)) {
+        // } else {
+        //     (receiver, amount) = fallbackRawDataParser(data);
+        // }
     }
 
     function encodeCreationData(
