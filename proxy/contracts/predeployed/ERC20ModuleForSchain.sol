@@ -99,7 +99,6 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
             }
             emit ERC20TokenReceived(contractPosition, contractAddress, amount);
         } else {
-            // (receiver, amount) = fallbackRawDataParser(data);
             if (contractAddress == address(0)) {
                 ILockAndDataERC20S(lockAndDataERC20).addERC20Token(to, contractPosition);
                 contractAddress = to;
@@ -113,10 +112,6 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         uint256 contractPosition;
         uint256 amount;
         (contractPosition, receiver, amount) = fallbackDataParser(data);
-        // if (to == address(0)) {
-        // } else {
-        //     (receiver, amount) = fallbackRawDataParser(data);
-        // }
     }
 
     function encodeCreationData(
@@ -204,20 +199,5 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         return (
             uint256(contractIndex), address(bytes20(to)), uint256(token)
         );
-    }
-
-    function fallbackRawDataParser(bytes memory data)
-        internal
-        pure
-        returns (address payable, uint256)
-    {
-        bytes32 to;
-        bytes32 token;
-        // solium-disable-next-line security/no-inline-assembly
-        assembly {
-            to := mload(add(data, 33))
-            token := mload(add(data, 65))
-        }
-        return (address(bytes20(to)), uint256(token));
     }
 }

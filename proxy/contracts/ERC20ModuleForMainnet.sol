@@ -94,10 +94,6 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         uint256 contractPosition;
         uint256 amount;
         (contractPosition, receiver, amount) = fallbackDataParser(data);
-        // if (to == address(0)) {
-        // } else {
-        //     (receiver, amount) = fallbackRawDataParser(data);
-        // }
     }
 
     function encodeCreationData(
@@ -162,21 +158,6 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         return (
             uint256(contractIndex), address(bytes20(to)), uint256(token)
         );
-    }
-
-    function fallbackRawDataParser(bytes memory data)
-        internal
-        pure
-        returns (address payable, uint256)
-    {
-        bytes32 to;
-        bytes32 token;
-        // solium-disable-next-line security/no-inline-assembly
-        assembly {
-            to := mload(add(data, 33))
-            token := mload(add(data, 65))
-        }
-        return (address(bytes20(to)), uint256(token));
     }
 
 }
