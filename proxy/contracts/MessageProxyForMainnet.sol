@@ -22,6 +22,8 @@
 pragma solidity ^0.5.3;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
+
 interface ContractReceiverForMainnet {
     function postMessage(
         address sender,
@@ -53,7 +55,7 @@ interface ISchains {
 }
 
 
-contract MessageProxyForMainnet {
+contract MessageProxyForMainnet is Initializable {
 
     // Note: this uses assembly example from
 
@@ -133,7 +135,14 @@ contract MessageProxyForMainnet {
 
     /// Create a new message proxy
 
-    constructor(string memory newChainID, address newContractManager) public {
+    // constructor(string memory newChainID, address newContractManager) public {
+    //     owner = msg.sender;
+    //     authorizedCaller[msg.sender] = true;
+    //     chainID = newChainID;
+    //     contractManagerSkaleManager = newContractManager;
+    // }
+
+    function initialize(string memory newChainID, address newContractManager) public initializer {
         owner = msg.sender;
         authorizedCaller[msg.sender] = true;
         chainID = newChainID;
