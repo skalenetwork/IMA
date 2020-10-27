@@ -2,6 +2,9 @@
 proxy/build/
 proxy/types/
 
+# artifacts
+proxy/artifacts/
+
 
 # idea
 .DS_Store

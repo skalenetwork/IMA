@@ -1,0 +1,17 @@
+{
+  "manifestVersion": "2.2",
+  "contracts": {},
+  "dependencies": {},
+  "name": "skale-ima-proxy",
+  "version": "1.0.0",
+  "compiler": {
+    "compilerSettings": {
+      "optimizer": {}
+    },
+    "typechain": {
+      "enabled": true,
+      "outDir": "./types/contracts/",
+      "target": "truffle"
+    }
+  }
+}
