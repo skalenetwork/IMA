@@ -24,6 +24,7 @@
  */
 
 const fs = require( "fs" );
+const { cc } = require( "./utils" );
 // const path = require( "path" );
 // const url = require( "url" );
 // const os = require( "os" );
@@ -83,7 +84,9 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
     value = value.toString();
     if( value.length == 0 ) {
         retVal = false;
-        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing value for " ) + fnNameColorizer( name ) );
+        console.log( cc.fatal( "CRITICAL ERROR:" ) +
+            cc.error( " missing value for " ) + fnNameColorizer( name )
+        );
         if( isExitIfEmpty )
             process.exit( 126 );
     }
@@ -93,6 +96,36 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
         strDots += ".";
     log.write( fnNameColorizer( name ) + cc.debug( strDots ) + fnValueColorizer( value ) + "\n" ); // just print value
     return retVal;
+}
+
+function ensure_have_chain_credentials( strFriendlyChainName, joAccount, isExitIfEmpty, isPrintValue ) {
+    strFriendlyChainName = strFriendlyChainName || "<UNKNOWN>";
+    if( ! ( typeof joAccount == "object" ) ) {
+        console.log( cc.fatal( "CRITICAL ARGUMENTS VALIDATION ERROR:" ) +
+            cc.error( " bad account specified for " ) + cc.warning( strFriendlyChainName ) +
+            cc.error( " chain" )
+        );
+        if( isExitIfEmpty )
+            process.exit( 126 );
+    }
+    if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
+        "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0
+    ) {
+        ensure_have_value( "" + strFriendlyChainName + "/SGX/URL", joAccount.strSgxURL, isExitIfEmpty, isPrintValue );
+        ensure_have_value( "" + strFriendlyChainName + "/SGX/keyName", joAccount.strSgxKeyName, isExitIfEmpty, isPrintValue );
+    } else if( "privateKey" in joAccount && typeof joAccount.privateKey == "string" && joAccount.privateKey.length > 0 )
+        ensure_have_value( "" + strFriendlyChainName + "/privateKey", joAccount.privateKey, isExitIfEmpty, isPrintValue );
+    else if( "address_" in joAccount && typeof joAccount.address_ == "string" && joAccount.address_.length > 0 )
+        ensure_have_value( "" + strFriendlyChainName + "/walletAddress", joAccount.address_, isExitIfEmpty, isPrintValue );
+    else {
+        console.log( cc.fatal( "CRITICAL ARGUMENTS VALIDATION ERROR:" ) +
+            cc.error( " bad credentials information specified for " ) + cc.warning( strFriendlyChainName ) +
+            cc.error( " chain, no explicit SGX, no explicit private key, no wallet address found" )
+        );
+        if( isExitIfEmpty )
+            process.exit( 126 );
+    }
+    return true;
 }
 
 function find_node_index( joSChainNodeConfiguration ) {
@@ -940,18 +973,26 @@ function ima_common_init() {
         ensure_have_value( "S-Chain ABI JSON file path", imaState.strPathAbiJson_s_chain, false, true, null, ( x ) => {
             return cc.warning( x );
         } );
+        //
+        //
         try {
             ensure_have_value( "Main-net user account address", imaState.joAccount_main_net.address( imaState.w3_main_net ), false, true );
         } catch ( err ) {}
         try {
             ensure_have_value( "S-chain user account address", imaState.joAccount_s_chain.address( imaState.w3_s_chain ), false, true );
         } catch ( err ) {}
-        ensure_have_value( "Private key for main-net user account address", imaState.joAccount_main_net.privateKey, false, true, null, ( x ) => {
-            return cc.attention( x );
-        } );
-        ensure_have_value( "Private key for S-Chain user account address", imaState.joAccount_s_chain.privateKey, false, true, null, ( x ) => {
-            return cc.attention( x );
-        } );
+        //
+        //
+        // ensure_have_value( "Private key for main-net user account address", imaState.joAccount_main_net.privateKey, false, true, null, ( x ) => {
+        //     return cc.attention( x );
+        // } );
+        // ensure_have_value( "Private key for S-Chain user account address", imaState.joAccount_s_chain.privateKey, false, true, null, ( x ) => {
+        //     return cc.attention( x );
+        // } );
+        ensure_have_chain_credentials( "Main Net", imaState.joAccount_main_net, false, true );
+        ensure_have_chain_credentials( "S-Chain", imaState.joAccount_s_chain, false, true );
+        //
+        //
         ensure_have_value( "Amount of wei to transfer", imaState.nAmountOfWei, false, true, null, ( x ) => {
             return cc.info( x );
         } );

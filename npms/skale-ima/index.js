@@ -297,8 +297,23 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function safe_sign_transaction_with_account( tx, joAccount ) {
-    const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
-    tx.sign( key ); // arg is privateKey as buffer
+    if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
+        "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0
+    ) {
+        //
+        //
+        //
+    } else if( "privateKey" in joAccount && typeof joAccount.privateKey == "string" && joAccount.privateKey.length > 0 ) {
+        const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
+        tx.sign( key ); // arg is privateKey as buffer
+    } else {
+        console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
+            cc.error( " bad credentials information specified for " ) + cc.warning( strFriendlyChainName ) +
+            cc.error( " chain, no explicit SGX and no explicit private key found" )
+        );
+        if( isExitIfEmpty )
+            process.exit( 126 );
+    }
     return tx;
 }
 
@@ -2330,6 +2345,7 @@ module.exports.dry_run_enable = dry_run_enable;
 module.exports.dry_run_is_ignored = dry_run_is_ignored;
 module.exports.dry_run_ignore = dry_run_ignore;
 module.exports.dry_run_call = dry_run_call;
+module.exports.safe_sign_transaction_with_account = safe_sign_transaction_with_account;
 module.exports.safe_send_signed_transaction = safe_send_signed_transaction;
 
 module.exports.register_s_chain_on_main_net = register_s_chain_on_main_net; // step 1A
