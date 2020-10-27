@@ -299,7 +299,11 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 async function safe_send_signed_transaction( w3, serializedTx, strActionName, strLogPrefix ) {
     if( verbose_get() >= RV_VERBOSE.information )
         log.write( cc.attention( "SEND TRANSACTION" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version ) + "\n" );
+    // if( verbose_get() >= RV_VERBOSE.trace )
+    //     log.write( strLogPrefix + cc.debug( "....signed serialized TX is " ) + cc.j( serializedTx ) + "\n" );
     const strTX = "0x" + serializedTx.toString( "hex" ); // strTX is string starting from "0x"
+    if( verbose_get() >= RV_VERBOSE.trace )
+        log.write( strLogPrefix + cc.debug( "....signed raw TX is " ) + cc.j( strTX ) + "\n" );
     let joReceipt = null;
     let bHaveReceipt = false;
     try {
