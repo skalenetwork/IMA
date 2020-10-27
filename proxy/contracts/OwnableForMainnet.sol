@@ -22,6 +22,7 @@
 pragma solidity ^0.5.3;
 
 import "./predeployed/SkaleFeatures.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
 
 /**
@@ -29,7 +30,7 @@ import "./predeployed/SkaleFeatures.sol";
  * @dev The OwnableForMainnet contract has an owner address, and provides basic authorization control
  * functions, this simplifies the implementation of "user permissions".
  */
-contract OwnableForMainnet {
+contract OwnableForMainnet is Initializable {
 
     /**
      * @dev ownerAddress is only used after transferOwnership(). By default, value of "skaleConfig.contractSettings.IMA.ownerAddress" config variable is used
@@ -41,7 +42,11 @@ contract OwnableForMainnet {
      * @dev The OwnableForMainnet constructor sets the original `owner` of the contract to the sender
      * account.
      */
-    constructor() public {
+    // constructor() public {
+    //     ownerAddress = msg.sender;
+    // }
+
+    function initialize() public initializer {
         ownerAddress = msg.sender;
     }
 
