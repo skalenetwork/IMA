@@ -296,6 +296,12 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+async function safe_sign_transaction_with_account( tx, joAccount ) {
+    const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
+    tx.sign( key ); // arg is privateKey as buffer
+    return tx;
+}
+
 async function safe_send_signed_transaction( w3, serializedTx, strActionName, strLogPrefix ) {
     if( verbose_get() >= RV_VERBOSE.information )
         log.write( cc.attention( "SEND TRANSACTION" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version ) + "\n" );
@@ -415,8 +421,7 @@ async function register_s_chain_on_main_net( // step 1A
             to: jo_message_proxy_main_net.options.address, // contract address
             data: dataTx
         } );
-        const key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
+        await safe_sign_transaction_with_account( tx, joAccount_main_net );
         const serializedTx = tx.serialize();
         strActionName = "reg-step1A:w3_main_net.eth.sendSignedTransaction()";
         // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -527,8 +532,7 @@ async function register_main_net_on_s_chain( // step 1B
             to: jo_message_proxy_s_chain.options.address, // contract address
             data: dataTx
         } );
-        const key = Buffer.from( joAccount_s_chain.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
+        await safe_sign_transaction_with_account( tx, joAccount_s_chain );
         const serializedTx = tx.serialize();
         strActionName = "reg-step1B:w3_s_chain.eth.sendSignedTransaction()";
         // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -637,8 +641,7 @@ async function register_s_chain_in_deposit_box( // step 2
             to: jo_lock_and_data_main_net.options.address, // contract address
             data: dataTx
         } );
-        const key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
+        await safe_sign_transaction_with_account( tx, joAccount_main_net );
         const serializedTx = tx.serialize();
         strActionName = "reg-step2:w3_main_net.eth.sendSignedTransaction()";
         // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -737,8 +740,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             to: jo_lock_and_data_s_chain.options.address, // contract address
             data: dataTx
         } );
-        const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
+        await safe_sign_transaction_with_account( tx, joAccount );
         const serializedTx = tx.serialize();
         strActionName = "reg-step3:w3_s_chain.eth.sendSignedTransaction()";
         // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -820,8 +822,7 @@ async function do_eth_payment_from_main_net(
             data: dataTx,
             value: wei_how_much // how much money to send
         } );
-        const key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
+        await safe_sign_transaction_with_account( tx, joAccountSrc );
         const serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction()";
         // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -952,8 +953,7 @@ async function do_eth_payment_from_s_chain(
             data: dataTx,
             value: 0 // how much money to send
         } );
-        const key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
+        await safe_sign_transaction_with_account( tx, joAccountSrc );
         const serializedTx = tx.serialize();
         strActionName = "w3_s_chain.eth.sendSignedTransaction()";
         // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -1031,8 +1031,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             data: dataTx,
             value: 0 // how much money to send
         } );
-        const key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
+        await safe_sign_transaction_with_account( tx, joAccount_main_net );
         const serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction()";
         // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -1193,9 +1192,8 @@ async function do_erc721_payment_from_main_net(
         // sign transactions
         //
         strActionName = "sign transactions M->S";
-        const privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
-        txApprove.sign( privateKeyForMainnet );
-        txDeposit.sign( privateKeyForMainnet );
+        await safe_sign_transaction_with_account( txApprove, joAccountSrc );
+        await safe_sign_transaction_with_account( txDeposit, joAccountSrc );
         const serializedTxApprove = txApprove.serialize();
         const serializedTxDeposit = txDeposit.serialize();
         //
@@ -1398,9 +1396,8 @@ async function do_erc20_payment_from_main_net(
         // sign transactions
         //
         strActionName = "sign transactions M->S";
-        const privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
-        txApprove.sign( privateKeyForMainnet );
-        txDeposit.sign( privateKeyForMainnet );
+        await safe_sign_transaction_with_account( txApprove, joAccountSrc );
+        await safe_sign_transaction_with_account( txDeposit, joAccountSrc );
         const serializedTxApprove = txApprove.serialize();
         const serializedTxDeposit = txDeposit.serialize();
         //
@@ -1573,7 +1570,6 @@ async function do_erc20_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         strActionName = "prepare key for transactions S->M";
-        const privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         //
         // send transactions
         //
@@ -1590,7 +1586,7 @@ async function do_erc20_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: 8000000
         } );
-        txApprove.sign( privateKeyForSchain );
+        await safe_sign_transaction_with_account( txApprove, joAccountSrc );
         const serializedTxApprove = txApprove.serialize();
         // let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
         const joReceiptApprove = await safe_send_signed_transaction( w3_s_chain, serializedTxApprove, strActionName, strLogPrefix );
@@ -1624,7 +1620,7 @@ async function do_erc20_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: 8000000
         } );
-        txExitToMainERC20.sign( privateKeyForSchain );
+        await safe_sign_transaction_with_account( txExitToMainERC20, joAccountSrc );
         const serializedTxExitToMainERC20 = txExitToMainERC20.serialize();
         // let joReceiptExitToMainERC20 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC20.toString( "hex" ) );
         const joReceiptExitToMainERC20 = await safe_send_signed_transaction( w3_s_chain, serializedTxExitToMainERC20, strActionName, strLogPrefix );
@@ -1733,7 +1729,6 @@ async function do_erc721_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         strActionName = "sign transactions S->M";
-        const privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         //
         // send transactions
         //
@@ -1750,7 +1745,7 @@ async function do_erc721_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: 8000000
         } );
-        txTransferFrom.sign( privateKeyForSchain );
+        await safe_sign_transaction_with_account( txTransferFrom, joAccountSrc );
         const serializedTxTransferFrom = txTransferFrom.serialize();
         // let joReceiptTransferFrom = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxTransferFrom.toString( "hex" ) );
         const joReceiptTransferFrom = await safe_send_signed_transaction( w3_s_chain, serializedTxTransferFrom, strActionName, strLogPrefix );
@@ -1784,7 +1779,7 @@ async function do_erc721_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: 8000000
         } );
-        txExitToMainERC721.sign( privateKeyForSchain );
+        await safe_sign_transaction_with_account( txExitToMainERC721, joAccountSrc );
         const serializedTxExitToMainERC721 = txExitToMainERC721.serialize();
         // let joReceiptExitToMainERC721 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC721.toString( "hex" ) );
         const joReceiptExitToMainERC721 = await safe_send_signed_transaction( w3_s_chain, serializedTxExitToMainERC721, strActionName, strLogPrefix );
@@ -2169,8 +2164,7 @@ async function do_transfer(
                     data: dataTx_postIncomingMessages //,
                     // "value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
                 } );
-                const key = Buffer.from( joAccountDst.privateKey, "hex" ); // convert private key to buffer ??????????????????????????????????
-                tx_postIncomingMessages.sign( key ); // arg is privateKey as buffer
+                await safe_sign_transaction_with_account( tx_postIncomingMessages, joAccountDst );
                 const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
                 strActionName = "w3_dst.eth.sendSignedTransaction()";
                 // let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx_postIncomingMessages.toString( "hex" ) );
