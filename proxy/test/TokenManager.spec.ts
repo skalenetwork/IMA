@@ -1153,6 +1153,7 @@ contract("TokenManager", ([user, deployer, client]) => {
             const to0 = eRC20OnChain.address; // ERC20 address
             const sender = deployer;
             const data = "0x13" +
+                "0000000000000000000000000000000000000000000000000000000000000001" +
                 to.substr(2) + "000000000000000000000000" +
                 "000000000000000000000000000000000000000000000000000000000000000a";
             // add schain to avoid the `Unconnected chain` error
@@ -1187,8 +1188,11 @@ contract("TokenManager", ([user, deployer, client]) => {
             // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
             await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
             // execution
+            console.log("OK");
+            console.log("Erc20 on chain", to0);
             await tokenManager
               .postMessage(sender, schainID, to0, amount, data, {from: deployer});
+            console.log("Not OK");
             // expectation
             expect(parseInt((new BigNumber(await ethERC20.balanceOf(to))).toString(), 10))
                 .to.be.equal(amount);
