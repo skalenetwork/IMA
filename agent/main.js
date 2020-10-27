@@ -164,9 +164,18 @@ global.imaState = {
     // "joAccount_main_net": { "privateKey": "", "address": fn_address_impl_ },
     // "joAccount_s_chain": { "privateKey": "", "address": fn_address_impl_ },
     //
-    "joAccount_main_net": { "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ), "address": fn_address_impl_ },
-    "joAccount_s_chain": { "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ), "address": fn_address_impl_ },
-
+    "joAccount_main_net": {
+        "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM )
+        , "address": fn_address_impl_
+        , "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM )
+        , "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM )
+    },
+    "joAccount_s_chain": {
+        "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN )
+        , "address": fn_address_impl_
+        , "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN )
+        , "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN )
+    },
     //
     //
     "tc_main_net": IMA.tc_main_net, // new IMA.TransactionCustomizer( 1.25 ),
