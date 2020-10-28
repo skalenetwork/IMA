@@ -328,13 +328,13 @@ async function safe_sign_transaction_with_account( tx, joAccount ) {
                     "messageHash": msgHash, // "1122334455"
                     "base": 16 // 10
                 }
-            }, async function( joIn, joOut, err ) {
+            }, /*async*/ function( joIn, joOut, err ) {
                 if( err ) {
                     console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed, error: " ) + cc.warning( err ) );
                     process.exit( 156 );
                 }
                 if( verbose_get() >= RV_VERBOSE.debug )
-                    log.write( cc.debug( "SGX wallet sign result is: " ) + cc.j( joOut.result ) + "\n" );
+                    log.write( cc.debug( "SGX wallet sign result is: " ) + cc.j( joOut /*.result*/ ) + "\n" );
                 const joNeededResult = {
                     "v": parseInt( joOut.result.signature_v, 10 ),
                     "r": "" + joOut.result.signature_r,
