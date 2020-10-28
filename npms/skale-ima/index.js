@@ -300,10 +300,44 @@ async function safe_sign_transaction_with_account( tx, joAccount ) {
     if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
         "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0
     ) {
-        //
-        //
-        //
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx ) + "\n" );
+        await rpcCall.create( joAccount.strSgxURL, async function( joCall, err ) {
+            if( err ) {
+                console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed" ) );
+                process.exit( 155 );
+            }
+            const msgHash = tx.hash( false );
+            if( verbose_get() >= RV_VERBOSE.debug )
+                log.write( cc.debug( "Transaction message hash is " ) + cc.j( msgHash ) + "\n" );
+            await joCall.call( {
+                "method": "ecdsaSignMessageHash",
+                "params": {
+                    "keyName": "" + joAccount.strSgxKeyName,
+                    "messageHash": msgHash, // "1122334455"
+                    "base": 16 // 10
+                }
+            }, async function( joIn, joOut, err ) {
+                if( err ) {
+                    console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed, error: " ) + cc.warning( err ) );
+                    process.exit( 156 );
+                }
+                if( verbose_get() >= RV_VERBOSE.debug )
+                    log.write( cc.debug( "SGX wallet sign result is: " ) + cc.j( joOut.result ) + "\n" );
+                const joNeededResult = {
+                    "v": parseInt( joOut.result.signature_v, 10 ),
+                    "r": "" + joOut.result.signature_r,
+                    "s": "" + joOut.result.signature_s
+                };
+                if( verbose_get() >= RV_VERBOSE.debug )
+                    log.write( cc.debug( "Sign result to assign into transaction is: " ) + cc.j( joNeededResult ) + "\n" );
+                Object.assign( tx, joNeededResult );
+            } );
+        } );
     } else if( "privateKey" in joAccount && typeof joAccount.privateKey == "string" && joAccount.privateKey.length > 0 ) {
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( cc.debug( "Will sign with private key, transaction is " ) + cc.j( tx ) + "\n" );
+        console.log( tx );
         const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
     } else {
@@ -314,6 +348,9 @@ async function safe_sign_transaction_with_account( tx, joAccount ) {
         if( isExitIfEmpty )
             process.exit( 126 );
     }
+    if( verbose_get() >= RV_VERBOSE.debug )
+        log.write( cc.debug( "Signed transaction is " ) + cc.j( tx ) + "\n" );
+    console.log( tx );
     return tx;
 }
 
