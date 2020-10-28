@@ -302,7 +302,18 @@ async function safe_sign_transaction_with_account( tx, joAccount ) {
     ) {
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx ) + "\n" );
-        await rpcCall.create( joAccount.strSgxURL, async function( joCall, err ) {
+        let rpcCallOpts = null;
+        if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
+            "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
+        ) {
+            rpcCallOpts = {
+                "cert": fs.readFileSync( joAccount.strPathSslCert, "utf8" ),
+                "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
+            };
+            if( verbose_get() >= RV_VERBOSE.debug )
+                log.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
+        }
+        await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed" ) );
                 process.exit( 155 );
@@ -331,6 +342,8 @@ async function safe_sign_transaction_with_account( tx, joAccount ) {
                 };
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( cc.debug( "Sign result to assign into transaction is: " ) + cc.j( joNeededResult ) + "\n" );
+                if( "_chainId" in tx && tx._chainId > 0 )
+                    tx.v += tx._chainId * 2 + 8;
                 Object.assign( tx, joNeededResult );
             } );
         } );

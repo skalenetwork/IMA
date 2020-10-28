@@ -168,13 +168,17 @@ global.imaState = {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
         "address": fn_address_impl_,
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
-        "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM )
+        "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM ),
+        "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_ETHEREUM || "" ).toString().trim(),
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim()
     },
     "joAccount_s_chain": {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
         "address": fn_address_impl_,
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
-        "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN )
+        "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN ),
+        "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim()
     },
     //
     //
@@ -579,7 +583,8 @@ imaCLI.parse( {
                 }
                 log.write( strLogPrefix + cc.normal( "Downloading S-Chain network information " ) + cc.normal( "..." ) + "\n" ); // just print value
                 //
-                await rpcCall.create( imaState.strURL_s_chain, async function( joCall, err ) {
+                const rpcCallOpts = null;
+                await rpcCall.create( imaState.strURL_s_chain, rpcCallOpts, async function( joCall, err ) {
                     if( err ) {
                         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
                         process.exit( 155 );
@@ -598,7 +603,8 @@ imaCLI.parse( {
                         for( let i = 0; i < jarrNodes.length; ++ i ) {
                             const joNode = jarrNodes[i];
                             const strNodeURL = imaUtils.compose_schain_node_url( joNode );
-                            await rpcCall.create( strNodeURL, async function( joCall, err ) {
+                            const rpcCallOpts = null;
+                            await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
                                 if( err ) {
                                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
                                     process.exit( 157 );
@@ -656,7 +662,8 @@ async function discover_s_chain_network( fnAfter, isSilent ) {
     const strLogPrefix = cc.info( "S net discover:" ) + " ";
     fnAfter = fnAfter || function() {};
     let joSChainNetworkInfo = null;
-    await rpcCall.create( imaState.strURL_s_chain, async function( joCall, err ) {
+    const rpcCallOpts = null;
+    await rpcCall.create( imaState.strURL_s_chain, rpcCallOpts, async function( joCall, err ) {
         if( err ) {
             if( ! isSilent )
                 log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed: " ) + cc.warning( err ) + "\n" );
@@ -691,7 +698,8 @@ async function discover_s_chain_network( fnAfter, isSilent ) {
             for( let i = 0; i < jarrNodes.length; ++ i ) {
                 const joNode = jarrNodes[i];
                 const strNodeURL = imaUtils.compose_schain_node_url( joNode );
-                await rpcCall.create( strNodeURL, function( joCall, err ) {
+                const rpcCallOpts = null;
+                await rpcCall.create( strNodeURL, rpcCallOpts, function( joCall, err ) {
                     if( err ) {
                         if( ! isSilent )
                             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );

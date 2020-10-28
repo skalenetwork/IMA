@@ -113,6 +113,10 @@ function ensure_have_chain_credentials( strFriendlyChainName, joAccount, isExitI
     ) {
         ensure_have_value( "" + strFriendlyChainName + "/SGX/URL", joAccount.strSgxURL, isExitIfEmpty, isPrintValue );
         ensure_have_value( "" + strFriendlyChainName + "/SGX/keyName", joAccount.strSgxKeyName, isExitIfEmpty, isPrintValue );
+        if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 )
+            ensure_have_value( "" + strFriendlyChainName + "/SGX/SSL/keyPath", joAccount.strPathSslKey, isExitIfEmpty, isPrintValue );
+        if( "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0 )
+            ensure_have_value( "" + strFriendlyChainName + "/SGX/SSL/certPath", joAccount.strPathSslCert, isExitIfEmpty, isPrintValue );
     } else if( "privateKey" in joAccount && typeof joAccount.privateKey == "string" && joAccount.privateKey.length > 0 )
         ensure_have_value( "" + strFriendlyChainName + "/privateKey", joAccount.privateKey, isExitIfEmpty, isPrintValue );
     else if( "address_" in joAccount && typeof joAccount.address_ == "string" && joAccount.address_.length > 0 )
@@ -203,12 +207,16 @@ function parse( joExternalHandlers ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "addr-erc20-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) + cc.debug( "...." ) + cc.notice( "Explicit ERC20 address in " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
             //
             console.log( cc.sunny( "USER ACCOUNT" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-url" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "..................." ) + cc.notice( "SGX server URL for Main-net and S-chain." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( ".........." ) + cc.notice( "SGX server URL for Main-net. Value is automatically loaded from the " ) + cc.warning( "SGX_URL_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "..........." ) + cc.notice( "SGX server URL for S-chain. Value is automatically loaded from the " ) + cc.warning( "SGX_URL_S_CHAIN" ) + cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ecdsa-key" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "............" ) + cc.notice( "SGX/ECDSA key name for Main-net and S-chain." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ecdsa-key-main-net" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "..." ) + cc.notice( "SGX/ECDSA key name for Main-net. Value is automatically loaded from the " ) + cc.warning( "SGX_KEY_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ecdsa-key-s-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "...." ) + cc.notice( "SGX/ECDSA key name for S-chain. Value is automatically loaded from the " ) + cc.warning( "SGX_KEY_S_CHAIN" ) + cc.notice( " environment variable if not specified." ) );
+            //
+            console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ssl-key-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "....." ) + cc.notice( "Path to SSL key file for SGX wallet of Main-net. Value is automatically loaded from the " ) + cc.warning( "SGX_SSL_KEY_FILE_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ssl-key-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "......" ) + cc.notice( "Path to SSL key file for SGX wallet of S-chain. Value is automatically loaded from the " ) + cc.warning( "SGX_SSL_KEY_FILE_S_CHAIN" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ssl-cert-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "...." ) + cc.notice( "Path to SSL certificate file for SGX wallet of Main-net. Value is automatically loaded from the " ) + cc.warning( "SGX_SSL_CERT_FILE_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ssl-cert-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "....." ) + cc.notice( "Path to SSL certificate file for SGX wallet of S-chain. Value is automatically loaded from the " ) + cc.warning( "SGX_SSL_CERT_FILE_S_CHAIN" ) + cc.notice( " environment variable if not specified." ) );
+            //
             console.log( soi + cc.debug( "--" ) + cc.bright( "address-main-net" ) + cc.sunny( "=" ) + cc.warning( "value" ) + cc.debug( "........" ) + cc.notice( "Main-net user account address. Value is automatically loaded from the " ) + cc.warning( "ACCOUNT_FOR_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "address-s-chain" ) + cc.sunny( "=" ) + cc.warning( "value" ) + cc.debug( "........." ) + cc.notice( "S-chain user account address. Value is automatically loaded from the " ) + cc.warning( "ACCOUNT_FOR_SCHAIN" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "key-main-net" ) + cc.sunny( "=" ) + cc.error( "value" ) + cc.debug( "............" ) + cc.notice( "Private key for " ) + cc.note( "main-net user" ) + cc.notice( " account address. Value is automatically loaded from the " ) + cc.warning( "PRIVATE_KEY_FOR_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
@@ -340,11 +348,6 @@ function parse( joExternalHandlers ) {
         }
         //
         //
-        if( joArg.name == "sgx-url" ) {
-            owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.joAccount_main_net.strSgxURL = imaState.joAccount_s_chain.strSgxURL = joArg.value;
-            continue;
-        }
         if( joArg.name == "sgx-url-main-net" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
             imaState.joAccount_main_net.strSgxURL = joArg.value;
@@ -355,11 +358,6 @@ function parse( joExternalHandlers ) {
             imaState.joAccount_s_chain.strSgxURL = joArg.value;
             continue;
         }
-        if( joArg.name == "sgx-ecdsa-key" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.joAccount_main_net.strSgxKeyName = imaState.joAccount_s_chain.strSgxKeyName = joArg.value;
-            continue;
-        }
         if( joArg.name == "sgx-ecdsa-key-main-net" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_main_net.strSgxKeyName = joArg.value;
@@ -368,6 +366,27 @@ function parse( joExternalHandlers ) {
         if( joArg.name == "sgx-ecdsa-key-s-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_s_chain.strSgxKeyName = joArg.value;
+            continue;
+        }
+        //
+        if( joArg.name == "sgx-ssl-key-main-net" ) {
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+            imaState.joAccount_main_net.strPathSslKey = imaUtils.normalizePath( joArg.value );
+            continue;
+        }
+        if( joArg.name == "sgx-ssl-key-s-chain" ) {
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+            imaState.joAccount_s_chain.strPathSslKey = imaUtils.normalizePath( joArg.value );
+            continue;
+        }
+        if( joArg.name == "sgx-ssl-cert-main-net" ) {
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+            imaState.joAccount_main_net.strPathSslCert = imaUtils.normalizePath( joArg.value );
+            continue;
+        }
+        if( joArg.name == "sgx-ssl-cert-s-chain" ) {
+            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+            imaState.joAccount_s_chain.strPathSslCert = imaUtils.normalizePath( joArg.value );
             continue;
         }
         //

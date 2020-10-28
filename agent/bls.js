@@ -490,7 +490,8 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         const strNodeURL = imaUtils.compose_schain_node_url( joNode );
-        await rpcCall.create( strNodeURL, async function( joCall, err ) {
+        const rpcCallOpts = null;
+        await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 ++nCountReceived; // including errors
                 ++nCountErrors;
