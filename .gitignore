@@ -5,6 +5,9 @@ proxy/types/
 # artifacts
 proxy/artifacts/
 
+# openzeppelin
+proxy/.openzeppelin/dev-*.json
+proxy/.openzeppelin/.session
 
 # idea
 .DS_Store
