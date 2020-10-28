@@ -39,13 +39,9 @@ contract OwnableForMainnet is Initializable {
 
 
     /**
-     * @dev The OwnableForMainnet constructor sets the original `owner` of the contract to the sender
+     * @dev initialize sets the original `owner` of the contract to the sender
      * account.
      */
-    // constructor() public {
-    //     ownerAddress = msg.sender;
-    // }
-
     function initialize() public initializer {
         ownerAddress = msg.sender;
     }

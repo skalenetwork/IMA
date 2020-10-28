@@ -38,13 +38,9 @@ contract PermissionsForMainnet is OwnableForMainnet {
     address public lockAndDataAddress_; // l_sergiy: changed name _
 
     /**
-     * @dev constructor - sets current address of ContractManager
+     * @dev initialize - sets current address of ContractManager
      * @param newContractsAddress - current address of ContractManager
      */
-    // constructor(address newContractsAddress) public {
-    //     lockAndDataAddress_ = newContractsAddress;
-    // }
-
     function initialize(address newContractsAddress) public initializer {
         OwnableForMainnet.initialize();
         lockAndDataAddress_ = newContractsAddress;

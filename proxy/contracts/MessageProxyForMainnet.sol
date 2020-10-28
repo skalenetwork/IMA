@@ -135,13 +135,6 @@ contract MessageProxyForMainnet is Initializable {
 
     /// Create a new message proxy
 
-    // constructor(string memory newChainID, address newContractManager) public {
-    //     owner = msg.sender;
-    //     authorizedCaller[msg.sender] = true;
-    //     chainID = newChainID;
-    //     contractManagerSkaleManager = newContractManager;
-    // }
-
     function initialize(string memory newChainID, address newContractManager) public initializer {
         owner = msg.sender;
         authorizedCaller[msg.sender] = true;

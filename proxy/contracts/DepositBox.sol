@@ -91,10 +91,6 @@ contract DepositBox is PermissionsForMainnet {
     }
 
     /// Create a new deposit box
-    // constructor(address newProxyAddress, address newLockAndDataAddress) PermissionsForMainnet(newLockAndDataAddress) public {
-    //     proxyAddress = newProxyAddress;
-    // }
-
     function initialize(address newProxyAddress, address newLockAndDataAddress) public initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
         proxyAddress = newProxyAddress;

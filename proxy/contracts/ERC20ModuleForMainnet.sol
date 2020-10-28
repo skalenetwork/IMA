@@ -37,10 +37,6 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
     event ERC20TokenAdded(address indexed tokenHere, uint256 contractPosition);
     event ERC20TokenSent(address indexed tokenHere, uint256 contractPosition, uint256 amount);
 
-    // constructor(address newLockAndDataAddress) PermissionsForMainnet(newLockAndDataAddress) public {
-    //     // solium-disable-previous-line no-empty-blocks
-    // }
-
     function initialize(address newLockAndDataAddress) public initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
     }

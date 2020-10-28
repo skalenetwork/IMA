@@ -47,10 +47,6 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         string message
     );
 
-    // constructor() OwnableForMainnet() public {
-    //     authorizedCaller[msg.sender] = true;
-    // }
-
     function initialize() public initializer {
         OwnableForMainnet.initialize();
         authorizedCaller[msg.sender] = true;

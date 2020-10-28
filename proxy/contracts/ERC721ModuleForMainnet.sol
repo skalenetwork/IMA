@@ -36,10 +36,6 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
 
     event ERC721TokenAdded(address indexed tokenHere, uint256 contractPosition);
 
-    // constructor(address newLockAndDataAddress) PermissionsForMainnet(newLockAndDataAddress) public {
-    //     // solium-disable-previous-line no-empty-blocks
-    // }
-
     function initialize(address newLockAndDataAddress) public initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
