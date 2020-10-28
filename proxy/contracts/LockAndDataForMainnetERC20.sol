@@ -32,11 +32,6 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
     mapping(address => uint256) public erc20Mapper;
     uint256 newIndexERC20;
 
-    function initialize(address newLockAndDataAddress) public initializer {
-        PermissionsForMainnet.initialize(newLockAndDataAddress);
-        newIndexERC20 = 1;
-    }
-
     function sendERC20(address contractHere, address to, uint256 amount) external allow("ERC20Module") returns (bool) {
         require(IERC20(contractHere).balanceOf(address(this)) >= amount, "Not enough money");
         require(IERC20(contractHere).transfer(to, amount), "something went wrong with `transfer` in ERC20");
@@ -49,5 +44,10 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
         erc20Mapper[addressERC20] = index;
         newIndexERC20++;
         return index;
+    }
+
+    function initialize(address newLockAndDataAddress) public initializer {
+        PermissionsForMainnet.initialize(newLockAndDataAddress);
+        newIndexERC20 = 1;
     }
 }

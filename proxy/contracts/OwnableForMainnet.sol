@@ -37,15 +37,6 @@ contract OwnableForMainnet is Initializable {
      */
     address private ownerAddress;
 
-
-    /**
-     * @dev initialize sets the original `owner` of the contract to the sender
-     * account.
-     */
-    function initialize() public initializer {
-        ownerAddress = msg.sender;
-    }
-
     /**
      * @dev Allows the current owner to transfer control of the contract to a newOwner.
      * @param newOwner The address to transfer ownership to.
@@ -53,6 +44,14 @@ contract OwnableForMainnet is Initializable {
     function transferOwnership(address payable newOwner) external onlyOwner {
         require(newOwner != address(0), "New owner has to be set");
         setOwner(newOwner);
+    }
+
+    /**
+     * @dev initialize sets the original `owner` of the contract to the sender
+     * account.
+     */
+    function initialize() public initializer {
+        ownerAddress = msg.sender;
     }
 
     /**

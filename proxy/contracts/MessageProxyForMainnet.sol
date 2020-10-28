@@ -133,15 +133,6 @@ contract MessageProxyForMainnet is Initializable {
     uint256 private idxHead;
     uint256 private idxTail;
 
-    /// Create a new message proxy
-
-    function initialize(string memory newChainID, address newContractManager) public initializer {
-        owner = msg.sender;
-        authorizedCaller[msg.sender] = true;
-        chainID = newChainID;
-        contractManagerSkaleManager = newContractManager;
-    }
-
     function addAuthorizedCaller(address caller) external {
         require(msg.sender == owner, "Sender is not an owner");
         authorizedCaller[caller] = true;
@@ -325,6 +316,15 @@ contract MessageProxyForMainnet is Initializable {
         require(msg.sender == owner, "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
+    }
+
+    /// Create a new message proxy
+
+    function initialize(string memory newChainID, address newContractManager) public initializer {
+        owner = msg.sender;
+        authorizedCaller[msg.sender] = true;
+        chainID = newChainID;
+        contractManagerSkaleManager = newContractManager;
     }
 
     function verifyOutgoingMessageData(

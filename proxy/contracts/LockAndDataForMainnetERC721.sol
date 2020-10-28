@@ -32,11 +32,6 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
     // mapping(uint256 => uint256) public mintToken;
     uint256 newIndexERC721;
 
-    function initialize(address newLockAndDataAddress) public initializer {
-        PermissionsForMainnet.initialize(newLockAndDataAddress);
-        newIndexERC721 = 1;
-    }
-
     function sendERC721(address contractHere, address to, uint256 tokenId) external allow("ERC721Module") returns (bool) {
         if (IERC721Full(contractHere).ownerOf(tokenId) == address(this)) {
             IERC721Full(contractHere).transferFrom(address(this), to, tokenId);
@@ -53,5 +48,10 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
         erc721Mapper[addressERC721] = index;
         newIndexERC721++;
         return index;
+    }
+
+    function initialize(address newLockAndDataAddress) public initializer {
+        PermissionsForMainnet.initialize(newLockAndDataAddress);
+        newIndexERC721 = 1;
     }
 }

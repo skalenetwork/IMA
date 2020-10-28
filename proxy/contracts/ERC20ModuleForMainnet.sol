@@ -37,10 +37,6 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
     event ERC20TokenAdded(address indexed tokenHere, uint256 contractPosition);
     event ERC20TokenSent(address indexed tokenHere, uint256 contractPosition, uint256 amount);
 
-    function initialize(address newLockAndDataAddress) public initializer {
-        PermissionsForMainnet.initialize(newLockAndDataAddress);
-    }
-
     function receiveERC20(
         address contractHere,
         address to,
@@ -94,6 +90,10 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         uint256 contractPosition;
         uint256 amount;
         (contractPosition, receiver, amount) = fallbackDataParser(data);
+    }
+
+    function initialize(address newLockAndDataAddress) public initializer {
+        PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
     function encodeCreationData(

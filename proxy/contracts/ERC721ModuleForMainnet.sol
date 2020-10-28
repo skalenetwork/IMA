@@ -36,10 +36,6 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
 
     event ERC721TokenAdded(address indexed tokenHere, uint256 contractPosition);
 
-    function initialize(address newLockAndDataAddress) public initializer {
-        PermissionsForMainnet.initialize(newLockAndDataAddress);
-    }
-
     function receiveERC721(
         address contractHere,
         address to,
@@ -89,6 +85,10 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         } else {
             (receiver, amount) = fallbackRawDataParser(data);
         }
+    }
+
+    function initialize(address newLockAndDataAddress) public initializer {
+        PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
     function encodeData(

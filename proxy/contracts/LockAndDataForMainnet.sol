@@ -47,11 +47,6 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         string message
     );
 
-    function initialize() public initializer {
-        OwnableForMainnet.initialize();
-        authorizedCaller[msg.sender] = true;
-    }
-
     function receiveEth(address from) external allow("DepositBox") payable {
         emit MoneyReceived(from, msg.value);
     }
@@ -123,5 +118,10 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         }
         to.transfer(amount);
         return true;
+    }
+
+    function initialize() public initializer {
+        OwnableForMainnet.initialize();
+        authorizedCaller[msg.sender] = true;
     }
 }

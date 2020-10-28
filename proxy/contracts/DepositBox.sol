@@ -90,12 +90,6 @@ contract DepositBox is PermissionsForMainnet {
         ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
     }
 
-    /// Create a new deposit box
-    function initialize(address newProxyAddress, address newLockAndDataAddress) public initializer {
-        PermissionsForMainnet.initialize(newLockAndDataAddress);
-        proxyAddress = newProxyAddress;
-    }
-
     function() external payable {
         revert("Not allowed. in DepositBox");
     }
@@ -340,6 +334,12 @@ contract DepositBox is PermissionsForMainnet {
                 ILockAndDataDB(lockAndDataAddress_).approveTransfer(receiver, amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE);
             }
         }
+    }
+
+    /// Create a new deposit box
+    function initialize(address newProxyAddress, address newLockAndDataAddress) public initializer {
+        PermissionsForMainnet.initialize(newLockAndDataAddress);
+        proxyAddress = newProxyAddress;
     }
 
     function deposit(string memory schainID, address to) public payable {
