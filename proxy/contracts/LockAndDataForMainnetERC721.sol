@@ -32,8 +32,12 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
     // mapping(uint256 => uint256) public mintToken;
     uint256 newIndexERC721 = 1;
 
-    constructor(address _lockAndDataAddress) PermissionsForMainnet(_lockAndDataAddress) public {
-        // solium-disable-previous-line no-empty-blocks
+    // constructor(address _lockAndDataAddress) PermissionsForMainnet(_lockAndDataAddress) public {
+    //     // solium-disable-previous-line no-empty-blocks
+    // }
+
+    function initialize(address newLockAndDataAddress) public initializer {
+        PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
     function sendERC721(address contractHere, address to, uint256 tokenId) external allow("ERC721Module") returns (bool) {

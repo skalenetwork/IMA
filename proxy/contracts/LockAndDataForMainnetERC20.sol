@@ -32,8 +32,12 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
     mapping(address => uint256) public erc20Mapper;
     uint256 newIndexERC20 = 1;
 
-    constructor(address _lockAndDataAddress) PermissionsForMainnet(_lockAndDataAddress) public {
-        // solium-disable-previous-line no-empty-blocks
+    // constructor(address _lockAndDataAddress) PermissionsForMainnet(_lockAndDataAddress) public {
+    //     // solium-disable-previous-line no-empty-blocks
+    // }
+
+    function initialize(address newLockAndDataAddress) public initializer {
+        PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
     function sendERC20(address contractHere, address to, uint256 amount) external allow("ERC20Module") returns (bool) {
