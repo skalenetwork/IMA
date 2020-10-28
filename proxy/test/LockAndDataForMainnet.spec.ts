@@ -43,6 +43,9 @@ import { gasMultiplier } from "./utils/command_line";
 chai.should();
 chai.use((chaiAsPromised as any));
 
+import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
+import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
+
 const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const DepositBox: DepositBoxContract = artifacts.require("./DepositBox");
@@ -55,9 +58,9 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
   let depositBox: DepositBoxInstance;
 
   beforeEach(async () => {
-    messageProxyForMainnet = await MessageProxyForMainnet.new(
-      "Mainnet", contractManager, {from: deployer});
-    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer});
+    messageProxyForMainnet = await deployMessageProxyForMainnet(
+      "Mainnet", contractManager);
+    lockAndDataForMainnet = await deployLockAndDataForMainnet();
     depositBox = await DepositBox.new(messageProxyForMainnet.address, lockAndDataForMainnet.address,
        {from: deployer});
   });
