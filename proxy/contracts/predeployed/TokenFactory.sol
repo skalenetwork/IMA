@@ -19,16 +19,16 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity 0.6.10;
 
 import "./PermissionsForSchain.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20Capped.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
-import "openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol";
-import "openzeppelin-solidity/contracts/token/ERC721/ERC721MetadataMintable.sol";
+import "@openzeppelin/contracts/presets/ERC20PresetMinterPauser.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721Burnable.sol";
+import "@openzeppelin/contracts/GSN/Context.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
 
-contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
+contract ERC20OnChain is ERC20PresetMinterPauser {
 
     uint256 private _totalSupplyOnMainnet;
 
@@ -37,11 +37,10 @@ contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
     constructor(
         string memory contractName,
         string memory contractSymbol,
-        uint8 contractDecimals,
         uint256 newTotalSupply,
         address erc20Module
         )
-        ERC20Detailed(contractName, contractSymbol, contractDecimals)
+        ERC20PresetMinterPauser(contractName, contractSymbol)
         public
     {
         _totalSupplyOnMainnet = newTotalSupply;
@@ -57,27 +56,23 @@ contract ERC20OnChain is ERC20Detailed, ERC20Mintable {
         _totalSupplyOnMainnet = newTotalSupply;
     }
 
-    function burn(uint256 amount) external {
-        _burn(msg.sender, amount);
-    }
-
-    function burnFrom(address account, uint256 amount) external {
-        _burnFrom(account, amount);
-    }
-
-    function _mint(address account, uint256 value) internal {
+    function mint(address account, uint256 value) public override {
         require(totalSupply().add(value) <= _totalSupplyOnMainnet, "Total supply on mainnet exceeded");
-        super._mint(account, value);
+        require(hasRole(MINTER_ROLE, _msgSender()), "Message sender must have a Minter role");
+        _mint(account, value);
     }
 }
 
 
-contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
+contract ERC721OnChain is Context, AccessControl, ERC721Burnable {
+
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
     constructor(
         string memory contractName,
         string memory contractSymbol
-        )
-        ERC721Full(contractName, contractSymbol)
+    )
+        ERC721(contractName, contractSymbol)
         public
     {
         // solium-disable-previous-line no-empty-blocks
@@ -85,16 +80,11 @@ contract ERC721OnChain is ERC721Full, ERC721MetadataMintable {
 
     function mint(address to, uint256 tokenId)
         external
-        onlyMinter
         returns (bool)
     {
+        require(hasRole(MINTER_ROLE, _msgSender()), "Message sender must have a Minter role");
         _mint(to, tokenId);
         return true;
-    }
-
-    function burn(uint256 tokenId) external {
-        require(_isApprovedOrOwner(msg.sender, tokenId), "ERC721Burnable: caller is not owner nor approved");
-        _burn(tokenId);
     }
 
     function setTokenURI(uint256 tokenId, string calldata tokenUri)
@@ -130,13 +120,14 @@ contract TokenFactory is PermissionsForSchain {
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
             symbol,
-            decimals,
             totalSupply,
             erc20ModuleAddress
         );
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        newERC20.addMinter(lockAndDataERC20);
-        newERC20.renounceMinter();
+        newERC20.grantRole(newERC20.MINTER_ROLE(), lockAndDataERC20);
+        newERC20.grantRole(newERC20.PAUSER_ROLE(), lockAndDataERC20);
+        newERC20.revokeRole(newERC20.MINTER_ROLE(), address(this));
+        newERC20.revokeRole(newERC20.PAUSER_ROLE(), address(this));
         return address(newERC20);
     }
 
@@ -151,8 +142,8 @@ contract TokenFactory is PermissionsForSchain {
         ERC721OnChain newERC721 = new ERC721OnChain(name, symbol);
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
             permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
-        newERC721.addMinter(lockAndDataERC721);
-        newERC721.renounceMinter();
+        newERC721.grantRole(newERC721.MINTER_ROLE(), lockAndDataERC721);
+        newERC721.revokeRole(newERC721.MINTER_ROLE(), address(this));
         return address(newERC721);
     }
 

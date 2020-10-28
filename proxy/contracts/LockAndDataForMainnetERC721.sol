@@ -19,10 +19,10 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity 0.6.10;
 
 import "./PermissionsForMainnet.sol";
-import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 
 contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
@@ -33,9 +33,9 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
     uint256 newIndexERC721;
 
     function sendERC721(address contractHere, address to, uint256 tokenId) external allow("ERC721Module") returns (bool) {
-        if (IERC721Full(contractHere).ownerOf(tokenId) == address(this)) {
-            IERC721Full(contractHere).transferFrom(address(this), to, tokenId);
-            require(IERC721Full(contractHere).ownerOf(tokenId) == to, "Did not transfer");
+        if (IERC721(contractHere).ownerOf(tokenId) == address(this)) {
+            IERC721(contractHere).transferFrom(address(this), to, tokenId);
+            require(IERC721(contractHere).ownerOf(tokenId) == to, "Did not transfer");
         } // else {
         //     //mint!!!
         // }
@@ -50,7 +50,7 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
         return index;
     }
 
-    function initialize(address newLockAndDataAddress) public initializer {
+    function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
         newIndexERC721 = 1;
     }

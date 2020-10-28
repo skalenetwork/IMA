@@ -19,14 +19,14 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity 0.6.10;
 
 import "./PermissionsForMainnet.sol";
 import "./interfaces/IMessageProxy.sol";
 import "./interfaces/IERC20Module.sol";
 import "./interfaces/IERC721Module.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
-import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 interface ILockAndDataDB {
     function setContract(string calldata contractName, address newContract) external;
@@ -90,7 +90,7 @@ contract DepositBox is PermissionsForMainnet {
         ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
     }
 
-    function() external payable {
+    receive() external payable {
         revert("Not allowed. in DepositBox");
     }
 
@@ -199,9 +199,9 @@ contract DepositBox is PermissionsForMainnet {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address lockAndDataERC721 = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("ERC721Module")));
-        require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
-        require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
+        require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
+        IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
+        require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         bytes memory data = IERC721Module(erc721Module).receiveERC721(
             contractHere,
             to,
@@ -233,9 +233,9 @@ contract DepositBox is PermissionsForMainnet {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address lockAndDataERC721 = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("ERC721Module")));
-        require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
-        require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
+        require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
+        IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
+        require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         bytes memory data = IERC721Module(erc721Module).receiveERC721(
             contractHere,
             to,

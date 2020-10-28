@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity 0.6.10;
 
 import "./OwnableForMainnet.sol";
 
@@ -41,7 +41,7 @@ contract PermissionsForMainnet is OwnableForMainnet {
      * @dev initialize - sets current address of ContractManager
      * @param newContractsAddress - current address of ContractManager
      */
-    function initialize(address newContractsAddress) public initializer {
+    function initialize(address newContractsAddress) public virtual initializer {
         OwnableForMainnet.initialize();
         lockAndDataAddress_ = newContractsAddress;
     }

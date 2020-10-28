@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity 0.6.10;
 
 import "./OwnableForMainnet.sol";
 
@@ -120,7 +120,7 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         return true;
     }
 
-    function initialize() public initializer {
+    function initialize() public override initializer {
         OwnableForMainnet.initialize();
         authorizedCaller[msg.sender] = true;
     }
