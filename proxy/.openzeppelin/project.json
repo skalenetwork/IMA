@@ -1,17 +1,32 @@
 {
   "manifestVersion": "2.2",
-  "contracts": {},
+  "contracts": {
+    "MessageProxyForMainnet": "MessageProxyForMainnet",
+    "LockAndDataForMainnet": "LockAndDataForMainnet",
+    "DepositBox": "DepositBox",
+    "ERC20ModuleForMainnet": "ERC20ModuleForMainnet",
+    "LockAndDataForMainnetERC20": "LockAndDataForMainnetERC20",
+    "ERC721ModuleForMainnet": "ERC721ModuleForMainnet",
+    "LockAndDataForMainnetERC721": "LockAndDataForMainnetERC721"
+  },
   "dependencies": {},
   "name": "skale-ima-proxy",
   "version": "1.0.0",
   "compiler": {
     "compilerSettings": {
-      "optimizer": {}
+      "optimizer": {
+        "enabled": false,
+        "runs": "200"
+      }
     },
     "typechain": {
       "enabled": true,
       "outDir": "./types/contracts/",
       "target": "truffle"
-    }
-  }
+    },
+    "manager": "truffle",
+    "artifactsDir": "build/contracts",
+    "contractsDir": "contracts"
+  },
+  "telemetryOptIn": false
 }
