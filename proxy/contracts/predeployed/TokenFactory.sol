@@ -75,6 +75,7 @@ contract ERC721OnChain is Context, AccessControl, ERC721Burnable {
         ERC721(contractName, contractSymbol)
         public
     {
+        _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
         _setupRole(MINTER_ROLE, _msgSender());
     }
 
@@ -125,9 +126,7 @@ contract TokenFactory is PermissionsForSchain {
         );
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         newERC20.grantRole(newERC20.MINTER_ROLE(), lockAndDataERC20);
-        newERC20.grantRole(newERC20.PAUSER_ROLE(), lockAndDataERC20);
         newERC20.revokeRole(newERC20.MINTER_ROLE(), address(this));
-        newERC20.revokeRole(newERC20.PAUSER_ROLE(), address(this));
         return address(newERC20);
     }
 

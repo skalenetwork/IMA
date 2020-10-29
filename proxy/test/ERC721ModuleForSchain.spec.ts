@@ -197,8 +197,9 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // add ERC721 token to avoid "Not existing ERC-721 contract" error
     await lockAndDataForSchainERC721
       .addERC721Token(contractHere, contractPosition, {from: deployer});
-    // invoke `addMinter` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
-    await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address);
+    // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
+    const minterRole = await eRC721OnChain.MINTER_ROLE();
+    await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
     // get data from `receiveERC721`
     const data = await eRC721ModuleForSchain.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
     await eRC721ModuleForSchain.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
@@ -221,8 +222,9 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // set `LockAndDataERC721` contract before invoke `receiveERC721`
     await lockAndDataForSchain
         .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
-    // invoke `addMinter` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
-    await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address);
+    // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
+    const minterRole = await eRC721OnChain.MINTER_ROLE();
+    await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
     // get data from `receiveERC721`
     const data = await eRC721ModuleForSchain.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
     await eRC721ModuleForSchain.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
