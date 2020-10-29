@@ -25,7 +25,7 @@ import "./PermissionsForSchain.sol";
 
 interface ERC20MintAndBurn {
     function balanceOf(address to) external view returns (uint256);
-    function mint(address to, uint256 amount) external returns (bool);
+    function mint(address to, uint256 amount) external;
     function burn(uint256 amount) external;
 }
 
@@ -44,7 +44,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     }
 
     function sendERC20(address contractHere, address to, uint256 amount) external allow("ERC20Module") returns (bool) {
-        require(ERC20MintAndBurn(contractHere).mint(to, amount), "Could not mint ERC20 Token");
+        ERC20MintAndBurn(contractHere).mint(to, amount);
         emit SendedERC20(true);
         return true;
     }

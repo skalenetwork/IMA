@@ -122,19 +122,14 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const amount = 10;
     const isRaw = false;
-    console.log(lockAndDataForMainnetERC20.address);
-    console.log(await lockAndDataForMainnet.permitted(await web3.utils.soliditySha3("LockAndDataERC20")));
     // mint some quantity of ERC20 tokens for `deployer` address
     await ethERC20.mint(deployer, "1000000000", {from: deployer});
     // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
     await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
     const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
-    console.log((await lockAndDataForMainnetERC20.erc20Tokens("1")).toString());
-    console.log((await lockAndDataForMainnetERC20.erc20Mapper(contractHere)).toString());
     await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // execution
-    console.log((await ethERC20.balanceOf(lockAndDataForMainnetERC20.address)).toString());
     const res = await eRC20ModuleForMainnet.sendERC20.call(to0, data, {from: deployer});
     // expectation
     expect(res).to.be.true;

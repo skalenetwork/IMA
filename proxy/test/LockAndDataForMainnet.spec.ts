@@ -194,14 +194,6 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
       .should.be.eventually.rejectedWith(error);
   });
 
-  it("should rejected with `Given contract address does not contain code` when invoke `setContract`", async () => {
-    const error = "Given contract address does not contain code";
-    // execution/expectation
-    await lockAndDataForMainnet
-      .setContract("DepositBox", deployer, {from: deployer})
-      .should.be.eventually.rejectedWith(error);
-  });
-
   it("should invoke addSchain without mistakes", async () => {
     const schainName = randomString(10);
     // execution
