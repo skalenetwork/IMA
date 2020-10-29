@@ -21,9 +21,9 @@
 
 pragma solidity ^0.6.10;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/GSN/Context.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./OwnableForSchain.sol";
 
 /*
@@ -32,7 +32,7 @@ import "./OwnableForSchain.sol";
 import "./LockAndDataOwnable.sol";
 
 
-contract EthERC20 is LockAndDataOwnable, Context, IERC20 {
+contract EthERC20 is LockAndDataOwnable, ContextUpgradeSafe, IERC20 {
 
     using SafeMath for uint256;
 

@@ -65,8 +65,8 @@ async function deploy(deployer, networkName, accounts) {
             console.log("lockAndDataForMainnet address:", contract.address);
         } else if (["MessageProxyForMainnet"].includes(contractName)) {
             contract = await create(Object.assign({ contractAlias: contractName, methodName: "initialize", methodArgs: ["Mainnet", jsonData.contract_manager_address] }, options));
-        } else if (["DepositBox"].includes(contractName)) {
-            contract = await create(Object.assign({ contractAlias: contractName, methodName: "initialize", methodArgs: [deployed.get("MessageProxyForMainnet").address, lockAndDataForMainnet.address] }, options));
+        // } else if (["DepositBox"].includes(contractName)) {
+        //     contract = await create(Object.assign({ contractAlias: contractName, methodName: "initialize", methodArgs: [deployed.get("MessageProxyForMainnet").address, lockAndDataForMainnet.address] }, options));
         } else {
             contract = await create(Object.assign({ contractAlias: contractName, methodName: "initialize", methodArgs: [lockAndDataForMainnet.address] }, options));
         }
@@ -86,7 +86,11 @@ async function deploy(deployer, networkName, accounts) {
 
     let jsonObject = { };
     for (const contractName of contracts) {
-        propertyName = contractName.replace(/([a-z0-9])(?=[A-Z])/g, "$1_").toLowerCase();
+        if (contractName !== "MessageProxyForMainnet") {
+            propertyName = contractName.replace(/([a-z0-9])(?=[A-Z])/g, "$1_").toLowerCase();
+        } else {
+            propertyName = "message_proxy_mainnet"
+        }
         jsonObject[propertyName + "_address"] = deployed.get(contractName).address;
         jsonObject[propertyName + "_abi"] = artifacts.require("./" + contractName).abi;
     }

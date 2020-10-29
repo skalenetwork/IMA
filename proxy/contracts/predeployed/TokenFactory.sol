@@ -22,16 +22,15 @@
 pragma solidity ^0.6.10;
 
 import "./PermissionsForSchain.sol";
-import "@openzeppelin/contracts/presets/ERC20PresetMinterPauser.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721Burnable.sol";
-import "@openzeppelin/contracts/GSN/Context.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20Burnable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/ERC721Burnable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/access/AccessControl.sol";
 
 
-contract ERC20OnChain is ERC20PresetMinterPauser {
+contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
 
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     uint256 private _totalSupplyOnMainnet;
-
     address private addressOfErc20Module;
 
     constructor(
@@ -40,11 +39,13 @@ contract ERC20OnChain is ERC20PresetMinterPauser {
         uint256 newTotalSupply,
         address erc20Module
         )
-        ERC20PresetMinterPauser(contractName, contractSymbol)
         public
     {
+        __ERC20_init(contractName, contractSymbol);
         _totalSupplyOnMainnet = newTotalSupply;
         addressOfErc20Module = erc20Module;
+        _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
+        _setupRole(MINTER_ROLE, _msgSender());
     }
 
     function totalSupplyOnMainnet() external view returns (uint256) {
@@ -56,7 +57,7 @@ contract ERC20OnChain is ERC20PresetMinterPauser {
         _totalSupplyOnMainnet = newTotalSupply;
     }
 
-    function mint(address account, uint256 value) public override {
+    function mint(address account, uint256 value) public {
         require(totalSupply().add(value) <= _totalSupplyOnMainnet, "Total supply exceeded");
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, value);
@@ -64,7 +65,7 @@ contract ERC20OnChain is ERC20PresetMinterPauser {
 }
 
 
-contract ERC721OnChain is Context, AccessControl, ERC721Burnable {
+contract ERC721OnChain is AccessControlUpgradeSafe, ERC721BurnableUpgradeSafe {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -72,9 +73,9 @@ contract ERC721OnChain is Context, AccessControl, ERC721Burnable {
         string memory contractName,
         string memory contractSymbol
     )
-        ERC721(contractName, contractSymbol)
         public
     {
+        __ERC721_init(contractName, contractSymbol);
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
         _setupRole(MINTER_ROLE, _msgSender());
     }
