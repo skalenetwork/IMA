@@ -26,22 +26,12 @@
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
-    ERC20ModuleForMainnetContract,
     ERC20ModuleForMainnetInstance,
     EthERC20Contract,
     EthERC20Instance,
-    LockAndDataForMainnetContract,
-    LockAndDataForMainnetERC20Contract,
     LockAndDataForMainnetERC20Instance,
     LockAndDataForMainnetInstance,
-    LockAndDataForSchainContract,
-    LockAndDataForSchainInstance,
-    MessageProxyForMainnetContract,
     MessageProxyForMainnetInstance,
-    MessageProxyForSchainContract,
-    MessageProxyForSchainInstance,
-      TokenFactoryContract,
-    TokenFactoryInstance,
     } from "../types/truffle-contracts";
 
 import chai = require("chai");
@@ -52,30 +42,18 @@ chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
 import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
-import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
-import { deployDepositBox } from "./utils/deploy/depositBox";
 import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
-import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMainnet";
 
-const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
-const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
-const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
-const LockAndDataForMainnetERC20: LockAndDataForMainnetERC20Contract =
-    artifacts.require("./LockAndDataForMainnetERC20");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
-const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
-const ERC20ModuleForMainnet: ERC20ModuleForMainnetContract = artifacts.require("./ERC20ModuleForMainnet");
 
 const contractManager = "0x0000000000000000000000000000000000000000";
 
 contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
   let messageProxyForMainnet: MessageProxyForMainnetInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
-  // let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
   let ethERC20: EthERC20Instance;
-  // let tokenFactory: TokenFactoryInstance;
   let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
 
   beforeEach(async () => {

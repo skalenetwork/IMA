@@ -25,26 +25,18 @@
 
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
-import { DepositBoxContract,
+import {
   DepositBoxInstance,
-  ERC20ModuleForMainnetContract,
   ERC20ModuleForMainnetInstance,
-  ERC721ModuleForMainnetContract,
   ERC721ModuleForMainnetInstance,
   ERC721OnChainContract,
   ERC721OnChainInstance,
   EthERC20Contract,
   EthERC20Instance,
-  LockAndDataForMainnetContract,
-  LockAndDataForMainnetERC20Contract,
   LockAndDataForMainnetERC20Instance,
-  LockAndDataForMainnetERC721Contract,
   LockAndDataForMainnetERC721Instance,
   LockAndDataForMainnetInstance,
-  MessageProxyForMainnetContract,
   MessageProxyForMainnetInstance,
-  MessageProxyForSchainContract,
-  MessageProxyForSchainInstance,
   } from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
 import { createBytes32 } from "./utils/helper";
@@ -64,17 +56,7 @@ import { deployDepositBox } from "./utils/deploy/depositBox";
 import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
 import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMainnet";
 
-const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
-const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
-const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
-const DepositBox: DepositBoxContract = artifacts.require("./DepositBox");
-const ERC20ModuleForMainnet: ERC20ModuleForMainnetContract = artifacts.require("./ERC20ModuleForMainnet");
-const ERC721ModuleForMainnet: ERC721ModuleForMainnetContract = artifacts.require("./ERC721ModuleForMainnet");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
-const LockAndDataForMainnetERC20: LockAndDataForMainnetERC20Contract = artifacts
-  .require("./LockAndDataForMainnetERC20");
-const LockAndDataForMainnetERC721: LockAndDataForMainnetERC721Contract = artifacts
-  .require("./LockAndDataForMainnetERC721");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 
 const contractManager = "0x0000000000000000000000000000000000000000";

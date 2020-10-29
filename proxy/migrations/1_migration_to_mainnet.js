@@ -26,25 +26,10 @@
 let fs = require("fs");
 const fsPromises = fs.promises;
 
-let networks = require("../truffle-config.js");
 let jsonData = require("../data/skaleManagerComponents.json");
 
-const gasMultiplierParameter = 'gas_multiplier';
-const argv = require('minimist')(process.argv.slice(2), {string: [gasMultiplierParameter]});
-const gasMultiplier = argv[gasMultiplierParameter] === undefined ? 1 : Number(argv[gasMultiplierParameter])
-
-const { scripts, ConfigManager } = require('@openzeppelin/cli');
+const { scripts, ConfigManager } = require("@openzeppelin/cli");
 const { add, push, create } = scripts;
-
-let MessageProxyForMainnet = artifacts.require("./MessageProxyForMainnet.sol");
-let DepositBox = artifacts.require("./DepositBox.sol");
-let LockAndDataForMainnet = artifacts.require("./LockAndDataForMainnet.sol");
-let ERC20ModuleForMainnet = artifacts.require("./ERC20ModuleForMainnet.sol");
-let LockAndDataForMainnetERC20 = artifacts.require("./LockAndDataForMainnetERC20.sol");
-let ERC721ModuleForMainnet = artifacts.require("./ERC721ModuleForMainnet.sol");
-let LockAndDataForMainnetERC721 = artifacts.require("./LockAndDataForMainnetERC721.sol");
-
-let gasLimit = 8000000;
 
 async function deploy(deployer, networkName, accounts) {
 
@@ -60,31 +45,30 @@ async function deploy(deployer, networkName, accounts) {
         "LockAndDataForMainnetERC20",
         "ERC721ModuleForMainnet",
         "LockAndDataForMainnetERC721"
-    ]
+    ];
 
     contractsData = [];
-    for (const contract of contracts) {
-        contractsData.push({name: contract, alias: contract});
-    }
+    for( const contract of contracts )
+        contractsData.push( { name: contract, alias: contract } );
 
-    add({ contractsData: contractsData });
+    add( { contractsData: contractsData } );
 
-    await push(options);
+    await push( options );
 
     const deployed = new Map();
     let lockAndDataForMainnet;
     for (const contractName of contracts) {
         let contract;
         if (contractName == "LockAndDataForMainnet") {
-            contract = await create(Object.assign({ contractAlias: contractName, methodName: 'initialize', methodArgs: [] }, options));
+            contract = await create(Object.assign({ contractAlias: contractName, methodName: "initialize", methodArgs: [] }, options));
             lockAndDataForMainnet = contract;
             console.log("lockAndDataForMainnet address:", contract.address);
         } else if (["MessageProxyForMainnet"].includes(contractName)) {
-            contract = await create(Object.assign({ contractAlias: contractName, methodName: 'initialize', methodArgs: ["Mainnet", jsonData.contract_manager_address] }, options));
+            contract = await create(Object.assign({ contractAlias: contractName, methodName: "initialize", methodArgs: ["Mainnet", jsonData.contract_manager_address] }, options));
         } else if (["DepositBox"].includes(contractName)) {
-            contract = await create(Object.assign({ contractAlias: contractName, methodName: 'initialize', methodArgs: [deployed.get("MessageProxyForMainnet").address, lockAndDataForMainnet.address] }, options));
+            contract = await create(Object.assign({ contractAlias: contractName, methodName: "initialize", methodArgs: [deployed.get("MessageProxyForMainnet").address, lockAndDataForMainnet.address] }, options));
         } else {
-            contract = await create(Object.assign({ contractAlias: contractName, methodName: 'initialize', methodArgs: [lockAndDataForMainnet.address] }, options));
+            contract = await create(Object.assign({ contractAlias: contractName, methodName: "initialize", methodArgs: [lockAndDataForMainnet.address] }, options));
         }
         deployed.set(contractName, contract);
     }
@@ -98,11 +82,11 @@ async function deploy(deployer, networkName, accounts) {
         });
     }
 
-    console.log('Deploy done, writing results...');
+    console.log("Deploy done, writing results...");
 
     let jsonObject = { };
     for (const contractName of contracts) {
-        propertyName = contractName.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
+        propertyName = contractName.replace(/([a-z0-9])(?=[A-Z])/g, "$1_").toLowerCase();
         jsonObject[propertyName + "_address"] = deployed.get(contractName).address;
         jsonObject[propertyName + "_abi"] = artifacts.require("./" + contractName).abi;
     }

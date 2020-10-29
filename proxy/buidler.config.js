@@ -1,12 +1,12 @@
 usePlugin("@nomiclabs/buidler-truffle5");
 usePlugin("solidity-coverage");
-require('dotenv').config();
+require("dotenv").config();
 
 module.exports = {
   defaultNetwork: "buidlerevm",
   solc: {
-    version: '0.6.12',
-    evmVersion: 'petersburg',
+    version: "0.6.12",
+    evmVersion: "petersburg",
     optimizer:{
       enabled: true,
       runs: 200

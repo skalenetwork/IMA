@@ -26,18 +26,12 @@
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
-    ERC721ModuleForMainnetContract,
     ERC721ModuleForMainnetInstance,
     ERC721OnChainContract,
     ERC721OnChainInstance,
-    LockAndDataForMainnetContract,
-    LockAndDataForMainnetERC721Contract,
     LockAndDataForMainnetERC721Instance,
     LockAndDataForMainnetInstance,
-    MessageProxyForMainnetContract,
     MessageProxyForMainnetInstance,
-    MessageProxyForSchainContract,
-    MessageProxyForSchainInstance,
     } from "../types/truffle-contracts";
 
 import chai = require("chai");
@@ -47,19 +41,11 @@ chai.should();
 chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
-import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
 import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
-import { deployDepositBox } from "./utils/deploy/depositBox";
-import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
 import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMainnet";
 
-const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
-const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
-const LockAndDataForMainnetERC721: LockAndDataForMainnetERC721Contract =
-    artifacts.require("./LockAndDataForMainnetERC721");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
-const ERC721ModuleForMainnet: ERC721ModuleForMainnetContract = artifacts.require("./ERC721ModuleForMainnet");
 
 const contractManager = "0x0000000000000000000000000000000000000000";
 
