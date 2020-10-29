@@ -4,6 +4,7 @@ proxy/types/
 
 # artifacts
 proxy/artifacts/
+proxy/cache/
 
 # openzeppelin
 proxy/.openzeppelin/dev-*.json

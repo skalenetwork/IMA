@@ -22,7 +22,7 @@
 pragma solidity 0.6.10;
 
 import "./PermissionsForMainnet.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Metadata.sol";
 
 interface ILockAndDataERC721M {
     function erc721Tokens(uint256 index) external returns (address);

@@ -1,5 +1,4 @@
 import { DepositBoxContract } from "../../../types/truffle-contracts";
-import { MessageProxyForMainnetInstance } from "../../../types/truffle-contracts";
 import { LockAndDataForMainnetInstance } from "../../../types/truffle-contracts";
 
 import { deployERC20ModuleForMainnet } from "./erc20ModuleForMainnet";
@@ -9,12 +8,11 @@ const DepositBox: DepositBoxContract = artifacts.require("./DepositBox");
 const name = "DepositBox";
 
 async function deploy(
-    messageProxy: MessageProxyForMainnetInstance,
     lockAndDataForMainnet: LockAndDataForMainnetInstance
 ) {
     await deployDependencies(lockAndDataForMainnet);
     const instance = await DepositBox.new();
-    await instance.initialize(messageProxy.address, lockAndDataForMainnet.address);
+    await instance.initialize(lockAndDataForMainnet.address);
     await lockAndDataForMainnet.setContract(name, instance.address);
     return instance;
 }
@@ -25,12 +23,11 @@ async function deployDependencies(lockAndDataForMainnet: LockAndDataForMainnetIn
 }
 
 export async function deployDepositBox(
-    messageProxy: MessageProxyForMainnetInstance,
     lockAndDataForMainnet: LockAndDataForMainnetInstance
 ) {
     try {
         return DepositBox.at(await lockAndDataForMainnet.contract(name));
     } catch (e) {
-        return await deploy(messageProxy, lockAndDataForMainnet);
+        return await deploy(lockAndDataForMainnet);
     }
 }

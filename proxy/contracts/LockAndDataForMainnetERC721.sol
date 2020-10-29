@@ -22,7 +22,7 @@
 pragma solidity 0.6.10;
 
 import "./PermissionsForMainnet.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
 
 
 contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
