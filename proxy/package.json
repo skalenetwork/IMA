@@ -12,7 +12,7 @@
         "lint": "npx solhint \"contracts/**/*.sol\"",
         "prepare": "yarn generate",
         "skale-manager-integration": "bash ./scripts/prepare.sh",
-        "test": "truffle test && yarn tsc",
+        "test": "npx buidler test && yarn tsc",
         "tsc": "tsc --noEmit",
         "tslint": "npx tslint --project ."
     },
