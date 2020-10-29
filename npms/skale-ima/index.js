@@ -365,6 +365,8 @@ async function safe_sign_transaction_with_account( tx, joAccount ) {
                 //
                 // if( "_chainId" in tx && tx._chainId > 0 )
                 //     tx.v += tx._chainId * 2 + 8;
+                // if( "_chainId" in tx && tx._chainId > 0 )
+                //     joNeededResult.v += tx._chainId * 2 + 8;
                 //
                 joNeededResult.v = to_eth_v( joNeededResult.v, tx._chainId );
                 //
