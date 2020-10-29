@@ -4,7 +4,7 @@ import { LockAndDataForMainnetInstance } from "../../../types/truffle-contracts"
 import { deployLockAndDataForMainnetERC20 } from "./lockAndDataForMainnetERC20";
 
 const ERC20ModuleForMainnet: ERC20ModuleForMainnetContract = artifacts.require("./ERC20ModuleForMainnet");
-const name = "ERC20ModuleForMainnet";
+const name = "ERC20Module";
 
 async function deploy(
     lockAndDataForMainnet: LockAndDataForMainnetInstance

@@ -2,7 +2,7 @@ import { MessageProxyForMainnetContract } from "../../../types/truffle-contracts
 import { LockAndDataForMainnetInstance } from "../../../types/truffle-contracts";
 
 const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
-const name = "MessageProxyForMainnet";
+const name = "MessageProxy";
 
 export async function deployMessageProxyForMainnet(
     schainName: string,

@@ -51,7 +51,7 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         emit MoneyReceived(from, msg.value);
     }
 
-    function setContract(string calldata contractName, address newContract) external onlyOwner {
+    function setContract(string calldata contractName, address newContract) external virtual onlyOwner {
         require(newContract != address(0), "New address is equal zero");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(permitted[contractId] != newContract, "Contract is already added");

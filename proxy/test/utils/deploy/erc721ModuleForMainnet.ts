@@ -4,7 +4,7 @@ import { LockAndDataForMainnetInstance } from "../../../types/truffle-contracts"
 import { deployLockAndDataForMainnetERC721 } from "./lockAndDataForMainnetERC721";
 
 const ERC721ModuleForMainnet: ERC721ModuleForMainnetContract = artifacts.require("./ERC721ModuleForMainnet");
-const name = "ERC721ModuleForMainnet";
+const name = "ERC721Module";
 
 async function deploy(
     lockAndDataForMainnet: LockAndDataForMainnetInstance

@@ -2,7 +2,7 @@ import { LockAndDataForMainnetERC20Contract } from "../../../types/truffle-contr
 import { LockAndDataForMainnetInstance } from "../../../types/truffle-contracts";
 
 const LockAndDataForMainnetERC20: LockAndDataForMainnetERC20Contract = artifacts.require("./LockAndDataForMainnetERC20");
-const name = "LockAndDataForMainnetERC20";
+const name = "LockAndDataERC20";
 
 export async function deployLockAndDataForMainnetERC20(lockAndDataForMainnet: LockAndDataForMainnetInstance) {
     try {

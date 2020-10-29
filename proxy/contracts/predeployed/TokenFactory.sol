@@ -52,13 +52,13 @@ contract ERC20OnChain is ERC20PresetMinterPauser {
     }
 
     function setTotalSupplyOnMainnet(uint256 newTotalSupply) external {
-        require(addressOfErc20Module == msg.sender, "Call does not go from ERC20Module");
+        require(addressOfErc20Module == msg.sender, "Caller is not ERC20Module");
         _totalSupplyOnMainnet = newTotalSupply;
     }
 
     function mint(address account, uint256 value) public override {
-        require(totalSupply().add(value) <= _totalSupplyOnMainnet, "Total supply on mainnet exceeded");
-        require(hasRole(MINTER_ROLE, _msgSender()), "Message sender must have a Minter role");
+        require(totalSupply().add(value) <= _totalSupplyOnMainnet, "Total supply exceeded");
+        require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, value);
     }
 }
@@ -75,14 +75,14 @@ contract ERC721OnChain is Context, AccessControl, ERC721Burnable {
         ERC721(contractName, contractSymbol)
         public
     {
-        // solium-disable-previous-line no-empty-blocks
+        _setupRole(MINTER_ROLE, _msgSender());
     }
 
     function mint(address to, uint256 tokenId)
         external
         returns (bool)
     {
-        require(hasRole(MINTER_ROLE, _msgSender()), "Message sender must have a Minter role");
+        require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(to, tokenId);
         return true;
     }
@@ -92,7 +92,7 @@ contract ERC721OnChain is Context, AccessControl, ERC721Burnable {
         returns (bool)
     {
         require(_exists(tokenId), "Token does not exists");
-        require(_isApprovedOrOwner(msg.sender, tokenId), "The sender can not set token URI");
+        require(_isApprovedOrOwner(msg.sender, tokenId), "Sender can not set token URI");
         _setTokenURI(tokenId, tokenUri);
         return true;
     }
