@@ -50,7 +50,7 @@ contract OwnableForMainnet is Initializable {
      * @dev initialize sets the original `owner` of the contract to the sender
      * account.
      */
-    function initialize() public initializer {
+    function initialize() public virtual initializer {
         ownerAddress = msg.sender;
     }
 

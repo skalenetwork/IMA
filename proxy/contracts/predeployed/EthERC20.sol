@@ -22,8 +22,9 @@
 pragma solidity 0.6.10;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/GSN/Context.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./OwnableForSchain.sol";
-
 
 /*
 // l_sergiy: new contract - LockAndDataOwnable - because owner should be lockAndDataAddress
@@ -31,7 +32,7 @@ import "./OwnableForSchain.sol";
 import "./LockAndDataOwnable.sol";
 
 
-contract EthERC20 is LockAndDataOwnable, IERC20 {
+contract EthERC20 is LockAndDataOwnable, Context, IERC20 {
 
     using SafeMath for uint256;
 
@@ -49,48 +50,8 @@ contract EthERC20 is LockAndDataOwnable, IERC20 {
 
     uint private _capacity;
 
-    constructor() ERC20("ERC20 Ether Clone", "ETHC") public {
+    constructor() public {
         delayedInit();
-    }
-
-    function mint(address account, uint256 amount) external onlyOwner returns (bool) {
-        delayedInit();
-        require(totalSupply().add(amount) <= _capacity, "Capacity exceeded");
-        _mint(account, amount);
-        return true;
-    }
-
-    function name() public view virtual returns (string memory) {
-        return _nameETH;
-    }
-
-    function symbol() public view virtual returns (string memory) {
-        return _symbolETH;
-    }
-
-    function decimals() public view virtual returns (uint8) {
-        return _decimalsETH;
-    }
-
-    function burn(uint256 amount) external {
-        delayedInit();
-        _burn(msg.sender, amount);
-    }
-
-    function burnFrom(address account, uint256 amount) external onlyOwner {
-        delayedInit();
-        _burn(account, amount);
-    }
-
-    function delayedInit() internal {
-        if (_initialized) {
-            return;
-        }
-        _initialized = true;
-        _nameETH = "ERC20 Ether Clone";
-        _symbolETH = "ETHC";
-        _decimalsETH = 18;
-        _capacity = 120 * (10 ** 6) * (10 ** 18);
     }
 
     /**
@@ -236,6 +197,23 @@ contract EthERC20 is LockAndDataOwnable, IERC20 {
         return true;
     }
 
+    function mint(address account, uint256 amount) external onlyOwner returns (bool) {
+        delayedInit();
+        require(totalSupply().add(amount) <= _capacity, "Capacity exceeded");
+        _mint(account, amount);
+        return true;
+    }
+
+    function burn(uint256 amount) external {
+        delayedInit();
+        _burn(msg.sender, amount);
+    }
+
+    function burnFrom(address account, uint256 amount) external onlyOwner {
+        delayedInit();
+        _burn(account, amount);
+    }
+
     /**
      * @dev Moves tokens `amount` from `sender` to `recipient`.
      *
@@ -331,6 +309,17 @@ contract EthERC20 is LockAndDataOwnable, IERC20 {
      */
     function _setupDecimals(uint8 decimals_) internal {
         _decimals = decimals_;
+    }
+
+    function delayedInit() internal {
+        if (_initialized) {
+            return;
+        }
+        _initialized = true;
+        _name = "ERC20 Ether Clone";
+        _symbol = "ETHC";
+        _decimals = 18;
+        _capacity = 120 * (10 ** 6) * (10 ** 18);
     }
 
     /**
