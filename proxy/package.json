@@ -9,7 +9,7 @@
         "deploy-to-mainnet": "DIRECTION=main bash ./scripts/deploy.sh",
         "deploy-to-schain": "DIRECTION=schain bash ./scripts/deploy.sh",
         "generate": "./node_modules/.bin/truffle compile && typechain --target truffle './build/**/*.json'",
-        "lint": "npx solium --dir contracts",
+        "lint": "npx solhint \"contracts/**/*.sol\"",
         "prepare": "yarn generate",
         "skale-manager-integration": "bash ./scripts/prepare.sh",
         "test": "truffle test && yarn tsc",
