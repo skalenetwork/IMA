@@ -363,7 +363,7 @@ contract MessageProxyForSchain {
     }
 
     function checkIsAuthorizedCaller( address a ) public view returns ( bool rv ) { // l_sergiy: added
-        if (authorizedCaller_[msg.sender] )
+        if (authorizedCaller_[a] )
             return true;
         if (isCustomDeploymentMode_)
             return false;

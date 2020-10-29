@@ -66,7 +66,7 @@ const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./
 const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
 const SkaleVerifier: SkaleVerifierContract = artifacts.require("./SkaleVerifier");
 
-contract("MessageProxy", ([user, deployer, client, customer]) => {
+contract("MessageProxy", ([deployer, user, client, customer]) => {
     let messageProxyForMainnet: MessageProxyForMainnetInstance;
     let messageProxyForSchain: MessageProxyForSchainInstance;
     let tokenManager1: TokenManagerInstance;
