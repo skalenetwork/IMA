@@ -52,7 +52,7 @@ contract ERC20OnChain is ERC20PresetMinterPauser {
     }
 
     function setTotalSupplyOnMainnet(uint256 newTotalSupply) external {
-        require(addressOfErc20Module == msg.sender, "Caller is not ERC20Module");
+        require(addressOfErc20Module == _msgSender(), "Caller is not ERC20Module");
         _totalSupplyOnMainnet = newTotalSupply;
     }
 

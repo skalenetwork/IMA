@@ -54,6 +54,23 @@ contract EthERC20 is LockAndDataOwnable, Context, IERC20 {
         delayedInit();
     }
 
+    function mint(address account, uint256 amount) external onlyOwner returns (bool) {
+        delayedInit();
+        require(totalSupply().add(amount) <= _capacity, "Capacity exceeded");
+        _mint(account, amount);
+        return true;
+    }
+
+    function burn(uint256 amount) external {
+        delayedInit();
+        _burn(msg.sender, amount);
+    }
+
+    function burnFrom(address account, uint256 amount) external onlyOwner {
+        delayedInit();
+        _burn(account, amount);
+    }
+
     /**
      * @dev Sets the values for {name} and {symbol}, initializes {decimals} with
      * a default value of 18.
@@ -197,23 +214,6 @@ contract EthERC20 is LockAndDataOwnable, Context, IERC20 {
         return true;
     }
 
-    function mint(address account, uint256 amount) external onlyOwner returns (bool) {
-        delayedInit();
-        require(totalSupply().add(amount) <= _capacity, "Capacity exceeded");
-        _mint(account, amount);
-        return true;
-    }
-
-    function burn(uint256 amount) external {
-        delayedInit();
-        _burn(msg.sender, amount);
-    }
-
-    function burnFrom(address account, uint256 amount) external onlyOwner {
-        delayedInit();
-        _burn(account, amount);
-    }
-
     /**
      * @dev Moves tokens `amount` from `sender` to `recipient`.
      *
@@ -336,6 +336,5 @@ contract EthERC20 is LockAndDataOwnable, Context, IERC20 {
      *
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual { }
-
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual {}
 }

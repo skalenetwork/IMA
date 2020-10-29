@@ -88,7 +88,7 @@ contract DepositBox is PermissionsForMainnet {
         ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
     }
 
-    receive() external payable {
+    fallback() external payable {
         revert("Not allowed. in DepositBox");
     }
 

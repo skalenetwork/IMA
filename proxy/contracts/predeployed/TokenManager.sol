@@ -112,7 +112,7 @@ contract TokenManager is PermissionsForSchain {
         proxyForSchainAddress_ = newProxyAddress;
     }
 
-    receive() external payable {
+    fallback() external payable {
         revert("Not allowed. in TokenManager");
     }
 

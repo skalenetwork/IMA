@@ -27,6 +27,7 @@
         "ethereumjs-tx": "1.3.7",
         "openzeppelin-solidity": "^2.2.0",
         "solc": "^0.5.4",
+        "solhint": "3.2.1",
         "truffle": "^5.1.50",
         "typescript": "^3.8.3"
     },
@@ -42,7 +43,6 @@
         "chai": "^4.2.0",
         "chai-as-promised": "^7.1.1",
         "codecov": "^3.7.1",
-        "ethlint": "^1.2.4",
         "ganache-cli": "^6.12.1",
         "solidity-coverage": "^0.7.11",
         "truffle-typings": "1.0.8",
