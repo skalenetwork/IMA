@@ -25,9 +25,9 @@ async function deployDependencies(lockAndDataForMainnet: LockAndDataForMainnetIn
 export async function deployDepositBox(
     lockAndDataForMainnet: LockAndDataForMainnetInstance
 ) {
-    try {
-        return DepositBox.at(await lockAndDataForMainnet.contract(name));
-    } catch (e) {
+    if (await lockAndDataForMainnet.getContract(name) !== "0x0000000000000000000000000000000000000000") {
+        return DepositBox.at(await lockAndDataForMainnet.getContract(name));
+    } else {
         return await deploy(lockAndDataForMainnet);
     }
 }

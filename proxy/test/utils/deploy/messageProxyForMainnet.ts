@@ -9,9 +9,9 @@ export async function deployMessageProxyForMainnet(
     contractManagerFromSkaleManager: string,
     lockAndDataForMainnet: LockAndDataForMainnetInstance
 ) {
-    try {
-        return MessageProxyForMainnet.at(await lockAndDataForMainnet.contract(name));
-    } catch (e) {
+    if (await lockAndDataForMainnet.getContract(name) !== "0x0000000000000000000000000000000000000000") {
+        return MessageProxyForMainnet.at(await lockAndDataForMainnet.getContract(name));
+    } else {
         const instance = await MessageProxyForMainnet.new();
         await instance.initialize(schainName, contractManagerFromSkaleManager);
         await lockAndDataForMainnet.setContract(name, instance.address);

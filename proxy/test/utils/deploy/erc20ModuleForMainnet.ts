@@ -23,9 +23,9 @@ async function deployDependencies(lockAndDataForMainnet: LockAndDataForMainnetIn
 export async function deployERC20ModuleForMainnet(
     lockAndDataForMainnet: LockAndDataForMainnetInstance
 ) {
-    try {
-        return ERC20ModuleForMainnet.at(await lockAndDataForMainnet.contract(name));
-    } catch (e) {
+    if (await lockAndDataForMainnet.getContract(name) !== "0x0000000000000000000000000000000000000000") {
+        return ERC20ModuleForMainnet.at(await lockAndDataForMainnet.getContract(name));
+    } else {
         return await deploy(lockAndDataForMainnet);
     }
 }

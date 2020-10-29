@@ -64,14 +64,6 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         permitted[contractId] = newContract;
     }
 
-    function hasSchain( string calldata schainID ) external view returns (bool) {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        if ( tokenManagerAddresses[schainHash] == address(0) ) {
-            return false;
-        }
-        return true;
-    }
-
     function addSchain(string calldata schainID, address tokenManagerAddress) external {
         require(authorizedCaller[msg.sender], "Not authorized caller");
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -117,6 +109,18 @@ contract LockAndDataForMainnet is OwnableForMainnet {
             return false;
         }
         to.transfer(amount);
+        return true;
+    }
+
+    function getContract(string memory contractName) external view returns (address) {
+        return permitted[keccak256(abi.encodePacked(contractName))];
+    }
+
+    function hasSchain( string calldata schainID ) external view returns (bool) {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        if ( tokenManagerAddresses[schainHash] == address(0) ) {
+            return false;
+        }
         return true;
     }
 
