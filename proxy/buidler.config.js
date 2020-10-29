@@ -5,7 +5,7 @@ require('dotenv').config();
 module.exports = {
   defaultNetwork: "buidlerevm",
   solc: {
-    version: '0.6.10',
+    version: '0.6.12',
     evmVersion: 'petersburg',
     optimizer:{
       enabled: true,
