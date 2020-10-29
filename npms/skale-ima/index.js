@@ -296,6 +296,16 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function to_eth_v( v_raw, chain_id ) { // see https://github.com/ethereum/eth-account/blob/master/eth_account/_utils/signing.py
+    const CHAIN_ID_OFFSET = 35;
+    const V_OFFSET = 27;
+    if( chain_id != null && chain_id != undefined )
+        v = v_raw + V_OFFSET;
+    else
+        v = v_raw + CHAIN_ID_OFFSET + 2 * chain_id;
+    return v;
+}
+
 async function safe_sign_transaction_with_account( tx, joAccount ) {
     if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
         "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0
@@ -310,8 +320,8 @@ async function safe_sign_transaction_with_account( tx, joAccount ) {
                 "cert": fs.readFileSync( joAccount.strPathSslCert, "utf8" ),
                 "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
             };
-            if( verbose_get() >= RV_VERBOSE.debug )
-                log.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
+            // if( verbose_get() >= RV_VERBOSE.debug )
+            //     log.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
         }
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
@@ -319,34 +329,48 @@ async function safe_sign_transaction_with_account( tx, joAccount ) {
                 process.exit( 155 );
             }
             const msgHash = tx.hash( false );
-            if( verbose_get() >= RV_VERBOSE.debug )
-                log.write( cc.debug( "Transaction message hash is " ) + cc.j( msgHash ) + "\n" );
-            await joCall.call( {
+            const strHash = msgHash.toString( "hex" );
+            // if( verbose_get() >= RV_VERBOSE.debug )
+            //     log.write( cc.debug( "Transaction message hash is " ) + cc.j( msgHash ) + "\n" );
+            const joIn = {
                 "method": "ecdsaSignMessageHash",
                 "params": {
                     "keyName": "" + joAccount.strSgxKeyName,
-                    "messageHash": msgHash, // "1122334455"
+                    "messageHash": strHash, // "1122334455"
                     "base": 16 // 10
                 }
-            }, /*async*/ function( joIn, joOut, err ) {
+            };
+            if( verbose_get() >= RV_VERBOSE.debug )
+                log.write( cc.debug( "Calling SGX to sign using ECDSA key with: " ) + cc.j( joIn ) + "\n" );
+            await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
                 if( err ) {
                     console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed, error: " ) + cc.warning( err ) );
                     process.exit( 156 );
                 }
                 if( verbose_get() >= RV_VERBOSE.debug )
-                    log.write( cc.debug( "SGX wallet sign result is: " ) + cc.j( joOut /*.result*/ ) + "\n" );
+                    log.write( cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
                 const joNeededResult = {
+                    // "v": Buffer.from( parseInt( joOut.result.signature_v, 10 ).toString( "hex" ), "utf8" ),
+                    // "r": Buffer.from( "" + joOut.result.signature_r, "utf8" ),
+                    // "s": Buffer.from( "" + joOut.result.signature_s, "utf8" )
                     "v": parseInt( joOut.result.signature_v, 10 ),
                     "r": "" + joOut.result.signature_r,
                     "s": "" + joOut.result.signature_s
                 };
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( cc.debug( "Sign result to assign into transaction is: " ) + cc.j( joNeededResult ) + "\n" );
-                if( "_chainId" in tx && tx._chainId > 0 )
-                    tx.v += tx._chainId * 2 + 8;
+                //
+                // if( "_chainId" in tx && tx._chainId > 0 )
+                //     tx.v += tx._chainId * 2 + 8;
+                //
+                joNeededResult.v = to_eth_v( joNeededResult.v, tx._chainId );
+                //
                 Object.assign( tx, joNeededResult );
+                if( verbose_get() >= RV_VERBOSE.debug )
+                    log.write( cc.debug( "Resulting adjusted transaction is: " ) + cc.j( tx ) + "\n" );
             } );
         } );
+        await sleep( 3000 );
     } else if( "privateKey" in joAccount && typeof joAccount.privateKey == "string" && joAccount.privateKey.length > 0 ) {
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( cc.debug( "Will sign with private key, transaction is " ) + cc.j( tx ) + "\n" );
