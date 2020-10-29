@@ -299,7 +299,10 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 function to_eth_v( v_raw, chain_id ) { // see https://github.com/ethereum/eth-account/blob/master/eth_account/_utils/signing.py
     const CHAIN_ID_OFFSET = 35;
     const V_OFFSET = 27;
-    if( chain_id != null && chain_id != undefined )
+    if( chain_id == null || chain_id == undefined )
+        chain_id = -4;
+    let v = v_raw;
+    if( chain_id <= 0 )
         v = v_raw + V_OFFSET;
     else
         v = v_raw + CHAIN_ID_OFFSET + 2 * chain_id;
@@ -365,7 +368,10 @@ async function safe_sign_transaction_with_account( tx, joAccount ) {
                 //
                 joNeededResult.v = to_eth_v( joNeededResult.v, tx._chainId );
                 //
-                Object.assign( tx, joNeededResult );
+                // Object.assign( tx, joNeededResult );
+                tx.v = joNeededResult.v;
+                tx.r = joNeededResult.r;
+                tx.s = joNeededResult.s;
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( cc.debug( "Resulting adjusted transaction is: " ) + cc.j( tx ) + "\n" );
             } );
