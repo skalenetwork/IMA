@@ -93,6 +93,10 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const amount = 10;
     const isRaw = true;
     await ethERC20.mint(deployer, 10, {from: deployer});
+    await lockAndDataForMainnet
+        .setContract("ERC20Module", eRC20ModuleForMainnet.address, {from: deployer});
+    await lockAndDataForMainnet
+        .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
     // execution
     const res = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
     // expectation
