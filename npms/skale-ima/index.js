@@ -299,13 +299,17 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 function to_eth_v( v_raw, chain_id ) { // see https://github.com/ethereum/eth-account/blob/master/eth_account/_utils/signing.py
     const CHAIN_ID_OFFSET = 35;
     const V_OFFSET = 27;
+    console.log( "....................Initial chain_id is", chain_id );
+    console.log( "....................Initial v_raw is ", v_raw );
     if( chain_id == null || chain_id == undefined )
         chain_id = -4;
+    console.log( "....................Adjusted v_raw is", v_raw );
     let v = v_raw;
     if( chain_id <= 0 )
         v = v_raw + V_OFFSET;
     else
         v = v_raw + CHAIN_ID_OFFSET + 2 * chain_id;
+    console.log( "....................Result v is      ", v );
     return v;
 }
 
@@ -314,7 +318,7 @@ async function safe_sign_transaction_with_account( tx, joAccount ) {
         "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0
     ) {
         if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx ) + "\n" );
+            log.write( cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx ) + cc.debug( " using account " ) + cc.j( joAccount ) + "\n" );
         let rpcCallOpts = null;
         if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
             "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
@@ -363,12 +367,21 @@ async function safe_sign_transaction_with_account( tx, joAccount ) {
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( cc.debug( "Sign result to assign into transaction is: " ) + cc.j( joNeededResult ) + "\n" );
                 //
-                // if( "_chainId" in tx && tx._chainId > 0 )
+                // if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
                 //     tx.v += tx._chainId * 2 + 8;
-                // if( "_chainId" in tx && tx._chainId > 0 )
+                // if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
                 //     joNeededResult.v += tx._chainId * 2 + 8;
+                // if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
+                //     joNeededResult.v += tx._chainId * 2 + 8 + 27;
+                let chainId = -4;
+                if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
+                    chainId = tx._chainId;
+                console.log( "------ applying chainId =", chainId, "to v =", joNeededResult.v );
+                // joNeededResult.v += chainId * 2 + 8 + 27;
+                joNeededResult.v += chainId * 2 + 8 + 27;
+                console.log( "------ result v =", joNeededResult.v );
                 //
-                joNeededResult.v = to_eth_v( joNeededResult.v, tx._chainId );
+                // joNeededResult.v = to_eth_v( joNeededResult.v, tx._chainId );
                 //
                 // Object.assign( tx, joNeededResult );
                 tx.v = joNeededResult.v;
@@ -381,7 +394,7 @@ async function safe_sign_transaction_with_account( tx, joAccount ) {
         await sleep( 3000 );
     } else if( "privateKey" in joAccount && typeof joAccount.privateKey == "string" && joAccount.privateKey.length > 0 ) {
         if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( cc.debug( "Will sign with private key, transaction is " ) + cc.j( tx ) + "\n" );
+            log.write( cc.debug( "Will sign with private key, transaction is " ) + cc.j( tx ) + cc.debug( " using account " ) + cc.j( joAccount ) + "\n" );
         console.log( tx );
         const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
@@ -402,8 +415,10 @@ async function safe_sign_transaction_with_account( tx, joAccount ) {
 async function safe_send_signed_transaction( w3, serializedTx, strActionName, strLogPrefix ) {
     if( verbose_get() >= RV_VERBOSE.information )
         log.write( cc.attention( "SEND TRANSACTION" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version ) + "\n" );
-    // if( verbose_get() >= RV_VERBOSE.trace )
-    //     log.write( strLogPrefix + cc.debug( "....signed serialized TX is " ) + cc.j( serializedTx ) + "\n" );
+    if( verbose_get() >= RV_VERBOSE.trace ) {
+        // log.write( strLogPrefix + cc.debug( "....signed serialized TX is " ) + cc.j( serializedTx ) + "\n" );
+        console.log( "....signed serialized TX is ", serializedTx );
+    }
     const strTX = "0x" + serializedTx.toString( "hex" ); // strTX is string starting from "0x"
     if( verbose_get() >= RV_VERBOSE.trace )
         log.write( strLogPrefix + cc.debug( "....signed raw TX is " ) + cc.j( strTX ) + "\n" );
