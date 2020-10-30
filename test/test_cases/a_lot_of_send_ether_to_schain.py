@@ -34,8 +34,8 @@ class ALotOfTransactionsSendEtherToSchain(TestCase):
         address = self.blockchain.key_to_address(self.config.schain_key)
         balance = self.blockchain.get_balance_on_schain(address)
         initial_balance = balance
-        # 2 finney (2 000 000 000 000 000 wei)
-        amount = 2 * 10 ** 15
+        # 2 ether (2 000 000 000 000 000 000 wei)
+        amount = 2 * 10 ** 18
         #
         for x in range(range_int):
             self.agent.transfer_eth_from_mainnet_to_schain(self.config.mainnet_key,

@@ -34,7 +34,7 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
         #
         range_int = 5
         # ETH
-        eth_amount = 5 * 10 ** 18
+        eth_amount = 10 * 10 ** 18
         #
         address = self.blockchain.key_to_address(self.config.schain_key)
         #  transfer to schain
@@ -45,8 +45,8 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
         #
         balance = self.blockchain.get_balance_on_schain(address)
         initial_balance = balance
-        # 2 finney (2 000 000 000 000 000 wei)
-        amount = 2 * 10 ** 15
+        # 2 ether (2 000 000 000 000 000 000 wei)
+        amount = 2 * 10 ** 18
         # 4 finney back because when we send on mainnet we should pay 2 finney for each transaction to validator
         amount_from_schain = 4 * 10 ** 15
         #
