@@ -296,22 +296,22 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function to_eth_v( v_raw, chain_id ) { // see https://github.com/ethereum/eth-account/blob/master/eth_account/_utils/signing.py
-    const CHAIN_ID_OFFSET = 35;
-    const V_OFFSET = 27;
-    console.log( "....................Initial chain_id is", chain_id );
-    console.log( "....................Initial v_raw is ", v_raw );
-    if( chain_id == null || chain_id == undefined )
-        chain_id = -4;
-    console.log( "....................Adjusted v_raw is", v_raw );
-    let v = v_raw;
-    if( chain_id <= 0 )
-        v = v_raw + V_OFFSET;
-    else
-        v = v_raw + CHAIN_ID_OFFSET + 2 * chain_id;
-    console.log( "....................Result v is      ", v );
-    return v;
-}
+// function to_eth_v( v_raw, chain_id ) { // see https://github.com/ethereum/eth-account/blob/master/eth_account/_utils/signing.py
+//     const CHAIN_ID_OFFSET = 35;
+//     const V_OFFSET = 27;
+//     console.log( "....................Initial chain_id is", chain_id );
+//     console.log( "....................Initial v_raw is ", v_raw );
+//     if( chain_id == null || chain_id == undefined )
+//         chain_id = -4;
+//     console.log( "....................Adjusted v_raw is", v_raw );
+//     let v = v_raw;
+//     if( chain_id <= 0 )
+//         v = v_raw + V_OFFSET;
+//     else
+//         v = v_raw + CHAIN_ID_OFFSET + 2 * chain_id;
+//     console.log( "....................Result v is      ", v );
+//     return v;
+// }
 
 async function safe_sign_transaction_with_account( tx, joAccount ) {
     if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
