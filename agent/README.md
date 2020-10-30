@@ -117,6 +117,53 @@ For SKALE chain, invoke:
 
 You should see **proxySchain.json** file listed.
 
+## IMA transaction signing
+
+**IMA** supports two ways of signing transactions:
+
+- Direct private key
+- SGX Wallet
+
+Private keys can be specified directly in **IMA** command line:
+
+    ```bash
+    --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
+    --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN
+    ```
+
+If **IMA** action needs to sign only **Main Net** transaction(s) and do read-only actions on **S-Chain**:
+
+    ```bash
+    --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
+    --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852
+    ```
+
+If **IMA** action needs to sign only **S-Chain** transaction(s) and do read-only actions on **Main Net**:
+
+    ```bash
+    --address-main-net=$ACCOUNT_FOR_ETHEREUM \
+    --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN \
+    ```
+
+If **IMA** should use **SGX Wallet** to sign transactions, then the parameters above should be replaced with:
+
+    ```bash
+    --sgx-url-main-net=...\
+    --sgx-url-s-chain=...\
+    --sgx-ecdsa-key-main-net=...\
+    --sgx-ecdsa-key-s-chain=...\
+    --sgx-ssl-key-main-net=...\
+    --sgx-ssl-key-s-chain=...\
+    --sgx-ssl-cert-main-net=...\
+    --sgx-ssl-cert-s-chain=...\
+    --address-main-net=...\
+    --address-s-chain=...
+    ```
+
+Where `--sgx-url-main-net` and `--sgx-url-s-chain` command line parameters provide **HTTPS** URLs for **SGX Wallets** for **Main Net** and **S-Chain**. These URLs can be equal. The `--sgx-ssl-key-main-net`, `--sgx-ssl-key-s-chain`, `--sgx-ssl-cert-main-net` and `--sgx-ssl-cert-s-chain` command line parameters provide SSL certificate and key files. The `--sgx-ecdsa-key-main-net` and `--sgx-ecdsa-key-s-chain` command line parameters provide registered name of **ECDSA key** in **SGX Wallets**, for example `NEK:000`. The `--address-main-net` and `--address-s-chain` command line parameters provide Ethereum wallet addresses corresponding to specified names of **ECDSA key** in **SGX Wallets**.
+
+It's possible to mix **SGX Wallet** and direct private key usage. I.e. **Main Net** and **S-Chain** can use different transaction signing ways. Nevertheless this is never needed in real life.
+
 ## IMA installation
 
 ### Bind IMA to Main-net
