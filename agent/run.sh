@@ -17,6 +17,14 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 : "${NODE_NUMBER?Need to set NODE_NUMBER}"
 : "${NODES_COUNT?Need to set NODES_COUNT}"
 
+# SGX variables
+
+: "${SGX_URL?Need to set SGX_URL}"
+: "${ECDSA_KEY_NAME?Need to set ECDSA_KEY_NAME}"
+: "${SGX_SSL_KEY_PATH?Need to set SGX_SSL_KEY_PATH}"
+: "${SGX_SSL_CERT_PATH?Need to set SGX_SSL_CERT_PATH}"
+: "${NODE_ADDRESS?Need to set NODE_ADDRESS}"
+
 # Optional IMA variables
 
 export GAS_PRICE_MULTIPLIER=${GAS_PRICE_MULTIPLIER:-2}
@@ -48,9 +56,7 @@ echo MAINNET_RPC_URL: $MAINNET_RPC_URL
 echo NODE_NUMBER: $NODE_NUMBER
 echo NODES_COUNT: $NODES_COUNT
 
-$DIR/main.js  \
-    --loop \
-    --gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
+BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
     --verbose=$VERBOSE \
     --url-main-net=$MAINNET_RPC_URL \
     --url-s-chain=$SCHAIN_RPC_URL \
@@ -60,8 +66,20 @@ $DIR/main.js  \
     --cid-s-chain=$CID_SCHAIN \
     --abi-main-net=$MAINNET_PROXY_PATH \
     --abi-s-chain=$SCHAIN_PROXY_PATH \
-    # --key-main-net= \
-    # --key-s-chain= \ 
+
+    --sgx-url-main-net=$SGX_URL \
+    --sgx-url-s-chain=$SGX_URL \
+    --sgx-ecdsa-key-main-net=$ECDSA_KEY_NAME \
+    --sgx-ecdsa-key-s-chain=$ECDSA_KEY_NAME \
+    
+    --sgx-ssl-key-main-net=$SGX_SSL_KEY_PATH \
+    --sgx-ssl-key-s-chain=$SGX_SSL_KEY_PATH \
+    --sgx-ssl-cert-main-net=$SGX_SSL_CERT_PATH \
+    --sgx-ssl-cert-s-chain=$SGX_SSL_CERT_PATH \
+    
+    --address-main-net=$NODE_ADDRESS \
+    --address-s-chain=$NODE_ADDRESS \
+
     --sign-messages \
     --bls-glue=/ima/bls_binaries/bls_glue \
     --hash-g1=/ima/bls_binaries/hash_g1 \
@@ -78,4 +96,8 @@ $DIR/main.js  \
     --node-number=$NODE_NUMBER \
     --nodes-count=$NODES_COUNT \
     --time-framing=$TIME_FRAMING \
-    --time-gap=$TIME_GAP
+    --time-gap=$TIME_GAP"
+
+
+$DIR/main.js --register $BASE_OPTIONS
+$DIR/main.js --loop $BASE_OPTIONS
