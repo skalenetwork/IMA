@@ -24,7 +24,7 @@
  */
 
 // init very basics
-// const fs = require( "fs" );
+const fs = require( "fs" );
 // const path = require( "path" );
 // const url = require( "url" );
 // const os = require( "os" );
@@ -296,10 +296,132 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// function to_eth_v( v_raw, chain_id ) { // see https://github.com/ethereum/eth-account/blob/master/eth_account/_utils/signing.py
+//     const CHAIN_ID_OFFSET = 35;
+//     const V_OFFSET = 27;
+//     console.log( "....................Initial chain_id is", chain_id );
+//     console.log( "....................Initial v_raw is ", v_raw );
+//     if( chain_id == null || chain_id == undefined )
+//         chain_id = -4;
+//     console.log( "....................Adjusted v_raw is", v_raw );
+//     let v = v_raw;
+//     if( chain_id <= 0 )
+//         v = v_raw + V_OFFSET;
+//     else
+//         v = v_raw + CHAIN_ID_OFFSET + 2 * chain_id;
+//     console.log( "....................Result v is      ", v );
+//     return v;
+// }
+
+async function safe_sign_transaction_with_account( tx, joAccount ) {
+    if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
+        "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0
+    ) {
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx ) + cc.debug( " using account " ) + cc.j( joAccount ) + "\n" );
+        let rpcCallOpts = null;
+        if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
+            "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
+        ) {
+            rpcCallOpts = {
+                "cert": fs.readFileSync( joAccount.strPathSslCert, "utf8" ),
+                "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
+            };
+            // if( verbose_get() >= RV_VERBOSE.debug )
+            //     log.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
+        }
+        await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
+            if( err ) {
+                console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed" ) );
+                process.exit( 155 );
+            }
+            const msgHash = tx.hash( false );
+            const strHash = msgHash.toString( "hex" );
+            // if( verbose_get() >= RV_VERBOSE.debug )
+            //     log.write( cc.debug( "Transaction message hash is " ) + cc.j( msgHash ) + "\n" );
+            const joIn = {
+                "method": "ecdsaSignMessageHash",
+                "params": {
+                    "keyName": "" + joAccount.strSgxKeyName,
+                    "messageHash": strHash, // "1122334455"
+                    "base": 16 // 10
+                }
+            };
+            if( verbose_get() >= RV_VERBOSE.debug )
+                log.write( cc.debug( "Calling SGX to sign using ECDSA key with: " ) + cc.j( joIn ) + "\n" );
+            await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
+                if( err ) {
+                    console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed, error: " ) + cc.warning( err ) );
+                    process.exit( 156 );
+                }
+                if( verbose_get() >= RV_VERBOSE.debug )
+                    log.write( cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
+                const joNeededResult = {
+                    // "v": Buffer.from( parseInt( joOut.result.signature_v, 10 ).toString( "hex" ), "utf8" ),
+                    // "r": Buffer.from( "" + joOut.result.signature_r, "utf8" ),
+                    // "s": Buffer.from( "" + joOut.result.signature_s, "utf8" )
+                    "v": parseInt( joOut.result.signature_v, 10 ),
+                    "r": "" + joOut.result.signature_r,
+                    "s": "" + joOut.result.signature_s
+                };
+                if( verbose_get() >= RV_VERBOSE.debug )
+                    log.write( cc.debug( "Sign result to assign into transaction is: " ) + cc.j( joNeededResult ) + "\n" );
+                //
+                // if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
+                //     tx.v += tx._chainId * 2 + 8;
+                // if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
+                //     joNeededResult.v += tx._chainId * 2 + 8;
+                // if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
+                //     joNeededResult.v += tx._chainId * 2 + 8 + 27;
+                let chainId = -4;
+                if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
+                    chainId = tx._chainId;
+                console.log( "------ applying chainId =", chainId, "to v =", joNeededResult.v );
+                // joNeededResult.v += chainId * 2 + 8 + 27;
+                joNeededResult.v += chainId * 2 + 8 + 27;
+                console.log( "------ result v =", joNeededResult.v );
+                //
+                // joNeededResult.v = to_eth_v( joNeededResult.v, tx._chainId );
+                //
+                // Object.assign( tx, joNeededResult );
+                tx.v = joNeededResult.v;
+                tx.r = joNeededResult.r;
+                tx.s = joNeededResult.s;
+                if( verbose_get() >= RV_VERBOSE.debug )
+                    log.write( cc.debug( "Resulting adjusted transaction is: " ) + cc.j( tx ) + "\n" );
+            } );
+        } );
+        await sleep( 3000 );
+    } else if( "privateKey" in joAccount && typeof joAccount.privateKey == "string" && joAccount.privateKey.length > 0 ) {
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( cc.debug( "Will sign with private key, transaction is " ) + cc.j( tx ) + cc.debug( " using account " ) + cc.j( joAccount ) + "\n" );
+        console.log( tx );
+        const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
+        tx.sign( key ); // arg is privateKey as buffer
+    } else {
+        console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
+            cc.error( " bad credentials information specified for " ) + cc.warning( strFriendlyChainName ) +
+            cc.error( " chain, no explicit SGX and no explicit private key found" )
+        );
+        if( isExitIfEmpty )
+            process.exit( 126 );
+    }
+    if( verbose_get() >= RV_VERBOSE.debug )
+        log.write( cc.debug( "Signed transaction is " ) + cc.j( tx ) + "\n" );
+    console.log( tx );
+    return tx;
+}
+
 async function safe_send_signed_transaction( w3, serializedTx, strActionName, strLogPrefix ) {
     if( verbose_get() >= RV_VERBOSE.information )
         log.write( cc.attention( "SEND TRANSACTION" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version ) + "\n" );
+    if( verbose_get() >= RV_VERBOSE.trace ) {
+        // log.write( strLogPrefix + cc.debug( "....signed serialized TX is " ) + cc.j( serializedTx ) + "\n" );
+        console.log( "....signed serialized TX is ", serializedTx );
+    }
     const strTX = "0x" + serializedTx.toString( "hex" ); // strTX is string starting from "0x"
+    if( verbose_get() >= RV_VERBOSE.trace )
+        log.write( strLogPrefix + cc.debug( "....signed raw TX is " ) + cc.j( strTX ) + "\n" );
     let joReceipt = null;
     let bHaveReceipt = false;
     try {
@@ -411,8 +533,7 @@ async function register_s_chain_on_main_net( // step 1A
             to: jo_message_proxy_main_net.options.address, // contract address
             data: dataTx
         } );
-        const key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
+        await safe_sign_transaction_with_account( tx, joAccount_main_net );
         const serializedTx = tx.serialize();
         strActionName = "reg-step1A:w3_main_net.eth.sendSignedTransaction()";
         // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -523,8 +644,7 @@ async function register_main_net_on_s_chain( // step 1B
             to: jo_message_proxy_s_chain.options.address, // contract address
             data: dataTx
         } );
-        const key = Buffer.from( joAccount_s_chain.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
+        await safe_sign_transaction_with_account( tx, joAccount_s_chain );
         const serializedTx = tx.serialize();
         strActionName = "reg-step1B:w3_s_chain.eth.sendSignedTransaction()";
         // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -633,8 +753,7 @@ async function register_s_chain_in_deposit_box( // step 2
             to: jo_lock_and_data_main_net.options.address, // contract address
             data: dataTx
         } );
-        const key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
+        await safe_sign_transaction_with_account( tx, joAccount_main_net );
         const serializedTx = tx.serialize();
         strActionName = "reg-step2:w3_main_net.eth.sendSignedTransaction()";
         // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -733,8 +852,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             to: jo_lock_and_data_s_chain.options.address, // contract address
             data: dataTx
         } );
-        const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
+        await safe_sign_transaction_with_account( tx, joAccount );
         const serializedTx = tx.serialize();
         strActionName = "reg-step3:w3_s_chain.eth.sendSignedTransaction()";
         // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -816,8 +934,7 @@ async function do_eth_payment_from_main_net(
             data: dataTx,
             value: wei_how_much // how much money to send
         } );
-        const key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
+        await safe_sign_transaction_with_account( tx, joAccountSrc );
         const serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction()";
         // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -948,8 +1065,7 @@ async function do_eth_payment_from_s_chain(
             data: dataTx,
             value: 0 // how much money to send
         } );
-        const key = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
+        await safe_sign_transaction_with_account( tx, joAccountSrc );
         const serializedTx = tx.serialize();
         strActionName = "w3_s_chain.eth.sendSignedTransaction()";
         // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -1027,8 +1143,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             data: dataTx,
             value: 0 // how much money to send
         } );
-        const key = Buffer.from( joAccount_main_net.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
+        await safe_sign_transaction_with_account( tx, joAccount_main_net );
         const serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction()";
         // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -1189,9 +1304,8 @@ async function do_erc721_payment_from_main_net(
         // sign transactions
         //
         strActionName = "sign transactions M->S";
-        const privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
-        txApprove.sign( privateKeyForMainnet );
-        txDeposit.sign( privateKeyForMainnet );
+        await safe_sign_transaction_with_account( txApprove, joAccountSrc );
+        await safe_sign_transaction_with_account( txDeposit, joAccountSrc );
         const serializedTxApprove = txApprove.serialize();
         const serializedTxDeposit = txDeposit.serialize();
         //
@@ -1394,9 +1508,8 @@ async function do_erc20_payment_from_main_net(
         // sign transactions
         //
         strActionName = "sign transactions M->S";
-        const privateKeyForMainnet = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
-        txApprove.sign( privateKeyForMainnet );
-        txDeposit.sign( privateKeyForMainnet );
+        await safe_sign_transaction_with_account( txApprove, joAccountSrc );
+        await safe_sign_transaction_with_account( txDeposit, joAccountSrc );
         const serializedTxApprove = txApprove.serialize();
         const serializedTxDeposit = txDeposit.serialize();
         //
@@ -1569,7 +1682,6 @@ async function do_erc20_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         strActionName = "prepare key for transactions S->M";
-        const privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         //
         // send transactions
         //
@@ -1586,7 +1698,7 @@ async function do_erc20_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: 8000000
         } );
-        txApprove.sign( privateKeyForSchain );
+        await safe_sign_transaction_with_account( txApprove, joAccountSrc );
         const serializedTxApprove = txApprove.serialize();
         // let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
         const joReceiptApprove = await safe_send_signed_transaction( w3_s_chain, serializedTxApprove, strActionName, strLogPrefix );
@@ -1620,7 +1732,7 @@ async function do_erc20_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: 8000000
         } );
-        txExitToMainERC20.sign( privateKeyForSchain );
+        await safe_sign_transaction_with_account( txExitToMainERC20, joAccountSrc );
         const serializedTxExitToMainERC20 = txExitToMainERC20.serialize();
         // let joReceiptExitToMainERC20 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC20.toString( "hex" ) );
         const joReceiptExitToMainERC20 = await safe_send_signed_transaction( w3_s_chain, serializedTxExitToMainERC20, strActionName, strLogPrefix );
@@ -1729,7 +1841,6 @@ async function do_erc721_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         strActionName = "sign transactions S->M";
-        const privateKeyForSchain = Buffer.from( joAccountSrc.privateKey, "hex" ); // convert private key to buffer
         //
         // send transactions
         //
@@ -1746,7 +1857,7 @@ async function do_erc721_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: 8000000
         } );
-        txTransferFrom.sign( privateKeyForSchain );
+        await safe_sign_transaction_with_account( txTransferFrom, joAccountSrc );
         const serializedTxTransferFrom = txTransferFrom.serialize();
         // let joReceiptTransferFrom = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxTransferFrom.toString( "hex" ) );
         const joReceiptTransferFrom = await safe_send_signed_transaction( w3_s_chain, serializedTxTransferFrom, strActionName, strLogPrefix );
@@ -1780,7 +1891,7 @@ async function do_erc721_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: 8000000
         } );
-        txExitToMainERC721.sign( privateKeyForSchain );
+        await safe_sign_transaction_with_account( txExitToMainERC721, joAccountSrc );
         const serializedTxExitToMainERC721 = txExitToMainERC721.serialize();
         // let joReceiptExitToMainERC721 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC721.toString( "hex" ) );
         const joReceiptExitToMainERC721 = await safe_send_signed_transaction( w3_s_chain, serializedTxExitToMainERC721, strActionName, strLogPrefix );
@@ -2165,8 +2276,7 @@ async function do_transfer(
                     data: dataTx_postIncomingMessages //,
                     // "value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
                 } );
-                const key = Buffer.from( joAccountDst.privateKey, "hex" ); // convert private key to buffer ??????????????????????????????????
-                tx_postIncomingMessages.sign( key ); // arg is privateKey as buffer
+                await safe_sign_transaction_with_account( tx_postIncomingMessages, joAccountDst );
                 const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
                 strActionName = "w3_dst.eth.sendSignedTransaction()";
                 // let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx_postIncomingMessages.toString( "hex" ) );
@@ -2332,6 +2442,7 @@ module.exports.dry_run_enable = dry_run_enable;
 module.exports.dry_run_is_ignored = dry_run_is_ignored;
 module.exports.dry_run_ignore = dry_run_ignore;
 module.exports.dry_run_call = dry_run_call;
+module.exports.safe_sign_transaction_with_account = safe_sign_transaction_with_account;
 module.exports.safe_send_signed_transaction = safe_send_signed_transaction;
 
 module.exports.register_s_chain_on_main_net = register_s_chain_on_main_net; // step 1A
