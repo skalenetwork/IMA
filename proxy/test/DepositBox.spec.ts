@@ -421,7 +421,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         .should.be.eventually.rejectedWith(error);
     });
 
-    it("should be Error event with message `Receiver chain is incorrect` when schainID=`mainnet`", async () => {
+    it("should rejected with message `Receiver chain is incorrect` when schainID=`mainnet`", async () => {
       //  preparation
       const error = "Receiver chain is incorrect";
       // for `Receiver chain is incorrect` message schainID should be `Mainnet`
@@ -433,13 +433,12 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // to avoid `Incorrect sender` error
       await lockAndDataForMainnet.setContract("MessageProxy", deployer);
       // execution
-      const {logs} = await depositBox
-        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
-      // expectation
-      expect(logs[0].args.message).to.be.equal(error);
+      await depositBox
+        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer})
+        .should.be.eventually.rejectedWith(error);
     });
 
-    it("should be Error event with message `Receiver chain is incorrect` when "
+    it("should rejected with message `Receiver chain is incorrect` when "
         + "`sender != ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash)`", async () => {
       //  preparation
       const error = "Receiver chain is incorrect";
@@ -451,13 +450,12 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // to avoid `Incorrect sender` error
       await lockAndDataForMainnet.setContract("MessageProxy", deployer);
       // execution
-      const {logs} = await depositBox
-        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
-      // expectation
-      expect(logs[0].args.message).to.be.equal(error);
+      await depositBox
+        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer})
+        .should.be.eventually.rejectedWith(error);
     });
 
-    it("should be Error event with message `Not enough money to finish this transaction`", async () => {
+    it("should rejected with message `Not enough money to finish this transaction`", async () => {
       //  preparation
       const error = "Not enough money to finish this transaction";
       const schainID = randomString(10);
@@ -471,13 +469,12 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
       // execution
-      const {logs} = await depositBox
-        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
-      // expectation
-      expect(logs[0].args.message).to.be.equal(error);
+      await depositBox
+        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer})
+        .should.be.eventually.rejectedWith(error);
     });
 
-    it("should be Error event with message `Invalid data`", async () => {
+    it("should rejected with message `Invalid data`", async () => {
       //  preparation
       const error = "Invalid data";
       const schainID = randomString(10);
@@ -496,13 +493,12 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       await lockAndDataForMainnet
         .receiveEth(deployer, {value: wei, from: deployer});
       // execution
-      const {logs} = await depositBox
-        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
-      // expectation
-      expect(logs[0].args.message).to.be.equal(error);
+      await depositBox
+        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer})
+        .should.be.eventually.rejectedWith(error);
     });
 
-    it("should be Error event with message `Could not send money to owner`", async () => {
+    it("should rejected with message `Could not send money to owner`", async () => {
       //  preparation
       const error = "Could not send money to owner";
       const schainID = randomString(10);
@@ -522,10 +518,9 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       await lockAndDataForMainnet
         .receiveEth(deployer, {value: wei, from: deployer});
       // execution
-      const {logs} = await depositBox
-        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
-      // expectation
-      expect(logs[0].args.message).to.be.equal(error);
+      await depositBox
+        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer})
+        .should.be.eventually.rejectedWith(error);
     });
 
     it("should transfer eth", async () => {
@@ -581,8 +576,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
        * for `lockAndDataForMainnetERC20` to avoid `Not enough money`
        */
       await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
-      // approve some quantity of ERC20 tokens for `depositBox` address
-      await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
       // get data from `receiveERC20`
       const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
       await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
