@@ -65,15 +65,6 @@ contract DepositBox is PermissionsForMainnet {
         bytes data
     );
 
-    event Error(
-        address sender,
-        string fromSchainID,
-        address to,
-        uint256 amount,
-        bytes data,
-        string message
-    );
-
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
@@ -262,56 +253,24 @@ contract DepositBox is PermissionsForMainnet {
     )
         external
     {
+        require(data.length != 0, "Invalid data");
         address proxyAddress = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("MessageProxy")));
         require(msg.sender == proxyAddress, "Incorrect sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
-        if (
-            schainHash == keccak256(abi.encodePacked("Mainnet")) ||
-            sender != ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash)
-        ) {
-            emit Error(
-                sender,
-                fromSchainID,
-                to,
-                amount,
-                data,
-                "Receiver chain is incorrect"
-            );
-        }
-        if (!(amount <= address(lockAndDataAddress_).balance) && !(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
-            emit Error(
-                sender,
-                fromSchainID,
-                to,
-                amount,
-                data,
-                "Not enough money to finish this transaction"
-            );
-            return;
-        }
-
-        if (data.length == 0) {
-            emit Error(
-                sender,
-                fromSchainID,
-                to,
-                amount,
-                data,
-                "Invalid data");
-            return;
-        }
-
-        // this condition never be `false`, because `sendEth` return `true` or rejected with error only
-        if (!ILockAndDataDB(lockAndDataAddress_).sendEth(getOwner(), GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE)) {
-            emit Error(
-                sender,
-                fromSchainID,
-                to,
-                amount,
-                data,
-                "Could not send money to owner"
-            );
-        }
+        require(
+            schainHash != keccak256(abi.encodePacked("Mainnet")) &&
+            sender == ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash),
+            "Receiver chain is incorrect"
+        );
+        require(
+            amount <= address(lockAndDataAddress_).balance ||
+            amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            "Not enough money to finish this transaction"
+        );
+        require(
+            ILockAndDataDB(lockAndDataAddress_).sendEth(getOwner(), GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
+            "Could not send money to owner"
+        );
 
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
