@@ -42,7 +42,7 @@ function rpc_call_init() {
     owaspUtils.owaspAddUsageRef();
 }
 
-async function do_connect( joCall, fn ) {
+async function do_connect( joCall, opts, fn ) {
     try {
         fn = fn || function() {};
         if( !owaspUtils.validateURL( joCall.url ) )
@@ -80,7 +80,7 @@ async function do_connect( joCall, fn ) {
     }
 }
 
-async function do_connect_if_needed( joCall, fn ) {
+async function do_connect_if_needed( joCall, opts, fn ) {
     try {
         fn = fn || function() {};
         if( !owaspUtils.validateURL( joCall.url ) )
@@ -96,7 +96,9 @@ async function do_connect_if_needed( joCall, fn ) {
 }
 
 async function do_call( joCall, joIn, fn ) {
+    // console.log( "--- --- --- initial joIn is", joIn );
     joIn = enrich_top_level_json_fields( joIn );
+    // console.log( "--- --- --- enriched joIn is", joIn );
     fn = fn || function() {};
     if( joCall.wsConn ) {
         const entry = {
@@ -110,14 +112,26 @@ async function do_call( joCall, joIn, fn ) {
         }, 20 * 1000 );
         joCall.wsConn.send( JSON.stringify( joIn ) );
     } else {
+        // console.log( "--- --- --- call URL is", joCall.url );
         if( !owaspUtils.validateURL( joCall.url ) )
             throw new Error( "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url );
+        const agentOptions = {
+            "ca": ( joCall.joRpcOptions && joCall.joRpcOptions.ca && typeof joCall.joRpcOptions.ca == "string" ) ? joCall.joRpcOptions.ca : null,
+            "cert": ( joCall.joRpcOptions && joCall.joRpcOptions.cert && typeof joCall.joRpcOptions.cert == "string" ) ? joCall.joRpcOptions.cert : null,
+            "key": ( joCall.joRpcOptions && joCall.joRpcOptions.key && typeof joCall.joRpcOptions.key == "string" ) ? joCall.joRpcOptions.key : null
+        };
+        // console.log( "--- --- --- agentOptions is", agentOptions );
+        // console.log( "--- --- --- joIn is", joIn );
         request.post( {
-            uri: joCall.url,
+            "uri": joCall.url,
             "content-type": "application/json",
-            body: JSON.stringify( joIn )
+            "body": JSON.stringify( joIn ),
+            "agentOptions": agentOptions
         },
         function( err, response, body ) {
+            // console.log( "--- --- --- err is", err );
+            // console.log( "--- --- --- response is", response );
+            // console.log( "--- --- --- body is", body );
             if( response && response.statusCode && response.statusCode != 200 )
                 log.write( cc.error( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" );
             if( err ) {
@@ -131,23 +145,24 @@ async function do_call( joCall, joIn, fn ) {
     }
 }
 
-async function rpc_call_create( strURL, fn ) {
+async function rpc_call_create( strURL, opts, fn ) {
     if( !owaspUtils.validateURL( strURL ) )
         throw new Error( "JSON RPC CALLER cannot create a call object invalid URL: " + strURL );
     fn = fn || function() {};
     if( !( strURL && strURL.length > 0 ) )
         throw new Error( "rpc_call_create() was invoked with bad parameters: " + JSON.stringify( arguments ) );
     const joCall = {
-        url: "" + strURL,
-        mapPendingByCallID: {},
-        wsConn: null,
-        reconnect: function( fnAfter ) {
+        "url": "" + strURL,
+        "joRpcOptions": opts ? opts : null,
+        "mapPendingByCallID": { },
+        "wsConn": null,
+        "reconnect": function( fnAfter ) {
             do_connect( joCall, fnAfter );
         },
-        reconnect_if_needed: function( fnAfter ) {
-            do_connect_if_needed( joCall, fnAfter );
+        "reconnect_if_needed": function( fnAfter ) {
+            do_connect_if_needed( joCall, opts, fnAfter );
         },
-        call: async function( joIn, fnAfter ) {
+        "call": async function( joIn, fnAfter ) {
             const self = this;
             self.reconnect_if_needed( function( joCall, err ) {
                 if( err ) {
@@ -158,7 +173,7 @@ async function rpc_call_create( strURL, fn ) {
             } );
         }
     };
-    do_connect( joCall, fn );
+    do_connect( joCall, opts, fn );
 }
 
 function generate_random_integer_in_range( min, max ) {
