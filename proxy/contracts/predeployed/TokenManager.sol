@@ -413,8 +413,8 @@ contract TokenManager is PermissionsForSchain {
         require(msg.sender == getProxyForSchainAddress(), "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
-            schainHash == keccak256(abi.encodePacked(getChainID())) && 
-            sender != ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash),
+            schainHash != keccak256(abi.encodePacked(getChainID())) && 
+            sender == ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash),
             "Receiver chain is incorrect"
         );
 
@@ -422,14 +422,14 @@ contract TokenManager is PermissionsForSchain {
         if (operation == TransactionOperation.transferETH) {
             require(to != address(0), "Incorrect receiver");
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
-        } else if ((operation == TransactionOperation.transferERC20 && to==address(0)) ||
-                  (operation == TransactionOperation.rawTransferERC20 && to!=address(0))) {
+        } else if ((operation == TransactionOperation.transferERC20 && to == address(0)) ||
+                  (operation == TransactionOperation.rawTransferERC20 && to != address(0))) {
             address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
             require(IERC20Module(erc20Module).sendERC20(to, data), "Failed to send ERC20");
             address receiver = IERC20Module(erc20Module).getReceiver(to, data);
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
-        } else if ((operation == TransactionOperation.transferERC721 && to==address(0)) ||
-                  (operation == TransactionOperation.rawTransferERC721 && to!=address(0))) {
+        } else if ((operation == TransactionOperation.transferERC721 && to == address(0)) ||
+                  (operation == TransactionOperation.rawTransferERC721 && to != address(0))) {
             address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC721Module")));
             require(IERC721Module(erc721Module).sendERC721(to, data), "Failed to send ERC721");
             address receiver = IERC721Module(erc721Module).getReceiver(to, data);
