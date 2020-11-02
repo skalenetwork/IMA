@@ -74,15 +74,6 @@ contract TokenManager is PermissionsForSchain {
     // Owner of this schain. For mainnet
     //address public owner;
 
-    event Error(
-        address sender,
-        string fromSchainID,
-        address to,
-        uint256 amount,
-        bytes data,
-        string message
-    );
-
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address schainTokenManagerAddress = ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash);
@@ -418,37 +409,19 @@ contract TokenManager is PermissionsForSchain {
     )
         external
     {
+        require(data.length != 0, "Invalid data");
         require(msg.sender == getProxyForSchainAddress(), "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
-        if (schainHash == keccak256(abi.encodePacked(getChainID())) || sender != ILockAndDataTM(
-            getLockAndDataAddress()).tokenManagerAddresses(schainHash)) {
-            emit Error(
-                sender,
-                fromSchainID,
-                to,
-                amount,
-                data,
-                "Receiver chain is incorrect"
-            );
-            return;
-        }
-
-        if (data.length == 0) {
-            emit Error(
-                sender,
-                fromSchainID,
-                to,
-                amount,
-                data,
-                "Invalid data");
-            return;
-        }
+        require(
+            schainHash == keccak256(abi.encodePacked(getChainID())) && 
+            sender != ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash),
+            "Receiver chain is incorrect"
+        );
 
         TransactionOperation operation = fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
             require(to != address(0), "Incorrect receiver");
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
-            return;
         } else if ((operation == TransactionOperation.transferERC20 && to==address(0)) ||
                   (operation == TransactionOperation.rawTransferERC20 && to!=address(0))) {
             address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));

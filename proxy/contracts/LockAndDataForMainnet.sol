@@ -99,17 +99,10 @@ contract LockAndDataForMainnet is OwnableForMainnet {
     }
 
     function sendEth(address payable to, uint256 amount) external allow("DepositBox") returns (bool) {
-        // require(address(this).balance >= amount, "Not enough ETH. in `LockAndDataForMainnet.sendEth`");
-        if (address(this).balance < amount) {
-            emit Error(
-                to,
-                amount,
-                "Not enough ETH. in `LockAndDataForMainnet.sendEth`"
-            );
-            return false;
+        if (address(this).balance >= amount) {
+            to.transfer(amount);
+            return true;
         }
-        to.transfer(amount);
-        return true;
     }
 
     function getContract(string memory contractName) external view returns (address) {
