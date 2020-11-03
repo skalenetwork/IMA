@@ -77,8 +77,12 @@ async function deploy(deployer, networkName, accounts) {
     
     for (const contract of contracts) {
         const address = deployed.get(contract).address;
-        await lockAndDataForMainnet.methods.setContract(contract, address).send({from: deployAccount}).then(function(res) {
-            console.log("Contract", contract, "with address", address, "is registered in Contract Manager");
+        let registerName = "";
+        for (const part of contract.split("ForMainnet")) {
+            registerName += part;
+        }
+        await lockAndDataForMainnet.methods.setContract(registerName, address).send({from: deployAccount}).then(function(res) {
+            console.log("Contract", registerName, "with address", address, "is registered in Contract Manager");
         });
     }
 
