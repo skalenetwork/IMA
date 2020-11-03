@@ -67,7 +67,7 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
         #
         balance = self.blockchain.get_balance_on_schain(address)
         res = initial_balance - range_int * amount
-        if balance == initial_balance - range_int * amount:
+        if balance == initial_balance + range_int * amount - range_int * amount_from_schain:
             self._mark_passed()
 
 
