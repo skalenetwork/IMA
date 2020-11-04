@@ -23,18 +23,18 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-let fs = require("fs");
+const fs = require( "fs" );
 const fsPromises = fs.promises;
 
-let jsonData = require("../data/skaleManagerComponents.json");
+const jsonData = require( "../data/skaleManagerComponents.json" );
 
-const { scripts, ConfigManager } = require("@openzeppelin/cli");
+const { scripts, ConfigManager } = require( "@openzeppelin/cli" );
 const { add, push, create } = scripts;
 
-async function deploy(deployer, networkName, accounts) {
+async function deploy( deployer, networkName, accounts ) {
 
     const deployAccount = accounts[0];
-    const options = await ConfigManager.initNetworkConfiguration({ network: networkName, from: deployAccount });
+    const options = await ConfigManager.initNetworkConfiguration( { network: networkName, from: deployAccount } );
 
     const contracts = [
         "LockAndDataForMainnet", // must be in first position
@@ -57,54 +57,46 @@ async function deploy(deployer, networkName, accounts) {
 
     const deployed = new Map();
     let lockAndDataForMainnet;
-    for (const contractName of contracts) {
+    for( const contractName of contracts ) {
         let contract;
-        if (contractName == "LockAndDataForMainnet") {
-            contract = await create(Object.assign({ contractAlias: contractName, methodName: "initialize", methodArgs: [] }, options));
+        if( contractName == "LockAndDataForMainnet" ) {
+            contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [] }, options ) );
             lockAndDataForMainnet = contract;
-            console.log("lockAndDataForMainnet address:", contract.address);
-        } else if (["MessageProxyForMainnet"].includes(contractName)) {
-            contract = await create(Object.assign({ contractAlias: contractName, methodName: "initialize", methodArgs: ["Mainnet", jsonData.contract_manager_address] }, options));
-        // } else if (["DepositBox"].includes(contractName)) {
-        //     contract = await create(Object.assign({ contractAlias: contractName, methodName: "initialize", methodArgs: [deployed.get("MessageProxyForMainnet").address, lockAndDataForMainnet.address] }, options));
-        } else {
-            contract = await create(Object.assign({ contractAlias: contractName, methodName: "initialize", methodArgs: [lockAndDataForMainnet.address] }, options));
-        }
-        deployed.set(contractName, contract);
-    }
+            console.log( "lockAndDataForMainnet address:", contract.address );
+        } else if( [ "MessageProxyForMainnet" ].includes( contractName ) )
+            contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ "Mainnet", jsonData.contract_manager_address ] }, options ) );
+        else
+            contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ lockAndDataForMainnet.address ] }, options ) );
 
-    console.log("Register contracts");
-    
-    for (const contract of contracts) {
-        const address = deployed.get(contract).address;
+        deployed.set( contractName, contract );
+    }
+    console.log( "Register contracts" );
+
+    for( const contract of contracts ) {
+        const address = deployed.get( contract ).address;
         let registerName = "";
-        for (const part of contract.split("ForMainnet")) {
+        for( const part of contract.split( "ForMainnet" ) )
             registerName += part;
-        }
-        await lockAndDataForMainnet.methods.setContract(registerName, address).send({from: deployAccount}).then(function(res) {
-            console.log("Contract", registerName, "with address", address, "is registered in Contract Manager");
-        });
+
+        await lockAndDataForMainnet.methods.setContract( registerName, address ).send( { from: deployAccount } ).then( function( res ) {
+            console.log( "Contract", registerName, "with address", address, "is registered in Contract Manager" );
+        } );
+    }
+    console.log( "Deploy done, writing results..." );
+
+    const jsonObject = { };
+    for( const contractName of contracts ) {
+        if( contractName !== "MessageProxyForMainnet" )
+            propertyName = contractName.replace( /([a-z0-9])(?=[A-Z])/g, "$1_" ).toLowerCase();
+        else
+            propertyName = "message_proxy_mainnet";
+
+        jsonObject[propertyName + "_address"] = deployed.get( contractName ).address;
+        jsonObject[propertyName + "_abi"] = artifacts.require( "./" + contractName ).abi;
     }
 
-    console.log("Deploy done, writing results...");
-
-    let jsonObject = { };
-    for (const contractName of contracts) {
-        if (contractName !== "MessageProxyForMainnet") {
-            propertyName = contractName.replace(/([a-z0-9])(?=[A-Z])/g, "$1_").toLowerCase();
-        } else {
-            propertyName = "message_proxy_mainnet"
-        }
-        jsonObject[propertyName + "_address"] = deployed.get(contractName).address;
-        jsonObject[propertyName + "_abi"] = artifacts.require("./" + contractName).abi;
-    }
-
-    await fsPromises.writeFile(`data/proxyMainnet.json`, JSON.stringify(jsonObject));
-    console.log(`Done, check proxyMainnet.json file in data folder.`);
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    await fsPromises.writeFile( "data/proxyMainnet.json", JSON.stringify( jsonObject ) );
+    console.log( "Done, check proxyMainnet.json file in data folder." );
 }
 
 module.exports = deploy;

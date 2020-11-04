@@ -23,77 +23,77 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-let fs = require( "fs" );
-let path = require( "path" );
-require('dotenv').config();
+const fs = require( "fs" );
+const path = require( "path" );
+require( "dotenv" ).config();
 const fsPromises = fs.promises;
 
-const gasMultiplierParameter = 'gas_multiplier';
-const argv = require('minimist')(process.argv.slice(2), {string: [gasMultiplierParameter]});
-const gasMultiplier = argv[gasMultiplierParameter] === undefined ? 1 : Number(argv[gasMultiplierParameter])
+const gasMultiplierParameter = "gas_multiplier";
+const argv = require( "minimist" )( process.argv.slice( 2 ), { string: [ gasMultiplierParameter ] } );
+const gasMultiplier = argv[gasMultiplierParameter] === undefined ? 1 : Number( argv[gasMultiplierParameter] );
 
-let MessageProxyForSchain = artifacts.require("./predeployed/MessageProxyForSchain.sol");
-let TokenManager = artifacts.require("./predeployed/TokenManager.sol");
-let LockAndDataForSchain = artifacts.require("./predeployed/LockAndDataForSchain.sol");
-let EthERC20 = artifacts.require("./predeployed/EthERC20.sol");
-let ERC20ModuleForSchain = artifacts.require("./predeployed/ERC20ModuleForSchain.sol");
-let LockAndDataForSchainERC20 = artifacts.require("./predeployed/LockAndDataForSchainERC20.sol");
-let ERC721ModuleForSchain = artifacts.require("./predeployed/ERC721ModuleForSchain.sol");
-let LockAndDataForSchainERC721 = artifacts.require("./predeployed/LockAndDataForSchainERC721.sol");
-let TokenFactory = artifacts.require("./predeployed/TokenFactory.sol");
+const MessageProxyForSchain = artifacts.require( "./predeployed/MessageProxyForSchain.sol" );
+const TokenManager = artifacts.require( "./predeployed/TokenManager.sol" );
+const LockAndDataForSchain = artifacts.require( "./predeployed/LockAndDataForSchain.sol" );
+const EthERC20 = artifacts.require( "./predeployed/EthERC20.sol" );
+const ERC20ModuleForSchain = artifacts.require( "./predeployed/ERC20ModuleForSchain.sol" );
+const LockAndDataForSchainERC20 = artifacts.require( "./predeployed/LockAndDataForSchainERC20.sol" );
+const ERC721ModuleForSchain = artifacts.require( "./predeployed/ERC721ModuleForSchain.sol" );
+const LockAndDataForSchainERC721 = artifacts.require( "./predeployed/LockAndDataForSchainERC721.sol" );
+const TokenFactory = artifacts.require( "./predeployed/TokenFactory.sol" );
 
-let networks = require("../truffle-config.js");
-let proxyMainnet = require("../data/proxyMainnet.json");
-let gasLimit = 8000000;
+const networks = require( "../truffle-config.js" );
+// const proxyMainnet = require( "../data/proxyMainnet.json" );
+const gasLimit = 8000000;
 
-async function deploy(deployer, network) {
+async function deploy( deployer, network ) {
 
-    if (network == "test" || network == "coverage") {
+    if( network == "test" || network == "coverage" ) {
         // skip this part of deployment if we run tests
         return;
     }
-    
-    if (process.env.CHAIN_NAME_SCHAIN == undefined || process.env.CHAIN_NAME_SCHAIN == "") {
-        console.log(network);
-        console.log(networks['networks'][network]);
-        console.log("Please set CHAIN_NAME_SCHAIN to .env file");
+
+    if( process.env.CHAIN_NAME_SCHAIN == undefined || process.env.CHAIN_NAME_SCHAIN == "" ) {
+        console.log( network );
+        console.log( networks.networks[network] );
+        console.log( "Please set CHAIN_NAME_SCHAIN to .env file" );
         process.exit( 126 );
     }
-    let schainName = process.env.CHAIN_NAME_SCHAIN;
-    await deployer.deploy(MessageProxyForSchain, schainName, "0x0000000000000000000000000000000000000000", {gas: gasLimit}).then(async function() {
-        return await deployer.deploy(LockAndDataForSchain, {gas: gasLimit});
-    }).then(async function(inst) {
-        await deployer.deploy(TokenManager, schainName, MessageProxyForSchain.address, inst.address, {gas: gasLimit * gasMultiplier});
-        await deployer.deploy(EthERC20, {gas: gasLimit * gasMultiplier}).then(async function(EthERC20Inst) {
-            await EthERC20Inst.transferOwnership(inst.address, {gas: gasLimit});
-        });
-        await inst.setContract("TokenManager", TokenManager.address);
-        await inst.setEthERC20Address(EthERC20.address);
-        await deployer.deploy(ERC20ModuleForSchain, inst.address, {gas: gasLimit * gasMultiplier});
-        await inst.setContract("ERC20Module", ERC20ModuleForSchain.address);
-        await deployer.deploy(LockAndDataForSchainERC20, inst.address, {gas: gasLimit * gasMultiplier});
-        await inst.setContract("LockAndDataERC20", LockAndDataForSchainERC20.address);
-        await deployer.deploy(ERC721ModuleForSchain, inst.address, {gas: gasLimit * gasMultiplier});
-        await inst.setContract("ERC721Module", ERC721ModuleForSchain.address);
-        await deployer.deploy(LockAndDataForSchainERC721, inst.address, {gas: gasLimit * gasMultiplier});
-        await inst.setContract("LockAndDataERC721", LockAndDataForSchainERC721.address);
-        await deployer.deploy(TokenFactory, inst.address, {gas: gasLimit * gasMultiplier});
-        await inst.setContract("TokenFactory", TokenFactory.address);
+    const schainName = process.env.CHAIN_NAME_SCHAIN;
+    await deployer.deploy( MessageProxyForSchain, schainName, "0x0000000000000000000000000000000000000000", { gas: gasLimit } ).then( async function() {
+        return await deployer.deploy( LockAndDataForSchain, { gas: gasLimit } );
+    } ).then( async function( inst ) {
+        await deployer.deploy( TokenManager, schainName, MessageProxyForSchain.address, inst.address, { gas: gasLimit * gasMultiplier } );
+        await deployer.deploy( EthERC20, { gas: gasLimit * gasMultiplier } ).then( async function( EthERC20Inst ) {
+            await EthERC20Inst.transferOwnership( inst.address, { gas: gasLimit } );
+        } );
+        await inst.setContract( "TokenManager", TokenManager.address );
+        await inst.setEthERC20Address( EthERC20.address );
+        await deployer.deploy( ERC20ModuleForSchain, inst.address, { gas: gasLimit * gasMultiplier } );
+        await inst.setContract( "ERC20Module", ERC20ModuleForSchain.address );
+        await deployer.deploy( LockAndDataForSchainERC20, inst.address, { gas: gasLimit * gasMultiplier } );
+        await inst.setContract( "LockAndDataERC20", LockAndDataForSchainERC20.address );
+        await deployer.deploy( ERC721ModuleForSchain, inst.address, { gas: gasLimit * gasMultiplier } );
+        await inst.setContract( "ERC721Module", ERC721ModuleForSchain.address );
+        await deployer.deploy( LockAndDataForSchainERC721, inst.address, { gas: gasLimit * gasMultiplier } );
+        await inst.setContract( "LockAndDataERC721", LockAndDataForSchainERC721.address );
+        await deployer.deploy( TokenFactory, inst.address, { gas: gasLimit * gasMultiplier } );
+        await inst.setContract( "TokenFactory", TokenFactory.address );
 
         const strPathToBuildDir = path.join( __dirname, "../build/contracts" );
         const strPathToERC20OnChainJSON = path.join( strPathToBuildDir, "ERC20OnChain.json" );
         const strPathToERC721OnChainJSON = path.join( strPathToBuildDir, "ERC721OnChain.json" );
         console.log( "Loading auto-instantiated token ERC20OnChain..." );
-        const joBuiltERC20OnChain = JSON.parse( fs.readFileSync( strPathToERC20OnChainJSON, "utf8" ) )
+        const joBuiltERC20OnChain = JSON.parse( fs.readFileSync( strPathToERC20OnChainJSON, "utf8" ) );
         console.log( "Loading auto-instantiated token ERC20OnChain..." );
-        const joBuiltERC721OnChain = JSON.parse( fs.readFileSync( strPathToERC721OnChainJSON, "utf8" ) )
+        const joBuiltERC721OnChain = JSON.parse( fs.readFileSync( strPathToERC721OnChainJSON, "utf8" ) );
         console.log( "Done loading auto-instantiated tokens." );
         if( ! ( "abi" in joBuiltERC20OnChain ) || ( ! ( joBuiltERC20OnChain.abi ) ) || typeof joBuiltERC20OnChain.abi != "object" )
             throw new Error( "ABI is not found in \"" + strPathToERC20OnChainJSON + "\"" );
         if( ! ( "abi" in joBuiltERC721OnChain ) || ( ! ( joBuiltERC721OnChain.abi ) ) || typeof joBuiltERC721OnChain.abi != "object" )
             throw new Error( "ABI is not found in \"" + strPathToERC721OnChainJSON + "\"" );
 
-        let jsonObject = {
+        const jsonObject = {
             lock_and_data_for_schain_address: LockAndDataForSchain.address,
             lock_and_data_for_schain_abi: LockAndDataForSchain.abi,
             eth_erc20_address: EthERC20.address,
@@ -117,9 +117,9 @@ async function deploy(deployer, network) {
             //
             ERC20OnChain_abi: joBuiltERC20OnChain.abi,
             ERC721OnChain_abi: joBuiltERC721OnChain.abi
-        }
+        };
 
-        let jsonObject2 = {
+        const jsonObject2 = {
             lock_and_data_for_schain_address: LockAndDataForSchain.address,
             lock_and_data_for_schain_bytecode: LockAndDataForSchain.bytecode,
             eth_erc20_address: EthERC20.address,
@@ -140,17 +140,17 @@ async function deploy(deployer, network) {
             // erc721_on_chain_bytecode: ERC721OnChain.bytecode,
             message_proxy_chain_address: MessageProxyForSchain.address,
             message_proxy_chain_bytecode: MessageProxyForSchain.bytecode
-        }
-    
-        await fsPromises.writeFile(`data/proxySchain_${schainName}.json`, JSON.stringify(jsonObject));
-        await fsPromises.writeFile(`data/proxySchain_${schainName}_bytecode.json`, JSON.stringify(jsonObject2));
-        await sleep(10000);
-        console.log(`Done, check proxySchain_${schainName}.json file in data folder.`);
-    });
+        };
+
+        await fsPromises.writeFile( `data/proxySchain_${schainName}.json`, JSON.stringify( jsonObject ) );
+        await fsPromises.writeFile( `data/proxySchain_${schainName}_bytecode.json`, JSON.stringify( jsonObject2 ) );
+        await sleep( 10000 );
+        console.log( `Done, check proxySchain_${schainName}.json file in data folder.` );
+    } );
 }
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+function sleep( ms ) {
+    return new Promise( resolve => setTimeout( resolve, ms ) );
 }
 
 module.exports = deploy;

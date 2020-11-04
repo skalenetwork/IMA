@@ -5,11 +5,11 @@ const cc = log.cc;
 cc.enable( false );
 log.addStdout();
 
-let g_bVerbose = false;
+const g_bVerbose = false;
 
-let ownerAddress = "0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852"; // "0x9e7f3c7e85b104415b2ac3b7436fc956c3100aae";
+const ownerAddress = "0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852"; // "0x9e7f3c7e85b104415b2ac3b7436fc956c3100aae";
 
-let g_arrExampleAuthorizedCallers = [
+const g_arrExampleAuthorizedCallers = [
     {
         private_key: "3fbe6562ab00cd22bac8fc07894ba0d926911dc8f39fceb3d16ca7fd73eca578",
         address: "0x0cfc13004ecabaae53612e7f69a687332da33c5b",
@@ -192,61 +192,62 @@ let g_arrExampleAuthorizedCallers = [
     }
 ];
 
-let g_arrContracts = [
+const g_arrContracts = [
     {
-        fileName: "SkaleFeatures.json"
-        , address: "0xc033b369416c9ecd8e4a07aafa8b06b4107419e2"
-        , referenceVariableName: "skaleFeaturesAddress"
+        fileName: "SkaleFeatures.json",
+        address: "0xc033b369416c9ecd8e4a07aafa8b06b4107419e2",
+        referenceVariableName: "skaleFeaturesAddress"
     } , {
-        fileName: "LockAndDataForSchain.json"
-        , address: "0x47cf4c2d6891377952a7e0e08a6f17180a91a0f9"
-        , referenceVariableName: "lockAndDataAddress"
+        fileName: "LockAndDataForSchain.json",
+        address: "0x47cf4c2d6891377952a7e0e08a6f17180a91a0f9",
+        referenceVariableName: "lockAndDataAddress"
     }, {
-        fileName: "MessageProxyForSchain.json"
-        , address: "0x427c74e358eb1f620e71f64afc9b1b5d2309dd01"
-        , referenceVariableName: "messageProxyAddress"
+        fileName: "MessageProxyForSchain.json",
+        address: "0x427c74e358eb1f620e71f64afc9b1b5d2309dd01",
+        referenceVariableName: "messageProxyAddress"
     }, {
-        fileName: "TokenManager.json"
-        , address: "0x57ad607c6e90df7d7f158985c3e436007a15d744"
-        , referenceVariableName: "tokenManagerAddress"
+        fileName: "TokenManager.json",
+        address: "0x57ad607c6e90df7d7f158985c3e436007a15d744",
+        referenceVariableName: "tokenManagerAddress"
     }, {
-        fileName: "EthERC20.json"
-        , address: "0xd3cdbc1b727b2ed91b8ad21333841d2e96f255af"
-        , referenceVariableName: "ethERC20Address"
+        fileName: "EthERC20.json",
+        address: "0xd3cdbc1b727b2ed91b8ad21333841d2e96f255af",
+        referenceVariableName: "ethERC20Address"
     }, {
-        fileName: "ERC20ModuleForSchain.json"
-        , address: "0xc30516c1dedfa91a948349209da6d6b1c8868ed7"
-        , referenceVariableName: "erc20ModuleForSchainAddress"
+        fileName: "ERC20ModuleForSchain.json",
+        address: "0xc30516c1dedfa91a948349209da6d6b1c8868ed7",
+        referenceVariableName: "erc20ModuleForSchainAddress"
     }, {
-        fileName: "ERC721ModuleForSchain.json"
-        , address: "0xc1b336da9058efd1e9f5636a70bfe2ec17e15abb"
-        , referenceVariableName: "erc721ModuleForSchainAddress"
+        fileName: "ERC721ModuleForSchain.json",
+        address: "0xc1b336da9058efd1e9f5636a70bfe2ec17e15abb",
+        referenceVariableName: "erc721ModuleForSchainAddress"
     }, {
-        fileName: "LockAndDataForSchainERC20.json"
-        , address: "0xc7085eb0ba5c2d449e80c22d6da8f0edbb86dd82"
-        , referenceVariableName: "lockAndDataForSchainERC20Address"
+        fileName: "LockAndDataForSchainERC20.json",
+        address: "0xc7085eb0ba5c2d449e80c22d6da8f0edbb86dd82",
+        referenceVariableName: "lockAndDataForSchainERC20Address"
     }, {
-        fileName: "LockAndDataForSchainERC721.json"
-        , address: "0x97438fdfbdcc4ccc533ea874bfeb71f4098585ab"
-        , referenceVariableName: "lockAndDataForSchainERC721Address"
+        fileName: "LockAndDataForSchainERC721.json",
+        address: "0x97438fdfbdcc4ccc533ea874bfeb71f4098585ab",
+        referenceVariableName: "lockAndDataForSchainERC721Address"
     }, {
-        fileName: "TokenFactory.json"
-        , address: "0xe9e8e031685137c3014793bef2875419c304aa72"
-        , referenceVariableName: "tokenFactoryAddress"
+        fileName: "TokenFactory.json",
+        address: "0xe9e8e031685137c3014793bef2875419c304aa72",
+        referenceVariableName: "tokenFactoryAddress"
     }
 ];
 //proxyForSchainAddress
 
-let g_joSummaryABI = {};
+const g_joSummaryABI = {};
 
-let g_joSkaleConfigTemplate = {
+const g_joSkaleConfigTemplate = {
     "accounts": {
     },
     skaleConfig: {
         contractSettings: {
             common: {
                 enableContractLogMessages: false
-            }, IMA: {
+            },
+            IMA: {
                 ownerAddress: ownerAddress,
                 variables: {
                     LockAndDataForSchain: {
@@ -255,7 +256,7 @@ let g_joSkaleConfigTemplate = {
                     },
                     MessageProxyForSchain: {
                         mapAuthorizedCallers: {
-                        } 
+                        }
                     }
                 }
             }
@@ -263,48 +264,45 @@ let g_joSkaleConfigTemplate = {
     }
 };
 
-g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers[ ownerAddress ] = 1;
+g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers[ownerAddress] = 1;
 
 function convert_camel_case_to_underscore_case( s ) {
-    return ( typeof s == "string" ) ? s.replace(/\.?([A-Z])/g, function (x,y){return "_" + y.toLowerCase()}).replace(/^_/, "") : s;
+    return ( typeof s == "string" ) ? s.replace( /\.?([A-Z])/g, function( x,y ) { return "_" + y.toLowerCase(); } ).replace( /^_/, "" ) : s;
 }
 
 for( let idxContract = 0; idxContract < g_arrContracts.length; ++ idxContract ) {
-    let joContractProperties = g_arrContracts[ idxContract ];
+    const joContractProperties = g_arrContracts[idxContract];
     if( g_bVerbose )
-        log.write( cc.normal("Processing contract ") + cc.info(joContractProperties.fileName) + cc.normal("...") + "\n" );
-    let joContractBuildInfo = imaUtils.jsonFileLoad( imaUtils.normalizePath( __dirname + "/build/contracts/" + joContractProperties.fileName ) );
+        log.write( cc.normal( "Processing contract " ) + cc.info( joContractProperties.fileName ) + cc.normal( "..." ) + "\n" );
+    const joContractBuildInfo = imaUtils.jsonFileLoad( imaUtils.normalizePath( __dirname + "/build/contracts/" + joContractProperties.fileName ) );
     if( g_bVerbose ) {
-        log.write( cc.normal("    Contract name is ") + cc.notice(joContractBuildInfo.contractName)  + "\n" );
-        log.write( cc.normal("    Runtime byte-code string length is ") + cc.notice(joContractBuildInfo.deployedBytecode.length)  + "\n" );
+        log.write( cc.normal( "    Contract name is " ) + cc.notice( joContractBuildInfo.contractName ) + "\n" );
+        log.write( cc.normal( "    Runtime byte-code string length is " ) + cc.notice( joContractBuildInfo.deployedBytecode.length ) + "\n" );
     }
-    g_joSkaleConfigTemplate.accounts[ joContractProperties.address ] = {
+    g_joSkaleConfigTemplate.accounts[joContractProperties.address] = {
         "balance": "0",
         "nonce": "0",
         "storage": {},
         "code": joContractBuildInfo.deployedBytecode
     };
-    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA[ joContractProperties.referenceVariableName ] = joContractProperties.address;
-    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted[ joContractBuildInfo.contractName ] = joContractProperties.address;
-    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers[ joContractProperties.address ] = 1;
+    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA[joContractProperties.referenceVariableName] = joContractProperties.address;
+    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted[joContractBuildInfo.contractName] = joContractProperties.address;
+    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers[joContractProperties.address] = 1;
     //
-    let strContractNameCamelCase = joContractProperties.fileName.replace( ".json", "" );
+    const strContractNameCamelCase = joContractProperties.fileName.replace( ".json", "" );
     let strContractNameUnderscoreCase = convert_camel_case_to_underscore_case( strContractNameCamelCase ).replace( "e_r_c", "erc" );
     if( strContractNameUnderscoreCase == "message_proxy" || strContractNameUnderscoreCase == "message_proxy_for_schain" )
         strContractNameUnderscoreCase = "message_proxy_chain"; // message_proxy -> message_proxy_chain
-    g_joSummaryABI[ "" + strContractNameUnderscoreCase + "_address" ] = "" + joContractProperties.address;
-    g_joSummaryABI[ "" + strContractNameUnderscoreCase + "_abi" ] = joContractBuildInfo.abi;
+    g_joSummaryABI["" + strContractNameUnderscoreCase + "_address"] = "" + joContractProperties.address;
+    g_joSummaryABI["" + strContractNameUnderscoreCase + "_abi"] = joContractBuildInfo.abi;
     if( g_bVerbose )
-        log.write( cc.success("Done") + "\n" );
+        log.write( cc.success( "Done" ) + "\n" );
 }
 
 for( let idxAuthorizedCaller = 0; idxAuthorizedCaller < g_arrExampleAuthorizedCallers.length; ++ idxAuthorizedCaller ) {
-    let joExampleAuthorizedCaller = g_arrExampleAuthorizedCallers[ idxAuthorizedCaller ];
-    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers[ joExampleAuthorizedCaller.address ] = 1;
+    const joExampleAuthorizedCaller = g_arrExampleAuthorizedCallers[idxAuthorizedCaller];
+    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers[joExampleAuthorizedCaller.address] = 1;
 }
-
-
-
 
 //log.write( cc.success("Done, generated skaled config data: ") + cc.j(g_joSkaleConfigTemplate) + "\n" );
 //log.write( cc.success("Done, generated skaled config data: ") + cc.j(JSON.stringify( g_joSkaleConfigTemplate, null, 4 ) ) + "\n" );
