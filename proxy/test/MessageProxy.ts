@@ -50,6 +50,14 @@ import { randomString } from "./utils/helper";
 chai.should();
 chai.use((chaiAsPromised as any));
 
+import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
+import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
+import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
+import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
+import { deployDepositBox } from "./utils/deploy/depositBox";
+import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
+import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMainnet";
+
 const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
@@ -58,7 +66,7 @@ const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./
 const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
 const SkaleVerifier: SkaleVerifierContract = artifacts.require("./SkaleVerifier");
 
-contract("MessageProxy", ([user, deployer, client, customer]) => {
+contract("MessageProxy", ([deployer, user, client, customer]) => {
     let messageProxyForMainnet: MessageProxyForMainnetInstance;
     let messageProxyForSchain: MessageProxyForSchainInstance;
     let tokenManager1: TokenManagerInstance;
@@ -89,9 +97,9 @@ contract("MessageProxy", ([user, deployer, client, customer]) => {
             contractManager = await ContractManager.new({from: deployer});
             skaleVerifier = await SkaleVerifier.new({from: deployer});
             await contractManager.setContractsAddress("Schains", skaleVerifier.address, {from: deployer});
-            messageProxyForMainnet = await MessageProxyForMainnet.new("Mainnet", contractManager.address,
-                {from: deployer});
-            lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer});
+            lockAndDataForMainnet = await deployLockAndDataForMainnet();
+            messageProxyForMainnet = await deployMessageProxyForMainnet(
+                "Mainnet", contractManager.address, lockAndDataForMainnet);
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {

@@ -68,7 +68,7 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     lockAndDataForSchainERC20 =
         await LockAndDataForSchainERC20.new(lockAndDataForSchain.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
-    eRC20OnChain = await ERC20OnChain.new("ERC721OnChain", "ERC721", 18,
+    eRC20OnChain = await ERC20OnChain.new("ERC721OnChain", "ERC721",
         ((1000000000).toString()), deployer, {from: deployer});
 
   });
@@ -78,8 +78,9 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     const contractHere = eRC20OnChain.address;
     const to = user;
     const amount = 10;
-    // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
-    await eRC20OnChain.addMinter(lockAndDataForSchainERC20.address);
+    // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
+    const minterRole = await eRC20OnChain.MINTER_ROLE();
+    await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address);
     // execution
     const res = await lockAndDataForSchainERC20
         .sendERC20(contractHere, to, amount, {from: deployer});
@@ -102,8 +103,9 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     // preparation
     const contractHere = eRC20OnChain.address;
     const amount = 10;
-    // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
-    await eRC20OnChain.addMinter(lockAndDataForSchainERC20.address);
+    // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
+    const minterRole = await eRC20OnChain.MINTER_ROLE();
+    await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address);
     // mint some quantity of ERC20 tokens for `deployer` address
     await eRC20OnChain.mint(deployer, "1000000000", {from: deployer});
     // transfer some quantity of ERC20 tokens for `lockAndDataForMainnetERC20` address

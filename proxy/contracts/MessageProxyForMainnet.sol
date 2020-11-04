@@ -19,8 +19,10 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
+
+import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
@@ -53,7 +55,7 @@ interface ISchains {
 }
 
 
-contract MessageProxyForMainnet {
+contract MessageProxyForMainnet is Initializable {
 
     // Note: this uses assembly example from
 
@@ -89,6 +91,17 @@ contract MessageProxyForMainnet {
         uint256 amount,
         bytes data,
         uint256 length
+    );
+
+    event PostMessageError(
+        uint256 indexed msgCounter,
+        bytes32 indexed srcChainHash,
+        address sender,
+        string fromSchainID,
+        address to,
+        uint256 amount,
+        bytes data,
+        string message
     );
 
     struct OutgoingMessageData {
@@ -130,15 +143,6 @@ contract MessageProxyForMainnet {
     mapping ( uint256 => OutgoingMessageData ) private outgoingMessageData;
     uint256 private idxHead;
     uint256 private idxTail;
-
-    /// Create a new message proxy
-
-    constructor(string memory newChainID, address newContractManager) public {
-        owner = msg.sender;
-        authorizedCaller[msg.sender] = true;
-        chainID = newChainID;
-        contractManagerSkaleManager = newContractManager;
-    }
 
     function addAuthorizedCaller(address caller) external {
         require(msg.sender == owner, "Sender is not an owner");
@@ -272,10 +276,11 @@ contract MessageProxyForMainnet {
     )
         external
     {
+        bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(authorizedCaller[msg.sender], "Not authorized caller");
-        require(connectedChains[keccak256(abi.encodePacked(srcChainID))].inited, "Chain is not initialized");
+        require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
-            startingCounter == connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter,
+            startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starning counter is not qual to incomin message counter");
 
         if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
@@ -301,16 +306,28 @@ contract MessageProxyForMainnet {
         }
 
         for (uint256 i = 0; i < messages.length; i++) {
-            ContractReceiverForMainnet(messages[i].destinationContract).postMessage(
+            try ContractReceiverForMainnet(messages[i].destinationContract).postMessage(
                 messages[i].sender,
                 srcChainID,
                 messages[i].to,
                 messages[i].amount,
                 messages[i].data
-            );
+            ) {
+                ++startingCounter;
+            } catch Error(string memory reason) {
+                emit PostMessageError(
+                    ++startingCounter,
+                    srcChainHash,
+                    messages[i].sender,
+                    srcChainID,
+                    messages[i].to,
+                    messages[i].amount,
+                    messages[i].data,
+                    reason
+                );
+            }
         }
         connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint256(messages.length);
-
         popOutgoingMessageData(idxLastToPopNotIncluding);
     }
 
@@ -323,6 +340,15 @@ contract MessageProxyForMainnet {
         require(msg.sender == owner, "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
+    }
+
+    /// Create a new message proxy
+
+    function initialize(string memory newChainID, address newContractManager) public initializer {
+        owner = msg.sender;
+        authorizedCaller[msg.sender] = true;
+        chainID = newChainID;
+        contractManagerSkaleManager = newContractManager;
     }
 
     function verifyOutgoingMessageData(

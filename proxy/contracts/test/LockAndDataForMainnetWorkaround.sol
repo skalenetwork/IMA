@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   Migrations.sol - SKALE Interchain Messaging Agent
+ *   LockAndDataForMainnet.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -21,26 +21,16 @@
 
 pragma solidity ^0.6.10;
 
+import "../LockAndDataForMainnet.sol";
 
-contract Migrations {
-    address public owner;
-    uint256 public lastCompletedMigration;
 
-    modifier restricted() {
-        if (msg.sender == owner)
-        _;
+contract LockAndDataForMainnetWorkaround is LockAndDataForMainnet {
+
+    function setContract(string calldata contractName, address newContract) external override onlyOwner {
+        require(newContract != address(0), "New address is equal zero");
+        bytes32 contractId = keccak256(abi.encodePacked(contractName));
+        require(permitted[contractId] != newContract, "Contract is already added");
+        permitted[contractId] = newContract;
     }
 
-    constructor() public {
-        owner = msg.sender;
-    }
-
-    function setCompleted(uint256 completed) external restricted {
-        lastCompletedMigration = completed;
-    }
-
-    function upgrade(address newAddress) external restricted {
-        Migrations upgraded = Migrations(newAddress);
-        upgraded.setCompleted(lastCompletedMigration);
-    }
 }

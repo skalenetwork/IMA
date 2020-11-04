@@ -19,10 +19,10 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity ^0.6.10;
 
 import "./PermissionsForMainnet.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
 
 interface ILockAndDataERC20M {
     function erc20Tokens(uint256 index) external returns (address);
@@ -37,10 +37,6 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
     event ERC20TokenAdded(address indexed tokenHere, uint256 contractPosition);
     event ERC20TokenSent(address indexed tokenHere, uint256 contractPosition, uint256 amount);
 
-    constructor(address newLockAndDataAddress) PermissionsForMainnet(newLockAndDataAddress) public {
-        // solium-disable-previous-line no-empty-blocks
-    }
-
     function receiveERC20(
         address contractHere,
         address to,
@@ -52,7 +48,7 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         returns (bytes memory data)
     {
         address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        uint256 totalSupply = ERC20Detailed(contractHere).totalSupply();
+        uint256 totalSupply = ERC20UpgradeSafe(contractHere).totalSupply();
         require(amount <= totalSupply, "TotalSupply is not correct");
         uint256 contractPosition = ILockAndDataERC20M(lockAndDataERC20).erc20Mapper(contractHere);
         if (contractPosition == 0) {
@@ -96,6 +92,10 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         (contractPosition, receiver, amount) = fallbackDataParser(data);
     }
 
+    function initialize(address newLockAndDataAddress) public override initializer {
+        PermissionsForMainnet.initialize(newLockAndDataAddress);
+    }
+
     function encodeCreationData(
         address contractHere,
         uint256 contractPosition,
@@ -106,10 +106,10 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         view
         returns (bytes memory data)
     {
-        string memory name = ERC20Detailed(contractHere).name();
-        uint8 decimals = ERC20Detailed(contractHere).decimals();
-        string memory symbol = ERC20Detailed(contractHere).symbol();
-        uint256 totalSupply = ERC20Detailed(contractHere).totalSupply();
+        string memory name = ERC20UpgradeSafe(contractHere).name();
+        uint8 decimals = ERC20UpgradeSafe(contractHere).decimals();
+        string memory symbol = ERC20UpgradeSafe(contractHere).symbol();
+        uint256 totalSupply = ERC20UpgradeSafe(contractHere).totalSupply();
         data = abi.encodePacked(
             bytes1(uint8(3)),
             bytes32(contractPosition),

@@ -1,0 +1,23 @@
+{
+  "extends": "solhint:all",
+  "rules": {
+    "not-rely-on-time": "off",
+    "mark-callable-contracts": "off",
+    "reason-string": "off",
+
+    "compiler-version": ["warn","0.6.12"],
+    "state-visibility": "warn",
+    "no-empty-blocks": "warn",
+    "check-send-result": "error",
+    "private-vars-leading-underscore": "warn",
+    "code-complexity": "warn",
+    "visibility-modifier-order": "warn",
+    "func-name-mixedcase": "warn",
+    "function-max-lines": "warn",
+    "no-unused-vars": "warn",
+    "no-inline-assembly": "warn",
+    "contract-name-camelcase": "error",
+    "ordering": "warn",
+    "max-line-length": "warn"
+  }
+}

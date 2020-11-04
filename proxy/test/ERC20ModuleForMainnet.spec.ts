@@ -26,22 +26,12 @@
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
-    ERC20ModuleForMainnetContract,
     ERC20ModuleForMainnetInstance,
     EthERC20Contract,
     EthERC20Instance,
-    LockAndDataForMainnetContract,
-    LockAndDataForMainnetERC20Contract,
     LockAndDataForMainnetERC20Instance,
     LockAndDataForMainnetInstance,
-    LockAndDataForSchainContract,
-    LockAndDataForSchainInstance,
-    MessageProxyForMainnetContract,
     MessageProxyForMainnetInstance,
-    MessageProxyForSchainContract,
-    MessageProxyForSchainInstance,
-      TokenFactoryContract,
-    TokenFactoryInstance,
     } from "../types/truffle-contracts";
 
 import chai = require("chai");
@@ -50,40 +40,30 @@ import { gasMultiplier } from "./utils/command_line";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
-const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
-const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
-const LockAndDataForMainnetERC20: LockAndDataForMainnetERC20Contract =
-    artifacts.require("./LockAndDataForMainnetERC20");
+import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
+import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
+import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
+import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
+
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
-const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
-const ERC20ModuleForMainnet: ERC20ModuleForMainnetContract = artifacts.require("./ERC20ModuleForMainnet");
 
 const contractManager = "0x0000000000000000000000000000000000000000";
 
 contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
   let messageProxyForMainnet: MessageProxyForMainnetInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
-  // let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
   let ethERC20: EthERC20Instance;
-  // let tokenFactory: TokenFactoryInstance;
   let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
 
   beforeEach(async () => {
-    messageProxyForMainnet = await MessageProxyForMainnet.new(
-      "Mainnet", contractManager, {from: deployer});
-    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer});
-    // lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
-    lockAndDataForMainnetERC20 =
-        await LockAndDataForMainnetERC20.new(lockAndDataForMainnet.address,
-        {from: deployer});
-    // await lockAndDataForMainnet.setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address);
+
+    lockAndDataForMainnet = await deployLockAndDataForMainnet();
+    messageProxyForMainnet = await deployMessageProxyForMainnet(
+      "Mainnet", contractManager, lockAndDataForMainnet);
+    lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
     ethERC20 = await EthERC20.new({from: deployer});
-    // tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
-        // {from: deployer});
-    eRC20ModuleForMainnet = await ERC20ModuleForMainnet.new(lockAndDataForMainnet.address,
-        {from: deployer});
+    eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
   });
 
   it("should invoke `receiveERC20` with `isRaw==true`", async () => {
@@ -93,10 +73,6 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const amount = 10;
     const isRaw = true;
     await ethERC20.mint(deployer, 10, {from: deployer});
-    await lockAndDataForMainnet
-        .setContract("ERC20Module", eRC20ModuleForMainnet.address, {from: deployer});
-    await lockAndDataForMainnet
-        .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
     // execution
     const res = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
     // expectation
@@ -109,12 +85,6 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const to = user;
     const amount = 6;
     const isRaw = false;
-    // set `ERC20Module` contract before invoke `receiveERC20`
-    await lockAndDataForMainnet
-        .setContract("ERC20Module", eRC20ModuleForMainnet.address, {from: deployer});
-    // set `LockAndDataERC20` contract before invoke `receiveERC20`
-    await lockAndDataForMainnet
-        .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
     await ethERC20.mint(deployer, 10, {from: deployer});
     // execution
     const res = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
@@ -130,12 +100,6 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const amount = 10;
     const isRaw = false;
-    // set `ERC20Module` contract before invoke `receiveERC20`
-    await lockAndDataForMainnet
-        .setContract("ERC20Module", eRC20ModuleForMainnet.address, {from: deployer});
-    // set `LockAndDataERC20` contract before invoke `receiveERC20`
-    await lockAndDataForMainnet
-        .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
     // mint some quantity of ERC20 tokens for `deployer` address
     await ethERC20.mint(deployer, "1000000000", {from: deployer});
     // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
@@ -156,12 +120,6 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const to0 = ethERC20.address; // bytes20
     const amount = 10;
     const isRaw = true;
-    // set `ERC20Module` contract before invoke `receiveERC20`
-    await lockAndDataForMainnet
-        .setContract("ERC20Module", eRC20ModuleForMainnet.address, {from: deployer});
-    // set `LockAndDataERC20` contract before invoke `receiveERC20`
-    await lockAndDataForMainnet
-        .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
     // mint some quantity of ERC20 tokens for `deployer` address
     await ethERC20.mint(deployer, "1000000000", {from: deployer});
     // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
@@ -182,12 +140,6 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const to0 = invoker; // bytes20
     const amount = 10;
     const isRaw = true;
-    // set `ERC20Module` contract before invoke `receiveERC20`
-    await lockAndDataForMainnet
-        .setContract("ERC20Module", eRC20ModuleForMainnet.address, {from: deployer});
-    // set `LockAndDataERC20` contract before invoke `receiveERC20`
-    await lockAndDataForMainnet
-        .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
     // mint some quantity of ERC20 tokens for `deployer` address
     await ethERC20.mint(deployer, "1000000000", {from: deployer});
     // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
@@ -208,12 +160,6 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const amount = 10;
     const isRaw = false;
-    // set `ERC20Module` contract before invoke `receiveERC20`
-    await lockAndDataForMainnet
-        .setContract("ERC20Module", eRC20ModuleForMainnet.address, {from: deployer});
-    // set `LockAndDataERC20` contract before invoke `receiveERC20`
-    await lockAndDataForMainnet
-        .setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address, {from: deployer});
     // mint some quantity of ERC20 tokens for `deployer` address
     await ethERC20.mint(deployer, "1000000000", {from: deployer});
     // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`

@@ -19,10 +19,10 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity ^0.6.10;
 
 import "./PermissionsForMainnet.sol";
-import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Metadata.sol";
 
 interface ILockAndDataERC721M {
     function erc721Tokens(uint256 index) external returns (address);
@@ -35,10 +35,6 @@ interface ILockAndDataERC721M {
 contract ERC721ModuleForMainnet is PermissionsForMainnet {
 
     event ERC721TokenAdded(address indexed tokenHere, uint256 contractPosition);
-
-    constructor(address newLockAndDataAddress) PermissionsForMainnet(newLockAndDataAddress) public {
-        // solium-disable-previous-line no-empty-blocks
-    }
 
     function receiveERC721(
         address contractHere,
@@ -91,14 +87,18 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         }
     }
 
+    function initialize(address newLockAndDataAddress) public override initializer {
+        PermissionsForMainnet.initialize(newLockAndDataAddress);
+    }
+
     function encodeData(
         address contractHere,
         uint256 contractPosition,
         address to,
         uint256 tokenId) internal view returns (bytes memory data)
         {
-        string memory name = IERC721Full(contractHere).name();
-        string memory symbol = IERC721Full(contractHere).symbol();
+        string memory name = IERC721Metadata(contractHere).name();
+        string memory symbol = IERC721Metadata(contractHere).symbol();
         data = abi.encodePacked(
             bytes1(uint8(5)),
             bytes32(contractPosition),

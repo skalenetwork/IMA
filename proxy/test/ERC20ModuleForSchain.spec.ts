@@ -36,8 +36,6 @@ import {
     LockAndDataForSchainERC20Contract,
     LockAndDataForSchainERC20Instance,
     LockAndDataForSchainInstance,
-    MessageProxyForMainnetContract,
-    MessageProxyForMainnetInstance,
     MessageProxyForSchainContract,
     MessageProxyForSchainInstance,
     TokenFactoryContract,
@@ -53,7 +51,7 @@ chai.use((chaiAsPromised as any));
 // tslint:disable-next-line: no-var-requires
 const ABIERC20OnChain = require("../build/contracts/ERC20OnChain.json");
 
-const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
+const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const LockAndDataForSchainERC20: LockAndDataForSchainERC20Contract =
     artifacts.require("./LockAndDataForSchainERC20");
@@ -65,7 +63,7 @@ const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 const contractManager = "0x0000000000000000000000000000000000000000";
 
 contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
-  let messageProxyForMainnet: MessageProxyForMainnetInstance;
+  let messageProxyForSchain: MessageProxyForSchainInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForSchainERC20: LockAndDataForSchainERC20Instance;
   let ethERC20: EthERC20Instance;
@@ -75,7 +73,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
   let eRC20OnChain2: ERC20OnChainInstance;
 
   beforeEach(async () => {
-    messageProxyForMainnet = await MessageProxyForMainnet.new(
+    messageProxyForSchain = await MessageProxyForSchain.new(
       "Schain", contractManager, {from: deployer});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     lockAndDataForSchainERC20 =
@@ -86,9 +84,9 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
         {from: deployer});
     eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
         {from: deployer});
-    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20", 18,
+    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
         ((1000000000).toString()), deployer, {from: deployer});
-    eRC20OnChain2 = await ERC20OnChain.new("ERC20OnChain2", "ERC202", 18,
+    eRC20OnChain2 = await ERC20OnChain.new("ERC20OnChain2", "ERC202",
         ((1000000000).toString()), deployer, {from: deployer});
   });
 
@@ -134,8 +132,9 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const amount = 10;
     const isRaw = false;
     const contractPosition = 1;
-    // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
-    await eRC20OnChain.addMinter(lockAndDataForSchainERC20.address);
+    // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
+    const minterRole = await eRC20OnChain.MINTER_ROLE();
+    await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address);
     // mint some quantity of ERC20 tokens for `deployer` address
     await eRC20OnChain.mint(deployer, "1000000000", {from: deployer});
     // transfer some quantity of ERC20 tokens for `lockAndDataForMainnetERC20` address
@@ -176,8 +175,9 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // add ERC20 token to avoid "Not existing ERC-20 contract" error in `receiveERC20` func
     await lockAndDataForSchainERC20
       .addERC20Token(contractHere, contractPosition, {from: deployer});
-    // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
-    await eRC20OnChain.addMinter(lockAndDataForSchainERC20.address);
+    // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
+    const minterRole = await eRC20OnChain.MINTER_ROLE();
+    await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address);
     // get data from `receiveERC20`
     const data = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
     await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
@@ -271,15 +271,16 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const to0 = eRC20OnChain2.address; // bytes20
     const amount = 10;
     const isRaw = true;
-    const error = "MinterRole: caller does not have the Minter role"
+    const error = "Sender is not a Minter"
     // set `ERC20Module` contract before invoke `receiveERC20`
     await lockAndDataForSchain
         .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
     // set `LockAndDataERC20` contract before invoke `receiveERC20`
     await lockAndDataForSchain
         .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
-    // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
-    await eRC20OnChain2.addMinter(lockAndDataForSchainERC20.address);
+    // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
+    const minterRole = await eRC20OnChain.MINTER_ROLE();
+    await eRC20OnChain2.grantRole(minterRole, lockAndDataForSchainERC20.address);
     // get data from `receiveERC20`
     await eRC20OnChain.mint(lockAndDataForSchainERC20.address, "20", {from: deployer});
     await lockAndDataForSchainERC20.addERC20Token(contractHere, 1, {from: deployer});
@@ -303,9 +304,10 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // set `LockAndDataERC20` contract before invoke `receiveERC20`
     await lockAndDataForSchain
         .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
-    // invoke `addMinter` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
-    await eRC20OnChain2.addMinter(lockAndDataForSchainERC20.address);
-    await eRC20OnChain.addMinter(lockAndDataForSchainERC20.address);
+    // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
+    const minterRole = await eRC20OnChain.MINTER_ROLE();
+    await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address);
+    await eRC20OnChain2.grantRole(minterRole, lockAndDataForSchainERC20.address);
     // get data from `receiveERC20`
     await eRC20OnChain.mint(lockAndDataForSchainERC20.address, "10", {from: deployer});
     // await eRC20OnChain2.mint(lockAndDataForSchainERC20.address, "20", {from: deployer});

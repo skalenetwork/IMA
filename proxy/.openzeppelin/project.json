@@ -1,0 +1,31 @@
+{
+  "manifestVersion": "2.2",
+  "contracts": {
+    "MessageProxyForMainnet": "MessageProxyForMainnet",
+    "LockAndDataForMainnet": "LockAndDataForMainnet",
+    "DepositBox": "DepositBox",
+    "ERC20ModuleForMainnet": "ERC20ModuleForMainnet",
+    "LockAndDataForMainnetERC20": "LockAndDataForMainnetERC20",
+    "ERC721ModuleForMainnet": "ERC721ModuleForMainnet",
+    "LockAndDataForMainnetERC721": "LockAndDataForMainnetERC721"
+  },
+  "dependencies": {},
+  "name": "skale-ima-proxy",
+  "version": "1.0.0",
+  "compiler": {
+    "compilerSettings": {
+      "optimizer": {
+        "enabled": true,
+        "runs": "200"
+      }
+    },
+    "typechain": {
+      "enabled": false
+    },
+    "manager": "openzeppelin",
+    "artifactsDir": "build/contracts",
+    "contractsDir": "contracts",
+    "solcVersion": "0.6.12"
+  },
+  "telemetryOptIn": false
+}
