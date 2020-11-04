@@ -274,7 +274,7 @@ for( let idxContract = 0; idxContract < g_arrContracts.length; ++ idxContract ) 
     const joContractProperties = g_arrContracts[idxContract];
     if( g_bVerbose )
         log.write( cc.normal( "Processing contract " ) + cc.info( joContractProperties.fileName ) + cc.normal( "..." ) + "\n" );
-    const joContractBuildInfo = imaUtils.jsonFileLoad( imaUtils.normalizePath( __dirname + "/build/contracts/" + joContractProperties.fileName ) );
+    const joContractBuildInfo = imaUtils.jsonFileLoad( imaUtils.normalizePath( path.join( __dirname, "/build/contracts/", joContractProperties.fileName ) ) );
     if( g_bVerbose ) {
         log.write( cc.normal( "    Contract name is " ) + cc.notice( joContractBuildInfo.contractName ) + "\n" );
         log.write( cc.normal( "    Runtime byte-code string length is " ) + cc.notice( joContractBuildInfo.deployedBytecode.length ) + "\n" );
