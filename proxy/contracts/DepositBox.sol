@@ -65,6 +65,12 @@ contract DepositBox is PermissionsForMainnet {
         bytes data
     );
 
+    event Error(
+        address to,
+        uint256 amount,
+        string message
+    );
+
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
