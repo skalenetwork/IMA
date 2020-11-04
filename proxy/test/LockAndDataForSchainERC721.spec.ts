@@ -77,8 +77,9 @@ contract("LockAndDataForSchainERC721", ([deployer, user, invoker]) => {
     const contractHere = eRC721OnChain.address;
     const to = user;
     const tokenId = 10;
-    // invoke `addMinter` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
-    await eRC721OnChain.addMinter(lockAndDataForSchainERC721.address);
+    // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
+    const minterRole = await eRC721OnChain.MINTER_ROLE();
+    await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
     // execution
     const res = await lockAndDataForSchainERC721
         .sendERC721(contractHere, to, tokenId, {from: deployer});

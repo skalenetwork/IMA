@@ -19,9 +19,9 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity ^0.6.10;
 
-import "./OwnableForMainnet.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/access/AccessControl.sol";
 
 interface IContractManagerForMainnet {
     function permitted(bytes32 contractName) external view returns (address);
@@ -32,22 +32,10 @@ interface IContractManagerForMainnet {
  * @title PermissionsForMainnet - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-contract PermissionsForMainnet is OwnableForMainnet {
+contract PermissionsForMainnet is AccessControlUpgradeSafe {
 
     // address of ContractManager
     address public lockAndDataAddress_; // l_sergiy: changed name _
-
-    /**
-     * @dev constructor - sets current address of ContractManager
-     * @param newContractsAddress - current address of ContractManager
-     */
-    constructor(address newContractsAddress) public {
-        lockAndDataAddress_ = newContractsAddress;
-    }
-
-    function getLockAndDataAddress() public view returns ( address a ) {
-        return lockAndDataAddress_;
-    }
 
     /**
      * @dev allow - throws if called by any account and contract other than the owner
@@ -62,4 +50,33 @@ contract PermissionsForMainnet is OwnableForMainnet {
         _;
     }
 
+    modifier onlyOwner() {
+        require(_isOwner(), "Caller is not the owner");
+        _;
+    }
+
+    /**
+     * @dev initialize - sets current address of ContractManager
+     * @param newContractsAddress - current address of ContractManager
+     */
+    function initialize(address newContractsAddress) public virtual initializer {
+        AccessControlUpgradeSafe.__AccessControl_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        lockAndDataAddress_ = newContractsAddress;
+    }
+
+    function getLockAndDataAddress() public view returns ( address a ) {
+        return lockAndDataAddress_;
+    }
+
+    /**
+     * @dev Returns owner address.
+     */
+    function getOwner() public view returns ( address ow ) {
+        return getRoleMember(DEFAULT_ADMIN_ROLE, 0);
+    }
+
+    function _isOwner() internal view returns (bool) {
+        return hasRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 }

@@ -19,10 +19,10 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity ^0.6.10;
 
 import "./PermissionsForSchain.sol";
-import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Metadata.sol";
 
 interface ITokenFactoryForERC721 {
     function createERC721(bytes calldata data)
@@ -112,8 +112,8 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         address to,
         uint256 tokenId) internal view returns (bytes memory data)
         {
-        string memory name = IERC721Full(contractHere).name();
-        string memory symbol = IERC721Full(contractHere).symbol();
+        string memory name = IERC721Metadata(contractHere).name();
+        string memory symbol = IERC721Metadata(contractHere).symbol();
         data = abi.encodePacked(
             bytes1(uint8(5)),
             bytes32(contractPosition),

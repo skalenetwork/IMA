@@ -19,8 +19,10 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
+
+import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
@@ -53,7 +55,7 @@ interface ISchains {
 }
 
 
-contract MessageProxyForMainnet {
+contract MessageProxyForMainnet is Initializable {
 
     // Note: this uses assembly example from
 
@@ -130,15 +132,6 @@ contract MessageProxyForMainnet {
     mapping ( uint256 => OutgoingMessageData ) private outgoingMessageData;
     uint256 private idxHead;
     uint256 private idxTail;
-
-    /// Create a new message proxy
-
-    constructor(string memory newChainID, address newContractManager) public {
-        owner = msg.sender;
-        authorizedCaller[msg.sender] = true;
-        chainID = newChainID;
-        contractManagerSkaleManager = newContractManager;
-    }
 
     function addAuthorizedCaller(address caller) external {
         require(msg.sender == owner, "Sender is not an owner");
@@ -323,6 +316,15 @@ contract MessageProxyForMainnet {
         require(msg.sender == owner, "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
+    }
+
+    /// Create a new message proxy
+
+    function initialize(string memory newChainID, address newContractManager) public initializer {
+        owner = msg.sender;
+        authorizedCaller[msg.sender] = true;
+        chainID = newChainID;
+        contractManagerSkaleManager = newContractManager;
     }
 
     function verifyOutgoingMessageData(

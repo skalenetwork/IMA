@@ -19,22 +19,18 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity ^0.6.10;
 
 
 import "./PermissionsForMainnet.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 
 
 contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
 
     mapping(uint256 => address) public erc20Tokens;
     mapping(address => uint256) public erc20Mapper;
-    uint256 newIndexERC20 = 1;
-
-    constructor(address _lockAndDataAddress) PermissionsForMainnet(_lockAndDataAddress) public {
-        // solium-disable-previous-line no-empty-blocks
-    }
+    uint256 newIndexERC20;
 
     function sendERC20(address contractHere, address to, uint256 amount) external allow("ERC20Module") returns (bool) {
         require(IERC20(contractHere).balanceOf(address(this)) >= amount, "Not enough money");
@@ -48,5 +44,10 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
         erc20Mapper[addressERC20] = index;
         newIndexERC20++;
         return index;
+    }
+
+    function initialize(address newLockAndDataAddress) public override initializer {
+        PermissionsForMainnet.initialize(newLockAndDataAddress);
+        newIndexERC20 = 1;
     }
 }

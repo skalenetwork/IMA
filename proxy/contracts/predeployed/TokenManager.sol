@@ -19,14 +19,14 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity ^0.6.10;
 
 import "./PermissionsForSchain.sol";
 import "./../interfaces/IMessageProxy.sol";
 import "./../interfaces/IERC20Module.sol";
 import "./../interfaces/IERC721Module.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
-import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
 
 
 interface ILockAndDataTM {
@@ -112,7 +112,7 @@ contract TokenManager is PermissionsForSchain {
         proxyForSchainAddress_ = newProxyAddress;
     }
 
-    function() external payable {
+    fallback() external payable {
         revert("Not allowed. in TokenManager");
     }
 
@@ -143,14 +143,14 @@ contract TokenManager is PermissionsForSchain {
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
-            ERC20Detailed(contractHere).allowance(
+            IERC20(contractHere).allowance(
                 msg.sender,
                 address(this)
             ) >= amount,
             "Not allowed ERC20 Token"
         );
         require(
-            ERC20Detailed(contractHere).transferFrom(
+            IERC20(contractHere).transferFrom(
                 msg.sender,
                 lockAndDataERC20,
                 amount
@@ -185,14 +185,14 @@ contract TokenManager is PermissionsForSchain {
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
-            ERC20Detailed(contractHere).allowance(
+            IERC20(contractHere).allowance(
                 msg.sender,
                 address(this)
             ) >= amount,
             "Not allowed ERC20 Token"
         );
         require(
-            ERC20Detailed(contractHere).transferFrom(
+            IERC20(contractHere).transferFrom(
                 msg.sender,
                 lockAndDataERC20,
                 amount
@@ -227,14 +227,14 @@ contract TokenManager is PermissionsForSchain {
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
-            ERC20Detailed(contractHere).allowance(
+            IERC20(contractHere).allowance(
                 msg.sender,
                 address(this)
             ) >= amount,
             "Not allowed ERC20 Token"
         );
         require(
-            ERC20Detailed(contractHere).transferFrom(
+            IERC20(contractHere).transferFrom(
                 msg.sender,
                 lockAndDataERC20,
                 amount
@@ -265,14 +265,14 @@ contract TokenManager is PermissionsForSchain {
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
-            ERC20Detailed(contractHere).allowance(
+            IERC20(contractHere).allowance(
                 msg.sender,
                 address(this)
             ) >= amount,
             "Not allowed ERC20 Token"
         );
         require(
-            ERC20Detailed(contractHere).transferFrom(
+            IERC20(contractHere).transferFrom(
                 msg.sender,
                 lockAndDataERC20,
                 amount
@@ -298,9 +298,9 @@ contract TokenManager is PermissionsForSchain {
             permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).
             permitted(keccak256(abi.encodePacked("ERC721Module")));
-        require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
-        require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
+        require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
+        IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
+        require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         require(
             ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
@@ -330,9 +330,9 @@ contract TokenManager is PermissionsForSchain {
             permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).
             permitted(keccak256(abi.encodePacked("ERC721Module")));
-        require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
-        require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
+        require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
+        IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
+        require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         require(
             ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
@@ -362,9 +362,9 @@ contract TokenManager is PermissionsForSchain {
             permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).
             permitted(keccak256(abi.encodePacked("ERC721Module")));
-        require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
-        require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
+        require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
+        IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
+        require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         bytes memory data = IERC721Module(erc721Module).receiveERC721(
             contractHere,
             to,
@@ -390,9 +390,9 @@ contract TokenManager is PermissionsForSchain {
             permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).
             permitted(keccak256(abi.encodePacked("ERC721Module")));
-        require(IERC721Full(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721Full(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
-        require(IERC721Full(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
+        require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
+        IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
+        require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         bytes memory data = IERC721Module(erc721Module).receiveERC721(
             contractHere,
             to,

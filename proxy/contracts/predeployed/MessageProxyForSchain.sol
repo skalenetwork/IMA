@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 import "./SkaleFeatures.sol";
@@ -363,7 +363,7 @@ contract MessageProxyForSchain {
     }
 
     function checkIsAuthorizedCaller( address a ) public view returns ( bool rv ) { // l_sergiy: added
-        if (authorizedCaller_[msg.sender] )
+        if (authorizedCaller_[a] )
             return true;
         if (isCustomDeploymentMode_)
             return false;

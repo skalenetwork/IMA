@@ -2,6 +2,13 @@
 proxy/build/
 proxy/types/
 
+# artifacts
+proxy/artifacts/
+proxy/cache/
+
+# openzeppelin
+proxy/.openzeppelin/dev-*.json
+proxy/.openzeppelin/.session
 
 # idea
 .DS_Store

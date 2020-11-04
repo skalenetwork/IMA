@@ -51,6 +51,14 @@ import { gasMultiplier } from "./utils/command_line";
 chai.should();
 chai.use((chaiAsPromised as any));
 
+import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
+import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
+import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
+import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
+import { deployDepositBox } from "./utils/deploy/depositBox";
+import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
+import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMainnet";
+
 const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
@@ -70,13 +78,11 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
   let eRC721OnChain: ERC721OnChainInstance;
 
   beforeEach(async () => {
-    messageProxyForMainnet = await MessageProxyForMainnet.new(
-        "Mainnet", contractManager, {from: deployer});
-    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer});
+    lockAndDataForMainnet = await deployLockAndDataForMainnet();
+    messageProxyForMainnet = await deployMessageProxyForMainnet(
+      "Mainnet", contractManager, lockAndDataForMainnet);
+    lockAndDataForMainnetERC721 = await deployLockAndDataForMainnetERC721(lockAndDataForMainnet);
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
-    lockAndDataForMainnetERC721 =
-        await LockAndDataForMainnetERC721.new(lockAndDataForMainnet.address,
-        {from: deployer});
     await lockAndDataForSchain.setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address);
     tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
         {from: deployer});

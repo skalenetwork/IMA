@@ -42,19 +42,19 @@ import { randomString } from "./utils/helper";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
+const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 
 const contractManager = "0x0000000000000000000000000000000000000000";
 
 contract("LockAndDataForSchain", ([user, deployer]) => {
-  let messageProxyForMainnet: MessageProxyForMainnetInstance;
+  let messageProxyForSchain: MessageProxyForSchainInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let ethERC20: EthERC20Instance;
 
   beforeEach(async () => {
-    messageProxyForMainnet = await MessageProxyForMainnet.new(
+    messageProxyForSchain = await MessageProxyForSchain.new(
       "Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     ethERC20 = await EthERC20.new({from: deployer, gas: 8000000 * gasMultiplier});

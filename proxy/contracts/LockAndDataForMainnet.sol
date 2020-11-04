@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.5.3;
+pragma solidity ^0.6.10;
 
 import "./OwnableForMainnet.sol";
 
@@ -47,15 +47,11 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         string message
     );
 
-    constructor() OwnableForMainnet() public {
-        authorizedCaller[msg.sender] = true;
-    }
-
     function receiveEth(address from) external allow("DepositBox") payable {
         emit MoneyReceived(from, msg.value);
     }
 
-    function setContract(string calldata contractName, address newContract) external onlyOwner {
+    function setContract(string calldata contractName, address newContract) external virtual onlyOwner {
         require(newContract != address(0), "New address is equal zero");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(permitted[contractId] != newContract, "Contract is already added");
@@ -66,14 +62,6 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         }
         require(length > 0, "Given contract address does not contain code");
         permitted[contractId] = newContract;
-    }
-
-    function hasSchain( string calldata schainID ) external view returns (bool) {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        if ( tokenManagerAddresses[schainHash] == address(0) ) {
-            return false;
-        }
-        return true;
     }
 
     function addSchain(string calldata schainID, address tokenManagerAddress) external {
@@ -122,5 +110,22 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         }
         to.transfer(amount);
         return true;
+    }
+
+    function getContract(string memory contractName) external view returns (address) {
+        return permitted[keccak256(abi.encodePacked(contractName))];
+    }
+
+    function hasSchain( string calldata schainID ) external view returns (bool) {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        if ( tokenManagerAddresses[schainHash] == address(0) ) {
+            return false;
+        }
+        return true;
+    }
+
+    function initialize() public override initializer {
+        OwnableForMainnet.initialize();
+        authorizedCaller[msg.sender] = true;
     }
 }

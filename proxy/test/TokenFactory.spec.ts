@@ -156,7 +156,7 @@ contract("ERC20OnChain", ([user, deployer]) => {
     messageProxy = await MessageProxyForSchain.new(
       "Mainnet", contractManager, {from: deployer});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
-    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20", 18,
+    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
         ((1000000000).toString()), deployer, {from: deployer});
   });
 
@@ -169,7 +169,7 @@ contract("ERC20OnChain", ([user, deployer]) => {
 
   it("should rejected with `Call does not go from ERC20Module` when invoke `setTotalSupplyOnMainnet`", async () => {
     // preparation
-    const error = "Call does not go from ERC20Module";
+    const error = "Caller is not ERC20Module";
     const newTotalSupply = 500;
     // execution
     await eRC20OnChain.setTotalSupplyOnMainnet(newTotalSupply, {from: user})
