@@ -66,20 +66,16 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
     --cid-s-chain=$CID_SCHAIN \
     --abi-main-net=$MAINNET_PROXY_PATH \
     --abi-s-chain=$SCHAIN_PROXY_PATH \
-
     --sgx-url-main-net=$SGX_URL \
     --sgx-url-s-chain=$SGX_URL \
     --sgx-ecdsa-key-main-net=$ECDSA_KEY_NAME \
     --sgx-ecdsa-key-s-chain=$ECDSA_KEY_NAME \
-    
     --sgx-ssl-key-main-net=$SGX_SSL_KEY_PATH \
     --sgx-ssl-key-s-chain=$SGX_SSL_KEY_PATH \
     --sgx-ssl-cert-main-net=$SGX_SSL_CERT_PATH \
     --sgx-ssl-cert-s-chain=$SGX_SSL_CERT_PATH \
-    
     --address-main-net=$NODE_ADDRESS \
     --address-s-chain=$NODE_ADDRESS \
-
     --sign-messages \
     --bls-glue=/ima/bls_binaries/bls_glue \
     --hash-g1=/ima/bls_binaries/hash_g1 \
@@ -98,6 +94,5 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
     --time-framing=$TIME_FRAMING \
     --time-gap=$TIME_GAP"
 
-
-$DIR/main.js --register $BASE_OPTIONS
-$DIR/main.js --loop $BASE_OPTIONS
+node $DIR/main.js --register $BASE_OPTIONS
+node $DIR/main.js --loop $BASE_OPTIONS

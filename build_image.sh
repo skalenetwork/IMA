@@ -5,8 +5,8 @@ then
     echo "No VERSION provided, exiting"
     exit 1
 fi
-USERNAME=$1
-PASSWORD=$2
+DOCKER_USERNAME=$1
+DOCKER_PASSWORD=$2
 
 NAME=ima
 REPO_NAME=skalenetwork/$NAME
@@ -24,12 +24,12 @@ then
     fi
 fi
 
-if [[ ! -z "$USERNAME" ]]
+if [[ ! -z "$DOCKER_USERNAME" ]]
 then
-    echo "$PASSWORD" | docker login --username $USERNAME --password-stdin
+    echo "$DOCKER_PASSWORD" | docker login --username $DOCKER_USERNAME --password-stdin
     docker push $IMAGE_NAME || exit $?
     if [ "$RELEASE" = true ]
     then
         docker push $LATEST_IMAGE_NAME || exit $?
     fi
-fi
+
