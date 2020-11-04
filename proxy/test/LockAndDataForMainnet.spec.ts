@@ -78,19 +78,20 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
       parseInt(lockAndDataBalanceBefore, 10)).to.be.equal(parseInt(wei, 10));
   });
 
-  it("should be Error event with message `Not enough ETH. in `LockAndDataForMainnet.sendEth`", async () => {
+  it("should check sendEth returned bool value", async () => {
     // preparation
-    const wei = "1000";
-    const error = "Not enough ETH. in `LockAndDataForMainnet.sendEth`";
+    const wei = 1000;
     // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
     await lockAndDataForMainnet
-      .receiveEth(invoker, {value: wei, from: deployer});
+      .receiveEth(invoker, {value: wei.toString(), from: deployer});
     // execution/expectation
-    const {logs} = await lockAndDataForMainnet
-      .sendEth(invoker, 10000,
-        {from: deployer});
-    // expectation
-    expect(logs[0].args.message).to.be.equal(error);
+    let value = await lockAndDataForMainnet
+      .sendEth.call(invoker, wei, {from: deployer});
+    expect(value).to.be.equal(true);
+
+    value = await lockAndDataForMainnet
+      .sendEth.call(invoker, wei + 1, {from: deployer});
+    expect(value).to.be.equal(false);
   });
 
   it("should work `sendEth`", async () => {

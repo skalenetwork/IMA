@@ -1019,11 +1019,9 @@ contract("TokenManager", ([deployer, user, client]) => {
             tokenManager = await TokenManager.new(schainID, deployer,
                 lockAndDataForSchain.address, {from: deployer});
             // execution
-            const {logs} = await tokenManager
-                .postMessage(sender, chainID, user, amount, bytesData, {from: deployer});
-            // expectation
-            expect(logs[0].args.message).to.be.equal(error);
-
+            await tokenManager
+                .postMessage(sender, chainID, user, amount, bytesData, {from: deployer})
+                .should.be.eventually.rejectedWith(error);
         });
 
         it("should be Error event with message `Invalid data`", async () => {
@@ -1045,10 +1043,9 @@ contract("TokenManager", ([deployer, user, client]) => {
             await lockAndDataForSchain
                 .addSchain(schainID, deployer, {from: deployer});
             // execution
-            const {logs} = await tokenManager
-                .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
-            // expectation
-            expect(logs[0].args.message).to.be.equal(error);
+            await tokenManager
+                .postMessage(sender, schainID, user, amount, bytesData, {from: deployer})
+                .should.be.eventually.rejectedWith(error);
         });
 
         it("should transfer eth", async () => {

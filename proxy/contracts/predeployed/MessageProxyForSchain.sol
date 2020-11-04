@@ -77,6 +77,17 @@ contract MessageProxyForSchain {
         uint256 length
     );
 
+    event PostMessageError(
+        uint256 indexed msgCounter,
+        bytes32 indexed srcChainHash,
+        address sender,
+        string fromSchainID,
+        address to,
+        uint256 amount,
+        bytes data,
+        string message
+    );
+
     struct OutgoingMessageData {
         string dstChain;
         bytes32 dstChainHash;
@@ -313,19 +324,33 @@ contract MessageProxyForSchain {
         external
         connectMainnet
     {
+        bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(checkIsAuthorizedCaller(msg.sender), "Not authorized caller"); // l_sergiy: replacement
-        require(connectedChains[keccak256(abi.encodePacked(srcChainID))].inited, "Chain is not initialized");
+        require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
-            startingCounter == connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter,
+            startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
         for (uint256 i = 0; i < messages.length; i++) {
-            ContractReceiverForSchain(messages[i].destinationContract).postMessage(
+            try ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                 messages[i].sender,
                 srcChainID,
                 messages[i].to,
                 messages[i].amount,
                 messages[i].data
-            );
+            ) {
+                ++startingCounter;
+            } catch Error(string memory reason){
+                emit PostMessageError(
+                    ++startingCounter,
+                    srcChainHash,
+                    messages[i].sender,
+                    srcChainID,
+                    messages[i].to,
+                    messages[i].amount,
+                    messages[i].data,
+                    reason
+                );
+            }
         }
         connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint256(messages.length);
         popOutgoingMessageData(idxLastToPopNotIncluding);
