@@ -25,7 +25,7 @@ import "./PermissionsForSchain.sol";
 import "./../interfaces/IMessageProxy.sol";
 import "./../interfaces/IERC20Module.sol";
 import "./../interfaces/IERC721Module.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
 
 
@@ -134,14 +134,14 @@ contract TokenManager is PermissionsForSchain {
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
-            ERC20UpgradeSafe(contractHere).allowance(
+            IERC20(contractHere).allowance(
                 msg.sender,
                 address(this)
             ) >= amount,
             "Not allowed ERC20 Token"
         );
         require(
-            ERC20UpgradeSafe(contractHere).transferFrom(
+            IERC20(contractHere).transferFrom(
                 msg.sender,
                 lockAndDataERC20,
                 amount
@@ -176,14 +176,14 @@ contract TokenManager is PermissionsForSchain {
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
-            ERC20UpgradeSafe(contractHere).allowance(
+            IERC20(contractHere).allowance(
                 msg.sender,
                 address(this)
             ) >= amount,
             "Not allowed ERC20 Token"
         );
         require(
-            ERC20UpgradeSafe(contractHere).transferFrom(
+            IERC20(contractHere).transferFrom(
                 msg.sender,
                 lockAndDataERC20,
                 amount
@@ -218,14 +218,14 @@ contract TokenManager is PermissionsForSchain {
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
-            ERC20UpgradeSafe(contractHere).allowance(
+            IERC20(contractHere).allowance(
                 msg.sender,
                 address(this)
             ) >= amount,
             "Not allowed ERC20 Token"
         );
         require(
-            ERC20UpgradeSafe(contractHere).transferFrom(
+            IERC20(contractHere).transferFrom(
                 msg.sender,
                 lockAndDataERC20,
                 amount
@@ -256,14 +256,14 @@ contract TokenManager is PermissionsForSchain {
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
-            ERC20UpgradeSafe(contractHere).allowance(
+            IERC20(contractHere).allowance(
                 msg.sender,
                 address(this)
             ) >= amount,
             "Not allowed ERC20 Token"
         );
         require(
-            ERC20UpgradeSafe(contractHere).transferFrom(
+            IERC20(contractHere).transferFrom(
                 msg.sender,
                 lockAndDataERC20,
                 amount

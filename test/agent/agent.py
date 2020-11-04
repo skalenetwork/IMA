@@ -101,7 +101,7 @@ class Agent:
         self._execute_command('s2m-receive', {'key-main-net': to_key})
 
         if timeout > 0:
-            approximate_gas_spends = 21 * 10 ** 13
+            approximate_gas_spends = 25 * 10 ** 13
             while not balance > initial_balance + approved - approximate_gas_spends:
                 balance = self.blockchain.get_balance_on_mainnet(destination_address)
                 debug(f'Balance: {balance}')

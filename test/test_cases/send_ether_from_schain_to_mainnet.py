@@ -63,7 +63,7 @@ class SendEtherToMainnet(TestCase):
                                                        self.timeout)
 
         transaction_fee = 2 * 10 ** 15
-        approximate_gas_spends = 21 * 10 ** 13
+        approximate_gas_spends = 25 * 10 ** 13
         if self.blockchain.get_balance_on_mainnet(destination_address) > (
                 balance + self.amount - transaction_fee - approximate_gas_spends):
             self._mark_passed()
