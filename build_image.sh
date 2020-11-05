@@ -32,4 +32,4 @@ then
     then
         docker push $LATEST_IMAGE_NAME || exit $?
     fi
-
+fi

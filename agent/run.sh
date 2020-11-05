@@ -94,5 +94,13 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
     --time-framing=$TIME_FRAMING \
     --time-gap=$TIME_GAP"
 
+echo Base options:
+echo $BASE_OPTIONS
+
+node $DIR/main.js --help
+
+echo Going to run: node $DIR/main.js --register $BASE_OPTIONS
 node $DIR/main.js --register $BASE_OPTIONS
+
+echo Going to run: node $DIR/main.js --loop $BASE_OPTIONS
 node $DIR/main.js --loop $BASE_OPTIONS
