@@ -339,25 +339,45 @@ function check_keys_exist_in_abi( strName, strFile, joABI, arrKeys ) {
 ////////////////////////////////////////////////////////////////////////////////////
 
 function compose_schain_node_url( joNode ) {
+    // if( "ip" in joNode && typeof joNode.ip === "string" && joNode.ip.length > 0 ) {
+    //     if( "wssRpcPort" in joNode && typeof joNode.wssRpcPort === "number" && joNode.wssRpcPort > 0 )
+    //         return "wss://" + joNode.ip + ":" + joNode.wssRpcPort;
+    //     if( "wsRpcPort" in joNode && typeof joNode.wsRpcPort === "number" && joNode.wsRpcPort > 0 )
+    //         return "ws://" + joNode.ip + ":" + joNode.wsRpcPort;
+    //     if( "httpsRpcPort" in joNode && typeof joNode.httpsRpcPort === "number" && joNode.httpsRpcPort > 0 )
+    //         return "https://" + joNode.ip + ":" + joNode.httpsRpcPort;
+    //     if( "httpRpcPort" in joNode && typeof joNode.httpRpcPort === "number" && joNode.httpRpcPort > 0 )
+    //         return "http://" + joNode.ip + ":" + joNode.httpRpcPort;
+    // }
+    // if( "ip6" in joNode && typeof joNode.ip6 === "string" && joNode.ip6.length > 0 ) {
+    //     if( "wssRpcPort6" in joNode && typeof joNode.wssRpcPort6 === "number" && joNode.wssRpcPort6 > 0 )
+    //         return "wss://[" + joNode.ip6 + "]:" + joNode.wssRpcPort6;
+    //     if( "wsRpcPort6" in joNode && typeof joNode.wsRpcPort6 === "number" && joNode.wsRpcPort6 > 0 )
+    //         return "ws://[" + joNode.ip6 + "]:" + joNode.wsRpcPort6;
+    //     if( "httpsRpcPort6" in joNode && typeof joNode.httpsRpcPort6 === "number" && joNode.httpsRpcPort6 > 0 )
+    //         return "https://[" + joNode.ip6 + "]:" + joNode.httpsRpcPort6;
+    //     if( "httpRpcPort6" in joNode && typeof joNode.httpRpcPort6 === "number" && joNode.httpRpcPort6 > 0 )
+    //         return "http://[" + joNode.ip6 + "]:" + joNode.httpRpcPort6;
+    // }
     if( "ip" in joNode && typeof joNode.ip === "string" && joNode.ip.length > 0 ) {
-        if( "wssRpcPort" in joNode && typeof joNode.wssRpcPort === "number" && joNode.wssRpcPort > 0 )
-            return "wss://" + joNode.ip + ":" + joNode.wssRpcPort;
+        if( "httpRpcPort" in joNode && typeof joNode.httpRpcPort === "number" && joNode.httpRpcPort > 0 )
+            return "http://" + joNode.ip + ":" + joNode.httpRpcPort;
         if( "wsRpcPort" in joNode && typeof joNode.wsRpcPort === "number" && joNode.wsRpcPort > 0 )
             return "ws://" + joNode.ip + ":" + joNode.wsRpcPort;
         if( "httpsRpcPort" in joNode && typeof joNode.httpsRpcPort === "number" && joNode.httpsRpcPort > 0 )
             return "https://" + joNode.ip + ":" + joNode.httpsRpcPort;
-        if( "httpRpcPort" in joNode && typeof joNode.httpRpcPort === "number" && joNode.httpRpcPort > 0 )
-            return "http://" + joNode.ip + ":" + joNode.httpRpcPort;
+        if( "wssRpcPort" in joNode && typeof joNode.wssRpcPort === "number" && joNode.wssRpcPort > 0 )
+            return "wss://" + joNode.ip + ":" + joNode.wssRpcPort;
     }
     if( "ip6" in joNode && typeof joNode.ip6 === "string" && joNode.ip6.length > 0 ) {
-        if( "wssRpcPort6" in joNode && typeof joNode.wssRpcPort6 === "number" && joNode.wssRpcPort6 > 0 )
-            return "wss://[" + joNode.ip6 + "]:" + joNode.wssRpcPort6;
+        if( "httpRpcPort6" in joNode && typeof joNode.httpRpcPort6 === "number" && joNode.httpRpcPort6 > 0 )
+            return "http://[" + joNode.ip6 + "]:" + joNode.httpRpcPort6;
         if( "wsRpcPort6" in joNode && typeof joNode.wsRpcPort6 === "number" && joNode.wsRpcPort6 > 0 )
             return "ws://[" + joNode.ip6 + "]:" + joNode.wsRpcPort6;
         if( "httpsRpcPort6" in joNode && typeof joNode.httpsRpcPort6 === "number" && joNode.httpsRpcPort6 > 0 )
             return "https://[" + joNode.ip6 + "]:" + joNode.httpsRpcPort6;
-        if( "httpRpcPort6" in joNode && typeof joNode.httpRpcPort6 === "number" && joNode.httpRpcPort6 > 0 )
-            return "http://[" + joNode.ip6 + "]:" + joNode.httpRpcPort6;
+        if( "wssRpcPort6" in joNode && typeof joNode.wssRpcPort6 === "number" && joNode.wssRpcPort6 > 0 )
+            return "wss://[" + joNode.ip6 + "]:" + joNode.wssRpcPort6;
     }
     return "";
 }
