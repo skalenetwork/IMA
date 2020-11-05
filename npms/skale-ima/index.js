@@ -118,7 +118,7 @@ function verbose_list() {
 
 let g_nSleepBetweenTransactionsOnSChainMilliseconds = 0; // example - 5000
 let g_bWaitForNextBlockOnSChain = false;
-let g_amountToAddCost = null // example - 10000000000000000", this is amount of real Eth to TokenManager.addEthConst() when sending ERC20/721 M->S
+let g_amountToAddCost = null; // example - 10000000000000000", this is amount of real Eth to TokenManager.addEthConst() when sending ERC20/721 M->S
 
 function getSleepBetweenTransactionsOnSChainMilliseconds() {
     return g_nSleepBetweenTransactionsOnSChainMilliseconds;
@@ -1062,14 +1062,11 @@ async function do_eth_payment_from_s_chain(
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_eth_payment_from_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        const tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
         if( g_amountToAddCost != null && g_amountToAddCost != undefined ) {
             strActionName = "w3_s_chain.eth.sendSignedTransaction()/addEthCost";
-            tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
+            const tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
             //
@@ -1111,6 +1108,9 @@ async function do_eth_payment_from_s_chain(
             if( g_bWaitForNextBlockOnSChain )
                 await wait_for_next_block_to_appear( w3_s_chain );
         } // if( g_amountToAddCost != null && g_amountToAddCost != undefined )
+        const tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
         strActionName = "jo_token_manager.methods.exitToMain()/do_eth_payment_from_s_chain";
