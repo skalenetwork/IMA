@@ -116,10 +116,38 @@ function verbose_list() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const g_nSleepBetweenTransactionsOnSChainMilliseconds = 0;
-const g_bWaitForNextBlockOnSChain = false;
+let g_nSleepBetweenTransactionsOnSChainMilliseconds = 0; // example - 5000
+let g_bWaitForNextBlockOnSChain = false;
+let g_amountToAddCost = null // example - 10000000000000000", this is amount of real Eth to TokenManager.addEthConst() when sending ERC20/721 M->S
+
+function getSleepBetweenTransactionsOnSChainMilliseconds() {
+    return g_nSleepBetweenTransactionsOnSChainMilliseconds;
+}
+function setSleepBetweenTransactionsOnSChainMilliseconds( val ) {
+    g_nSleepBetweenTransactionsOnSChainMilliseconds = val ? val : 0;
+}
+
+function getWaitForNextBlockOnSChain() {
+    return g_bWaitForNextBlockOnSChain ? true : false;
+}
+function setWaitForNextBlockOnSChain( val ) {
+    g_bWaitForNextBlockOnSChain = val ? true : false;
+}
+
+function getAmountToAddCost() {
+    return g_amountToAddCost;
+}
+function setAmountToAddCost( val ) {
+    g_amountToAddCost = val ? val : null;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function parseIntSafer( s ) {
     s = s.trim();
@@ -1039,6 +1067,52 @@ async function do_eth_payment_from_s_chain(
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
+        if( g_amountToAddCost != null && g_amountToAddCost != undefined ) {
+            strActionName = "w3_s_chain.eth.sendSignedTransaction()/addEthCost";
+            tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
+            if( verbose_get() >= RV_VERBOSE.debug )
+                log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+            //
+            const isIgnore_addEthCost = false;
+            const methodWithArguments_addEthCost = jo_token_manager.methods.addEthCost(
+                "0x" + w3_main_net.utils.toBN( g_amountToAddCost ).toString( 16 )
+            );
+            //
+            const strDRC_addEthCost = "do_erc20_payment_from_s_chain, addEthCost";
+            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
+            dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
+            //
+            const txAddEthCost = compose_tx_instance( strLogPrefix, {
+                chainId: cid_s_chain,
+                from: accountForSchain,
+                nonce: "0x" + tcnt.toString( 16 ),
+                data: dataAddEthCost,
+                to: tokenManagerAddress,
+                gasPrice: gasPrice,
+                gas: 8000000
+            } );
+            await safe_sign_transaction_with_account( txAddEthCost, joAccountSrc );
+            const serializedTxAddEthCost = txAddEthCost.serialize();
+            // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
+            const joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
+            if( joReceiptAddEthCost && typeof joReceiptAddEthCost == "object" && "gasUsed" in joReceiptAddEthCost ) {
+                jarrReceipts.push( {
+                    "description": "do_eth_payment_from_s_chain/exit-to-main",
+                    "receipt": joReceiptAddEthCost
+                } );
+            }
+            if( verbose_get() >= RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.success( "Result receipt for AddEthCost: " ) + cc.j( joReceiptAddEthCost ) + "\n" );
+            //
+            if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
+                log.write( cc.normal( "Sleeping " ) + cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
+                await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
+            }
+            if( g_bWaitForNextBlockOnSChain )
+                await wait_for_next_block_to_appear( w3_s_chain );
+        } // if( g_amountToAddCost != null && g_amountToAddCost != undefined )
+        //
+        //
         strActionName = "jo_token_manager.methods.exitToMain()/do_eth_payment_from_s_chain";
         const methodWithArguments = jo_token_manager.methods.exitToMain(
             // call params, last is destination account on S-chain
@@ -1717,7 +1791,53 @@ async function do_erc20_payment_from_s_chain(
         }
         if( g_bWaitForNextBlockOnSChain )
             await wait_for_next_block_to_appear( w3_s_chain );
-
+        //
+        //
+        if( g_amountToAddCost != null && g_amountToAddCost != undefined ) {
+            strActionName = "w3_s_chain.eth.sendSignedTransaction()/addEthCost";
+            tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
+            if( verbose_get() >= RV_VERBOSE.debug )
+                log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+            //
+            const isIgnore_addEthCost = false;
+            const methodWithArguments_addEthCost = jo_token_manager.methods.addEthCost(
+                "0x" + w3_main_net.utils.toBN( g_amountToAddCost ).toString( 16 )
+            );
+            //
+            const strDRC_addEthCost = "do_erc20_payment_from_s_chain, addEthCost";
+            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
+            dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
+            //
+            const txAddEthCost = compose_tx_instance( strLogPrefix, {
+                chainId: cid_s_chain,
+                from: accountForSchain,
+                nonce: "0x" + tcnt.toString( 16 ),
+                data: dataAddEthCost,
+                to: tokenManagerAddress,
+                gasPrice: gasPrice,
+                gas: 8000000
+            } );
+            await safe_sign_transaction_with_account( txAddEthCost, joAccountSrc );
+            const serializedTxAddEthCost = txAddEthCost.serialize();
+            // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
+            const joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
+            if( joReceiptAddEthCost && typeof joReceiptAddEthCost == "object" && "gasUsed" in joReceiptAddEthCost ) {
+                jarrReceipts.push( {
+                    "description": "do_erc20_payment_from_s_chain/exit-to-main",
+                    "receipt": joReceiptAddEthCost
+                } );
+            }
+            if( verbose_get() >= RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.success( "Result receipt for AddEthCost: " ) + cc.j( joReceiptAddEthCost ) + "\n" );
+            //
+            if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
+                log.write( cc.normal( "Sleeping " ) + cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
+                await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
+            }
+            if( g_bWaitForNextBlockOnSChain )
+                await wait_for_next_block_to_appear( w3_s_chain );
+        } // if( g_amountToAddCost != null && g_amountToAddCost != undefined )
+        //
         //
         strActionName = "w3_s_chain.eth.sendSignedTransaction()/ExitToMainERC20";
         tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
@@ -1876,7 +1996,53 @@ async function do_erc721_payment_from_s_chain(
         }
         if( g_bWaitForNextBlockOnSChain )
             await wait_for_next_block_to_appear( w3_s_chain );
-
+        //
+        //
+        if( g_amountToAddCost != null && g_amountToAddCost != undefined ) {
+            strActionName = "w3_s_chain.eth.sendSignedTransaction()/addEthCost";
+            tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
+            if( verbose_get() >= RV_VERBOSE.debug )
+                log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+            //
+            const isIgnore_addEthCost = false;
+            const methodWithArguments_addEthCost = jo_token_manager.methods.addEthCost(
+                "0x" + w3_main_net.utils.toBN( g_amountToAddCost ).toString( 16 )
+            );
+            //
+            const strDRC_addEthCost = "do_erc20_payment_from_s_chain, addEthCost";
+            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
+            dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
+            //
+            const txAddEthCost = compose_tx_instance( strLogPrefix, {
+                chainId: cid_s_chain,
+                from: accountForSchain,
+                nonce: "0x" + tcnt.toString( 16 ),
+                data: dataAddEthCost,
+                to: tokenManagerAddress,
+                gasPrice: gasPrice,
+                gas: 8000000
+            } );
+            await safe_sign_transaction_with_account( txAddEthCost, joAccountSrc );
+            const serializedTxAddEthCost = txAddEthCost.serialize();
+            // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
+            const joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
+            if( joReceiptAddEthCost && typeof joReceiptAddEthCost == "object" && "gasUsed" in joReceiptAddEthCost ) {
+                jarrReceipts.push( {
+                    "description": "do_erc721_payment_from_s_chain/exit-to-main",
+                    "receipt": joReceiptAddEthCost
+                } );
+            }
+            if( verbose_get() >= RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.success( "Result receipt for AddEthCost: " ) + cc.j( joReceiptAddEthCost ) + "\n" );
+            //
+            if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
+                log.write( cc.normal( "Sleeping " ) + cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
+                await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
+            }
+            if( g_bWaitForNextBlockOnSChain )
+                await wait_for_next_block_to_appear( w3_s_chain );
+        } // if( g_amountToAddCost != null && g_amountToAddCost != undefined )
+        //
         //
         strActionName = "w3_s_chain.eth.sendSignedTransaction()/ExitToMainERC721";
         tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null );
@@ -2473,6 +2639,13 @@ module.exports.tc_main_net = tc_main_net;
 module.exports.tc_s_chain = tc_s_chain;
 
 module.exports.compose_tx_instance = compose_tx_instance;
+
+module.exports.getSleepBetweenTransactionsOnSChainMilliseconds = getSleepBetweenTransactionsOnSChainMilliseconds;
+module.exports.setSleepBetweenTransactionsOnSChainMilliseconds = setSleepBetweenTransactionsOnSChainMilliseconds;
+module.exports.getWaitForNextBlockOnSChain = getWaitForNextBlockOnSChain;
+module.exports.setWaitForNextBlockOnSChain = setWaitForNextBlockOnSChain;
+module.exports.getAmountToAddCost = getAmountToAddCost;
+module.exports.setAmountToAddCost = setAmountToAddCost;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
