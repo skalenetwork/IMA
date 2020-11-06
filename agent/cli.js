@@ -477,42 +477,50 @@ function parse( joExternalHandlers ) {
             continue;
         }
         if( joArg.name == "value" ) {
-            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, joArg.value, true );
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value, true );
             continue;
         }
         if( joArg.name == "wei" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = joArg.value;
+            // imaState.nAmountOfWei = joArg.value * 1;
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "wei", true );
             continue;
         }
         if( joArg.name == "babbage" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = joArg.value * 1000;
+            // imaState.nAmountOfWei = joArg.value * 1000;
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "babbage", true );
             continue;
         }
         if( joArg.name == "lovelace" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = joArg.value * 1000 * 1000;
+            // imaState.nAmountOfWei = joArg.value * 1000 * 1000;
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "lovelace", true );
             continue;
         }
         if( joArg.name == "shannon" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000;
+            // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000;
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "shannon", true );
             continue;
         }
         if( joArg.name == "szabo" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000;
+            // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000;
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "szabo", true );
             continue;
         }
         if( joArg.name == "finney" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000;
+            // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000;
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "finney", true );
             continue;
         }
         if( joArg.name == "ether" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000 * 1000;
+            // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000 * 1000;
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "ether", true );
             continue;
         }
         if( joArg.name == "amount" ) {

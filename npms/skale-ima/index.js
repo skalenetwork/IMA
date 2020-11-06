@@ -960,7 +960,7 @@ async function do_eth_payment_from_main_net(
             gas: 3000000, // 2100000
             to: jo_deposit_box.options.address, // contract address
             data: dataTx,
-            value: wei_how_much // how much money to send
+            value: "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 ) // wei_how_much // how much money to send
         } );
         await safe_sign_transaction_with_account( tx, joAccountSrc );
         const serializedTx = tx.serialize();
