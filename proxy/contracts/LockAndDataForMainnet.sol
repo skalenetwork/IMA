@@ -60,10 +60,10 @@ contract LockAndDataForMainnet is OwnableForMainnet {
     /**
      * @dev Allows DepositBox to receive ETH.
      *
-     * Emits a {MoneyReceived} event.
+     * Emits a {ETHReceived} event.
      */
     function receiveEth(address from) external allow("DepositBox") payable {
-        emit MoneyReceived(from, msg.value);
+        emit ETHReceived(from, msg.value);
     }
     
     /**
