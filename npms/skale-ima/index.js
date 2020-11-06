@@ -1062,7 +1062,11 @@ async function do_eth_payment_from_s_chain(
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_eth_payment_from_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        const tokenManagerAddress = jo_token_manager.options.address;
         //
+        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
         //
         if( g_amountToAddCost != null && g_amountToAddCost != undefined ) {
             strActionName = "w3_s_chain.eth.sendSignedTransaction()/addEthCost";
@@ -1072,7 +1076,7 @@ async function do_eth_payment_from_s_chain(
             //
             const isIgnore_addEthCost = false;
             const methodWithArguments_addEthCost = jo_token_manager.methods.addEthCost(
-                "0x" + w3_main_net.utils.toBN( g_amountToAddCost ).toString( 16 )
+                "0x" + w3_s_chain.utils.toBN( g_amountToAddCost ).toString( 16 )
             );
             //
             const strDRC_addEthCost = "do_erc20_payment_from_s_chain, addEthCost";
@@ -1081,7 +1085,7 @@ async function do_eth_payment_from_s_chain(
             //
             const txAddEthCost = compose_tx_instance( strLogPrefix, {
                 chainId: cid_s_chain,
-                from: accountForSchain,
+                from: joAccountSrc.address( w3_s_chain ),
                 nonce: "0x" + tcnt.toString( 16 ),
                 data: dataAddEthCost,
                 to: tokenManagerAddress,
@@ -1124,10 +1128,6 @@ async function do_eth_payment_from_s_chain(
         const strDRC = "do_eth_payment_from_s_chain, exitToMain";
         await dry_run_call( w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
-        //
-        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
         const tx = compose_tx_instance( strLogPrefix, {
             chainId: cid_s_chain,
