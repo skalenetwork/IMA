@@ -84,6 +84,15 @@ jobs:
         # sudo apt-get install usbutils || true &> /dev/null
         # lsusb -t || echo "No lsusb available" || true
 
+    - name: PREPARE COVERAGE TOOLS
+      run: |
+        echo ------------ install software
+        sudo apt-get install build-essential gcc g++ gcovr lcov || true
+        echo ------------ check gcov
+        gcov --version || true
+        echo ------------ check lcov
+        lcov --version || true
+
     - name: NODE 10.x
       run: |
         echo ------------ uninstall
