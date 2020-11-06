@@ -83,7 +83,7 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
     function receiveERC721(address contractHere, uint256 tokenId) external allow("ERC721Module") returns (bool) {
         require(ERC721MintAndBurn(contractHere).ownerOf(tokenId) == address(this), "Token not transfered");
         ERC721MintAndBurn(contractHere).burn(tokenId);
-        emit ReceiveERC721(true);
+        emit ReceivedERC721(true);
         return true;
     }
 
