@@ -223,6 +223,7 @@ function parse( joExternalHandlers ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "key-s-chain" ) + cc.sunny( "=" ) + cc.error( "value" ) + cc.debug( "............." ) + cc.notice( "Private key for " ) + cc.note( "S-Chain" ) + cc.notice( " user account address. Value is automatically loaded from the " ) + cc.warning( "PRIVATE_KEY_FOR_SCHAIN" ) + cc.notice( " environment variable if not specified." ) );
             //
             console.log( cc.sunny( "TRANSFER" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "value" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.warning( "unitName" ) + cc.debug( ".........." ) + cc.notice( "Amount of " ) + cc.attention( "unitName" ) + cc.notice( " to transfer, where " ) + cc.attention( "unitName" ) + cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) + cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "wei" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "...................." ) + cc.notice( "Amount of " ) + cc.attention( "wei" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "babbage" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "................" ) + cc.notice( "Amount of " ) + cc.attention( "babbage" ) + cc.info( "(wei*1000)" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "lovelace" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "..............." ) + cc.notice( "Amount of " ) + cc.attention( "lovelace" ) + cc.info( "(wei*1000*1000)" ) + cc.notice( " to transfer." ) );
@@ -234,6 +235,9 @@ function parse( joExternalHandlers ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "tid" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "...................." ) + cc.attention( "ERC721" ) + cc.notice( " token id to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "raw-transfer" ) + cc.debug( ".................." ) + cc.notice( "Perform " ) + cc.error( "raw" ) + cc.notice( " " ) + cc.attention( "ERC20" ) + cc.notice( "/" ) + cc.attention( "ERC721" ) + cc.notice( " token transfer to pre-deployed contract on S-Chain(do not instantiate new contract)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-raw-transfer" ) + cc.debug( "..............." ) + cc.notice( "Perform " ) + cc.attention( "ERC20" ) + cc.notice( "/" ) + cc.attention( "ERC721" ) + cc.notice( " token transfer to auto instantiated contract on S-Chain." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "add-cost" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.warning( "unitName" ) + cc.debug( "......." ) + cc.notice( "Amount of additional ETH cost for transferring custom " ) + cc.attention( "ERC20" ) + cc.notice( "/" ) + cc.attention( "ERC721" ) + cc.notice( " tokens from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( ", where " ) + cc.attention( "unitName" ) + cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) + cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "sleep-between-tx" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "......." ) + cc.notice( "Number of of " ) + cc.attention( "milliseconds" ) + cc.notice( " to sleep between transactions during complex operations." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "wait-next-block" ) + cc.debug( "..............." ) + cc.notice( "Wait for next block between transactions during complex operations." ) );
             //
             console.log( cc.sunny( "PAYMENT TRANSACTION" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "gas-price-multiplier-mn" ) + cc.debug( "......." ) + cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( " transactions, Default value is " ) + cc.info( "1.25" ) + cc.notice( ". Specify value " ) + cc.info( "0.0" ) + cc.notice( " to disable " ) + cc.attention( "Gas Price Customization" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( "." ) );
@@ -459,39 +463,64 @@ function parse( joExternalHandlers ) {
         }
         //
         //
+        if( joArg.name == "add-cost" ) {
+            IMA.setAmountToAddCost( owaspUtils.parseMoneySpecToWei( null, joArg.value, true ) );
+            continue;
+        }
+        if( joArg.name == "sleep-between-tx" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            IMA.setSleepBetweenTransactionsOnSChainMilliseconds( joArg.value );
+            continue;
+        }
+        if( joArg.name == "wait-next-block" ) {
+            IMA.setWaitForNextBlockOnSChain( true );
+            continue;
+        }
+        if( joArg.name == "value" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value, true );
+            continue;
+        }
         if( joArg.name == "wei" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = joArg.value;
+            // imaState.nAmountOfWei = joArg.value * 1;
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "wei", true );
             continue;
         }
         if( joArg.name == "babbage" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = joArg.value * 1000;
+            // imaState.nAmountOfWei = joArg.value * 1000;
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "babbage", true );
             continue;
         }
         if( joArg.name == "lovelace" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = joArg.value * 1000 * 1000;
+            // imaState.nAmountOfWei = joArg.value * 1000 * 1000;
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "lovelace", true );
             continue;
         }
         if( joArg.name == "shannon" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000;
+            // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000;
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "shannon", true );
             continue;
         }
         if( joArg.name == "szabo" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000;
+            // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000;
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "szabo", true );
             continue;
         }
         if( joArg.name == "finney" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000;
+            // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000;
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "finney", true );
             continue;
         }
         if( joArg.name == "ether" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000 * 1000;
+            // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000 * 1000;
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "ether", true );
             continue;
         }
         if( joArg.name == "amount" ) {

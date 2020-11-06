@@ -309,6 +309,7 @@ Notice: this operation is related to ETH transfers only.
 
 Amount of money should be specified with one of the following command line options
 
+        --value=moneySpec..............Amount of eth/finney/szabo/shannon/lovelace/babbage/wei/ to transfer. For instance "1ether" or "100000wei".
         --wei=number...................Amount of wei to transfer.
         --babbage=number...............Amount of babbage(wei*1000) to transfer.
         --lovelace=number..............Amount of lovelace(wei*1000*1000) to transfer.
@@ -433,6 +434,8 @@ Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s
     node ./main.js --verbose=9 \
         --s2m-payment \
         --amount=1 \
+        --add-cost=10ether \
+        --sleep-between-tx=5000 \
         --url-main-net=$URL_W3_ETHEREUM \
         --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
@@ -487,6 +490,8 @@ Performed with the **--s2m-payment** and **--raw-transfer** command line options
     node ./main.js --verbose=9 \
         --s2m-payment \
         --amount=1 \
+        --add-cost=10ether \
+        --sleep-between-tx=5000 \
         --url-main-net=$URL_W3_ETHEREUM \
         --url-s-chain=$URL_W3_S_CHAIN \
         --id-main-net=Mainnet \
