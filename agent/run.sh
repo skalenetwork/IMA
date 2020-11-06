@@ -102,11 +102,11 @@ node $DIR/main.js --check-registration $BASE_OPTIONS
 
 if [ $? -eq 0 ]
 then
+    echo "IMA is already registered"
+else
     echo "IMA is not registered yet"
     echo Going to run: node $DIR/main.js --register $BASE_OPTIONS
     node $DIR/main.js --register $BASE_OPTIONS
-else
-  echo "IMA is already registered"
 fi
 
 echo "Running loop cmd..."
