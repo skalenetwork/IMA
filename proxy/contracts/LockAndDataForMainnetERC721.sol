@@ -24,7 +24,11 @@ pragma solidity ^0.6.10;
 import "./PermissionsForMainnet.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
 
-
+/**
+ * @title Lock And Data For Mainnet ERC721
+ * @dev Runs on Mainnet, holds deposited ERC721s, and contains mappings and 
+ * balances of ERC721 tokens received through DepositBox.
+ */
 contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
 
     mapping(uint256 => address) public erc721Tokens;
@@ -32,6 +36,14 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
     // mapping(uint256 => uint256) public mintToken;
     uint256 newIndexERC721;
 
+    /**
+     * @dev Allows ERC721ModuleForMainnet to send an ERC721 token.
+     * 
+     * Requirements:
+     * 
+     * - If ERC721 is held by LockAndDataForMainnetERC721, token must 
+     * transferrable from the contract to the recipient address.
+     */
     function sendERC721(address contractHere, address to, uint256 tokenId) external allow("ERC721Module") returns (bool) {
         if (IERC721(contractHere).ownerOf(tokenId) == address(this)) {
             IERC721(contractHere).transferFrom(address(this), to, tokenId);
@@ -42,6 +54,10 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
         return true;
     }
 
+    /**
+     * @dev Allows ERC721ModuleForMainnet to add an ERC721 token to
+     * LockAndDataForMainnetERC721.
+     */
     function addERC721Token(address addressERC721) external allow("ERC721Module") returns (uint256) {
         uint256 index = newIndexERC721;
         erc721Tokens[index] = addressERC721;
