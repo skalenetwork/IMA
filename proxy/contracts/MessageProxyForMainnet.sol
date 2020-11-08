@@ -57,10 +57,6 @@ interface ISchains {
 
 contract MessageProxyForMainnet is Initializable {
 
-    // Note: this uses assembly example from
-
-    // https://ethereum.stackexchange.com/questions/6354/how-do-i-construct-a-call-to-another-contract-using-inline-assembly
-
     // 16 Agents
     // Synchronize time with time.nist.gov
     // Every agent checks if it is his time slot

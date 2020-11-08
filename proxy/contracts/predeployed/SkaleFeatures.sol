@@ -56,17 +56,29 @@ contract SkaleFeatures {
         }
     }
 
-    function logMessage( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage(0, strMessage); }
+    function logMessage( string memory strMessage ) public view returns  (uint256 rv) {
+        rv = logTextMessage(0, strMessage);
+    }
 
-    function logDebug  ( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage(1, strMessage); }
+    function logDebug  ( string memory strMessage ) public view returns  (uint256 rv) {
+        rv = logTextMessage(1, strMessage);
+    }
 
-    function logTrace  ( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage(2, strMessage); }
+    function logTrace  ( string memory strMessage ) public view returns  (uint256 rv) {
+        rv = logTextMessage(2, strMessage);
+    }
 
-    function logWarning( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage(3, strMessage); }
+    function logWarning( string memory strMessage ) public view returns  (uint256 rv) {
+        rv = logTextMessage(3, strMessage);
+    }
 
-    function logError  ( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage(4, strMessage); }
+    function logError  ( string memory strMessage ) public view returns  (uint256 rv) {
+        rv = logTextMessage(4, strMessage);
+    }
 
-    function logFatal  ( string memory strMessage ) public view returns  ( uint256 rv ) { rv = logTextMessage(5, strMessage); }
+    function logFatal  ( string memory strMessage ) public view returns  (uint256 rv) {
+        rv = logTextMessage(5, strMessage);
+    }
 
     function getConfigVariableUint256( string memory strConfigVariableName ) public view returns ( uint256 rv ) {
         uint256 fmp = FREE_MEM_PTR;
@@ -139,7 +151,7 @@ contract SkaleFeatures {
         }
     }
 
-    function getConfigPermissionFlag( address a, string memory strConfigVariableName ) public view returns ( uint256 rv ) {
+    function getConfigPermissionFlag(address a, string memory strConfigVariableName) public view returns (uint256 rv) {
         uint256 fmp = FREE_MEM_PTR;
         uint256 fnc = FN_NUM_GET_CONFIG_PERMISSION_FLAG;
         uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;

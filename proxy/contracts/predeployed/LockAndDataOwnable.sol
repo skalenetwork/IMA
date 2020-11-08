@@ -35,7 +35,8 @@ contract LockAndDataOwnable {
 */
 
     /**
-     * @dev ownerAddress is only used after transferOwnership(). By default, value of "skaleConfig.contractSettings.IMA.ownerAddress" config variable is used
+     * @dev ownerAddress is only used after transferOwnership(). 
+     * By default, value of "skaleConfig.contractSettings.IMA.ownerAddress" config variable is used
      */
     address private ownerAddress;
 
@@ -69,7 +70,9 @@ contract LockAndDataOwnable {
      */
     function getOwner() public view returns ( address ow ) {
         if ((ownerAddress) == (address(0)) )
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.lockAndDataAddress");
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+                "skaleConfig.contractSettings.IMA.lockAndDataAddress"
+            );
         return ownerAddress;
     }
 

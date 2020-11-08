@@ -59,7 +59,10 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         if (!isRAW) {
             uint256 contractPosition = ILockAndDataERC721S(lockAndDataERC721).erc721Mapper(contractHere);
             require(contractPosition > 0, "Not existing ERC-721 contract");
-            require(ILockAndDataERC721S(lockAndDataERC721).receiveERC721(contractHere, tokenId), "Cound not receive ERC721 Token");
+            require(
+                ILockAndDataERC721S(lockAndDataERC721).receiveERC721(contractHere, tokenId),
+                "Cound not receive ERC721 Token"
+            );
             data = encodeData(
                 contractHere,
                 contractPosition,

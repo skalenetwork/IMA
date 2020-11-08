@@ -52,7 +52,9 @@ contract PermissionsForSchain is OwnableForSchain {
      */
     modifier allow(string memory contractName) {
         require(
-            IContractManagerForSchain(lockAndDataAddress_).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
+            IContractManagerForSchain(
+                getLockAndDataAddress()
+            ).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
             getOwner() == msg.sender, "Message sender is invalid"
         );
         _;

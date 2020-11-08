@@ -35,7 +35,11 @@ contract LockAndDataForMainnet is OwnableForMainnet {
     mapping(address => bool) public authorizedCaller;
 
     modifier allow(string memory contractName) {
-        require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender || getOwner() == msg.sender, "Not allowed");
+        require(
+            permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
+            getOwner() == msg.sender,
+            "Not allowed"
+        );
         _;
     }
 
@@ -91,7 +95,10 @@ contract LockAndDataForMainnet is OwnableForMainnet {
     }
 
     function getMyEth() external {
-        require(address(this).balance >= approveTransfers[msg.sender], "Not enough ETH. in `LockAndDataForMainnet.getMyEth`");
+        require(
+            address(this).balance >= approveTransfers[msg.sender],
+            "Not enough ETH. in `LockAndDataForMainnet.getMyEth`"
+        );
         require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
         uint256 amount = approveTransfers[msg.sender];
         approveTransfers[msg.sender] = 0;

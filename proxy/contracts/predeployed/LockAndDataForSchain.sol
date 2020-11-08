@@ -172,7 +172,9 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     function getEthERC20Address() /*external onlyOwner*/ /*private*/ public view returns ( address a ) {
         if (ethERC20Address_ == address(0) && (!isCustomDeploymentMode_)) {
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ethERC20Address");
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+                "skaleConfig.contractSettings.IMA.ethERC20Address"
+            );
         }
         a = ethERC20Address_;
     }
@@ -186,8 +188,15 @@ contract LockAndDataForSchain is OwnableForSchain {
             rv = true;
         } else {
             if (!isCustomDeploymentMode_) {
-                string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).concatenateStrings("skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.", contractName);
-                address a = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(strVarName);
+                string memory strVarName = SkaleFeatures(
+                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                ).concatenateStrings(
+                    "skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.",
+                    contractName
+                );
+                address a = SkaleFeatures(
+                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                ).getConfigVariableAddress(strVarName);
                 if (a == contractAddress) {
                     rv = true;
                 } else {

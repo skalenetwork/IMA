@@ -47,7 +47,9 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         allow("DepositBox")
         returns (bytes memory data)
     {
-        address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
+            keccak256(abi.encodePacked("LockAndDataERC20"))
+        );
         uint256 totalSupply = ERC20UpgradeSafe(contractHere).totalSupply();
         require(amount <= totalSupply, "TotalSupply is not correct");
         uint256 contractPosition = ILockAndDataERC20M(lockAndDataERC20).erc20Mapper(contractHere);
@@ -70,7 +72,9 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
     }
 
     function sendERC20(address to, bytes calldata data) external allow("DepositBox") returns (bool) {
-        address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
+            keccak256(abi.encodePacked("LockAndDataERC20"))
+        );
         uint256 contractPosition;
         address contractAddress;
         address receiver;

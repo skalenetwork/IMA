@@ -38,10 +38,6 @@ interface ContractReceiverForSchain {
 
 contract MessageProxyForSchain {
 
-    // Note: this uses assembly example from
-
-    // https://ethereum.stackexchange.com/questions/6354/how-do-i-construct-a-call-to-another-contract-using-inline-assembly
-
     // 16 Agents
     // Synchronize time with time.nist.gov
     // Every agent checks if it is his time slot
@@ -370,7 +366,9 @@ contract MessageProxyForSchain {
     function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
         if (!isCustomDeploymentMode_) {
             if ((keccak256(abi.encodePacked(chainID_))) == (keccak256(abi.encodePacked(""))) )
-                return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString("skaleConfig.sChain.schainID");
+                return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString(
+                    "skaleConfig.sChain.schainID"
+                );
         }
         return chainID_;
     }
@@ -378,7 +376,9 @@ contract MessageProxyForSchain {
     function getOwner() public view returns ( address ow ) { // l_sergiy: added
         if (!isCustomDeploymentMode_) {
             if ((ownerAddress) == (address(0)) )
-                return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ownerAddress");
+                return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.ownerAddress"
+                );
         }
         return ownerAddress;
     }
@@ -392,8 +392,9 @@ contract MessageProxyForSchain {
             return true;
         if (isCustomDeploymentMode_)
             return false;
-        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).
-            getConfigPermissionFlag(a, "skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers");
+        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigPermissionFlag(
+            a, "skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers"
+        );
         if ( u != 0 )
             return true;
         return false;

@@ -118,14 +118,18 @@ contract TokenFactory is PermissionsForSchain {
         uint8 decimals;
         uint256 totalSupply;
         (name, symbol, decimals, totalSupply) = fallbackDataCreateERC20Parser(data);
-        address erc20ModuleAddress = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        address erc20ModuleAddress = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).permitted(keccak256(abi.encodePacked("ERC20Module")));
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
             symbol,
             totalSupply,
             erc20ModuleAddress
         );
-        address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address lockAndDataERC20 = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         newERC20.grantRole(newERC20.MINTER_ROLE(), lockAndDataERC20);
         newERC20.revokeRole(newERC20.MINTER_ROLE(), address(this));
         return address(newERC20);

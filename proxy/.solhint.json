@@ -18,6 +18,6 @@
     "no-inline-assembly": "warn",
     "contract-name-camelcase": "error",
     "ordering": "warn",
-    "max-line-length": "warn"
+    "max-line-length": "error"
   }
 }

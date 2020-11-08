@@ -44,7 +44,9 @@ contract PermissionsForMainnet is AccessControlUpgradeSafe {
      */
     modifier allow(string memory contractName) {
         require(
-            IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
+            IContractManagerForMainnet(
+                lockAndDataAddress_
+            ).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
             getOwner() == msg.sender, "Message sender is invalid"
         );
         _;
