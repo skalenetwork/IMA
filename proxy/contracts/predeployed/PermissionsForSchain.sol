@@ -35,7 +35,7 @@ interface IContractManagerForSchain {
 contract PermissionsForSchain is OwnableForSchain {
 
     // address of ContractManager
-    address public lockAndDataAddress_; // l_sergiy: changed name _
+    address public lockAndDataAddress_;
 
     /**
      * @dev constructor - sets current address of ContractManager

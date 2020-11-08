@@ -37,7 +37,6 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
 
     mapping(uint256 => address) public erc721Tokens;
     mapping(address => uint256) public erc721Mapper;
-    // mapping(uint256 => uint256) public mintToken;
 
 
     constructor(address _lockAndDataAddress) PermissionsForSchain(_lockAndDataAddress) public {

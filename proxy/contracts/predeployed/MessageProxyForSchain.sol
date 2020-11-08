@@ -54,14 +54,14 @@ contract MessageProxyForSchain {
     // Call postIncomingMessages function passing (un)signed message array
 
     // ID of this schain, Chain 0 represents ETH mainnet,
-    string private chainID_; // l_sergiy: changed name _ and made private
+    string private chainID_;
 
     // Owner of this chain. For mainnet, the owner is SkaleManager
-    address public ownerAddress; // l_sergiy: changed name to ownerAddress
+    address public ownerAddress;
 
     bool public mainnetConnected = false;
 
-    mapping(address => bool) private authorizedCaller_; // l_sergiy: changed name _ and made private
+    mapping(address => bool) private authorizedCaller_;
 
     bool private isCustomDeploymentMode_ = false;
 
@@ -160,18 +160,10 @@ contract MessageProxyForSchain {
         ) {
             // connect to mainnet by default
             // Mainnet does not have a public key
-            uint256[4] memory empty = [
-                uint256(0),
-                0,
-                0,
-                0];
+            uint256[4] memory empty = [0, 0, 0, 0];
             connectedChains[
                 keccak256(abi.encodePacked("Mainnet"))
-            ] = ConnectedChainInfo(
-                empty,
-                0,
-                0,
-                true);
+            ] = ConnectedChainInfo(empty, 0, 0, true);
             mainnetConnected = true;
         }
     }
@@ -194,14 +186,6 @@ contract MessageProxyForSchain {
         view
         returns (bool)
     {
-        //require(msg.sender == owner); // todo: tmp!!!!!
-        // require(
-
-        // l_sergiy: - commented
-        //     keccak256(abi.encodePacked(someChainID)) !=
-        //     keccak256(abi.encodePacked("Mainnet")),
-        //     "Schain id can not be equal Mainnet"); // main net does not have a public key and is implicitly connected
-
         if ( ! connectedChains[keccak256(abi.encodePacked(someChainID))].inited ) {
             return false;
         }
@@ -219,17 +203,11 @@ contract MessageProxyForSchain {
         external
         connectMainnet
     {
-        require(checkIsAuthorizedCaller(msg.sender), "Not authorized caller"); // l_sergiy: replacement
-
-        // l_sergiy: - commented
-        // require(
-        //     keccak256(abi.encodePacked(newChainID)) !=
-        //     keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
+        require(checkIsAuthorizedCaller(msg.sender), "Not authorized caller");
         if ( keccak256(abi.encodePacked(newChainID)) ==
             keccak256(abi.encodePacked("Mainnet")) )
             return;
 
-        // main net does not have a public key and is implicitly connected
         require(
             !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
             "Chain is already connected"
@@ -250,7 +228,7 @@ contract MessageProxyForSchain {
             keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet")),
             "New chain id can not be equal Mainnet"
-        ); // you cannot remove a connection to main net
+        );
         require(
             connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
             "Chain is not initialized"

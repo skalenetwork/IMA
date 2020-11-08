@@ -30,9 +30,6 @@ import "./SkaleFeatures.sol";
  * functions, this simplifies the implementation of "user permissions".
  */
 contract LockAndDataOwnable {
-/*
-// l_sergiy: new contract - LockAndDataOwnable - because owner should be lockAndDataAddress
-*/
 
     /**
      * @dev ownerAddress is only used after transferOwnership(). By default, value of "skaleConfig.contractSettings.IMA.ownerAddress" config variable is used

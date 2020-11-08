@@ -26,9 +26,6 @@ import "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./OwnableForSchain.sol";
 
-/*
-// l_sergiy: new contract - LockAndDataOwnable - because owner should be lockAndDataAddress
-*/
 import "./LockAndDataOwnable.sol";
 
 

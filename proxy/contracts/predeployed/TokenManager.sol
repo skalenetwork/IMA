@@ -57,22 +57,11 @@ contract TokenManager is PermissionsForSchain {
     }
 
     // ID of this schain,
-    string private chainID_; // l_sergiy: changed name _ and made private
-    address private proxyForSchainAddress_; // l_sergiy: changed name _ made private
-
-    // The maximum amount of ETH clones this contract can create
-    // It is 102000000 which is the current total ETH supply
-
-    // TODO: TOKEN_RESERVE = 102000000 * (10 ** 18);
-
-    //uint256 public TOKEN_RESERVE = 102000000 * (10 ** 18); //ether
-    //uint256 public TOKEN_RESERVE = 10 * (10 ** 18); //ether
+    string private chainID_;
+    address private proxyForSchainAddress_;
 
     uint256 public constant GAS_AMOUNT_POST_MESSAGE = 200000;
     uint256 public constant AVERAGE_TX_PRICE = 10000000000;
-
-    // Owner of this schain. For mainnet
-    //address public owner;
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -106,12 +95,6 @@ contract TokenManager is PermissionsForSchain {
     fallback() external payable {
         revert("Not allowed. in TokenManager");
     }
-
-    // function withdraw() external {
-    //     if (msg.sender == owner) {
-    //         owner.transfer(address(this).balance);
-    //     }
-    // }
 
     function exitToMainWithoutData(address to, uint256 amount) external {
         exitToMain(to, amount);

@@ -33,9 +33,9 @@ interface IETHERC20 {
 
 contract LockAndDataForSchain is OwnableForSchain {
 
-    address private ethERC20Address_; // l_sergiy: changed name _
+    address private ethERC20Address_;
 
-    mapping(bytes32 => address) public permitted; // l_sergiy: changed name _
+    mapping(bytes32 => address) public permitted;
 
     mapping(bytes32 => address) public tokenManagerAddresses;
 
@@ -47,7 +47,6 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     modifier allow(string memory contractName) {
         require(
-            //permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
             checkPermitted(contractName,msg.sender) ||
             getOwner() == msg.sender, "Not allowed LockAndDataForSchain");
         _;
@@ -66,8 +65,7 @@ contract LockAndDataForSchain is OwnableForSchain {
         require(newContract != address(0), "New address is equal zero");
 
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        //require(permitted[contractId] != newContract, "Contract is already added");
-        require(!checkPermitted(contractName,newContract), "Contract is already added"); // l_sergiy: repacement
+        require(!checkPermitted(contractName,newContract), "Contract is already added");
 
         uint256 length;
         // solium-disable-next-line security/no-inline-assembly
@@ -170,31 +168,30 @@ contract LockAndDataForSchain is OwnableForSchain {
         return true;
     }
 
-    function getEthERC20Address() /*external onlyOwner*/ /*private*/ public view returns ( address a ) {
+    function getEthERC20Address() public view returns (address addressOfEthERC20) {
         if (ethERC20Address_ == address(0) && (!isCustomDeploymentMode_)) {
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ethERC20Address");
         }
-        a = ethERC20Address_;
+        addressOfEthERC20 = ethERC20Address_;
     }
 
-    // l_sergiy: added checkPermitted() function
-    function checkPermitted( string memory contractName, address contractAddress ) private view returns ( bool rv ) {
+    function checkPermitted(string memory contractName, address contractAddress) private view returns (bool permission) {
         require(contractAddress != address(0), "contract address required to check permitted status");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         bool isPermitted = (permitted[contractId] == contractAddress) ? true : false;
         if ((isPermitted) ) {
-            rv = true;
+            permission = true;
         } else {
             if (!isCustomDeploymentMode_) {
-                string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).concatenateStrings("skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.", contractName);
-                address a = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(strVarName);
-                if (a == contractAddress) {
-                    rv = true;
+                string memory fullContractPath = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).concatenateStrings("skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.", contractName);
+                address contractAddressInStorage = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(fullContractPath);
+                if (contractAddressInStorage == contractAddress) {
+                    permission = true;
                 } else {
-                    rv = false;
+                    permission = false;
                 }
             } else {
-                rv = false;
+                permission = false;
             }
         }
     }
