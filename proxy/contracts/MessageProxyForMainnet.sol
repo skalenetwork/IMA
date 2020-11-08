@@ -197,7 +197,7 @@ contract MessageProxyForMainnet is Initializable {
     }
 
     function removeConnectedChain(string calldata newChainID) external {
-        require(msg.sender == owner, "Sender is not an owner");
+        require(authorizedCaller[msg.sender], "Not authorized caller");
 
         require(
             connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
@@ -318,11 +318,13 @@ contract MessageProxyForMainnet is Initializable {
         popOutgoingMessageData(idxLastToPopNotIncluding);
     }
 
+    // Test function - will remove in production
     function moveIncomingCounter(string calldata schainName) external {
         require(msg.sender == owner, "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter++;
     }
 
+    // Test function - will remove in production
     function setCountersToZero(string calldata schainName) external {
         require(msg.sender == owner, "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
