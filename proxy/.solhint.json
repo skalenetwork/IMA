@@ -6,7 +6,7 @@
     "reason-string": "off",
 
     "compiler-version": ["warn","0.6.12"],
-    "state-visibility": "warn",
+    "state-visibility": "error",
     "no-empty-blocks": "warn",
     "check-send-result": "error",
     "private-vars-leading-underscore": "warn",

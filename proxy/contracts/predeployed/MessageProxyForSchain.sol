@@ -59,7 +59,7 @@ contract MessageProxyForSchain {
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public ownerAddress; // l_sergiy: changed name to ownerAddress
 
-    bool mainnetConnected = false;
+    bool public mainnetConnected = false;
 
     mapping(address => bool) private authorizedCaller_; // l_sergiy: changed name _ and made private
 

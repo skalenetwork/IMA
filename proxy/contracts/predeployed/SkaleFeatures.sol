@@ -24,13 +24,13 @@ pragma solidity ^0.6.10;
 
 contract SkaleFeatures {
 
-    uint256 constant FREE_MEM_PTR = 0x40;
-    uint256 constant FN_NUM_LOG_TEXT_MESSAGE = 0x12;
-    uint256 constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;
-    uint256 constant FN_NUM_GET_CONFIG_VARIABLE_ADDRESS = 0x14;
-    uint256 constant FN_NUM_GET_CONFIG_VARIABLE_STRING = 0x15;
-    uint256 constant FN_NUM_CONCATENATE_STRINGS = 0x16;
-    uint256 constant FN_NUM_GET_CONFIG_PERMISSION_FLAG = 0x17;
+    uint256 public constant FREE_MEM_PTR = 0x40;
+    uint256 public constant FN_NUM_LOG_TEXT_MESSAGE = 0x12;
+    uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;
+    uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_ADDRESS = 0x14;
+    uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_STRING = 0x15;
+    uint256 public constant FN_NUM_CONCATENATE_STRINGS = 0x16;
+    uint256 public constant FN_NUM_GET_CONFIG_PERMISSION_FLAG = 0x17;
 
     function logTextMessage( uint256 messageType, string memory strTextMessage ) public view returns ( uint256 rv ) {
         uint256 fmp = FREE_MEM_PTR;
