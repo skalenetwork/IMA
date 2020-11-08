@@ -162,10 +162,6 @@ contract MessageProxyForMainnet is Initializable {
         view
         returns (bool)
     {
-        require(
-            keccak256(abi.encodePacked(someChainID)) !=
-            keccak256(abi.encodePacked("Mainnet")),
-            "Schain id can not be equal Mainnet"); // main net does not have a public key and is implicitly connected
         if ( ! connectedChains[keccak256(abi.encodePacked(someChainID))].inited ) {
             return false;
         }
@@ -177,8 +173,7 @@ contract MessageProxyForMainnet is Initializable {
     // created. Therefore, any SKALE chain is always connected to the main chain.
     // To connect to other chains, the owner needs to explicitly call this function
     function addConnectedChain(
-        string calldata newChainID,
-        uint256[4] calldata newPublicKey
+        string calldata newChainID
     )
         external
     {
@@ -188,7 +183,6 @@ contract MessageProxyForMainnet is Initializable {
             keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
 
-        // main net does not have a public key and is implicitly connected
         require(
             !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
             "Chain is already connected"
