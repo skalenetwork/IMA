@@ -162,7 +162,6 @@ contract MessageProxyForMainnet is Initializable {
         view
         returns (bool)
     {
-        //require(msg.sender == owner); // todo: tmp!!!!!
         require(
             keccak256(abi.encodePacked(someChainID)) !=
             keccak256(abi.encodePacked("Mainnet")),
@@ -205,12 +204,6 @@ contract MessageProxyForMainnet is Initializable {
 
     function removeConnectedChain(string calldata newChainID) external {
         require(msg.sender == owner, "Sender is not an owner");
-
-        // require(
-        //     keccak256(abi.encodePacked(newChainID)) !=
-        //     keccak256(abi.encodePacked("Mainnet")),
-        //     "New chain id can not be equal Mainnet"
-        //     ); // you cannot remove a connection to main net
 
         require(
             connectedChains[keccak256(abi.encodePacked(newChainID))].inited,

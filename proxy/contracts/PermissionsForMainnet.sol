@@ -35,7 +35,7 @@ interface IContractManagerForMainnet {
 contract PermissionsForMainnet is AccessControlUpgradeSafe {
 
     // address of ContractManager
-    address public lockAndDataAddress_; // l_sergiy: changed name _
+    address public lockAndDataAddress_;
 
     /**
      * @dev allow - throws if called by any account and contract other than the owner

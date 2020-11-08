@@ -29,16 +29,13 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
 
     mapping(uint256 => address) public erc721Tokens;
     mapping(address => uint256) public erc721Mapper;
-    // mapping(uint256 => uint256) public mintToken;
     uint256 public  newIndexERC721;
 
     function sendERC721(address contractHere, address to, uint256 tokenId) external allow("ERC721Module") returns (bool) {
         if (IERC721(contractHere).ownerOf(tokenId) == address(this)) {
             IERC721(contractHere).transferFrom(address(this), to, tokenId);
             require(IERC721(contractHere).ownerOf(tokenId) == to, "Did not transfer");
-        } // else {
-        //     //mint!!!
-        // }
+        }
         return true;
     }
 

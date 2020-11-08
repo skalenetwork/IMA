@@ -21,7 +21,6 @@
 
 pragma solidity ^0.6.10;
 
-import "./predeployed/SkaleFeatures.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
 
