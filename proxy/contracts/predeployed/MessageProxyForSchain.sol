@@ -142,7 +142,8 @@ contract MessageProxyForSchain {
                 ],
                 0,
                 0,
-                true);
+                true
+            );
             mainnetConnected = true;
         }
         _;
@@ -158,12 +159,19 @@ contract MessageProxyForSchain {
         if (keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet"))
         ) {
-            // connect to mainnet by default
-            // Mainnet does not have a public key
-            uint256[4] memory empty = [0, 0, 0, 0];
             connectedChains[
                 keccak256(abi.encodePacked("Mainnet"))
-            ] = ConnectedChainInfo(empty, 0, 0, true);
+            ] = ConnectedChainInfo(
+                [
+                    uint256(0),
+                    uint256(0),
+                    uint256(0),
+                    uint256(0)
+                ],
+                0,
+                0,
+                true
+            );
             mainnetConnected = true;
         }
     }
