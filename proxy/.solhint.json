@@ -14,7 +14,7 @@
     "visibility-modifier-order": "error",
     "func-name-mixedcase": "error",
     "no-unused-vars": "warn",
-    "function-max-lines": "warn",
+    "function-max-lines": "error",
     "no-inline-assembly": "error",
     "contract-name-camelcase": "error",
     "ordering": "error",
