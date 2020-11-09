@@ -25,7 +25,7 @@ import "./PermissionsForSchain.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
 
 interface ITokenFactoryForERC20 {
-    function createERC20(bytes calldata data)
+    function createERC20(string memory name, string memory symbol, uint256 totalSupply)
         external
         returns (address payable);
 }
@@ -94,10 +94,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         contractAddress = ILockAndDataERC20S(lockAndDataERC20).erc20Tokens(contractPosition);
         if (to == address(0)) {
             if (contractAddress == address(0)) {
-                address tokenFactoryAddress = IContractManagerForSchain(
-                    getLockAndDataAddress()
-                ).permitted(keccak256(abi.encodePacked("TokenFactory")));
-                contractAddress = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(data);
+                contractAddress = _sendCreateERC20Request(data);
                 emit ERC20TokenCreated(contractPosition, contractAddress);
                 ILockAndDataERC20S(lockAndDataERC20).addERC20Token(contractAddress, contractPosition);
             } else {
@@ -121,6 +118,17 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         uint256 contractPosition;
         uint256 amount;
         (contractPosition, receiver, amount) = _fallbackDataParser(data);
+    }
+
+    function _sendCreateERC20Request(bytes calldata data) internal returns (address) {
+        string memory name;
+        string memory symbol;
+        uint256 totalSupply;
+        (name, symbol, , totalSupply) = _fallbackDataCreateERC20Parser(data);
+        address tokenFactoryAddress = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).permitted(keccak256(abi.encodePacked("TokenFactory")));
+        return ITokenFactoryForERC20(tokenFactoryAddress).createERC20(name, symbol, totalSupply);
     }
 
     function _encodeCreationData(
@@ -211,5 +219,52 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         return (
             uint256(contractIndex), address(bytes20(to)), uint256(token)
         );
+    }
+
+    function _fallbackDataCreateERC20Parser(bytes memory data)
+        private
+        pure
+        returns (
+            string memory name,
+            string memory symbol,
+            uint8,
+            uint256
+        )
+    {
+        bytes1 decimals;
+        bytes32 totalSupply;
+        bytes32 nameLength;
+        bytes32 symbolLength;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            nameLength := mload(add(data, 129))
+        }
+        name = new string(uint256(nameLength));
+        for (uint256 i = 0; i < uint256(nameLength); i++) {
+            bytes(name)[i] = data[129 + i];
+        }
+        uint256 lengthOfName = uint256(nameLength);
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            symbolLength := mload(add(data, add(161, lengthOfName)))
+        }
+        symbol = new string(uint256(symbolLength));
+        for (uint256 i = 0; i < uint256(symbolLength); i++) {
+            bytes(symbol)[i] = data[161 + lengthOfName + i];
+        }
+        uint256 lengthOfSymbol = uint256(symbolLength);
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            decimals := mload(add(data,
+                add(193, add(lengthOfName, lengthOfSymbol))))
+            totalSupply := mload(add(data,
+                add(194, add(lengthOfName, lengthOfSymbol))))
+        }
+        return (
+            name,
+            symbol,
+            uint8(decimals),
+            uint256(totalSupply)
+            );
     }
 }

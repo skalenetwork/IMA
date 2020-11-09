@@ -90,7 +90,7 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         return variable;
     }
 
-    function getReceiver(bytes calldata data) external pure returns (address receiver) {
+    function getReceiver(bytes calldata data) external view returns (address receiver) {
         uint256 contractPosition;
         uint256 amount;
         (contractPosition, receiver, amount) = _fallbackDataParser(data);

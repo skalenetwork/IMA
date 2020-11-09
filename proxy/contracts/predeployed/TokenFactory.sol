@@ -25,6 +25,7 @@ import "./PermissionsForSchain.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20Burnable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/ERC721Burnable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/AccessControl.sol";
+import "@nomiclabs/buidler/console.sol";
 
 
 contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
@@ -103,20 +104,15 @@ contract ERC721OnChain is AccessControlUpgradeSafe, ERC721BurnableUpgradeSafe {
 
 contract TokenFactory is PermissionsForSchain {
 
-
     constructor(address _lockAndDataAddress) public PermissionsForSchain(_lockAndDataAddress) {
         // solhint-disable-previous-line no-empty-blocks
     }
 
-    function createERC20(bytes calldata data)
+    function createERC20(string memory name, string memory symbol, uint256 totalSupply)
         external
         allow("ERC20Module")
         returns (address)
     {
-        string memory name;
-        string memory symbol;
-        uint256 totalSupply;
-        (name, symbol, , totalSupply) = _fallbackDataCreateERC20Parser(data);
         address erc20ModuleAddress = IContractManagerForSchain(
             getLockAndDataAddress()
         ).permitted(keccak256(abi.encodePacked("ERC20Module")));
@@ -134,14 +130,11 @@ contract TokenFactory is PermissionsForSchain {
         return address(newERC20);
     }
 
-    function createERC721(bytes calldata data)
+    function createERC721(string memory name, string memory symbol)
         external
         allow("ERC721Module")
         returns (address)
     {
-        string memory name;
-        string memory symbol;
-        (name, symbol) = _fallbackDataCreateERC721Parser(data);
         ERC721OnChain newERC721 = new ERC721OnChain(name, symbol);
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
             permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
@@ -149,85 +142,4 @@ contract TokenFactory is PermissionsForSchain {
         newERC721.revokeRole(newERC721.MINTER_ROLE(), address(this));
         return address(newERC721);
     }
-
-    function _fallbackDataCreateERC20Parser(bytes memory data)
-        private
-        pure
-        returns (
-            string memory name,
-            string memory symbol,
-            uint8,
-            uint256
-        )
-    {
-        bytes1 decimals;
-        bytes32 totalSupply;
-        bytes32 nameLength;
-        bytes32 symbolLength;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            nameLength := mload(add(data, 129))
-        }
-        name = new string(uint256(nameLength));
-        for (uint256 i = 0; i < uint256(nameLength); i++) {
-            bytes(name)[i] = data[129 + i];
-        }
-        uint256 lengthOfName = uint256(nameLength);
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            symbolLength := mload(add(data, add(161, lengthOfName)))
-        }
-        symbol = new string(uint256(symbolLength));
-        for (uint256 i = 0; i < uint256(symbolLength); i++) {
-            bytes(symbol)[i] = data[161 + lengthOfName + i];
-        }
-        uint256 lengthOfSymbol = uint256(symbolLength);
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            decimals := mload(add(data,
-                add(193, add(lengthOfName, lengthOfSymbol))))
-            totalSupply := mload(add(data,
-                add(194, add(lengthOfName, lengthOfSymbol))))
-        }
-        return (
-            name,
-            symbol,
-            uint8(decimals),
-            uint256(totalSupply)
-            );
-    }
-
-    function _fallbackDataCreateERC721Parser(bytes memory data)
-        private
-        pure
-        returns (
-            string memory name,
-            string memory symbol
-        )
-    {
-        bytes32 nameLength;
-        bytes32 symbolLength;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            nameLength := mload(add(data, 129))
-        }
-        name = new string(uint256(nameLength));
-        for (uint256 i = 0; i < uint256(nameLength); i++) {
-            bytes(name)[i] = data[129 + i];
-        }
-        uint256 lengthOfName = uint256(nameLength);
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            symbolLength := mload(add(data, add(161, lengthOfName)))
-        }
-        symbol = new string(uint256(symbolLength));
-        for (uint256 i = 0; i < uint256(symbolLength); i++) {
-            bytes(symbol)[i] = data[161 + lengthOfName + i];
-        }
-    }
 }
-
-
-
-
-

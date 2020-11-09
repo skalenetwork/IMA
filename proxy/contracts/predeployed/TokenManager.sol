@@ -430,7 +430,7 @@ contract TokenManager is PermissionsForSchain {
                 getLockAndDataAddress()
             ).permitted(keccak256(abi.encodePacked("ERC20Module")));
             require(IERC20Module(erc20Module).sendERC20(to, data), "Failed to send ERC20");
-            address receiver = IERC20Module(erc20Module).getReceiver(to, data);
+            address receiver = IERC20Module(erc20Module).getReceiver(data);
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else if ((operation == TransactionOperation.transferERC721 && to == address(0)) ||
                   (operation == TransactionOperation.rawTransferERC721 && to != address(0))) {

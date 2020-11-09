@@ -166,22 +166,16 @@ contract DepositBox is PermissionsForMainnet {
             IERC20(contractHere).allowance(
                 msg.sender,
                 address(this)
-            ) >= amount,
-            "Not allowed ERC20 Token"
+            ) >= amount, "Not allowed ERC20 Token"
         );
         require(
             IERC20(contractHere).transferFrom(
                 msg.sender,
                 lockAndDataERC20,
                 amount
-            ),
-            "Could not transfer ERC20 Token"
+            ), "Could not transfer ERC20 Token"
         );
-        bytes memory data = IERC20Module(erc20Module).receiveERC20(
-            contractHere,
-            to,
-            amount,
-            true);
+        bytes memory data = IERC20Module(erc20Module).receiveERC20(contractHere, to, amount, true);
         IMessageProxy(IContractManagerForMainnet(lockAndDataAddress_).permitted(
             keccak256(abi.encodePacked("MessageProxy"))
         )).postOutgoingMessage(
@@ -301,42 +295,7 @@ contract DepositBox is PermissionsForMainnet {
             ILockAndDataDB(lockAndDataAddress_).sendEth(getOwner(), GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
             "Could not send money to owner"
         );
-
-        TransactionOperation operation = _fallbackOperationTypeConvert(data);
-        if (operation == TransactionOperation.transferETH) {
-            if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
-                ILockAndDataDB(lockAndDataAddress_).approveTransfer(
-                    to,
-                    amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE
-                );
-            }
-        } else if ((operation == TransactionOperation.transferERC20 && to == address(0)) ||
-                  (operation == TransactionOperation.rawTransferERC20 && to != address(0))) {
-            address erc20Module = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-                keccak256(abi.encodePacked("ERC20Module"))
-            );
-            require(IERC20Module(erc20Module).sendERC20(to, data), "Sending of ERC20 was failed");
-            address receiver = IERC20Module(erc20Module).getReceiver(to, data);
-            if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
-                ILockAndDataDB(lockAndDataAddress_).approveTransfer(
-                    receiver,
-                    amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE
-                );
-            }
-        } else if ((operation == TransactionOperation.transferERC721 && to == address(0)) ||
-                  (operation == TransactionOperation.rawTransferERC721 && to != address(0))) {
-            address erc721Module = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-                keccak256(abi.encodePacked("ERC721Module"))
-            );
-            require(IERC721Module(erc721Module).sendERC721(to, data), "Sending of ERC721 was failed");
-            address receiver = IERC721Module(erc721Module).getReceiver(to, data);
-            if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
-                ILockAndDataDB(lockAndDataAddress_).approveTransfer(
-                    receiver,
-                    amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE
-                );
-            }
-        }
+        _executePerOperation(to, amount, data);
     }
 
     /// Create a new deposit box
@@ -369,6 +328,50 @@ contract DepositBox is PermissionsForMainnet {
             to,
             newData
         );
+    }
+
+    function _executePerOperation(
+        address payable to,
+        uint256 amount,
+        bytes calldata data    
+    )
+        internal
+    {
+        TransactionOperation operation = _fallbackOperationTypeConvert(data);
+        if (operation == TransactionOperation.transferETH) {
+            if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
+                ILockAndDataDB(lockAndDataAddress_).approveTransfer(
+                    to,
+                    amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE
+                );
+            }
+        } else if ((operation == TransactionOperation.transferERC20 && to == address(0)) ||
+                  (operation == TransactionOperation.rawTransferERC20 && to != address(0))) {
+            address erc20Module = IContractManagerForMainnet(lockAndDataAddress_).permitted(
+                keccak256(abi.encodePacked("ERC20Module"))
+            );
+            require(IERC20Module(erc20Module).sendERC20(to, data), "Sending of ERC20 was failed");
+            address receiver = IERC20Module(erc20Module).getReceiver(data);
+            if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
+                ILockAndDataDB(lockAndDataAddress_).approveTransfer(
+                    receiver,
+                    amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE
+                );
+            }
+        } else if ((operation == TransactionOperation.transferERC721 && to == address(0)) ||
+                  (operation == TransactionOperation.rawTransferERC721 && to != address(0))) {
+            address erc721Module = IContractManagerForMainnet(lockAndDataAddress_).permitted(
+                keccak256(abi.encodePacked("ERC721Module"))
+            );
+            require(IERC721Module(erc721Module).sendERC721(to, data), "Sending of ERC721 was failed");
+            address receiver = IERC721Module(erc721Module).getReceiver(to, data);
+            if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
+                ILockAndDataDB(lockAndDataAddress_).approveTransfer(
+                    receiver,
+                    amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE
+                );
+            }
+        }
     }
 
     /**
