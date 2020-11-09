@@ -51,23 +51,23 @@ contract EthERC20 is LockAndDataOwnable, ContextUpgradeSafe, IERC20 {
     uint private _capacity;
 
     constructor() public {
-        delayedInit();
+        _delayedInit();
     }
 
     function mint(address account, uint256 amount) external onlyOwner returns (bool) {
-        delayedInit();
+        _delayedInit();
         require(totalSupply().add(amount) <= _capacity, "Capacity exceeded");
         _mint(account, amount);
         return true;
     }
 
     function burn(uint256 amount) external {
-        delayedInit();
+        _delayedInit();
         _burn(msg.sender, amount);
     }
 
     function burnFrom(address account, uint256 amount) external onlyOwner {
-        delayedInit();
+        _delayedInit();
         _burn(account, amount);
     }
 
@@ -319,7 +319,7 @@ contract EthERC20 is LockAndDataOwnable, ContextUpgradeSafe, IERC20 {
         _decimals = decimals_;
     }
 
-    function delayedInit() internal {
+    function _delayedInit() internal {
         if (_initialized) {
             return;
         }

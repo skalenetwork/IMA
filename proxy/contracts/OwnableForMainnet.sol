@@ -33,10 +33,10 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 contract OwnableForMainnet is Initializable {
 
     /**
-     * @dev ownerAddress is only used after transferOwnership().
-     * By default, value of "skaleConfig.contractSettings.IMA.ownerAddress" config variable is used
+     * @dev _ownerAddress is only used after transferOwnership().
+     * By default, value of "skaleConfig.contractSettings.IMA._ownerAddress" config variable is used
      */
-    address private ownerAddress;
+    address private _ownerAddress;
 
     /**
      * @dev Throws if called by any account other than the owner.
@@ -60,20 +60,20 @@ contract OwnableForMainnet is Initializable {
      * account.
      */
     function initialize() public virtual initializer {
-        ownerAddress = msg.sender;
+        _ownerAddress = msg.sender;
     }
 
     /**
      * @dev Sets new owner address.
      */
     function setOwner( address newAddressOwner ) public {
-        ownerAddress = newAddressOwner;
+        _ownerAddress = newAddressOwner;
     }
 
     /**
      * @dev Returns owner address.
      */
     function getOwner() public view returns ( address ow ) {
-        return ownerAddress;
+        return _ownerAddress;
     }
 }

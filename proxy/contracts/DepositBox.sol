@@ -306,7 +306,7 @@ contract DepositBox is PermissionsForMainnet {
             "Could not send money to owner"
         );
 
-        TransactionOperation operation = fallbackOperationTypeConvert(data);
+        TransactionOperation operation = _fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
             if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
                 ILockAndDataDB(lockAndDataAddress_).approveTransfer(
@@ -385,8 +385,8 @@ contract DepositBox is PermissionsForMainnet {
      * @param data - received data
      * @return operation
      */
-    function fallbackOperationTypeConvert(bytes memory data)
-        internal
+    function _fallbackOperationTypeConvert(bytes memory data)
+        private
         pure
         returns (TransactionOperation)
     {

@@ -31,7 +31,7 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     uint256 private _totalSupplyOnMainnet;
-    address private addressOfErc20Module;
+    address private _addressOfErc20Module;
 
     constructor(
         string memory contractName,
@@ -43,13 +43,13 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
     {
         __ERC20_init(contractName, contractSymbol);
         _totalSupplyOnMainnet = newTotalSupply;
-        addressOfErc20Module = erc20Module;
+        _addressOfErc20Module = erc20Module;
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
         _setupRole(MINTER_ROLE, _msgSender());
     }
 
     function setTotalSupplyOnMainnet(uint256 newTotalSupply) external {
-        require(addressOfErc20Module == _msgSender(), "Caller is not ERC20Module");
+        require(_addressOfErc20Module == _msgSender(), "Caller is not ERC20Module");
         _totalSupplyOnMainnet = newTotalSupply;
     }
 
@@ -117,7 +117,7 @@ contract TokenFactory is PermissionsForSchain {
         string memory symbol;
         uint8 decimals;
         uint256 totalSupply;
-        (name, symbol, decimals, totalSupply) = fallbackDataCreateERC20Parser(data);
+        (name, symbol, decimals, totalSupply) = _fallbackDataCreateERC20Parser(data);
         address erc20ModuleAddress = IContractManagerForSchain(
             getLockAndDataAddress()
         ).permitted(keccak256(abi.encodePacked("ERC20Module")));
@@ -142,7 +142,7 @@ contract TokenFactory is PermissionsForSchain {
     {
         string memory name;
         string memory symbol;
-        (name, symbol) = fallbackDataCreateERC721Parser(data);
+        (name, symbol) = _fallbackDataCreateERC721Parser(data);
         ERC721OnChain newERC721 = new ERC721OnChain(name, symbol);
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
             permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
@@ -151,8 +151,8 @@ contract TokenFactory is PermissionsForSchain {
         return address(newERC721);
     }
 
-    function fallbackDataCreateERC20Parser(bytes memory data)
-        internal
+    function _fallbackDataCreateERC20Parser(bytes memory data)
+        private
         pure
         returns (
             string memory name,
@@ -198,8 +198,8 @@ contract TokenFactory is PermissionsForSchain {
             );
     }
 
-    function fallbackDataCreateERC721Parser(bytes memory data)
-        internal
+    function _fallbackDataCreateERC721Parser(bytes memory data)
+        private
         pure
         returns (
             string memory name,

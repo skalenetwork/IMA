@@ -108,12 +108,12 @@ contract MessageProxyForMainnet is Initializable {
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public owner;
     address public contractManagerSkaleManager;
-    uint256 private idxHead;
-    uint256 private idxTail;
+    uint256 private _idxHead;
+    uint256 private _idxTail;
 
     mapping(address => bool) public authorizedCaller;
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
-    mapping ( uint256 => OutgoingMessageData ) private outgoingMessageData;
+    mapping ( uint256 => OutgoingMessageData ) private _outgoingMessageData;
 
     event OutgoingMessage(
         string dstChain,
@@ -206,7 +206,7 @@ contract MessageProxyForMainnet is Initializable {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         connectedChains[dstChainHash].outgoingMessageCounter++;
-        pushOutgoingMessageData(
+        _pushOutgoingMessageData(
             OutgoingMessageData(
                 dstChainID,
                 dstChainHash,
@@ -249,9 +249,9 @@ contract MessageProxyForMainnet is Initializable {
             }
 
             require(
-                verifyMessageSignature(
+                _verifyMessageSignature(
                     sign.blsSignature,
-                    hashedArray(input),
+                    _hashedArray(input),
                     sign.counter,
                     sign.hashA,
                     sign.hashB,
@@ -283,7 +283,7 @@ contract MessageProxyForMainnet is Initializable {
             }
         }
         connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint256(messages.length);
-        popOutgoingMessageData(idxLastToPopNotIncluding);
+        _popOutgoingMessageData(idxLastToPopNotIncluding);
     }
 
     function moveIncomingCounter(string calldata schainName) external {
@@ -357,12 +357,12 @@ contract MessageProxyForMainnet is Initializable {
             returns (bool isValidMessage)
     {
         isValidMessage = false;
-        OutgoingMessageData memory d = outgoingMessageData[idxMessage];
+        OutgoingMessageData memory d = _outgoingMessageData[idxMessage];
         if ( d.dstContract == destinationContract && d.srcContract == sender && d.to == to && d.amount == amount )
             isValidMessage = true;
     }
 
-    function verifyMessageSignature(
+    function _verifyMessageSignature(
         uint256[2] memory blsSignature,
         bytes32 hash,
         uint256 counter,
@@ -370,7 +370,7 @@ contract MessageProxyForMainnet is Initializable {
         uint256 hashB,
         string memory srcChainID
     )
-        internal
+        private
         view
         returns (bool)
     {
@@ -388,7 +388,7 @@ contract MessageProxyForMainnet is Initializable {
         );
     }
 
-    function hashedArray(Message[] memory messages) internal pure returns (bytes32) {
+    function _hashedArray(Message[] memory messages) private pure returns (bytes32) {
         bytes memory data;
         for (uint256 i = 0; i < messages.length; i++) {
             data = abi.encodePacked(
@@ -403,7 +403,7 @@ contract MessageProxyForMainnet is Initializable {
         return keccak256(data);
     }
 
-    function pushOutgoingMessageData( OutgoingMessageData memory d ) internal {
+    function _pushOutgoingMessageData( OutgoingMessageData memory d ) private {
         emit OutgoingMessage(
             d.dstChain,
             d.dstChainHash,
@@ -415,19 +415,19 @@ contract MessageProxyForMainnet is Initializable {
             d.data,
             d.length
         );
-        outgoingMessageData[idxTail] = d;
-        ++ idxTail;
+        _outgoingMessageData[_idxTail] = d;
+        ++_idxTail;
     }
 
-    function popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) internal returns ( uint256 cntDeleted ) {
+    function _popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) private returns ( uint256 cntDeleted ) {
         cntDeleted = 0;
-        for ( uint256 i = idxHead; i < idxLastToPopNotIncluding; ++ i ) {
-            if ( i >= idxTail )
+        for ( uint256 i = _idxHead; i < idxLastToPopNotIncluding; ++ i ) {
+            if ( i >= _idxTail )
                 break;
-            delete outgoingMessageData[i];
+            delete _outgoingMessageData[i];
             ++ cntDeleted;
         }
         if (cntDeleted > 0)
-            idxHead += cntDeleted;
+            _idxHead += cntDeleted;
     }
 }

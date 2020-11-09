@@ -58,14 +58,14 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
             emit ERC20TokenAdded(contractHere, contractPosition);
         }
         if (!isRAW) {
-            data = encodeCreationData(
+            data = _encodeCreationData(
                 contractHere,
                 contractPosition,
                 to,
                 amount
             );
         } else {
-            data = encodeRegularData(to, contractPosition, amount);
+            data = _encodeRegularData(to, contractPosition, amount);
         }
         emit ERC20TokenSent(contractHere, contractPosition, amount);
         return data;
@@ -79,7 +79,7 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         address contractAddress;
         address receiver;
         uint256 amount;
-        (contractPosition, receiver, amount) = fallbackDataParser(data);
+        (contractPosition, receiver, amount) = _fallbackDataParser(data);
         contractAddress = ILockAndDataERC20M(lockAndDataERC20).erc20Tokens(contractPosition);
         if (to != address(0)) {
             if (contractAddress == address(0)) {
@@ -93,20 +93,20 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
     function getReceiver(bytes calldata data) external pure returns (address receiver) {
         uint256 contractPosition;
         uint256 amount;
-        (contractPosition, receiver, amount) = fallbackDataParser(data);
+        (contractPosition, receiver, amount) = _fallbackDataParser(data);
     }
 
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
-    function encodeCreationData(
+    function _encodeCreationData(
         address contractHere,
         uint256 contractPosition,
         address to,
         uint256 amount
     )
-        internal
+        private
         view
         returns (bytes memory data)
     {
@@ -128,12 +128,12 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
-    function encodeRegularData(
+    function _encodeRegularData(
         address to,
         uint256 contractPosition,
         uint256 amount
     )
-        internal
+        private
         pure
         returns (bytes memory data)
     {
@@ -145,8 +145,8 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
-    function fallbackDataParser(bytes memory data)
-        internal
+    function _fallbackDataParser(bytes memory data)
+        private
         pure
         returns (uint256, address payable, uint256)
     {

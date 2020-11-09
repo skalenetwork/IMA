@@ -40,8 +40,12 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         address contractHere,
         address to,
         uint256 tokenId,
-        bool isRAW) external allow("DepositBox") returns (bytes memory data)
-        {
+        bool isRAW
+    )
+        external
+        allow("DepositBox")
+        returns (bytes memory data)
+    {
         address lockAndDataERC721 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
             keccak256(abi.encodePacked("LockAndDataERC721"))
         );
@@ -51,14 +55,14 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
                 contractPosition = ILockAndDataERC721M(lockAndDataERC721).addERC721Token(contractHere);
                 emit ERC721TokenAdded(contractHere, contractPosition);
             }
-            data = encodeData(
+            data = _encodeData(
                 contractHere,
                 contractPosition,
                 to,
                 tokenId);
             return data;
         } else {
-            data = encodeRawData(to, tokenId);
+            data = _encodeRawData(to, tokenId);
             return data;
         }
     }
@@ -72,10 +76,10 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         address receiver;
         uint256 tokenId;
         if (to == address(0)) {
-            (contractPosition, receiver, tokenId) = fallbackDataParser(data);
+            (contractPosition, receiver, tokenId) = _fallbackDataParser(data);
             contractAddress = ILockAndDataERC721M(lockAndDataERC721).erc721Tokens(contractPosition);
         } else {
-            (receiver, tokenId) = fallbackRawDataParser(data);
+            (receiver, tokenId) = _fallbackRawDataParser(data);
             contractAddress = to;
         }
         return ILockAndDataERC721M(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
@@ -85,9 +89,9 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         uint256 contractPosition;
         uint256 amount;
         if (to == address(0)) {
-            (contractPosition, receiver, amount) = fallbackDataParser(data);
+            (contractPosition, receiver, amount) = _fallbackDataParser(data);
         } else {
-            (receiver, amount) = fallbackRawDataParser(data);
+            (receiver, amount) = _fallbackRawDataParser(data);
         }
     }
 
@@ -95,12 +99,16 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
-    function encodeData(
+    function _encodeData(
         address contractHere,
         uint256 contractPosition,
         address to,
-        uint256 tokenId) internal view returns (bytes memory data)
-        {
+        uint256 tokenId
+    )
+        private
+        view
+        returns (bytes memory data)
+    {
         string memory name = IERC721Metadata(contractHere).name();
         string memory symbol = IERC721Metadata(contractHere).symbol();
         data = abi.encodePacked(
@@ -115,7 +123,7 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
-    function encodeRawData(address to, uint256 tokenId) internal pure returns (bytes memory data) {
+    function _encodeRawData(address to, uint256 tokenId) private pure returns (bytes memory data) {
         data = abi.encodePacked(
             bytes1(uint8(21)),
             bytes32(bytes20(to)),
@@ -123,8 +131,8 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
-    function fallbackDataParser(bytes memory data)
-        internal
+    function _fallbackDataParser(bytes memory data)
+        private
         pure
         returns (uint256, address payable, uint256)
     {
@@ -141,8 +149,8 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
-    function fallbackRawDataParser(bytes memory data)
-        internal
+    function _fallbackRawDataParser(bytes memory data)
+        private
         pure
         returns (address payable, uint256)
     {

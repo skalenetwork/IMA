@@ -33,7 +33,7 @@ interface IETHERC20 {
 
 contract LockAndDataForSchain is OwnableForSchain {
 
-    address private ethERC20Address_; // l_sergiy: changed name _
+    address private _ethERC20Address; // l_sergiy: changed name _
 
     mapping(bytes32 => address) public permitted; // l_sergiy: changed name _
 
@@ -43,23 +43,23 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     mapping(address => bool) public authorizedCaller;
 
-    bool private isCustomDeploymentMode_ = false;
+    bool private _isCustomDeploymentMode = false;
 
     modifier allow(string memory contractName) {
         require(
             //permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
-            checkPermitted(contractName,msg.sender) ||
+            _checkPermitted(contractName,msg.sender) ||
             getOwner() == msg.sender, "Not allowed LockAndDataForSchain");
         _;
     }
 
     constructor() public {
-        isCustomDeploymentMode_ = true;
+        _isCustomDeploymentMode = true;
         authorizedCaller[msg.sender] = true;
     }
 
     function setEthERC20Address(address newEthERC20Address) external onlyOwner {
-        ethERC20Address_ = newEthERC20Address;
+        _ethERC20Address = newEthERC20Address;
     }
 
     function setContract(string calldata contractName, address newContract) external onlyOwner {
@@ -67,7 +67,7 @@ contract LockAndDataForSchain is OwnableForSchain {
 
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         //require(permitted[contractId] != newContract, "Contract is already added");
-        require(!checkPermitted(contractName,newContract), "Contract is already added"); // l_sergiy: repacement
+        require(!_checkPermitted(contractName,newContract), "Contract is already added"); // l_sergiy: repacement
 
         uint256 length;
         // solium-disable-next-line security/no-inline-assembly
@@ -171,23 +171,23 @@ contract LockAndDataForSchain is OwnableForSchain {
     }
 
     function getEthERC20Address() /*external onlyOwner*/ /*private*/ public view returns ( address a ) {
-        if (ethERC20Address_ == address(0) && (!isCustomDeploymentMode_)) {
+        if (_ethERC20Address == address(0) && (!_isCustomDeploymentMode)) {
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
                 "skaleConfig.contractSettings.IMA.ethERC20Address"
             );
         }
-        a = ethERC20Address_;
+        a = _ethERC20Address;
     }
 
-    // l_sergiy: added checkPermitted() function
-    function checkPermitted( string memory contractName, address contractAddress ) private view returns ( bool rv ) {
+    // l_sergiy: added _checkPermitted() function
+    function _checkPermitted( string memory contractName, address contractAddress ) private view returns ( bool rv ) {
         require(contractAddress != address(0), "contract address required to check permitted status");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         bool isPermitted = (permitted[contractId] == contractAddress) ? true : false;
         if ((isPermitted) ) {
             rv = true;
         } else {
-            if (!isCustomDeploymentMode_) {
+            if (!_isCustomDeploymentMode) {
                 string memory strVarName = SkaleFeatures(
                     0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
                 ).concatenateStrings(

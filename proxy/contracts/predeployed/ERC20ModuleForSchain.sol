@@ -70,14 +70,14 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
             "Cound not receive ERC20 Token"
         );
         if (!isRAW) {
-            data = encodeCreationData(
+            data = _encodeCreationData(
                 contractHere,
                 contractPosition,
                 to,
                 amount
             );
         } else {
-            data = encodeRegularData(to, contractPosition, amount);
+            data = _encodeRegularData(to, contractPosition, amount);
         }
         return data;
     }
@@ -90,7 +90,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         address contractAddress;
         address receiver;
         uint256 amount;
-        (contractPosition, receiver, amount) = fallbackDataParser(data);
+        (contractPosition, receiver, amount) = _fallbackDataParser(data);
         contractAddress = ILockAndDataERC20S(lockAndDataERC20).erc20Tokens(contractPosition);
         if (to == address(0)) {
             if (contractAddress == address(0)) {
@@ -101,7 +101,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
                 emit ERC20TokenCreated(contractPosition, contractAddress);
                 ILockAndDataERC20S(lockAndDataERC20).addERC20Token(contractAddress, contractPosition);
             } else {
-                uint256 totalSupply = fallbackTotalSupplyParser(data);
+                uint256 totalSupply = _fallbackTotalSupplyParser(data);
                 if (totalSupply > ERC20Clone(contractAddress).totalSupplyOnMainnet()) {
                     ERC20Clone(contractAddress).setTotalSupplyOnMainnet(totalSupply);
                 }
@@ -120,16 +120,16 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
     function getReceiver(bytes calldata data) external view returns (address receiver) {
         uint256 contractPosition;
         uint256 amount;
-        (contractPosition, receiver, amount) = fallbackDataParser(data);
+        (contractPosition, receiver, amount) = _fallbackDataParser(data);
     }
 
-    function encodeCreationData(
+    function _encodeCreationData(
         address contractHere,
         uint256 contractPosition,
         address to,
         uint256 amount
     )
-        internal
+        private
         view
         returns (bytes memory data)
     {
@@ -151,12 +151,12 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         );
     }
 
-    function encodeRegularData(
+    function _encodeRegularData(
         address to,
         uint256 contractPosition,
         uint256 amount
     )
-        internal
+        private
         pure
         returns (bytes memory data)
     {
@@ -168,8 +168,8 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         );
     }
 
-    function fallbackTotalSupplyParser(bytes memory data)
-        internal
+    function _fallbackTotalSupplyParser(bytes memory data)
+        private
         pure
         returns (uint256)
     {
@@ -191,8 +191,8 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         return uint256(totalSupply);
     }
 
-    function fallbackDataParser(bytes memory data)
-        internal
+    function _fallbackDataParser(bytes memory data)
+        private
         pure
         returns (uint256, address payable, uint256)
     {

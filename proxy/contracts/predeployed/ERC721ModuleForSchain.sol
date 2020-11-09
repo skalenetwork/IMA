@@ -63,14 +63,14 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
                 ILockAndDataERC721S(lockAndDataERC721).receiveERC721(contractHere, tokenId),
                 "Cound not receive ERC721 Token"
             );
-            data = encodeData(
+            data = _encodeData(
                 contractHere,
                 contractPosition,
                 to,
                 tokenId);
             return data;
         } else {
-            data = encodeRawData(to, tokenId);
+            data = _encodeRawData(to, tokenId);
             return data;
         }
     }
@@ -83,7 +83,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         address receiver;
         uint256 tokenId;
         if (to == address(0)) {
-            (contractPosition, receiver, tokenId) = fallbackDataParser(data);
+            (contractPosition, receiver, tokenId) = _fallbackDataParser(data);
             contractAddress = ILockAndDataERC721S(lockAndDataERC721).erc721Tokens(contractPosition);
             if (contractAddress == address(0)) {
                 address tokenFactoryAddress = IContractManagerForSchain(getLockAndDataAddress()).
@@ -93,7 +93,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
                 ILockAndDataERC721S(lockAndDataERC721).addERC721Token(contractAddress, contractPosition);
             }
         } else {
-            (receiver, tokenId) = fallbackRawDataParser(data);
+            (receiver, tokenId) = _fallbackRawDataParser(data);
             contractAddress = to;
         }
         return ILockAndDataERC721S(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
@@ -103,18 +103,22 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         uint256 contractPosition;
         uint256 tokenId;
         if (to == address(0)) {
-            (contractPosition, receiver, tokenId) = fallbackDataParser(data);
+            (contractPosition, receiver, tokenId) = _fallbackDataParser(data);
         } else {
-            (receiver, tokenId) = fallbackRawDataParser(data);
+            (receiver, tokenId) = _fallbackRawDataParser(data);
         }
     }
 
-    function encodeData(
+    function _encodeData(
         address contractHere,
         uint256 contractPosition,
         address to,
-        uint256 tokenId) internal view returns (bytes memory data)
-        {
+        uint256 tokenId
+    )
+        private
+        view
+        returns (bytes memory data)
+    {
         string memory name = IERC721Metadata(contractHere).name();
         string memory symbol = IERC721Metadata(contractHere).symbol();
         data = abi.encodePacked(
@@ -129,7 +133,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         );
     }
 
-    function encodeRawData(address to, uint256 tokenId) internal pure returns (bytes memory data) {
+    function _encodeRawData(address to, uint256 tokenId) private pure returns (bytes memory data) {
         data = abi.encodePacked(
             bytes1(uint8(21)),
             bytes32(bytes20(to)),
@@ -137,8 +141,8 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         );
     }
 
-    function fallbackDataParser(bytes memory data)
-        internal
+    function _fallbackDataParser(bytes memory data)
+        private
         pure
         returns (uint256, address payable, uint256)
     {
@@ -155,8 +159,8 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         );
     }
 
-    function fallbackRawDataParser(bytes memory data)
-        internal
+    function _fallbackRawDataParser(bytes memory data)
+        private
         pure
         returns (address payable, uint256)
     {

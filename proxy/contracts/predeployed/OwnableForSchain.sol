@@ -32,10 +32,10 @@ import "./SkaleFeatures.sol";
 contract OwnableForSchain {
 
     /**
-     * @dev ownerAddress is only used after transferOwnership(). 
-     * By default, value of "skaleConfig.contractSettings.IMA.ownerAddress" config variable is used
+     * @dev _ownerAddress is only used after transferOwnership(). 
+     * By default, value of "skaleConfig.contractSettings.IMA._ownerAddress" config variable is used
      */
-    address private ownerAddress;
+    address private _ownerAddress;
 
     /**
      * @dev Throws if called by any account other than the owner.
@@ -50,7 +50,7 @@ contract OwnableForSchain {
      * account.
      */
     constructor() public {
-        ownerAddress = msg.sender;
+        _ownerAddress = msg.sender;
     }
 
     /**
@@ -66,18 +66,18 @@ contract OwnableForSchain {
      * @dev Sets new owner address.
      */
     function setOwner( address newAddressOwner ) public {
-        ownerAddress = newAddressOwner;
+        _ownerAddress = newAddressOwner;
     }
 
     /**
      * @dev Returns owner address.
      */
     function getOwner() public view returns ( address ow ) {
-        if ((ownerAddress) == (address(0)) )
+        if ((_ownerAddress) == (address(0)) )
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
-                "skaleConfig.contractSettings.IMA.ownerAddress"
+                "skaleConfig.contractSettings.IMA._ownerAddress"
             );
-        return ownerAddress;
+        return _ownerAddress;
     }
 
 }
