@@ -54,7 +54,16 @@ interface ISchains {
         returns (bool);
 }
 
-
+/**
+ * @title Message Proxy for Mainnet
+ * @dev Runs on Mainnet, contains functions to manage the incoming messages from
+ * `dstChainID` and outgoing messages to `srcChainID`. Every SKALE chain with 
+ * IMA is therefore connected to MessageProxyForMainnet.
+ *
+ * Messages from SKALE chains are signed using BLS threshold signatures from the
+ * nodes in the chain. Since Ethereum Mainnet has no BLS public key, mainnet
+ * messages do not need to be signed.
+ */
 contract MessageProxyForMainnet is Initializable {
 
     // 16 Agents
@@ -115,6 +124,9 @@ contract MessageProxyForMainnet is Initializable {
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     mapping ( uint256 => OutgoingMessageData ) private _outgoingMessageData;
 
+    /**
+     * @dev Emitted for every outgoing message to `dstChain`.
+     */
     event OutgoingMessage(
         string dstChain,
         bytes32 indexed dstChainHash,
@@ -138,20 +150,39 @@ contract MessageProxyForMainnet is Initializable {
         string message
     );
 
+    /**
+     * @dev Adds an authorized caller.
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be an owner.
+     */
     function addAuthorizedCaller(address caller) external {
         require(msg.sender == owner, "Sender is not an owner");
         authorizedCaller[caller] = true;
     }
 
+    /**
+     * @dev Removes an authorized caller.
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be an owner.
+     */
     function removeAuthorizedCaller(address caller) external {
         require(msg.sender == owner, "Sender is not an owner");
         authorizedCaller[caller] = false;
     }
 
-    // This is called by  schain owner.
-    // On mainnet, SkaleManager will call it every time a SKALE chain is
-    // created. Therefore, any SKALE chain is always connected to the main chain.
-    // To connect to other chains, the owner needs to explicitly call this function
+    /**
+     * @dev Adds a `newChainID`.
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be SKALE Node address.
+     * - `newChainID` must not be "Mainnet".
+     * - `newChainID` must not already be added.
+     */
     function addConnectedChain(
         string calldata newChainID
     )
@@ -176,6 +207,14 @@ contract MessageProxyForMainnet is Initializable {
         });
     }
 
+    /**
+     * @dev Removes connected chain from this contract.
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be owner.
+     * - `newChainID` must be initialized.
+     */
     function removeConnectedChain(string calldata newChainID) external {
         require(authorizedCaller[msg.sender], "Not authorized caller");
 
@@ -186,7 +225,14 @@ contract MessageProxyForMainnet is Initializable {
         delete connectedChains[keccak256(abi.encodePacked(newChainID))];
     }
 
-    // This is called by a smart contract that wants to make a cross-chain call
+    /**
+     * @dev Posts message from this contract to `dstChainID` MessageProxy contract.
+     * This is called by a smart contract to make a cross-chain call.
+     * 
+     * Requirements:
+     * 
+     * - `dstChainID` must be initialized.
+     */
     function postOutgoingMessage(
         string calldata dstChainID,
         address dstContract,
@@ -214,6 +260,16 @@ contract MessageProxyForMainnet is Initializable {
         );
     }
 
+    /**
+     * @dev Posts incoming message from `srcChainID`. 
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be authorized caller.
+     * - `srcChainID` must be initialized.
+     * - `startingCounter` must be equal to the chain's incoming message counter.
+     * - If destination chain is Mainnet, message signature must be valid.
+     */
     function postIncomingMessages(
         string calldata srcChainID,
         uint256 startingCounter,
@@ -260,20 +316,45 @@ contract MessageProxyForMainnet is Initializable {
         _popOutgoingMessageData(idxLastToPopNotIncluding);
     }
 
-    // Test function - will remove in production
+    /**
+     * @dev Increments incoming message counter. 
+     * 
+     * Note: Test function. TODO: remove in production.
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be owner.
+     */
     function moveIncomingCounter(string calldata schainName) external {
         require(msg.sender == owner, "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter++;
     }
 
-    // Test function - will remove in production
+    /**
+     * @dev Sets the incoming and outgoing message counters to zero. 
+     * 
+     * Note: Test function. TODO: remove in production.
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be owner.
+     */
     function setCountersToZero(string calldata schainName) external {
         require(msg.sender == owner, "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
-    // Registration state detection
+    /**
+     * @dev Checks whether chain is currently connected.
+     * 
+     * Note: Mainnet chain does not have a public key, and is implicitly 
+     * connected to MessageProxy.
+     * 
+     * Requirements:
+     * 
+     * - `someChainID` must not be Mainnet.
+     */
     function isConnectedChain(
         string calldata someChainID
     )
@@ -321,6 +402,9 @@ contract MessageProxyForMainnet is Initializable {
         contractManagerSkaleManager = newContractManager;
     }
 
+    /**
+     * @dev Checks whether outgoing message is valid.
+     */
     function verifyOutgoingMessageData(
         uint256 idxMessage,
         address sender,
@@ -365,6 +449,9 @@ contract MessageProxyForMainnet is Initializable {
         );
     }
 
+    /**
+     * @dev Checks whether message BLS signature is valid.
+     */
     function _verifyMessageSignature(
         uint256[2] memory blsSignature,
         bytes32 hash,
@@ -391,6 +478,9 @@ contract MessageProxyForMainnet is Initializable {
         );
     }
 
+    /**
+     * @dev Returns hash of message array.
+     */
     function _hashedArray(Message[] memory messages) private pure returns (bytes32) {
         bytes memory data;
         for (uint256 i = 0; i < messages.length; i++) {
@@ -406,6 +496,11 @@ contract MessageProxyForMainnet is Initializable {
         return keccak256(data);
     }
 
+    /**
+     * @dev Push outgoing message into outgoingMessageData array.
+     * 
+     * Emits an {OutgoingMessage} event.
+     */
     function _pushOutgoingMessageData( OutgoingMessageData memory d ) private {
         emit OutgoingMessage(
             d.dstChain,
@@ -422,6 +517,9 @@ contract MessageProxyForMainnet is Initializable {
         ++_idxTail;
     }
 
+    /**
+     * @dev Pop outgoing message from outgoingMessageData array.
+     */
     function _popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) private returns ( uint256 cntDeleted ) {
         cntDeleted = 0;
         for ( uint256 i = _idxHead; i < idxLastToPopNotIncluding; ++ i ) {

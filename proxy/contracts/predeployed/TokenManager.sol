@@ -44,7 +44,13 @@ interface ILockAndDataTM {
 // This contract runs on schains and accepts messages from main net creates ETH clones.
 // When the user exits, it burns them
 
-
+/**
+ * @title Token Manager
+ * @dev Runs on SKALE Chains, accepts messages from mainnet, and instructs
+ * TokenFactory to create clones. TokenManager mints tokens via
+ * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
+ * burns tokens.
+ */
 contract TokenManager is PermissionsForSchain {
 
 
@@ -107,10 +113,16 @@ contract TokenManager is PermissionsForSchain {
         transferToSchain(schainID, to, amount);
     }
 
+    /**
+     * @dev Adds ETH cost to perform exit transaction.
+     */
     function addEthCostWithoutAddress(uint256 amount) external {
         addEthCost(amount);
     }
 
+    /**
+     * @dev Deducts ETH cost to perform exit transaction.
+     */
     function removeEthCost() external {
         uint256 returnBalance = ILockAndDataTM(getLockAndDataAddress()).removeGasCosts(msg.sender);
         require(ILockAndDataTM(getLockAndDataAddress()).sendEth(msg.sender, returnBalance), "Not sent");
@@ -400,8 +412,17 @@ contract TokenManager is PermissionsForSchain {
         );
     }
 
-    // Receive money from main net and Schain
-
+    /**
+     * @dev Allows MessageProxy to post operational message from mainnet
+     * or SKALE chains.
+     * 
+     * Emits an {Error} event upon failure.
+     *
+     * Requirements:
+     * 
+     * - MessageProxy must be the sender.
+     * - `fromSchainID` must exist in TokenManager addresses.
+     */
     function postMessage(
         address sender,
         string calldata fromSchainID,
@@ -443,13 +464,17 @@ contract TokenManager is PermissionsForSchain {
         }
     }
 
-    // This is called by schain owner.
-    // Exit to main net
+    /**
+     * @dev Performs an exit (post outgoing message) to Mainnet.
+     */
     function exitToMain(address to, uint256 amount) public {
         bytes memory empty = "";
         exitToMain(to, amount, empty);
     }
 
+    /**
+     * @dev Performs an exit (post outgoing message) to Mainnet.
+     */
     function exitToMain(address to, uint256 amount, bytes memory data) public receivedEth(amount) {
         bytes memory newData;
         newData = abi.encodePacked(bytes1(uint8(1)), data);
@@ -490,15 +515,24 @@ contract TokenManager is PermissionsForSchain {
         );
     }
 
+    /**
+     * @dev Adds ETH cost for `msg.sender` exit transaction.
+     */
     function addEthCost(uint256 amount) public {
         addEthCost(msg.sender, amount);
     }
 
+    /**
+     * @dev Adds ETH cost for user's exit transaction.
+     */
     function addEthCost(address sender, uint256 amount) public receivedEth(amount) {
         ILockAndDataTM(getLockAndDataAddress()).addGasCosts(sender, amount);
     }
 
-    function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
+    /**
+     * @dev Returns chain ID.
+     */
+    function getChainID() public view returns ( string memory cID ) {
         if ((keccak256(abi.encodePacked(_chainID))) == (keccak256(abi.encodePacked(""))) ) {
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2)
                 .getConfigVariableString("skaleConfig.sChain.schainID");
@@ -506,6 +540,9 @@ contract TokenManager is PermissionsForSchain {
         return _chainID;
     }
 
+    /**
+     * @dev Returns MessageProxy address.
+     */
     function getProxyForSchainAddress() public view returns ( address ow ) { // l_sergiy: added
         if (_proxyForSchainAddress == address(0) ) {
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
@@ -516,14 +553,17 @@ contract TokenManager is PermissionsForSchain {
     }
 
     /**
-     * @dev Convert first byte of data to Operation
-     * 0x01 - transfer eth
+     * @dev Converts the first byte of data to an operation.
+     * 
+     * 0x01 - transfer ETH
      * 0x03 - transfer ERC20 token
      * 0x05 - transfer ERC721 token
      * 0x13 - transfer ERC20 token - raw mode
      * 0x15 - transfer ERC721 token - raw mode
-     * @param data - received data
-     * @return operation
+     * 
+     * Requirements:
+     * 
+     * - Operation must be one of the possible types.
      */
     function _fallbackOperationTypeConvert(bytes memory data)
         private
