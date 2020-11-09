@@ -71,7 +71,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
                 ILockAndDataERC721S(lockAndDataERC721).receiveERC721(contractHere, tokenId),
                 "Could not receive ERC721 Token"
             );
-            data = encodeData(
+            data = _encodeData(
                 contractHere,
                 contractPosition,
                 to,
