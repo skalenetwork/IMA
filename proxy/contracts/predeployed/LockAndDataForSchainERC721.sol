@@ -40,7 +40,7 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
     event SendERC721(bool result);
     event ReceiveERC721(bool result);
 
-    constructor(address _lockAndDataAddress) PermissionsForSchain(_lockAndDataAddress) public {
+    constructor(address _lockAndDataAddress) public PermissionsForSchain(_lockAndDataAddress) {
         // solium-disable-previous-line no-empty-blocks
     }
 

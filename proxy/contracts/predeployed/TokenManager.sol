@@ -99,8 +99,8 @@ contract TokenManager is PermissionsForSchain {
         address newProxyAddress,
         address newLockAndDataAddress
     )
-        PermissionsForSchain(newLockAndDataAddress)
         public
+        PermissionsForSchain(newLockAndDataAddress)
     {
         chainID_ = newChainID;
         proxyForSchainAddress_ = newProxyAddress;

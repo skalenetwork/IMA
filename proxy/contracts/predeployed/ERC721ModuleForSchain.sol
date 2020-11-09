@@ -44,7 +44,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
     event ERC721TokenCreated(uint256 indexed contractPosition, address tokenAddress);
 
 
-    constructor(address newLockAndDataAddress) PermissionsForSchain(newLockAndDataAddress) public {
+    constructor(address newLockAndDataAddress) public PermissionsForSchain(newLockAndDataAddress) {
         // solium-disable-previous-line no-empty-blocks
     }
 

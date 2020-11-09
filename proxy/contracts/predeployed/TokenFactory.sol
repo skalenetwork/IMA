@@ -104,7 +104,7 @@ contract ERC721OnChain is AccessControlUpgradeSafe, ERC721BurnableUpgradeSafe {
 contract TokenFactory is PermissionsForSchain {
 
 
-    constructor(address _lockAndDataAddress) PermissionsForSchain(_lockAndDataAddress) public {
+    constructor(address _lockAndDataAddress) public PermissionsForSchain(_lockAndDataAddress) {
         // solium-disable-previous-line no-empty-blocks
     }
 

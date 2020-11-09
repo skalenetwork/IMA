@@ -38,7 +38,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     event SendedERC20(bool result);
     event ReceivedERC20(bool result);
 
-    constructor(address _lockAndDataAddress) PermissionsForSchain(_lockAndDataAddress) public {
+    constructor(address _lockAndDataAddress) public PermissionsForSchain(_lockAndDataAddress) {
         // solium-disable-previous-line no-empty-blocks
     }
 
