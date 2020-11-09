@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.12;
 
 import "./OwnableForSchain.sol";
 
@@ -37,9 +37,9 @@ interface IETHERC20 {
  */
 contract LockAndDataForSchain is OwnableForSchain {
 
-    address private ethERC20Address_; // l_sergiy: changed name _
+    address private _ethERC20Address;
 
-    mapping(bytes32 => address) public permitted; // l_sergiy: changed name _
+    mapping(bytes32 => address) public permitted;
 
     mapping(bytes32 => address) public tokenManagerAddresses;
 
@@ -47,18 +47,17 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     mapping(address => bool) public authorizedCaller;
 
-    bool private isCustomDeploymentMode_ = false;
+    bool private _isCustomDeploymentMode = false;
 
     modifier allow(string memory contractName) {
         require(
-            //permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
-            checkPermitted(contractName,msg.sender) ||
+            _checkPermitted(contractName,msg.sender) ||
             getOwner() == msg.sender, "Not allowed LockAndDataForSchain");
         _;
     }
 
     constructor() public {
-        isCustomDeploymentMode_ = true;
+        _isCustomDeploymentMode = true;
         authorizedCaller[msg.sender] = true;
     }
 
@@ -66,7 +65,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * @dev Allows Owner to set a EthERC20 contract address.
      */
     function setEthERC20Address(address newEthERC20Address) external onlyOwner {
-        ethERC20Address_ = newEthERC20Address;
+        _ethERC20Address = newEthERC20Address;
     }
 
     /**
@@ -82,11 +81,10 @@ contract LockAndDataForSchain is OwnableForSchain {
         require(newContract != address(0), "New address is equal zero");
 
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        //require(permitted[contractId] != newContract, "Contract is already added");
-        require(!checkPermitted(contractName,newContract), "Contract is already added"); // l_sergiy: repacement
+        require(!_checkPermitted(contractName,newContract), "Contract is already added");
 
         uint256 length;
-        // solium-disable-next-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             length := extcodesize(newContract)
         }
@@ -249,34 +247,47 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Returns EthERC20 contract address.
      */
-    function getEthERC20Address() /*external onlyOwner*/ /*private*/ public view returns ( address a ) {
-        if (ethERC20Address_ == address(0) && (!isCustomDeploymentMode_)) {
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ethERC20Address");
+    function getEthERC20Address() public view returns (address addressOfEthERC20) {
+        if (_ethERC20Address == address(0) && (!_isCustomDeploymentMode)) {
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+                "skaleConfig.contractSettings.IMA.ethERC20Address"
+            );
         }
-        a = ethERC20Address_;
+        addressOfEthERC20 = _ethERC20Address;
     }
 
-    // l_sergiy: added checkPermitted() function
     /**
-     * @dev Checks whether contract name and adress are permitted..
+     * @dev Checks whether contract name and adress are permitted.
      */
-    function checkPermitted( string memory contractName, address contractAddress ) private view returns ( bool rv ) {
+    function _checkPermitted(string memory contractName, address contractAddress) 
+        private
+        view
+        returns
+        (bool permission)
+    {
         require(contractAddress != address(0), "contract address required to check permitted status");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         bool isPermitted = (permitted[contractId] == contractAddress) ? true : false;
         if ((isPermitted) ) {
-            rv = true;
+            permission = true;
         } else {
-            if (!isCustomDeploymentMode_) {
-                string memory strVarName = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).concatenateStrings("skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.", contractName);
-                address a = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(strVarName);
-                if (a == contractAddress) {
-                    rv = true;
+            if (!_isCustomDeploymentMode) {
+                string memory fullContractPath = SkaleFeatures(
+                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                ).concatenateStrings(
+                    "skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.",
+                    contractName
+                );
+                address contractAddressInStorage = SkaleFeatures(
+                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                ).getConfigVariableAddress(fullContractPath);
+                if (contractAddressInStorage == contractAddress) {
+                    permission = true;
                 } else {
-                    rv = false;
+                    permission = false;
                 }
             } else {
-                rv = false;
+                permission = false;
             }
         }
     }

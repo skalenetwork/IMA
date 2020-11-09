@@ -541,7 +541,7 @@ async function register_s_chain_on_main_net( // step 1A
         // https://ethereum.stackexchange.com/questions/47426/call-contract-function-signed-on-client-side-web3-js-1-0
         // https://ethereum.stackexchange.com/questions/25839/how-to-make-transactions-using-private-key-in-web3
         const methodWithArguments = jo_message_proxy_main_net.methods.addConnectedChain(
-            chain_id_s_chain, [ 0, 0, 0, 0 ] // call params
+            chain_id_s_chain // call params
         );
         const isIgnore = false;
         const strDRC = "register_s_chain_on_main_net, step 1A, addConnectedChain";

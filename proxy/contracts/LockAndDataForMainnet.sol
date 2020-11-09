@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.12;
 
 import "./OwnableForMainnet.sol";
 
@@ -39,7 +39,11 @@ contract LockAndDataForMainnet is OwnableForMainnet {
     mapping(address => bool) public authorizedCaller;
 
     modifier allow(string memory contractName) {
-        require(permitted[keccak256(abi.encodePacked(contractName))] == msg.sender || getOwner() == msg.sender, "Not allowed");
+        require(
+            permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
+            getOwner() == msg.sender,
+            "Not allowed"
+        );
         _;
     }
 
@@ -80,7 +84,7 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(permitted[contractId] != newContract, "Contract is already added");
         uint256 length;
-        // solium-disable-next-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             length := extcodesize(newContract)
         }
@@ -149,7 +153,10 @@ contract LockAndDataForMainnet is OwnableForMainnet {
      * - User must be approved for ETH transfer.
      */
     function getMyEth() external {
-        require(address(this).balance >= approveTransfers[msg.sender], "Not enough ETH. in `LockAndDataForMainnet.getMyEth`");
+        require(
+            address(this).balance >= approveTransfers[msg.sender],
+            "Not enough ETH. in `LockAndDataForMainnet.getMyEth`"
+        );
         require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
         uint256 amount = approveTransfers[msg.sender];
         approveTransfers[msg.sender] = 0;

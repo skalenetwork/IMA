@@ -19,14 +19,14 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.12;
 
 import "./PermissionsForSchain.sol";
 
 interface ERC721MintAndBurn {
-    function ownerOf(uint256 tokenId) external view returns (address);
     function mint(address to, uint256 tokenId) external returns (bool);
     function burn(uint256 tokenId) external;
+    function ownerOf(uint256 tokenId) external view returns (address);
 }
 
 /**
@@ -36,6 +36,10 @@ interface ERC721MintAndBurn {
  */
 
 contract LockAndDataForSchainERC721 is PermissionsForSchain {
+
+    mapping(uint256 => address) public erc721Tokens;
+    mapping(address => uint256) public erc721Mapper;
+
 
     /**
      * @dev Emitted upon minting ERC721 on the SKALE chain.
@@ -47,13 +51,8 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
      */
     event ReceivedERC721(bool result);
 
-    mapping(uint256 => address) public erc721Tokens;
-    mapping(address => uint256) public erc721Mapper;
-    // mapping(uint256 => uint256) public mintToken;
-
-
-    constructor(address _lockAndDataAddress) PermissionsForSchain(_lockAndDataAddress) public {
-        // solium-disable-previous-line no-empty-blocks
+    constructor(address _lockAndDataAddress) public PermissionsForSchain(_lockAndDataAddress) {
+        // solhint-disable-previous-line no-empty-blocks
     }
 
     /**
@@ -65,7 +64,11 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
      * 
      * - ERC721 must be mintable.
      */
-    function sendERC721(address contractHere, address to, uint256 tokenId) external allow("ERC721Module") returns (bool) {
+    function sendERC721(address contractHere, address to, uint256 tokenId)
+        external
+        allow("ERC721Module")
+        returns (bool)
+    {
         require(ERC721MintAndBurn(contractHere).mint(to, tokenId), "Could not mint ERC721 Token");
         emit SentERC721(true);
         return true;

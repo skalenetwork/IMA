@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.12;
 
 
 import "./PermissionsForMainnet.sol";
@@ -34,7 +34,7 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
 
     mapping(uint256 => address) public erc20Tokens;
     mapping(address => uint256) public erc20Mapper;
-    uint256 newIndexERC20;
+    uint256 public newIndexERC20;
 
     /**
      * @dev Allows ERC20Module to send an ERC20 token from
