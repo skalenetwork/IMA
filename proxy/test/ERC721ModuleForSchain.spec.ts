@@ -100,9 +100,9 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     (res).should.include("0x");
   });
 
-  it("should rejected with `Not existing ERC-721 contract` with `isRaw==false`", async () => {
+  it("should rejected with `ERC721 contract does not exist on SKALE chain` with `isRaw==false`", async () => {
     // preparation
-    const error = "Not existing ERC-721 contract";
+    const error = "ERC721 contract does not exist on SKALE chain";
     const contractHere = eRC721OnChain.address;
     const to = user;
     const tokenId = 1;
@@ -128,7 +128,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // set `LockAndDataERC721` contract before invoke `receiveERC721`
     await lockAndDataForSchain
         .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
-    // add ERC721 token to avoid "Not existing ERC-721 contract" error
+    // add ERC721 token to avoid "ERC721 contract does not exist on SKALE chain" error
     await lockAndDataForSchainERC721
       .addERC721Token(contractHere, contractPosition, {from: deployer});
     // mint ERC721 to avoid "ERC721: owner query for nonexistent token" error
@@ -194,7 +194,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // transfer tokenId from `deployer` to `lockAndDataForSchainERC721`
     await eRC721OnChain.transferFrom(deployer,
       lockAndDataForSchainERC721.address, tokenId, {from: deployer});
-    // add ERC721 token to avoid "Not existing ERC-721 contract" error
+    // add ERC721 token to avoid "ERC721 contract does not exist on SKALE chain" error
     await lockAndDataForSchainERC721
       .addERC721Token(contractHere, contractPosition, {from: deployer});
     // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
@@ -270,7 +270,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // set `LockAndDataERC721` contract before invoke `receiveERC721`
     await lockAndDataForSchain
         .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
-    // add ERC721 token to avoid "Not existing ERC-721 contract" error
+    // add ERC721 token to avoid "ERC721 contract does not exist on SKALE chain" error
     await lockAndDataForSchainERC721
       .addERC721Token(contractHere, contractPosition, {from: deployer});
     // mint ERC721 to avoid "ERC721: owner query for nonexistent token" error
