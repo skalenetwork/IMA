@@ -55,7 +55,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     }
 
     /**
-     * @dev Allows ERC20Module to send (mint) ERC20 tokens to LockAndDataForSchainERC20.
+     * @dev Allows ERC20Module to send (mint) ERC20 tokens from LockAndDataForSchainERC20.
      * 
      * Emits a {SentERC20} event.
      */
