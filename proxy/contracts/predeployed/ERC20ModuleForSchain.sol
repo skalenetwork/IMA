@@ -39,8 +39,8 @@ interface ILockAndDataERC20S {
 }
 
 interface ERC20Clone {
-    function totalSupplyOnMainnet() external view returns (uint256);
     function setTotalSupplyOnMainnet(uint256 newTotalSupply) external;
+    function totalSupplyOnMainnet() external view returns (uint256);
 }
 
 

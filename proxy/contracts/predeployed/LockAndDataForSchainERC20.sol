@@ -24,20 +24,19 @@ pragma solidity ^0.6.10;
 import "./PermissionsForSchain.sol";
 
 interface ERC20MintAndBurn {
-    function balanceOf(address to) external view returns (uint256);
     function mint(address to, uint256 amount) external;
     function burn(uint256 amount) external;
+    function balanceOf(address to) external view returns (uint256);
 }
 
 
 contract LockAndDataForSchainERC20 is PermissionsForSchain {
 
-    event SendedERC20(bool result);
-    event ReceivedERC20(bool result);
-
     mapping(uint256 => address) public erc20Tokens;
     mapping(address => uint256) public erc20Mapper;
 
+    event SendedERC20(bool result);
+    event ReceivedERC20(bool result);
 
     constructor(address _lockAndDataAddress) PermissionsForSchain(_lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks

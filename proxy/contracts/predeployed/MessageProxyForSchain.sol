@@ -50,39 +50,6 @@ contract MessageProxyForSchain {
     // Call postIncomingMessages function passing (un)signed message array
 
     // ID of this schain, Chain 0 represents ETH mainnet,
-    string private chainID_; // l_sergiy: changed name _ and made private
-
-    // Owner of this chain. For mainnet, the owner is SkaleManager
-    address public ownerAddress; // l_sergiy: changed name to ownerAddress
-
-    bool public mainnetConnected = false;
-
-    mapping(address => bool) private authorizedCaller_; // l_sergiy: changed name _ and made private
-
-    bool private isCustomDeploymentMode_ = false;
-
-    event OutgoingMessage(
-        string dstChain,
-        bytes32 indexed dstChainHash,
-        uint256 indexed msgCounter,
-        address indexed srcContract,
-        address dstContract,
-        address to,
-        uint256 amount,
-        bytes data,
-        uint256 length
-    );
-
-    event PostMessageError(
-        uint256 indexed msgCounter,
-        bytes32 indexed srcChainHash,
-        address sender,
-        string fromSchainID,
-        address to,
-        uint256 amount,
-        bytes data,
-        string message
-    );
 
     struct OutgoingMessageData {
         string dstChain;
@@ -120,10 +87,40 @@ contract MessageProxyForSchain {
         uint256 counter;
     }
 
-    mapping(bytes32 => ConnectedChainInfo) public connectedChains;
-    mapping ( uint256 => OutgoingMessageData ) private outgoingMessageData;
+    string private chainID_; // l_sergiy: changed name _ and made private
+    // Owner of this chain. For mainnet, the owner is SkaleManager
+    address public ownerAddress; // l_sergiy: changed name to ownerAddress
+    bool private isCustomDeploymentMode_;
+    bool public mainnetConnected;
     uint256 private idxHead;
     uint256 private idxTail;
+
+    mapping(bytes32 => ConnectedChainInfo) public connectedChains;
+    mapping(address => bool) private authorizedCaller_; // l_sergiy: changed name _ and made private
+    mapping (uint256 => OutgoingMessageData) private outgoingMessageData;
+
+    event OutgoingMessage(
+        string dstChain,
+        bytes32 indexed dstChainHash,
+        uint256 indexed msgCounter,
+        address indexed srcContract,
+        address dstContract,
+        address to,
+        uint256 amount,
+        bytes data,
+        uint256 length
+    );
+
+    event PostMessageError(
+        uint256 indexed msgCounter,
+        bytes32 indexed srcChainHash,
+        address sender,
+        string fromSchainID,
+        address to,
+        uint256 amount,
+        bytes data,
+        string message
+    );
 
     modifier connectMainnet() {
         if (!mainnetConnected) {

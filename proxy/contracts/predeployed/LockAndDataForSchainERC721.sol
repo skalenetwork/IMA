@@ -24,21 +24,21 @@ pragma solidity ^0.6.10;
 import "./PermissionsForSchain.sol";
 
 interface ERC721MintAndBurn {
-    function ownerOf(uint256 tokenId) external view returns (address);
     function mint(address to, uint256 tokenId) external returns (bool);
     function burn(uint256 tokenId) external;
+    function ownerOf(uint256 tokenId) external view returns (address);
 }
 
 
 contract LockAndDataForSchainERC721 is PermissionsForSchain {
 
-    event SendERC721(bool result);
-    event ReceiveERC721(bool result);
-
     mapping(uint256 => address) public erc721Tokens;
     mapping(address => uint256) public erc721Mapper;
     // mapping(uint256 => uint256) public mintToken;
 
+
+    event SendERC721(bool result);
+    event ReceiveERC721(bool result);
 
     constructor(address _lockAndDataAddress) PermissionsForSchain(_lockAndDataAddress) public {
         // solium-disable-previous-line no-empty-blocks

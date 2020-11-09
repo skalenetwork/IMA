@@ -69,36 +69,6 @@ contract MessageProxyForMainnet is Initializable {
     // Call postIncomingMessages function passing (un)signed message array
 
     // ID of this schain, Chain 0 represents ETH mainnet,
-    string public chainID;
-    // Owner of this chain. For mainnet, the owner is SkaleManager
-    address public owner;
-
-    address public contractManagerSkaleManager;
-
-    mapping(address => bool) public authorizedCaller;
-
-    event OutgoingMessage(
-        string dstChain,
-        bytes32 indexed dstChainHash,
-        uint256 indexed msgCounter,
-        address indexed srcContract,
-        address dstContract,
-        address to,
-        uint256 amount,
-        bytes data,
-        uint256 length
-    );
-
-    event PostMessageError(
-        uint256 indexed msgCounter,
-        bytes32 indexed srcChainHash,
-        address sender,
-        string fromSchainID,
-        address to,
-        uint256 amount,
-        bytes data,
-        string message
-    );
 
     struct OutgoingMessageData {
         string dstChain;
@@ -134,11 +104,39 @@ contract MessageProxyForMainnet is Initializable {
         uint256 counter;
     }
 
-    mapping(bytes32 => ConnectedChainInfo) public connectedChains;
-
-    mapping ( uint256 => OutgoingMessageData ) private outgoingMessageData;
+    string public chainID;
+    // Owner of this chain. For mainnet, the owner is SkaleManager
+    address public owner;
+    address public contractManagerSkaleManager;
     uint256 private idxHead;
     uint256 private idxTail;
+
+    mapping(address => bool) public authorizedCaller;
+    mapping(bytes32 => ConnectedChainInfo) public connectedChains;
+    mapping ( uint256 => OutgoingMessageData ) private outgoingMessageData;
+
+    event OutgoingMessage(
+        string dstChain,
+        bytes32 indexed dstChainHash,
+        uint256 indexed msgCounter,
+        address indexed srcContract,
+        address dstContract,
+        address to,
+        uint256 amount,
+        bytes data,
+        uint256 length
+    );
+
+    event PostMessageError(
+        uint256 indexed msgCounter,
+        bytes32 indexed srcChainHash,
+        address sender,
+        string fromSchainID,
+        address to,
+        uint256 amount,
+        bytes data,
+        string message
+    );
 
     function addAuthorizedCaller(address caller) external {
         require(msg.sender == owner, "Sender is not an owner");
@@ -148,25 +146,6 @@ contract MessageProxyForMainnet is Initializable {
     function removeAuthorizedCaller(address caller) external {
         require(msg.sender == owner, "Sender is not an owner");
         authorizedCaller[caller] = false;
-    }
-
-    // Registration state detection
-    function isConnectedChain(
-        string calldata someChainID
-    )
-        external
-        view
-        returns (bool)
-    {
-        //require(msg.sender == owner); // todo: tmp!!!!!
-        require(
-            keccak256(abi.encodePacked(someChainID)) !=
-            keccak256(abi.encodePacked("Mainnet")),
-            "Schain id can not be equal Mainnet"); // main net does not have a public key and is implicitly connected
-        if ( ! connectedChains[keccak256(abi.encodePacked(someChainID))].inited ) {
-            return false;
-        }
-        return true;
     }
 
     // This is called by  schain owner.
@@ -243,26 +222,7 @@ contract MessageProxyForMainnet is Initializable {
         );
     }
 
-    function getOutgoingMessagesCounter(string calldata dstChainID)
-        external
-        view
-        returns (uint256)
-    {
-        bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
-        require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
-        return connectedChains[dstChainHash].outgoingMessageCounter;
-    }
-
-    function getIncomingMessagesCounter(string calldata srcChainID)
-        external
-        view
-        returns (uint256)
-    {
-        bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
-        return connectedChains[srcChainHash].incomingMessageCounter;
-    }
-
+   
     function postIncomingMessages(
         string calldata srcChainID,
         uint256 startingCounter,
@@ -336,6 +296,45 @@ contract MessageProxyForMainnet is Initializable {
         require(msg.sender == owner, "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
+    }
+
+    // Registration state detection
+    function isConnectedChain(
+        string calldata someChainID
+    )
+        external
+        view
+        returns (bool)
+    {
+        //require(msg.sender == owner); // todo: tmp!!!!!
+        require(
+            keccak256(abi.encodePacked(someChainID)) !=
+            keccak256(abi.encodePacked("Mainnet")),
+            "Schain id can not be equal Mainnet"); // main net does not have a public key and is implicitly connected
+        if ( ! connectedChains[keccak256(abi.encodePacked(someChainID))].inited ) {
+            return false;
+        }
+        return true;
+    }
+
+    function getOutgoingMessagesCounter(string calldata dstChainID)
+        external
+        view
+        returns (uint256)
+    {
+        bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
+        require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
+        return connectedChains[dstChainHash].outgoingMessageCounter;
+    }
+
+    function getIncomingMessagesCounter(string calldata srcChainID)
+        external
+        view
+        returns (uint256)
+    {
+        bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
+        require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
+        return connectedChains[srcChainHash].incomingMessageCounter;
     }
 
     /// Create a new message proxy

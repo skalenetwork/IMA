@@ -17,7 +17,7 @@
     "no-unused-vars": "warn",
     "no-inline-assembly": "warn",
     "contract-name-camelcase": "error",
-    "ordering": "warn",
+    "ordering": "error",
     "max-line-length": "error"
   }
 }

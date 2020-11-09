@@ -48,13 +48,13 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
         _setupRole(MINTER_ROLE, _msgSender());
     }
 
-    function totalSupplyOnMainnet() external view returns (uint256) {
-        return _totalSupplyOnMainnet;
-    }
-
     function setTotalSupplyOnMainnet(uint256 newTotalSupply) external {
         require(addressOfErc20Module == _msgSender(), "Caller is not ERC20Module");
         _totalSupplyOnMainnet = newTotalSupply;
+    }
+
+    function totalSupplyOnMainnet() external view returns (uint256) {
+        return _totalSupplyOnMainnet;
     }
 
     function mint(address account, uint256 value) public {

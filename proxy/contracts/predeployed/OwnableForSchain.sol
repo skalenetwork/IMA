@@ -37,6 +37,13 @@ contract OwnableForSchain {
      */
     address private ownerAddress;
 
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(msg.sender == getOwner(), "Only owner can execute this method");
+        _;
+    }
 
     /**
      * @dev The OwnableForSchain constructor sets the original `owner` of the contract to the sender
@@ -56,6 +63,13 @@ contract OwnableForSchain {
     }
 
     /**
+     * @dev Sets new owner address.
+     */
+    function setOwner( address newAddressOwner ) public {
+        ownerAddress = newAddressOwner;
+    }
+
+    /**
      * @dev Returns owner address.
      */
     function getOwner() public view returns ( address ow ) {
@@ -64,21 +78,6 @@ contract OwnableForSchain {
                 "skaleConfig.contractSettings.IMA.ownerAddress"
             );
         return ownerAddress;
-    }
-
-    /**
-     * @dev Sets new owner address.
-     */
-    function setOwner( address newAddressOwner ) public {
-        ownerAddress = newAddressOwner;
-    }
-
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        require(msg.sender == getOwner(), "Only owner can execute this method");
-        _;
     }
 
 }

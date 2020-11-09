@@ -39,6 +39,14 @@ contract OwnableForMainnet is Initializable {
     address private ownerAddress;
 
     /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(msg.sender == getOwner(), "Only owner can execute this method");
+        _;
+    }
+
+    /**
      * @dev Allows the current owner to transfer control of the contract to a newOwner.
      * @param newOwner The address to transfer ownership to.
      */
@@ -56,13 +64,6 @@ contract OwnableForMainnet is Initializable {
     }
 
     /**
-     * @dev Returns owner address.
-     */
-    function getOwner() public view returns ( address ow ) {
-        return ownerAddress;
-    }
-
-    /**
      * @dev Sets new owner address.
      */
     function setOwner( address newAddressOwner ) public {
@@ -70,11 +71,9 @@ contract OwnableForMainnet is Initializable {
     }
 
     /**
-     * @dev Throws if called by any account other than the owner.
+     * @dev Returns owner address.
      */
-    modifier onlyOwner() {
-        require(msg.sender == getOwner(), "Only owner can execute this method");
-        _;
+    function getOwner() public view returns ( address ow ) {
+        return ownerAddress;
     }
-
 }
