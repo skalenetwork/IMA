@@ -31,12 +31,34 @@ interface ILockAndDataERC20M {
     function sendERC20(address contractHere, address to, uint256 amount) external returns (bool);
 }
 
-
+/**
+ * @title ERC20 Module For Mainnet
+ * @dev Runs on Mainnet, and manages receiving and sending of ERC20 token contracts
+ * and encoding contractPosition in LockAndDataForMainnetERC20.
+ */
 contract ERC20ModuleForMainnet is PermissionsForMainnet {
 
+    /**
+     * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
+     */
     event ERC20TokenAdded(address indexed tokenHere, uint256 contractPosition);
-    event ERC20TokenSent(address indexed tokenHere, uint256 contractPosition, uint256 amount);
+    
+    /**
+     * @dev Emitted when token is received by DepositBox and is ready to be cloned
+     * or transferred on SKALE chain.
+     */
+    event ERC20TokenReady(address indexed tokenHere, uint256 contractPosition, uint256 amount);
 
+    /**
+     * @dev Allows DepositBox to receive ERC20 tokens.
+     * 
+     * Emits an {ERC20TokenAdded} event on token mapping in LockAndDataForMainnetERC20.
+     * Emits an {ERC20TokenReady} event.
+     * 
+     * Requirements:
+     * 
+     * - Amount must be less than or equal to the total supply of the ERC20 contract.
+     */
     function receiveERC20(
         address contractHere,
         address to,
@@ -51,7 +73,7 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
             keccak256(abi.encodePacked("LockAndDataERC20"))
         );
         uint256 totalSupply = ERC20UpgradeSafe(contractHere).totalSupply();
-        require(amount <= totalSupply, "TotalSupply is not correct");
+        require(amount <= totalSupply, "Amount is incorrect");
         uint256 contractPosition = ILockAndDataERC20M(lockAndDataERC20).erc20Mapper(contractHere);
         if (contractPosition == 0) {
             contractPosition = ILockAndDataERC20M(lockAndDataERC20).addERC20Token(contractHere);
@@ -67,10 +89,13 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         } else {
             data = _encodeRegularData(to, contractPosition, amount);
         }
-        emit ERC20TokenSent(contractHere, contractPosition, amount);
+        emit ERC20TokenReady(contractHere, contractPosition, amount);
         return data;
     }
 
+    /**
+     * @dev Allows DepositBox to send ERC20 tokens.
+     */
     function sendERC20(address to, bytes calldata data) external allow("DepositBox") returns (bool) {
         address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
             keccak256(abi.encodePacked("LockAndDataERC20"))
@@ -90,6 +115,9 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         return variable;
     }
 
+    /**
+     * @dev Returns the receiver address of the ERC20 token.
+     */
     function getReceiver(bytes calldata data) external view returns (address receiver) {
         uint256 contractPosition;
         uint256 amount;
@@ -100,6 +128,9 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
+    /**
+     * @dev Returns encoded creation data for ERC20 token.
+     */
     function _encodeCreationData(
         address contractHere,
         uint256 contractPosition,
@@ -128,6 +159,9 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
+    /**
+     * @dev Returns encoded regular data.
+     */
     function _encodeRegularData(
         address to,
         uint256 contractPosition,
@@ -145,6 +179,9 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
+    /**
+     * @dev Returns fallback data.
+     */
     function _fallbackDataParser(bytes memory data)
         private
         pure
