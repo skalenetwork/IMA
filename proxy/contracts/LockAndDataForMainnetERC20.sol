@@ -25,19 +25,36 @@ pragma solidity 0.6.12;
 import "./PermissionsForMainnet.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 
-
+/**
+ * @title Lock and Data For Mainnet ERC20
+ * @dev Runs on Mainnet, holds deposited ERC20s, and contains mappings and
+ * balances of ERC20 tokens received through DepositBox.
+ */
 contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
 
     mapping(uint256 => address) public erc20Tokens;
     mapping(address => uint256) public erc20Mapper;
     uint256 public newIndexERC20;
 
+    /**
+     * @dev Allows ERC20Module to send an ERC20 token from
+     * LockAndDataForMainnetERC20.
+     * 
+     * Requirements:
+     *
+     * - `amount` must be less than or equal to the balance
+     * in LockAndDataForMainnetERC20.
+     * - Transfer must be successful. 
+     */
     function sendERC20(address contractHere, address to, uint256 amount) external allow("ERC20Module") returns (bool) {
         require(IERC20(contractHere).balanceOf(address(this)) >= amount, "Not enough money");
         require(IERC20(contractHere).transfer(to, amount), "something went wrong with `transfer` in ERC20");
         return true;
     }
 
+    /**
+     * @dev Allows ERC20Module to add an ERC20 token to LockAndDataForMainnetERC20.
+     */
     function addERC20Token(address addressERC20) external allow("ERC20Module") returns (uint256) {
         uint256 index = newIndexERC20;
         erc20Tokens[index] = addressERC20;
