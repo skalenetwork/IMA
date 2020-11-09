@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.12;
 
 import "./SkaleFeatures.sol";
 
@@ -32,17 +32,25 @@ import "./SkaleFeatures.sol";
 contract OwnableForSchain {
 
     /**
-     * @dev ownerAddress is only used after transferOwnership(). By default, value of "skaleConfig.contractSettings.IMA.ownerAddress" config variable is used
+     * @dev _ownerAddress is only used after transferOwnership(). 
+     * By default, value of "skaleConfig.contractSettings.IMA._ownerAddress" config variable is used
      */
-    address private ownerAddress;
+    address private _ownerAddress;
 
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(msg.sender == getOwner(), "Only owner can execute this method");
+        _;
+    }
 
     /**
      * @dev The OwnableForSchain constructor sets the original `owner` of the contract to the sender
      * account.
      */
     constructor() public {
-        ownerAddress = msg.sender;
+        _ownerAddress = msg.sender;
     }
 
     /**
@@ -55,27 +63,21 @@ contract OwnableForSchain {
     }
 
     /**
-     * @dev Returns owner address.
-     */
-    function getOwner() public view returns ( address ow ) {
-        if ((ownerAddress) == (address(0)) )
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ownerAddress");
-        return ownerAddress;
-    }
-
-    /**
      * @dev Sets new owner address.
      */
     function setOwner( address newAddressOwner ) public {
-        ownerAddress = newAddressOwner;
+        _ownerAddress = newAddressOwner;
     }
 
     /**
-     * @dev Throws if called by any account other than the owner.
+     * @dev Returns owner address.
      */
-    modifier onlyOwner() {
-        require(msg.sender == getOwner(), "Only owner can execute this method");
-        _;
+    function getOwner() public view returns ( address ow ) {
+        if ((_ownerAddress) == (address(0)) )
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+                "skaleConfig.contractSettings.IMA._ownerAddress"
+            );
+        return _ownerAddress;
     }
 
 }

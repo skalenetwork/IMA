@@ -117,25 +117,13 @@ contract("LockAndDataForMainnetERC20", ([deployer, user, invoker]) => {
 
   it("should return `token index` after invoke `addERC20Token`", async () => {
     // preparation
-    const decimals = 18;
     const name = "elvis";
     const tokenName = "ELV";
     const sopply = 1000000 * 10 ** 18;
-    const data = "0x" + // create data for create ERC20 trough tokenFactory (see ERC20ModuleForSchain.encodeData)
-        "01" + // bytes1(uint8(3))
-        createBytes32("0") + // bytes32(contractPosition)
-        createBytes32("0") + // bytes32(bytes20(to))
-        createBytes32("0") + // bytes32(amount)
-        createBytes32(name.length.toString()) + // bytes(name).length
-        stringToHex(name, 1) + // name
-        createBytes32(tokenName.length.toString()) + // bytes(symbol).length
-        stringToHex(tokenName, 1) + // symbol
-        decimals.toString(16) + // decimals
-        createBytes32(sopply.toString(16)); // totalSupply
     // create ERC20 token
     // const erc20TokenAddress = await tokenFactory.createERC20(data, {from: deployer});
-    const contractHere = await tokenFactory.createERC20.call(data, {from: deployer});
-    await tokenFactory.createERC20(data, {from: deployer});
+    const contractHere = await tokenFactory.createERC20.call(name, tokenName, "0x" + sopply.toString(16), {from: deployer});
+    await tokenFactory.createERC20(name, tokenName, "0x" + sopply.toString(16), {from: deployer});
     // for execution#2
     const contractHer = ethERC20.address;
     // execution#1
