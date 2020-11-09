@@ -19,16 +19,13 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./OwnableForSchain.sol";
 
-/*
-// l_sergiy: new contract - LockAndDataOwnable - because owner should be lockAndDataAddress
-*/
 import "./LockAndDataOwnable.sol";
 
 
@@ -51,23 +48,23 @@ contract EthERC20 is LockAndDataOwnable, ContextUpgradeSafe, IERC20 {
     uint private _capacity;
 
     constructor() public {
-        delayedInit();
+        _delayedInit();
     }
 
     function mint(address account, uint256 amount) external onlyOwner returns (bool) {
-        delayedInit();
+        _delayedInit();
         require(totalSupply().add(amount) <= _capacity, "Capacity exceeded");
         _mint(account, amount);
         return true;
     }
 
     function burn(uint256 amount) external {
-        delayedInit();
+        _delayedInit();
         _burn(msg.sender, amount);
     }
 
     function burnFrom(address account, uint256 amount) external onlyOwner {
-        delayedInit();
+        _delayedInit();
         _burn(account, amount);
     }
 
@@ -174,7 +171,11 @@ contract EthERC20 is LockAndDataOwnable, ContextUpgradeSafe, IERC20 {
      */
     function transferFrom(address sender, address recipient, uint256 amount) public virtual override returns (bool) {
         _transfer(sender, recipient, amount);
-        _approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance"));
+        _approve(
+            sender,
+            _msgSender(),
+            _allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance")
+        );
         return true;
     }
 
@@ -210,7 +211,11 @@ contract EthERC20 is LockAndDataOwnable, ContextUpgradeSafe, IERC20 {
      * `subtractedValue`.
      */
     function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
-        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].sub(subtractedValue, "ERC20: decreased allowance below zero"));
+        _approve(
+            _msgSender(),
+            spender,
+            _allowances[_msgSender()][spender].sub(subtractedValue, "ERC20: decreased allowance below zero")
+        );
         return true;
     }
 
@@ -311,7 +316,7 @@ contract EthERC20 is LockAndDataOwnable, ContextUpgradeSafe, IERC20 {
         _decimals = decimals_;
     }
 
-    function delayedInit() internal {
+    function _delayedInit() internal {
         if (_initialized) {
             return;
         }
@@ -336,5 +341,7 @@ contract EthERC20 is LockAndDataOwnable, ContextUpgradeSafe, IERC20 {
      *
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual {}
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual {
+        // solhint-disable-previous-line no-empty-blocks
+    }
 }

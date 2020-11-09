@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "./SkaleFeatures.sol";
@@ -38,10 +38,6 @@ interface ContractReceiverForSchain {
 
 contract MessageProxyForSchain {
 
-    // Note: this uses assembly example from
-
-    // https://ethereum.stackexchange.com/questions/6354/how-do-i-construct-a-call-to-another-contract-using-inline-assembly
-
     // 16 Agents
     // Synchronize time with time.nist.gov
     // Every agent checks if it is his time slot
@@ -54,39 +50,6 @@ contract MessageProxyForSchain {
     // Call postIncomingMessages function passing (un)signed message array
 
     // ID of this schain, Chain 0 represents ETH mainnet,
-    string private chainID_; // l_sergiy: changed name _ and made private
-
-    // Owner of this chain. For mainnet, the owner is SkaleManager
-    address public ownerAddress; // l_sergiy: changed name to ownerAddress
-
-    bool mainnetConnected = false;
-
-    mapping(address => bool) private authorizedCaller_; // l_sergiy: changed name _ and made private
-
-    bool private isCustomDeploymentMode_ = false;
-
-    event OutgoingMessage(
-        string dstChain,
-        bytes32 indexed dstChainHash,
-        uint256 indexed msgCounter,
-        address indexed srcContract,
-        address dstContract,
-        address to,
-        uint256 amount,
-        bytes data,
-        uint256 length
-    );
-
-    event PostMessageError(
-        uint256 indexed msgCounter,
-        bytes32 indexed srcChainHash,
-        address sender,
-        string fromSchainID,
-        address to,
-        uint256 amount,
-        bytes data,
-        string message
-    );
 
     struct OutgoingMessageData {
         string dstChain;
@@ -124,10 +87,40 @@ contract MessageProxyForSchain {
         uint256 counter;
     }
 
+    bool public mainnetConnected;
+    // Owner of this chain. For mainnet, the owner is SkaleManager
+    address public ownerAddress;
+    string private _chainID;
+    bool private _isCustomDeploymentMode;
+    uint256 private _idxHead;
+    uint256 private _idxTail;
+
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
-    mapping ( uint256 => OutgoingMessageData ) private outgoingMessageData;
-    uint256 private idxHead;
-    uint256 private idxTail;
+    mapping(address => bool) private _authorizedCaller;
+    mapping (uint256 => OutgoingMessageData) private _outgoingMessageData;
+
+    event OutgoingMessage(
+        string dstChain,
+        bytes32 indexed dstChainHash,
+        uint256 indexed msgCounter,
+        address indexed srcContract,
+        address dstContract,
+        address to,
+        uint256 amount,
+        bytes data,
+        uint256 length
+    );
+
+    event PostMessageError(
+        uint256 indexed msgCounter,
+        bytes32 indexed srcChainHash,
+        address sender,
+        string fromSchainID,
+        address to,
+        uint256 amount,
+        bytes data,
+        string message
+    );
 
     modifier connectMainnet() {
         if (!mainnetConnected) {
@@ -142,7 +135,8 @@ contract MessageProxyForSchain {
                 ],
                 0,
                 0,
-                true);
+                true
+            );
             mainnetConnected = true;
         }
         _;
@@ -150,40 +144,39 @@ contract MessageProxyForSchain {
 
     /// Create a new message proxy
 
-    constructor(string memory newChainID, address newContractManager) public {
-        isCustomDeploymentMode_ = true;
+    constructor(string memory newChainID) public {
+        _isCustomDeploymentMode = true;
         ownerAddress = msg.sender;
-        authorizedCaller_[msg.sender] = true;
-        chainID_ = newChainID;
+        _authorizedCaller[msg.sender] = true;
+        _chainID = newChainID;
         if (keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet"))
         ) {
-            // connect to mainnet by default
-            // Mainnet does not have a public key
-            uint256[4] memory empty = [
-                uint256(0),
-                0,
-                0,
-                0];
             connectedChains[
                 keccak256(abi.encodePacked("Mainnet"))
             ] = ConnectedChainInfo(
-                empty,
+                [
+                    uint256(0),
+                    uint256(0),
+                    uint256(0),
+                    uint256(0)
+                ],
                 0,
                 0,
-                true);
+                true
+            );
             mainnetConnected = true;
         }
     }
 
     function addAuthorizedCaller(address caller) external {
         require(msg.sender == getOwner(), "Sender is not an owner");
-        authorizedCaller_[caller] = true;
+        _authorizedCaller[caller] = true;
     }
 
     function removeAuthorizedCaller(address caller) external {
         require(msg.sender == getOwner(), "Sender is not an owner");
-        authorizedCaller_[caller] = false;
+        _authorizedCaller[caller] = false;
     }
 
     // Registration state detection
@@ -194,14 +187,6 @@ contract MessageProxyForSchain {
         view
         returns (bool)
     {
-        //require(msg.sender == owner); // todo: tmp!!!!!
-        // require(
-
-        // l_sergiy: - commented
-        //     keccak256(abi.encodePacked(someChainID)) !=
-        //     keccak256(abi.encodePacked("Mainnet")),
-        //     "Schain id can not be equal Mainnet"); // main net does not have a public key and is implicitly connected
-
         if ( ! connectedChains[keccak256(abi.encodePacked(someChainID))].inited ) {
             return false;
         }
@@ -219,17 +204,11 @@ contract MessageProxyForSchain {
         external
         connectMainnet
     {
-        require(checkIsAuthorizedCaller(msg.sender), "Not authorized caller"); // l_sergiy: replacement
-
-        // l_sergiy: - commented
-        // require(
-        //     keccak256(abi.encodePacked(newChainID)) !=
-        //     keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
+        require(checkIsAuthorizedCaller(msg.sender), "Not authorized caller");
         if ( keccak256(abi.encodePacked(newChainID)) ==
             keccak256(abi.encodePacked("Mainnet")) )
             return;
 
-        // main net does not have a public key and is implicitly connected
         require(
             !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
             "Chain is already connected"
@@ -250,7 +229,7 @@ contract MessageProxyForSchain {
             keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet")),
             "New chain id can not be equal Mainnet"
-        ); // you cannot remove a connection to main net
+        );
         require(
             connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
             "Chain is not initialized"
@@ -271,7 +250,7 @@ contract MessageProxyForSchain {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         connectedChains[dstChainHash].outgoingMessageCounter++;
-        pushOutgoingMessageData(
+        _pushOutgoingMessageData(
             OutgoingMessageData(
                 dstChainID,
                 dstChainHash,
@@ -353,7 +332,7 @@ contract MessageProxyForSchain {
             }
         }
         connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint256(messages.length);
-        popOutgoingMessageData(idxLastToPopNotIncluding);
+        _popOutgoingMessageData(idxLastToPopNotIncluding);
     }
 
     function moveIncomingCounter(string calldata schainName) external {
@@ -367,33 +346,38 @@ contract MessageProxyForSchain {
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
-    function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
-        if (!isCustomDeploymentMode_) {
-            if ((keccak256(abi.encodePacked(chainID_))) == (keccak256(abi.encodePacked(""))) )
-                return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString("skaleConfig.sChain.schainID");
+    function getChainID() public view returns (string memory cID) { // l_sergiy: added
+        if (!_isCustomDeploymentMode) {
+            if ((keccak256(abi.encodePacked(_chainID))) == (keccak256(abi.encodePacked(""))) )
+                return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString(
+                    "skaleConfig.sChain.schainID"
+                );
         }
-        return chainID_;
+        return _chainID;
     }
 
-    function getOwner() public view returns ( address ow ) { // l_sergiy: added
-        if (!isCustomDeploymentMode_) {
+    function getOwner() public view returns (address ow) { // l_sergiy: added
+        if (!_isCustomDeploymentMode) {
             if ((ownerAddress) == (address(0)) )
-                return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.ownerAddress");
+                return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.ownerAddress"
+                );
         }
         return ownerAddress;
     }
 
-    function setOwner( address newAddressOwner ) public {
+    function setOwner(address newAddressOwner) public {
         ownerAddress = newAddressOwner;
     }
 
-    function checkIsAuthorizedCaller( address a ) public view returns ( bool rv ) { // l_sergiy: added
-        if (authorizedCaller_[a] )
+    function checkIsAuthorizedCaller(address a) public view returns (bool rv) { // l_sergiy: added
+        if (_authorizedCaller[a] )
             return true;
-        if (isCustomDeploymentMode_)
+        if (_isCustomDeploymentMode)
             return false;
-        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).
-            getConfigPermissionFlag(a, "skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers");
+        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigPermissionFlag(
+            a, "skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers"
+        );
         if ( u != 0 )
             return true;
         return false;
@@ -405,33 +389,18 @@ contract MessageProxyForSchain {
         address destinationContract,
         address to,
         uint256 amount
-        )
-            public
-            view
-            returns ( bool isValidMessage )
+    )
+        public
+        view
+        returns (bool isValidMessage)
     {
         isValidMessage = false;
-        OutgoingMessageData memory d = outgoingMessageData[idxMessage];
+        OutgoingMessageData memory d = _outgoingMessageData[idxMessage];
         if ( d.dstContract == destinationContract && d.srcContract == sender && d.to == to && d.amount == amount )
             isValidMessage = true;
     }
 
-    function hashedArray(Message[] memory messages) internal pure returns (bytes32) {
-        bytes memory data;
-        for (uint256 i = 0; i < messages.length; i++) {
-            data = abi.encodePacked(
-                data,
-                bytes32(bytes20(messages[i].sender)),
-                bytes32(bytes20(messages[i].destinationContract)),
-                bytes32(bytes20(messages[i].to)),
-                messages[i].amount,
-                messages[i].data
-            );
-        }
-        return keccak256(data);
-    }
-
-    function pushOutgoingMessageData( OutgoingMessageData memory d ) internal {
+    function _pushOutgoingMessageData( OutgoingMessageData memory d ) private {
         emit OutgoingMessage(
             d.dstChain,
             d.dstChainHash,
@@ -443,20 +412,20 @@ contract MessageProxyForSchain {
             d.data,
             d.length
         );
-        outgoingMessageData[idxTail] = d;
-        ++ idxTail;
+        _outgoingMessageData[_idxTail] = d;
+        ++ _idxTail;
     }
 
-    function popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) internal returns ( uint256 cntDeleted ) {
+    function _popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) private returns ( uint256 cntDeleted ) {
         cntDeleted = 0;
-        for ( uint256 i = idxHead; i < idxLastToPopNotIncluding; ++ i ) {
-            if ( i >= idxTail )
+        for ( uint256 i = _idxHead; i < idxLastToPopNotIncluding; ++ i ) {
+            if ( i >= _idxTail )
                 break;
-            delete outgoingMessageData[i];
+            delete _outgoingMessageData[i];
             ++ cntDeleted;
         }
         if (cntDeleted > 0)
-            idxHead += cntDeleted;
+            _idxHead += cntDeleted;
     }
 
 }

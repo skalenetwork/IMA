@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.12;
 
 import "./PermissionsForMainnet.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
@@ -47,7 +47,9 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         allow("DepositBox")
         returns (bytes memory data)
     {
-        address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
+            keccak256(abi.encodePacked("LockAndDataERC20"))
+        );
         uint256 totalSupply = ERC20UpgradeSafe(contractHere).totalSupply();
         require(amount <= totalSupply, "TotalSupply is not correct");
         uint256 contractPosition = ILockAndDataERC20M(lockAndDataERC20).erc20Mapper(contractHere);
@@ -56,26 +58,28 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
             emit ERC20TokenAdded(contractHere, contractPosition);
         }
         if (!isRAW) {
-            data = encodeCreationData(
+            data = _encodeCreationData(
                 contractHere,
                 contractPosition,
                 to,
                 amount
             );
         } else {
-            data = encodeRegularData(to, contractPosition, amount);
+            data = _encodeRegularData(to, contractPosition, amount);
         }
         emit ERC20TokenSent(contractHere, contractPosition, amount);
         return data;
     }
 
     function sendERC20(address to, bytes calldata data) external allow("DepositBox") returns (bool) {
-        address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
+            keccak256(abi.encodePacked("LockAndDataERC20"))
+        );
         uint256 contractPosition;
         address contractAddress;
         address receiver;
         uint256 amount;
-        (contractPosition, receiver, amount) = fallbackDataParser(data);
+        (contractPosition, receiver, amount) = _fallbackDataParser(data);
         contractAddress = ILockAndDataERC20M(lockAndDataERC20).erc20Tokens(contractPosition);
         if (to != address(0)) {
             if (contractAddress == address(0)) {
@@ -86,23 +90,23 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         return variable;
     }
 
-    function getReceiver(address to, bytes calldata data) external pure returns (address receiver) {
+    function getReceiver(bytes calldata data) external view returns (address receiver) {
         uint256 contractPosition;
         uint256 amount;
-        (contractPosition, receiver, amount) = fallbackDataParser(data);
+        (contractPosition, receiver, amount) = _fallbackDataParser(data);
     }
 
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
-    function encodeCreationData(
+    function _encodeCreationData(
         address contractHere,
         uint256 contractPosition,
         address to,
         uint256 amount
     )
-        internal
+        private
         view
         returns (bytes memory data)
     {
@@ -124,12 +128,12 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
-    function encodeRegularData(
+    function _encodeRegularData(
         address to,
         uint256 contractPosition,
         uint256 amount
     )
-        internal
+        private
         pure
         returns (bytes memory data)
     {
@@ -141,15 +145,15 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
-    function fallbackDataParser(bytes memory data)
-        internal
+    function _fallbackDataParser(bytes memory data)
+        private
         pure
         returns (uint256, address payable, uint256)
     {
         bytes32 contractIndex;
         bytes32 to;
         bytes32 token;
-        // solium-disable-next-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             contractIndex := mload(add(data, 33))
             to := mload(add(data, 65))

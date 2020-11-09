@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.12;
 
 interface IERC20Module {
     function receiveERC20(
@@ -28,5 +28,5 @@ interface IERC20Module {
         uint256 amount,
         bool isRaw) external returns (bytes memory);
     function sendERC20(address to, bytes calldata data) external returns (bool);
-    function getReceiver(address to, bytes calldata data) external pure returns (address);
+    function getReceiver(bytes calldata data) external pure returns (address);
 }

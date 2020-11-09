@@ -83,7 +83,7 @@ contract("TokenFactory", ([user, deployer]) => {
 
   beforeEach(async () => {
     messageProxy = await MessageProxyForSchain.new(
-      "Mainnet", contractManager, {from: deployer});
+      "Mainnet", {from: deployer});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
       {from: deployer});
@@ -117,7 +117,7 @@ contract("TokenFactory", ([user, deployer]) => {
     await lockAndDataForSchain
       .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
     // execution
-    const res = await tokenFactory.createERC20.call(data, {from: deployer});
+    const res = await tokenFactory.createERC20.call("elvis", "ELV", "0x3b9ac9f6", {from: deployer});
     // expectation
     expect(res).to.include("0x");
   });
@@ -140,21 +140,21 @@ contract("TokenFactory", ([user, deployer]) => {
     await lockAndDataForSchain
         .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
     // execution
-    const res = await tokenFactory.createERC721.call(data, {from: deployer});
+    const res = await tokenFactory.createERC721.call("elvis", "ELV", {from: deployer});
     // expectation
     expect(res).to.include("0x");
   });
 
 });
 
-contract("ERC20OnChain", ([user, deployer]) => {
+contract("ERC20OnChain", ([deployer, user]) => {
   let messageProxy: MessageProxyForSchainInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let eRC20OnChain: ERC20OnChainInstance;
 
   beforeEach(async () => {
     messageProxy = await MessageProxyForSchain.new(
-      "Mainnet", contractManager, {from: deployer});
+      "Mainnet", {from: deployer});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
         ((1000000000).toString()), deployer, {from: deployer});
@@ -234,7 +234,7 @@ contract("ERC721OnChain", ([user, deployer]) => {
 
   beforeEach(async () => {
     messageProxy = await MessageProxyForSchain.new(
-      "Mainnet", contractManager, {from: deployer});
+      "Mainnet", {from: deployer});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721", {from: deployer});
   });
