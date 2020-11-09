@@ -42,6 +42,7 @@ contract ContractManager {
         // check newContractsAddress is not equal the previous contract's address
         require(contracts[contractId] != newContractsAddress, "Contract is already added");
         uint256 length;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             length := extcodesize(newContractsAddress)
         }
