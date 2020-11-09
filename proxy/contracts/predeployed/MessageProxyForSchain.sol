@@ -143,7 +143,7 @@ contract MessageProxyForSchain {
 
     /// Create a new message proxy
 
-    constructor(string memory newChainID, address newContractManager) public {
+    constructor(string memory newChainID) public {
         isCustomDeploymentMode_ = true;
         ownerAddress = msg.sender;
         authorizedCaller_[msg.sender] = true;

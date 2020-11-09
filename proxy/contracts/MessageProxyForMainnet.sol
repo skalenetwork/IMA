@@ -153,8 +153,7 @@ contract MessageProxyForMainnet is Initializable {
     // created. Therefore, any SKALE chain is always connected to the main chain.
     // To connect to other chains, the owner needs to explicitly call this function
     function addConnectedChain(
-        string calldata newChainID,
-        uint256[4] calldata newPublicKey
+        string calldata newChainID
     )
         external
     {

@@ -117,7 +117,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         return ILockAndDataERC20S(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
     }
 
-    function getReceiver(address to, bytes calldata data) external view returns (address receiver) {
+    function getReceiver(bytes calldata data) external view returns (address receiver) {
         uint256 contractPosition;
         uint256 amount;
         (contractPosition, receiver, amount) = fallbackDataParser(data);
