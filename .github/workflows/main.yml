@@ -301,7 +301,8 @@ jobs:
       run: |
         cd proxy
         npx buidler coverage --solcoverjs .solcover.js #|| travis_terminate 4
-        cat coverage/lcov.info | npx codecov
+        #cat coverage/lcov.info | npx codecov
+        bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports" 
         cd ..
 
     - name: DEPLOY
