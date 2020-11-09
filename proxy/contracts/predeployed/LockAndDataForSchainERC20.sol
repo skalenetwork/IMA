@@ -39,7 +39,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     event ReceivedERC20(bool result);
 
     constructor(address _lockAndDataAddress) public PermissionsForSchain(_lockAndDataAddress) {
-        // solium-disable-previous-line no-empty-blocks
+        // solhint-disable-previous-line no-empty-blocks
     }
 
     function sendERC20(address contractHere, address to, uint256 amount) external allow("ERC20Module") returns (bool) {

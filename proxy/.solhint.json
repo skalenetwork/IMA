@@ -7,7 +7,7 @@
 
     "compiler-version": ["warn","0.6.12"],
     "state-visibility": "error",
-    "no-empty-blocks": "warn",
+    "no-empty-blocks": "error",
     "check-send-result": "error",
     "private-vars-leading-underscore": "error",
     "code-complexity": "error",

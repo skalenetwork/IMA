@@ -105,7 +105,7 @@ contract TokenFactory is PermissionsForSchain {
 
 
     constructor(address _lockAndDataAddress) public PermissionsForSchain(_lockAndDataAddress) {
-        // solium-disable-previous-line no-empty-blocks
+        // solhint-disable-previous-line no-empty-blocks
     }
 
     function createERC20(bytes calldata data)
