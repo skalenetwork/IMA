@@ -23,7 +23,11 @@ pragma solidity 0.6.12;
 
 import "./OwnableForMainnet.sol";
 
-
+/**
+ * @title Lock and Data For Mainnet
+ * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
+ * balances of ETH tokens received through DepositBox.
+ */
 contract LockAndDataForMainnet is OwnableForMainnet {
 
     mapping(bytes32 => address) public permitted;
@@ -43,18 +47,38 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         _;
     }
 
-    event MoneyReceived(address from, uint256 amount);
+    /**
+     * @dev Emitted when DepositBox receives ETH.
+     */
+    event ETHReceived(address from, uint256 amount);
 
+    /**
+     * @dev Emitted upon failure.
+     */
     event Error(
         address to,
         uint256 amount,
         string message
     );
 
+    /**
+     * @dev Allows DepositBox to receive ETH.
+     *
+     * Emits a {ETHReceived} event.
+     */
     function receiveEth(address from) external allow("DepositBox") payable {
-        emit MoneyReceived(from, msg.value);
+        emit ETHReceived(from, msg.value);
     }
-
+    
+    /**
+     * @dev Allows Owner to set a new contract address.
+     *
+     * Requirements:
+     *
+     * - New contract address must be non-zero.
+     * - New contract address must not already be added.
+     * - Contract must contain code.
+     */
     function setContract(string calldata contractName, address newContract) external virtual onlyOwner {
         require(newContract != address(0), "New address is equal zero");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
@@ -68,6 +92,16 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         permitted[contractId] = newContract;
     }
 
+    /**
+     * @dev Adds a SKALE chain and its TokenManager address to
+     * LockAndDataForMainnet.
+     *
+     * Requirements:
+     *
+     * - `msg.sender` must be authorized caller.
+     * - SKALE chain must not already be added.
+     * - TokenManager address must be non-zero.
+     */
     function addSchain(string calldata schainID, address tokenManagerAddress) external {
         require(authorizedCaller[msg.sender], "Not authorized caller");
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -76,24 +110,48 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
     }
 
+    /**
+     * @dev Allows Owner to remove a SKALE chain from contract.
+     *
+     * Requirements:
+     *
+     * - SKALE chain must already be set.
+     */
     function removeSchain(string calldata schainID) external onlyOwner {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] != address(0), "SKALE chain is not set");
         delete tokenManagerAddresses[schainHash];
     }
 
+    /**
+     * @dev Allows Owner to add an authorized caller.
+     */
     function addAuthorizedCaller(address caller) external onlyOwner {
         authorizedCaller[caller] = true;
     }
 
+    /**
+     * @dev Allows Owner to remove an authorized caller.
+     */
     function removeAuthorizedCaller(address caller) external onlyOwner {
         authorizedCaller[caller] = false;
     }
 
+    /**
+     * @dev Allows DepositBox to approve transfer.
+     */
     function approveTransfer(address to, uint256 amount) external allow("DepositBox") {
         approveTransfers[to] += amount;
     }
 
+    /**
+     * @dev Transfers a user's ETH.
+     *
+     * Requirements:
+     *
+     * - LockAndDataForMainnet must have sufficient ETH.
+     * - User must be approved for ETH transfer.
+     */
     function getMyEth() external {
         require(
             address(this).balance >= approveTransfers[msg.sender],
@@ -105,6 +163,11 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         msg.sender.transfer(amount);
     }
 
+    /**
+     * @dev Allows DepositBox to send ETH.
+     *
+     * Emits an {Error} upon insufficient ETH in LockAndDataForMainnet.
+     */
     function sendEth(address payable to, uint256 amount) external allow("DepositBox") returns (bool) {
         if (address(this).balance >= amount) {
             to.transfer(amount);
@@ -112,10 +175,16 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         }
     }
 
+    /**
+     * @dev Returns the contract address for a given contractName.
+     */
     function getContract(string memory contractName) external view returns (address) {
         return permitted[keccak256(abi.encodePacked(contractName))];
     }
 
+    /**
+     * @dev Checks whether LockAndDataforMainnet is connected to a SKALE chain.
+     */
     function hasSchain( string calldata schainID ) external view returns (bool) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         if ( tokenManagerAddresses[schainHash] == address(0) ) {
