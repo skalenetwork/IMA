@@ -136,7 +136,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
     /**
      * @dev Returns encoded creation data.
      */
-    function encodeData(
+    function _encodeData(
         address contractHere,
         uint256 contractPosition,
         address to,
