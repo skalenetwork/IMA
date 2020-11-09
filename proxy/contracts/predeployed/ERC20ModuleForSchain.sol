@@ -73,8 +73,8 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         {
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         uint256 contractPosition = ILockAndDataERC20S(lockAndDataERC20).erc20Mapper(contractHere);
-        require(contractPosition > 0, "Not existing ERC-20 contract");
-        require(ILockAndDataERC20S(lockAndDataERC20).receiveERC20(contractHere, amount), "Cound not receive ERC20 Token");
+        require(contractPosition > 0, "ERC20 contract does not exist on SKALE chain.");
+        require(ILockAndDataERC20S(lockAndDataERC20).receiveERC20(contractHere, amount), "Could not receive ERC20 Token.");
         if (!isRAW) {
             data = encodeCreationData(
                 contractHere,
