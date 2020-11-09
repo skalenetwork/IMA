@@ -115,9 +115,8 @@ contract TokenFactory is PermissionsForSchain {
     {
         string memory name;
         string memory symbol;
-        uint8 decimals;
         uint256 totalSupply;
-        (name, symbol, decimals, totalSupply) = _fallbackDataCreateERC20Parser(data);
+        (name, symbol, , totalSupply) = _fallbackDataCreateERC20Parser(data);
         address erc20ModuleAddress = IContractManagerForSchain(
             getLockAndDataAddress()
         ).permitted(keccak256(abi.encodePacked("ERC20Module")));
