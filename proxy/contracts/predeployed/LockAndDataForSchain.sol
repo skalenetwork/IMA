@@ -68,7 +68,7 @@ contract LockAndDataForSchain is OwnableForSchain {
         require(!_checkPermitted(contractName,newContract), "Contract is already added");
 
         uint256 length;
-        // solium-disable-next-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             length := extcodesize(newContract)
         }

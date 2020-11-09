@@ -153,7 +153,7 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         bytes32 contractIndex;
         bytes32 to;
         bytes32 token;
-        // solium-disable-next-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             contractIndex := mload(add(data, 33))
             to := mload(add(data, 65))

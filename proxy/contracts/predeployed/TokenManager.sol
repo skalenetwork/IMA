@@ -531,7 +531,7 @@ contract TokenManager is PermissionsForSchain {
         returns (TransactionOperation)
     {
         bytes1 operationType;
-        // solium-disable-next-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             operationType := mload(add(data, 0x20))
         }

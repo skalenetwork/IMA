@@ -37,6 +37,7 @@ contract SkaleFeatures {
         uint256 fnc = FN_NUM_LOG_TEXT_MESSAGE;
         address who = msg.sender;
         uint256 blocks = (bytes(strTextMessage).length + 31) / 32 + 1;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let p := mload(fmp)
             let ptr := p
@@ -83,6 +84,7 @@ contract SkaleFeatures {
     function getConfigVariableUint256( string memory strConfigVariableName ) public view returns ( uint256 rv ) {
         uint256 fmp = FREE_MEM_PTR;
         uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let ptr := mload(fmp)
             for { let i := 0 } lt( i, blocks ) { i := add(1, i) } {
@@ -97,6 +99,7 @@ contract SkaleFeatures {
     function getConfigVariableAddress( string memory strConfigVariableName ) public view returns ( address rv ) {
         uint256 fmp = FREE_MEM_PTR;
         uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let ptr := mload(fmp)
             for { let i := 0 } lt( i, blocks ) { i := add(1, i) } {
@@ -111,6 +114,7 @@ contract SkaleFeatures {
     function getConfigVariableString( string memory strConfigVariableName ) public view returns ( string memory rv ) {
         uint256 fmp = FREE_MEM_PTR;
         uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let ptr := mload(fmp)
             for { let i := 0 } lt( i, blocks ) { i := add(1, i) } {
@@ -125,6 +129,7 @@ contract SkaleFeatures {
         uint256 fmp = FREE_MEM_PTR;
         uint256 blocksA = (bytes(strA).length + 31) / 32 + 1;
         uint256 blocksB = (bytes(strB).length + 31) / 32 + 1;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let p := mload(fmp)
             let ptr := p
@@ -145,6 +150,7 @@ contract SkaleFeatures {
     function getConfigPermissionFlag(address a, string memory strConfigVariableName) public view returns (uint256 rv) {
         uint256 fmp = FREE_MEM_PTR;
         uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let p := mload(fmp)
             mstore(p, a)

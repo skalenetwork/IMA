@@ -139,6 +139,7 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         bytes32 contractIndex;
         bytes32 to;
         bytes32 token;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             contractIndex := mload(add(data, 33))
             to := mload(add(data, 65))
@@ -156,6 +157,7 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
     {
         bytes32 to;
         bytes32 token;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             to := mload(add(data, 33))
             token := mload(add(data, 65))

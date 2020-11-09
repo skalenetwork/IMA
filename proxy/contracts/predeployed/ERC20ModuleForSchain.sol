@@ -176,14 +176,17 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         bytes32 totalSupply;
         bytes32 nameLength;
         bytes32 symbolLength;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             nameLength := mload(add(data, 129))
         }
         uint256 lengthOfName = uint256(nameLength);
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             symbolLength := mload(add(data, add(161, lengthOfName)))
         }
         uint256 lengthOfSymbol = uint256(symbolLength);
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             totalSupply := mload(add(data,
                 add(194, add(lengthOfName, lengthOfSymbol))))
@@ -199,7 +202,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         bytes32 contractIndex;
         bytes32 to;
         bytes32 token;
-        // solium-disable-next-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             contractIndex := mload(add(data, 33))
             to := mload(add(data, 65))

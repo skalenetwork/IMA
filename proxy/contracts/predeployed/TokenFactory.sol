@@ -164,7 +164,7 @@ contract TokenFactory is PermissionsForSchain {
         bytes32 totalSupply;
         bytes32 nameLength;
         bytes32 symbolLength;
-        // solium-disable-next-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             nameLength := mload(add(data, 129))
         }
@@ -173,7 +173,7 @@ contract TokenFactory is PermissionsForSchain {
             bytes(name)[i] = data[129 + i];
         }
         uint256 lengthOfName = uint256(nameLength);
-        // solium-disable-next-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             symbolLength := mload(add(data, add(161, lengthOfName)))
         }
@@ -182,7 +182,7 @@ contract TokenFactory is PermissionsForSchain {
             bytes(symbol)[i] = data[161 + lengthOfName + i];
         }
         uint256 lengthOfSymbol = uint256(symbolLength);
-        // solium-disable-next-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             decimals := mload(add(data,
                 add(193, add(lengthOfName, lengthOfSymbol))))
@@ -207,7 +207,7 @@ contract TokenFactory is PermissionsForSchain {
     {
         bytes32 nameLength;
         bytes32 symbolLength;
-        // solium-disable-next-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             nameLength := mload(add(data, 129))
         }
@@ -216,7 +216,7 @@ contract TokenFactory is PermissionsForSchain {
             bytes(name)[i] = data[129 + i];
         }
         uint256 lengthOfName = uint256(nameLength);
-        // solium-disable-next-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             symbolLength := mload(add(data, add(161, lengthOfName)))
         }
