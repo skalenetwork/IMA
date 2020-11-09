@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.12;
 
 import "./OwnableForSchain.sol";
 
@@ -35,7 +35,7 @@ interface IContractManagerForSchain {
 contract PermissionsForSchain is OwnableForSchain {
 
     // address of ContractManager
-    address lockAndDataAddress_; // l_sergiy: changed name _
+    address public lockAndDataAddress_;
 
     /**
      * @dev constructor - sets current address of ContractManager
@@ -52,7 +52,9 @@ contract PermissionsForSchain is OwnableForSchain {
      */
     modifier allow(string memory contractName) {
         require(
-            IContractManagerForSchain(lockAndDataAddress_).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
+            IContractManagerForSchain(
+                getLockAndDataAddress()
+            ).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
             getOwner() == msg.sender, "Message sender is invalid"
         );
         _;

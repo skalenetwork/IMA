@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.12;
 
 import "./PermissionsForSchain.sol";
 import "./../interfaces/IMessageProxy.sol";
@@ -57,27 +57,19 @@ contract TokenManager is PermissionsForSchain {
     }
 
     // ID of this schain,
-    string private chainID_; // l_sergiy: changed name _ and made private
-    address private proxyForSchainAddress_; // l_sergiy: changed name _ made private
-
-    // The maximum amount of ETH clones this contract can create
-    // It is 102000000 which is the current total ETH supply
-
-    // TODO: TOKEN_RESERVE = 102000000 * (10 ** 18);
-
-    //uint256 public TOKEN_RESERVE = 102000000 * (10 ** 18); //ether
-    //uint256 public TOKEN_RESERVE = 10 * (10 ** 18); //ether
+    string private _chainID;
+    address private _proxyForSchainAddress;
 
     uint256 public constant GAS_AMOUNT_POST_MESSAGE = 200000;
     uint256 public constant AVERAGE_TX_PRICE = 10000000000;
 
-    // Owner of this schain. For mainnet
-    //address public owner;
-
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address schainTokenManagerAddress = ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash);
-        require(schainHash != keccak256(abi.encodePacked("Mainnet")), "This function is not for transfering to Mainnet");
+        require(
+            schainHash != keccak256(abi.encodePacked("Mainnet")),
+            "This function is not for transfering to Mainnet"
+        );
         require(schainTokenManagerAddress != address(0), "Incorrect Token Manager address");
         _;
     }
@@ -96,22 +88,16 @@ contract TokenManager is PermissionsForSchain {
         address newProxyAddress,
         address newLockAndDataAddress
     )
-        PermissionsForSchain(newLockAndDataAddress)
         public
+        PermissionsForSchain(newLockAndDataAddress)
     {
-        chainID_ = newChainID;
-        proxyForSchainAddress_ = newProxyAddress;
+        _chainID = newChainID;
+        _proxyForSchainAddress = newProxyAddress;
     }
 
     fallback() external payable {
         revert("Not allowed. in TokenManager");
     }
-
-    // function withdraw() external {
-    //     if (msg.sender == owner) {
-    //         owner.transfer(address(this).balance);
-    //     }
-    // }
 
     function exitToMainWithoutData(address to, uint256 amount) external {
         exitToMain(to, amount);
@@ -131,8 +117,12 @@ contract TokenManager is PermissionsForSchain {
     }
 
     function exitToMainERC20(address contractHere, address to, uint256 amount) external {
-        address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        address lockAndDataERC20 = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address erc20Module = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
             IERC20(contractHere).allowance(
                 msg.sender,
@@ -173,8 +163,12 @@ contract TokenManager is PermissionsForSchain {
         address to,
         uint256 amount) external
         {
-        address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        address lockAndDataERC20 = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address erc20Module = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
             IERC20(contractHere).allowance(
                 msg.sender,
@@ -215,8 +209,12 @@ contract TokenManager is PermissionsForSchain {
         address to,
         uint256 amount) external
         {
-        address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        address lockAndDataERC20 = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address erc20Module = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
             IERC20(contractHere).allowance(
                 msg.sender,
@@ -253,8 +251,12 @@ contract TokenManager is PermissionsForSchain {
         address to,
         uint256 amount) external
         {
-        address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
-        address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        address lockAndDataERC20 = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address erc20Module = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).permitted(keccak256(abi.encodePacked("ERC20Module")));
         require(
             IERC20(contractHere).allowance(
                 msg.sender,
@@ -418,19 +420,23 @@ contract TokenManager is PermissionsForSchain {
             "Receiver chain is incorrect"
         );
 
-        TransactionOperation operation = fallbackOperationTypeConvert(data);
+        TransactionOperation operation = _fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
             require(to != address(0), "Incorrect receiver");
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
         } else if ((operation == TransactionOperation.transferERC20 && to == address(0)) ||
                   (operation == TransactionOperation.rawTransferERC20 && to != address(0))) {
-            address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
+            address erc20Module = IContractManagerForSchain(
+                getLockAndDataAddress()
+            ).permitted(keccak256(abi.encodePacked("ERC20Module")));
             require(IERC20Module(erc20Module).sendERC20(to, data), "Failed to send ERC20");
-            address receiver = IERC20Module(erc20Module).getReceiver(to, data);
+            address receiver = IERC20Module(erc20Module).getReceiver(data);
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else if ((operation == TransactionOperation.transferERC721 && to == address(0)) ||
                   (operation == TransactionOperation.rawTransferERC721 && to != address(0))) {
-            address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC721Module")));
+            address erc721Module = IContractManagerForSchain(
+                getLockAndDataAddress()
+            ).permitted(keccak256(abi.encodePacked("ERC721Module")));
             require(IERC721Module(erc721Module).sendERC721(to, data), "Failed to send ERC721");
             address receiver = IERC721Module(erc721Module).getReceiver(to, data);
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
@@ -493,17 +499,20 @@ contract TokenManager is PermissionsForSchain {
     }
 
     function getChainID() public view returns ( string memory cID ) { // l_sergiy: added
-        if ((keccak256(abi.encodePacked(chainID_))) == (keccak256(abi.encodePacked(""))) ) {
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString("skaleConfig.sChain.schainID");
+        if ((keccak256(abi.encodePacked(_chainID))) == (keccak256(abi.encodePacked(""))) ) {
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2)
+                .getConfigVariableString("skaleConfig.sChain.schainID");
         }
-        return chainID_;
+        return _chainID;
     }
 
     function getProxyForSchainAddress() public view returns ( address ow ) { // l_sergiy: added
-        if (proxyForSchainAddress_ == address(0) ) {
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress("skaleConfig.contractSettings.IMA.messageProxyAddress");
+        if (_proxyForSchainAddress == address(0) ) {
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+                "skaleConfig.contractSettings.IMA.messageProxyAddress"
+            );
         }
-        return proxyForSchainAddress_;
+        return _proxyForSchainAddress;
     }
 
     /**
@@ -516,13 +525,13 @@ contract TokenManager is PermissionsForSchain {
      * @param data - received data
      * @return operation
      */
-    function fallbackOperationTypeConvert(bytes memory data)
-        internal
+    function _fallbackOperationTypeConvert(bytes memory data)
+        private
         pure
         returns (TransactionOperation)
     {
         bytes1 operationType;
-        // solium-disable-next-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             operationType := mload(add(data, 0x20))
         }
