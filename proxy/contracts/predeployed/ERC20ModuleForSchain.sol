@@ -96,7 +96,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
     /**
      * @dev Allows TokenManager to send ERC20 tokens.
      *  
-     * Emits a {ERC20TokenCreated} event if to address = 0
+     * Emits a {ERC20TokenCreated} event if token does not exist.
      * Emits a {ERC20TokenReceived} event on success.
      */
     function sendERC20(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
