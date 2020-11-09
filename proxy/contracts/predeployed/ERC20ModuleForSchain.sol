@@ -43,7 +43,10 @@ interface ERC20Clone {
     function setTotalSupplyOnMainnet(uint256 newTotalSupply) external;
 }
 
-
+/**
+ * @title ERC20 Module For SKALE Chain
+ * @dev Runs on SKALE Chains and manages ERC20 token contracts for TokenManager.
+ */
 contract ERC20ModuleForSchain is PermissionsForSchain {
 
     event ERC20TokenCreated(uint256 indexed contractPosition, address tokenThere);
@@ -54,6 +57,14 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         // solium-disable-previous-line no-empty-blocks
     }
 
+    /**
+     * @dev Allows TokenManager to receive ERC20 tokens.
+     * 
+     * Requirements:
+     * 
+     * - ERC20 token contract must exist in LockAndDataForSchainERC20.
+     * - ERC20 token must be received by LockAndDataForSchainERC20.
+     */
     function receiveERC20(
         address contractHere,
         address to,
@@ -77,6 +88,12 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         return data;
     }
 
+    /**
+     * @dev Allows TokenManager to send ERC20 tokens.
+     *  
+     * Emits a {ERC20TokenCreated} event if to address = 0
+     * Emits a {ERC20TokenReceived} event on success.
+     */
     function sendERC20(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         uint256 contractPosition;
@@ -108,12 +125,18 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         return ILockAndDataERC20S(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
     }
 
+    /**
+     * @dev Returns the receiver address.
+     */
     function getReceiver(address to, bytes calldata data) external view returns (address receiver) {
         uint256 contractPosition;
         uint256 amount;
         (contractPosition, receiver, amount) = fallbackDataParser(data);
     }
 
+    /**
+     * @dev Returns encoded creation data.
+     */
     function encodeCreationData(
         address contractHere,
         uint256 contractPosition,
@@ -142,6 +165,9 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         );
     }
 
+    /**
+     * @dev Returns encoded regular data.
+     */
     function encodeRegularData(
         address to,
         uint256 contractPosition,
@@ -159,6 +185,9 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         );
     }
 
+    /**
+     * @dev Returns fallback total supply data.
+     */
     function fallbackTotalSupplyParser(bytes memory data)
         internal
         pure
@@ -182,6 +211,9 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         return uint256(totalSupply);
     }
 
+    /**
+     * @dev Returns fallback data.
+     */
     function fallbackDataParser(bytes memory data)
         internal
         pure
