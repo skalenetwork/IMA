@@ -73,7 +73,7 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
             keccak256(abi.encodePacked("LockAndDataERC20"))
         );
         uint256 totalSupply = ERC20UpgradeSafe(contractHere).totalSupply();
-        require(amount <= totalSupply, "Amount is incorrect: amount exceeds totalSupply.");
+        require(amount <= totalSupply, "Amount is incorrect");
         uint256 contractPosition = ILockAndDataERC20M(lockAndDataERC20).erc20Mapper(contractHere);
         if (contractPosition == 0) {
             contractPosition = ILockAndDataERC20M(lockAndDataERC20).addERC20Token(contractHere);
