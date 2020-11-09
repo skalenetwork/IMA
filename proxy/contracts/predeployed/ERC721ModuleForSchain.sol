@@ -48,6 +48,14 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         // solhint-disable-previous-line no-empty-blocks
     }
 
+    /**
+     * @dev Allows TokenManager to receive ERC721 tokens.
+     * 
+     * Requirements:
+     * 
+     * - ERC721 token contract must exist in LockAndDataForSchainERC721.
+     * - ERC721 token must be received by LockAndDataForSchainERC721.
+     */
     function receiveERC721(
         address contractHere,
         address to,
@@ -58,10 +66,10 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
             permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         if (!isRAW) {
             uint256 contractPosition = ILockAndDataERC721S(lockAndDataERC721).erc721Mapper(contractHere);
-            require(contractPosition > 0, "Not existing ERC-721 contract");
+            require(contractPosition > 0, "ERC721 contract does not exist on SKALE chain");
             require(
                 ILockAndDataERC721S(lockAndDataERC721).receiveERC721(contractHere, tokenId),
-                "Cound not receive ERC721 Token"
+                "Could not receive ERC721 Token"
             );
             data = _encodeData(
                 contractHere,
@@ -75,6 +83,11 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         }
     }
 
+    /**
+     * @dev Allows TokenManager to send ERC721 tokens.
+     *  
+     * Emits a {ERC721TokenCreated} event if to address = 0.
+     */
     function sendERC721(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
             permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
@@ -97,6 +110,9 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         return ILockAndDataERC721S(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
     }
 
+    /**
+     * @dev Returns the receiver address.
+     */
     function getReceiver(address to, bytes calldata data) external pure returns (address receiver) {
         uint256 contractPosition;
         uint256 tokenId;
@@ -117,6 +133,9 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         return ITokenFactoryForERC721(tokenFactoryAddress).createERC721(name, symbol);
     }
 
+    /**
+     * @dev Returns encoded creation data.
+     */
     function _encodeData(
         address contractHere,
         uint256 contractPosition,
@@ -141,6 +160,9 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         );
     }
 
+    /**
+     * @dev Returns encoded raw data.
+     */
     function _encodeRawData(address to, uint256 tokenId) private pure returns (bytes memory data) {
         data = abi.encodePacked(
             bytes1(uint8(21)),
@@ -149,6 +171,9 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         );
     }
 
+    /**
+     * @dev Returns fallback data.
+     */
     function _fallbackDataParser(bytes memory data)
         private
         pure
@@ -168,6 +193,9 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         );
     }
 
+    /**
+     * @dev Returns fallback data.
+     */
     function _fallbackRawDataParser(bytes memory data)
         private
         pure

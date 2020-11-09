@@ -43,7 +43,10 @@ interface ERC20Clone {
     function totalSupplyOnMainnet() external view returns (uint256);
 }
 
-
+/**
+ * @title ERC20 Module For SKALE Chain
+ * @dev Runs on SKALE Chains and manages ERC20 token contracts for TokenManager.
+ */
 contract ERC20ModuleForSchain is PermissionsForSchain {
 
     event ERC20TokenCreated(uint256 indexed contractPosition, address tokenThere);
@@ -54,6 +57,14 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         // solhint-disable-previous-line no-empty-blocks
     }
 
+    /**
+     * @dev Allows TokenManager to receive ERC20 tokens.
+     * 
+     * Requirements:
+     * 
+     * - ERC20 token contract must exist in LockAndDataForSchainERC20.
+     * - ERC20 token must be received by LockAndDataForSchainERC20.
+     */
     function receiveERC20(
         address contractHere,
         address to,
@@ -64,7 +75,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
             getLockAndDataAddress()
         ).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         uint256 contractPosition = ILockAndDataERC20S(lockAndDataERC20).erc20Mapper(contractHere);
-        require(contractPosition > 0, "Not existing ERC-20 contract");
+        require(contractPosition > 0, "ERC20 contract does not exist on SKALE chain.");
         require(
             ILockAndDataERC20S(lockAndDataERC20).receiveERC20(contractHere, amount),
             "Cound not receive ERC20 Token"
@@ -82,6 +93,12 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         return data;
     }
 
+    /**
+     * @dev Allows TokenManager to send ERC20 tokens.
+     *  
+     * Emits a {ERC20TokenCreated} event if token does not exist.
+     * Emits a {ERC20TokenReceived} event on success.
+     */
     function sendERC20(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC20 = IContractManagerForSchain(
             getLockAndDataAddress()
@@ -114,6 +131,9 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         return ILockAndDataERC20S(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
     }
 
+    /**
+     * @dev Returns the receiver address.
+     */
     function getReceiver(bytes calldata data) external view returns (address receiver) {
         uint256 contractPosition;
         uint256 amount;
@@ -131,6 +151,9 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         return ITokenFactoryForERC20(tokenFactoryAddress).createERC20(name, symbol, totalSupply);
     }
 
+    /**
+     * @dev Returns encoded creation data.
+     */
     function _encodeCreationData(
         address contractHere,
         uint256 contractPosition,
@@ -159,6 +182,9 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         );
     }
 
+    /**
+     * @dev Returns encoded regular data.
+     */
     function _encodeRegularData(
         address to,
         uint256 contractPosition,
@@ -176,6 +202,9 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         );
     }
 
+    /**
+     * @dev Returns fallback total supply data.
+     */
     function _fallbackTotalSupplyParser(bytes memory data)
         private
         pure
@@ -202,6 +231,9 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         return uint256(totalSupply);
     }
 
+    /**
+     * @dev Returns fallback data.
+     */
     function _fallbackDataParser(bytes memory data)
         private
         pure

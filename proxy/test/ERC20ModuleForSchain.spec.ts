@@ -110,9 +110,9 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     (res).should.include("0x");
   });
 
-  it("should rejected with `Not existing ERC-20 contract` with `isRaw==false`", async () => {
+  it("should rejected with `ERC20 contract does not exist on SKALE chain.` with `isRaw==false`", async () => {
     // preparation
-    const error = "Not existing ERC-20 contract";
+    const error = "ERC20 contract does not exist on SKALE chain.";
     const contractHere = eRC20OnChain.address;
     const to = user;
     const amount = 10;
@@ -145,7 +145,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // set `LockAndDataERC20` contract before invoke `receiveERC20`
     await lockAndDataForSchain
         .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
-    // add ERC20 token to avoid "Not existing ERC-20 contract" error
+    // add ERC20 token to avoid "ERC20 contract does not exist on SKALE chain." error
     await lockAndDataForSchainERC20
       .addERC20Token(contractHere, contractPosition, {from: deployer});
     // execution
@@ -172,7 +172,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await eRC20OnChain.mint(deployer, "1000000000", {from: deployer});
     // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForSchainERC20` to avoid `Not enough money`
     await eRC20OnChain.transfer(lockAndDataForSchainERC20.address, "1000000", {from: deployer});
-    // add ERC20 token to avoid "Not existing ERC-20 contract" error in `receiveERC20` func
+    // add ERC20 token to avoid "ERC20 contract does not exist on SKALE chain." error in `receiveERC20` func
     await lockAndDataForSchainERC20
       .addERC20Token(contractHere, contractPosition, {from: deployer});
     // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
@@ -366,7 +366,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await ethERC20.mint(deployer, "1000000000", {from: deployer});
     // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForSchainERC20` to avoid `Not enough money`
     await ethERC20.transfer(lockAndDataForSchainERC20.address, "1000000", {from: deployer});
-    // add ERC20 token to avoid "Not existing ERC-20 contract" error
+    // add ERC20 token to avoid "ERC20 contract does not exist on SKALE chain." error
     await lockAndDataForSchainERC20
       .addERC20Token(contractHere, contractPosition, {from: deployer});
     // get data from `receiveERC20`
