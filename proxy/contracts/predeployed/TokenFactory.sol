@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.12;
 
 import "./PermissionsForSchain.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20Burnable.sol";
@@ -31,7 +31,7 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     uint256 private _totalSupplyOnMainnet;
-    address private addressOfErc20Module;
+    address private _addressOfErc20Module;
 
     constructor(
         string memory contractName,
@@ -43,18 +43,18 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
     {
         __ERC20_init(contractName, contractSymbol);
         _totalSupplyOnMainnet = newTotalSupply;
-        addressOfErc20Module = erc20Module;
+        _addressOfErc20Module = erc20Module;
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
         _setupRole(MINTER_ROLE, _msgSender());
     }
 
-    function totalSupplyOnMainnet() external view returns (uint256) {
-        return _totalSupplyOnMainnet;
+    function setTotalSupplyOnMainnet(uint256 newTotalSupply) external {
+        require(_addressOfErc20Module == _msgSender(), "Caller is not ERC20Module");
+        _totalSupplyOnMainnet = newTotalSupply;
     }
 
-    function setTotalSupplyOnMainnet(uint256 newTotalSupply) external {
-        require(addressOfErc20Module == _msgSender(), "Caller is not ERC20Module");
-        _totalSupplyOnMainnet = newTotalSupply;
+    function totalSupplyOnMainnet() external view returns (uint256) {
+        return _totalSupplyOnMainnet;
     }
 
     function mint(address account, uint256 value) public {
@@ -103,42 +103,37 @@ contract ERC721OnChain is AccessControlUpgradeSafe, ERC721BurnableUpgradeSafe {
 
 contract TokenFactory is PermissionsForSchain {
 
-
-    constructor(address _lockAndDataAddress) PermissionsForSchain(_lockAndDataAddress) public {
-        // solium-disable-previous-line no-empty-blocks
+    constructor(address _lockAndDataAddress) public PermissionsForSchain(_lockAndDataAddress) {
+        // solhint-disable-previous-line no-empty-blocks
     }
 
-    function createERC20(bytes calldata data)
+    function createERC20(string memory name, string memory symbol, uint256 totalSupply)
         external
         allow("ERC20Module")
         returns (address)
     {
-        string memory name;
-        string memory symbol;
-        uint8 decimals;
-        uint256 totalSupply;
-        (name, symbol, decimals, totalSupply) = fallbackDataCreateERC20Parser(data);
-        address erc20ModuleAddress = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("ERC20Module")));
+        address erc20ModuleAddress = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).permitted(keccak256(abi.encodePacked("ERC20Module")));
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
             symbol,
             totalSupply,
             erc20ModuleAddress
         );
-        address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        address lockAndDataERC20 = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
         newERC20.grantRole(newERC20.MINTER_ROLE(), lockAndDataERC20);
         newERC20.revokeRole(newERC20.MINTER_ROLE(), address(this));
         return address(newERC20);
     }
 
-    function createERC721(bytes calldata data)
+    function createERC721(string memory name, string memory symbol)
         external
         allow("ERC721Module")
         returns (address)
     {
-        string memory name;
-        string memory symbol;
-        (name, symbol) = fallbackDataCreateERC721Parser(data);
         ERC721OnChain newERC721 = new ERC721OnChain(name, symbol);
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
             permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
@@ -146,85 +141,4 @@ contract TokenFactory is PermissionsForSchain {
         newERC721.revokeRole(newERC721.MINTER_ROLE(), address(this));
         return address(newERC721);
     }
-
-    function fallbackDataCreateERC20Parser(bytes memory data)
-        internal
-        pure
-        returns (
-            string memory name,
-            string memory symbol,
-            uint8,
-            uint256
-        )
-    {
-        bytes1 decimals;
-        bytes32 totalSupply;
-        bytes32 nameLength;
-        bytes32 symbolLength;
-        // solium-disable-next-line security/no-inline-assembly
-        assembly {
-            nameLength := mload(add(data, 129))
-        }
-        name = new string(uint256(nameLength));
-        for (uint256 i = 0; i < uint256(nameLength); i++) {
-            bytes(name)[i] = data[129 + i];
-        }
-        uint256 lengthOfName = uint256(nameLength);
-        // solium-disable-next-line security/no-inline-assembly
-        assembly {
-            symbolLength := mload(add(data, add(161, lengthOfName)))
-        }
-        symbol = new string(uint256(symbolLength));
-        for (uint256 i = 0; i < uint256(symbolLength); i++) {
-            bytes(symbol)[i] = data[161 + lengthOfName + i];
-        }
-        uint256 lengthOfSymbol = uint256(symbolLength);
-        // solium-disable-next-line security/no-inline-assembly
-        assembly {
-            decimals := mload(add(data,
-                add(193, add(lengthOfName, lengthOfSymbol))))
-            totalSupply := mload(add(data,
-                add(194, add(lengthOfName, lengthOfSymbol))))
-        }
-        return (
-            name,
-            symbol,
-            uint8(decimals),
-            uint256(totalSupply)
-            );
-    }
-
-    function fallbackDataCreateERC721Parser(bytes memory data)
-        internal
-        pure
-        returns (
-            string memory name,
-            string memory symbol
-        )
-    {
-        bytes32 nameLength;
-        bytes32 symbolLength;
-        // solium-disable-next-line security/no-inline-assembly
-        assembly {
-            nameLength := mload(add(data, 129))
-        }
-        name = new string(uint256(nameLength));
-        for (uint256 i = 0; i < uint256(nameLength); i++) {
-            bytes(name)[i] = data[129 + i];
-        }
-        uint256 lengthOfName = uint256(nameLength);
-        // solium-disable-next-line security/no-inline-assembly
-        assembly {
-            symbolLength := mload(add(data, add(161, lengthOfName)))
-        }
-        symbol = new string(uint256(symbolLength));
-        for (uint256 i = 0; i < uint256(symbolLength); i++) {
-            bytes(symbol)[i] = data[161 + lengthOfName + i];
-        }
-    }
 }
-
-
-
-
-

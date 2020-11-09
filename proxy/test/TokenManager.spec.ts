@@ -100,7 +100,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
     beforeEach(async () => {
         messageProxyForSchain = await MessageProxyForSchain.new(
-            chainID, contractManager, {from: deployer});
+            chainID, {from: deployer});
         lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
         tokenManager = await TokenManager.new(chainID, messageProxyForSchain.address,
             lockAndDataForSchain.address, {from: deployer});
