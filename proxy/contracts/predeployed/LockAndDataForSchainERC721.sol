@@ -57,7 +57,7 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
     }
 
     /**
-     * @dev Allows ERC721Module to send (mint) an ERC721 token to LockAndDataForSchainERC721.
+     * @dev Allows ERC721Module to send (mint) an ERC721 token from LockAndDataForSchainERC721.
      * 
      * Emits a {SentERC721} event.
      *
