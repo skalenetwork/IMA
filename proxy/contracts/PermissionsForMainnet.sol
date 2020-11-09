@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.10;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/access/AccessControl.sol";
 
@@ -35,7 +35,7 @@ interface IContractManagerForMainnet {
 contract PermissionsForMainnet is AccessControlUpgradeSafe {
 
     // address of ContractManager
-    address public lockAndDataAddress_; // l_sergiy: changed name _
+    address public lockAndDataAddress_;
 
     /**
      * @dev allow - throws if called by any account and contract other than the owner

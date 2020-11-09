@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.10;
 
 import "./PermissionsForSchain.sol";
 
@@ -34,7 +34,6 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
 
     mapping(uint256 => address) public erc721Tokens;
     mapping(address => uint256) public erc721Mapper;
-    // mapping(uint256 => uint256) public mintToken;
 
 
     event SendERC721(bool result);

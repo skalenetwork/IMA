@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.10;
 
 import "./OwnableForSchain.sol";
 
@@ -33,9 +33,9 @@ interface IETHERC20 {
 
 contract LockAndDataForSchain is OwnableForSchain {
 
-    address private _ethERC20Address; // l_sergiy: changed name _
+    address private _ethERC20Address;
 
-    mapping(bytes32 => address) public permitted; // l_sergiy: changed name _
+    mapping(bytes32 => address) public permitted;
 
     mapping(bytes32 => address) public tokenManagerAddresses;
 
@@ -47,7 +47,6 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     modifier allow(string memory contractName) {
         require(
-            //permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
             _checkPermitted(contractName,msg.sender) ||
             getOwner() == msg.sender, "Not allowed LockAndDataForSchain");
         _;
@@ -66,8 +65,7 @@ contract LockAndDataForSchain is OwnableForSchain {
         require(newContract != address(0), "New address is equal zero");
 
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        //require(permitted[contractId] != newContract, "Contract is already added");
-        require(!_checkPermitted(contractName,newContract), "Contract is already added"); // l_sergiy: repacement
+        require(!_checkPermitted(contractName,newContract), "Contract is already added");
 
         uint256 length;
         // solium-disable-next-line security/no-inline-assembly
@@ -170,40 +168,44 @@ contract LockAndDataForSchain is OwnableForSchain {
         return true;
     }
 
-    function getEthERC20Address() /*external onlyOwner*/ /*private*/ public view returns ( address a ) {
-        if (_ethERC20Address == address(0) && (!_isCustomDeploymentMode)) {
+    function getEthERC20Address() public view returns (address addressOfEthERC20) {
+        if (_ethERC20Address == address(0) && (!isCustomDeploymentMode_)) {
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
                 "skaleConfig.contractSettings.IMA.ethERC20Address"
             );
         }
-        a = _ethERC20Address;
+        addressOfEthERC20 = _ethERC20Address;
     }
 
-    // l_sergiy: added _checkPermitted() function
-    function _checkPermitted( string memory contractName, address contractAddress ) private view returns ( bool rv ) {
+    function _checkPermitted(string memory contractName, address contractAddress) 
+        private
+        view
+        returns
+        (bool permission)
+    {
         require(contractAddress != address(0), "contract address required to check permitted status");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         bool isPermitted = (permitted[contractId] == contractAddress) ? true : false;
         if ((isPermitted) ) {
-            rv = true;
+            permission = true;
         } else {
             if (!_isCustomDeploymentMode) {
-                string memory strVarName = SkaleFeatures(
+                string memory fullContractPath = SkaleFeatures(
                     0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
                 ).concatenateStrings(
                     "skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.",
                     contractName
                 );
-                address a = SkaleFeatures(
+                address contractAddressInStorage = SkaleFeatures(
                     0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
-                ).getConfigVariableAddress(strVarName);
-                if (a == contractAddress) {
-                    rv = true;
+                ).getConfigVariableAddress(fullContractPath);
+                if (contractAddressInStorage == contractAddress) {
+                    permission = true;
                 } else {
-                    rv = false;
+                    permission = false;
                 }
             } else {
-                rv = false;
+                permission = false;
             }
         }
     }

@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.10;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
@@ -163,7 +163,6 @@ contract MessageProxyForMainnet is Initializable {
             keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
 
-        // main net does not have a public key and is implicitly connected
         require(
             !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
             "Chain is already connected"
@@ -178,13 +177,7 @@ contract MessageProxyForMainnet is Initializable {
     }
 
     function removeConnectedChain(string calldata newChainID) external {
-        require(msg.sender == owner, "Sender is not an owner");
-
-        // require(
-        //     keccak256(abi.encodePacked(newChainID)) !=
-        //     keccak256(abi.encodePacked("Mainnet")),
-        //     "New chain id can not be equal Mainnet"
-        //     ); // you cannot remove a connection to main net
+        require(authorizedCaller[msg.sender], "Not authorized caller");
 
         require(
             connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
@@ -286,11 +279,13 @@ contract MessageProxyForMainnet is Initializable {
         _popOutgoingMessageData(idxLastToPopNotIncluding);
     }
 
+    // Test function - will remove in production
     function moveIncomingCounter(string calldata schainName) external {
         require(msg.sender == owner, "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter++;
     }
 
+    // Test function - will remove in production
     function setCountersToZero(string calldata schainName) external {
         require(msg.sender == owner, "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;

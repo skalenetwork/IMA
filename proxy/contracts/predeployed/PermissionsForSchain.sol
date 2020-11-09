@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.10;
 
 import "./OwnableForSchain.sol";
 
@@ -35,7 +35,7 @@ interface IContractManagerForSchain {
 contract PermissionsForSchain is OwnableForSchain {
 
     // address of ContractManager
-    address public lockAndDataAddress_; // l_sergiy: changed name _
+    address public lockAndDataAddress_;
 
     /**
      * @dev constructor - sets current address of ContractManager

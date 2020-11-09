@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.10;
 
 import "./SkaleFeatures.sol";
 
@@ -30,9 +30,6 @@ import "./SkaleFeatures.sol";
  * functions, this simplifies the implementation of "user permissions".
  */
 contract LockAndDataOwnable {
-/*
-// l_sergiy: new contract - LockAndDataOwnable - because owner should be lockAndDataAddress
-*/
 
     /**
      * @dev _ownerAddress is only used after transferOwnership(). 

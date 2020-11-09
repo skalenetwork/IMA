@@ -19,16 +19,13 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.10;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./OwnableForSchain.sol";
 
-/*
-// l_sergiy: new contract - LockAndDataOwnable - because owner should be lockAndDataAddress
-*/
 import "./LockAndDataOwnable.sol";
 
 

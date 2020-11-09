@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.10;
 
 import "./PermissionsForMainnet.sol";
 import "./interfaces/IMessageProxy.sol";
@@ -42,8 +42,6 @@ interface ILockAndDataDB {
 
 contract DepositBox is PermissionsForMainnet {
 
-    //address public skaleManagerAddress;
-
     enum TransactionOperation {
         transferETH,
         transferERC20,
@@ -52,10 +50,8 @@ contract DepositBox is PermissionsForMainnet {
         rawTransferERC721
     }
 
-    uint256 public constant GAS_AMOUNT_POST_MESSAGE = 200000; // 0;
+    uint256 public constant GAS_AMOUNT_POST_MESSAGE = 200000;
     uint256 public constant AVERAGE_TX_PRICE = 10000000000;
-
-    //mapping(address => mapping(address => uint256)) public allowed;
 
     event MoneyReceivedMessage(
         address sender,
