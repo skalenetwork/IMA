@@ -19,13 +19,12 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.10;
+pragma solidity 0.6.12;
 
 import "./PermissionsForSchain.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20Burnable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/ERC721Burnable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/AccessControl.sol";
-import "@nomiclabs/buidler/console.sol";
 
 
 contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
