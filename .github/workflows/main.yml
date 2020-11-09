@@ -128,12 +128,6 @@ jobs:
         yarn install
         ls -1
 
-    - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
-      run: |
-        cd proxy
-        bash ./scripts/copy.sh
-        cd ..
-
     - name: INSTALL PREREQUISITES - PROXY - NPX SPECIFIC STEPS
       run: |
         cd proxy
@@ -189,12 +183,6 @@ jobs:
         which slither || echo "----> Looks like slither was not installed, next command will fail"
         echo ------------ slither version check - after install
         slither --version || true
-
-    - name: INSTALL PREREQUISITES - PROXY - COPY SCRIPTS
-      run: |
-        cd proxy
-        bash ./scripts/copy.sh
-        cd ..
 
     - name: INSTALL PREREQUISITES - PROXY - PACKAGES
       run: |
@@ -266,7 +254,6 @@ jobs:
       run: |
         cd proxy
         yarn generate
-        bash ./scripts/remove.sh
         cd ..
 
     - name: PROXY - TEST
