@@ -261,7 +261,7 @@ contract MessageProxyForMainnet is Initializable {
     }
 
     /**
-     * @dev Posts incoming message to `srcChainID`. 
+     * @dev Posts incoming message from `srcChainID`. 
      * 
      * Requirements:
      * 
