@@ -47,10 +47,9 @@ interface ILockAndDataTM {
 /**
  * @title Token Manager
  * @dev Runs on SKALE Chains, accepts messages from mainnet, and instructs
- * TokenFactory to create clones. TokenManager manages ETH, ERC20 and ERC721
- * modules that allow creating and receiving tokens on SKALE Chains. TokenManager
- * mints tokens via LockAndDataForSchain*. When a user exits a SKALE chain,
- * TokenFactory burns tokens.
+ * TokenFactory to create clones. TokenManager mints tokens via
+ * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
+ * burns tokens.
  */
 contract TokenManager is PermissionsForSchain {
 
@@ -414,9 +413,8 @@ contract TokenManager is PermissionsForSchain {
     }
 
     /**
-     * @dev Allows MessageProxy to post operational message to mainnet
-     * or SKALE chains. Also used to refill mainnet SKALE chain agent to allow SKALE chain users 
-     * or SKALE chain owners to pay for SKALE user mainnet transactions.
+     * @dev Allows MessageProxy to post operational message from mainnet
+     * or SKALE chains.
      * 
      * Emits an {Error} event upon failure.
      *
@@ -467,7 +465,7 @@ contract TokenManager is PermissionsForSchain {
     }
 
     /**
-     * @dev Performs an exit (post outgoing message) to Mainnet by SKALE chain owner.
+     * @dev Performs an exit (post outgoing message) to Mainnet.
      */
     function exitToMain(address to, uint256 amount) public {
         bytes memory empty = "";
