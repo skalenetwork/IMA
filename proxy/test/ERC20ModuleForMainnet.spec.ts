@@ -148,7 +148,7 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
     await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // execution
-    const res = await eRC20ModuleForMainnet.getReceiver(to0, data, {from: deployer});
+    const res = await eRC20ModuleForMainnet.getReceiver(data, {from: deployer});
     // expectation
     res.should.be.equal(user);
   });
@@ -168,7 +168,7 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
     await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // execution
-    const res = await eRC20ModuleForMainnet.getReceiver(to0, data, {from: deployer});
+    const res = await eRC20ModuleForMainnet.getReceiver(data, {from: deployer});
     // expectation
     res.should.be.equal(user);
   });

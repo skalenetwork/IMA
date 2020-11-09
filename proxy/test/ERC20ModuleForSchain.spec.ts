@@ -74,7 +74,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
 
   beforeEach(async () => {
     messageProxyForSchain = await MessageProxyForSchain.new(
-      "Schain", contractManager, {from: deployer});
+      "Schain", {from: deployer});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     lockAndDataForSchainERC20 =
         await LockAndDataForSchainERC20.new(lockAndDataForSchain.address,
@@ -343,7 +343,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const data = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
     await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // execution
-    const res = await eRC20ModuleForSchain.getReceiver(to0, data, {from: deployer});
+    const res = await eRC20ModuleForSchain.getReceiver(data, {from: deployer});
     // expectation
     res.should.be.equal(user);
   });
@@ -373,7 +373,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const data = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
     await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
     // execution
-    const res = await eRC20ModuleForSchain.getReceiver(to0, data, {from: deployer});
+    const res = await eRC20ModuleForSchain.getReceiver(data, {from: deployer});
     // expectation
     res.should.be.equal(user);
   });

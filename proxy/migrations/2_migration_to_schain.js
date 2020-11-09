@@ -60,7 +60,7 @@ async function deploy( deployer, network ) {
         process.exit( 126 );
     }
     const schainName = process.env.CHAIN_NAME_SCHAIN;
-    await deployer.deploy( MessageProxyForSchain, schainName, "0x0000000000000000000000000000000000000000", { gas: gasLimit } ).then( async function() {
+    await deployer.deploy( MessageProxyForSchain, schainName, { gas: gasLimit } ).then( async function() {
         return await deployer.deploy( LockAndDataForSchain, { gas: gasLimit } );
     } ).then( async function( inst ) {
         await deployer.deploy( TokenManager, schainName, MessageProxyForSchain.address, inst.address, { gas: gasLimit * gasMultiplier } );

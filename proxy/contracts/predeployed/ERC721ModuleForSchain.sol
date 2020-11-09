@@ -19,13 +19,13 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.12;
 
 import "./PermissionsForSchain.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Metadata.sol";
 
 interface ITokenFactoryForERC721 {
-    function createERC721(bytes calldata data)
+    function createERC721(string memory name, string memory symbol)
         external
         returns (address payable);
 }
@@ -44,8 +44,8 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
     event ERC721TokenCreated(uint256 indexed contractPosition, address tokenAddress);
 
 
-    constructor(address newLockAndDataAddress) PermissionsForSchain(newLockAndDataAddress) public {
-        // solium-disable-previous-line no-empty-blocks
+    constructor(address newLockAndDataAddress) public PermissionsForSchain(newLockAndDataAddress) {
+        // solhint-disable-previous-line no-empty-blocks
     }
 
     /**
@@ -67,7 +67,10 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         if (!isRAW) {
             uint256 contractPosition = ILockAndDataERC721S(lockAndDataERC721).erc721Mapper(contractHere);
             require(contractPosition > 0, "ERC721 contract does not exist on SKALE chain");
-            require(ILockAndDataERC721S(lockAndDataERC721).receiveERC721(contractHere, tokenId), "Could not receive ERC721 Token");
+            require(
+                ILockAndDataERC721S(lockAndDataERC721).receiveERC721(contractHere, tokenId),
+                "Could not receive ERC721 Token"
+            );
             data = encodeData(
                 contractHere,
                 contractPosition,
@@ -75,7 +78,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
                 tokenId);
             return data;
         } else {
-            data = encodeRawData(to, tokenId);
+            data = _encodeRawData(to, tokenId);
             return data;
         }
     }
@@ -93,17 +96,15 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         address receiver;
         uint256 tokenId;
         if (to == address(0)) {
-            (contractPosition, receiver, tokenId) = fallbackDataParser(data);
+            (contractPosition, receiver, tokenId) = _fallbackDataParser(data);
             contractAddress = ILockAndDataERC721S(lockAndDataERC721).erc721Tokens(contractPosition);
             if (contractAddress == address(0)) {
-                address tokenFactoryAddress = IContractManagerForSchain(getLockAndDataAddress()).
-                    permitted(keccak256(abi.encodePacked("TokenFactory")));
-                contractAddress = ITokenFactoryForERC721(tokenFactoryAddress).createERC721(data);
+                contractAddress = _sendCreateERC721Request(data);
                 emit ERC721TokenCreated(contractPosition, contractAddress);
                 ILockAndDataERC721S(lockAndDataERC721).addERC721Token(contractAddress, contractPosition);
             }
         } else {
-            (receiver, tokenId) = fallbackRawDataParser(data);
+            (receiver, tokenId) = _fallbackRawDataParser(data);
             contractAddress = to;
         }
         return ILockAndDataERC721S(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
@@ -116,12 +117,22 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         uint256 contractPosition;
         uint256 tokenId;
         if (to == address(0)) {
-            (contractPosition, receiver, tokenId) = fallbackDataParser(data);
+            (contractPosition, receiver, tokenId) = _fallbackDataParser(data);
         } else {
-            (receiver, tokenId) = fallbackRawDataParser(data);
+            (receiver, tokenId) = _fallbackRawDataParser(data);
         }
     }
-    
+
+    function _sendCreateERC721Request(bytes calldata data) internal returns (address) {
+        string memory name;
+        string memory symbol;
+        (name, symbol) = _fallbackDataCreateERC721Parser(data);
+        address tokenFactoryAddress = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).permitted(keccak256(abi.encodePacked("TokenFactory")));
+        return ITokenFactoryForERC721(tokenFactoryAddress).createERC721(name, symbol);
+    }
+
     /**
      * @dev Returns encoded creation data.
      */
@@ -129,8 +140,12 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         address contractHere,
         uint256 contractPosition,
         address to,
-        uint256 tokenId) internal view returns (bytes memory data)
-        {
+        uint256 tokenId
+    )
+        private
+        view
+        returns (bytes memory data)
+    {
         string memory name = IERC721Metadata(contractHere).name();
         string memory symbol = IERC721Metadata(contractHere).symbol();
         data = abi.encodePacked(
@@ -148,8 +163,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
     /**
      * @dev Returns encoded raw data.
      */
-
-    function encodeRawData(address to, uint256 tokenId) internal pure returns (bytes memory data) {
+    function _encodeRawData(address to, uint256 tokenId) private pure returns (bytes memory data) {
         data = abi.encodePacked(
             bytes1(uint8(21)),
             bytes32(bytes20(to)),
@@ -160,14 +174,15 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
     /**
      * @dev Returns fallback data.
      */
-    function fallbackDataParser(bytes memory data)
-        internal
+    function _fallbackDataParser(bytes memory data)
+        private
         pure
         returns (uint256, address payable, uint256)
     {
         bytes32 contractIndex;
         bytes32 to;
         bytes32 token;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             contractIndex := mload(add(data, 33))
             to := mload(add(data, 65))
@@ -181,18 +196,48 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
     /**
      * @dev Returns fallback data.
      */
-    function fallbackRawDataParser(bytes memory data)
-        internal
+    function _fallbackRawDataParser(bytes memory data)
+        private
         pure
         returns (address payable, uint256)
     {
         bytes32 to;
         bytes32 token;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             to := mload(add(data, 33))
             token := mload(add(data, 65))
         }
         return (address(bytes20(to)), uint256(token));
+    }
+
+    function _fallbackDataCreateERC721Parser(bytes memory data)
+        private
+        pure
+        returns (
+            string memory name,
+            string memory symbol
+        )
+    {
+        bytes32 nameLength;
+        bytes32 symbolLength;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            nameLength := mload(add(data, 129))
+        }
+        name = new string(uint256(nameLength));
+        for (uint256 i = 0; i < uint256(nameLength); i++) {
+            bytes(name)[i] = data[129 + i];
+        }
+        uint256 lengthOfName = uint256(nameLength);
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            symbolLength := mload(add(data, add(161, lengthOfName)))
+        }
+        symbol = new string(uint256(symbolLength));
+        for (uint256 i = 0; i < uint256(symbolLength); i++) {
+            bytes(symbol)[i] = data[161 + lengthOfName + i];
+        }
     }
 }
 

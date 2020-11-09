@@ -19,9 +19,8 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.6.10;
+pragma solidity 0.6.12;
 
-import "./predeployed/SkaleFeatures.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
 
@@ -33,9 +32,18 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 contract OwnableForMainnet is Initializable {
 
     /**
-     * @dev ownerAddress is only used after transferOwnership(). By default, value of "skaleConfig.contractSettings.IMA.ownerAddress" config variable is used
+     * @dev _ownerAddress is only used after transferOwnership().
+     * By default, value of "skaleConfig.contractSettings.IMA._ownerAddress" config variable is used
      */
-    address private ownerAddress;
+    address private _ownerAddress;
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(msg.sender == getOwner(), "Only owner can execute this method");
+        _;
+    }
 
     /**
      * @dev Allows the current owner to transfer control of the contract to a newOwner.
@@ -51,29 +59,20 @@ contract OwnableForMainnet is Initializable {
      * account.
      */
     function initialize() public virtual initializer {
-        ownerAddress = msg.sender;
-    }
-
-    /**
-     * @dev Returns owner address.
-     */
-    function getOwner() public view returns ( address ow ) {
-        return ownerAddress;
+        _ownerAddress = msg.sender;
     }
 
     /**
      * @dev Sets new owner address.
      */
     function setOwner( address newAddressOwner ) public {
-        ownerAddress = newAddressOwner;
+        _ownerAddress = newAddressOwner;
     }
 
     /**
-     * @dev Throws if called by any account other than the owner.
+     * @dev Returns owner address.
      */
-    modifier onlyOwner() {
-        require(msg.sender == getOwner(), "Only owner can execute this method");
-        _;
+    function getOwner() public view returns ( address ow ) {
+        return _ownerAddress;
     }
-
 }
