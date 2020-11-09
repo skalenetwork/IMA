@@ -31,11 +31,23 @@ interface ILockAndDataERC721M {
     function sendERC721(address contractHere, address to, uint256 token) external returns (bool);
 }
 
-
+/**
+ * @title ERC721 Module For Mainnet
+ * @dev Runs on Mainnet, and manages receiving and sending of ERC721 token contracts
+ * and encoding contractPosition in LockAndDataForMainnetERC721.
+ */
 contract ERC721ModuleForMainnet is PermissionsForMainnet {
 
+    /**
+     * @dev Emitted when token is mapped in LockAndDataForMainnetERC721.
+     */
     event ERC721TokenAdded(address indexed tokenHere, uint256 contractPosition);
 
+    /**
+     * @dev Allows DepositBox to receive ERC721 tokens.
+     * 
+     * Emits an {ERC721TokenAdded} event.  
+     */
     function receiveERC721(
         address contractHere,
         address to,
@@ -61,6 +73,9 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         }
     }
 
+    /**
+     * @dev Allows DepositBox to send ERC721 tokens.
+     */
     function sendERC721(address to, bytes calldata data) external allow("DepositBox") returns (bool) {
         address lockAndDataERC721 = IContractManagerForMainnet(lockAndDataAddress_).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
         uint256 contractPosition;
@@ -77,6 +92,9 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         return ILockAndDataERC721M(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
     }
 
+    /**
+     * @dev Returns the receiver address of the ERC20 token.
+     */
     function getReceiver(address to, bytes calldata data) external pure returns (address receiver) {
         uint256 contractPosition;
         uint256 amount;
@@ -91,6 +109,9 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
+    /**
+     * @dev Returns encoded creation data for ERC721 token.
+     */
     function encodeData(
         address contractHere,
         uint256 contractPosition,
@@ -111,6 +132,9 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
+    /**
+     * @dev Returns encoded regular data.
+     */
     function encodeRawData(address to, uint256 tokenId) internal pure returns (bytes memory data) {
         data = abi.encodePacked(
             bytes1(uint8(21)),
@@ -119,6 +143,9 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
+    /**
+     * @dev Returns fallback data.
+     */
     function fallbackDataParser(bytes memory data)
         internal
         pure
@@ -137,6 +164,9 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
+    /**
+     * @dev Returns fallback raw data.
+     */
     function fallbackRawDataParser(bytes memory data)
         internal
         pure
