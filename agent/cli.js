@@ -108,8 +108,9 @@ function ensure_have_chain_credentials( strFriendlyChainName, joAccount, isExitI
         if( isExitIfEmpty )
             process.exit( 126 );
     }
-    if( "strTransactionManagerURL" in joAccount && typeof joAccount.strTransactionManagerURL == "string" && joAccount.strTransactionManagerURL.length > 0 ) {
-    } if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
+    if( "strTransactionManagerURL" in joAccount && typeof joAccount.strTransactionManagerURL == "string" && joAccount.strTransactionManagerURL.length > 0 )
+        ensure_have_value( "" + strFriendlyChainName + "/TM/URL", joAccount.strTransactionManagerURL, isExitIfEmpty, isPrintValue );
+    if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
         "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0
     ) {
         ensure_have_value( "" + strFriendlyChainName + "/SGX/URL", joAccount.strSgxURL, isExitIfEmpty, isPrintValue );
@@ -236,7 +237,7 @@ function parse( joExternalHandlers ) {
                 cc.attention( "--key-main-net" ) + cc.debug( "/" ) + cc.attention( "--key-s-chain" ) + cc.debug( " command line values or " ) +
                 cc.warning( "PRIVATE_KEY_FOR_ETHEREUM" ) + cc.debug( "/" ) + cc.warning( "PRIVATE_KEY_FOR_SCHAIN" ) +
                 cc.debug( " shell variables were specified. " )
-                );
+            );
             //
             console.log( cc.sunny( "TRANSFER" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "value" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.warning( "unitName" ) + cc.debug( ".........." ) + cc.notice( "Amount of " ) + cc.attention( "unitName" ) + cc.notice( " to transfer, where " ) + cc.attention( "unitName" ) + cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) + cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );

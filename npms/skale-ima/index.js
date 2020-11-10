@@ -343,6 +343,74 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 
 async function safe_sign_transaction_with_account( tx, joAccount ) {
     if( "strTransactionManagerURL" in joAccount && typeof joAccount.strTransactionManagerURL == "string" && joAccount.strTransactionManagerURL.length > 0 ) {
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) + cc.debug( " using account " ) + cc.j( joAccount ) + "\n" );
+        let rpcCallOpts = null;
+        if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
+            "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
+        ) {
+            rpcCallOpts = {
+            };
+            // if( verbose_get() >= RV_VERBOSE.debug )
+            //     log.write( cc.debug( "Will sign via Transaction Manager with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
+        }
+        await rpcCall.create( joAccount.strTransactionManagerURL, rpcCallOpts, async function( joCall, err ) {
+            if( err ) {
+                console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager wallet failed" ) );
+                process.exit( 155 );
+            }
+            const msgHash = tx.hash( false );
+            const strHash = msgHash.toString( "hex" );
+            // if( verbose_get() >= RV_VERBOSE.debug )
+            //     log.write( cc.debug( "Transaction message hash is " ) + cc.j( msgHash ) + "\n" );
+            const joIn = {
+                "transaction_dict": strHash // "1122334455"
+            };
+            if( verbose_get() >= RV_VERBOSE.debug )
+                log.write( cc.debug( "Calling Transaction Manager to sign using ECDSA key with: " ) + cc.j( joIn ) + "\n" );
+            await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
+                if( err ) {
+                    console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager wallet failed, error: " ) + cc.warning( err ) );
+                    process.exit( 156 );
+                }
+                if( verbose_get() >= RV_VERBOSE.debug )
+                    log.write( cc.debug( "Transaction Manager ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
+                const joNeededResult = {
+                    // "v": Buffer.from( parseInt( joOut.result.signature_v, 10 ).toString( "hex" ), "utf8" ),
+                    // "r": Buffer.from( "" + joOut.result.signature_r, "utf8" ),
+                    // "s": Buffer.from( "" + joOut.result.signature_s, "utf8" )
+                    "v": parseInt( joOut.result.signature_v, 10 ),
+                    "r": "" + joOut.result.signature_r,
+                    "s": "" + joOut.result.signature_s
+                };
+                if( verbose_get() >= RV_VERBOSE.debug )
+                    log.write( cc.debug( "Sign result to assign into transaction is: " ) + cc.j( joNeededResult ) + "\n" );
+                //
+                // if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
+                //     tx.v += tx._chainId * 2 + 8;
+                // if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
+                //     joNeededResult.v += tx._chainId * 2 + 8;
+                // if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
+                //     joNeededResult.v += tx._chainId * 2 + 8 + 27;
+                let chainId = -4;
+                if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
+                    chainId = tx._chainId;
+                console.log( "------ applying chainId =", chainId, "to v =", joNeededResult.v );
+                // joNeededResult.v += chainId * 2 + 8 + 27;
+                joNeededResult.v += chainId * 2 + 8 + 27;
+                console.log( "------ result v =", joNeededResult.v );
+                //
+                // joNeededResult.v = to_eth_v( joNeededResult.v, tx._chainId );
+                //
+                // Object.assign( tx, joNeededResult );
+                tx.v = joNeededResult.v;
+                tx.r = joNeededResult.r;
+                tx.s = joNeededResult.s;
+                if( verbose_get() >= RV_VERBOSE.debug )
+                    log.write( cc.debug( "Resulting adjusted transaction is: " ) + cc.j( tx ) + "\n" );
+            } );
+        } );
+        await sleep( 3000 );
     } else if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
         "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0
     ) {
