@@ -167,6 +167,7 @@ global.imaState = {
     "joAccount_main_net": {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
         "address": fn_address_impl_,
+        "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_ETHEREUM || "" ).toString().trim(),
@@ -175,6 +176,7 @@ global.imaState = {
     "joAccount_s_chain": {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
         "address": fn_address_impl_,
+        "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),

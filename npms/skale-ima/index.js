@@ -342,7 +342,8 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 // }
 
 async function safe_sign_transaction_with_account( tx, joAccount ) {
-    if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
+    if( "strTransactionManagerURL" in joAccount && typeof joAccount.strTransactionManagerURL == "string" && joAccount.strTransactionManagerURL.length > 0 ) {
+    } else if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
         "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0
     ) {
         if( verbose_get() >= RV_VERBOSE.debug )
