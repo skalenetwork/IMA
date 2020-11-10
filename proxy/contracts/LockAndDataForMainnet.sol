@@ -22,6 +22,9 @@
 pragma solidity 0.6.12;
 
 import "./OwnableForMainnet.sol";
+import "./interfaces/IContractManager.sol";
+import "./interfaces/ISchainsInternal.sol";
+import "./interfaces/IMessageProxy.sol";
 
 /**
  * @title Lock and Data For Mainnet
@@ -35,8 +38,6 @@ contract LockAndDataForMainnet is OwnableForMainnet {
     mapping(bytes32 => address) public tokenManagerAddresses;
 
     mapping(address => uint256) public approveTransfers;
-
-    mapping(address => bool) public authorizedCaller;
 
     modifier allow(string memory contractName) {
         require(
@@ -98,16 +99,20 @@ contract LockAndDataForMainnet is OwnableForMainnet {
      *
      * Requirements:
      *
-     * - `msg.sender` must be authorized caller.
+     * - `msg.sender` must be schain owner or contract owner.
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
     function addSchain(string calldata schainID, address tokenManagerAddress) external {
-        require(authorizedCaller[msg.sender], "Not authorized caller");
+        require(
+            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
+            msg.sender == getOwner(), "Not authorized caller"
+        );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
+        IMessageProxy(permitted[keccak256(abi.encodePacked("MessageProxy"))]).addConnectedChain(schainID);
     }
 
     /**
@@ -115,26 +120,18 @@ contract LockAndDataForMainnet is OwnableForMainnet {
      *
      * Requirements:
      *
+     * - `msg.sender` must be schain owner or contract owner
      * - SKALE chain must already be set.
      */
-    function removeSchain(string calldata schainID) external onlyOwner {
+    function removeSchain(string calldata schainID) external {
+        require(
+            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
+            msg.sender == getOwner(), "Not authorized caller"
+        );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] != address(0), "SKALE chain is not set");
         delete tokenManagerAddresses[schainHash];
-    }
-
-    /**
-     * @dev Allows Owner to add an authorized caller.
-     */
-    function addAuthorizedCaller(address caller) external onlyOwner {
-        authorizedCaller[caller] = true;
-    }
-
-    /**
-     * @dev Allows Owner to remove an authorized caller.
-     */
-    function removeAuthorizedCaller(address caller) external onlyOwner {
-        authorizedCaller[caller] = false;
+        IMessageProxy(permitted[keccak256(abi.encodePacked("MessageProxy"))]).removeConnectedChain(schainID);
     }
 
     /**
@@ -195,6 +192,12 @@ contract LockAndDataForMainnet is OwnableForMainnet {
 
     function initialize() public override initializer {
         OwnableForMainnet.initialize();
-        authorizedCaller[msg.sender] = true;
+    }
+
+    function isSchainOwner(address sender, bytes32 schainId) public view returns (bool) {
+        address skaleChainsInternal = IContractManager(
+            permitted[keccak256(abi.encodePacked("ContractManagerForMainnet"))]
+        ).getContract("SchainsInternal");
+        return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainId);
     }
 }

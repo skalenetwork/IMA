@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxy.sol - SKALE Interchain Messaging Agent
+ *   IContractManager.sol - Interface of ContractManager Contract
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -21,16 +21,6 @@
 
 pragma solidity 0.6.12;
 
-interface IMessageProxy {
-    function postOutgoingMessage(
-        string calldata dstChainID,
-        address dstContract,
-        uint256 amount,
-        address to,
-        bytes calldata data
-    )
-        external;
-
-    function addConnectedChain(string calldata newChainID) external;
-    function removeConnectedChain(string calldata newChainID) external;
+interface IContractManager {
+    function getContract(string memory name) external view returns(address);
 }
