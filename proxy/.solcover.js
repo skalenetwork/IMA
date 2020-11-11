@@ -4,7 +4,7 @@ module.exports = {
     norpc: true,
     skipFiles: [
         "Migrations.sol",
-        "test/;"
+        "test/"
     ],
     providerOptions: {
         default_balance_ether: 3000, //000000000000000000,
