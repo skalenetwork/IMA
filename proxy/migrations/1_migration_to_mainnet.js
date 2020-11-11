@@ -80,6 +80,11 @@ async function deploy( deployer, networkName, accounts ) {
             console.log( "Contract", registerName, "with address", address, "is registered in Contract Manager" );
         } );
     }
+    if (jsonData.contract_manager_address !== null && jsonData.contract_manager_address !== "" && jsonData.contract_manager_address !== "0x0000000000000000000000000000000000000000") {
+        await lockAndDataForMainnet.methods.setContract( "ContractManagerForSkaleManager", jsonData.contract_manager_address ).send( { from: deployAccount } ).then( function( res ) {
+            console.log( "Contract ContractManagerForSkaleManager with address", jsonData.contract_manager_address, "is registered in Contract Manager" );
+        } );
+    }
     console.log( "Deploy done, writing results..." );
 
     const jsonObject = { };
