@@ -23,7 +23,6 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
     ERC20ModuleForMainnetInstance,
@@ -31,26 +30,20 @@ import {
     EthERC20Instance,
     LockAndDataForMainnetERC20Instance,
     LockAndDataForMainnetInstance,
-    MessageProxyForMainnetInstance,
     } from "../types/truffle-contracts";
 
 import chai = require("chai");
-import { gasMultiplier } from "./utils/command_line";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
 import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
-import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
 import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
 
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 
-const contractManager = "0x0000000000000000000000000000000000000000";
-
 contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
-  let messageProxyForMainnet: MessageProxyForMainnetInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
   let ethERC20: EthERC20Instance;
@@ -59,7 +52,6 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
   beforeEach(async () => {
 
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
     lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
     ethERC20 = await EthERC20.new({from: deployer});
     eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);

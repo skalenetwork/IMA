@@ -22,8 +22,6 @@
  * @file ERC721ModuleForMainnet.spec.ts
  * @copyright SKALE Labs 2019-Present
  */
-
-import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
     ERC721ModuleForMainnetInstance,
@@ -31,26 +29,20 @@ import {
     ERC721OnChainInstance,
     LockAndDataForMainnetERC721Instance,
     LockAndDataForMainnetInstance,
-    MessageProxyForMainnetInstance,
     } from "../types/truffle-contracts";
 
 import chai = require("chai");
-import { gasMultiplier } from "./utils/command_line";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
 import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
-import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
 import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMainnet";
 
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 
-const contractManager = "0x0000000000000000000000000000000000000000";
-
 contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
-  let messageProxyForMainnet: MessageProxyForMainnetInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let lockAndDataForMainnetERC721: LockAndDataForMainnetERC721Instance;
   let eRC721OnChain: ERC721OnChainInstance;
@@ -58,7 +50,6 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
 
   beforeEach(async () => {
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
     lockAndDataForMainnetERC721 = await deployLockAndDataForMainnetERC721(lockAndDataForMainnet);
     eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
     eRC721ModuleForMainnet = await deployERC721ModuleForMainnet(lockAndDataForMainnet);

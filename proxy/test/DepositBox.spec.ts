@@ -38,16 +38,12 @@ import {
   LockAndDataForMainnetERC20Instance,
   LockAndDataForMainnetERC721Instance,
   LockAndDataForMainnetInstance,
-  MessageProxyForMainnetInstance,
   SchainsInternalContract,
   SchainsInternalInstance,
   } from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
-import { createBytes32 } from "./utils/helper";
-import { skipTime } from "./utils/time";
 
 import chai = require("chai");
-import { gasMultiplier } from "./utils/command_line";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -55,7 +51,6 @@ chai.use((chaiAsPromised as any));
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
 import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
 import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
-import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
 import { deployDepositBox } from "./utils/deploy/depositBox";
 import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
 import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMainnet";
@@ -65,8 +60,7 @@ const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain"
 const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
 const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
 
-contract("DepositBox", ([deployer, user, invoker]) => {
-  let messageProxyForMainnet: MessageProxyForMainnetInstance;
+contract("DepositBox", ([deployer, user]) => {
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let depositBox: DepositBoxInstance;
   let contractManager: ContractManagerInstance;
@@ -77,18 +71,9 @@ contract("DepositBox", ([deployer, user, invoker]) => {
     schainsInternal = await SchainsInternal.new({from: deployer});
     await contractManager.setContractsAddress("SchainsInternal", schainsInternal.address, {from: deployer});
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
     depositBox = await deployDepositBox(lockAndDataForMainnet);
     await lockAndDataForMainnet.setContract("ContractManagerForSkaleManager", contractManager.address, {from: deployer});
   });
-
-  // for messageProxyForMainnet.addConnectedChain function
-  const publicKeyArray = [
-    "1122334455667788990011223344556677889900112233445566778899001122",
-    "1122334455667788990011223344556677889900112233445566778899001122",
-    "1122334455667788990011223344556677889900112233445566778899001122",
-    "1122334455667788990011223344556677889900112233445566778899001122",
-  ];
 
   describe("tests for `deposit` function", async () => {
 
