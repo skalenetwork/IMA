@@ -63,9 +63,7 @@ async function deploy( deployer, networkName, accounts ) {
             contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [] }, options ) );
             lockAndDataForMainnet = contract;
             console.log( "lockAndDataForMainnet address:", contract.address );
-        } else if( [ "MessageProxyForMainnet" ].includes( contractName ) )
-            contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ "Mainnet", jsonData.contract_manager_address ] }, options ) );
-        else
+        } else
             contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ lockAndDataForMainnet.address ] }, options ) );
 
         deployed.set( contractName, contract );

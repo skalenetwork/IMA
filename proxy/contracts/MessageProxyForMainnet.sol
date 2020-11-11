@@ -388,10 +388,11 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     }
 
     function isAuthorizedCaller(address sender) public view returns (bool) {
-        address conMan = IContractManager(lockAndDataAddress_).getContract(
-            "ContractManagerForSkaleManager"
-        );
-        address skaleSchainsInternal = IContractManager(conMan).getContract(
+        address skaleSchainsInternal = IContractManager(
+            IContractManager(lockAndDataAddress_).getContract(
+                "ContractManagerForSkaleManager"
+            )
+        ).getContract(
             "SchainsInternal"
         );
         return ISchainsInternal(skaleSchainsInternal).isNodeAddressesInGroup(

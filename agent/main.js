@@ -904,8 +904,8 @@ async function register_step3( isPrintSummaryRegistrationCosts ) {
     return true;
 }
 async function register_all( isPrintSummaryRegistrationCosts ) {
-    if( !await register_step1( false ) )
-        return false;
+    // if( !await register_step1( false ) )
+    //     return false;
     if( !await register_step2( false ) )
         return false;
     if( !await register_step3( false ) )
@@ -916,7 +916,7 @@ async function register_all( isPrintSummaryRegistrationCosts ) {
 }
 
 async function check_registration_all() {
-    const b1 = await check_registration_step1();
+    // const b1 = await check_registration_step1();
     const b2 = await check_registration_step2();
     const b3 = await check_registration_step3();
     if( !( b1 && b2 && b3 ) )
