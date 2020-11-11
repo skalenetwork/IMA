@@ -527,230 +527,6 @@ async function safe_send_signed_transaction( w3, serializedTx, strActionName, st
     return joReceipt;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// register S-Chain 1A on main net
-//
-
-async function check_is_registered_s_chain_on_main_net( // step 1A
-    w3_main_net,
-    jo_message_proxy_main_net,
-    joAccount_main_net,
-    chain_id_s_chain
-) {
-    const strLogPrefix = cc.note( "RegChk S on M:" ) + " ";
-    if( verbose_get() >= RV_VERBOSE.debug ) {
-        log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( strLogPrefix + cc.bright( "check_is_registered_s_chain_on_main_net(reg-step1A)" ) + "\n" );
-        log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-    }
-    let strActionName = "";
-    try {
-        log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_main_net.options.address ) + "\n" );
-        log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
-        strActionName = "check_is_registered_s_chain_on_main_net(reg-step1A)";
-        const addressFrom = joAccount_main_net.address( w3_main_net );
-        const bIsRegistered = await jo_message_proxy_main_net.methods.isConnectedChain( chain_id_s_chain ).call( {
-            from: addressFrom
-        } );
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "check_is_registered_s_chain_on_main_net(reg-step1A) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
-        return bIsRegistered;
-    } catch ( err ) {
-        if( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in check_is_registered_s_chain_on_main_net(reg-step1A)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-    }
-    return false;
-}
-
-async function register_s_chain_on_main_net( // step 1A
-    w3_main_net,
-    jo_message_proxy_main_net,
-    joAccount_main_net,
-    chain_id_s_chain,
-    cid_main_net,
-    tc_main_net
-) {
-    const jarrReceipts = []; // register_s_chain_on_main_net
-    const strLogPrefix = cc.sunny( "Reg S on M:" ) + " ";
-    if( verbose_get() >= RV_VERBOSE.debug ) {
-        log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( strLogPrefix + cc.bright( "register_s_chain_on_main_net" ) + "\n" );
-        log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-    }
-    let strActionName = "";
-    try {
-        log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_main_net.options.address ) + "\n" );
-        log.write( cc.info( "Main-net " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( cid_main_net ) + "\n" );
-        log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
-        strActionName = "reg-step1A:w3_main_net.eth.getTransactionCount()";
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        const tcnt = await w3_main_net.eth.getTransactionCount( joAccount_main_net.address( w3_main_net ), null );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-        //
-        //
-        //
-        // based on:
-        // https://ethereum.stackexchange.com/questions/47426/call-contract-function-signed-on-client-side-web3-js-1-0
-        // https://ethereum.stackexchange.com/questions/25839/how-to-make-transactions-using-private-key-in-web3
-        const methodWithArguments = jo_message_proxy_main_net.methods.addConnectedChain(
-            chain_id_s_chain // call params
-        );
-        const isIgnore = false;
-        const strDRC = "register_s_chain_on_main_net, step 1A, addConnectedChain";
-        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore );
-        const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
-        //
-        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-        //
-        const rawTx = {
-            chainId: cid_main_net,
-            nonce: tcnt,
-            gasPrice: gasPrice,
-            gasLimit: 3000000,
-            // gas: 8000000, // gas is optional here
-            to: jo_message_proxy_main_net.options.address, // contract address
-            data: dataTx
-        };
-        const tx = compose_tx_instance( strLogPrefix, rawTx );
-        await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
-        const serializedTx = tx.serialize();
-        strActionName = "reg-step1A:w3_main_net.eth.sendSignedTransaction()";
-        // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-        const joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
-        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
-            jarrReceipts.push( {
-                "description": "register_s_chain_on_main_net",
-                "receipt": joReceipt
-            } );
-        }
-    } catch ( err ) {
-        if( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_s_chain_on_main_net() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-        return null;
-    }
-    return jarrReceipts;
-} // async function register_s_chain(...
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// register main net 1B on S-Chain
-//
-
-async function check_is_registered_main_net_on_s_chain( // step 1B
-    w3_s_chain,
-    jo_message_proxy_s_chain,
-    joAccount_s_chain,
-    chain_id_main_net
-) {
-    const strLogPrefix = cc.note( "RegChk M on S:" ) + " ";
-    if( verbose_get() >= RV_VERBOSE.debug ) {
-        log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( strLogPrefix + cc.bright( "check_is_registered_main_net_on_s_chain(reg-step1B)" ) + "\n" );
-        log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-    }
-    let strActionName = "";
-    try {
-        log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_s_chain.options.address ) + "\n" );
-        log.write( cc.info( "Main-net " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_main_net ) + "\n" );
-        strActionName = "check_is_registered_main_net_on_s_chain(reg-step1B)";
-        const addressFrom = joAccount_s_chain.address( w3_s_chain );
-        const bIsRegistered = await jo_message_proxy_s_chain.methods.isConnectedChain( chain_id_main_net ).call( {
-            from: addressFrom
-        } );
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "check_is_registered_main_net_on_s_chain(reg-step1B) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
-        return bIsRegistered;
-    } catch ( err ) {
-        if( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in check_is_registered_main_net_on_s_chain(reg-step1B)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-    }
-    return null;
-}
-
-async function register_main_net_on_s_chain( // step 1B
-    w3_s_chain,
-    jo_message_proxy_s_chain,
-    joAccount_s_chain,
-    chain_id_main_net,
-    cid_s_chain,
-    tc_s_chain
-) {
-    const jarrReceipts = []; // register_main_net_on_s_chain
-    const strLogPrefix = cc.sunny( "Reg M on S:" ) + " ";
-    if( verbose_get() >= RV_VERBOSE.debug ) {
-        log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( strLogPrefix + cc.bright( "register_main_net_on_s_chain" ) + "\n" );
-        log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-    }
-    let strActionName = "";
-    try {
-        log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_s_chain.options.address ) + "\n" );
-        log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( cid_s_chain ) + "\n" );
-        log.write( cc.info( "Main-net " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_main_net ) + "\n" );
-        strActionName = "reg-step1B:w3_s_chain.eth.getTransactionCount()";
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        const tcnt = await w3_s_chain.eth.getTransactionCount( joAccount_s_chain.address( w3_s_chain ), null );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-        //
-        //
-        //
-        // based on:
-        // https://ethereum.stackexchange.com/questions/47426/call-contract-function-signed-on-client-side-web3-js-1-0
-        // https://ethereum.stackexchange.com/questions/25839/how-to-make-transactions-using-private-key-in-web3
-        const methodWithArguments = jo_message_proxy_s_chain.methods.addConnectedChain(
-            chain_id_main_net, [ 0, 0, 0, 0 ] // call params
-        );
-        const isIgnore = false;
-        const strDRC = "register_main_net_on_s_chain, step 1B, addConnectedChain";
-        await dry_run_call( w3_s_chain, methodWithArguments, joAccount_s_chain, strDRC, isIgnore );
-        const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
-        //
-        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-        //
-        const rawTx = {
-            chainId: cid_s_chain,
-            nonce: tcnt,
-            gasPrice: gasPrice,
-            gasLimit: 3000000,
-            // gas: 8000000, // gas is optional here
-            to: jo_message_proxy_s_chain.options.address, // contract address
-            data: dataTx
-        };
-        const tx = compose_tx_instance( strLogPrefix, rawTx );
-        await safe_sign_transaction_with_account( tx, rawTx, joAccount_s_chain );
-        const serializedTx = tx.serialize();
-        strActionName = "reg-step1B:w3_s_chain.eth.sendSignedTransaction()";
-        // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-        const joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
-        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
-            jarrReceipts.push( {
-                "description": "register_main_net_on_s_chain",
-                "receipt": joReceipt
-            } );
-        }
-    } catch ( err ) {
-        if( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_main_net_on_s_chain() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-        return null;
-    }
-    return jarrReceipts;
-} // async function register_s_chain(...
-
 //
 // register direction for money transfer
 // main-net.DepositBox call: function addSchain(uint64 schainID, address tokenManagerAddress)
@@ -766,22 +542,22 @@ async function check_is_registered_s_chain_in_deposit_box( // step 2
     const strLogPrefix = cc.note( "RegChk S in depositBox:" ) + " ";
     if( verbose_get() >= RV_VERBOSE.debug ) {
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( strLogPrefix + cc.bright( "check_is_registered_s_chain_in_deposit_box(reg-step2)" ) + "\n" );
+        log.write( strLogPrefix + cc.bright( "check_is_registered_s_chain_in_deposit_box(reg-step1)" ) + "\n" );
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
     let strActionName = "";
     try {
-        strActionName = "check_is_registered_s_chain_in_deposit_box(reg-step2)";
+        strActionName = "check_is_registered_s_chain_in_deposit_box(reg-step1)";
         const addressFrom = joAccount_main_net.address( w3_main_net );
         const bIsRegistered = await jo_lock_and_data_main_net.methods.hasSchain( chain_id_s_chain ).call( {
             from: addressFrom
         } );
         if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "check_is_registered_s_chain_in_deposit_box(reg-step2) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
+            log.write( strLogPrefix + cc.success( "check_is_registered_s_chain_in_deposit_box(reg-step1) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
         return bIsRegistered;
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in check_is_registered_s_chain_in_deposit_box(reg-step2)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in check_is_registered_s_chain_in_deposit_box(reg-step1)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
     }
     return false;
 }
@@ -802,12 +578,12 @@ async function register_s_chain_in_deposit_box( // step 2
     const strLogPrefix = cc.sunny( "Reg S in depositBox:" ) + " ";
     if( verbose_get() >= RV_VERBOSE.debug ) {
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( strLogPrefix + cc.bright( "reg-step2:register_s_chain_in_deposit_box" ) + "\n" );
+        log.write( strLogPrefix + cc.bright( "reg-step1:register_s_chain_in_deposit_box" ) + "\n" );
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
     let strActionName = "";
     try {
-        strActionName = "reg-step2:w3_main_net.eth.getTransactionCount()";
+        strActionName = "reg-step1:w3_main_net.eth.getTransactionCount()";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         const tcnt = await w3_main_net.eth.getTransactionCount( joAccount_main_net.address( w3_main_net ), null );
@@ -822,7 +598,7 @@ async function register_s_chain_in_deposit_box( // step 2
             chain_id_s_chain, jo_token_manager.options.address // call params
         );
         const isIgnore = false;
-        const strDRC = "register_s_chain_in_deposit_box, step 2, addSchain";
+        const strDRC = "register_s_chain_in_deposit_box, step 1, addSchain";
         await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
@@ -842,7 +618,7 @@ async function register_s_chain_in_deposit_box( // step 2
         const tx = compose_tx_instance( strLogPrefix, rawTx );
         await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
         const serializedTx = tx.serialize();
-        strActionName = "reg-step2:w3_main_net.eth.sendSignedTransaction()";
+        strActionName = "reg-step1:w3_main_net.eth.sendSignedTransaction()";
         // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         const joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
@@ -870,22 +646,22 @@ async function check_is_registered_main_net_depositBox_on_s_chain( // step 3
     const strLogPrefix = cc.note( "RegChk MS depositBox on S:" ) + " ";
     if( verbose_get() >= RV_VERBOSE.debug ) {
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( strLogPrefix + cc.bright( "check_is_registered_main_net_depositBox_on_s_chain(reg-step3)" ) + "\n" );
+        log.write( strLogPrefix + cc.bright( "check_is_registered_main_net_depositBox_on_s_chain(reg-step2)" ) + "\n" );
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
     let strActionName = "";
     try {
-        strActionName = "check_is_registered_main_net_depositBox_on_s_chain(reg-step3)";
+        strActionName = "check_is_registered_main_net_depositBox_on_s_chain(reg-step2)";
         const addressFrom = joAccount.address( w3_s_chain );
         const bIsRegistered = await jo_lock_and_data_s_chain.methods.hasDepositBox().call( {
             from: addressFrom
         } );
         if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "check_is_registered_main_net_depositBox_on_s_chain(reg-step3) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
+            log.write( strLogPrefix + cc.success( "check_is_registered_main_net_depositBox_on_s_chain(reg-step2) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
         return bIsRegistered;
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( "Error in check_is_registered_main_net_depositBox_on_s_chain(reg-step3)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( "Error in check_is_registered_main_net_depositBox_on_s_chain(reg-step2)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
     }
     return false;
 }
@@ -910,7 +686,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
     }
     let strActionName = "";
     try {
-        strActionName = "reg-step3:w3_s_chain.eth.getTransactionCount()/register_main_net_depositBox_on_s_chain";
+        strActionName = "reg-step2:w3_s_chain.eth.getTransactionCount()/register_main_net_depositBox_on_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         const tcnt = await w3_s_chain.eth.getTransactionCount( joAccount.address( w3_s_chain ), null );
@@ -922,7 +698,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             jo_deposit_box_main_net.options.address // call params
         );
         const isIgnore = false;
-        const strDRC = "register_main_net_depositBox_on_s_chain, step 3, addDepositBox";
+        const strDRC = "register_main_net_depositBox_on_s_chain, step 2, addDepositBox";
         await dry_run_call( w3_s_chain, methodWithArguments, joAccount, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
@@ -942,7 +718,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
         const tx = compose_tx_instance( strLogPrefix, rawTx );
         await safe_sign_transaction_with_account( tx, rawTx, joAccount );
         const serializedTx = tx.serialize();
-        strActionName = "reg-step3:w3_s_chain.eth.sendSignedTransaction()";
+        strActionName = "reg-step2:w3_s_chain.eth.sendSignedTransaction()";
         // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
         const joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
@@ -2686,13 +2462,9 @@ module.exports.dry_run_call = dry_run_call;
 module.exports.safe_sign_transaction_with_account = safe_sign_transaction_with_account;
 module.exports.safe_send_signed_transaction = safe_send_signed_transaction;
 
-module.exports.register_s_chain_on_main_net = register_s_chain_on_main_net; // step 1A
-module.exports.check_is_registered_main_net_on_s_chain = check_is_registered_main_net_on_s_chain; // step 1B
 module.exports.register_s_chain_in_deposit_box = register_s_chain_in_deposit_box; // step 2
 module.exports.register_main_net_depositBox_on_s_chain = register_main_net_depositBox_on_s_chain; // step 3
 
-module.exports.check_is_registered_s_chain_on_main_net = check_is_registered_s_chain_on_main_net; // step 1A
-module.exports.register_main_net_on_s_chain = register_main_net_on_s_chain; // step 1B
 module.exports.check_is_registered_s_chain_in_deposit_box = check_is_registered_s_chain_in_deposit_box; // step 2
 module.exports.check_is_registered_main_net_depositBox_on_s_chain = check_is_registered_main_net_depositBox_on_s_chain; // step 3
 

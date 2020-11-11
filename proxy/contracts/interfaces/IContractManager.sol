@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   TestSkaleVerifier.sol - SKALE Interchain Messaging Agent
+ *   IContractManager.sol - Interface of ContractManager Contract
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -19,25 +19,8 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 pragma solidity 0.6.12;
 
-
-contract SkaleVerifier {
-
-    function verifySchainSignature(
-        uint256 signA,
-        uint256 signB,
-        bytes32 hash,
-        uint256 counter,
-        uint256 hashA,
-        uint256 hashB,
-        string calldata schainName
-    )
-        external
-        view
-        returns (bool)
-    {
-        return true;
-    }
+interface IContractManager {
+    function getContract(string memory name) external view returns(address);
 }

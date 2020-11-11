@@ -25,44 +25,40 @@
 
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
-import { DepositBoxContract,
+import {
+  ContractManagerContract,
+  ContractManagerInstance,
   DepositBoxInstance,
-  LockAndDataForMainnetContract,
   LockAndDataForMainnetInstance,
-  MessageProxyForMainnetContract,
-  MessageProxyForMainnetInstance,
-  MessageProxyForSchainContract,
-  MessageProxyForSchainInstance,
+  SchainsInternalContract,
+  SchainsInternalInstance
   } from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
-import { skipTime } from "./utils/time";
 
 import chai = require("chai");
-import { gasMultiplier } from "./utils/command_line";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
-import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
 import { deployDepositBox } from "./utils/deploy/depositBox";
 
-const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
-const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
-const DepositBox: DepositBoxContract = artifacts.require("./DepositBox");
+const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
+const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
 
-const contractManager = "0x0000000000000000000000000000000000000000";
-
-contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
-  let messageProxyForMainnet: MessageProxyForMainnetInstance;
+contract("LockAndDataForMainnet", ([deployer, invoker]) => {
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let depositBox: DepositBoxInstance;
+  let contractManager: ContractManagerInstance;
+  let schainsInternal: SchainsInternalInstance;
 
   beforeEach(async () => {
+    contractManager = await ContractManager.new({from: deployer});
+    schainsInternal = await SchainsInternal.new({from: deployer});
+    await contractManager.setContractsAddress("SchainsInternal", schainsInternal.address, {from: deployer});
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    messageProxyForMainnet = await deployMessageProxyForMainnet(
-      "Mainnet", contractManager, lockAndDataForMainnet);
     depositBox = await deployDepositBox(lockAndDataForMainnet);
+    await lockAndDataForMainnet.setContract("ContractManagerForSkaleManager", contractManager.address, {from: deployer});
   });
 
   it("should add wei to `lockAndDataForMainnet`", async () => {
@@ -272,28 +268,6 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     await lockAndDataForMainnet
       .removeSchain(anotherSchainID, {from: deployer})
       .should.be.eventually.rejectedWith(error);
-  });
-
-  it("should work `addAuthorizedCaller`", async () => {
-    // preparation
-    const caller = user;
-    // execution
-    await lockAndDataForMainnet
-      .addAuthorizedCaller(caller, {from: deployer});
-    // expectation
-    const res = await lockAndDataForMainnet.authorizedCaller(caller);
-    expect(res).to.be.true;
-  });
-
-  it("should work `removeAuthorizedCaller`", async () => {
-    // preparation
-    const caller = user;
-    // execution
-    await lockAndDataForMainnet
-      .removeAuthorizedCaller(caller, {from: deployer});
-    // expectation
-    const res = await lockAndDataForMainnet.authorizedCaller(caller);
-    expect(res).to.be.false;
   });
 
 });

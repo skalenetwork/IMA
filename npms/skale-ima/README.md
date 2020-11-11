@@ -37,14 +37,7 @@ The **joTrufflePublishResult_main_net** and **joTrufflePublishResult_s_chain** A
 The following function registers new **S-Chain** on _Mainnet_ and vice versa:
 
     async function register_all() {
-        var b1 = await IMA.register_s_chain_on_main_net(
-            g_w3_main_net,
-            g_jo_message_proxy_main_net,
-            g_joAccount_main_net,
-            g_chain_id_s_chain,
-            tc_main_net
-            );
-        var b2 = await IMA.register_s_chain_in_deposit_box(
+        var b1 = await IMA.register_s_chain_in_deposit_box(
             g_w3_main_net,
             g_jo_deposit_box, // only main net
             g_joAccount_main_net,
@@ -52,7 +45,7 @@ The following function registers new **S-Chain** on _Mainnet_ and vice versa:
             g_chain_id_s_chain,
             tc_main_net
             );
-        var b3 = await IMA.register_main_net_depositBox_on_s_chain(
+        var b2 = await IMA.register_main_net_depositBox_on_s_chain(
             g_w3_s_chain,
             g_jo_token_manager, // only s-chain
             g_jo_deposit_box, // only main net
@@ -60,8 +53,8 @@ The following function registers new **S-Chain** on _Mainnet_ and vice versa:
             g_cid_s_chain,
             tc_s_chain
             );
-        var b4 = b1 && b2 && b3;
-        return b4;
+        var b3 = b1 && b2;
+        return b2;
     }
 
 The following code demonstrates money transfer event processing:

@@ -30,41 +30,34 @@ import chai = require("chai");
 import {
     ContractManagerContract,
     ContractManagerInstance,
-    LockAndDataForMainnetContract,
     LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainInstance,
-    MessageProxyForMainnetContract,
     MessageProxyForMainnetInstance,
     MessageProxyForSchainContract,
     MessageProxyForSchainInstance,
-    SkaleVerifierContract,
-    SkaleVerifierInstance,
+    SchainsContract,
+    SchainsInstance,
+    SchainsInternalContract,
+    SchainsInternalInstance,
     TokenManagerContract,
     TokenManagerInstance,
 } from "../types/truffle-contracts";
 
-import { gasMultiplier } from "./utils/command_line";
 import { randomString } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
-import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
-import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
-import { deployDepositBox } from "./utils/deploy/depositBox";
-import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
-import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMainnet";
 
-const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
-const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
-const SkaleVerifier: SkaleVerifierContract = artifacts.require("./SkaleVerifier");
+const Schains: SchainsContract = artifacts.require("./Schains");
+const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
 
 contract("MessageProxy", ([deployer, user, client, customer]) => {
     let messageProxyForMainnet: MessageProxyForMainnetInstance;
@@ -74,7 +67,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     let lockAndDataForMainnet: LockAndDataForMainnetInstance;
     let lockAndDataForSchain: LockAndDataForSchainInstance;
     let contractManager: ContractManagerInstance;
-    let skaleVerifier: SkaleVerifierInstance;
+    let schains: SchainsInstance;
+    let schainsInternal: SchainsInternalInstance;
 
     const publicKeyArray = [
         "1122334455667788990011223344556677889900112233445566778899001122",
@@ -95,11 +89,13 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     describe("MessageProxyForMainnet for mainnet", async () => {
         beforeEach(async () => {
             contractManager = await ContractManager.new({from: deployer});
-            skaleVerifier = await SkaleVerifier.new({from: deployer});
-            await contractManager.setContractsAddress("Schains", skaleVerifier.address, {from: deployer});
+            schains = await Schains.new({from: deployer});
+            schainsInternal = await SchainsInternal.new({from: deployer});
+            await contractManager.setContractsAddress("Schains", schains.address, {from: deployer});
+            await contractManager.setContractsAddress("SchainsInternal", schainsInternal.address, {from: deployer});
             lockAndDataForMainnet = await deployLockAndDataForMainnet();
-            messageProxyForMainnet = await deployMessageProxyForMainnet(
-                "Mainnet", contractManager.address, lockAndDataForMainnet);
+            messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
+            await lockAndDataForMainnet.setContract("ContractManagerForSkaleManager", contractManager.address, {from: deployer});
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -588,54 +584,6 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const incomingMessagesCounter = new BigNumber(
                 await messageProxyForSchain.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
-        });
-
-        it("should rejected with `Sender is not an owner` when invoke `addAuthorizedCaller`", async () => {
-            // preparation
-            const error = "Sender is not an owner";
-            const caller = user;
-            // execution/expectation
-            await messageProxyForSchain
-              .addAuthorizedCaller(caller, {from: caller})
-              .should.be.eventually.rejectedWith(error);
-        });
-
-        it("should rejected with `Sender is not an owner` when invoke `removeAuthorizedCaller`", async () => {
-            // preparation
-            const error = "Sender is not an owner";
-            const caller = user;
-            // execution/expectation
-            await messageProxyForSchain
-              .removeAuthorizedCaller(caller, {from: caller})
-              .should.be.eventually.rejectedWith(error);
-        });
-
-        it("should work `addAuthorizedCaller`", async () => {
-            // preparation
-            const caller = user;
-            // execution
-            await messageProxyForSchain
-              .addAuthorizedCaller(caller, {from: deployer});
-            // expectation
-            // const res = await messageProxyForSchain.authorizedCaller(caller); // Main Net
-            const res = await messageProxyForSchain.checkIsAuthorizedCaller(caller) ? true : false; // S-Chain
-            // console.log("res", res);
-            expect(res).to.be.true;
-        });
-
-        it("should work `removeAuthorizedCaller`", async () => {
-            // preparation
-            const caller = user;
-            await messageProxyForSchain
-              .addAuthorizedCaller(caller, {from: deployer});
-            // execution
-            await messageProxyForSchain
-              .removeAuthorizedCaller(caller, {from: deployer});
-            // expectation
-            // const res = await messageProxyForSchain.authorizedCaller(caller); // Main Net
-            const res = await messageProxyForSchain.checkIsAuthorizedCaller(caller) ? true : false; // S-Chain
-            // console.log("res", res);
-            expect(res).to.be.false;
         });
     });
 });
