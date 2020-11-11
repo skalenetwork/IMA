@@ -26,6 +26,8 @@
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
+  ContractManagerContract,
+  ContractManagerInstance,
   DepositBoxInstance,
   ERC20ModuleForMainnetInstance,
   ERC721ModuleForMainnetInstance,
@@ -37,6 +39,8 @@ import {
   LockAndDataForMainnetERC721Instance,
   LockAndDataForMainnetInstance,
   MessageProxyForMainnetInstance,
+  SchainsInternalContract,
+  SchainsInternalInstance,
   } from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
 import { createBytes32 } from "./utils/helper";
@@ -58,18 +62,24 @@ import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMain
 
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
-
-const contractManager = "0x0000000000000000000000000000000000000000";
+const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
+const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
 
 contract("DepositBox", ([deployer, user, invoker]) => {
   let messageProxyForMainnet: MessageProxyForMainnetInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let depositBox: DepositBoxInstance;
+  let contractManager: ContractManagerInstance;
+  let schainsInternal: SchainsInternalInstance;
 
   beforeEach(async () => {
+    contractManager = await ContractManager.new({from: deployer});
+    schainsInternal = await SchainsInternal.new({from: deployer});
+    await contractManager.setContractsAddress("SchainsInternal", schainsInternal.address, {from: deployer});
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
     messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
     depositBox = await deployDepositBox(lockAndDataForMainnet);
+    await lockAndDataForMainnet.setContract("ContractManagerForSkaleManager", contractManager.address, {from: deployer});
   });
 
   // for messageProxyForMainnet.addConnectedChain function

@@ -550,11 +550,11 @@ imaCLI.parse( {
                 if( ! imaState.bNoWaitSChainStarted )
                     await wait_until_s_chain_started(); // M<->S transfer loop
                 let isPrintSummaryRegistrationCosts = false;
-                if( !await check_registration_step1() ) {
-                    if( !await register_step1( false ) )
-                        return false;
-                    isPrintSummaryRegistrationCosts = true;
-                }
+                // if( !await check_registration_step1() ) {
+                //     if( !await register_step1( false ) )
+                //         return false;
+                //     isPrintSummaryRegistrationCosts = true;
+                // }
                 if( !await check_registration_step2() ) {
                     if( !await register_step2( false ) )
                         return false;
