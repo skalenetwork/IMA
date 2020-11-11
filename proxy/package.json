@@ -26,7 +26,7 @@
         "ethereumjs-tx": "1.3.7",
         "openzeppelin-solidity": "^2.2.0",
         "solc": "^0.5.4",
-        "truffle": "^5.1.50"
+        "truffle": "^5.1.52"
     },
     "devDependencies": {
         "@nomiclabs/buidler": "^1.4.7",
