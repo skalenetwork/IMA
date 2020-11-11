@@ -341,7 +341,7 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 //     return v;
 // }
 
-async function safe_sign_transaction_with_account( tx, joAccount ) {
+async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
     // console.log( joAccount );
     if( "strTransactionManagerURL" in joAccount && typeof joAccount.strTransactionManagerURL == "string" && joAccount.strTransactionManagerURL.length > 0 ) {
         if( verbose_get() >= RV_VERBOSE.debug )
@@ -360,12 +360,8 @@ async function safe_sign_transaction_with_account( tx, joAccount ) {
                 console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager wallet failed" ) );
                 process.exit( 155 );
             }
-            const msgHash = tx.hash( false );
-            const strHash = msgHash.toString( "hex" );
-            // if( verbose_get() >= RV_VERBOSE.debug )
-            //     log.write( cc.debug( "Transaction message hash is " ) + cc.j( msgHash ) + "\n" );
             const joIn = {
-                "transaction_dict": owaspUtils.ensure_starts_with_0x( strHash ) // "1122334455"
+                "transaction_dict": rawTx
             };
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( cc.debug( "Calling Transaction Manager to sign using ECDSA key with: " ) + cc.j( joIn ) + "\n" );
@@ -612,7 +608,7 @@ async function register_s_chain_on_main_net( // step 1A
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const tx = compose_tx_instance( strLogPrefix, {
+        const rawTx = {
             chainId: cid_main_net,
             nonce: tcnt,
             gasPrice: gasPrice,
@@ -620,8 +616,9 @@ async function register_s_chain_on_main_net( // step 1A
             // gas: 8000000, // gas is optional here
             to: jo_message_proxy_main_net.options.address, // contract address
             data: dataTx
-        } );
-        await safe_sign_transaction_with_account( tx, joAccount_main_net );
+        };
+        const tx = compose_tx_instance( strLogPrefix, rawTx );
+        await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
         const serializedTx = tx.serialize();
         strActionName = "reg-step1A:w3_main_net.eth.sendSignedTransaction()";
         // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -723,7 +720,7 @@ async function register_main_net_on_s_chain( // step 1B
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const tx = compose_tx_instance( strLogPrefix, {
+        const rawTx = {
             chainId: cid_s_chain,
             nonce: tcnt,
             gasPrice: gasPrice,
@@ -731,8 +728,9 @@ async function register_main_net_on_s_chain( // step 1B
             // gas: 8000000, // gas is optional here
             to: jo_message_proxy_s_chain.options.address, // contract address
             data: dataTx
-        } );
-        await safe_sign_transaction_with_account( tx, joAccount_s_chain );
+        };
+        const tx = compose_tx_instance( strLogPrefix, rawTx );
+        await safe_sign_transaction_with_account( tx, rawTx, joAccount_s_chain );
         const serializedTx = tx.serialize();
         strActionName = "reg-step1B:w3_s_chain.eth.sendSignedTransaction()";
         // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -832,7 +830,7 @@ async function register_s_chain_in_deposit_box( // step 2
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const tx = compose_tx_instance( strLogPrefix, {
+        const rawTx = {
             chainId: cid_main_net,
             nonce: tcnt,
             gasPrice: gasPrice,
@@ -840,8 +838,9 @@ async function register_s_chain_in_deposit_box( // step 2
             // gas: 8000000, // gas is optional here
             to: jo_lock_and_data_main_net.options.address, // contract address
             data: dataTx
-        } );
-        await safe_sign_transaction_with_account( tx, joAccount_main_net );
+        };
+        const tx = compose_tx_instance( strLogPrefix, rawTx );
+        await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
         const serializedTx = tx.serialize();
         strActionName = "reg-step2:w3_main_net.eth.sendSignedTransaction()";
         // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -931,7 +930,7 @@ async function register_main_net_depositBox_on_s_chain( // step 3
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const tx = compose_tx_instance( strLogPrefix, {
+        const rawTx = {
             chainId: cid_s_chain,
             nonce: tcnt,
             gasPrice: gasPrice,
@@ -939,8 +938,9 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             // gas: 8000000, // gas is optional here
             to: jo_lock_and_data_s_chain.options.address, // contract address
             data: dataTx
-        } );
-        await safe_sign_transaction_with_account( tx, joAccount );
+        };
+        const tx = compose_tx_instance( strLogPrefix, rawTx );
+        await safe_sign_transaction_with_account( tx, rawTx, joAccount );
         const serializedTx = tx.serialize();
         strActionName = "reg-step3:w3_s_chain.eth.sendSignedTransaction()";
         // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -1012,7 +1012,7 @@ async function do_eth_payment_from_main_net(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const tx = compose_tx_instance( strLogPrefix, {
+        const rawTx = {
             chainId: cid_main_net,
             nonce: tcnt,
             gasPrice: gasPrice,
@@ -1021,8 +1021,9 @@ async function do_eth_payment_from_main_net(
             to: jo_deposit_box.options.address, // contract address
             data: dataTx,
             value: "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 ) // wei_how_much // how much money to send
-        } );
-        await safe_sign_transaction_with_account( tx, joAccountSrc );
+        };
+        const tx = compose_tx_instance( strLogPrefix, rawTx );
+        await safe_sign_transaction_with_account( tx, rawTx, joAccountSrc );
         const serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction()";
         // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -1143,7 +1144,7 @@ async function do_eth_payment_from_s_chain(
             await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
             dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
             //
-            const txAddEthCost = compose_tx_instance( strLogPrefix, {
+            const rawTxAddEthCost = {
                 chainId: cid_s_chain,
                 from: joAccountSrc.address( w3_s_chain ),
                 nonce: "0x" + tcnt.toString( 16 ),
@@ -1151,8 +1152,9 @@ async function do_eth_payment_from_s_chain(
                 to: tokenManagerAddress,
                 gasPrice: gasPrice,
                 gas: 8000000
-            } );
-            await safe_sign_transaction_with_account( txAddEthCost, joAccountSrc );
+            };
+            const txAddEthCost = compose_tx_instance( strLogPrefix, rawTxAddEthCost );
+            await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
             const serializedTxAddEthCost = txAddEthCost.serialize();
             // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
             const joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
@@ -1189,7 +1191,7 @@ async function do_eth_payment_from_s_chain(
         await dry_run_call( w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
-        const tx = compose_tx_instance( strLogPrefix, {
+        const rawTx = {
             chainId: cid_s_chain,
             nonce: tcnt,
             gasPrice: gasPrice,
@@ -1198,8 +1200,9 @@ async function do_eth_payment_from_s_chain(
             to: jo_token_manager.options.address, // contract address
             data: dataTx,
             value: 0 // how much money to send
-        } );
-        await safe_sign_transaction_with_account( tx, joAccountSrc );
+        };
+        const tx = compose_tx_instance( strLogPrefix, rawTx );
+        await safe_sign_transaction_with_account( tx, rawTx, joAccountSrc );
         const serializedTx = tx.serialize();
         strActionName = "w3_s_chain.eth.sendSignedTransaction()";
         // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -1267,7 +1270,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const tx = compose_tx_instance( strLogPrefix, {
+        const rawTx = {
             chainId: cid_main_net,
             nonce: tcnt,
             gas: 2100000,
@@ -1276,8 +1279,9 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             to: jo_lock_and_data_main_net.options.address, // contract address
             data: dataTx,
             value: 0 // how much money to send
-        } );
-        await safe_sign_transaction_with_account( tx, joAccount_main_net );
+        };
+        const tx = compose_tx_instance( strLogPrefix, rawTx );
+        await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
         const serializedTx = tx.serialize();
         strActionName = "w3_main_net.eth.sendSignedTransaction()";
         // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
@@ -1413,7 +1417,7 @@ async function do_erc721_payment_from_main_net(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const txApprove = compose_tx_instance( strLogPrefix, {
+        const rawTxApprove = {
             chainId: cid_main_net,
             from: joAccountSrc.address( w3_main_net ), // accountForMainnet
             nonce: "0x" + tcnt.toString( 16 ),
@@ -1421,9 +1425,10 @@ async function do_erc721_payment_from_main_net(
             to: erc721Address_main_net,
             gasPrice: gasPrice, // 0
             gas: 8000000
-        } );
+        };
+        const txApprove = compose_tx_instance( strLogPrefix, rawTxApprove );
         tcnt += 1;
-        const txDeposit = compose_tx_instance( strLogPrefix, {
+        const rawTxDeposit = {
             chainId: cid_main_net,
             from: joAccountSrc.address( w3_main_net ), // accountForMainnet
             nonce: "0x" + tcnt.toString( 16 ),
@@ -1432,14 +1437,15 @@ async function do_erc721_payment_from_main_net(
             gasPrice: gasPrice, // 0
             gas: 8000000,
             value: 2000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" )
-        } );
+        };
+        const txDeposit = compose_tx_instance( strLogPrefix, rawTxDeposit );
         //
         //
         // sign transactions
         //
         strActionName = "sign transactions M->S";
-        await safe_sign_transaction_with_account( txApprove, joAccountSrc );
-        await safe_sign_transaction_with_account( txDeposit, joAccountSrc );
+        await safe_sign_transaction_with_account( txApprove, rawTxApprove, joAccountSrc );
+        await safe_sign_transaction_with_account( txDeposit, rawTxDeposit, joAccountSrc );
         const serializedTxApprove = txApprove.serialize();
         const serializedTxDeposit = txDeposit.serialize();
         //
@@ -1619,7 +1625,7 @@ async function do_erc20_payment_from_main_net(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const txApprove = compose_tx_instance( strLogPrefix, {
+        const rawTxApprove = {
             chainId: cid_main_net,
             from: joAccountSrc.address( w3_main_net ), // accountForMainnet
             nonce: "0x" + tcnt.toString( 16 ),
@@ -1627,9 +1633,10 @@ async function do_erc20_payment_from_main_net(
             to: erc20Address_main_net,
             gasPrice: gasPrice, // 0
             gas: 8000000
-        } );
+        };
+        const txApprove = compose_tx_instance( strLogPrefix, rawTxApprove );
         tcnt += 1;
-        const txDeposit = compose_tx_instance( strLogPrefix, {
+        const rawTxDeposit = {
             chainId: cid_main_net,
             from: joAccountSrc.address( w3_main_net ), // accountForMainnet
             nonce: "0x" + tcnt.toString( 16 ),
@@ -1637,13 +1644,14 @@ async function do_erc20_payment_from_main_net(
             to: depositBoxAddress,
             gasPrice: gasPrice, // 0
             gas: 8000000
-        } );
+        };
+        const txDeposit = compose_tx_instance( strLogPrefix, rawTxDeposit );
         //
         // sign transactions
         //
         strActionName = "sign transactions M->S";
-        await safe_sign_transaction_with_account( txApprove, joAccountSrc );
-        await safe_sign_transaction_with_account( txDeposit, joAccountSrc );
+        await safe_sign_transaction_with_account( txApprove, rawTxApprove, joAccountSrc );
+        await safe_sign_transaction_with_account( txDeposit, rawTxDeposit, joAccountSrc );
         const serializedTxApprove = txApprove.serialize();
         const serializedTxDeposit = txDeposit.serialize();
         //
@@ -1823,7 +1831,7 @@ async function do_erc20_payment_from_s_chain(
         let tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-        const txApprove = compose_tx_instance( strLogPrefix, {
+        const rawTxApprove = {
             chainId: cid_s_chain,
             from: accountForSchain,
             nonce: "0x" + tcnt.toString( 16 ),
@@ -1831,8 +1839,9 @@ async function do_erc20_payment_from_s_chain(
             to: erc20Address_s_chain,
             gasPrice: gasPrice,
             gas: 8000000
-        } );
-        await safe_sign_transaction_with_account( txApprove, joAccountSrc );
+        };
+        const txApprove = compose_tx_instance( strLogPrefix, rawTxApprove );
+        await safe_sign_transaction_with_account( txApprove, rawTxApprove, joAccountSrc );
         const serializedTxApprove = txApprove.serialize();
         // let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
         const joReceiptApprove = await safe_send_signed_transaction( w3_s_chain, serializedTxApprove, strActionName, strLogPrefix );
@@ -1868,7 +1877,7 @@ async function do_erc20_payment_from_s_chain(
             await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
             dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
             //
-            const txAddEthCost = compose_tx_instance( strLogPrefix, {
+            const rawTxAddEthCost = {
                 chainId: cid_s_chain,
                 from: accountForSchain,
                 nonce: "0x" + tcnt.toString( 16 ),
@@ -1876,8 +1885,9 @@ async function do_erc20_payment_from_s_chain(
                 to: tokenManagerAddress,
                 gasPrice: gasPrice,
                 gas: 8000000
-            } );
-            await safe_sign_transaction_with_account( txAddEthCost, joAccountSrc );
+            };
+            const txAddEthCost = compose_tx_instance( strLogPrefix, rawTxAddEthCost );
+            await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
             const serializedTxAddEthCost = txAddEthCost.serialize();
             // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
             const joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
@@ -1903,7 +1913,7 @@ async function do_erc20_payment_from_s_chain(
         tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-        const txExitToMainERC20 = compose_tx_instance( strLogPrefix, {
+        const rawTxExitToMainERC20 = {
             chainId: cid_s_chain,
             from: accountForSchain,
             nonce: "0x" + tcnt.toString( 16 ),
@@ -1911,8 +1921,9 @@ async function do_erc20_payment_from_s_chain(
             to: tokenManagerAddress,
             gasPrice: gasPrice,
             gas: 8000000
-        } );
-        await safe_sign_transaction_with_account( txExitToMainERC20, joAccountSrc );
+        };
+        const txExitToMainERC20 = compose_tx_instance( strLogPrefix, rawTxExitToMainERC20 );
+        await safe_sign_transaction_with_account( txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc );
         const serializedTxExitToMainERC20 = txExitToMainERC20.serialize();
         // let joReceiptExitToMainERC20 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC20.toString( "hex" ) );
         const joReceiptExitToMainERC20 = await safe_send_signed_transaction( w3_s_chain, serializedTxExitToMainERC20, strActionName, strLogPrefix );
@@ -2028,7 +2039,7 @@ async function do_erc721_payment_from_s_chain(
         let tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-        const txTransferFrom = compose_tx_instance( strLogPrefix, {
+        const rawTxTransferFrom = {
             chainId: cid_s_chain,
             from: accountForSchain,
             nonce: "0x" + tcnt.toString( 16 ),
@@ -2036,8 +2047,9 @@ async function do_erc721_payment_from_s_chain(
             to: erc721Address_s_chain,
             gasPrice: gasPrice,
             gas: 8000000
-        } );
-        await safe_sign_transaction_with_account( txTransferFrom, joAccountSrc );
+        };
+        const txTransferFrom = compose_tx_instance( strLogPrefix, rawTxTransferFrom );
+        await safe_sign_transaction_with_account( txTransferFrom, rawTxTransferFrom, joAccountSrc );
         const serializedTxTransferFrom = txTransferFrom.serialize();
         // let joReceiptTransferFrom = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxTransferFrom.toString( "hex" ) );
         const joReceiptTransferFrom = await safe_send_signed_transaction( w3_s_chain, serializedTxTransferFrom, strActionName, strLogPrefix );
@@ -2073,7 +2085,7 @@ async function do_erc721_payment_from_s_chain(
             await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
             dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
             //
-            const txAddEthCost = compose_tx_instance( strLogPrefix, {
+            const rawTxAddEthCost = {
                 chainId: cid_s_chain,
                 from: accountForSchain,
                 nonce: "0x" + tcnt.toString( 16 ),
@@ -2081,8 +2093,9 @@ async function do_erc721_payment_from_s_chain(
                 to: tokenManagerAddress,
                 gasPrice: gasPrice,
                 gas: 8000000
-            } );
-            await safe_sign_transaction_with_account( txAddEthCost, joAccountSrc );
+            };
+            const txAddEthCost = compose_tx_instance( strLogPrefix, rawTxAddEthCost );
+            await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
             const serializedTxAddEthCost = txAddEthCost.serialize();
             // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
             const joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
@@ -2108,7 +2121,7 @@ async function do_erc721_payment_from_s_chain(
         tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-        const txExitToMainERC721 = compose_tx_instance( strLogPrefix, {
+        const rawTxExitToMainERC721 = compose_tx_instance( strLogPrefix, {
             chainId: cid_s_chain,
             from: accountForSchain,
             nonce: "0x" + tcnt.toString( 16 ),
@@ -2117,7 +2130,8 @@ async function do_erc721_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: 8000000
         } );
-        await safe_sign_transaction_with_account( txExitToMainERC721, joAccountSrc );
+        const txExitToMainERC721 = compose_tx_instance( strLogPrefix, rawTxExitToMainERC721 );
+        await safe_sign_transaction_with_account( txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc );
         const serializedTxExitToMainERC721 = txExitToMainERC721.serialize();
         // let joReceiptExitToMainERC721 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC721.toString( "hex" ) );
         const joReceiptExitToMainERC721 = await safe_send_signed_transaction( w3_s_chain, serializedTxExitToMainERC721, strActionName, strLogPrefix );
@@ -2492,7 +2506,7 @@ async function do_transfer(
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
                 //
-                const tx_postIncomingMessages = compose_tx_instance( strLogPrefix, {
+                const raw_tx_postIncomingMessages = compose_tx_instance( strLogPrefix, {
                     chainId: cid_dst,
                     nonce: tcnt,
                     gas: 6000000, // 8000000
@@ -2502,7 +2516,8 @@ async function do_transfer(
                     data: dataTx_postIncomingMessages //,
                     // "value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
                 } );
-                await safe_sign_transaction_with_account( tx_postIncomingMessages, joAccountDst );
+                const tx_postIncomingMessages = compose_tx_instance( strLogPrefix, raw_tx_postIncomingMessages );
+                await safe_sign_transaction_with_account( tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
                 const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
                 strActionName = "w3_dst.eth.sendSignedTransaction()";
                 // let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx_postIncomingMessages.toString( "hex" ) );
