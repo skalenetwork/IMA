@@ -79,8 +79,7 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
 
   beforeEach(async () => {
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    messageProxyForMainnet = await deployMessageProxyForMainnet(
-      "Mainnet", contractManager, lockAndDataForMainnet);
+    messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
     lockAndDataForMainnetERC721 = await deployLockAndDataForMainnetERC721(lockAndDataForMainnet);
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     await lockAndDataForSchain.setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address);

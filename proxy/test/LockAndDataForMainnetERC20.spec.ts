@@ -79,8 +79,7 @@ contract("LockAndDataForMainnetERC20", ([deployer, user, invoker]) => {
 
   beforeEach(async () => {
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    messageProxyForMainnet = await deployMessageProxyForMainnet(
-      "Mainnet", contractManager, lockAndDataForMainnet);
+    messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
     lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
 
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});

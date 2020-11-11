@@ -68,8 +68,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
 
   beforeEach(async () => {
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    messageProxyForMainnet = await deployMessageProxyForMainnet(
-      "Mainnet", contractManager, lockAndDataForMainnet);
+    messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
     depositBox = await deployDepositBox(lockAndDataForMainnet);
   });
 
@@ -129,9 +128,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // add schain to avoid the `Unconnected chain` error
       const chain = await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
-      await messageProxyForMainnet
-        .addConnectedChain(schainID, {from: deployer});
       // execution
       const tx = await depositBox
         .depositWithoutData(schainID, deployer, {value: wei, from: deployer});
@@ -169,9 +165,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
-        await messageProxyForMainnet
-          .addConnectedChain(schainID, {from: deployer});
         // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
         // execution/expectation
         await depositBox
@@ -185,9 +178,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
-        await messageProxyForMainnet
-          .addConnectedChain(schainID, {from: deployer});
         // mint some quantity of ERC20 tokens for `deployer` address
         await ethERC20.mint(deployer, "1000000000", {from: deployer});
         // approve some quantity of ERC20 tokens for `depositBox` address
@@ -203,9 +193,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
-        await messageProxyForMainnet
-          .addConnectedChain(schainID, {from: deployer});
         // mint some quantity of ERC20 tokens for `deployer` address
         await ethERC20.mint(deployer, "1000000000", {from: deployer});
         // approve some quantity of ERC20 tokens for `depositBox` address
@@ -224,9 +211,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
-        await messageProxyForMainnet
-          .addConnectedChain(schainID, {from: deployer});
         // execution/expectation
         await depositBox
           .rawDepositERC20(schainID, ethERC20.address, user, deployer, 100, {from: deployer})
@@ -239,9 +223,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
-        await messageProxyForMainnet
-          .addConnectedChain(schainID, {from: deployer});
         // mint some quantity of ERC20 tokens for `deployer` address
         await ethERC20.mint(deployer, "1000000000", {from: deployer});
         // approve some quantity of ERC20 tokens for `depositBox` address
@@ -257,9 +238,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
-        await messageProxyForMainnet
-          .addConnectedChain(schainID, {from: deployer});
         // mint some quantity of ERC20 tokens for `deployer` address
         await ethERC20.mint(deployer, "1000000000", {from: deployer});
         // approve some quantity of ERC20 tokens for `depositBox` address
@@ -301,9 +279,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
-        await messageProxyForMainnet
-          .addConnectedChain(schainID, {from: deployer});
 
         // execution/expectation
         await depositBox
@@ -323,9 +298,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
-        await messageProxyForMainnet
-          .addConnectedChain(schainID, {from: deployer});
         // transfer tokenId from `deployer` to `depositBox`
         await eRC721OnChain.transferFrom(deployer,
           depositBox.address, tokenId, {from: deployer});
@@ -353,9 +325,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
-        await messageProxyForMainnet
-          .addConnectedChain(schainID, {from: deployer});
         // execution/expectation
         await depositBox
           .rawDepositERC721(schainID, contractHere, contractThere, to, tokenId, {value: wei, from: deployer})
@@ -375,9 +344,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
         // add schain to avoid the `Unconnected chain` error
         await lockAndDataForMainnet
           .addSchain(schainID, deployer, {from: deployer});
-        // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
-        await messageProxyForMainnet
-          .addConnectedChain(schainID, {from: deployer});
         // transfer tokenId from `deployer` to `depositBox`
         await eRC721OnChain.transferFrom(deployer,
           depositBox.address, tokenId, {from: deployer});
@@ -408,16 +374,16 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
     });
 
-    it("should rejected with `Incorrect sender`", async () => {
+    it("should rejected with `Message sender is invalid`", async () => {
       //  preparation
-      const error = "Incorrect sender";
+      const error = "Message sender is invalid";
       const schainID = randomString(10);
       const amount = 10;
       const bytesData = "0x0";
       const sender = deployer;
       // execution/expectation
       await depositBox
-        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer})
+        .postMessage(sender, schainID, user, amount, bytesData, {from: user})
         .should.be.eventually.rejectedWith(error);
     });
 
@@ -464,7 +430,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const sender = deployer;
       // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
-      await lockAndDataForMainnet.setContract("MessageProxy", deployer);
+      // await lockAndDataForMainnet.setContract("MessageProxy", deployer);
       // add schain to avoid the `Receiver chain is incorrect` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
@@ -485,7 +451,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const wei = "100000";
       // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
-      await lockAndDataForMainnet.setContract("MessageProxy", deployer);
+      // await lockAndDataForMainnet.setContract("MessageProxy", deployer);
       // add schain to avoid the `Receiver chain is incorrect` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
@@ -510,7 +476,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const wei = "200000000000000";
       // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
-      await lockAndDataForMainnet.setContract("MessageProxy", deployer);
+      // await lockAndDataForMainnet.setContract("MessageProxy", deployer);
       // add schain to avoid the `Receiver chain is incorrect` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
@@ -533,7 +499,7 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       const wei = "20000000000000000";
       // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
-      await lockAndDataForMainnet.setContract("MessageProxy", deployer);
+      // await lockAndDataForMainnet.setContract("MessageProxy", deployer);
       // add schain to avoid the `Receiver chain is incorrect` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
@@ -566,9 +532,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // add schain to avoid the `Unconnected chain` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
-      await messageProxyForMainnet
-        .addConnectedChain(schainID, {from: deployer});
       // mint some quantity of ERC20 tokens for `deployer` address
       await ethERC20.mint(deployer, "1000000000", {from: deployer});
       /**
@@ -611,9 +574,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // add schain to avoid the `Unconnected chain` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
-      await messageProxyForMainnet
-        .addConnectedChain(schainID, {from: deployer});
       // mint some quantity of ERC20 tokens for `deployer` address
       await ethERC20.mint(deployer, "1000000000", {from: deployer});
       /**
@@ -658,9 +618,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // add schain to avoid the `Unconnected chain` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxyForMainnet.sol
-      await messageProxyForMainnet
-        .addConnectedChain(schainID, {from: deployer});
       // mint some ERC721 of  for `deployer` address
       await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
       // transfer tokenId from `deployer` to `lockAndDataForMainnetERC721`
@@ -701,9 +658,6 @@ contract("DepositBox", ([deployer, user, invoker]) => {
       // add schain to avoid the `Unconnected chain` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add connected chain to avoid the `Destination chain is not initialized` error in ForMainnet.sol
-      await messageProxyForMainnet
-        .addConnectedChain(schainID, {from: deployer});
       // mint some ERC721 of  for `deployer` address
       await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
       // transfer tokenId from `deployer` to `lockAndDataForMainnetERC721`

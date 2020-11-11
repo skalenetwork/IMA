@@ -60,8 +60,7 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
 
   beforeEach(async () => {
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    messageProxyForMainnet = await deployMessageProxyForMainnet(
-      "Mainnet", contractManager, lockAndDataForMainnet);
+    messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
     depositBox = await deployDepositBox(lockAndDataForMainnet);
   });
 
@@ -272,28 +271,6 @@ contract("LockAndDataForMainnet", ([deployer, user, invoker]) => {
     await lockAndDataForMainnet
       .removeSchain(anotherSchainID, {from: deployer})
       .should.be.eventually.rejectedWith(error);
-  });
-
-  it("should work `addAuthorizedCaller`", async () => {
-    // preparation
-    const caller = user;
-    // execution
-    await lockAndDataForMainnet
-      .addAuthorizedCaller(caller, {from: deployer});
-    // expectation
-    const res = await lockAndDataForMainnet.authorizedCaller(caller);
-    expect(res).to.be.true;
-  });
-
-  it("should work `removeAuthorizedCaller`", async () => {
-    // preparation
-    const caller = user;
-    // execution
-    await lockAndDataForMainnet
-      .removeAuthorizedCaller(caller, {from: deployer});
-    // expectation
-    const res = await lockAndDataForMainnet.authorizedCaller(caller);
-    expect(res).to.be.false;
   });
 
 });

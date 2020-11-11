@@ -194,7 +194,7 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         OwnableForMainnet.initialize();
     }
 
-    function isSchainOwner(address sender, bytes32 schainId) public view returns (bool) {
+    function isSchainOwner(address sender, bytes32 schainId) public virtual view returns (bool) {
         address skaleChainsInternal = IContractManager(
             permitted[keccak256(abi.encodePacked("ContractManagerForMainnet"))]
         ).getContract("SchainsInternal");

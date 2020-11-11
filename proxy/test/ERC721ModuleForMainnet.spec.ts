@@ -58,8 +58,7 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
 
   beforeEach(async () => {
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    messageProxyForMainnet = await deployMessageProxyForMainnet(
-      "Mainnet", contractManager, lockAndDataForMainnet);
+    messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
     lockAndDataForMainnetERC721 = await deployLockAndDataForMainnetERC721(lockAndDataForMainnet);
     eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
     eRC721ModuleForMainnet = await deployERC721ModuleForMainnet(lockAndDataForMainnet);

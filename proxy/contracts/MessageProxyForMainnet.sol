@@ -156,7 +156,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      * - `newChainID` must not be "Mainnet".
      * - `newChainID` must not already be added.
      */
-    function addConnectedChain(string calldata newChainID) external allow("DepositBox") {
+    function addConnectedChain(string calldata newChainID) external allow("LockAndData") {
         require(
             keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
@@ -182,7 +182,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      * - `msg.sender` must be owner.
      * - `newChainID` must be initialized.
      */
-    function removeConnectedChain(string calldata newChainID) external allow("DepositBox") {
+    function removeConnectedChain(string calldata newChainID) external allow("LockAndData") {
         require(
             connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
             "Chain is not initialized"
@@ -360,10 +360,10 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
 
     /// Create a new message proxy
 
-    function initialize(string memory newChainID, address newLockAndDataAddress) public initializer {
+    function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
         owner = msg.sender;
-        chainID = newChainID;
+        chainID = "Mainnet";
     }
 
     /**

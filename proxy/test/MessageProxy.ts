@@ -98,8 +98,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             skaleVerifier = await SkaleVerifier.new({from: deployer});
             await contractManager.setContractsAddress("Schains", skaleVerifier.address, {from: deployer});
             lockAndDataForMainnet = await deployLockAndDataForMainnet();
-            messageProxyForMainnet = await deployMessageProxyForMainnet(
-                "Mainnet", contractManager.address, lockAndDataForMainnet);
+            messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
+            await lockAndDataForMainnet.setContract("ContractManagerForSkaleManager", contractManager.address, {from: deployer});
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -588,54 +588,6 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const incomingMessagesCounter = new BigNumber(
                 await messageProxyForSchain.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
-        });
-
-        it("should rejected with `Sender is not an owner` when invoke `addAuthorizedCaller`", async () => {
-            // preparation
-            const error = "Sender is not an owner";
-            const caller = user;
-            // execution/expectation
-            await messageProxyForSchain
-              .addAuthorizedCaller(caller, {from: caller})
-              .should.be.eventually.rejectedWith(error);
-        });
-
-        it("should rejected with `Sender is not an owner` when invoke `removeAuthorizedCaller`", async () => {
-            // preparation
-            const error = "Sender is not an owner";
-            const caller = user;
-            // execution/expectation
-            await messageProxyForSchain
-              .removeAuthorizedCaller(caller, {from: caller})
-              .should.be.eventually.rejectedWith(error);
-        });
-
-        it("should work `addAuthorizedCaller`", async () => {
-            // preparation
-            const caller = user;
-            // execution
-            await messageProxyForSchain
-              .addAuthorizedCaller(caller, {from: deployer});
-            // expectation
-            // const res = await messageProxyForSchain.authorizedCaller(caller); // Main Net
-            const res = await messageProxyForSchain.checkIsAuthorizedCaller(caller) ? true : false; // S-Chain
-            // console.log("res", res);
-            expect(res).to.be.true;
-        });
-
-        it("should work `removeAuthorizedCaller`", async () => {
-            // preparation
-            const caller = user;
-            await messageProxyForSchain
-              .addAuthorizedCaller(caller, {from: deployer});
-            // execution
-            await messageProxyForSchain
-              .removeAuthorizedCaller(caller, {from: deployer});
-            // expectation
-            // const res = await messageProxyForSchain.authorizedCaller(caller); // Main Net
-            const res = await messageProxyForSchain.checkIsAuthorizedCaller(caller) ? true : false; // S-Chain
-            // console.log("res", res);
-            expect(res).to.be.false;
         });
     });
 });
