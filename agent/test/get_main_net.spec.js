@@ -279,58 +279,6 @@ describe('tests for `npms/skale-ima`', function () {
         expect(IMA.owaspUtils.private_key_2_account_address(w3mod, keyPrivate)).to.include("0x");
     });
 
-    it('should return `false` invoke `check_is_registered_s_chain_on_main_net`', async function () {
-        let jo_message_proxy_main_net = {};
-        //
-        expect(await IMA.
-            check_is_registered_s_chain_on_main_net(
-                w3_main_net,
-                jo_message_proxy_main_net,
-                joAccount_main_net,
-                chain_id_s_chain
-            )
-        ).to.be.false;
-    });
-
-    it('should return `true` invoke `check_is_registered_s_chain_on_main_net`', async function () {
-        // 
-        expect(await IMA.
-            check_is_registered_s_chain_on_main_net(
-                w3_main_net,
-                jo_message_proxy_main_net,
-                joAccount_main_net,
-                chain_id_s_chain
-            )
-        ).to.be.true;
-    });
-
-    it('should return `false` invoke `register_s_chain_on_main_net`', async function () {
-        let w3_main_net; // for `false` output
-        // 
-        expect(await IMA.
-            register_s_chain_on_main_net(
-                w3_main_net,
-                jo_message_proxy_main_net,
-                joAccount_main_net,
-                chain_id_s_chain,
-                tc_main_net
-            )
-        ).to.be.false;
-    });
-
-    it('should return `true` invoke `register_s_chain_on_main_net`', async function () {
-        // 
-        expect(await IMA.
-            register_s_chain_on_main_net(
-                w3_main_net,
-                jo_message_proxy_main_net,
-                joAccount_main_net,
-                chain_id_s_chain,
-                tc_main_net
-            )
-        ).to.be.true;
-    });
-
     it('should return `false` invoke `check_is_registered_s_chain_in_deposit_box`', async function () {
         let jo_lock_and_data_main_net; // for `false` output
         // 
