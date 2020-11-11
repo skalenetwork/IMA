@@ -52,4 +52,11 @@ contract ContractManager {
         contracts[contractId] = newContractsAddress;
         emit ContractUpgraded(contractsName, newContractsAddress);
     }
+
+    /**
+     * @dev Returns the contract address for a given contractName.
+     */
+    function getContract(string memory contractName) external view returns (address) {
+        return contracts[keccak256(abi.encodePacked(contractName))];
+    }
 }

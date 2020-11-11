@@ -220,7 +220,7 @@ imaCLI.parse( {
     },
     "register1": function() {
         imaState.arrActions.push( {
-            "name": "Registration step 1, register S-Chain on Main-net",
+            "name": "Registration step 2, register S-Chain in deposit box",
             "fn": async function() {
                 if( ! imaState.bNoWaitSChainStarted )
                     await wait_until_s_chain_started(); // register_step1
@@ -230,21 +230,11 @@ imaCLI.parse( {
     },
     "register2": function() {
         imaState.arrActions.push( {
-            "name": "Registration step 2, register S-Chain in deposit box",
+            "name": "Registration step 3, register Main-net deposit box on S-Chain",
             "fn": async function() {
                 if( ! imaState.bNoWaitSChainStarted )
                     await wait_until_s_chain_started(); // register_step2
                 return await register_step2( true );
-            }
-        } );
-    },
-    "register3": function() {
-        imaState.arrActions.push( {
-            "name": "Registration step 3, register Main-net deposit box on S-Chain",
-            "fn": async function() {
-                if( ! imaState.bNoWaitSChainStarted )
-                    await wait_until_s_chain_started(); // register_step3
-                return await register_step3( true );
             }
         } );
     },
@@ -263,37 +253,24 @@ imaCLI.parse( {
     },
     "check-registration1": function() {
         imaState.arrActions.push( {
-            "name": "Registration status check for step 1, register S-Chain on Main-net",
+            "name": "Registration status check step 2, register S-Chain in deposit box",
             "fn": async function() {
                 if( ! imaState.bNoWaitSChainStarted )
                     await wait_until_s_chain_started(); // check_registration_step1
                 const b = await check_registration_step1();
-                const nExitCode = b ? 0 : 151; // 0 - OKay - registered; non-zero -  not registered or error
-                log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-                process.exit( nExitCode ); // 151
-            }
-        } );
-    },
-    "check-registration2": function() {
-        imaState.arrActions.push( {
-            "name": "Registration status check step 2, register S-Chain in deposit box",
-            "fn": async function() {
-                if( ! imaState.bNoWaitSChainStarted )
-                    await wait_until_s_chain_started(); // check_registration_step2
-                const b = await check_registration_step2();
                 const nExitCode = b ? 0 : 152; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
                 process.exit( nExitCode ); // 152
             }
         } );
     },
-    "check-registration3": function() {
+    "check-registration2": function() {
         imaState.arrActions.push( {
             "name": "Registration status check step 3, register Main-net deposit box on S-Chain",
             "fn": async function() {
                 if( ! imaState.bNoWaitSChainStarted )
-                    await wait_until_s_chain_started(); // check_registration_step3
-                const b = await check_registration_step3();
+                    await wait_until_s_chain_started(); // check_registration_step2
+                const b = await check_registration_step2();
                 const nExitCode = b ? 0 : 153; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
                 process.exit( nExitCode ); // 153
@@ -560,11 +537,6 @@ imaCLI.parse( {
                         return false;
                     isPrintSummaryRegistrationCosts = true;
                 }
-                if( !await check_registration_step3() ) {
-                    if( !await register_step3( false ) )
-                        return false;
-                    isPrintSummaryRegistrationCosts = true;
-                }
                 if( isPrintSummaryRegistrationCosts )
                     print_summary_registration_costs();
                 return await run_transfer_loop();
@@ -821,40 +793,6 @@ const g_registrationCostInfo = {
 };
 
 async function register_step1( isPrintSummaryRegistrationCosts ) {
-    const strLogPrefix = cc.info( "Reg 1:" ) + " ";
-    const jarrReceipts1A = await IMA.register_s_chain_on_main_net( // step 1A
-        imaState.w3_main_net,
-        imaState.jo_message_proxy_main_net,
-        imaState.joAccount_main_net,
-        imaState.strChainID_s_chain,
-        imaState.cid_main_net,
-        imaState.tc_main_net
-    );
-    const bSuccess1A = ( jarrReceipts1A != null && jarrReceipts1A.length > 0 ) ? true : false;
-    if( bSuccess1A )
-        g_registrationCostInfo.mn = g_registrationCostInfo.mn.concat( g_registrationCostInfo.mn, jarrReceipts1A );
-    const jarrReceipts1B = await IMA.register_main_net_on_s_chain( // step 1B
-        imaState.w3_s_chain,
-        imaState.jo_message_proxy_s_chain,
-        imaState.joAccount_s_chain,
-        imaState.strChainID_main_net,
-        imaState.cid_s_chain,
-        imaState.tc_s_chain
-    );
-    const bSuccess1B = ( jarrReceipts1B != null && jarrReceipts1B.length > 0 ) ? true : false;
-    if( bSuccess1B )
-        g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts1B );
-    const bSuccess = ( bSuccess1A && bSuccess1B ) ? true : false;
-    if( isPrintSummaryRegistrationCosts )
-        print_summary_registration_costs();
-    if( !bSuccess ) {
-        const nRetCode = 162;
-        log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain on Main-net, will return code " ) + cc.warning( nRetCode ) + "\n" );
-        process.exit( nRetCode ); // 162
-    }
-    return true;
-}
-async function register_step2( isPrintSummaryRegistrationCosts ) {
     const strLogPrefix = cc.info( "Reg 2:" ) + " ";
     const jarrReceipts = await IMA.register_s_chain_in_deposit_box( // step 2
         imaState.w3_main_net,
@@ -879,7 +817,7 @@ async function register_step2( isPrintSummaryRegistrationCosts ) {
         print_summary_registration_costs();
     return true;
 }
-async function register_step3( isPrintSummaryRegistrationCosts ) {
+async function register_step2( isPrintSummaryRegistrationCosts ) {
     const strLogPrefix = cc.info( "Reg 3:" ) + " ";
     const jarrReceipts = await IMA.register_main_net_depositBox_on_s_chain( // step 3
         imaState.w3_s_chain,
@@ -908,8 +846,6 @@ async function register_all( isPrintSummaryRegistrationCosts ) {
         return false;
     if( !await register_step2( false ) )
         return false;
-    if( !await register_step3( false ) )
-        return false;
     if( isPrintSummaryRegistrationCosts )
         print_summary_registration_costs();
     return true;
@@ -918,29 +854,12 @@ async function register_all( isPrintSummaryRegistrationCosts ) {
 async function check_registration_all() {
     const b1 = await check_registration_step1();
     const b2 = await check_registration_step2();
-    const b3 = await check_registration_step3();
-    if( !( b1 && b2 && b3 ) )
+    if( !( b1 && b2 ) )
         return false;
 
     return true;
 }
 async function check_registration_step1() {
-    const bRetVal1A = await IMA.check_is_registered_s_chain_on_main_net( // step 1A
-        imaState.w3_main_net,
-        imaState.jo_message_proxy_main_net,
-        imaState.joAccount_main_net,
-        imaState.strChainID_s_chain
-    );
-    const bRetVal1B = await IMA.check_is_registered_main_net_on_s_chain( // step 1B
-        imaState.w3_s_chain,
-        imaState.jo_message_proxy_s_chain,
-        imaState.joAccount_s_chain,
-        imaState.strChainID_main_net
-    );
-    const bRetVal = ( bRetVal1A && bRetVal1B ) ? true : false;
-    return bRetVal;
-}
-async function check_registration_step2() {
     const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_box( // step 2
         imaState.w3_main_net,
         imaState.jo_lock_and_data_main_net,
@@ -949,7 +868,7 @@ async function check_registration_step2() {
     );
     return bRetVal;
 }
-async function check_registration_step3() {
+async function check_registration_step2() {
     const bRetVal = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 3
         imaState.w3_s_chain,
         imaState.jo_lock_and_data_s_chain,

@@ -274,12 +274,9 @@ contract DepositBox is PermissionsForMainnet {
         bytes calldata data
     )
         external
+        allow("MessageProxy")
     {
         require(data.length != 0, "Invalid data");
-        address proxyAddress = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-            keccak256(abi.encodePacked("MessageProxy"))
-        );
-        require(msg.sender == proxyAddress, "Incorrect sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&

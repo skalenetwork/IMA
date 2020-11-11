@@ -23,6 +23,10 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
+import "./PermissionsForMainnet.sol";
+import "./interfaces/IContractManager.sol";
+import "./interfaces/ISchainsInternal.sol";
+import "@nomiclabs/buidler/console.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
@@ -33,10 +37,6 @@ interface ContractReceiverForMainnet {
         bytes calldata data
     )
         external;
-}
-
-interface IContractManagerSkaleManager {
-    function contracts(bytes32 contractID) external view returns(address);
 }
 
 interface ISchains {
@@ -64,7 +64,7 @@ interface ISchains {
  * nodes in the chain. Since Ethereum Mainnet has no BLS public key, mainnet
  * messages do not need to be signed.
  */
-contract MessageProxyForMainnet is Initializable {
+contract MessageProxyForMainnet is PermissionsForMainnet {
 
     // 16 Agents
     // Synchronize time with time.nist.gov
@@ -116,11 +116,9 @@ contract MessageProxyForMainnet is Initializable {
     string public chainID;
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public owner;
-    address public contractManagerSkaleManager;
     uint256 private _idxHead;
     uint256 private _idxTail;
 
-    mapping(address => bool) public authorizedCaller;
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     mapping ( uint256 => OutgoingMessageData ) private _outgoingMessageData;
 
@@ -151,31 +149,7 @@ contract MessageProxyForMainnet is Initializable {
     );
 
     /**
-     * @dev Adds an authorized caller.
-     * 
-     * Requirements:
-     * 
-     * - `msg.sender` must be an owner.
-     */
-    function addAuthorizedCaller(address caller) external {
-        require(msg.sender == owner, "Sender is not an owner");
-        authorizedCaller[caller] = true;
-    }
-
-    /**
-     * @dev Removes an authorized caller.
-     * 
-     * Requirements:
-     * 
-     * - `msg.sender` must be an owner.
-     */
-    function removeAuthorizedCaller(address caller) external {
-        require(msg.sender == owner, "Sender is not an owner");
-        authorizedCaller[caller] = false;
-    }
-
-    /**
-     * @dev Adds a `newChainID`.
+     * @dev Allows LockAndData to add a `newChainID`.
      * 
      * Requirements:
      * 
@@ -183,13 +157,7 @@ contract MessageProxyForMainnet is Initializable {
      * - `newChainID` must not be "Mainnet".
      * - `newChainID` must not already be added.
      */
-    function addConnectedChain(
-        string calldata newChainID
-    )
-        external
-    {
-        require(authorizedCaller[msg.sender], "Not authorized caller");
-
+    function addConnectedChain(string calldata newChainID) external allow("LockAndData") {
         require(
             keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
@@ -208,16 +176,14 @@ contract MessageProxyForMainnet is Initializable {
     }
 
     /**
-     * @dev Removes connected chain from this contract.
+     * @dev Allows LockAndData to remove connected chain from this contract.
      * 
      * Requirements:
      * 
      * - `msg.sender` must be owner.
      * - `newChainID` must be initialized.
      */
-    function removeConnectedChain(string calldata newChainID) external {
-        require(authorizedCaller[msg.sender], "Not authorized caller");
-
+    function removeConnectedChain(string calldata newChainID) external allow("LockAndData") {
         require(
             connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
             "Chain is not initialized"
@@ -280,7 +246,7 @@ contract MessageProxyForMainnet is Initializable {
         external
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(authorizedCaller[msg.sender], "Not authorized caller");
+        require(isAuthorizedCaller(msg.sender), "Not authorized caller");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
@@ -395,11 +361,10 @@ contract MessageProxyForMainnet is Initializable {
 
     /// Create a new message proxy
 
-    function initialize(string memory newChainID, address newContractManager) public initializer {
+    function initialize(address newLockAndDataAddress) public override initializer {
+        PermissionsForMainnet.initialize(newLockAndDataAddress);
         owner = msg.sender;
-        authorizedCaller[msg.sender] = true;
-        chainID = newChainID;
-        contractManagerSkaleManager = newContractManager;
+        chainID = "Mainnet";
     }
 
     /**
@@ -420,6 +385,23 @@ contract MessageProxyForMainnet is Initializable {
         OutgoingMessageData memory d = _outgoingMessageData[idxMessage];
         if ( d.dstContract == destinationContract && d.srcContract == sender && d.to == to && d.amount == amount )
             isValidMessage = true;
+    }
+
+    /**
+     * @dev Checks whether sender is node address from the SKALE chain
+     */
+    function isAuthorizedCaller(address sender) public view returns (bool) {
+        address skaleSchainsInternal = IContractManager(
+            IContractManager(lockAndDataAddress_).getContract(
+                "ContractManagerForSkaleManager"
+            )
+        ).getContract(
+            "SchainsInternal"
+        );
+        return ISchainsInternal(skaleSchainsInternal).isNodeAddressesInGroup(
+            keccak256(abi.encodePacked(chainID)),
+            sender
+        );
     }
 
     function _convertAndVerifyMessages(
@@ -464,8 +446,12 @@ contract MessageProxyForMainnet is Initializable {
         view
         returns (bool)
     {
-        address skaleSchains = IContractManagerSkaleManager(contractManagerSkaleManager).contracts(
-            keccak256(abi.encodePacked("Schains"))
+        address skaleSchains = IContractManager(
+            IContractManager(lockAndDataAddress_).getContract(
+                "ContractManagerForSkaleManager"
+            )
+        ).getContract(
+            "Schains"
         );
         return ISchains(skaleSchains).verifySchainSignature(
             blsSignature[0],

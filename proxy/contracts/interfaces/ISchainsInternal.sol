@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxy.sol - SKALE Interchain Messaging Agent
+ *   ISchainsInternal.sol - Interface of SchainsInternal from SKALE-manager
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -21,16 +21,7 @@
 
 pragma solidity 0.6.12;
 
-interface IMessageProxy {
-    function postOutgoingMessage(
-        string calldata dstChainID,
-        address dstContract,
-        uint256 amount,
-        address to,
-        bytes calldata data
-    )
-        external;
-
-    function addConnectedChain(string calldata newChainID) external;
-    function removeConnectedChain(string calldata newChainID) external;
+interface ISchainsInternal {
+    function isNodeAddressesInGroup(bytes32 schainId, address sender) external view returns (bool);
+    function isOwnerAddress(address from, bytes32 schainId) external view returns (bool);
 }

@@ -42,21 +42,14 @@ import {
     LockAndDataForSchainERC721Contract,
     LockAndDataForSchainERC721Instance,
     LockAndDataForSchainInstance,
-    MessageProxyForMainnetContract,
-    MessageProxyForMainnetInstance,
     MessageProxyForSchainContract,
     MessageProxyForSchainInstance,
     TokenFactoryContract,
     TokenFactoryInstance,
   } from "../types/truffle-contracts";
-import { gasMultiplier } from "./utils/command_line";
-import { randomString } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
-
-// tslint:disable-next-line: no-var-requires
-const ABIERC20OnChain = require("../build/contracts/ERC20OnChain.json");
 
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
@@ -69,8 +62,6 @@ const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract =
 const ERC721ModuleForSchain: ERC721ModuleForSchainContract = artifacts.require("./ERC721ModuleForSchain");
 const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
-
-const contractManager = "0x0000000000000000000000000000000000000000";
 
 contract("TokenFactory", ([user, deployer]) => {
   let messageProxy: MessageProxyForSchainInstance;
