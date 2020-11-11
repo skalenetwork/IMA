@@ -1,9 +1,12 @@
 name: Build and publish
 on:
-  push:
-    branches: [ master, stable, develop, beta ]
   pull_request:
-    branches: [ master, stable, develop, beta ]
+    types: [closed]
+    branches:
+      - master
+      - develop
+      - beta
+      - stable
 
 jobs:
   build:
