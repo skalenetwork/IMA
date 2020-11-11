@@ -149,7 +149,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     );
 
     /**
-     * @dev Adds a `newChainID`.
+     * @dev Allows LockAndData to add a `newChainID`.
      * 
      * Requirements:
      * 
@@ -176,7 +176,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     }
 
     /**
-     * @dev Removes connected chain from this contract.
+     * @dev Allows LockAndData to remove connected chain from this contract.
      * 
      * Requirements:
      * 
@@ -387,6 +387,9 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             isValidMessage = true;
     }
 
+    /**
+     * @dev Checks whether sender is node address from the SKALE chain
+     */
     function isAuthorizedCaller(address sender) public view returns (bool) {
         address skaleSchainsInternal = IContractManager(
             IContractManager(lockAndDataAddress_).getContract(
