@@ -38,8 +38,10 @@ import {
     MessageProxyForMainnetInstance,
     MessageProxyForSchainContract,
     MessageProxyForSchainInstance,
-    SkaleVerifierContract,
-    SkaleVerifierInstance,
+    SchainsContract,
+    SchainsInstance,
+    SchainsInternalContract,
+    SchainsInternalInstance,
     TokenManagerContract,
     TokenManagerInstance,
 } from "../types/truffle-contracts";
@@ -64,7 +66,8 @@ const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
-const SkaleVerifier: SkaleVerifierContract = artifacts.require("./SkaleVerifier");
+const Schains: SchainsContract = artifacts.require("./Schains");
+const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
 
 contract("MessageProxy", ([deployer, user, client, customer]) => {
     let messageProxyForMainnet: MessageProxyForMainnetInstance;
@@ -74,7 +77,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     let lockAndDataForMainnet: LockAndDataForMainnetInstance;
     let lockAndDataForSchain: LockAndDataForSchainInstance;
     let contractManager: ContractManagerInstance;
-    let skaleVerifier: SkaleVerifierInstance;
+    let schains: SchainsInstance;
+    let schainsInternal: SchainsInternalInstance;
 
     const publicKeyArray = [
         "1122334455667788990011223344556677889900112233445566778899001122",
@@ -95,8 +99,10 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     describe("MessageProxyForMainnet for mainnet", async () => {
         beforeEach(async () => {
             contractManager = await ContractManager.new({from: deployer});
-            skaleVerifier = await SkaleVerifier.new({from: deployer});
-            await contractManager.setContractsAddress("Schains", skaleVerifier.address, {from: deployer});
+            schains = await Schains.new({from: deployer});
+            schainsInternal = await SchainsInternal.new({from: deployer});
+            await contractManager.setContractsAddress("Schains", schains.address, {from: deployer});
+            await contractManager.setContractsAddress("SchainsInternal", schainsInternal.address, {from: deployer});
             lockAndDataForMainnet = await deployLockAndDataForMainnet();
             messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
             await lockAndDataForMainnet.setContract("ContractManagerForSkaleManager", contractManager.address, {from: deployer});

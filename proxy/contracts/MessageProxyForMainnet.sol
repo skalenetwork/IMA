@@ -26,6 +26,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "./PermissionsForMainnet.sol";
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
+import "@nomiclabs/buidler/console.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
@@ -387,11 +388,10 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     }
 
     function isAuthorizedCaller(address sender) public view returns (bool) {
-        address skaleSchainsInternal = IContractManager(
-            IContractManager(lockAndDataAddress_).getContract(
-                "ContractManagerForSkaleManager"
-            )
-        ).getContract(
+        address conMan = IContractManager(lockAndDataAddress_).getContract(
+            "ContractManagerForSkaleManager"
+        );
+        address skaleSchainsInternal = IContractManager(conMan).getContract(
             "SchainsInternal"
         );
         return ISchainsInternal(skaleSchainsInternal).isNodeAddressesInGroup(
