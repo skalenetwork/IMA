@@ -324,6 +324,30 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function get_account_connectivity_info( joAccount ) {
+    const joACI = {
+        isBad: true,
+        strType: "bad",
+        isAutoSend: false
+    };
+    if( "strTransactionManagerURL" in joAccount && typeof joAccount.strTransactionManagerURL == "string" && joAccount.strTransactionManagerURL.length > 0 ) {
+        joACI.isBad = false;
+        joACI.strType = "tm";
+        joACI.isAutoSend = true;
+    } else if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
+        "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0
+    ) {
+        joACI.isBad = false;
+        joACI.strType = "sgx";
+    } else if( "privateKey" in joAccount && typeof joAccount.privateKey == "string" && joAccount.privateKey.length > 0 ) {
+        joACI.isBad = false;
+        joACI.strType = "direct";
+    } else {
+        // bad by default
+    }
+    return joACI;
+}
+
 // function to_eth_v( v_raw, chain_id ) { // see https://github.com/ethereum/eth-account/blob/master/eth_account/_utils/signing.py
 //     const CHAIN_ID_OFFSET = 35;
 //     const V_OFFSET = 27;
@@ -343,7 +367,13 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
 
 async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
     // console.log( joAccount );
-    if( "strTransactionManagerURL" in joAccount && typeof joAccount.strTransactionManagerURL == "string" && joAccount.strTransactionManagerURL.length > 0 ) {
+    const joSR = {
+        joACI: get_account_connectivity_info( joAccount ),
+        tx: null,
+        txHashSent: null
+    };
+    switch ( joSR.joACI.strType ) {
+    case "tm": {
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) + cc.debug( " using account " ) + cc.j( joAccount ) + "\n" );
         let rpcCallOpts = null;
@@ -360,47 +390,31 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
                 console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager wallet failed" ) );
                 process.exit( 155 );
             }
+            const rawTxAdjusted = JSON.parse( JSON.stringify( rawTx ) );
+            if( "chainId" in rawTxAdjusted )
+                delete rawTxAdjusted.chainId;
+            if( "gasLimit" in rawTxAdjusted && ( ! ( "gas" in rawTxAdjusted ) ) ) {
+                rawTxAdjusted.gas = rawTxAdjusted.gasLimit;
+                delete rawTxAdjusted.gasLimit;
+            }
             const joIn = {
-                "transaction_dict": rawTx
+                "transaction_dict": JSON.stringify( rawTxAdjusted )
             };
             if( verbose_get() >= RV_VERBOSE.debug )
-                log.write( cc.debug( "Calling Transaction Manager to sign using ECDSA key with: " ) + cc.j( joIn ) + "\n" );
+                log.write( cc.debug( "Calling Transaction Manager to sign-and-send" ) + "\n" );
             await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
                 if( err ) {
-                    console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager wallet failed, error: " ) + cc.warning( err ) );
+                    console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager failed, error: " ) + cc.warning( err ) );
                     process.exit( 156 );
                 }
                 if( verbose_get() >= RV_VERBOSE.debug )
-                    log.write( cc.debug( "Transaction Manager ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
-                const joNeededResult = {
-                    // "v": Buffer.from( parseInt( joOut.result.signature_v, 10 ).toString( "hex" ), "utf8" ),
-                    // "r": Buffer.from( "" + joOut.result.signature_r, "utf8" ),
-                    // "s": Buffer.from( "" + joOut.result.signature_s, "utf8" )
-                    "v": parseInt( joOut.result.signature_v, 10 ),
-                    "r": "" + joOut.result.signature_r,
-                    "s": "" + joOut.result.signature_s
-                };
-                if( verbose_get() >= RV_VERBOSE.debug )
-                    log.write( cc.debug( "Sign result to assign into transaction is: " ) + cc.j( joNeededResult ) + "\n" );
-                //
-                let chainId = -4;
-                if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
-                    chainId = tx._chainId;
-                console.log( "------ applying chainId =", chainId, "to v =", joNeededResult.v );
-                joNeededResult.v += chainId * 2 + 8 + 27;
-                console.log( "------ result v =", joNeededResult.v );
-                //
-                tx.v = joNeededResult.v;
-                tx.r = joNeededResult.r;
-                tx.s = joNeededResult.s;
-                if( verbose_get() >= RV_VERBOSE.debug )
-                    log.write( cc.debug( "Resulting adjusted transaction is: " ) + cc.j( tx ) + "\n" );
+                    log.write( cc.debug( "Transaction Manager sign-and-send result is: " ) + cc.j( joOut ) + "\n" );
+                joSR.txHashSent = "" + joOut.data.transaction_hash;
             } );
         } );
-        await sleep( 10000 );
-    } else if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
-        "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0
-    ) {
+        await sleep( 5000 );
+    } break;
+    case "sgx": {
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx ) + cc.debug( " using account " ) + cc.j( joAccount ) + "\n" );
         let rpcCallOpts = null;
@@ -476,24 +490,28 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
             } );
         } );
         await sleep( 3000 );
-    } else if( "privateKey" in joAccount && typeof joAccount.privateKey == "string" && joAccount.privateKey.length > 0 ) {
+    } break;
+    case "direct": {
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( cc.debug( "Will sign with private key, transaction is " ) + cc.j( tx ) + cc.debug( " using account " ) + cc.j( joAccount ) + "\n" );
         console.log( tx );
         const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
-    } else {
+    } break;
+    default: {
         console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
             cc.error( " bad credentials information specified for " ) + cc.warning( strFriendlyChainName ) +
             cc.error( " chain, no explicit SGX and no explicit private key found" )
         );
         if( isExitIfEmpty )
             process.exit( 126 );
-    }
-    if( verbose_get() >= RV_VERBOSE.debug )
+    } break;
+    } // switch( joSR.joACI.strType )
+    if( verbose_get() >= RV_VERBOSE.debug && ( !joSR.joACI.isAutoSend ) )
         log.write( cc.debug( "Signed transaction is " ) + cc.j( tx ) + "\n" );
-    console.log( tx );
-    return tx;
+    // console.log( tx );
+    joSR.tx = tx;
+    return joSR;
 }
 
 async function safe_send_signed_transaction( w3, serializedTx, strActionName, strLogPrefix ) {
@@ -616,11 +634,16 @@ async function register_s_chain_in_deposit_box( // step 2
             data: dataTx
         };
         const tx = compose_tx_instance( strLogPrefix, rawTx );
-        await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
-        const serializedTx = tx.serialize();
-        strActionName = "reg-step1:w3_main_net.eth.sendSignedTransaction()";
-        // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-        const joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
+        const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
+        let joReceipt = null;
+        if( joSR.joACI.isAutoSend )
+            joReceipt = await w3_main_net.eth.getTransactionReceipt( joSR.txHashSent );
+        else {
+            const serializedTx = tx.serialize();
+            strActionName = "reg-step1:w3_main_net.eth.sendSignedTransaction()";
+            // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+            joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
+        }
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
@@ -716,11 +739,16 @@ async function register_main_net_depositBox_on_s_chain( // step 3
             data: dataTx
         };
         const tx = compose_tx_instance( strLogPrefix, rawTx );
-        await safe_sign_transaction_with_account( tx, rawTx, joAccount );
-        const serializedTx = tx.serialize();
-        strActionName = "reg-step2:w3_s_chain.eth.sendSignedTransaction()";
-        // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-        const joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
+        const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccount );
+        let joReceipt = null;
+        if( joSR.joACI.isAutoSend )
+            joReceipt = await w3_s_chain.eth.getTransactionReceipt( joSR.txHashSent );
+        else {
+            const serializedTx = tx.serialize();
+            strActionName = "reg-step2:w3_s_chain.eth.sendSignedTransaction()";
+            // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+            joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
+        }
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
@@ -799,11 +827,16 @@ async function do_eth_payment_from_main_net(
             value: "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 ) // wei_how_much // how much money to send
         };
         const tx = compose_tx_instance( strLogPrefix, rawTx );
-        await safe_sign_transaction_with_account( tx, rawTx, joAccountSrc );
-        const serializedTx = tx.serialize();
-        strActionName = "w3_main_net.eth.sendSignedTransaction()";
-        // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-        const joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
+        const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccountSrc );
+        let joReceipt = null;
+        if( joSR.joACI.isAutoSend )
+            joReceipt = await w3_main_net.eth.getTransactionReceipt( joSR.txHashSent );
+        else {
+            const serializedTx = tx.serialize();
+            strActionName = "w3_main_net.eth.sendSignedTransaction()";
+            // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+            joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
+        }
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
@@ -930,18 +963,23 @@ async function do_eth_payment_from_s_chain(
                 gas: 8000000
             };
             const txAddEthCost = compose_tx_instance( strLogPrefix, rawTxAddEthCost );
-            await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
-            const serializedTxAddEthCost = txAddEthCost.serialize();
-            // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
-            const joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
+            const joAddEthCostSR = await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
+            let joReceiptAddEthCost = null;
+            if( joAddEthCostSR.joACI.isAutoSend )
+                joReceiptAddEthCost = await w3_s_chain.eth.getTransactionReceipt( joAddEthCostSR.txHashSent );
+            else {
+                const serializedTxAddEthCost = txAddEthCost.serialize();
+                // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
+                joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
+            }
+            if( verbose_get() >= RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.success( "Result receipt for AddEthCost: " ) + cc.j( joReceiptAddEthCost ) + "\n" );
             if( joReceiptAddEthCost && typeof joReceiptAddEthCost == "object" && "gasUsed" in joReceiptAddEthCost ) {
                 jarrReceipts.push( {
                     "description": "do_eth_payment_from_s_chain/exit-to-main",
                     "receipt": joReceiptAddEthCost
                 } );
             }
-            if( verbose_get() >= RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.success( "Result receipt for AddEthCost: " ) + cc.j( joReceiptAddEthCost ) + "\n" );
             //
             if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
                 log.write( cc.normal( "Sleeping " ) + cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
@@ -978,11 +1016,16 @@ async function do_eth_payment_from_s_chain(
             value: 0 // how much money to send
         };
         const tx = compose_tx_instance( strLogPrefix, rawTx );
-        await safe_sign_transaction_with_account( tx, rawTx, joAccountSrc );
-        const serializedTx = tx.serialize();
-        strActionName = "w3_s_chain.eth.sendSignedTransaction()";
-        // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-        const joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
+        const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccountSrc );
+        let joReceipt = null;
+        if( joSR.joACI.isAutoSend )
+            joReceipt = await w3_s_chain.eth.getTransactionReceipt( joSR.txHashSent );
+        else {
+            const serializedTx = tx.serialize();
+            strActionName = "w3_s_chain.eth.sendSignedTransaction()";
+            // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+            joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
+        }
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
@@ -1057,11 +1100,16 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             value: 0 // how much money to send
         };
         const tx = compose_tx_instance( strLogPrefix, rawTx );
-        await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
-        const serializedTx = tx.serialize();
-        strActionName = "w3_main_net.eth.sendSignedTransaction()";
-        // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-        const joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
+        const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
+        let joReceipt = null;
+        if( joSR.joACI.isAutoSend )
+            joReceipt = await w3_main_net.eth.getTransactionReceipt( joSR.txHashSent );
+        else {
+            const serializedTx = tx.serialize();
+            strActionName = "w3_main_net.eth.sendSignedTransaction()";
+            // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+            joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
+        }
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
@@ -1220,17 +1268,24 @@ async function do_erc721_payment_from_main_net(
         // sign transactions
         //
         strActionName = "sign transactions M->S";
-        await safe_sign_transaction_with_account( txApprove, rawTxApprove, joAccountSrc );
-        await safe_sign_transaction_with_account( txDeposit, rawTxDeposit, joAccountSrc );
-        const serializedTxApprove = txApprove.serialize();
-        const serializedTxDeposit = txDeposit.serialize();
-        //
-        //
-        // send transactions
-        //
-        strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
-        // let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
-        const joReceiptApprove = await safe_send_signed_transaction( w3_main_net, serializedTxApprove, strActionName, strLogPrefix );
+        const joApproveSR = await safe_sign_transaction_with_account( txApprove, rawTxApprove, joAccountSrc );
+        const joDepositSR = await safe_sign_transaction_with_account( txDeposit, rawTxDeposit, joAccountSrc );
+        let joReceiptApprove = null, joReceiptDeposit = null;
+        if( joApproveSR.joACI.isAutoSend && joDepositSR.joACI.isAutoSend ) {
+            joReceiptApprove = await w3_main_net.eth.getTransactionReceipt( joApproveSR.txHashSent );
+            joReceiptDeposit = await w3_main_net.eth.getTransactionReceipt( joDepositSR.txHashSent );
+        } else {
+            const serializedTxApprove = txApprove.serialize();
+            const serializedTxDeposit = txDeposit.serialize();
+            // send transactions
+            strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
+            // let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+            joReceiptApprove = await safe_send_signed_transaction( w3_main_net, serializedTxApprove, strActionName, strLogPrefix );
+            log.write( cc.normal( "Will send ERC721 signed transaction from " ) + cc.warning( joAccountSrc.address( w3_main_net ) ) + "\n" );
+            strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
+            // let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+            joReceiptDeposit = await safe_send_signed_transaction( w3_main_net, serializedTxDeposit, strActionName, strLogPrefix );
+        }
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
         if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
@@ -1239,10 +1294,6 @@ async function do_erc721_payment_from_main_net(
                 "receipt": joReceiptApprove
             } );
         }
-        log.write( cc.normal( "Will send ERC721 signed transaction from " ) + cc.warning( joAccountSrc.address( w3_main_net ) ) + "\n" );
-        strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
-        // let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
-        const joReceiptDeposit = await safe_send_signed_transaction( w3_main_net, serializedTxDeposit, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
         if( joReceiptDeposit && typeof joReceiptDeposit == "object" && "gasUsed" in joReceiptDeposit ) {
@@ -1426,17 +1477,23 @@ async function do_erc20_payment_from_main_net(
         // sign transactions
         //
         strActionName = "sign transactions M->S";
-        await safe_sign_transaction_with_account( txApprove, rawTxApprove, joAccountSrc );
-        await safe_sign_transaction_with_account( txDeposit, rawTxDeposit, joAccountSrc );
-        const serializedTxApprove = txApprove.serialize();
-        const serializedTxDeposit = txDeposit.serialize();
-        //
-        //
-        // send transactions
-        //
-        strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
-        // let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
-        const joReceiptApprove = await safe_send_signed_transaction( w3_main_net, serializedTxApprove, strActionName, strLogPrefix );
+        const joApproveSR = await safe_sign_transaction_with_account( txApprove, rawTxApprove, joAccountSrc );
+        const joDepositSR = await safe_sign_transaction_with_account( txDeposit, rawTxDeposit, joAccountSrc );
+        let joReceiptApprove = null, joReceiptDeposit = null;
+        if( joApproveSR.joACI.isAutoSend && joDepositSR.joACI.isAutoSend ) {
+            joReceiptApprove = await w3_main_net.eth.getTransactionReceipt( joApproveSR.txHashSent );
+            joReceiptDeposit = await w3_main_net.eth.getTransactionReceipt( joDepositSR.txHashSent );
+        } else {
+            const serializedTxApprove = txApprove.serialize();
+            const serializedTxDeposit = txDeposit.serialize();
+            // send transactions
+            strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
+            // let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+            joReceiptApprove = await safe_send_signed_transaction( w3_main_net, serializedTxApprove, strActionName, strLogPrefix );
+            strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
+            // let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+            joReceiptDeposit = await safe_send_signed_transaction( w3_main_net, serializedTxDeposit, strActionName, strLogPrefix );
+        }
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
         if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
@@ -1445,9 +1502,6 @@ async function do_erc20_payment_from_main_net(
                 "receipt": joReceiptApprove
             } );
         }
-        strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
-        // let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
-        const joReceiptDeposit = await safe_send_signed_transaction( w3_main_net, serializedTxDeposit, strActionName, strLogPrefix );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
         if( joReceiptDeposit && typeof joReceiptDeposit == "object" && "gasUsed" in joReceiptDeposit ) {
@@ -1617,10 +1671,15 @@ async function do_erc20_payment_from_s_chain(
             gas: 8000000
         };
         const txApprove = compose_tx_instance( strLogPrefix, rawTxApprove );
-        await safe_sign_transaction_with_account( txApprove, rawTxApprove, joAccountSrc );
-        const serializedTxApprove = txApprove.serialize();
-        // let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
-        const joReceiptApprove = await safe_send_signed_transaction( w3_s_chain, serializedTxApprove, strActionName, strLogPrefix );
+        const joApproveSR = await safe_sign_transaction_with_account( txApprove, rawTxApprove, joAccountSrc );
+        let joReceiptApprove = null;
+        if( joApproveSR.joACI.isAutoSend && joDepositSR.joACI.isAutoSend )
+            joReceiptApprove = await w3_s_chain.eth.getTransactionReceipt( joApproveSR.txHashSent );
+        else {
+            const serializedTxApprove = txApprove.serialize();
+            // let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+            joReceiptApprove = await safe_send_signed_transaction( w3_s_chain, serializedTxApprove, strActionName, strLogPrefix );
+        }
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
         if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
@@ -1663,18 +1722,23 @@ async function do_erc20_payment_from_s_chain(
                 gas: 8000000
             };
             const txAddEthCost = compose_tx_instance( strLogPrefix, rawTxAddEthCost );
-            await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
-            const serializedTxAddEthCost = txAddEthCost.serialize();
-            // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
-            const joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
+            const joAddEthCostSR = await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
+            let joReceiptAddEthCost = null;
+            if( joAddEthCostSR.joACI.isAutoSend )
+                joReceiptAddEthCost = await w3_s_chain.eth.getTransactionReceipt( joAddEthCostSR.txHashSent );
+            else {
+                const serializedTxAddEthCost = txAddEthCost.serialize();
+                // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
+                joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
+            }
+            if( verbose_get() >= RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.success( "Result receipt for AddEthCost: " ) + cc.j( joReceiptAddEthCost ) + "\n" );
             if( joReceiptAddEthCost && typeof joReceiptAddEthCost == "object" && "gasUsed" in joReceiptAddEthCost ) {
                 jarrReceipts.push( {
                     "description": "do_erc20_payment_from_s_chain/exit-to-main",
                     "receipt": joReceiptAddEthCost
                 } );
             }
-            if( verbose_get() >= RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.success( "Result receipt for AddEthCost: " ) + cc.j( joReceiptAddEthCost ) + "\n" );
             //
             if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
                 log.write( cc.normal( "Sleeping " ) + cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
@@ -1699,10 +1763,15 @@ async function do_erc20_payment_from_s_chain(
             gas: 8000000
         };
         const txExitToMainERC20 = compose_tx_instance( strLogPrefix, rawTxExitToMainERC20 );
-        await safe_sign_transaction_with_account( txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc );
-        const serializedTxExitToMainERC20 = txExitToMainERC20.serialize();
-        // let joReceiptExitToMainERC20 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC20.toString( "hex" ) );
-        const joReceiptExitToMainERC20 = await safe_send_signed_transaction( w3_s_chain, serializedTxExitToMainERC20, strActionName, strLogPrefix );
+        const joExitToMainERC20SR = await safe_sign_transaction_with_account( txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc );
+        let joReceiptExitToMainERC20 = null;
+        if( joExitToMainERC20SR.joACI.isAutoSend )
+            joReceiptExitToMainERC20 = await w3_s_chain.eth.getTransactionReceipt( joExitToMainERC20SR.txHashSent );
+        else {
+            const serializedTxExitToMainERC20 = txExitToMainERC20.serialize();
+            // let joReceiptExitToMainERC20 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC20.toString( "hex" ) );
+            joReceiptExitToMainERC20 = await safe_send_signed_transaction( w3_s_chain, serializedTxExitToMainERC20, strActionName, strLogPrefix );
+        }
         if( joReceiptExitToMainERC20 && typeof joReceiptExitToMainERC20 == "object" && "gasUsed" in joReceiptExitToMainERC20 ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_from_s_chain/exit-to-main",
@@ -1825,10 +1894,15 @@ async function do_erc721_payment_from_s_chain(
             gas: 8000000
         };
         const txTransferFrom = compose_tx_instance( strLogPrefix, rawTxTransferFrom );
-        await safe_sign_transaction_with_account( txTransferFrom, rawTxTransferFrom, joAccountSrc );
-        const serializedTxTransferFrom = txTransferFrom.serialize();
-        // let joReceiptTransferFrom = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxTransferFrom.toString( "hex" ) );
-        const joReceiptTransferFrom = await safe_send_signed_transaction( w3_s_chain, serializedTxTransferFrom, strActionName, strLogPrefix );
+        const joTransferFromSR = await safe_sign_transaction_with_account( txTransferFrom, rawTxTransferFrom, joAccountSrc );
+        let joReceiptTransferFrom = null;
+        if( joTransferFromSR.joACI.isAutoSend )
+            joReceiptTransferFrom = await w3_s_chain.eth.getTransactionReceipt( joTransferFromSR.txHashSent );
+        else {
+            const serializedTxTransferFrom = txTransferFrom.serialize();
+            // let joReceiptTransferFrom = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxTransferFrom.toString( "hex" ) );
+            joReceiptTransferFrom = await safe_send_signed_transaction( w3_s_chain, serializedTxTransferFrom, strActionName, strLogPrefix );
+        }
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for TransferFrom: " ) + cc.j( joReceiptTransferFrom ) + "\n" );
         if( joReceiptTransferFrom && typeof joReceiptTransferFrom == "object" && "gasUsed" in joReceiptTransferFrom ) {
@@ -1871,10 +1945,15 @@ async function do_erc721_payment_from_s_chain(
                 gas: 8000000
             };
             const txAddEthCost = compose_tx_instance( strLogPrefix, rawTxAddEthCost );
-            await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
-            const serializedTxAddEthCost = txAddEthCost.serialize();
-            // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
-            const joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
+            const joAddEthCostSR = await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
+            let joReceiptAddEthCost = null;
+            if( joAddEthCostSR.joACI.isAutoSend )
+                joReceiptAddEthCost = await w3_s_chain.eth.getTransactionReceipt( joAddEthCostSR.txHashSent );
+            else {
+                const serializedTxAddEthCost = txAddEthCost.serialize();
+                // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
+                joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
+            }
             if( joReceiptAddEthCost && typeof joReceiptAddEthCost == "object" && "gasUsed" in joReceiptAddEthCost ) {
                 jarrReceipts.push( {
                     "description": "do_erc721_payment_from_s_chain/exit-to-main",
@@ -1907,10 +1986,15 @@ async function do_erc721_payment_from_s_chain(
             gas: 8000000
         } );
         const txExitToMainERC721 = compose_tx_instance( strLogPrefix, rawTxExitToMainERC721 );
-        await safe_sign_transaction_with_account( txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc );
-        const serializedTxExitToMainERC721 = txExitToMainERC721.serialize();
-        // let joReceiptExitToMainERC721 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC721.toString( "hex" ) );
-        const joReceiptExitToMainERC721 = await safe_send_signed_transaction( w3_s_chain, serializedTxExitToMainERC721, strActionName, strLogPrefix );
+        const joExitToMainErc721SR = await safe_sign_transaction_with_account( txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc );
+        let joReceiptExitToMainERC721 = null;
+        if( joExitToMainErc721SR.joACI.isAutoSend )
+            joReceiptExitToMainERC721 = await w3_s_chain.eth.getTransactionReceipt( joExitToMainErc721SR.txHashSent );
+        else {
+            const serializedTxExitToMainERC721 = txExitToMainERC721.serialize();
+            // let joReceiptExitToMainERC721 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC721.toString( "hex" ) );
+            joReceiptExitToMainERC721 = await safe_send_signed_transaction( w3_s_chain, serializedTxExitToMainERC721, strActionName, strLogPrefix );
+        }
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC721: " ) + cc.j( joReceiptExitToMainERC721 ) + "\n" );
         const joReceipt = joReceiptExitToMainERC721;
@@ -2293,11 +2377,16 @@ async function do_transfer(
                     // "value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
                 } );
                 const tx_postIncomingMessages = compose_tx_instance( strLogPrefix, raw_tx_postIncomingMessages );
-                await safe_sign_transaction_with_account( tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
-                const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
-                strActionName = "w3_dst.eth.sendSignedTransaction()";
-                // let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx_postIncomingMessages.toString( "hex" ) );
-                const joReceipt = await safe_send_signed_transaction( w3_dst, serializedTx_postIncomingMessages, strActionName, strLogPrefix );
+                const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
+                let joReceipt = null;
+                if( joPostIncomingMessagesSR.joACI.isAutoSend )
+                    joReceipt = await w3_dst.eth.getTransactionReceipt( joPostIncomingMessagesSR.txHashSent );
+                else {
+                    const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
+                    strActionName = "w3_dst.eth.sendSignedTransaction()";
+                    // let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx_postIncomingMessages.toString( "hex" ) );
+                    joReceipt = await safe_send_signed_transaction( w3_dst, serializedTx_postIncomingMessages, strActionName, strLogPrefix );
+                }
                 if( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
                 if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
@@ -2459,6 +2548,7 @@ module.exports.dry_run_enable = dry_run_enable;
 module.exports.dry_run_is_ignored = dry_run_is_ignored;
 module.exports.dry_run_ignore = dry_run_ignore;
 module.exports.dry_run_call = dry_run_call;
+module.exports.get_account_connectivity_info = get_account_connectivity_info;
 module.exports.safe_sign_transaction_with_account = safe_sign_transaction_with_account;
 module.exports.safe_send_signed_transaction = safe_send_signed_transaction;
 
