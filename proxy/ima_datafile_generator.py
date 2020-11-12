@@ -69,6 +69,4 @@ def generate_ima_data_file(artifacts_folder, results_folder):
 
 
 if __name__ == "__main__":
-    artifacts_folder = os.environ['ARTIFACTS_FOLDER']
-    results_folder = os.environ['RESULTS_FOLDER']
     generate_ima_data_file(sys.argv[1], sys.argv[2])
