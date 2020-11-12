@@ -399,7 +399,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             "SchainsInternal"
         );
         return ISchainsInternal(skaleSchainsInternal).isNodeAddressesInGroup(
-            chainsId,
+            chainId,
             sender
         );
     }
