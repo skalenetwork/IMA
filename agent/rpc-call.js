@@ -120,12 +120,20 @@ async function do_call( joCall, joIn, fn ) {
             "cert": ( joCall.joRpcOptions && joCall.joRpcOptions.cert && typeof joCall.joRpcOptions.cert == "string" ) ? joCall.joRpcOptions.cert : null,
             "key": ( joCall.joRpcOptions && joCall.joRpcOptions.key && typeof joCall.joRpcOptions.key == "string" ) ? joCall.joRpcOptions.key : null
         };
+        const strBody = JSON.stringify( joIn );
         // console.log( "--- --- --- agentOptions is", agentOptions );
-        // console.log( "--- --- --- joIn is", joIn );
+        // console.log( "--- --- --- joIn is", strBody );
         request.post( {
             "uri": joCall.url,
             "content-type": "application/json",
-            "body": JSON.stringify( joIn ),
+            // "Accept": "*/*",
+            // "Content-Length": strBody.length,
+            "headers": {
+                "content-type": "application/json"
+                // "Accept": "*/*",
+                // "Content-Length": strBody.length,
+            },
+            "body": strBody,
             "agentOptions": agentOptions
         },
         function( err, response, body ) {
