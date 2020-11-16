@@ -804,7 +804,9 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
         imaState.jo_token_manager, // only s-chain
         imaState.strChainID_s_chain,
         imaState.cid_main_net,
-        imaState.tc_main_net
+        imaState.tc_main_net //,
+        // cntWaitAttempts,
+        // nSleepMilliseconds
     );
     const bSuccess = ( jarrReceipts != null && jarrReceipts.length > 0 ) ? true : false;
     if( !bSuccess ) {
