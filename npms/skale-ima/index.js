@@ -612,12 +612,21 @@ async function wait_for_has_chain(
     w3, // Main-Net or S-Chin
     jo_lock_and_data, // Main-Net or S-Chin
     joAccount, // Main-Net or S-Chin
-    chain_id_s_chain
+    chain_id_s_chain,
+    cntWaitAttempts,
+    nSleepMilliseconds
 ) {
-    for( ; true; ) {
+    if( cntWaitAttempts == null || cntWaitAttempts == undefined )
+        cntWaitAttempts = 100;
+    if( nSleepMilliseconds == null || nSleepMilliseconds == undefined )
+        nSleepMilliseconds = 5;
+    for( let idxWaitAttempts = 0; idxWaitAttempts < cntWaitAttempts; ++ idxWaitAttempts ) {
         if( await invoke_has_chain( w3, jo_lock_and_data, joAccount, chain_id_s_chain ) )
-            break;
+            return true;
+        log.write( cc.normal( "Sleeping " ) + cc.info( nSleepMilliseconds ) + cc.normal( " milliseconds..." ) + "\n" );
+        await sleep( nSleepMilliseconds );
     }
+    return false;
 }
 
 async function register_s_chain_in_deposit_box( // step 2
@@ -628,7 +637,9 @@ async function register_s_chain_in_deposit_box( // step 2
     jo_token_manager, // only s-chain
     chain_id_s_chain,
     cid_main_net,
-    tc_main_net
+    tc_main_net,
+    cntWaitAttempts,
+    nSleepMilliseconds
 ) {
     const jarrReceipts = []; // register_s_chain_in_deposit_box
     log.write( cc.info( "Main-net " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( jo_lock_and_data_main_net.options.address ) + "\n" );
@@ -692,6 +703,16 @@ async function register_s_chain_in_deposit_box( // step 2
                 "receipt": joReceipt
             } );
         }
+        const isSChainStatusOKay = await wait_for_has_chain(
+            w3_main_net,
+            jo_lock_and_data_main_net,
+            joAccount_main_net,
+            chain_id_s_chain,
+            cntWaitAttempts,
+            nSleepMilliseconds
+        );
+        if( ! isSChainStatusOKay )
+            throw new Error( "S-Chain ownership status check timeout" );
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_s_chain_in_deposit_box() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
