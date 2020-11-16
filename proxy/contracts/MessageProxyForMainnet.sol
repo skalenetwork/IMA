@@ -246,7 +246,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         external
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(isAuthorizedCaller(msg.sender), "Not authorized caller");
+        require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
@@ -390,7 +390,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     /**
      * @dev Checks whether sender is node address from the SKALE chain
      */
-    function isAuthorizedCaller(address sender) public view returns (bool) {
+    function isAuthorizedCaller(bytes32 chainId, address sender) public view returns (bool) {
         address skaleSchainsInternal = IContractManager(
             IContractManager(lockAndDataAddress_).getContract(
                 "ContractManagerForSkaleManager"
@@ -399,7 +399,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             "SchainsInternal"
         );
         return ISchainsInternal(skaleSchainsInternal).isNodeAddressesInGroup(
-            keccak256(abi.encodePacked(chainID)),
+            chainId,
             sender
         );
     }
