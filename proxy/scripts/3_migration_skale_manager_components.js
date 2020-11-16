@@ -27,15 +27,18 @@ const fs = require( "fs" );
 const fsPromises = fs.promises;
 
 const ContractManager = artifacts.require( "./ContractManager" );
-const SkaleVerifier = artifacts.require( "./SkaleVerifier" );
+const Schains = artifacts.require( "./Schains" );
+const SchainsInternal = artifacts.require( "./SchainsInternal" );
 
 const gasLimit = 8000000;
 
 async function deploy( deployer, network ) {
 
     await deployer.deploy( ContractManager, { gas: gasLimit } ).then( async function( instCM ) {
-        await deployer.deploy( SkaleVerifier, { gas: gasLimit } );
-        instCM.setContractsAddress( "Schains", SkaleVerifier.address );
+        await deployer.deploy( Schains, { gas: gasLimit } );
+        instCM.setContractsAddress( "Schains", Schains.address );
+        await deployer.deploy( SchainsInternal, { gas: gasLimit } );
+        instCM.setContractsAddress( "SchainsInternal", SchainsInternal.address );
 
         const jsonObject = {
             contract_manager_address: ContractManager.address

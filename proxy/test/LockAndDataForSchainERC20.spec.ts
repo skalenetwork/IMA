@@ -32,14 +32,7 @@ import {
     LockAndDataForSchainERC20Contract,
     LockAndDataForSchainERC20Instance,
     LockAndDataForSchainInstance,
-    MessageProxyForMainnetContract,
-    MessageProxyForMainnetInstance,
-    MessageProxyForSchainContract,
-    MessageProxyForSchainInstance,
     } from "../types/truffle-contracts";
-
-import { createBytes32 } from "./utils/helper";
-import { stringToHex } from "./utils/helper";
 
 import chai = require("chai");
 import { gasMultiplier } from "./utils/command_line";
@@ -47,23 +40,17 @@ import { gasMultiplier } from "./utils/command_line";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const LockAndDataForSchainERC20: LockAndDataForSchainERC20Contract =
     artifacts.require("./LockAndDataForSchainERC20");
 const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 
-const contractManager = "0x0000000000000000000000000000000000000000";
-
 contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
-  let messageProxyForSchain: MessageProxyForSchainInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForSchainERC20: LockAndDataForSchainERC20Instance;
   let eRC20OnChain: ERC20OnChainInstance;
 
   beforeEach(async () => {
-    messageProxyForSchain = await MessageProxyForSchain.new(
-      "Schain", {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchainERC20 =
         await LockAndDataForSchainERC20.new(lockAndDataForSchain.address,

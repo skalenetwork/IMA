@@ -44,22 +44,18 @@ import { ERC20ModuleForSchainContract,
     LockAndDataForSchainERC721Contract,
     LockAndDataForSchainERC721Instance,
     LockAndDataForSchainInstance,
-    MessageProxyForMainnetContract,
-    MessageProxyForMainnetInstance,
     MessageProxyForSchainContract,
     MessageProxyForSchainInstance,
     TokenFactoryContract,
     TokenFactoryInstance,
     TokenManagerContract,
     TokenManagerInstance} from "../types/truffle-contracts";
-import { gasMultiplier } from "./utils/command_line";
 import { randomString } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
-const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
@@ -72,8 +68,6 @@ const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract = artifacts
     .require("./LockAndDataForSchainERC721");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 
-const contractManager = "0x0000000000000000000000000000000000000000";
-
 contract("TokenManager", ([deployer, user, client]) => {
     let tokenManager: TokenManagerInstance;
     let messageProxyForSchain: MessageProxyForSchainInstance;
@@ -82,7 +76,6 @@ contract("TokenManager", ([deployer, user, client]) => {
     let lockAndDataForSchainERC20: LockAndDataForSchainERC20Instance;
     let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
     let eRC20OnChain: ERC20OnChainInstance;
-    let eRC20OnChain2: ERC20OnChainInstance;
     let eRC721OnChain: ERC721OnChainInstance;
     let eRC721: ERC721OnChainInstance;
     let eRC721ModuleForSchain: ERC721ModuleForSchainInstance;
@@ -110,8 +103,6 @@ contract("TokenManager", ([deployer, user, client]) => {
         eRC20ModuleForSchain = await ERC20ModuleForSchain
             .new(lockAndDataForSchain.address, {from: deployer});
         eRC20OnChain = await ERC20OnChain.new("ERC20", "ER2",
-            ((1000000000).toString()), deployer, {from: deployer});
-        eRC20OnChain2 = await ERC20OnChain.new("ERC202", "ER20",
             ((1000000000).toString()), deployer, {from: deployer});
         eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721",
             {from: deployer});

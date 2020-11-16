@@ -63,9 +63,7 @@ async function deploy( deployer, networkName, accounts ) {
             contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [] }, options ) );
             lockAndDataForMainnet = contract;
             console.log( "lockAndDataForMainnet address:", contract.address );
-        } else if( [ "MessageProxyForMainnet" ].includes( contractName ) )
-            contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ "Mainnet", jsonData.contract_manager_address ] }, options ) );
-        else
+        } else
             contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ lockAndDataForMainnet.address ] }, options ) );
 
         deployed.set( contractName, contract );
@@ -80,6 +78,11 @@ async function deploy( deployer, networkName, accounts ) {
 
         await lockAndDataForMainnet.methods.setContract( registerName, address ).send( { from: deployAccount } ).then( function( res ) {
             console.log( "Contract", registerName, "with address", address, "is registered in Contract Manager" );
+        } );
+    }
+    if( jsonData.contract_manager_address !== null && jsonData.contract_manager_address !== "" && jsonData.contract_manager_address !== "0x0000000000000000000000000000000000000000" ) {
+        await lockAndDataForMainnet.methods.setContract( "ContractManagerForSkaleManager", jsonData.contract_manager_address ).send( { from: deployAccount } ).then( function( res ) {
+            console.log( "Contract ContractManagerForSkaleManager with address", jsonData.contract_manager_address, "is registered in Contract Manager" );
         } );
     }
     console.log( "Deploy done, writing results..." );
