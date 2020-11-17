@@ -152,6 +152,15 @@ If **IMA** should use **SGX Wallet** to sign transactions, then the parameters a
     --address-main-net=...\
     --address-s-chain=...
 
+If **IMA** should use **Transaction Manager** to sign transactions, then the parameters above should be replaced with:
+
+    --tm-url-main-net=...\
+    --tm-url-s-chain=... \
+    --address-main-net=...\
+    --address-s-chain=...
+
+**IMA** can use different ways of signing messages for **Main Net** and **S-Chain** by mixing connectivity parameters specified above.
+
 Where `--sgx-url-main-net` and `--sgx-url-s-chain` command line parameters provide **HTTPS** URLs for **SGX Wallets** for **Main Net** and **S-Chain**. These URLs can be equal. The `--sgx-ssl-key-main-net`, `--sgx-ssl-key-s-chain`, `--sgx-ssl-cert-main-net` and `--sgx-ssl-cert-s-chain` command line parameters provide SSL certificate and key files. The `--sgx-ecdsa-key-main-net` and `--sgx-ecdsa-key-s-chain` command line parameters provide registered name of **ECDSA key** in **SGX Wallets**, for example `NEK:000`. The `--address-main-net` and `--address-s-chain` command line parameters provide Ethereum wallet addresses corresponding to specified names of **ECDSA key** in **SGX Wallets**.
 
 It's possible to mix **SGX Wallet** and direct private key usage. I.e. **Main Net** and **S-Chain** can use different transaction signing ways. Nevertheless this is never needed in real life.

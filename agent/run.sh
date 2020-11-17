@@ -106,7 +106,7 @@ then
 else
     echo "IMA is not registered yet"
     echo Going to run: node $DIR/main.js --register $BASE_OPTIONS
-    node $DIR/main.js --register $BASE_OPTIONS || true
+    node $DIR/main.js --register2 $BASE_OPTIONS || true
 fi
 
 echo "Running loop cmd..."

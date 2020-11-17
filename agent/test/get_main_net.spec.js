@@ -314,7 +314,9 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccount_main_net,
                 jo_token_manager,
                 chain_id_s_chain,
-                tc_main_net
+                tc_main_net //,
+                // cntWaitAttempts,
+                // nSleepMilliseconds
             )
         ).to.be.false;
     });
@@ -328,7 +330,9 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccount_main_net,
                 jo_token_manager,
                 chain_id_s_chain,
-                tc_main_net
+                tc_main_net //,
+                // cntWaitAttempts,
+                // nSleepMilliseconds
             )
         ).to.be.true;
     });
