@@ -665,7 +665,7 @@ async function register_s_chain_in_deposit_box( // step 1
             log.write( strLogPrefix + cc.debug( "Will register S-Chain in lock_and_data on Main-net" ) + "\n" );
         const isSchainOwner = await jo_lock_and_data_main_net.methods.isSchainOwner(
             joAccount_main_net,
-            w3.utils.soliditySha3 (
+            w3.utils.soliditySha3(
                 chain_id_s_chain
             )
         );
@@ -693,7 +693,7 @@ async function register_s_chain_in_deposit_box( // step 1
             data: dataTx
         };
         const tx = compose_tx_instance( strLogPrefix, rawTx );
-        if ( isSchainOwner ) {
+        if( isSchainOwner ) {
             const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
             let joReceipt = null;
             if( joSR.joACI.isAutoSend )
@@ -713,8 +713,8 @@ async function register_s_chain_in_deposit_box( // step 1
                 } );
             }
         } else
-            if( verbose_get() >= RV_VERBOSE.trace )
-                log.write( strLogPrefix + cc.debug( "Will wait until S-Chain owner will register S-Chain in lock_and_data on Main-net" ) + "\n" );
+        if( verbose_get() >= RV_VERBOSE.trace )
+            log.write( strLogPrefix + cc.debug( "Will wait until S-Chain owner will register S-Chain in lock_and_data on Main-net" ) + "\n" );
         const isSChainStatusOKay = await wait_for_has_chain(
             w3_main_net,
             jo_lock_and_data_main_net,
