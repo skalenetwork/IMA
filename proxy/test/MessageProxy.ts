@@ -30,6 +30,7 @@ import chai = require("chai");
 import {
     ContractManagerContract,
     ContractManagerInstance,
+    DepositBoxInstance,
     LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainInstance,
@@ -51,6 +52,7 @@ chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
+import { deployDepositBox } from "./utils/deploy/depositBox";
 
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
@@ -584,6 +586,63 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const incomingMessagesCounter = new BigNumber(
                 await messageProxyForSchain.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
+        });
+    });
+
+    describe("should test interaction", async () => {
+        let depositBox: DepositBoxInstance;
+        beforeEach(async () => {
+            contractManager = await ContractManager.new({from: deployer});
+            schains = await Schains.new({from: deployer});
+            schainsInternal = await SchainsInternal.new({from: deployer});
+            await contractManager.setContractsAddress("Schains", schains.address, {from: deployer});
+            await contractManager.setContractsAddress("SchainsInternal", schainsInternal.address, {from: deployer});
+            lockAndDataForMainnet = await deployLockAndDataForMainnet();
+            messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
+            await lockAndDataForMainnet.setContract("ContractManagerForSkaleManager", contractManager.address, {from: deployer});
+
+            messageProxyForSchain = await MessageProxyForSchain.new("MyChain", {from: deployer});
+            lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
+
+            depositBox = await deployDepositBox(lockAndDataForMainnet);
+            await lockAndDataForSchain.addSchain("Mainnet", depositBox.address, {from: deployer});
+        });
+
+        it("should recharge wallet", async () => {
+            const schainID = randomString(10);
+            const tokenManager = await TokenManager.new(schainID, messageProxyForSchain.address, lockAndDataForSchain.address, {from: deployer})
+            const wei = "2000000000000000000000";
+            const to0 = "0x0000000000000000000000000000000000000000";
+            await lockAndDataForMainnet.addSchain(schainID, tokenManager.address, {from: deployer});
+            await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
+
+            await depositBox.rechargeBalance(schainID, to0, "0x0", {value: wei, from: deployer});
+            const MessageProxy = new web3.eth.Contract(artifacts.require("./MessageProxyForMainnet").abi, messageProxyForMainnet.address);
+            const events = await MessageProxy.getPastEvents("allEvents");
+            const message = {
+                sender: events[0].returnValues.srcContract,
+                destinationContract: events[0].returnValues.dstContract,
+                to: events[0].returnValues.to,
+                amount: events[0].returnValues.amount,
+                data: events[0].returnValues.data
+            };
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
+            await messageProxyForSchain.postIncomingMessages(
+                "Mainnet",
+                events[0].returnValues.msgCounter,
+                [message],
+                sign,
+                0,
+                {from: deployer}
+            );
+            
+            const weiOnAccount = new BigNumber(await lockAndDataForSchain.ethCosts(to0)).toString(10);
+            wei.should.be.deep.equal(weiOnAccount);
         });
     });
 });
