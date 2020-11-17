@@ -1149,6 +1149,38 @@ contract("TokenManager", ([deployer, user, client]) => {
                 .to.be.equal(amount);
         });
 
+        it("should transfer ETH for recharging wallet", async () => {
+            //  preparation
+            const schainID = randomString(10);
+            const amount = "10";
+            const to = user;
+            const to0 = "0x0000000000000000000000000000000000000000";
+            const sender = deployer;
+            const data = "0x02";
+
+            // add schain to avoid the `Unconnected chain` error
+            await lockAndDataForSchain
+                .addSchain(schainID, deployer, {from: deployer});
+            // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
+            await messageProxyForSchain
+              .addConnectedChain(schainID, publicKeyArray, {from: deployer});
+    
+            tokenManager = await TokenManager.new(chainID, deployer,
+                lockAndDataForSchain.address, {from: deployer});
+            // set `tokenManager` contract before invoke `postMessage`
+            await lockAndDataForSchain
+              .setContract("TokenManager", tokenManager.address, {from: deployer});
+
+            // execution
+            await tokenManager
+              .postMessage(sender, schainID, to, amount, data, {from: deployer});
+
+            const weiOnAccount0 = new BigNumber(await lockAndDataForSchain.ethCosts(to0)).toString(10);
+            const weiOnAccount = new BigNumber(await lockAndDataForSchain.ethCosts(to)).toString(10);
+            weiOnAccount0.should.be.equal("0");
+            weiOnAccount.should.be.equal(amount);
+        });
+
         it("should transfer rawERC20 token", async () => {
             //  preparation
             const schainID = randomString(10);
