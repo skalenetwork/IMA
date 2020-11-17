@@ -549,7 +549,7 @@ async function safe_send_signed_transaction( w3, serializedTx, strActionName, st
 // register direction for money transfer
 // main-net.DepositBox call: function addSchain(uint64 schainID, address tokenManagerAddress)
 //
-async function check_is_registered_s_chain_in_deposit_box( // step 2
+async function check_is_registered_s_chain_in_deposit_box( // step 1
     w3_main_net,
     jo_lock_and_data_main_net,
     joAccount_main_net,
@@ -567,7 +567,7 @@ async function check_is_registered_s_chain_in_deposit_box( // step 2
     try {
         strActionName = "check_is_registered_s_chain_in_deposit_box(reg-step1)";
         const addressFrom = joAccount_main_net.address( w3_main_net );
-        const bIsRegistered = await jo_lock_and_data_main_net.methods.hasSchain( chain_id_s_chain ).call( {
+        const bIsRegistered = await jo_lock_and_data_main_net.methods.hasSchain( w3_main_net.utils.soliditySha3 ( chain_id_s_chain ) ).call( {
             from: addressFrom
         } );
         if( verbose_get() >= RV_VERBOSE.information )
@@ -594,7 +594,9 @@ async function invoke_has_chain(
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         const addressFrom = joAccount.address( w3 );
         const bHasSchain = await jo_lock_and_data.methods.hasSchain(
-            chain_id_s_chain
+            w3.utils.soliditySha3 (
+                chain_id_s_chain
+            )
         ).call( {
             from: addressFrom
         } );
@@ -629,7 +631,7 @@ async function wait_for_has_chain(
     return false;
 }
 
-async function register_s_chain_in_deposit_box( // step 2
+async function register_s_chain_in_deposit_box( // step 1
     w3_main_net,
     // jo_deposit_box, // only main net
     jo_lock_and_data_main_net,
@@ -663,6 +665,14 @@ async function register_s_chain_in_deposit_box( // step 2
         //
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will register S-Chain in lock_and_data on Main-net" ) + "\n" );
+        const isSchainOwner = await jo_lock_and_data_main_net.methods.isSchainOwner(
+            joAccount_main_net,
+            w3.utils.soliditySha3 (
+                chain_id_s_chain
+            )
+        );
+        if( verbose_get() >= RV_VERBOSE.trace )
+            log.write( strLogPrefix + cc.debug( "Account " ) + cc.info( joAccount_main_net ) + cc.debug( " has S-Chain owner permission " ) + cc.info( isSchainOwner ) + "\n" );
         const methodWithArguments = jo_lock_and_data_main_net.methods.addSchain(
             chain_id_s_chain, jo_token_manager.options.address // call params
         );
@@ -685,24 +695,28 @@ async function register_s_chain_in_deposit_box( // step 2
             data: dataTx
         };
         const tx = compose_tx_instance( strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await w3_main_net.eth.getTransactionReceipt( joSR.txHashSent );
-        else {
-            const serializedTx = tx.serialize();
-            strActionName = "reg-step1:w3_main_net.eth.sendSignedTransaction()";
-            // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
-        }
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
-        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
-            jarrReceipts.push( {
-                "description": "register_s_chain_in_deposit_box",
-                "receipt": joReceipt
-            } );
-        }
+        if ( isSchainOwner ) {
+            const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
+            let joReceipt = null;
+            if( joSR.joACI.isAutoSend )
+                joReceipt = await w3_main_net.eth.getTransactionReceipt( joSR.txHashSent );
+            else {
+                const serializedTx = tx.serialize();
+                strActionName = "reg-step1:w3_main_net.eth.sendSignedTransaction()";
+                // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+                joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
+            }
+            if( verbose_get() >= RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+            if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+                jarrReceipts.push( {
+                    "description": "register_s_chain_in_deposit_box",
+                    "receipt": joReceipt
+                } );
+            }
+        } else
+            if( verbose_get() >= RV_VERBOSE.trace )
+                log.write( strLogPrefix + cc.debug( "Will wait until S-Chain owner will register S-Chain in lock_and_data on Main-net" ) + "\n" );
         const isSChainStatusOKay = await wait_for_has_chain(
             w3_main_net,
             jo_lock_and_data_main_net,
@@ -750,7 +764,7 @@ async function check_is_registered_main_net_depositBox_on_s_chain( // step 3
     return false;
 }
 
-async function register_main_net_depositBox_on_s_chain( // step 3
+async function register_main_net_depositBox_on_s_chain( // step 2
     w3_s_chain,
     // excluded here: jo_token_manager,
     jo_deposit_box_main_net,
@@ -2615,11 +2629,11 @@ module.exports.safe_send_signed_transaction = safe_send_signed_transaction;
 
 module.exports.invoke_has_chain = invoke_has_chain;
 module.exports.wait_for_has_chain = wait_for_has_chain;
-module.exports.register_s_chain_in_deposit_box = register_s_chain_in_deposit_box; // step 2
-module.exports.register_main_net_depositBox_on_s_chain = register_main_net_depositBox_on_s_chain; // step 3
+module.exports.register_s_chain_in_deposit_box = register_s_chain_in_deposit_box; // step 1
+module.exports.register_main_net_depositBox_on_s_chain = register_main_net_depositBox_on_s_chain; // step 2
 
-module.exports.check_is_registered_s_chain_in_deposit_box = check_is_registered_s_chain_in_deposit_box; // step 2
-module.exports.check_is_registered_main_net_depositBox_on_s_chain = check_is_registered_main_net_depositBox_on_s_chain; // step 3
+module.exports.check_is_registered_s_chain_in_deposit_box = check_is_registered_s_chain_in_deposit_box; // step 1
+module.exports.check_is_registered_main_net_depositBox_on_s_chain = check_is_registered_main_net_depositBox_on_s_chain; // step 2
 
 module.exports.do_eth_payment_from_main_net = do_eth_payment_from_main_net;
 module.exports.do_eth_payment_from_s_chain = do_eth_payment_from_s_chain;
