@@ -567,7 +567,7 @@ async function check_is_registered_s_chain_in_deposit_box( // step 1
     try {
         strActionName = "check_is_registered_s_chain_in_deposit_box(reg-step1)";
         const addressFrom = joAccount_main_net.address( w3_main_net );
-        const bIsRegistered = await jo_lock_and_data_main_net.methods.hasSchain( w3_main_net.utils.soliditySha3 ( chain_id_s_chain ) ).call( {
+        const bIsRegistered = await jo_lock_and_data_main_net.methods.hasSchain( chain_id_s_chain ).call( {
             from: addressFrom
         } );
         if( verbose_get() >= RV_VERBOSE.information )
@@ -594,9 +594,7 @@ async function invoke_has_chain(
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         const addressFrom = joAccount.address( w3 );
         const bHasSchain = await jo_lock_and_data.methods.hasSchain(
-            w3.utils.soliditySha3 (
-                chain_id_s_chain
-            )
+            chain_id_s_chain
         ).call( {
             from: addressFrom
         } );
