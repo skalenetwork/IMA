@@ -665,7 +665,7 @@ async function register_s_chain_in_deposit_box( // step 1
             log.write( strLogPrefix + cc.debug( "Will register S-Chain in lock_and_data on Main-net" ) + "\n" );
         const isSchainOwner = await jo_lock_and_data_main_net.methods.isSchainOwner(
             joAccount_main_net,
-            w3.utils.soliditySha3(
+            w3_main_net.utils.soliditySha3(
                 chain_id_s_chain
             )
         );
