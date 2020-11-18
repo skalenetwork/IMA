@@ -1164,7 +1164,6 @@ contract("TokenManager", ([deployer, user, client]) => {
             // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
             await messageProxyForSchain
               .addConnectedChain(schainID, publicKeyArray, {from: deployer});
-    
             tokenManager = await TokenManager.new(chainID, deployer,
                 lockAndDataForSchain.address, {from: deployer});
             // set `tokenManager` contract before invoke `postMessage`

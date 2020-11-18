@@ -640,7 +640,6 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 0,
                 {from: deployer}
             );
-            
             const weiOnAccount = new BigNumber(await lockAndDataForSchain.ethCosts(to0)).toString(10);
             wei.should.be.deep.equal(weiOnAccount);
         });
