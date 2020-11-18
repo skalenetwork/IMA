@@ -846,7 +846,7 @@ async function register_step2( isPrintSummaryRegistrationCosts ) {
     const bSuccess2B = ( jarrReceipts2B != null && jarrReceipts2B.length > 0 ) ? true : false;
     if( bSuccess2B )
         g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts2B );
-    const bSuccess = ( bSuccess1A && bSuccess1B ) ? true : false;
+    const bSuccess = ( bSuccess2A && bSuccess2B ) ? true : false;
     if( isPrintSummaryRegistrationCosts )
         print_summary_registration_costs();
     if( !bSuccess ) {
