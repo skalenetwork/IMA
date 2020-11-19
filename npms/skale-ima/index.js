@@ -668,7 +668,7 @@ async function register_s_chain_in_deposit_box( // step 1
             w3_main_net.utils.soliditySha3(
                 chain_id_s_chain
             )
-        ).call();
+        ).call( { from: joAccount_main_net.address( w3_main_net ) } );
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Account " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + cc.debug( " has S-Chain owner permission " ) + cc.info( isSchainOwner ) + "\n" );
         if( isSchainOwner ) {
