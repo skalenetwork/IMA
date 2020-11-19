@@ -668,7 +668,7 @@ async function register_s_chain_in_deposit_box( // step 1
             w3_main_net.utils.soliditySha3(
                 chain_id_s_chain
             )
-        );
+        ).call();
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Account " ) + cc.info( joAccount_main_net ) + cc.debug( " has S-Chain owner permission " ) + cc.info( isSchainOwner ) + "\n" );
         const methodWithArguments = jo_lock_and_data_main_net.methods.addSchain(
@@ -848,16 +848,16 @@ async function check_is_registered_main_net_on_s_chain( // step 2B
     joAccount_s_chain,
     chain_id_main_net
 ) {
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_s_chain.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_main_net ) + "\n" );
     const strLogPrefix = cc.note( "RegChk M on S:" ) + " ";
     if( verbose_get() >= RV_VERBOSE.debug ) {
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( strLogPrefix + cc.bright( "check_is_registered_main_net_on_s_chain(reg-step1B)" ) + "\n" );
+        log.write( strLogPrefix + cc.bright( "check_is_registered_main_net_on_s_chain(reg-step2B)" ) + "\n" );
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
     let strActionName = "";
     try {
-        log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_s_chain.options.address ) + "\n" );
-        log.write( cc.info( "Main-net " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_main_net ) + "\n" );
         strActionName = "check_is_registered_main_net_on_s_chain(reg-step2B)";
         const addressFrom = joAccount_s_chain.address( w3_s_chain );
         const bIsRegistered = await jo_message_proxy_s_chain.methods.isConnectedChain( chain_id_main_net ).call( {
