@@ -832,7 +832,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
 }
 async function register_step2( isPrintSummaryRegistrationCosts ) {
     const strLogPrefix = cc.info( "Reg 2:" ) + " ";
-    let jarrReceipts2A = true;
+    let jarrReceipts2A = "true";
     const bRetVal2A = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 2A
         imaState.w3_s_chain,
         imaState.jo_lock_and_data_s_chain,
@@ -850,9 +850,9 @@ async function register_step2( isPrintSummaryRegistrationCosts ) {
         );
     }
     const bSuccess2A = ( jarrReceipts2A != null && jarrReceipts2A.length > 0 ) ? true : false;
-    if( bSuccess2A )
+    if( bSuccess2A && !bRetVal2A )
         g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts2A );
-    let jarrReceipts2B = true;
+    let jarrReceipts2B = "true";
     const bRetVal2B = await IMA.check_is_registered_main_net_on_s_chain( // step 2B
         imaState.w3_s_chain,
         imaState.jo_message_proxy_s_chain,
@@ -870,7 +870,7 @@ async function register_step2( isPrintSummaryRegistrationCosts ) {
         );
     }
     const bSuccess2B = ( jarrReceipts2B != null && jarrReceipts2B.length > 0 ) ? true : false;
-    if( bSuccess2B )
+    if( bSuccess2B && !bRetVal2B )
         g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts2B );
     const bSuccess = ( bSuccess2A && bSuccess2B ) ? true : false;
     if( isPrintSummaryRegistrationCosts )
