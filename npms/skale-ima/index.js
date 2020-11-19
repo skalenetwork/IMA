@@ -472,8 +472,12 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
                 // if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
                 //     joNeededResult.v += tx._chainId * 2 + 8 + 27;
                 let chainId = -4;
-                if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
+                console.log( "------ trying tx._chainId =", tx._chainId );
+                if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined ) {
                     chainId = tx._chainId;
+                    if( chainId == 0 )
+                        chainId = -4;
+                }
                 console.log( "------ applying chainId =", chainId, "to v =", joNeededResult.v );
                 // joNeededResult.v += chainId * 2 + 8 + 27;
                 joNeededResult.v += chainId * 2 + 8 + 27;
@@ -2386,6 +2390,31 @@ async function do_transfer(
                         cc.debug( "..." ) + "\n"
                     );
                 }
+                //
+                //
+                //
+                { // EXPERIMENTAL BLOCK: check DST permissions, result is ignored
+                    if( verbose_get() >= RV_VERBOSE.trace )
+                        log.write( strLogPrefix + cc.debug( "Will check permissions in destination message proxy..." ) + "\n" );
+                    try {
+                        const a = joAccountDst.address( w3_dst );
+                        const hashOfSchainName = w3_dst.utils.keccak256( chain_id_src );
+                        if( verbose_get() >= RV_VERBOSE.trace ) {
+                            log.write( strLogPrefix + cc.debug( "From address " ) + cc.info( a ) + "\n" );
+                            log.write( strLogPrefix + cc.debug( "Chain name " ) + cc.info( chain_id_src ) + "\n" );
+                            log.write( strLogPrefix + cc.debug( "Hash of chain name " ) + cc.info( hashOfSchainName ) + "\n" );
+                        }
+                        const r = await jo_message_proxy_dst.methods.isAuthorizedCaller( hashOfSchainName, a ).call( {
+                            from: a
+                        } );
+                        if( verbose_get() >= RV_VERBOSE.trace )
+                            log.write( strLogPrefix + cc.debug( "Result of checking permissions in destination message proxy is " ) + cc.info( r ) + "\n" );
+                    } catch ( err ) {
+                        if( verbose_get() >= RV_VERBOSE.fatal )
+                            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error check permissions in destination message proxy: " ) + cc.error( err ) + "\n" );
+                    }
+
+                } // EXPERIMENTAL BLOCK: check DST permissions, result is ignored
                 //
                 // TO DO: convert joGlueResult.hashSrc into G1 point
                 //
