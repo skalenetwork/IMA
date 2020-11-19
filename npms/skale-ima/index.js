@@ -664,36 +664,36 @@ async function register_s_chain_in_deposit_box( // step 1
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will register S-Chain in lock_and_data on Main-net" ) + "\n" );
         const isSchainOwner = await jo_lock_and_data_main_net.methods.isSchainOwner(
-            joAccount_main_net,
+            joAccount_main_net.address( w3_main_net ),
             w3_main_net.utils.soliditySha3(
                 chain_id_s_chain
             )
         ).call();
         if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "Account " ) + cc.info( joAccount_main_net ) + cc.debug( " has S-Chain owner permission " ) + cc.info( isSchainOwner ) + "\n" );
-        const methodWithArguments = jo_lock_and_data_main_net.methods.addSchain(
-            chain_id_s_chain, jo_token_manager.options.address // call params
-        );
-        const isIgnore = false;
-        const strDRC = "register_s_chain_in_deposit_box, step 1, addSchain";
-        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore );
-        const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
-        //
-        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-        //
-        const rawTx = {
-            chainId: cid_main_net,
-            nonce: tcnt,
-            gasPrice: gasPrice,
-            gasLimit: 3000000,
-            // gas: 8000000, // gas is optional here
-            to: jo_lock_and_data_main_net.options.address, // contract address
-            data: dataTx
-        };
-        const tx = compose_tx_instance( strLogPrefix, rawTx );
+            log.write( strLogPrefix + cc.debug( "Account " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + cc.debug( " has S-Chain owner permission " ) + cc.info( isSchainOwner ) + "\n" );
         if( isSchainOwner ) {
+            const methodWithArguments = jo_lock_and_data_main_net.methods.addSchain(
+                chain_id_s_chain, jo_token_manager.options.address // call params
+            );
+            const isIgnore = false;
+            const strDRC = "register_s_chain_in_deposit_box, step 1, addSchain";
+            await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore );
+            const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+            //
+            const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+            if( verbose_get() >= RV_VERBOSE.debug )
+                log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+            //
+            const rawTx = {
+                chainId: cid_main_net,
+                nonce: tcnt,
+                gasPrice: gasPrice,
+                gasLimit: 3000000,
+                // gas: 8000000, // gas is optional here
+                to: jo_lock_and_data_main_net.options.address, // contract address
+                data: dataTx
+            };
+            const tx = compose_tx_instance( strLogPrefix, rawTx );
             const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
             let joReceipt = null;
             if( joSR.joACI.isAutoSend )
