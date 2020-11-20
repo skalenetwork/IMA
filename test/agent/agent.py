@@ -42,6 +42,21 @@ class Agent:
     def register(self):
         self._execute_command('register')
 
+    def register1(self):
+        self._execute_command('register1')
+
+    def register2(self):
+        self._execute_command('register2')
+    
+    def check_registration(self):
+        self._execute_command('check_registration')
+
+    def check_registration1(self):
+        self._execute_command('check_registration1')
+
+    def check_registration2(self):
+        self._execute_command('check_registration2')
+
     def start(self):
         if self.agent_service is None:
             self.agent_service = Popen(self._construct_command('loop'))
