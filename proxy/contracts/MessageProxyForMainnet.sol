@@ -476,11 +476,34 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
                 bytes32(bytes20(messages[i].destinationContract)),
                 bytes32(bytes20(messages[i].to)),
                 messages[i].amount,
+                _swapBytes(messages[i].data)
+            );
+        }
+        return keccak256(data);
+    }
+    function _swapBytes(bytes memory data) private pure returns (bytes memory) {
+        bytes memory data1 = new bytes(data.length);
+        for (uint i = data.length; i > 0; i--) {
+            data1[data.length - i] = data[i - 1];
+        }
+        return data1;
+    }
+    /*
+    function _hashedArray(Message[] memory messages) private pure returns (bytes32) {
+        bytes memory data;
+        for (uint256 i = 0; i < messages.length; i++) {
+            data = abi.encodePacked(
+                data,
+                bytes32(bytes20(messages[i].sender)),
+                bytes32(bytes20(messages[i].destinationContract)),
+                bytes32(bytes20(messages[i].to)),
+                messages[i].amount,
                 messages[i].data
             );
         }
         return keccak256(data);
     }
+    */
 
     /**
      * @dev Push outgoing message into outgoingMessageData array.
