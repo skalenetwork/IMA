@@ -796,55 +796,80 @@ const g_registrationCostInfo = {
 
 async function register_step1( isPrintSummaryRegistrationCosts ) {
     const strLogPrefix = cc.info( "Reg 1:" ) + " ";
-    const jarrReceipts = await IMA.register_s_chain_in_deposit_box( // step 1
+    let jarrReceipts = "true";
+    const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_box( // step 1
         imaState.w3_main_net,
-        // imaState.jo_deposit_box - only main net
         imaState.jo_lock_and_data_main_net,
         imaState.joAccount_main_net,
-        imaState.jo_token_manager, // only s-chain
-        imaState.strChainID_s_chain,
-        imaState.cid_main_net,
-        imaState.tc_main_net //,
-        // cntWaitAttempts,
-        // nSleepMilliseconds
+        imaState.strChainID_s_chain
     );
+    if( !bRetVal ) {
+        jarrReceipts = await IMA.register_s_chain_in_deposit_box( // step 1
+            imaState.w3_main_net,
+            // imaState.jo_deposit_box - only main net
+            imaState.jo_lock_and_data_main_net,
+            imaState.joAccount_main_net,
+            imaState.jo_token_manager, // only s-chain
+            imaState.strChainID_s_chain,
+            imaState.cid_main_net,
+            imaState.tc_main_net //,
+            // cntWaitAttempts,
+            // nSleepMilliseconds
+        );
+    }
     const bSuccess = ( jarrReceipts != null && jarrReceipts.length > 0 ) ? true : false;
+    if( bSuccess && ( !bRetVal ) )
+        g_registrationCostInfo.mn = g_registrationCostInfo.mn.concat( g_registrationCostInfo.mn, jarrReceipts );
+    if( isPrintSummaryRegistrationCosts )
+        print_summary_registration_costs();
     if( !bSuccess ) {
-        if( isPrintSummaryRegistrationCosts )
-            print_summary_registration_costs();
         const nRetCode = 163;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain in deposit box, will return code " ) + cc.warning( nRetCode ) + "\n" );
         process.exit( nRetCode ); // 163
     }
-    g_registrationCostInfo.mn = g_registrationCostInfo.mn.concat( g_registrationCostInfo.mn, jarrReceipts );
-    if( isPrintSummaryRegistrationCosts )
-        print_summary_registration_costs();
     return true;
 }
 async function register_step2( isPrintSummaryRegistrationCosts ) {
     const strLogPrefix = cc.info( "Reg 2:" ) + " ";
-    const jarrReceipts2A = await IMA.register_main_net_depositBox_on_s_chain( // step 2A
+    let jarrReceipts2A = "true";
+    const bRetVal2A = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 2A
         imaState.w3_s_chain,
-        // imaState.jo_token_manager - only s-chain
-        imaState.jo_deposit_box, // only main net
         imaState.jo_lock_and_data_s_chain,
-        imaState.joAccount_s_chain,
-        imaState.cid_s_chain,
-        imaState.tc_s_chain
+        imaState.joAccount_s_chain
     );
+    if( !bRetVal2A ) {
+        jarrReceipts2A = await IMA.register_main_net_depositBox_on_s_chain( // step 2A
+            imaState.w3_s_chain,
+            // imaState.jo_token_manager - only s-chain
+            imaState.jo_deposit_box, // only main net
+            imaState.jo_lock_and_data_s_chain,
+            imaState.joAccount_s_chain,
+            imaState.cid_s_chain,
+            imaState.tc_s_chain
+        );
+    }
     const bSuccess2A = ( jarrReceipts2A != null && jarrReceipts2A.length > 0 ) ? true : false;
-    if( bSuccess2A )
+    if( bSuccess2A && ( !bRetVal2A ) )
         g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts2A );
-    const jarrReceipts2B = await IMA.register_main_net_on_s_chain( // step 2B
+    let jarrReceipts2B = "true";
+    const bRetVal2B = await IMA.check_is_registered_main_net_on_s_chain( // step 2B
         imaState.w3_s_chain,
         imaState.jo_message_proxy_s_chain,
         imaState.joAccount_s_chain,
-        imaState.strChainID_main_net,
-        imaState.cid_s_chain,
-        imaState.tc_s_chain
+        imaState.strChainID_main_net
     );
+    if( !bRetVal2B ) {
+        jarrReceipts2B = await IMA.register_main_net_on_s_chain( // step 2B
+            imaState.w3_s_chain,
+            imaState.jo_message_proxy_s_chain,
+            imaState.joAccount_s_chain,
+            imaState.strChainID_main_net,
+            imaState.cid_s_chain,
+            imaState.tc_s_chain
+        );
+    }
     const bSuccess2B = ( jarrReceipts2B != null && jarrReceipts2B.length > 0 ) ? true : false;
-    if( bSuccess2B )
+    if( bSuccess2B && ( !bRetVal2B ) )
         g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts2B );
     const bSuccess = ( bSuccess2A && bSuccess2B ) ? true : false;
     if( isPrintSummaryRegistrationCosts )
