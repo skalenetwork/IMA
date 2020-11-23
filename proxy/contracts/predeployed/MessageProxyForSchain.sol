@@ -170,12 +170,12 @@ contract MessageProxyForSchain {
     }
 
     function addAuthorizedCaller(address caller) external {
-        require(msg.sender == getOwner(), "Sender is not an owner");
+        require(msg.sender == getSchainOwner(), "Sender is not an owner");
         _authorizedCaller[caller] = true;
     }
 
     function removeAuthorizedCaller(address caller) external {
-        require(msg.sender == getOwner(), "Sender is not an owner");
+        require(msg.sender == getSchainOwner(), "Sender is not an owner");
         _authorizedCaller[caller] = false;
     }
 
@@ -224,7 +224,7 @@ contract MessageProxyForSchain {
     }
 
     function removeConnectedChain(string calldata newChainID) external {
-        require(msg.sender == getOwner(), "Sender is not an owner");
+        require(msg.sender == getSchainOwner(), "Sender is not an owner");
         require(
             keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet")),
@@ -336,12 +336,12 @@ contract MessageProxyForSchain {
     }
 
     function moveIncomingCounter(string calldata schainName) external {
-        require(msg.sender == getOwner(), "Sender is not an owner");
+        require(msg.sender == getSchainOwner(), "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter++;
     }
 
     function setCountersToZero(string calldata schainName) external {
-        require(msg.sender == getOwner(), "Sender is not an owner");
+        require(msg.sender == getSchainOwner(), "Sender is not an owner");
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
@@ -356,7 +356,7 @@ contract MessageProxyForSchain {
         return _chainID;
     }
 
-    function getOwner() public view returns (address ow) { // l_sergiy: added
+    function getSchainOwner() public view returns (address ow) { // l_sergiy: added
         if (!_isCustomDeploymentMode) {
             if ((ownerAddress) == (address(0)) )
                 return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(

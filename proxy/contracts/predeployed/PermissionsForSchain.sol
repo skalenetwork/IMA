@@ -55,7 +55,7 @@ contract PermissionsForSchain is OwnableForSchain {
             IContractManagerForSchain(
                 getLockAndDataAddress()
             ).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
-            getOwner() == msg.sender, "Message sender is invalid"
+            getSchainOwner() == msg.sender, "Message sender is invalid"
         );
         _;
     }
