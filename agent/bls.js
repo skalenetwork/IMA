@@ -132,7 +132,7 @@ function compose_one_message_byte_sequence( joMessage ) {
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesAmount );
     //
     let bytesData = imaUtils.hexToBytes( joMessage.data );
-    bytesData = imaUtils.invertArrayItemsLR( bytesData );
+    // bytesData = imaUtils.invertArrayItemsLR( bytesData ); // do not invert byte order data field (see SKALE-3554 for details)
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesData );
     //
     return arrBytes;
