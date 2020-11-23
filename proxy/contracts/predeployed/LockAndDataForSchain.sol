@@ -114,7 +114,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * - TokenManager address must be non-zero.
      */
     function addSchain(string calldata schainID, address tokenManagerAddress) external {
-        require(authorizedCaller[msg.sender] || getOwner() == msg.sender, "Not authorized caller");
+        require(isAuthorizedCaller(msg.sender) || getOwner() == msg.sender, "Not authorized caller");
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
@@ -155,7 +155,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * - DepositBox address must be non-zero.
      */
     function addDepositBox(address depositBoxAddress) external {
-        require(authorizedCaller[msg.sender] || getOwner() == msg.sender, "Not authorized caller");
+        require(isAuthorizedCaller(msg.sender) || getOwner() == msg.sender, "Not authorized caller");
         require(depositBoxAddress != address(0), "Incorrect Deposit Box address");
         require(
             tokenManagerAddresses[
@@ -242,6 +242,19 @@ contract LockAndDataForSchain is OwnableForSchain {
     function receiveEth(address sender, uint256 amount) external allow("TokenManager") returns (bool) {
         IETHERC20(getEthERC20Address()).burnFrom(sender, amount);
         return true;
+    }
+
+    function isAuthorizedCaller(address a) public view returns (bool rv) { // l_sergiy: added
+        if (authorizedCaller[a] )
+            return true;
+        if (_isCustomDeploymentMode)
+            return false;
+        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigPermissionFlag(
+            a, "skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers"
+        );
+        if ( u != 0 )
+            return true;
+        return false;
     }
 
     /**
