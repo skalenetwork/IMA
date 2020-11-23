@@ -204,7 +204,7 @@ contract MessageProxyForSchain {
         external
         connectMainnet
     {
-        require(checkIsAuthorizedCaller(msg.sender), "Not authorized caller");
+        require(isAuthorizedCaller(msg.sender), "Not authorized caller");
         if ( keccak256(abi.encodePacked(newChainID)) ==
             keccak256(abi.encodePacked("Mainnet")) )
             return;
@@ -304,7 +304,7 @@ contract MessageProxyForSchain {
         connectMainnet
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(checkIsAuthorizedCaller(msg.sender), "Not authorized caller"); // l_sergiy: replacement
+        require(isAuthorizedCaller(msg.sender), "Not authorized caller"); // l_sergiy: replacement
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
@@ -370,7 +370,7 @@ contract MessageProxyForSchain {
         ownerAddress = newAddressOwner;
     }
 
-    function checkIsAuthorizedCaller(address a) public view returns (bool rv) { // l_sergiy: added
+    function isAuthorizedCaller(address a) public view returns (bool rv) { // l_sergiy: added
         if (_authorizedCaller[a] )
             return true;
         if (_isCustomDeploymentMode)
