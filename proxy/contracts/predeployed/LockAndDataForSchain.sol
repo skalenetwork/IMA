@@ -263,7 +263,7 @@ contract LockAndDataForSchain is OwnableForSchain {
     function getEthERC20Address() public view returns (address addressOfEthERC20) {
         if (_ethERC20Address == address(0) && (!_isCustomDeploymentMode)) {
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
-                "skaleConfig.contractSettings.IMA.ethERC20Address"
+                "skaleConfig.contractSettings.IMA.EthERC20"
             );
         }
         addressOfEthERC20 = _ethERC20Address;

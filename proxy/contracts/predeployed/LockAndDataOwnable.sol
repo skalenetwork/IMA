@@ -68,7 +68,7 @@ contract LockAndDataOwnable {
     function getOwner() public view returns ( address ow ) {
         if ((_ownerAddress) == (address(0)) )
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
-                "skaleConfig.contractSettings.IMA.lockAndDataAddress"
+                "skaleConfig.contractSettings.IMA.LockAndData"
             );
         return _ownerAddress;
     }

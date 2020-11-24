@@ -586,7 +586,7 @@ contract TokenManager is PermissionsForSchain {
         if (_proxyForSchainAddress != address(0) )
             return _proxyForSchainAddress;
         return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
-            "skaleConfig.contractSettings.IMA.messageProxyAddress"
+            "skaleConfig.contractSettings.IMA.MessageProxy"
         );
     }
 
