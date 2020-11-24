@@ -81,7 +81,7 @@ contract LockAndDataForSchain is OwnableForSchain {
         require(newContract != address(0), "New address is equal zero");
 
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        require(!_checkPermitted(contractName,newContract), "Contract is already added");
+        require(!_checkPermitted(contractName, newContract), "Contract is already added");
 
         uint256 length;
         // solhint-disable-next-line no-inline-assembly
@@ -267,6 +267,23 @@ contract LockAndDataForSchain is OwnableForSchain {
             );
         }
         addressOfEthERC20 = _ethERC20Address;
+    }
+
+    function getContract(string memory contractName) public view returns (address) {
+        bytes32 contractId = keccak256(abi.encodePacked(contractName));
+        if (permitted[contractId] == address(0) && (!_isCustomDeploymentMode)) {
+            string memory fullContractPath = SkaleFeatures(
+                0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+            ).concatenateStrings(
+                "skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.",
+                contractName
+            );
+            address contractAddressInStorage = SkaleFeatures(
+                0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+            ).getConfigVariableAddress(fullContractPath);
+            return contractAddressInStorage;
+        }
+        return permitted[contractId];
     }
 
     /**

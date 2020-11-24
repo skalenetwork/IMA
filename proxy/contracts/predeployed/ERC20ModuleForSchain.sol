@@ -73,7 +73,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         {
         address lockAndDataERC20 = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        ).getContract("LockAndDataERC20");
         uint256 contractPosition = ILockAndDataERC20S(lockAndDataERC20).erc20Mapper(contractHere);
         require(contractPosition > 0, "ERC20 contract does not exist on SKALE chain.");
         require(
@@ -102,7 +102,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
     function sendERC20(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC20 = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        ).getContract("LockAndDataERC20");
         uint256 contractPosition;
         address contractAddress;
         address receiver;
@@ -147,7 +147,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         (name, symbol, , totalSupply) = _fallbackDataCreateERC20Parser(data);
         address tokenFactoryAddress = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).permitted(keccak256(abi.encodePacked("TokenFactory")));
+        ).getContract("TokenFactory");
         return ITokenFactoryForERC20(tokenFactoryAddress).createERC20(name, symbol, totalSupply);
     }
 
