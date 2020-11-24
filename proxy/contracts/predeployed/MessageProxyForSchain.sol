@@ -303,13 +303,18 @@ contract MessageProxyForSchain {
         external
         connectMainnet
     {
+        // payvin: printf("Start")
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
+        // payvin: printf("Check is Authorized caller")
+        // payvin: printf(msg.sender)
         require(isAuthorizedCaller(msg.sender), "Not authorized caller"); // l_sergiy: replacement
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
+        // payvin: printf("Start loop")
         for (uint256 i = 0; i < messages.length; i++) {
+            // payvin: printf("Try to call TokenManager.postMessage")
             try ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                 messages[i].sender,
                 srcChainID,
@@ -317,8 +322,10 @@ contract MessageProxyForSchain {
                 messages[i].amount,
                 messages[i].data
             ) {
+                // payvin: printf("Call is successful")
                 ++startingCounter;
-            } catch Error(string memory reason){
+            } catch Error(string memory reason) {
+                // payvin: printf("Call is failed")
                 emit PostMessageError(
                     ++startingCounter,
                     srcChainHash,

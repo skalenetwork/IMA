@@ -432,9 +432,14 @@ contract TokenManager is PermissionsForSchain {
     )
         external
     {
+        // payvin: printf("PostMessage call is started")
         require(data.length != 0, "Invalid data");
+        // payvin: printf("Check is Message Sender equal proxy address")
+        // payvin: printf(msg.sender)
+        // payvin: printf(getProxyForSchainAddress())
         require(msg.sender == getProxyForSchainAddress(), "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
+        // payvin: printf("Check is chain correct")
         require(
             schainHash != keccak256(abi.encodePacked(getChainID())) && 
             sender == ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash),
@@ -447,12 +452,18 @@ contract TokenManager is PermissionsForSchain {
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
         } else if ((operation == TransactionOperation.transferERC20 && to == address(0)) ||
                   (operation == TransactionOperation.rawTransferERC20 && to != address(0))) {
+            // payvin: printf("ERC20 call started")
             address erc20Module = IContractManagerForSchain(
                 getLockAndDataAddress()
             ).permitted(keccak256(abi.encodePacked("ERC20Module")));
+            // payvin: printf("ERC20Module")
+            // payvin: printf(erc20Module)
             require(IERC20Module(erc20Module).sendERC20(to, data), "Failed to send ERC20");
+            // payvin: printf("Will call get receiver")
             address receiver = IERC20Module(erc20Module).getReceiver(data);
+            // payvin: printf(receiver)
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
+            // payvin: printf("PostMessage call is successful")
         } else if ((operation == TransactionOperation.transferERC721 && to == address(0)) ||
                   (operation == TransactionOperation.rawTransferERC721 && to != address(0))) {
             address erc721Module = IContractManagerForSchain(
