@@ -92,6 +92,7 @@ contract SkaleFeatures {
                 let what := mload(add(strConfigVariableName, mul(32, i)))
                 mstore(where, what)
             }
+            let status := staticcall(not(0), FN_NUM_GET_CONFIG_VARIABLE_UINT256, ptr, mul( blocks, 32 ), ptr, 32)
             rv := mload(ptr)
         }
     }
@@ -107,6 +108,7 @@ contract SkaleFeatures {
                 let what := mload(add(strConfigVariableName, mul(32, i)))
                 mstore(where, what)
             }
+            let status := staticcall(not(0), FN_NUM_GET_CONFIG_VARIABLE_ADDRESS, ptr, mul( blocks, 32 ), ptr, 32)
             rv := mload(ptr)
         }
     }
@@ -122,6 +124,7 @@ contract SkaleFeatures {
                 let what := mload(add(strConfigVariableName, mul(32, i)))
                 mstore(where, what)
             }
+            let status := staticcall(not(0), FN_NUM_GET_CONFIG_VARIABLE_STRING, ptr, mul( blocks, 32 ), rv, mul( 1024, 1024 ))
         }
     }
 
@@ -129,6 +132,7 @@ contract SkaleFeatures {
         uint256 fmp = FREE_MEM_PTR;
         uint256 blocksA = (bytes(strA).length + 31) / 32 + 1;
         uint256 blocksB = (bytes(strB).length + 31) / 32 + 1;
+        uint256 blocks = blocksA + blocksB;
         // solhint-disable-next-line no-inline-assembly
         assembly {
             let p := mload(fmp)
@@ -144,11 +148,13 @@ contract SkaleFeatures {
                 let what := mload(add( strB, mul(32, i)))
                 mstore(where, what)
             }
+            let status := staticcall(not(0), FN_NUM_CONCATENATE_STRINGS, p, mul( blocks, 32 ), rv, mul( 1024, 1024 ))
         }
     }
 
     function getConfigPermissionFlag(address a, string memory strConfigVariableName) public view returns (uint256 rv) {
         uint256 fmp = FREE_MEM_PTR;
+        uint256 fnc = FN_NUM_GET_CONFIG_PERMISSION_FLAG;
         uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
         // solhint-disable-next-line no-inline-assembly
         assembly {
@@ -160,6 +166,7 @@ contract SkaleFeatures {
                 let what := mload(add(strConfigVariableName, mul(32, i)))
                 mstore(where, what)
             }
+            let status := staticcall(not(0), fnc, p, add(64, mul(blocks, 32) ), p, 32)
             rv := mload(ptr)
         }
     }
