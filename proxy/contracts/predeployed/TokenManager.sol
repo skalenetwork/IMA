@@ -574,7 +574,8 @@ contract TokenManager is PermissionsForSchain {
     function getChainID() public view returns ( string memory cID ) {
         if ((keccak256(abi.encodePacked(_chainID))) == (keccak256(abi.encodePacked(""))) ) {
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2)
-                .getConfigVariableString("skaleConfig.sChain.schainID");
+                .getConfigVariableString("skaleConfig.sChain.schainName");
+                // .getConfigVariableString("skaleConfig.sChain.schainID");
         }
         return _chainID;
     }

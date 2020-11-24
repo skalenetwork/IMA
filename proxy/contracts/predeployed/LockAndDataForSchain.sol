@@ -250,7 +250,7 @@ contract LockAndDataForSchain is OwnableForSchain {
         if (_isCustomDeploymentMode)
             return false;
         uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigPermissionFlag(
-            a, "skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers"
+            a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
         if ( u != 0 )
             return true;
@@ -275,7 +275,7 @@ contract LockAndDataForSchain is OwnableForSchain {
             string memory fullContractPath = SkaleFeatures(
                 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
             ).concatenateStrings(
-                "skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.",
+                "skaleConfig.contractSettings.IMA.variables.LockAndData.permitted.",
                 contractName
             );
             address contractAddressInStorage = SkaleFeatures(
@@ -305,7 +305,7 @@ contract LockAndDataForSchain is OwnableForSchain {
                 string memory fullContractPath = SkaleFeatures(
                     0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
                 ).concatenateStrings(
-                    "skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted.",
+                    "skaleConfig.contractSettings.IMA.variables.LockAndData.permitted.",
                     contractName
                 );
                 address contractAddressInStorage = SkaleFeatures(

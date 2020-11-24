@@ -378,7 +378,8 @@ contract MessageProxyForSchain {
         if (!_isCustomDeploymentMode) {
             if ((keccak256(abi.encodePacked(_chainID))) == (keccak256(abi.encodePacked(""))) )
                 return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString(
-                    "skaleConfig.sChain.schainID"
+                    "skaleConfig.sChain.schainName"
+                    // "skaleConfig.sChain.schainID"
                 );
         }
         return _chainID;
@@ -404,7 +405,7 @@ contract MessageProxyForSchain {
         if (_isCustomDeploymentMode)
             return false;
         uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigPermissionFlag(
-            a, "skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers"
+            a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
         if ( u != 0 )
             return true;
