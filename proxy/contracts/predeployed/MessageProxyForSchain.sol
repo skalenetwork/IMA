@@ -338,14 +338,14 @@ contract MessageProxyForSchain {
                 messages[i].data
             ) {
                 // // payvin: printf("Call is successful")
-                // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- MessageProxyForSchain.postIncomingMessages --- Call is successful" );
+                SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- MessageProxyForSchain.postIncomingMessages --- Call is successful" );
 
                 ++startingCounter;
             } catch Error(string memory reason) {
 
                 // // payvin: printf("Call is failed")
-                // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- MessageProxyForSchain.postIncomingMessages --- Call is !!!FAILED!!! with reason" );
-                // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( reason );
+                SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- MessageProxyForSchain.postIncomingMessages --- Call is !!!FAILED!!! with reason" );
+                SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( reason );
 
                 emit PostMessageError(
                     ++startingCounter,

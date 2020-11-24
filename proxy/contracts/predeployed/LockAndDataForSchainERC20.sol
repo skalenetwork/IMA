@@ -60,6 +60,10 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
      */
     function sendERC20(address contractHere, address to, uint256 amount) external allow("ERC20Module") returns (bool) {
         ERC20MintAndBurn(contractHere).mint(to, amount);
+
+        // // payvin:
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchainERC20.sendERC20 --- afterburner" );
+
         emit SentERC20(true);
         return true;
     }

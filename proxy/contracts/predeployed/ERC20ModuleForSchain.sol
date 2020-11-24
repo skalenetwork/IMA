@@ -100,9 +100,25 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
      * Emits a {ERC20TokenReceived} event on success.
      */
     function sendERC20(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
+
+        // // payvin:
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- ERC20ModuleForSchain.sendERC20 --- Start" );
+
+        address lad = getLockAndDataAddress();
+
+        // // payvin:
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- ERC20ModuleForSchain.sendERC20 --- lad" );
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( lad ) );
+
         address lockAndDataERC20 = IContractManagerForSchain(
-            getLockAndDataAddress()
+            lad
         ).getContract("LockAndDataERC20");
+
+        // // payvin:
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- ERC20ModuleForSchain.sendERC20 --- lockAndDataERC20" );
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( lockAndDataERC20 ) );
+
+
         uint256 contractPosition;
         address contractAddress;
         address receiver;
@@ -112,8 +128,17 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         if (to == address(0)) {
             if (contractAddress == address(0)) {
                 contractAddress = _sendCreateERC20Request(data);
+
+                // // payvin:
+                SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- ERC20ModuleForSchain.sendERC20 --- _sendCreateERC20Request" );
+                SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( contractAddress ) );
+
                 emit ERC20TokenCreated(contractPosition, contractAddress);
                 ILockAndDataERC20S(lockAndDataERC20).addERC20Token(contractAddress, contractPosition);
+
+                // // payvin:
+                SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- ERC20ModuleForSchain.sendERC20 --- after addERC20Token" );
+
             } else {
                 uint256 totalSupply = _fallbackTotalSupplyParser(data);
                 if (totalSupply > ERC20Clone(contractAddress).totalSupplyOnMainnet()) {

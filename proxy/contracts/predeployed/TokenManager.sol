@@ -480,17 +480,17 @@ contract TokenManager is PermissionsForSchain {
             require(IERC20Module(erc20Module).sendERC20(to, data), "Failed to send ERC20");
 
             // // payvin: printf("Will call get receiver")
-            // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- TokenManager.postMessage --- Will call get receiver" );
+            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- TokenManager.postMessage --- Will call get receiver" );
 
             address receiver = IERC20Module(erc20Module).getReceiver(data);
 
             // // payvin: printf(receiver)
-            // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( receiver ) );
+            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( receiver ) );
 
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
 
             // payvin: printf("PostMessage call is successful")
-            // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- TokenManager.postMessage --- PostMessage call is successful" );
+            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- TokenManager.postMessage --- PostMessage call is successful" );
 
         } else if ((operation == TransactionOperation.transferERC721 && to == address(0)) ||
                   (operation == TransactionOperation.rawTransferERC721 && to != address(0))) {

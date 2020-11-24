@@ -2586,7 +2586,7 @@ async function do_transfer(
                 const raw_tx_postIncomingMessages = compose_tx_instance( strLogPrefix, {
                     chainId: cid_dst,
                     nonce: tcnt,
-                    gas: 6000000, // 8000000
+                    gas: 10000000, // 6000000, // 8000000
                     gasPrice: gasPrice,
                     // "gasLimit": 3000000,
                     to: jo_message_proxy_dst.options.address, // contract address
