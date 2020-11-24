@@ -432,14 +432,26 @@ contract TokenManager is PermissionsForSchain {
     )
         external
     {
-        // payvin: printf("PostMessage call is started")
+        // // payvin: printf("PostMessage call is started")
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- TokenManager.postMessage --- Start" );
+
         require(data.length != 0, "Invalid data");
-        // payvin: printf("Check is Message Sender equal proxy address")
-        // payvin: printf(msg.sender)
-        // payvin: printf(getProxyForSchainAddress())
+
+        // // payvin: printf("Check is Message Sender equal proxy address")
+        // // payvin: printf(msg.sender)
+        // // payvin: printf(getProxyForSchainAddress())
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- TokenManager.postMessage --- Check is Message Sender equal proxy address" );
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( msg.sender ) );
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( getProxyForSchainAddress() ) );
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( (msg.sender == getProxyForSchainAddress()) ? "yes, equal" : "!!!NO!!!, not equal" );
+
         require(msg.sender == getProxyForSchainAddress(), "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
-        // payvin: printf("Check is chain correct")
+
+        // // payvin: printf("Check is chain correct")
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- TokenManager.postMessage --- Check is chain correct" );
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( (schainHash != keccak256(abi.encodePacked(getChainID())) && sender == ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash)) ? "yes, correct" : "!!!NO!!!, incorrect" );
+
         require(
             schainHash != keccak256(abi.encodePacked(getChainID())) && 
             sender == ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash),
@@ -452,18 +464,34 @@ contract TokenManager is PermissionsForSchain {
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
         } else if ((operation == TransactionOperation.transferERC20 && to == address(0)) ||
                   (operation == TransactionOperation.rawTransferERC20 && to != address(0))) {
-            // payvin: printf("ERC20 call started")
+
+            // // payvin: printf("ERC20 call started")
+            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- TokenManager.postMessage --- ERC20 call started" );
+
             address erc20Module = IContractManagerForSchain(
                 getLockAndDataAddress()
             ).permitted(keccak256(abi.encodePacked("ERC20Module")));
-            // payvin: printf("ERC20Module")
-            // payvin: printf(erc20Module)
+
+            // // payvin: printf("ERC20Module")
+            // // payvin: printf(erc20Module)
+            // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- TokenManager.postMessage --- ERC20Module" );
+            // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( erc20Module ) );
+
             require(IERC20Module(erc20Module).sendERC20(to, data), "Failed to send ERC20");
-            // payvin: printf("Will call get receiver")
+
+            // // payvin: printf("Will call get receiver")
+            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- TokenManager.postMessage --- Will call get receiver" );
+
             address receiver = IERC20Module(erc20Module).getReceiver(data);
-            // payvin: printf(receiver)
+
+            // // payvin: printf(receiver)
+            // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( receiver ) );
+
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
+
             // payvin: printf("PostMessage call is successful")
+            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- TokenManager.postMessage --- PostMessage call is successful" );
+
         } else if ((operation == TransactionOperation.transferERC721 && to == address(0)) ||
                   (operation == TransactionOperation.rawTransferERC721 && to != address(0))) {
             address erc721Module = IContractManagerForSchain(

@@ -303,18 +303,33 @@ contract MessageProxyForSchain {
         external
         connectMainnet
     {
-        // payvin: printf("Start")
+        // // payvin: printf("Start")
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- MessageProxyForSchain.postIncomingMessages --- Start" );
+
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        // payvin: printf("Check is Authorized caller")
-        // payvin: printf(msg.sender)
+
+        // // payvin: printf("Check is Authorized caller")
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- MessageProxyForSchain.postIncomingMessages --- Check is Authorized caller" );
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( isAuthorizedCaller(msg.sender) ? "authorized" : "!!!NOT!!! authorized" );
+        // // payvin: printf(msg.sender)
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- MessageProxyForSchain.postIncomingMessages --- msg.sender" );
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( msg.sender ) );
+
         require(isAuthorizedCaller(msg.sender), "Not authorized caller"); // l_sergiy: replacement
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
-        // payvin: printf("Start loop")
+
+        // // payvin: printf("Start loop")
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- MessageProxyForSchain.postIncomingMessages --- Start loop" );
+
         for (uint256 i = 0; i < messages.length; i++) {
-            // payvin: printf("Try to call TokenManager.postMessage")
+
+            // // payvin: printf("Try to call TokenManager.postMessage")
+            // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- MessageProxyForSchain.postIncomingMessages --- Try to call TokenManager.postMessage with destinationContract" );
+            // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( messages[i].destinationContract ) );
+
             try ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                 messages[i].sender,
                 srcChainID,
@@ -322,10 +337,16 @@ contract MessageProxyForSchain {
                 messages[i].amount,
                 messages[i].data
             ) {
-                // payvin: printf("Call is successful")
+                // // payvin: printf("Call is successful")
+                SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- MessageProxyForSchain.postIncomingMessages --- Call is successful" );
+
                 ++startingCounter;
             } catch Error(string memory reason) {
-                // payvin: printf("Call is failed")
+
+                // // payvin: printf("Call is failed")
+                SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- MessageProxyForSchain.postIncomingMessages --- Call is !!!FAILED!!! with reason" );
+                SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( reason );
+
                 emit PostMessageError(
                     ++startingCounter,
                     srcChainHash,
