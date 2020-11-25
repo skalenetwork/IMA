@@ -158,7 +158,10 @@ contract SkaleFeatures {
         }
 
         SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- SkaleFeatures.concatenateStrings --- finish" );
+    }
 
+    function concatenateStrings2( string memory strA, string memory strB ) public pure returns ( string memory rv ) {
+        return string(abi.encodePacked(strA, strB));
     }
 
     function getConfigPermissionFlag(address a, string memory strConfigVariableName) public view returns (uint256 rv) {
