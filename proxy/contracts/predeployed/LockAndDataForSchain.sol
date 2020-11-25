@@ -288,13 +288,11 @@ contract LockAndDataForSchain is OwnableForSchain {
         SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( _isCustomDeploymentMode ? "Yes" : "No" );
 
         if (permitted[contractId] == address(0) && (!_isCustomDeploymentMode)) {
-            string memory fullContractPath = SkaleFeatures(
-                0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
-            ).concatenateStrings(
+            string memory fullContractPath = string(abi.encodePacked(
                 // "skaleConfig.contractSettings.IMA.variables.LockAndData.permitted.",
                 "skaleConfig.contractSettings.IMA.",
                 contractName
-            );
+            ));
 
             // // payvin:
             SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchain.getContract --- concatenateStrings " );
@@ -356,12 +354,10 @@ contract LockAndDataForSchain is OwnableForSchain {
             permission = true;
         } else {
             if (!_isCustomDeploymentMode) {
-                string memory fullContractPath = SkaleFeatures(
-                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
-                ).concatenateStrings(
+                string memory fullContractPath = string(abi.encodePacked(
                     "skaleConfig.contractSettings.IMA.variables.LockAndData.permitted.",
                     contractName
-                );
+                ));
                 address contractAddressInStorage = SkaleFeatures(
                     0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
                 ).getConfigVariableAddress(fullContractPath);
