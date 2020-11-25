@@ -131,10 +131,10 @@ contract TokenManager is PermissionsForSchain {
     function exitToMainERC20(address contractHere, address to, uint256 amount) external {
         address lockAndDataERC20 = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).getContract("LockAndDataERC20");
+        ).getLockAndDataERC20();
         address erc20Module = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).getContract("ERC20Module");
+        ).getERC20Module();
         require(
             IERC20(contractHere).allowance(
                 msg.sender,
@@ -177,10 +177,10 @@ contract TokenManager is PermissionsForSchain {
         {
         address lockAndDataERC20 = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).getContract("LockAndDataERC20");
+        ).getLockAndDataERC20();
         address erc20Module = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).getContract("ERC20Module");
+        ).getERC20Module();
         require(
             IERC20(contractHere).allowance(
                 msg.sender,
@@ -223,10 +223,10 @@ contract TokenManager is PermissionsForSchain {
         {
         address lockAndDataERC20 = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).getContract("LockAndDataERC20");
+        ).getLockAndDataERC20();
         address erc20Module = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).getContract("ERC20Module");
+        ).getERC20Module();
         require(
             IERC20(contractHere).allowance(
                 msg.sender,
@@ -265,10 +265,10 @@ contract TokenManager is PermissionsForSchain {
         {
         address lockAndDataERC20 = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).getContract("LockAndDataERC20");
+        ).getLockAndDataERC20();
         address erc20Module = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).getContract("ERC20Module");
+        ).getERC20Module();
         require(
             IERC20(contractHere).allowance(
                 msg.sender,
@@ -300,9 +300,9 @@ contract TokenManager is PermissionsForSchain {
 
     function exitToMainERC721(address contractHere, address to, uint256 tokenId) external {
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
-            getContract("LockAndDataERC721");
+            getLockAndDataERC721();
         address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).
-            getContract("ERC721Module");
+            getERC721Module();
         require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
@@ -332,9 +332,9 @@ contract TokenManager is PermissionsForSchain {
         uint256 tokenId) external
         {
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
-            getContract("LockAndDataERC721");
+            getLockAndDataERC721();
         address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).
-            getContract("ERC721Module");
+            getERC721Module();
         require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
@@ -364,9 +364,9 @@ contract TokenManager is PermissionsForSchain {
         uint256 tokenId) external
         {
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
-            getContract("LockAndDataERC721");
+            getLockAndDataERC721();
         address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).
-            getContract("ERC721Module");
+            getERC721Module();
         require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
@@ -392,9 +392,9 @@ contract TokenManager is PermissionsForSchain {
         uint256 tokenId) external
         {
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
-            getContract("LockAndDataERC721");
+            getLockAndDataERC721();
         address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).
-            getContract("ERC721Module");
+            getERC721Module();
         require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
@@ -470,7 +470,7 @@ contract TokenManager is PermissionsForSchain {
 
             address erc20Module = IContractManagerForSchain(
                 getLockAndDataAddress()
-            ).getContract("ERC20Module");
+            ).getERC20Module();
 
             // // payvin: printf("ERC20Module")
             // // payvin: printf(erc20Module)
@@ -496,7 +496,7 @@ contract TokenManager is PermissionsForSchain {
                   (operation == TransactionOperation.rawTransferERC721 && to != address(0))) {
             address erc721Module = IContractManagerForSchain(
                 getLockAndDataAddress()
-            ).getContract("ERC721Module");
+            ).getERC721Module();
             require(IERC721Module(erc721Module).sendERC721(to, data), "Failed to send ERC721");
             address receiver = IERC721Module(erc721Module).getReceiver(to, data);
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");

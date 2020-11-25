@@ -73,7 +73,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         {
         address lockAndDataERC20 = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).getContract("LockAndDataERC20");
+        ).getLockAndDataERC20();
         uint256 contractPosition = ILockAndDataERC20S(lockAndDataERC20).erc20Mapper(contractHere);
         require(contractPosition > 0, "ERC20 contract does not exist on SKALE chain.");
         require(
@@ -110,14 +110,11 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- ERC20ModuleForSchain.sendERC20 --- lad" );
         SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( lad ) );
 
-        address lockAndDataERC20 = IContractManagerForSchain(
-            lad
-        ).getContract("LockAndDataERC20");
+        address lockAndDataERC20 = IContractManagerForSchain(lad).getLockAndDataERC20();
 
         // // payvin:
         SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- ERC20ModuleForSchain.sendERC20 --- lockAndDataERC20" );
         SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( lockAndDataERC20 ) );
-
 
         uint256 contractPosition;
         address contractAddress;
@@ -172,7 +169,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         (name, symbol, , totalSupply) = _fallbackDataCreateERC20Parser(data);
         address tokenFactoryAddress = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).getContract("TokenFactory");
+        ).getTokenFactory();
         return ITokenFactoryForERC20(tokenFactoryAddress).createERC20(name, symbol, totalSupply);
     }
 

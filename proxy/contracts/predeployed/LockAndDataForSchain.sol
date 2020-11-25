@@ -47,6 +47,14 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     mapping(address => bool) public authorizedCaller;
 
+    string public constant ERC20Module = "ERC20Module";
+    string public constant ERC721Module = "ERC721Module";
+    string public constant LockAndDataERC20 = "LockAndDataERC20";
+    string public constant LockAndDataERC721 = "LockAndDataERC721";
+    string public constant TokenManager = "TokenManager";
+    string public constant TokenFactory = "TokenFactory";
+    string public constant MessageProxy = "MessageProxy";
+
     bool private _isCustomDeploymentMode = false;
 
     modifier allow(string memory contractName) {
@@ -271,6 +279,14 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     function getContract(string memory contractName) external view returns (address) {
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
+        // // payvin:
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchain.getContract --- permitted " );
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( permitted[contractId] ) );
+
+        // // payvin:
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchain.getContract --- isCustomDeployment " );
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( _isCustomDeploymentMode ) );
+
         if (permitted[contractId] == address(0) && (!_isCustomDeploymentMode)) {
             string memory fullContractPath = SkaleFeatures(
                 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
@@ -279,12 +295,49 @@ contract LockAndDataForSchain is OwnableForSchain {
                 "skaleConfig.contractSettings.IMA.",
                 contractName
             );
+            
+            // // payvin:
+            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchain.getContract --- concatenateStrings " );
+            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( fullContractPath ) );
+
             address contractAddressInStorage = SkaleFeatures(
                 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
             ).getConfigVariableAddress(fullContractPath);
+
+            // // payvin:
+            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchain.getContract --- getConfigVariableAddress " );
+            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( contractAddressInStorage ) );
             return contractAddressInStorage;
         }
         return permitted[contractId];
+    }
+
+    function getERC20Module() external view returns (address) {
+        return getContract(ERC20Module);
+    }
+
+    function getERC721Module() external view returns (address) {
+        return getContract(ERC721Module);
+    }
+
+    function getLockAndDataERC20() external view returns (address) {
+        return getContract(LockAndDataERC20);
+    }
+
+    function getLockAndDataERC721() external view returns (address) {
+        return getContract(LockAndDataERC721);
+    }
+
+    function getTokenManager() external view returns (address) {
+        return getContract(TokenManager);
+    }
+
+    function getTokenFactory() external view returns (address) {
+        return getContract(TokenFactory);
+    }
+
+    function getMessageProxy() external view returns (address) {
+        return getContract(MessageProxy);
     }
 
     /**

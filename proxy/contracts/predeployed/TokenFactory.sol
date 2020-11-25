@@ -114,7 +114,7 @@ contract TokenFactory is PermissionsForSchain {
     {
         address erc20ModuleAddress = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).getContract("ERC20Module");
+        ).getERC20Module();
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
             symbol,
@@ -123,7 +123,7 @@ contract TokenFactory is PermissionsForSchain {
         );
         address lockAndDataERC20 = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).getContract("LockAndDataERC20");
+        ).getLockAndDataERC20();
         newERC20.grantRole(newERC20.MINTER_ROLE(), lockAndDataERC20);
         newERC20.revokeRole(newERC20.MINTER_ROLE(), address(this));
         return address(newERC20);
@@ -136,7 +136,7 @@ contract TokenFactory is PermissionsForSchain {
     {
         ERC721OnChain newERC721 = new ERC721OnChain(name, symbol);
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
-            getContract("LockAndDataERC721");
+            getLockAndDataERC721();
         newERC721.grantRole(newERC721.MINTER_ROLE(), lockAndDataERC721);
         newERC721.revokeRole(newERC721.MINTER_ROLE(), address(this));
         return address(newERC721);
