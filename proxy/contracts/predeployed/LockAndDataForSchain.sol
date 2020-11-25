@@ -285,7 +285,7 @@ contract LockAndDataForSchain is OwnableForSchain {
 
         // // payvin:
         SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchain.getContract --- isCustomDeployment " );
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( _isCustomDeploymentMode ? "Yes" : "No" ) );
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( _isCustomDeploymentMode ? "Yes" : "No" );
 
         if (permitted[contractId] == address(0) && (!_isCustomDeploymentMode)) {
             string memory fullContractPath = SkaleFeatures(
