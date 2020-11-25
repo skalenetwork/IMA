@@ -289,10 +289,10 @@ for( let idxContract = 0; idxContract < g_arrContracts.length; ++ idxContract ) 
     let contractName = "";
     for( const part of joContractBuildInfo.contractName.split( "Address" ) )
         contractName += part;
-    let contractName2 = ""
+    let contractName2 = "";
     for( const part of contractName.split( "ForSchain" ) )
         contractName2 += part;
-    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA[contractName2 /*referenceVariableName before*/ ] = joContractProperties.address;
+    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA[contractName2 /*referenceVariableName before*/] = joContractProperties.address;
     g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted[contractName2] = joContractProperties.address;
     g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers[joContractProperties.address] = 1;
     //
