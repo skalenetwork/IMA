@@ -134,6 +134,12 @@ contract SkaleFeatures {
         uint256 blocksB = (bytes(strB).length + 31) / 32 + 1;
         uint256 blocks = blocksA + blocksB;
         // solhint-disable-next-line no-inline-assembly
+
+        // // payvin:
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- SkaleFeatures.concatenateStrings --- going" );
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( strA );
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( strB );
+
         assembly {
             let p := mload(fmp)
             let ptr := p
@@ -150,6 +156,9 @@ contract SkaleFeatures {
             }
             let status := staticcall(not(0), FN_NUM_CONCATENATE_STRINGS, p, mul( blocks, 32 ), rv, mul( 1024, 1024 ))
         }
+
+        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- SkaleFeatures.concatenateStrings --- finish" );
+
     }
 
     function getConfigPermissionFlag(address a, string memory strConfigVariableName) public view returns (uint256 rv) {
