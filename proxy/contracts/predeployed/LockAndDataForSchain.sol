@@ -277,15 +277,15 @@ contract LockAndDataForSchain is OwnableForSchain {
         addressOfEthERC20 = _ethERC20Address;
     }
 
-    function getContract(string memory contractName) external view returns (address) {
+    function getContract(string memory contractName) public view returns (address) {
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         // // payvin:
         SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchain.getContract --- permitted " );
         SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( permitted[contractId] ) );
 
         // // payvin:
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchain.getContract --- isCustomDeployment " );
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( _isCustomDeploymentMode ) );
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchain.getContract --- isCustomDeployment " );
+        // SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( _isCustomDeploymentMode ) );
 
         if (permitted[contractId] == address(0) && (!_isCustomDeploymentMode)) {
             string memory fullContractPath = SkaleFeatures(
@@ -295,10 +295,10 @@ contract LockAndDataForSchain is OwnableForSchain {
                 "skaleConfig.contractSettings.IMA.",
                 contractName
             );
-            
+
             // // payvin:
             SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchain.getContract --- concatenateStrings " );
-            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( fullContractPath ) );
+            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( fullContractPath );
 
             address contractAddressInStorage = SkaleFeatures(
                 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
