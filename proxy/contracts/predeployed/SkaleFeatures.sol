@@ -124,41 +124,15 @@ contract SkaleFeatures {
                 let what := mload(add(strConfigVariableName, mul(32, i)))
                 mstore(where, what)
             }
-            let status := staticcall(not(0), FN_NUM_GET_CONFIG_VARIABLE_STRING, ptr, mul( blocks, 32 ), rv, mul( 1024, 1024 ))
+            let status := staticcall(
+                not(0),
+                FN_NUM_GET_CONFIG_VARIABLE_STRING,
+                ptr,
+                mul( blocks, 32 ),
+                rv,
+                mul( 1024, 1024 )
+            )
         }
-    }
-
-    function concatenateStrings( string memory strA, string memory strB ) public view returns ( string memory rv ) {
-        uint256 fmp = FREE_MEM_PTR;
-        uint256 blocksA = (bytes(strA).length + 31) / 32 + 1;
-        uint256 blocksB = (bytes(strB).length + 31) / 32 + 1;
-        uint256 blocks = blocksA + blocksB;
-        // solhint-disable-next-line no-inline-assembly
-
-        // // payvin:
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- SkaleFeatures.concatenateStrings --- going" );
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( strA );
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( strB );
-
-        assembly {
-            let p := mload(fmp)
-            let ptr := p
-            for { let i := 0 } lt( i, blocksA ) { i := add(1, i) } {
-                let where := add(ptr, mul(32, i))
-                let what := mload(add( strA, mul(32, i)))
-                mstore(where, what)
-            }
-            ptr := add(ptr, mul( blocksA, 32) )
-            for { let i := 0 } lt( i, blocksB ) { i := add(1, i) } {
-                let where := add(ptr, mul(32, i))
-                let what := mload(add( strB, mul(32, i)))
-                mstore(where, what)
-            }
-            let status := staticcall(not(0), FN_NUM_CONCATENATE_STRINGS, p, mul( blocks, 32 ), rv, mul( 1024, 1024 ))
-        }
-
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- SkaleFeatures.concatenateStrings --- finish" );
-
     }
 
     function getConfigPermissionFlag(address a, string memory strConfigVariableName) public view returns (uint256 rv) {
@@ -178,23 +152,6 @@ contract SkaleFeatures {
             let status := staticcall(not(0), fnc, p, add(64, mul(blocks, 32) ), p, 32)
             rv := mload(ptr)
         }
-    }
-
-    function addressToAsciiString(address x) public pure returns (string memory) {
-        bytes memory s = new bytes(40);
-        for (uint i = 0; i < 20; i++) {
-            byte b = byte(uint8(uint(x) / (2**(8*(19 - i)))));
-            byte hi = byte(uint8(b) / 16);
-            byte lo = byte(uint8(b) - 16 * uint8(hi));
-            s[2*i] = byteToChar(hi);
-            s[2*i+1] = byteToChar(lo);
-        }
-        return string(s);
-    }
-
-    function byteToChar(byte b) public pure returns (byte c) {
-        if (uint8(b) < 10) return byte(uint8(b) + 0x30);
-        else return byte(uint8(b) + 0x57);
     }
 
 }

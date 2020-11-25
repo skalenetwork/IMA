@@ -47,13 +47,13 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     mapping(address => bool) public authorizedCaller;
 
-    string public constant ERC20Module = "ERC20Module";
-    string public constant ERC721Module = "ERC721Module";
-    string public constant LockAndDataERC20 = "LockAndDataERC20";
-    string public constant LockAndDataERC721 = "LockAndDataERC721";
-    string public constant TokenManager = "TokenManager";
-    string public constant TokenFactory = "TokenFactory";
-    string public constant MessageProxy = "MessageProxy";
+    string public constant ERC20_MODULE = "ERC20Module";
+    string public constant ERC721_MODULE = "ERC721Module";
+    string public constant LOCK_AND_DATA_ERC20 = "LockAndDataERC20";
+    string public constant LOCK_AND_DATA_ERC721 = "LockAndDataERC721";
+    string public constant TOKEN_MANAGER = "TokenManager";
+    string public constant TOKEN_FACTORY = "TokenFactory";
+    string public constant MESSAGE_PROXY = "MessageProxy";
 
     bool private _isCustomDeploymentMode = false;
 
@@ -279,63 +279,48 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     function getContract(string memory contractName) public view returns (address) {
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        // // payvin:
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchain.getContract --- permitted " );
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( permitted[contractId] ) );
-
-        // // payvin:
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchain.getContract --- isCustomDeployment " );
-        SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( _isCustomDeploymentMode ? "Yes" : "No" );
 
         if (permitted[contractId] == address(0) && (!_isCustomDeploymentMode)) {
             string memory fullContractPath = string(abi.encodePacked(
-                // "skaleConfig.contractSettings.IMA.variables.LockAndData.permitted.",
                 "skaleConfig.contractSettings.IMA.",
                 contractName
             ));
-
-            // // payvin:
-            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchain.getContract --- concatenateStrings " );
-            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( fullContractPath );
 
             address contractAddressInStorage = SkaleFeatures(
                 0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
             ).getConfigVariableAddress(fullContractPath);
 
-            // // payvin:
-            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( "--- LockAndDataForSchain.getContract --- getConfigVariableAddress " );
-            SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).logMessage( SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).addressToAsciiString( contractAddressInStorage ) );
             return contractAddressInStorage;
         }
         return permitted[contractId];
     }
 
     function getERC20Module() external view returns (address) {
-        return getContract(ERC20Module);
+        return getContract(ERC20_MODULE);
     }
 
     function getERC721Module() external view returns (address) {
-        return getContract(ERC721Module);
+        return getContract(ERC721_MODULE);
     }
 
     function getLockAndDataERC20() external view returns (address) {
-        return getContract(LockAndDataERC20);
+        return getContract(LOCK_AND_DATA_ERC20);
     }
 
     function getLockAndDataERC721() external view returns (address) {
-        return getContract(LockAndDataERC721);
+        return getContract(LOCK_AND_DATA_ERC721);
     }
 
     function getTokenManager() external view returns (address) {
-        return getContract(TokenManager);
+        return getContract(TOKEN_MANAGER);
     }
 
     function getTokenFactory() external view returns (address) {
-        return getContract(TokenFactory);
+        return getContract(TOKEN_FACTORY);
     }
 
     function getMessageProxy() external view returns (address) {
-        return getContract(MessageProxy);
+        return getContract(MESSAGE_PROXY);
     }
 
     /**
