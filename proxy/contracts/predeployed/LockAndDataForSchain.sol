@@ -60,7 +60,7 @@ contract LockAndDataForSchain is OwnableForSchain {
     modifier allow(string memory contractName) {
         require(
             _checkPermitted(contractName,msg.sender) ||
-            getOwner() == msg.sender, "Not allowed LockAndDataForSchain");
+            getSchainOwner() == msg.sender, "Not allowed LockAndDataForSchain");
         _;
     }
 
@@ -72,7 +72,7 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Allows Owner to set a EthERC20 contract address.
      */
-    function setEthERC20Address(address newEthERC20Address) external onlyOwner {
+    function setEthERC20Address(address newEthERC20Address) external onlySchainOwner {
         _ethERC20Address = newEthERC20Address;
     }
 
@@ -85,7 +85,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * - New contract address must not already be added.
      * - Contract must contain code.
      */
-    function setContract(string calldata contractName, address newContract) external onlyOwner {
+    function setContract(string calldata contractName, address newContract) external onlySchainOwner {
         require(newContract != address(0), "New address is equal zero");
 
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
@@ -122,7 +122,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * - TokenManager address must be non-zero.
      */
     function addSchain(string calldata schainID, address tokenManagerAddress) external {
-        require(isAuthorizedCaller(msg.sender) || getOwner() == msg.sender, "Not authorized caller");
+        require(isAuthorizedCaller(msg.sender) || getSchainOwner() == msg.sender, "Not authorized caller");
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
@@ -136,7 +136,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      *
      * - SKALE chain must already be set.
      */
-    function removeSchain(string calldata schainID) external onlyOwner {
+    function removeSchain(string calldata schainID) external onlySchainOwner {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] != address(0), "SKALE chain is not set");
         delete tokenManagerAddresses[schainHash];
@@ -163,7 +163,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * - DepositBox address must be non-zero.
      */
     function addDepositBox(address depositBoxAddress) external {
-        require(isAuthorizedCaller(msg.sender) || getOwner() == msg.sender, "Not authorized caller");
+        require(isAuthorizedCaller(msg.sender) || getSchainOwner() == msg.sender, "Not authorized caller");
         require(depositBoxAddress != address(0), "Incorrect Deposit Box address");
         require(
             tokenManagerAddresses[
@@ -183,7 +183,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      *
      * - DepositBox must already be set.
      */
-    function removeDepositBox() external onlyOwner {
+    function removeDepositBox() external onlySchainOwner {
         require(
             tokenManagerAddresses[
                 keccak256(abi.encodePacked("Mainnet"))
@@ -196,14 +196,14 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Allows Owner to add an authorized caller.
      */
-    function addAuthorizedCaller(address caller) external onlyOwner {
+    function addAuthorizedCaller(address caller) external onlySchainOwner {
         authorizedCaller[caller] = true;
     }
 
     /**
      * @dev Allows Owner to remove an authorized caller.
      */
-    function removeAuthorizedCaller(address caller) external onlyOwner {
+    function removeAuthorizedCaller(address caller) external onlySchainOwner {
         authorizedCaller[caller] = false;
     }
 

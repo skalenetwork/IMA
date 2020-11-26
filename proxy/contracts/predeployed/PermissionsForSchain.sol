@@ -62,7 +62,7 @@ contract PermissionsForSchain is OwnableForSchain {
             IContractManagerForSchain(
                 getLockAndDataAddress()
             ).getContract(contractName) == msg.sender ||
-            getOwner() == msg.sender, "Message sender is invalid"
+            getSchainOwner() == msg.sender, "Message sender is invalid"
         );
         _;
     }
