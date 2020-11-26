@@ -7862,10 +7862,10 @@ truffle-typings@1.0.8:
     "@types/mocha" "^5.2.5"
     "@types/web3" "^1.0.18"
 
-truffle@^5.1.50:
-  version "5.1.50"
-  resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.1.50.tgz#78d7f06f0fbd6ec6d5651d4ba90cecf2c16d332f"
-  integrity sha512-SCAn29Z2i713BsUVfxRqM7AcvBuodTfFa1O9IX2KtqYs4/ACjJCp+702aRb63R9NowCeQ8WawrgRbYlmzCtpPA==
+truffle@^5.1.54:
+  version "5.1.54"
+  resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.1.54.tgz#e92bf801f1d75136aced8d7b75d8bd5ad94f2c70"
+  integrity sha512-9jl1jk3oIvWR7F5meh1FTyGV9qPh5GYbPdbrvaLgSUevMLUxnaMtWK6ZRcoVUG9zC0mY4uPL/brzb9nt+4LKJA==
   dependencies:
     app-module-path "^2.2.0"
     mocha "8.1.2"

@@ -27,7 +27,7 @@
         "openzeppelin-solidity": "^2.2.0",
         "path": "^0.12.7",
         "solc": "^0.5.4",
-        "truffle": "^5.1.50"
+        "truffle": "^5.1.54"
     },
     "devDependencies": {
         "@nomiclabs/buidler": "^1.4.7",
