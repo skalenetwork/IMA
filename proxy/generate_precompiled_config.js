@@ -1,5 +1,6 @@
 const imaUtils = require( "../agent/utils.js" );
 const log = require( "../npms/skale-log/log.js" );
+const path = require( "path" );
 const cc = log.cc;
 //cc.enable( true );
 cc.enable( false );
@@ -285,8 +286,14 @@ for( let idxContract = 0; idxContract < g_arrContracts.length; ++ idxContract ) 
         "storage": {},
         "code": joContractBuildInfo.deployedBytecode
     };
-    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA[joContractProperties.referenceVariableName] = joContractProperties.address;
-    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted[joContractBuildInfo.contractName] = joContractProperties.address;
+    let contractName = "";
+    for( const part of joContractBuildInfo.contractName.split( "Address" ) )
+        contractName += part;
+    let contractName2 = "";
+    for( const part of contractName.split( "ForSchain" ) )
+        contractName2 += part;
+    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA[contractName2 /*referenceVariableName before*/] = joContractProperties.address;
+    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.LockAndDataForSchain.permitted[contractName2] = joContractProperties.address;
     g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers[joContractProperties.address] = 1;
     //
     const strContractNameCamelCase = joContractProperties.fileName.replace( ".json", "" );

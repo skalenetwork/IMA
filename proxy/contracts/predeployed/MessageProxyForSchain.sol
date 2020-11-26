@@ -306,12 +306,15 @@ contract MessageProxyForSchain {
         connectMainnet
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
+
         require(isAuthorizedCaller(msg.sender), "Not authorized caller"); // l_sergiy: replacement
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
+
         for (uint256 i = 0; i < messages.length; i++) {
+
             try ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                 messages[i].sender,
                 srcChainID,
@@ -320,7 +323,7 @@ contract MessageProxyForSchain {
                 messages[i].data
             ) {
                 ++startingCounter;
-            } catch Error(string memory reason){
+            } catch Error(string memory reason) {
                 emit PostMessageError(
                     ++startingCounter,
                     srcChainHash,
@@ -350,7 +353,7 @@ contract MessageProxyForSchain {
         if (!_isCustomDeploymentMode) {
             if ((keccak256(abi.encodePacked(_chainID))) == (keccak256(abi.encodePacked(""))) )
                 return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString(
-                    "skaleConfig.sChain.schainID"
+                    "skaleConfig.sChain.schainName"
                 );
         }
         return _chainID;
@@ -376,7 +379,7 @@ contract MessageProxyForSchain {
         if (_isCustomDeploymentMode)
             return false;
         uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigPermissionFlag(
-            a, "skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers"
+            a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
         if ( u != 0 )
             return true;
