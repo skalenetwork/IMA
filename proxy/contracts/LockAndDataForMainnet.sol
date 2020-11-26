@@ -21,17 +21,19 @@
 
 pragma solidity 0.6.12;
 
-import "./OwnableForMainnet.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
+
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
 import "./interfaces/IMessageProxy.sol";
+
 
 /**
  * @title Lock and Data For Mainnet
  * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
  * balances of ETH tokens received through DepositBox.
  */
-contract LockAndDataForMainnet is OwnableForMainnet {
+contract LockAndDataForMainnet is OwnableUpgradeSafe {
 
     mapping(bytes32 => address) public permitted;
 
@@ -42,7 +44,7 @@ contract LockAndDataForMainnet is OwnableForMainnet {
     modifier allow(string memory contractName) {
         require(
             permitted[keccak256(abi.encodePacked(contractName))] == msg.sender ||
-            getOwner() == msg.sender,
+            owner() == msg.sender,
             "Not allowed"
         );
         _;
@@ -106,7 +108,7 @@ contract LockAndDataForMainnet is OwnableForMainnet {
     function addSchain(string calldata schainID, address tokenManagerAddress) external {
         require(
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            msg.sender == getOwner(), "Not authorized caller"
+            msg.sender == owner(), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
@@ -126,7 +128,7 @@ contract LockAndDataForMainnet is OwnableForMainnet {
     function removeSchain(string calldata schainID) external {
         require(
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            msg.sender == getOwner(), "Not authorized caller"
+            msg.sender == owner(), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] != address(0), "SKALE chain is not set");
@@ -190,8 +192,8 @@ contract LockAndDataForMainnet is OwnableForMainnet {
         return true;
     }
 
-    function initialize() public override initializer {
-        OwnableForMainnet.initialize();
+    function initialize() public initializer {
+        OwnableUpgradeSafe.__Ownable_init();
     }
 
     /**
