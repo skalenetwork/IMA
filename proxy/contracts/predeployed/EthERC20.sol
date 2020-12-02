@@ -21,15 +21,14 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+
 import "./OwnableForSchain.sol";
 
-import "./LockAndDataOwnable.sol";
 
-
-contract EthERC20 is LockAndDataOwnable, ContextUpgradeSafe, IERC20 {
+contract EthERC20 is OwnableForSchain, IERC20 {
 
     using SafeMath for uint256;
 
@@ -51,7 +50,7 @@ contract EthERC20 is LockAndDataOwnable, ContextUpgradeSafe, IERC20 {
         _delayedInit();
     }
 
-    function mint(address account, uint256 amount) external onlyOwner returns (bool) {
+    function mint(address account, uint256 amount) external onlyLockAndDataOwner returns (bool) {
         _delayedInit();
         require(totalSupply().add(amount) <= _capacity, "Capacity exceeded");
         _mint(account, amount);
@@ -63,7 +62,7 @@ contract EthERC20 is LockAndDataOwnable, ContextUpgradeSafe, IERC20 {
         _burn(msg.sender, amount);
     }
 
-    function burnFrom(address account, uint256 amount) external onlyOwner {
+    function burnFrom(address account, uint256 amount) external onlyLockAndDataOwner {
         _delayedInit();
         _burn(account, amount);
     }
