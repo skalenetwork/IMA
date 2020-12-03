@@ -12,7 +12,7 @@
         "ethereumjs-wallet": "0.6.3",
         "ethereumjs-util": "6.1.0",
         "web3": "1.2.1",
-        "uuid": "3.3.3",
+        "uuid": "8.3.1",
         "ws": "^7.2.3",
         "request": "^2.88.2",
         "sha3": "2.1.2",
