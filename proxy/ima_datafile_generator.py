@@ -63,7 +63,7 @@ def generate_ima_data_file(artifacts_folder, results_folder):
             contract_data = json.load(f)
         ima_data[f'{name}_address'] = contract['address']
         ima_data[f'{name}_abi'] = contract_data['abi']
-        ima_data[f'{name}_bytecode'] = contract_data['bytecode']
+        ima_data[f'{name}_bytecode'] = contract_data['deployedBytecode'] # not 'bytecode'
     with open(ima_data_filepath, 'w') as json_file:
         json.dump(ima_data, json_file, indent=4)
 
