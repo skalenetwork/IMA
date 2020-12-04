@@ -71,6 +71,25 @@ class Agent:
                 else:
                     sleep(1)
 
+    def add_eth_cost_from_mainnet_to_schain(self, from_key, to_key, amount_wei, timeout=0):
+        destination_address = self.blockchain.key_to_address(to_key)
+        balance, initial_balance = None, None
+        start = time()
+        if timeout > 0:
+            balance = self.blockchain.get_eth_cost_balance_on_schain(destination_address)
+            initial_balance = balance
+
+        self._execute_command('m2s-add-eth-cost', {**self._wei_to_bigger(amount_wei), 'key-main-net': from_key})
+
+        if timeout > 0:
+            while not balance == initial_balance + amount_wei:
+                balance = self.blockchain.get_eth_cost_balance_on_schain(destination_address)
+
+                if time() > start + timeout:
+                    return
+                else:
+                    sleep(1)
+
     def transfer_eth_from_schain_to_mainnet(self, from_key, to_key, amount_wei, timeout=0):
         transaction_fee = 2 * 10 ** 15
         destination_address = self.blockchain.key_to_address(to_key)

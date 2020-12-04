@@ -449,6 +449,26 @@ imaCLI.parse( {
             }
         } );
     },
+    "m2s-add-eth-cost": function() {
+        imaState.arrActions.push( {
+            "name": "add eth cost one M->S ETH payment",
+            "fn": async function() {
+                log.write( cc.info( "add eth cost one M->S ETH payment: " ) + "\n" ); // just print value
+                return await IMA.do_add_eth_cost_payment_from_main_net(
+                    imaState.w3_main_net,
+                    imaState.cid_main_net,
+                    imaState.joAccount_main_net,
+                    imaState.joAccount_s_chain,
+                    imaState.jo_deposit_box, // only main net
+                    imaState.jo_message_proxy_main_net, // for checking logs
+                    imaState.jo_lock_and_data_main_net, // for checking logs
+                    imaState.strChainID_s_chain,
+                    imaState.nAmountOfWei, // how much WEI money to send
+                    imaState.tc_main_net
+                );
+            }
+        } );
+    },
     "m2s-transfer": function() {
         imaState.arrActions.push( {
             "name": "single M->S transfer loop",

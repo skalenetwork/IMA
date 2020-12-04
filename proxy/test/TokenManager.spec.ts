@@ -172,80 +172,6 @@ contract("TokenManager", ([deployer, user, client]) => {
         balanceAfter.should.be.deep.equal(amountAfter);
     });
 
-    it("should add Eth cost", async () => {
-        const amount = new BigNumber("200000000000000000");
-        const amountTo = new BigNumber("20000000000000000");
-        const amountAfter = new BigNumber("180000000000000000");
-
-        // set EthERC20 address:
-        await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
-
-        // set contract TokenManager:
-        await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
-
-        // add connected chain:
-        await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
-
-        // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
-        await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
-
-        // send Eth:
-        await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
-
-        // // add schain:
-        await lockAndDataForSchain.addSchain(chainID, user, {from: deployer});
-
-        // add Eth cost:
-        await tokenManager.addEthCostWithoutAddress(amountTo, {from: user});
-
-        const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
-        balanceAfter.should.be.deep.equal(amountAfter);
-
-        const ethCosts = new BigNumber(await lockAndDataForSchain.ethCosts(user));
-        ethCosts.should.be.deep.equal(amountTo);
-    });
-
-    it("should remove Eth cost", async () => {
-        const amount = new BigNumber("200000000000000000");
-        const amountTo = new BigNumber("20000000000000000");
-        const amountAfter = new BigNumber("180000000000000000");
-
-        // set EthERC20 address:
-        await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
-
-        // set contract TokenManager:
-        await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
-
-        // add connected chain:
-        await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
-
-        // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
-        await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
-
-        // send Eth:
-        await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
-
-        // // add schain:
-        await lockAndDataForSchain.addSchain(chainID, user, {from: deployer});
-
-        // add Eth cost:
-        await tokenManager.addEthCostWithoutAddress(amountTo, {from: user});
-
-        const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
-        balanceAfter.should.be.deep.equal(amountAfter);
-
-        const ethCosts = new BigNumber(await lockAndDataForSchain.ethCosts(user));
-        ethCosts.should.be.deep.equal(amountTo);
-
-        await tokenManager.removeEthCost({from: user});
-
-        const balanceAfterY = new BigNumber(await ethERC20.balanceOf(user));
-        balanceAfterY.should.be.deep.equal(amount);
-
-        const ethCostsY = new BigNumber(await lockAndDataForSchain.ethCosts(user));
-        ethCostsY.should.be.deep.equal(new BigNumber(0));
-    });
-
     it("should rejected with `Not allowed ERC20 Token` when invoke `exitToMainERC20`", async () => {
         const error = "Not allowed ERC20 Token";
         const amount = new BigNumber(200);
@@ -1147,6 +1073,37 @@ contract("TokenManager", ([deployer, user, client]) => {
             // expectation
             expect(parseInt((new BigNumber(await ethERC20.balanceOf(to))).toString(), 10))
                 .to.be.equal(amount);
+        });
+
+        it("should transfer ETH for recharging wallet", async () => {
+            //  preparation
+            const schainID = randomString(10);
+            const amount = "10";
+            const to = user;
+            const to0 = "0x0000000000000000000000000000000000000000";
+            const sender = deployer;
+            const data = "0x02";
+
+            // add schain to avoid the `Unconnected chain` error
+            await lockAndDataForSchain
+                .addSchain(schainID, deployer, {from: deployer});
+            // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
+            await messageProxyForSchain
+              .addConnectedChain(schainID, publicKeyArray, {from: deployer});
+            tokenManager = await TokenManager.new(chainID, deployer,
+                lockAndDataForSchain.address, {from: deployer});
+            // set `tokenManager` contract before invoke `postMessage`
+            await lockAndDataForSchain
+              .setContract("TokenManager", tokenManager.address, {from: deployer});
+
+            // execution
+            await tokenManager
+              .postMessage(sender, schainID, to, amount, data, {from: deployer});
+
+            const weiOnAccount0 = new BigNumber(await lockAndDataForSchain.ethCosts(to0)).toString(10);
+            const weiOnAccount = new BigNumber(await lockAndDataForSchain.ethCosts(to)).toString(10);
+            weiOnAccount0.should.be.equal("0");
+            weiOnAccount.should.be.equal(amount);
         });
 
         it("should transfer rawERC20 token", async () => {
