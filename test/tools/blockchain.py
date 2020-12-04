@@ -39,7 +39,7 @@ class BlockChain:
     def get_balance_on_schain(self, address):
         eth_token = self._get_contract_on_schain('eth_erc20')
         return eth_token.functions.balanceOf(address).call()
-    
+
     def get_eth_cost_balance_on_schain(self, address):
         eth_token = self._get_contract_on_schain('lock_and_data_for_schain')
         return eth_token.functions.ethCosts(address).call()
