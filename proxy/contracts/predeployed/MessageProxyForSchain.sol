@@ -142,6 +142,11 @@ contract MessageProxyForSchain {
         _;
     }
 
+    modifier onlyOwner() {
+        require(msg.sender == getOwner(), "Sender is not an owner");
+        _;
+    }
+
     /// Create a new message proxy
 
     constructor(string memory newChainID) public {
@@ -169,13 +174,11 @@ contract MessageProxyForSchain {
         }
     }
 
-    function addAuthorizedCaller(address caller) external {
-        require(msg.sender == getOwner(), "Sender is not an owner");
+    function addAuthorizedCaller(address caller) external onlyOwner {
         _authorizedCaller[caller] = true;
     }
 
-    function removeAuthorizedCaller(address caller) external {
-        require(msg.sender == getOwner(), "Sender is not an owner");
+    function removeAuthorizedCaller(address caller) external onlyOwner {
         _authorizedCaller[caller] = false;
     }
 
@@ -204,7 +207,7 @@ contract MessageProxyForSchain {
         external
         connectMainnet
     {
-        require(checkIsAuthorizedCaller(msg.sender), "Not authorized caller");
+        require(isAuthorizedCaller(msg.sender), "Not authorized caller");
         if ( keccak256(abi.encodePacked(newChainID)) ==
             keccak256(abi.encodePacked("Mainnet")) )
             return;
@@ -223,8 +226,7 @@ contract MessageProxyForSchain {
         });
     }
 
-    function removeConnectedChain(string calldata newChainID) external {
-        require(msg.sender == getOwner(), "Sender is not an owner");
+    function removeConnectedChain(string calldata newChainID) external onlyOwner {
         require(
             keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet")),
@@ -304,12 +306,15 @@ contract MessageProxyForSchain {
         connectMainnet
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(checkIsAuthorizedCaller(msg.sender), "Not authorized caller"); // l_sergiy: replacement
+
+        require(isAuthorizedCaller(msg.sender), "Not authorized caller"); // l_sergiy: replacement
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
+
         for (uint256 i = 0; i < messages.length; i++) {
+
             try ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                 messages[i].sender,
                 srcChainID,
@@ -318,7 +323,7 @@ contract MessageProxyForSchain {
                 messages[i].data
             ) {
                 ++startingCounter;
-            } catch Error(string memory reason){
+            } catch Error(string memory reason) {
                 emit PostMessageError(
                     ++startingCounter,
                     srcChainHash,
@@ -335,28 +340,26 @@ contract MessageProxyForSchain {
         _popOutgoingMessageData(idxLastToPopNotIncluding);
     }
 
-    function moveIncomingCounter(string calldata schainName) external {
-        require(msg.sender == getOwner(), "Sender is not an owner");
+    function moveIncomingCounter(string calldata schainName) external onlyOwner {
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter++;
     }
 
-    function setCountersToZero(string calldata schainName) external {
-        require(msg.sender == getOwner(), "Sender is not an owner");
+    function setCountersToZero(string calldata schainName) external onlyOwner {
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
-    function getChainID() public view returns (string memory cID) { // l_sergiy: added
+    function getChainID() public view returns (string memory) {
         if (!_isCustomDeploymentMode) {
             if ((keccak256(abi.encodePacked(_chainID))) == (keccak256(abi.encodePacked(""))) )
                 return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString(
-                    "skaleConfig.sChain.schainID"
+                    "skaleConfig.sChain.schainName"
                 );
         }
         return _chainID;
     }
 
-    function getOwner() public view returns (address ow) { // l_sergiy: added
+    function getOwner() public view returns (address) {
         if (!_isCustomDeploymentMode) {
             if ((ownerAddress) == (address(0)) )
                 return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
@@ -366,17 +369,17 @@ contract MessageProxyForSchain {
         return ownerAddress;
     }
 
-    function setOwner(address newAddressOwner) public {
+    function setOwner(address newAddressOwner) public onlyOwner {
         ownerAddress = newAddressOwner;
     }
 
-    function checkIsAuthorizedCaller(address a) public view returns (bool rv) { // l_sergiy: added
+    function isAuthorizedCaller(address a) public view returns (bool) {
         if (_authorizedCaller[a] )
             return true;
         if (_isCustomDeploymentMode)
             return false;
         uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigPermissionFlag(
-            a, "skaleConfig.contractSettings.IMA.variables.MessageProxyForSchain.mapAuthorizedCallers"
+            a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
         if ( u != 0 )
             return true;

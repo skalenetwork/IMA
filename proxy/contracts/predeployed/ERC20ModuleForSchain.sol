@@ -73,7 +73,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         {
         address lockAndDataERC20 = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+        ).getLockAndDataERC20();
         uint256 contractPosition = ILockAndDataERC20S(lockAndDataERC20).erc20Mapper(contractHere);
         require(contractPosition > 0, "ERC20 contract does not exist on SKALE chain.");
         require(
@@ -100,9 +100,9 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
      * Emits a {ERC20TokenReceived} event on success.
      */
     function sendERC20(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
-        address lockAndDataERC20 = IContractManagerForSchain(
-            getLockAndDataAddress()
-        ).permitted(keccak256(abi.encodePacked("LockAndDataERC20")));
+
+        address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).getLockAndDataERC20();
+
         uint256 contractPosition;
         address contractAddress;
         address receiver;
@@ -112,8 +112,10 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         if (to == address(0)) {
             if (contractAddress == address(0)) {
                 contractAddress = _sendCreateERC20Request(data);
+
                 emit ERC20TokenCreated(contractPosition, contractAddress);
                 ILockAndDataERC20S(lockAndDataERC20).addERC20Token(contractAddress, contractPosition);
+
             } else {
                 uint256 totalSupply = _fallbackTotalSupplyParser(data);
                 if (totalSupply > ERC20Clone(contractAddress).totalSupplyOnMainnet()) {
@@ -147,7 +149,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         (name, symbol, , totalSupply) = _fallbackDataCreateERC20Parser(data);
         address tokenFactoryAddress = IContractManagerForSchain(
             getLockAndDataAddress()
-        ).permitted(keccak256(abi.encodePacked("TokenFactory")));
+        ).getTokenFactory();
         return ITokenFactoryForERC20(tokenFactoryAddress).createERC20(name, symbol, totalSupply);
     }
 

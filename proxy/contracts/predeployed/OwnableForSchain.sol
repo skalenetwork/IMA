@@ -21,6 +21,7 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./SkaleFeatures.sol";
 
 
@@ -29,19 +30,21 @@ import "./SkaleFeatures.sol";
  * @dev The OwnableForSchain contract has an owner address, and provides basic authorization control
  * functions, this simplifies the implementation of "user permissions".
  */
-contract OwnableForSchain {
-
-    /**
-     * @dev _ownerAddress is only used after transferOwnership(). 
-     * By default, value of "skaleConfig.contractSettings.IMA._ownerAddress" config variable is used
-     */
-    address private _ownerAddress;
+contract OwnableForSchain is Ownable {
 
     /**
      * @dev Throws if called by any account other than the owner.
      */
-    modifier onlyOwner() {
-        require(msg.sender == getOwner(), "Only owner can execute this method");
+    modifier onlySchainOwner() {
+        require(msg.sender == getSchainOwner(), "Only schain owner can execute this method");
+        _;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyLockAndDataOwner() {
+        require(msg.sender == getLockAndDataOwner(), "Only lockAndData owner can execute this method");
         _;
     }
 
@@ -49,35 +52,29 @@ contract OwnableForSchain {
      * @dev The OwnableForSchain constructor sets the original `owner` of the contract to the sender
      * account.
      */
-    constructor() public {
-        _ownerAddress = msg.sender;
-    }
-
-    /**
-     * @dev Allows the current owner to transfer control of the contract to a newOwner.
-     * @param newOwner The address to transfer ownership to.
-     */
-    function transferOwnership(address payable newOwner) external onlyOwner {
-        require(newOwner != address(0), "New owner has to be set");
-        setOwner(newOwner);
-    }
-
-    /**
-     * @dev Sets new owner address.
-     */
-    function setOwner( address newAddressOwner ) public {
-        _ownerAddress = newAddressOwner;
+    constructor() public Ownable() {
+        // solhint-disable-previous-line no-empty-blocks
     }
 
     /**
      * @dev Returns owner address.
      */
-    function getOwner() public view returns ( address ow ) {
-        if ((_ownerAddress) == (address(0)) )
+    function getSchainOwner() public view returns (address) {
+        if (owner() == (address(0)) )
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
-                "skaleConfig.contractSettings.IMA._ownerAddress"
+                "skaleConfig.contractSettings.IMA.ownerAddress"
             );
-        return _ownerAddress;
+        return owner();
     }
 
+    /**
+     * @dev Returns owner address.
+     */
+    function getLockAndDataOwner() public view returns (address) {
+        if (owner() == (address(0)) )
+            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+                "skaleConfig.contractSettings.IMA.LockAndData"
+            );
+        return owner();
+    }
 }
