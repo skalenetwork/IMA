@@ -198,8 +198,8 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
   it("should send Eth", async () => {
     const address = user;
     const amount = 200;
-    const amountZero = 0;
-    const amountMoreThenCap = 1210000000000000000;
+    const amountMoreThenCap = "121000000000000000000000000";
+    const amountSum = "121000000000000000000000200"
 
     // set EthERC20 address:
     await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
@@ -211,18 +211,18 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await lockAndDataForSchain.sendEth(address, amount, {from: user}).should.be.rejected;
 
     // amount more zen cap = 120 * (10 ** 6) * (10 ** 18) can't be sent:
-    await lockAndDataForSchain.sendEth(address, amountMoreThenCap, {from: deployer}).should.be.rejected;
+    await lockAndDataForSchain.sendEth(address, amountMoreThenCap, {from: deployer});
 
     // balance of account  equal to zero:
-    const balanceBefore = parseInt(new BigNumber(await ethERC20.balanceOf(user)).toString(), 10);
-    balanceBefore.should.be.deep.equal(amountZero);
+    const balanceBefore = new BigNumber(await ethERC20.balanceOf(user)).toFixed();
+    balanceBefore.should.be.deep.equal(amountMoreThenCap);
 
     // send Eth:
     await lockAndDataForSchain.sendEth(address, amount, {from: deployer});
 
     // balance of account equal to amount which has been sent:
-    const balanceAfter = parseInt(new BigNumber(await ethERC20.balanceOf(user)).toString(), 10);
-    balanceAfter.should.be.deep.equal(amount);
+    const balanceAfter = new BigNumber(await ethERC20.balanceOf(user)).toFixed();
+    balanceAfter.should.be.deep.equal(amountSum);
   });
 
   it("should receive Eth", async () => {

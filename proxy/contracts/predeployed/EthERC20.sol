@@ -44,15 +44,12 @@ contract EthERC20 is OwnableForSchain, IERC20 {
 
     bool private _initialized = false;
 
-    uint private _capacity;
-
     constructor() public {
         _delayedInit();
     }
 
     function mint(address account, uint256 amount) external onlyLockAndDataOwner returns (bool) {
         _delayedInit();
-        require(totalSupply().add(amount) <= _capacity, "Capacity exceeded");
         _mint(account, amount);
         return true;
     }
@@ -323,7 +320,6 @@ contract EthERC20 is OwnableForSchain, IERC20 {
         _name = "ERC20 Ether Clone";
         _symbol = "ETHC";
         _decimals = 18;
-        _capacity = 120 * (10 ** 6) * (10 ** 18);
     }
 
     /**
