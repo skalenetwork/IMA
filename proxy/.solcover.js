@@ -7,7 +7,7 @@ module.exports = {
         "test/"
     ],
     providerOptions: {
-        default_balance_ether: 3000, //000000000000000000,
+        default_balance_ether: 300000, //000000000000000000,
         callGasLimit: 10000000,
         gasLimit: 0xfffffffffff,
         port: 8555
