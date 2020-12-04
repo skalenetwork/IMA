@@ -274,6 +274,7 @@ function parse( joExternalHandlers ) {
             console.log( cc.sunny( "ACTION" ) + cc.info( " commands:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "show-config" ) + cc.debug( "..................." ) + cc.notice( "Show " ) + cc.note( "configuration values" ) + cc.notice( " and exit." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-payment" ) + cc.debug( "..................." ) + cc.notice( "Do one " ) + cc.note( "payment from Main-net user account to S-chain" ) + cc.notice( " user account." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-add-eth-cost" ) + cc.debug( "..................." ) + cc.notice( "Do one " ) + cc.note( "add eth cost payment from Main-net user account to S-chain" ) + cc.notice( " user account." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-payment" ) + cc.debug( "..................." ) + cc.notice( "Do one " ) + cc.note( "payment from S-chain user account to Main-net" ) + cc.notice( " user account." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-receive" ) + cc.debug( "..................." ) + cc.notice( "Receive one " ) + cc.note( "payment from S-chain user account to Main-net" ) + cc.notice( " user account(ETH only, receives all the ETH pending in transfer)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-view" ) + cc.debug( "......................" ) + cc.notice( "View money amount user can receive as " ) + cc.note( "payment from S-chain user account to Main-net" ) + cc.notice( " user account(ETH only, receives all the ETH pending in transfer)." ) );
@@ -746,6 +747,7 @@ function parse( joExternalHandlers ) {
             joArg.name == "check-registration2" ||
             joArg.name == "check-registration3" ||
             joArg.name == "m2s-payment" ||
+            joArg.name == "m2s-add-eth-cost" ||
             joArg.name == "s2m-payment" ||
             joArg.name == "s2m-receive" ||
             joArg.name == "s2m-view" ||

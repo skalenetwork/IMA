@@ -39,6 +39,10 @@ class BlockChain:
     def get_balance_on_schain(self, address):
         eth_token = self._get_contract_on_schain('eth_erc20')
         return eth_token.functions.balanceOf(address).call()
+    
+    def get_eth_cost_balance_on_schain(self, address):
+        eth_token = self._get_contract_on_schain('lock_and_data_for_schain')
+        return eth_token.functions.ethCosts(address).call()
 
     def get_balance_on_mainnet(self, address):
         return self.web3_mainnet.eth.getBalance(address)
@@ -68,20 +72,6 @@ class BlockChain:
         lock_and_data_for_mainnet = self._get_contract_on_mainnet('lock_and_data_for_mainnet')
         return lock_and_data_for_mainnet.functions.approveTransfers(address).call()
 
-    def add_eth_cost(self, from_key, amount):
-        sender_address = self.key_to_address(from_key)
-        token_manager = self._get_contract_on_schain('token_manager')
-        add_eth_cost_encode_abi = token_manager.encodeABI(fn_name="addEthCostWithoutAddress", args=[amount])
-        signed_txn = self.web3_schain.eth.account.signTransaction(dict(
-                nonce=self.web3_schain.eth.getTransactionCount(sender_address),
-                gasPrice=self.web3_schain.eth.gasPrice,
-                gas=200000,
-                to=token_manager.address,
-                value=0,
-                data = add_eth_cost_encode_abi
-            ),
-            from_key)
-        self.web3_schain.eth.sendRawTransaction(signed_txn.rawTransaction)
 
     def send_ether_on_mainnet(self, from_key, to_key, amount_wei):
         sender_address = self.key_to_address(from_key)
