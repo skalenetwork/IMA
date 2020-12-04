@@ -276,7 +276,7 @@ function extract_dry_run_method_name( methodWithArguments ) {
     return "N/A-method-name";
 }
 
-async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnore ) {
+async function dry_run_call( w3, methodWithArguments, amountOfWei, joAccount, strDRC, isIgnore ) {
     if( verbose_get() >= RV_VERBOSE.information )
         log.write( cc.attention( "DRY RUN" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version ) + "\n" );
     isIgnore = ( isIgnore != null && isIgnore != undefined ) ? ( isIgnore ? true : false ) : false;
@@ -302,6 +302,7 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
         }
         const joResult = await methodWithArguments.call( {
             from: addressFrom,
+            value: amountOfWei,
             gas: 8000000
         } );
         if( verbose_get() >= RV_VERBOSE.information )
@@ -681,7 +682,7 @@ async function register_s_chain_in_deposit_box( // step 1
             );
             const isIgnore = false;
             const strDRC = "register_s_chain_in_deposit_box, step 1, addSchain";
-            await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore );
+            await dry_run_call( w3_main_net, methodWithArguments, 0, joAccount_main_net, strDRC, isIgnore );
             const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
             //
             const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
@@ -799,7 +800,7 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
         );
         const isIgnore = false;
         const strDRC = "register_main_net_depositBox_on_s_chain, step 2A, addDepositBox";
-        await dry_run_call( w3_s_chain, methodWithArguments, joAccount, strDRC, isIgnore );
+        await dry_run_call( w3_s_chain, methodWithArguments, 0, joAccount, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
@@ -914,7 +915,7 @@ async function register_main_net_on_s_chain( // step 2B
         );
         const isIgnore = false;
         const strDRC = "register_main_net_on_s_chain, step 2B, addConnectedChain";
-        await dry_run_call( w3_s_chain, methodWithArguments, joAccount_s_chain, strDRC, isIgnore );
+        await dry_run_call( w3_s_chain, methodWithArguments, 0, joAccount_s_chain, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
@@ -1001,7 +1002,7 @@ async function do_eth_payment_from_main_net(
         );
         const isIgnore = true;
         const strDRC = "do_eth_payment_from_main_net, deposit";
-        await dry_run_call( w3_main_net, methodWithArguments, joAccountSrc, strDRC, isIgnore );
+        await dry_run_call( w3_main_net, methodWithArguments, wei_how_much, joAccountSrc, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
@@ -1124,62 +1125,11 @@ async function do_eth_payment_from_s_chain(
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_eth_payment_from_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        const tokenManagerAddress = jo_token_manager.options.address;
         //
         const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
         //
-        if( g_amountToAddCost != null && g_amountToAddCost != undefined ) {
-            strActionName = "w3_s_chain.eth.sendSignedTransaction()/addEthCost";
-            const tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
-            if( verbose_get() >= RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-            //
-            const isIgnore_addEthCost = false;
-            const methodWithArguments_addEthCost = jo_token_manager.methods.addEthCost(
-                "0x" + w3_s_chain.utils.toBN( g_amountToAddCost ).toString( 16 )
-            );
-            //
-            const strDRC_addEthCost = "do_erc20_payment_from_s_chain, addEthCost";
-            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
-            dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
-            //
-            const rawTxAddEthCost = {
-                chainId: cid_s_chain,
-                from: joAccountSrc.address( w3_s_chain ),
-                nonce: "0x" + tcnt.toString( 16 ),
-                data: dataAddEthCost,
-                to: tokenManagerAddress,
-                gasPrice: gasPrice,
-                gas: 8000000
-            };
-            const txAddEthCost = compose_tx_instance( strLogPrefix, rawTxAddEthCost );
-            const joAddEthCostSR = await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
-            let joReceiptAddEthCost = null;
-            if( joAddEthCostSR.joACI.isAutoSend )
-                joReceiptAddEthCost = await w3_s_chain.eth.getTransactionReceipt( joAddEthCostSR.txHashSent );
-            else {
-                const serializedTxAddEthCost = txAddEthCost.serialize();
-                // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
-                joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
-            }
-            if( verbose_get() >= RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.success( "Result receipt for AddEthCost: " ) + cc.j( joReceiptAddEthCost ) + "\n" );
-            if( joReceiptAddEthCost && typeof joReceiptAddEthCost == "object" && "gasUsed" in joReceiptAddEthCost ) {
-                jarrReceipts.push( {
-                    "description": "do_eth_payment_from_s_chain/exit-to-main",
-                    "receipt": joReceiptAddEthCost
-                } );
-            }
-            //
-            if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
-                log.write( cc.normal( "Sleeping " ) + cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
-                await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
-            }
-            if( g_bWaitForNextBlockOnSChain )
-                await wait_for_next_block_to_appear( w3_s_chain );
-        } // if( g_amountToAddCost != null && g_amountToAddCost != undefined )
         const tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
@@ -1194,7 +1144,7 @@ async function do_eth_payment_from_s_chain(
         );
         const isIgnore = true;
         const strDRC = "do_eth_payment_from_s_chain, exitToMain";
-        await dry_run_call( w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore );
+        await dry_run_call( w3_s_chain, methodWithArguments, 0, joAccountSrc, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const rawTx = {
@@ -1292,7 +1242,7 @@ async function do_add_eth_cost_payment_from_main_net(
         );
         const isIgnore = true;
         const strDRC = "do_add_eth_cost_payment_from_main_net, deposit";
-        await dry_run_call( w3_main_net, methodWithArguments, joAccountSrc, strDRC, isIgnore );
+        await dry_run_call( w3_main_net, methodWithArguments, wei_how_much, joAccountSrc, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
@@ -1413,7 +1363,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         );
         const isIgnore = false;
         const strDRC = "receive_eth_payment_from_s_chain_on_main_net, getMyEth";
-        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore );
+        await dry_run_call( w3_main_net, methodWithArguments, 0, joAccount_main_net, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
@@ -1540,7 +1490,7 @@ async function do_erc721_payment_from_main_net(
         const dataTxApprove = methodWithArguments_approve.encodeABI();
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc721_payment_from_main_net, transferFrom";
-        await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve );
+        await dry_run_call( w3_main_net, methodWithArguments_approve, 0, joAccountSrc, strDRC_approve, isIgnore_approve );
         let dataTxDeposit = null;
         if( isRawTokenTransfer ) {
             const erc721Address_s_chain = erc721PrivateTestnetJson_s_chain[strCoinNameErc721_s_chain + "_address"];
@@ -1550,7 +1500,7 @@ async function do_erc721_payment_from_main_net(
             );
             const isIgnore_rawDepositERC721 = true;
             const strDRC_rawDepositERC721 = "do_erc721_payment_from_main_net, rawDepositERC721";
-            await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721 );
+            await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC721, 0, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721 );
             dataTxDeposit = methodWithArguments_rawDepositERC721.encodeABI();
         } else {
             // TO-DO: this is beta version, need to re-check and improve it later
@@ -1559,7 +1509,7 @@ async function do_erc721_payment_from_main_net(
             );
             const isIgnore_depositERC721 = true;
             const strDRC_depositERC721 = "do_erc721_payment_from_main_net, depositERC721";
-            await dry_run_call( w3_main_net, methodWithArguments_depositERC721, joAccountSrc, strDRC_depositERC721, isIgnore_depositERC721 );
+            await dry_run_call( w3_main_net, methodWithArguments_depositERC721, 0, joAccountSrc, strDRC_depositERC721, isIgnore_depositERC721 );
             dataTxDeposit = methodWithArguments_depositERC721.encodeABI();
         }
         //
@@ -1750,7 +1700,7 @@ async function do_erc20_payment_from_main_net(
         );
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc20_payment_from_main_net, ";
-        await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve );
+        await dry_run_call( w3_main_net, methodWithArguments_approve, 0, joAccountSrc, strDRC_approve, isIgnore_approve );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
         let dataTxDeposit = null;
         log.write( strLogPrefix + cc.normal( "isRawTokenTransfer = " ) + cc.info( isRawTokenTransfer ) + "\n" );
@@ -1762,7 +1712,7 @@ async function do_erc20_payment_from_main_net(
             );
             const isIgnore_rawDepositERC20 = true;
             const strDRC_rawDepositERC20 = "do_erc20_payment_from_main_net, ";
-            await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20 );
+            await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC20, 0, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20 );
             dataTxDeposit = methodWithArguments_rawDepositERC20.encodeABI();
         } else {
             // TO-DO: this is beta version, need to re-check and improve it later
@@ -1771,7 +1721,7 @@ async function do_erc20_payment_from_main_net(
             );
             const isIgnore_depositERC20 = true;
             const strDRC_depositERC20 = "do_erc20_payment_from_main_net, ";
-            await dry_run_call( w3_main_net, methodWithArguments_depositERC20, joAccountSrc, strDRC_depositERC20, isIgnore_depositERC20 );
+            await dry_run_call( w3_main_net, methodWithArguments_depositERC20, 0, joAccountSrc, strDRC_depositERC20, isIgnore_depositERC20 );
             dataTxDeposit = methodWithArguments_depositERC20.encodeABI();
         }
         //
@@ -1953,7 +1903,7 @@ async function do_erc20_payment_from_s_chain(
         );
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc20_payment_from_s_chain, approve";
-        await dry_run_call( w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve );
+        await dry_run_call( w3_s_chain, methodWithArguments_approve, 0, joAccountSrc, strDRC_approve, isIgnore_approve );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
         let dataExitToMainERC20 = null;
         if( isRawTokenTransfer ) {
@@ -1964,7 +1914,7 @@ async function do_erc20_payment_from_s_chain(
             );
             const isIgnore_rawExitToMainERC20 = true;
             const strDRC_rawExitToMainERC20 = "do_erc20_payment_from_s_chain, rawExitToMainERC20";
-            await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20 );
+            await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC20, 0, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20 );
             dataExitToMainERC20 = methodWithArguments_rawExitToMainERC20.encodeABI();
         } else {
             // TO-DO: this is beta version, need to re-check and improve it later
@@ -1973,7 +1923,7 @@ async function do_erc20_payment_from_s_chain(
             );
             const isIgnore_exitToMainERC20 = true;
             const strDRC_exitToMainERC20 = "do_erc20_payment_from_s_chain, exitToMainERC20";
-            await dry_run_call( w3_s_chain, methodWithArguments_exitToMainERC20, joAccountSrc, strDRC_exitToMainERC20, isIgnore_exitToMainERC20 );
+            await dry_run_call( w3_s_chain, methodWithArguments_exitToMainERC20, 0, joAccountSrc, strDRC_exitToMainERC20, isIgnore_exitToMainERC20 );
             dataExitToMainERC20 = methodWithArguments_exitToMainERC20.encodeABI();
         }
         //
@@ -2028,56 +1978,6 @@ async function do_erc20_payment_from_s_chain(
             await wait_for_next_block_to_appear( w3_s_chain );
         //
         //
-        if( g_amountToAddCost != null && g_amountToAddCost != undefined ) {
-            strActionName = "w3_s_chain.eth.sendSignedTransaction()/addEthCost";
-            tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
-            if( verbose_get() >= RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-            //
-            const isIgnore_addEthCost = false;
-            const methodWithArguments_addEthCost = jo_token_manager.methods.addEthCost(
-                "0x" + w3_main_net.utils.toBN( g_amountToAddCost ).toString( 16 )
-            );
-            //
-            const strDRC_addEthCost = "do_erc20_payment_from_s_chain, addEthCost";
-            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
-            dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
-            //
-            const rawTxAddEthCost = {
-                chainId: cid_s_chain,
-                from: accountForSchain,
-                nonce: "0x" + tcnt.toString( 16 ),
-                data: dataAddEthCost,
-                to: tokenManagerAddress,
-                gasPrice: gasPrice,
-                gas: 8000000
-            };
-            const txAddEthCost = compose_tx_instance( strLogPrefix, rawTxAddEthCost );
-            const joAddEthCostSR = await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
-            let joReceiptAddEthCost = null;
-            if( joAddEthCostSR.joACI.isAutoSend )
-                joReceiptAddEthCost = await w3_s_chain.eth.getTransactionReceipt( joAddEthCostSR.txHashSent );
-            else {
-                const serializedTxAddEthCost = txAddEthCost.serialize();
-                // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
-                joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
-            }
-            if( verbose_get() >= RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.success( "Result receipt for AddEthCost: " ) + cc.j( joReceiptAddEthCost ) + "\n" );
-            if( joReceiptAddEthCost && typeof joReceiptAddEthCost == "object" && "gasUsed" in joReceiptAddEthCost ) {
-                jarrReceipts.push( {
-                    "description": "do_erc20_payment_from_s_chain/exit-to-main",
-                    "receipt": joReceiptAddEthCost
-                } );
-            }
-            //
-            if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
-                log.write( cc.normal( "Sleeping " ) + cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
-                await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
-            }
-            if( g_bWaitForNextBlockOnSChain )
-                await wait_for_next_block_to_appear( w3_s_chain );
-        } // if( g_amountToAddCost != null && g_amountToAddCost != undefined )
         //
         //
         strActionName = "w3_s_chain.eth.sendSignedTransaction()/ExitToMainERC20";
@@ -2177,7 +2077,7 @@ async function do_erc721_payment_from_s_chain(
         );
         const isIgnore_transferFrom = false;
         const strDRC_transferFrom = "erc721_payment_from_s_chain, transferFrom";
-        await dry_run_call( w3_s_chain, methodWithArguments_transferFrom, joAccountSrc, strDRC_transferFrom,isIgnore_transferFrom );
+        await dry_run_call( w3_s_chain, methodWithArguments_transferFrom, 0, joAccountSrc, strDRC_transferFrom,isIgnore_transferFrom );
         const dataTxTransferFrom = methodWithArguments_transferFrom.encodeABI();
         let dataTxExitToMainERC721 = null;
         if( isRawTokenTransfer ) {
@@ -2188,7 +2088,7 @@ async function do_erc721_payment_from_s_chain(
             );
             const isIgnore_rawExitToMainERC721 = true;
             const strDRC_rawExitToMainERC721 = "erc721_payment_from_s_chain, rawExitToMainERC721";
-            await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721 );
+            await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC721, 0, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721 );
             dataTxExitToMainERC721 = methodWithArguments_rawExitToMainERC721.encodeABI();
         } else {
             // TO-DO: this is beta version, need to re-check and improve it later
@@ -2197,7 +2097,7 @@ async function do_erc721_payment_from_s_chain(
             );
             const isIgnore_exitToMainERC721 = true;
             const strDRC_exitToMainERC721 = "erc721_payment_from_s_chain, exitToMainERC721";
-            await dry_run_call( w3_s_chain, methodWithArguments_exitToMainERC721, joAccountSrc, strDRC_exitToMainERC721, isIgnore_exitToMainERC721 );
+            await dry_run_call( w3_s_chain, methodWithArguments_exitToMainERC721, 0, joAccountSrc, strDRC_exitToMainERC721, isIgnore_exitToMainERC721 );
             dataTxExitToMainERC721 = methodWithArguments_exitToMainERC721.encodeABI();
         }
         //
@@ -2251,56 +2151,6 @@ async function do_erc721_payment_from_s_chain(
             await wait_for_next_block_to_appear( w3_s_chain );
         //
         //
-        if( g_amountToAddCost != null && g_amountToAddCost != undefined ) {
-            strActionName = "w3_s_chain.eth.sendSignedTransaction()/addEthCost";
-            tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
-            if( verbose_get() >= RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-            //
-            const isIgnore_addEthCost = false;
-            const methodWithArguments_addEthCost = jo_token_manager.methods.addEthCost(
-                "0x" + w3_main_net.utils.toBN( g_amountToAddCost ).toString( 16 )
-            );
-            //
-            const strDRC_addEthCost = "do_erc20_payment_from_s_chain, addEthCost";
-            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
-            dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
-            //
-            const rawTxAddEthCost = {
-                chainId: cid_s_chain,
-                from: accountForSchain,
-                nonce: "0x" + tcnt.toString( 16 ),
-                data: dataAddEthCost,
-                to: tokenManagerAddress,
-                gasPrice: gasPrice,
-                gas: 8000000
-            };
-            const txAddEthCost = compose_tx_instance( strLogPrefix, rawTxAddEthCost );
-            const joAddEthCostSR = await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
-            let joReceiptAddEthCost = null;
-            if( joAddEthCostSR.joACI.isAutoSend )
-                joReceiptAddEthCost = await w3_s_chain.eth.getTransactionReceipt( joAddEthCostSR.txHashSent );
-            else {
-                const serializedTxAddEthCost = txAddEthCost.serialize();
-                // let joReceiptAddEthCost = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxAddEthCost.toString( "hex" ) );
-                joReceiptAddEthCost = await safe_send_signed_transaction( w3_s_chain, serializedTxAddEthCost, strActionName, strLogPrefix );
-            }
-            if( joReceiptAddEthCost && typeof joReceiptAddEthCost == "object" && "gasUsed" in joReceiptAddEthCost ) {
-                jarrReceipts.push( {
-                    "description": "do_erc721_payment_from_s_chain/exit-to-main",
-                    "receipt": joReceiptAddEthCost
-                } );
-            }
-            if( verbose_get() >= RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.success( "Result receipt for AddEthCost: " ) + cc.j( joReceiptAddEthCost ) + "\n" );
-            //
-            if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
-                log.write( cc.normal( "Sleeping " ) + cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
-                await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
-            }
-            if( g_bWaitForNextBlockOnSChain )
-                await wait_for_next_block_to_appear( w3_s_chain );
-        } // if( g_amountToAddCost != null && g_amountToAddCost != undefined )
         //
         //
         strActionName = "w3_s_chain.eth.sendSignedTransaction()/ExitToMainERC721";
@@ -2697,7 +2547,7 @@ async function do_transfer(
                 );
                 const isIgnore_postIncomingMessages = false;
                 const strDRC_postIncomingMessages = "postIncomingMessages in message signer";
-                await dry_run_call( w3_dst, methodWithArguments_postIncomingMessages, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages );
+                await dry_run_call( w3_dst, methodWithArguments_postIncomingMessages, 0, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages );
                 const dataTx_postIncomingMessages = methodWithArguments_postIncomingMessages.encodeABI(); // the encoded ABI of the method
                 //
                 if( verbose_get() >= RV_VERBOSE.trace ) {
