@@ -59,8 +59,7 @@ contract TokenManager is PermissionsForSchain {
         transferERC20,
         transferERC721,
         rawTransferERC20,
-        rawTransferERC721,
-        rechargeWallet
+        rawTransferERC721
     }
 
     // ID of this schain,
@@ -112,6 +111,13 @@ contract TokenManager is PermissionsForSchain {
 
     function transferToSchainWithoutData(string calldata schainID, address to, uint256 amount) external {
         transferToSchain(schainID, to, amount);
+    }
+
+    /**
+     * @dev Adds ETH cost to perform exit transaction.
+     */
+    function addEthCostWithoutAddress(uint256 amount) external {
+        addEthCost(amount);
     }
 
     /**
@@ -462,8 +468,6 @@ contract TokenManager is PermissionsForSchain {
             require(IERC721Module(erc721Module).sendERC721(to, data), "Failed to send ERC721");
             address receiver = IERC721Module(erc721Module).getReceiver(to, data);
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
-        } else if (operation == TransactionOperation.rechargeWallet) {
-            ILockAndDataTM(getLockAndDataAddress()).addGasCosts(to, amount);
         }
     }
 
@@ -519,6 +523,20 @@ contract TokenManager is PermissionsForSchain {
     }
 
     /**
+     * @dev Adds ETH cost for `msg.sender` exit transaction.
+     */
+    function addEthCost(uint256 amount) public {
+        addEthCost(msg.sender, amount);
+    }
+
+    /**
+     * @dev Adds ETH cost for user's exit transaction.
+     */
+    function addEthCost(address sender, uint256 amount) public receivedEth(amount) {
+        ILockAndDataTM(getLockAndDataAddress()).addGasCosts(sender, amount);
+    }
+
+    /**
      * @dev Returns chain ID.
      */
     function getChainID() public view returns ( string memory cID ) {
@@ -565,7 +583,6 @@ contract TokenManager is PermissionsForSchain {
         }
         require(
             operationType == 0x01 ||
-            operationType == 0x02 ||
             operationType == 0x03 ||
             operationType == 0x05 ||
             operationType == 0x13 ||
@@ -574,8 +591,6 @@ contract TokenManager is PermissionsForSchain {
         );
         if (operationType == 0x01) {
             return TransactionOperation.transferETH;
-        } else if (operationType == 0x02) {
-            return TransactionOperation.rechargeWallet;
         } else if (operationType == 0x03) {
             return TransactionOperation.transferERC20;
         } else if (operationType == 0x05) {

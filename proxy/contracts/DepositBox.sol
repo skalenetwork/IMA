@@ -86,7 +86,7 @@ contract DepositBox is PermissionsForMainnet {
     }
 
     function depositWithoutData(string calldata schainID, address to) external payable {
-        deposit(schainID, to, "");
+        deposit(schainID, to);
     }
 
     function depositERC20(
@@ -266,28 +266,6 @@ contract DepositBox is PermissionsForMainnet {
         }
     }
 
-    function rechargeBalance(string memory schainID, address to, bytes memory data)
-        public
-        payable
-        rightTransaction(schainID)
-        requireGasPayment
-    {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
-        address proxyAddress = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-            keccak256(abi.encodePacked("MessageProxy"))
-        );
-        bytes memory newData;
-        newData = abi.encodePacked(bytes1(uint8(2)), data);
-        IMessageProxy(proxyAddress).postOutgoingMessage(
-            schainID,
-            tokenManagerAddress,
-            msg.value,
-            to,
-            newData
-        );
-    }
-
     function postMessage(
         address sender,
         string calldata fromSchainID,
@@ -320,6 +298,11 @@ contract DepositBox is PermissionsForMainnet {
     /// Create a new deposit box
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
+    }
+
+    function deposit(string memory schainID, address to) public payable {
+        bytes memory empty = "";
+        deposit(schainID, to, empty);
     }
 
     function deposit(string memory schainID, address to, bytes memory data)

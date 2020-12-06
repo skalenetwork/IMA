@@ -26,6 +26,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "./PermissionsForMainnet.sol";
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
+import "@nomiclabs/buidler/console.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
