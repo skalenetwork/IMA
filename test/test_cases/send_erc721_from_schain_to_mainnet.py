@@ -59,13 +59,17 @@ class Senderc721ToMainnet(TestCase):
                                                           self.timeout)
         sleep(5)
         #
-        amount_of_eth = 90 * 10 ** 15
+        amount_eth = 90 * 10 ** 15
         #
-        self.agent.add_eth_cost_from_mainnet_to_schain(self.config.mainnet_key,
+        self.agent.transfer_eth_from_mainnet_to_schain(self.config.mainnet_key,
                                                        self.config.schain_key,
-                                                       amount_of_eth,
+                                                       amount_eth,
                                                        self.timeout)
 
+        #
+        sleep(5)
+        self.blockchain.add_eth_cost(self.config.schain_key,
+                                     amount_eth)
         #
         sleep(5)
         self.erc721_clone = self.blockchain.get_erc721_on_schain(self.token_id)
