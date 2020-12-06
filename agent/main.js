@@ -701,8 +701,16 @@ async function discover_s_chain_network( fnAfter, isSilent ) {
                 } );
             }
             // process.exit( 0 );
+            let nCountToWait = 0 + jarrNodes.length;
+            if( nCountToWait > 2 )
+                nCountToWait = Math.ceil( nCountToWait * 2 / 3 );
+
+            if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug( "Waiting for response from at least " ) + cc.info( nCountToWait ) + cc.debug( " node(s)..." ) + "\n" );
             const iv = setInterval( function() {
-                if( nCountReceivedImaDescriptions == jarrNodes.length ) {
+                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                    log.write( strLogPrefix + cc.debug( "Have response from " ) + cc.info( nCountReceivedImaDescriptions ) + cc.debug( " node(s)." ) + "\n" );
+                if( nCountReceivedImaDescriptions >= nCountToWait ) {
                     clearInterval( iv );
                     fnAfter( null, joSChainNetworkInfo );
                 }
