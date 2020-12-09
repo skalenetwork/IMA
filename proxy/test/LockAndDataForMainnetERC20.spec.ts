@@ -43,6 +43,7 @@ chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
 import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
+import { randomString } from "./utils/helper";
 
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
@@ -94,6 +95,7 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
   it("should return `token index` after invoke `addERC20Token`", async () => {
     // preparation
     const name = "elvis";
+    const schainID = randomString(10);
     const tokenName = "ELV";
     const sopply = 1000000 * 10 ** 18;
     // create ERC20 token
@@ -105,15 +107,15 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
     // execution#1
     // just call transaction without any changes
     const res = await lockAndDataForMainnetERC20
-        .addERC20Token.call(contractHere, {from: deployer});
+        .addERC20ForSchain.call(schainID, contractHere, {from: deployer});
     await lockAndDataForMainnetERC20
-        .addERC20Token(contractHere, {from: deployer});
+        .addERC20ForSchain(contractHere, {from: deployer});
     // expectation#1
     parseInt(new BigNumber(res).toString(), 10)
         .should.be.equal(1);
     // execution#2
     const res1 = await lockAndDataForMainnetERC20
-        .addERC20Token.call(contractHer, {from: deployer});
+        .addERC20ForSchain.call(contractHer, {from: deployer});
     // expectation#2
     parseInt(new BigNumber(res1).toString(), 10)
         .should.be.equal(2);

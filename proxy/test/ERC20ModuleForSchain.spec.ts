@@ -41,6 +41,7 @@ import {
     } from "../types/truffle-contracts";
 
 import chai = require("chai");
+import { randomString } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -64,6 +65,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
   let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
   let eRC20OnChain: ERC20OnChainInstance;
   let eRC20OnChain2: ERC20OnChainInstance;
+  let erc20OnMainnet: ERC20OnChainInstance;
 
   beforeEach(async () => {
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
@@ -79,14 +81,16 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
         ((1000000000).toString()), deployer, {from: deployer});
     eRC20OnChain2 = await ERC20OnChain.new("ERC20OnChain2", "ERC202",
         ((1000000000).toString()), deployer, {from: deployer});
+    erc20OnMainnet = await ERC20OnChain.new("SKALE", "SKL", 1000000000,  deployer);
   });
 
   it("should invoke `receiveERC20` with `isRaw==true`", async () => {
     // preparation
-    const contractHere = eRC20OnChain.address;
+    const erc20OnSchain = eRC20OnChain.address;
+    const ERC20OnMainnet = erc20OnMainnet.address;
     const to = user;
     const amount = 10;
-    const isRaw = true;
+    const schainID = randomString(10);
     // set `ERC20Module` contract before invoke `receiveERC20`
     await lockAndDataForSchain
         .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
@@ -94,9 +98,9 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await lockAndDataForSchain
         .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
     await eRC20OnChain.mint(lockAndDataForSchainERC20.address, "10", {from: deployer});
-    await lockAndDataForSchainERC20.addERC20Token(contractHere, 1, {from: deployer});
+    await lockAndDataForSchainERC20.addERC20ForSchain(schainID, ERC20OnMainnet, erc20OnSchain, {from: deployer});
     // execution
-    const res = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
+    const res = await eRC20ModuleForSchain.receiveERC20.call(schainID, ERC20OnMainnet, to, amount, {from: deployer});
     // expectation
     (res).should.include("0x");
   });
@@ -105,23 +109,24 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // preparation
     const error = "ERC20 contract does not exist on SKALE chain.";
     const contractHere = eRC20OnChain.address;
+    const schainID = randomString(10);
     const to = user;
     const amount = 10;
-    const isRaw = false;
     // set `LockAndDataERC20` contract before invoke `receiveERC20`
     await lockAndDataForSchain
         .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
     // execution/expectation
-    await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer})
+    await eRC20ModuleForSchain.receiveERC20(schainID, contractHere, to, amount, {from: deployer})
       .should.be.eventually.rejectedWith(error);
   });
 
   it("should invoke `receiveERC20` with `isRaw==false`", async () => {
     // preparation
     const contractHere = eRC20OnChain.address;
+    const ERC20OnMainnet = erc20OnMainnet.address;
+    const schainID = randomString(10);
     const to = user;
     const amount = 10;
-    const isRaw = false;
     const contractPosition = 1;
     // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
     const minterRole = await eRC20OnChain.MINTER_ROLE();
@@ -138,9 +143,9 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
         .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
     // add ERC20 token to avoid "ERC20 contract does not exist on SKALE chain." error
     await lockAndDataForSchainERC20
-      .addERC20Token(contractHere, contractPosition, {from: deployer});
+      .addERC20ForSchain(schainID, ERC20OnMainnet ,contractHere, {from: deployer});
     // execution
-    const res = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
+    const res = await eRC20ModuleForSchain.receiveERC20.call(schainID, ERC20OnMainnet, to, amount, {from: deployer});
     // expectation
     // (res).should.include("0x"); // l_sergiy: FIX - not passing
   });
@@ -149,10 +154,10 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // preparation
     const contractHere = eRC20OnChain.address;
     const to = user;
+    const ERC20OnMainnet = erc20OnMainnet.address;
+    const schainID = randomString(10);
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const amount = 10;
-    const contractPosition = 10;
-    const isRaw = false;
     // set `ERC20Module` contract before invoke `receiveERC20`
     await lockAndDataForSchain
         .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
@@ -165,13 +170,13 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await eRC20OnChain.transfer(lockAndDataForSchainERC20.address, "1000000", {from: deployer});
     // add ERC20 token to avoid "ERC20 contract does not exist on SKALE chain." error in `receiveERC20` func
     await lockAndDataForSchainERC20
-      .addERC20Token(contractHere, contractPosition, {from: deployer});
+      .addERC20ForSchain(schainID, ERC20OnMainnet, contractHere, {from: deployer});
     // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
     const minterRole = await eRC20OnChain.MINTER_ROLE();
     await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address);
     // get data from `receiveERC20`
-    const data = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
-    await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+    const data = await eRC20ModuleForSchain.receiveERC20.call(schainID, ERC20OnMainnet, to, amount, {from: deployer});
+    await eRC20ModuleForSchain.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer});
     // execution
     await eRC20ModuleForSchain.sendERC20(to0, data, {from: deployer});
     // expectation
@@ -181,6 +186,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
 
   it("should return send ERC20 token twice", async () => {
     // preparation
+    const schainID = randomString(10);
     const to = user;
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const amount = 10;
@@ -214,17 +220,18 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await lockAndDataForSchain
         .setContract("TokenFactory", tokenFactory.address, {from: deployer});
     // execution
-    const res = await eRC20ModuleForSchain.sendERC20(to0, data, {from: deployer});
+    const res = await eRC20ModuleForSchain.sendERC20(schainID, data, {from: deployer});
     const newAddress = res.logs[0].args.tokenThere;
     // expectation
     const newERC20Contract = new web3.eth.Contract(ABIERC20OnChain.abi, newAddress);
-    await eRC20ModuleForSchain.sendERC20(to0, data2, {from: deployer});
+    await eRC20ModuleForSchain.sendERC20(schainID, data2, {from: deployer});
     const balance = await newERC20Contract.methods.balanceOf(to).call();
     parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount * 2);
   });
 
   it("should return `true` for `sendERC20` with `to0==address(0)` and `contractAddreess==address(0)`", async () => {
     // preparation
+    const schainID = randomString(10);
     const to = user;
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const amount = 10;
@@ -247,7 +254,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await lockAndDataForSchain
         .setContract("TokenFactory", tokenFactory.address, {from: deployer});
     // execution
-    const res = await eRC20ModuleForSchain.sendERC20(to0, data, {from: deployer});
+    const res = await eRC20ModuleForSchain.sendERC20(schainID, data, {from: deployer});
     const newAddress = res.logs[0].args.tokenThere;
     // expectation
     const newERC20Contract = new web3.eth.Contract(ABIERC20OnChain.abi, newAddress);
@@ -258,10 +265,11 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
   it("should be rejected with incorrect Minter when invoke `sendERC20` with `to0==ethERC20.address`", async () => {
     // preparation
     const contractHere = eRC20OnChain.address;
+    const schainID = randomString(10);
+    const ERC20OnMainnet = erc20OnMainnet.address;
     const to = user;
     const to0 = eRC20OnChain2.address; // bytes20
     const amount = 10;
-    const isRaw = true;
     const error = "Sender is not a Minter"
     // set `ERC20Module` contract before invoke `receiveERC20`
     await lockAndDataForSchain
@@ -274,20 +282,21 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await eRC20OnChain2.grantRole(minterRole, lockAndDataForSchainERC20.address);
     // get data from `receiveERC20`
     await eRC20OnChain.mint(lockAndDataForSchainERC20.address, "20", {from: deployer});
-    await lockAndDataForSchainERC20.addERC20Token(contractHere, 1, {from: deployer});
-    const data = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
-    await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+    await lockAndDataForSchainERC20.addERC20ForSchain(schainID, ERC20OnMainnet, contractHere, {from: deployer});
+    const data = await eRC20ModuleForSchain.receiveERC20.call(schainID, ERC20OnMainnet, to, amount, {from: deployer});
+    await eRC20ModuleForSchain.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer});
     // execution
-    await eRC20ModuleForSchain.sendERC20(to0, data, {from: deployer}).should.be.eventually.rejectedWith(error);
+    await eRC20ModuleForSchain.sendERC20(schainID, data, {from: deployer}).should.be.eventually.rejectedWith(error);
   });
 
   it("should return true when invoke `sendERC20` with `to0==ethERC20.address`", async () => {
     // preparation
     const contractHere = eRC20OnChain.address;
     const to = user;
+    const schainID = randomString(10);
+    const ERC20OnMainnet = erc20OnMainnet.address;
     const to0 = eRC20OnChain2.address; // bytes20
     const amount = 10;
-    const isRaw = true;
     const error = "MinterRole: caller does not have the Minter role"
     // set `ERC20Module` contract before invoke `receiveERC20`
     await lockAndDataForSchain
@@ -302,11 +311,11 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // get data from `receiveERC20`
     await eRC20OnChain.mint(lockAndDataForSchainERC20.address, "10", {from: deployer});
     // await eRC20OnChain2.mint(lockAndDataForSchainERC20.address, "20", {from: deployer});
-    await lockAndDataForSchainERC20.addERC20Token(contractHere, 1, {from: deployer});
-    const data = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
-    await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+    await lockAndDataForSchainERC20.addERC20ForSchain(schainID, ERC20OnMainnet, contractHere, {from: deployer});
+    const data = await eRC20ModuleForSchain.receiveERC20.call(schainID, ERC20OnMainnet, to, amount, {from: deployer});
+    await eRC20ModuleForSchain.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer});
     // execution
-    await eRC20ModuleForSchain.sendERC20(to0, data, {from: deployer});
+    await eRC20ModuleForSchain.sendERC20(schainID, data, {from: deployer});
     // expectation
     const balance = await eRC20OnChain.balanceOf(to);
     parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount);
@@ -316,9 +325,10 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // preparation
     const contractHere = ethERC20.address;
     const to = user;
+    const schainID = randomString(10);
+    const ERC20OnMainnet = erc20OnMainnet.address;
     const to0 = invoker; // bytes20
     const amount = 10;
-    const isRaw = true;
     // set `ERC20Module` contract before invoke `receiveERC20`
     await lockAndDataForSchain
         .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
@@ -330,9 +340,9 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForSchainERC20` to avoid `Not enough money`
     await ethERC20.transfer(lockAndDataForSchainERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
-    await lockAndDataForSchainERC20.addERC20Token(contractHere, 1, {from: deployer});
-    const data = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
-    await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+    await lockAndDataForSchainERC20.addERC20ForSchain(schainID, ERC20OnMainnet, contractHere, {from: deployer});
+    const data = await eRC20ModuleForSchain.receiveERC20.call(schainID, ERC20OnMainnet, to, amount, {from: deployer});
+    await eRC20ModuleForSchain.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer});
     // execution
     const res = await eRC20ModuleForSchain.getReceiver(data, {from: deployer});
     // expectation
@@ -343,10 +353,11 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // preparation
     const contractHere = ethERC20.address;
     const to = user;
+    const schainID = randomString(10);
+    const ERC20OnMainnet = erc20OnMainnet.address;
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const amount = 10;
     const contractPosition = 10;
-    const isRaw = false;
     // set `ERC20Module` contract before invoke `receiveERC20`
     await lockAndDataForSchain
         .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
@@ -359,10 +370,10 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await ethERC20.transfer(lockAndDataForSchainERC20.address, "1000000", {from: deployer});
     // add ERC20 token to avoid "ERC20 contract does not exist on SKALE chain." error
     await lockAndDataForSchainERC20
-      .addERC20Token(contractHere, contractPosition, {from: deployer});
+      .addERC20ForSchain(schainID, ERC20OnMainnet, contractHere, {from: deployer});
     // get data from `receiveERC20`
-    const data = await eRC20ModuleForSchain.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
-    await eRC20ModuleForSchain.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+    const data = await eRC20ModuleForSchain.receiveERC20.call(schainID, ERC20OnMainnet, to, amount, {from: deployer});
+    await eRC20ModuleForSchain.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer});
     // execution
     const res = await eRC20ModuleForSchain.getReceiver(data, {from: deployer});
     // expectation
