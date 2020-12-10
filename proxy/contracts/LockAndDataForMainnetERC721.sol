@@ -33,7 +33,12 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
 
     mapping(uint256 => address) public erc721Tokens;
     mapping(address => uint256) public erc721Mapper;
-    uint256 public  newIndexERC721;
+    uint256 public newIndexERC721;
+
+    /**
+     * @dev Emitted when token is mapped in LockAndDataForMainnetERC721.
+     */
+    event ERC721TokenAdded(address indexed tokenHere, uint256 contractPosition);
 
     /**
      * @dev Allows ERC721ModuleForMainnet to send an ERC721 token.
@@ -64,6 +69,7 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
         erc721Tokens[index] = addressERC721;
         erc721Mapper[addressERC721] = index;
         newIndexERC721++;
+        emit ERC721TokenAdded(contractHere, contractPosition);
         return index;
     }
 

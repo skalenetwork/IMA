@@ -40,6 +40,11 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     mapping(address => uint256) public erc20Mapper;
 
     /**
+     * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
+     */
+    event ERC20TokenAdded(address indexed tokenHere, uint256 contractPosition);
+
+    /**
      * @dev Emitted upon minting on the SKALE chain.
      */
     event SentERC20(bool result);
@@ -88,6 +93,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     function addERC20Token(address addressERC20, uint256 contractPosition) external allow("ERC20Module") {
         erc20Tokens[contractPosition] = addressERC20;
         erc20Mapper[addressERC20] = contractPosition;
+        emit ERC20TokenAdded(addressERC20, contractPosition);
     }
 }
 

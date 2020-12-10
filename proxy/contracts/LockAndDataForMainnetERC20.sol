@@ -37,6 +37,11 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
     uint256 public newIndexERC20;
 
     /**
+     * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
+     */
+    event ERC20TokenAdded(address indexed tokenHere, uint256 contractPosition);
+
+    /**
      * @dev Allows ERC20Module to send an ERC20 token from
      * LockAndDataForMainnetERC20.
      * 
@@ -60,6 +65,7 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
         erc20Tokens[index] = addressERC20;
         erc20Mapper[addressERC20] = index;
         newIndexERC20++;
+        emit ERC20TokenAdded(contractHere, contractPosition);
         return index;
     }
 
