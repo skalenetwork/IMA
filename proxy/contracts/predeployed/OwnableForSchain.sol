@@ -22,6 +22,7 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/utils/Address.sol";
 import "./SkaleFeatures.sol";
 
 
@@ -31,6 +32,8 @@ import "./SkaleFeatures.sol";
  * functions, this simplifies the implementation of "user permissions".
  */
 contract OwnableForSchain is Ownable {
+
+    using Address for address;
 
     /**
      * @dev Throws if called by any account other than the owner.

@@ -98,6 +98,7 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
      * @dev Allows ERC721Module to add an ERC721 token to LockAndDataForSchainERC721.
      */
     function addERC721Token(address addressERC721, uint256 contractPosition) external allow("ERC721Module") {
+        require(addressERC721.isContract(), "Given address is not a contract");
         erc721Tokens[contractPosition] = addressERC721;
         erc721Mapper[addressERC721] = contractPosition;
         emit ERC721TokenAdded(addressERC721, contractPosition);
