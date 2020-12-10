@@ -351,11 +351,17 @@ function perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonP
         imaUtils.jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
         // let joCommonPublicKey_for_O = joCommonPublicKey;
+        // const joCommonPublicKey_for_O = {
+        //     commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey1,
+        //     commonBLSPublicKey1: joCommonPublicKey.commonBLSPublicKey0,
+        //     commonBLSPublicKey2: joCommonPublicKey.commonBLSPublicKey3,
+        //     commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey2
+        // };
         const joCommonPublicKey_for_O = {
-            commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey1,
-            commonBLSPublicKey1: joCommonPublicKey.commonBLSPublicKey0,
-            commonBLSPublicKey2: joCommonPublicKey.commonBLSPublicKey3,
-            commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey2
+            commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey0,
+            commonBLSPublicKey1: joCommonPublicKey.commonBLSPublicKey1,
+            commonBLSPublicKey2: joCommonPublicKey.commonBLSPublicKey2,
+            commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey3
         };
         imaUtils.jsonFileSave( strActionDir + "/common_public_key.json", joCommonPublicKey_for_O );
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
