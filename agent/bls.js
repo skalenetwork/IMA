@@ -24,7 +24,7 @@
  */
 
 // const fs = require( "fs" );
-const path = require( "path" );
+// const path = require( "path" );
 // const url = require( "url" );
 // const os = require( "os" );
 const child_process = require( "child_process" );
@@ -165,7 +165,9 @@ function split_signature_share( signatureShare ) {
 }
 
 function get_bls_glue_tmp_dir() {
-    const strTmpDir = path.resolve( __dirname ) + "/tmp";
+    // NOTE: uncomment require( "path" ); at top of this file when using local tmp folder
+    // const strTmpDir = path.resolve( __dirname ) + "/tmp";
+    const strTmpDir = "/tmp/ima-bls-glue";
     shell.mkdir( "-p", strTmpDir );
     return strTmpDir;
 }
