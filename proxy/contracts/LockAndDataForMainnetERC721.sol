@@ -69,7 +69,7 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
         erc721Tokens[index] = addressERC721;
         erc721Mapper[addressERC721] = index;
         newIndexERC721++;
-        emit ERC721TokenAdded(contractHere, contractPosition);
+        emit ERC721TokenAdded(addressERC721, index);
         return index;
     }
 

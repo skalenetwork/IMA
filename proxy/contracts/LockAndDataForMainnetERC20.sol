@@ -65,7 +65,7 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
         erc20Tokens[index] = addressERC20;
         erc20Mapper[addressERC20] = index;
         newIndexERC20++;
-        emit ERC20TokenAdded(contractHere, contractPosition);
+        emit ERC20TokenAdded(addressERC20, index);
         return index;
     }
 

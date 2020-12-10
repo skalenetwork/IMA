@@ -521,7 +521,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const bytesData = "0x0";
 
             // chain should be inited:
-            await messageProxyForSchain.getOutgoingMessagesCounter(chainID).should.be.rejected;
+            new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID)).should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
@@ -565,7 +565,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             };
 
             // chain should be inited:
-            await messageProxyForSchain.getIncomingMessagesCounter(chainID).should.be.rejected;
+            new BigNumber(await messageProxyForSchain.getIncomingMessagesCounter(chainID)).should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
