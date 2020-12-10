@@ -358,7 +358,7 @@ function perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonP
         //     commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey2
         // };
         const joCommonPublicKey_for_O = {
-            commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey9,
+            commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey0,
             commonBLSPublicKey1: joCommonPublicKey.commonBLSPublicKey1,
             commonBLSPublicKey2: joCommonPublicKey.commonBLSPublicKey2,
             commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey3
