@@ -21,6 +21,7 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./OwnableForSchain.sol";
 
 interface IETHERC20 {
@@ -36,6 +37,7 @@ interface IETHERC20 {
  * balances of ETH tokens received through DepositBox.
  */
 contract LockAndDataForSchain is OwnableForSchain {
+    using SafeMath for uint256;
 
     address private _ethERC20Address;
 
@@ -211,7 +213,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * @dev Allows TokenManager to add gas costs to LockAndDataForSchain.
      */
     function addGasCosts(address to, uint256 amount) external allow("TokenManager") {
-        ethCosts[to] += amount;
+        ethCosts[to] = ethCosts[to].add(amount);
     }
 
     /**

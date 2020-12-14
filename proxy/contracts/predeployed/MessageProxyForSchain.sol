@@ -22,6 +22,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./SkaleFeatures.sol";
 
 interface ContractReceiverForSchain {
@@ -37,6 +38,7 @@ interface ContractReceiverForSchain {
 
 
 contract MessageProxyForSchain {
+    using SafeMath for uint256;
 
 
     // 16 Agents
@@ -257,7 +259,8 @@ contract MessageProxyForSchain {
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
-        connectedChains[dstChainHash].outgoingMessageCounter++;
+        connectedChains[dstChainHash].outgoingMessageCounter
+            = connectedChains[dstChainHash].outgoingMessageCounter.add(1);
         _pushOutgoingMessageData(
             OutgoingMessageData(
                 dstChainID,
@@ -342,12 +345,14 @@ contract MessageProxyForSchain {
                 );
             }
         }
-        connectedChains[srcChainHash].incomingMessageCounter += uint256(messages.length);
+        connectedChains[srcChainHash].incomingMessageCounter 
+            = connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
     }
 
     function moveIncomingCounter(string calldata schainName) external onlyOwner {
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter++;
+        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter =
+            connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
     }
 
     function setCountersToZero(string calldata schainName) external onlyOwner {
@@ -430,7 +435,7 @@ contract MessageProxyForSchain {
             d.length
         );
         _outgoingMessageData[d.dstChainHash][_idxTail[d.dstChainHash]] = d;
-        ++_idxTail[d.dstChainHash];
+        _idxTail[d.dstChainHash] = _idxTail[d.dstChainHash].add(1);
     }
 
     /**
@@ -452,6 +457,6 @@ contract MessageProxyForSchain {
             ++ cntDeleted;
         }
         if (cntDeleted > 0)
-            _idxHead[chainId] += cntDeleted;
+            _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
     }
 }
