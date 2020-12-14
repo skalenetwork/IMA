@@ -37,20 +37,21 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
         string memory contractName,
         string memory contractSymbol,
         uint256 newTotalSupply,
-        address erc20Module
-        )
+        address _lockAndDataAddress
+    )
         public
+        PermissionsForSchain(_lockAndDataAddress)
     {
-        require(erc20Module.isContract(), "ERC20Module is not a contract");
+        // require(erc20Module.isContract(), "ERC20Module is not a contract");
         __ERC20_init(contractName, contractSymbol);
         _totalSupplyOnMainnet = newTotalSupply;
-        _addressOfErc20Module = erc20Module;
+        // _addressOfErc20Module = erc20Module;
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
         _setupRole(MINTER_ROLE, _msgSender());
     }
 
-    function setTotalSupplyOnMainnet(uint256 newTotalSupply) external {
-        require(_addressOfErc20Module == _msgSender(), "Caller is not ERC20Module");
+    function setTotalSupplyOnMainnet(uint256 newTotalSupply) external allow("ERC20Module") {
+        // require(_addressOfErc20Module == _msgSender(), "Caller is not ERC20Module");
         _totalSupplyOnMainnet = newTotalSupply;
     }
 

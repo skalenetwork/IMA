@@ -64,7 +64,7 @@ contract TokenManager is PermissionsForSchain {
 
     // ID of this schain,
     string private _chainID;
-    address private _proxyForSchainAddress;
+    // address private _proxyForSchainAddress;
 
     uint256 public constant GAS_AMOUNT_POST_MESSAGE = 200000;
     uint256 public constant AVERAGE_TX_PRICE = 10000000000;
@@ -91,15 +91,15 @@ contract TokenManager is PermissionsForSchain {
 
     constructor(
         string memory newChainID,
-        address newProxyAddress,
+        // address newProxyAddress,
         address newLockAndDataAddress
     )
         public
         PermissionsForSchain(newLockAndDataAddress)
     {
-        require(newProxyAddress.isContract(), "ProxyAddress is not a contract");
+        // require(newProxyAddress.isContract(), "ProxyAddress is not a contract");
         _chainID = newChainID;
-        _proxyForSchainAddress = newProxyAddress;
+        // _proxyForSchainAddress = newProxyAddress;
     }
 
     fallback() external payable {
@@ -552,8 +552,11 @@ contract TokenManager is PermissionsForSchain {
      * @dev Returns MessageProxy address.
      */
     function getProxyForSchainAddress() public view returns ( address ow ) { // l_sergiy: added
-        if (_proxyForSchainAddress != address(0) )
-            return _proxyForSchainAddress;
+        address proxyForSchaniAddress = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).getMessageProxy();
+        if (proxyForSchaniAddress != address(0) )
+            return proxyForSchaniAddress;
         return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
             "skaleConfig.contractSettings.IMA.MessageProxy"
         );
