@@ -390,15 +390,17 @@ function perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonP
 }
 
 async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart ) {
-    let w3 = null; let joMessageProxy = null; let joAccount = null;
+    let w3 = null; let joMessageProxy = null; let joAccount = null; let joChainName = null;
     if( strDirection == "M2S" ) {
         w3 = imaState.w3_main_net;
         joMessageProxy = imaState.jo_message_proxy_main_net;
         joAccount = imaState.joAccount_main_net;
+        joChainName = imaState.strChainID_s_chain;
     } else if( strDirection == "S2M" ) {
         w3 = imaState.w3_s_chain;
         joMessageProxy = imaState.jo_message_proxy_s_chain;
         joAccount = imaState.joAccount_s_chain;
+        joChainName = imaState.strChainID_main_net;
     }
     const strCallerAccountAddress = joAccount.address( w3 );
     log.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " message correctness validation through call to " ) +
@@ -414,6 +416,7 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
         try {
             const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
             const m = joMessageProxy.methods.verifyOutgoingMessageData(
+                joChainName,
                 idxMessage,
                 joMessage.sender,
                 joMessage.destinationContract,
@@ -429,6 +432,7 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
             ++cntBadMessages;
             log.write( strLogPrefix + cc.fatal( "BAD ERROR:" ) +
                 cc.error( " Correctness validation failed for message " ) + cc.info( idxMessage ) +
+                cc.error( " sent to " ) + cc.info( joChainName ) +
                 cc.error( ", message is: " ) + cc.j( joMessage ) +
                 cc.error( ", error information: " ) + cc.warning( err.toString() ) +
                 "\n" );
