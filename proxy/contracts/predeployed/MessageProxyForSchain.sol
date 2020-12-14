@@ -92,12 +92,15 @@ contract MessageProxyForSchain {
     address public ownerAddress;
     string private _chainID;
     bool private _isCustomDeploymentMode;
-    uint256 private _idxHead;
-    uint256 private _idxTail;
 
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     mapping(address => bool) private _authorizedCaller;
-    mapping (uint256 => OutgoingMessageData) private _outgoingMessageData;
+    //      chainID  =>      message_id  => MessageData
+    mapping( bytes32 => mapping( uint256 => OutgoingMessageData )) private _outgoingMessageData;
+    //      chainID  => head of unprocessed messages
+    mapping( bytes32 => uint ) private _idxHead;
+    //      chainID  => tail of unprocessed messages
+    mapping( bytes32 => uint ) private _idxTail;
 
     event OutgoingMessage(
         string dstChain,
@@ -336,8 +339,8 @@ contract MessageProxyForSchain {
                 );
             }
         }
-        connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint256(messages.length);
-        _popOutgoingMessageData(idxLastToPopNotIncluding);
+        connectedChains[srcChainHash].incomingMessageCounter += uint256(messages.length);
+        _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
     }
 
     function moveIncomingCounter(string calldata schainName) external onlyOwner {
@@ -387,6 +390,7 @@ contract MessageProxyForSchain {
     }
 
     function verifyOutgoingMessageData(
+        string memory chainName,
         uint256 idxMessage,
         address sender,
         address destinationContract,
@@ -397,9 +401,16 @@ contract MessageProxyForSchain {
         view
         returns (bool isValidMessage)
     {
+        bytes32 chainId = keccak256(abi.encodePacked(chainName));
         isValidMessage = false;
-        OutgoingMessageData memory d = _outgoingMessageData[idxMessage];
-        if ( d.dstContract == destinationContract && d.srcContract == sender && d.to == to && d.amount == amount )
+        OutgoingMessageData memory d = _outgoingMessageData[chainId][idxMessage];
+        if ( d.dstContract == destinationContract &&
+             d.srcContract == sender &&
+             d.to == to && 
+             d.amount == amount &&
+             keccak256(abi.encodePacked(d.dstChain)) == chainId &&
+             d.dstChainHash == chainId
+        )
             isValidMessage = true;
     }
 
@@ -415,20 +426,29 @@ contract MessageProxyForSchain {
             d.data,
             d.length
         );
-        _outgoingMessageData[_idxTail] = d;
-        ++ _idxTail;
+        _outgoingMessageData[d.dstChainHash][_idxTail[d.dstChainHash]] = d;
+        ++_idxTail[d.dstChainHash];
     }
 
-    function _popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) private returns ( uint256 cntDeleted ) {
+    /**
+     * @dev Pop outgoing message from outgoingMessageData array.
+     */
+    function _popOutgoingMessageData(
+        bytes32 chainId,
+        uint256 idxLastToPopNotIncluding
+    )
+        private
+        returns ( uint256 cntDeleted )
+    {
         cntDeleted = 0;
-        for ( uint256 i = _idxHead; i < idxLastToPopNotIncluding; ++ i ) {
-            if ( i >= _idxTail )
+        uint idxTail = _idxTail[chainId];
+        for ( uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++ i ) {
+            if ( i >= idxTail )
                 break;
-            delete _outgoingMessageData[i];
+            delete _outgoingMessageData[chainId][i];
             ++ cntDeleted;
         }
         if (cntDeleted > 0)
-            _idxHead += cntDeleted;
+            _idxHead[chainId] += cntDeleted;
     }
-
 }

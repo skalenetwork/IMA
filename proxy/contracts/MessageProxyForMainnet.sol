@@ -116,13 +116,13 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     string public chainID;
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public owner;
-    // uint256 private _idxHead;
-    // uint256 private _idxTail;
 
     mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
     //      chainID  =>      message_id  => MessageData
     mapping( bytes32 => mapping( uint256 => OutgoingMessageData )) private _outgoingMessageData;
+    //      chainID  => head of unprocessed messages
     mapping( bytes32 => uint ) private _idxHead;
+    //      chainID  => tail of unprocessed messages
     mapping( bytes32 => uint ) private _idxTail;
 
     /**
@@ -281,7 +281,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
                 );
             }
         }
-        connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint256(messages.length);
+        connectedChains[srcChainHash].incomingMessageCounter += uint256(messages.length);
         _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
     }
 
