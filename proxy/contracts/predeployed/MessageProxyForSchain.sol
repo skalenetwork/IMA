@@ -339,8 +339,8 @@ contract MessageProxyForSchain {
                 );
             }
         }
-        connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter 
-            = connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter.add(uint256(messages.length));
+        connectedChains[srcChainHash].incomingMessageCounter 
+            = connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(idxLastToPopNotIncluding);
     }
 
