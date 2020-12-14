@@ -38,7 +38,6 @@ interface ContractReceiverForSchain {
 
 contract MessageProxyForSchain {
 
-    SkaleFeatures public skaleFeatures = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2);
 
     // 16 Agents
     // Synchronize time with time.nist.gov
@@ -88,6 +87,8 @@ contract MessageProxyForSchain {
         uint256 hashB;
         uint256 counter;
     }
+
+    SkaleFeatures public skaleFeatures = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2);
 
     bool public mainnetConnected;
     // Owner of this chain. For mainnet, the owner is SkaleManager
