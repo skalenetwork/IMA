@@ -517,7 +517,13 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     /**
      * @dev Pop outgoing message from outgoingMessageData array.
      */
-    function _popOutgoingMessageData( bytes32 chainId, uint256 idxLastToPopNotIncluding ) private returns ( uint256 cntDeleted ) {
+    function _popOutgoingMessageData(
+        bytes32 chainId,
+        uint256 idxLastToPopNotIncluding
+    )
+        private
+        returns ( uint256 cntDeleted )
+    {
         cntDeleted = 0;
         uint idxTail = _idxTail[chainId];
         for ( uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++ i ) {
