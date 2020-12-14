@@ -32,6 +32,8 @@ import "./SkaleFeatures.sol";
  */
 contract OwnableForSchain is Ownable {
 
+    SkaleFeatures public skaleFeatures = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2);
+
     /**
      * @dev Throws if called by any account other than the owner.
      */
@@ -61,7 +63,7 @@ contract OwnableForSchain is Ownable {
      */
     function getSchainOwner() public view returns (address) {
         if (owner() == (address(0)) )
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+            return skaleFeatures.getConfigVariableAddress(
                 "skaleConfig.contractSettings.IMA.ownerAddress"
             );
         return owner();
@@ -72,7 +74,7 @@ contract OwnableForSchain is Ownable {
      */
     function getLockAndDataOwner() public view returns (address) {
         if (owner() == (address(0)) )
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+            return skaleFeatures.getConfigVariableAddress(
                 "skaleConfig.contractSettings.IMA.LockAndData"
             );
         return owner();
