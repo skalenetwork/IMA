@@ -38,7 +38,7 @@ import { ERC20ModuleForSchainContract,
     ERC721OnChainInstance,
     EthERC20Contract,
     EthERC20Instance,
-    LockAndDataForSchainContract,
+    LockAndDataForSchainWorkaroundContract,
     LockAndDataForSchainERC20Contract,
     LockAndDataForSchainERC20Instance,
     LockAndDataForSchainERC721Contract,
@@ -58,7 +58,7 @@ chai.use((chaiAsPromised as any));
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
-const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
+const LockAndDataForSchain: LockAndDataForSchainWorkaroundContract = artifacts.require("./LockAndDataForSchainWorkaround");
 const LockAndDataForSchainERC20: LockAndDataForSchainERC20Contract = artifacts.require("./LockAndDataForSchainERC20");
 const ERC20ModuleForSchain: ERC20ModuleForSchainContract = artifacts.require("./ERC20ModuleForSchain");
 const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
@@ -103,7 +103,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         eRC20ModuleForSchain = await ERC20ModuleForSchain
             .new(lockAndDataForSchain.address, {from: deployer});
         eRC20OnChain = await ERC20OnChain.new("ERC20", "ER2",
-            ((1000000000).toString()), deployer, {from: deployer});
+            ((1000000000).toString()), eRC20ModuleForSchain.address, {from: deployer});
         eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721",
             {from: deployer});
         eRC721 = await ERC721OnChain.new("eRC721", "ERR",
@@ -316,8 +316,12 @@ contract("TokenManager", ([deployer, user, client]) => {
         // const minterRole = await eRC20OnChain.MINTER_ROLE();
         // await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address);
 
+        await lockAndDataForSchain.setContract("ERC20Module", deployer, {from: deployer});
+
+        console.log("OK");
         // invoke `setTotalSupplyOnMainnet` before `mint` to avoid `SafeMath: subtraction overflow` exception:
         await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
+        console.log("NOT OK");
 
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC20OnChain.mint(deployer, amountMint, {from: deployer});
@@ -330,6 +334,8 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
         await eRC20OnChain.approve(tokenManager.address, amountMint, {from: deployer});
+
+        await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
 
         // add schain:
         // await lockAndDataForSchain.addSchain(chainID, tokenManager.address, {from: deployer});

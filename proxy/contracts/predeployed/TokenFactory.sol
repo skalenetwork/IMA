@@ -41,6 +41,7 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
         )
         public
     {
+        require(erc20Module.isContract(), "ERC20Module is not a contract");
         __ERC20_init(contractName, contractSymbol);
         _totalSupplyOnMainnet = newTotalSupply;
         _addressOfErc20Module = erc20Module;

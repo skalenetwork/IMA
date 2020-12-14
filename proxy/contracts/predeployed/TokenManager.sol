@@ -97,6 +97,7 @@ contract TokenManager is PermissionsForSchain {
         public
         PermissionsForSchain(newLockAndDataAddress)
     {
+        require(newProxyAddress.isContract(), "ProxyAddress is not a contract");
         _chainID = newChainID;
         _proxyForSchainAddress = newProxyAddress;
     }
