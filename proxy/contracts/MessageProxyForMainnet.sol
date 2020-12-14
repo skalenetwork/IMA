@@ -23,10 +23,10 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./PermissionsForMainnet.sol";
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
-import "@nomiclabs/buidler/console.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
@@ -65,6 +65,7 @@ interface ISchains {
  * messages do not need to be signed.
  */
 contract MessageProxyForMainnet is PermissionsForMainnet {
+    using SafeMath for uint256;
 
     // 16 Agents
     // Synchronize time with time.nist.gov
@@ -210,7 +211,8 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
-        connectedChains[dstChainHash].outgoingMessageCounter++;
+        connectedChains[dstChainHash].outgoingMessageCounter = 
+            connectedChains[dstChainHash].outgoingMessageCounter.add(1);
         _pushOutgoingMessageData(
             OutgoingMessageData(
                 dstChainID,
@@ -278,7 +280,8 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
                 );
             }
         }
-        connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint256(messages.length);
+        connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter = 
+            connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(idxLastToPopNotIncluding);
     }
 
@@ -293,7 +296,8 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      */
     function moveIncomingCounter(string calldata schainName) external {
         require(msg.sender == owner, "Sender is not an owner");
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter++;
+        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 
+            connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
     }
 
     /**
@@ -500,7 +504,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             d.length
         );
         _outgoingMessageData[_idxTail] = d;
-        ++_idxTail;
+        _idxTail = _idxTail.add(1);
     }
 
     /**
@@ -515,6 +519,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             ++ cntDeleted;
         }
         if (cntDeleted > 0)
-            _idxHead += cntDeleted;
+            _idxHead = _idxHead.add(cntDeleted);
     }
 }

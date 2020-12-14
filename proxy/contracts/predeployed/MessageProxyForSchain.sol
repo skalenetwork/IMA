@@ -22,6 +22,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./SkaleFeatures.sol";
 
 interface ContractReceiverForSchain {
@@ -37,6 +38,7 @@ interface ContractReceiverForSchain {
 
 
 contract MessageProxyForSchain {
+    using SafeMath for uint256;
 
     // 16 Agents
     // Synchronize time with time.nist.gov
@@ -251,7 +253,8 @@ contract MessageProxyForSchain {
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
-        connectedChains[dstChainHash].outgoingMessageCounter++;
+        connectedChains[dstChainHash].outgoingMessageCounter
+            = connectedChains[dstChainHash].outgoingMessageCounter.add(1);
         _pushOutgoingMessageData(
             OutgoingMessageData(
                 dstChainID,
@@ -336,12 +339,14 @@ contract MessageProxyForSchain {
                 );
             }
         }
-        connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint256(messages.length);
+        connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter 
+            = connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(idxLastToPopNotIncluding);
     }
 
     function moveIncomingCounter(string calldata schainName) external onlyOwner {
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter++;
+        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter =
+            connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
     }
 
     function setCountersToZero(string calldata schainName) external onlyOwner {
@@ -416,7 +421,7 @@ contract MessageProxyForSchain {
             d.length
         );
         _outgoingMessageData[_idxTail] = d;
-        ++ _idxTail;
+        _idxTail = _idxTail.add(1);
     }
 
     function _popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) private returns ( uint256 cntDeleted ) {
@@ -428,7 +433,7 @@ contract MessageProxyForSchain {
             ++ cntDeleted;
         }
         if (cntDeleted > 0)
-            _idxHead += cntDeleted;
+            _idxHead = _idxHead.add(cntDeleted);
     }
 
 }
