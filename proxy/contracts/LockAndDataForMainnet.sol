@@ -22,6 +22,7 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
@@ -34,6 +35,7 @@ import "./interfaces/IMessageProxy.sol";
  * balances of ETH tokens received through DepositBox.
  */
 contract LockAndDataForMainnet is OwnableUpgradeSafe {
+    using SafeMath for uint;
 
     mapping(bytes32 => address) public permitted;
 
@@ -140,7 +142,7 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
      * @dev Allows DepositBox to approve transfer.
      */
     function approveTransfer(address to, uint256 amount) external allow("DepositBox") {
-        approveTransfers[to] += amount;
+        approveTransfers[to] = approveTransfers[to].add(amount);
     }
 
     /**
