@@ -21,14 +21,9 @@
 
 pragma solidity 0.6.12;
 
+import "./EthERC20.sol";
 import "./OwnableForSchain.sol";
 
-interface IETHERC20 {
-    function allowance(address from, address to) external returns (uint256);
-    function mint(address account, uint256 amount) external returns (bool);
-    function burn(uint256 amount) external;
-    function burnFrom(address from, uint256 amount) external;
-}
 
 /**
  * @title Lock and Data For SKALE chain
@@ -37,7 +32,7 @@ interface IETHERC20 {
  */
 contract LockAndDataForSchain is OwnableForSchain {
 
-    address private _ethERC20Address;
+    address private _ethErc20Address;
 
     mapping(bytes32 => address) public permitted;
 
@@ -72,8 +67,8 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Allows Owner to set a EthERC20 contract address.
      */
-    function setEthERC20Address(address newEthERC20Address) external onlySchainOwner {
-        _ethERC20Address = newEthERC20Address;
+    function setEthErc20Address(address newEthErc20Address) external onlySchainOwner {
+        _ethErc20Address = newEthErc20Address;
     }
 
     /**
@@ -240,7 +235,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * @dev Allows TokenManager to send (mint) ETH from LockAndDataForSchain.
      */
     function sendEth(address to, uint256 amount) external allow("TokenManager") returns (bool) {
-        require(IETHERC20(getEthERC20Address()).mint(to, amount), "Mint error");
+        require(EthERC20(getEthErc20Address()).mint(to, amount), "Mint error");
         return true;
     }
 
@@ -248,7 +243,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * @dev Allows TokenManager to receive (burn) ETH to LockAndDataForSchain.
      */
     function receiveEth(address sender, uint256 amount) external allow("TokenManager") returns (bool) {
-        IETHERC20(getEthERC20Address()).burnFrom(sender, amount);
+        EthERC20(getEthErc20Address()).burnFrom(sender, amount);
         return true;
     }
 
@@ -268,13 +263,13 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Returns EthERC20 contract address.
      */
-    function getEthERC20Address() public view returns (address addressOfEthERC20) {
-        if (_ethERC20Address == address(0) && (!_isCustomDeploymentMode)) {
+    function getEthErc20Address() public view returns (address addressOfEthErc20) {
+        if (_ethErc20Address == address(0) && (!_isCustomDeploymentMode)) {
             return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
                 "skaleConfig.contractSettings.IMA.EthERC20"
             );
         }
-        addressOfEthERC20 = _ethERC20Address;
+        addressOfEthErc20 = _ethErc20Address;
     }
 
     function getContract(string memory contractName) public view returns (address) {
@@ -295,19 +290,19 @@ contract LockAndDataForSchain is OwnableForSchain {
         return permitted[contractId];
     }
 
-    function getERC20Module() external view returns (address) {
+    function getErc20Module() external view returns (address) {
         return getContract(ERC20_MODULE);
     }
 
-    function getERC721Module() external view returns (address) {
+    function getErc721Module() external view returns (address) {
         return getContract(ERC721_MODULE);
     }
 
-    function getLockAndDataERC20() external view returns (address) {
+    function getLockAndDataErc20() external view returns (address) {
         return getContract(LOCK_AND_DATA_ERC20);
     }
 
-    function getLockAndDataERC721() external view returns (address) {
+    function getLockAndDataErc721() external view returns (address) {
         return getContract(LOCK_AND_DATA_ERC721);
     }
 

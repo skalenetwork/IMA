@@ -62,8 +62,8 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         uint256 tokenId,
         bool isRAW) external allow("TokenManager") returns (bytes memory data)
         {
-        address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
-            getLockAndDataERC721();
+        address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).
+            getLockAndDataErc721();
         if (!isRAW) {
             uint256 contractPosition = ILockAndDataERC721S(lockAndDataERC721).erc721Mapper(contractHere);
             require(contractPosition > 0, "ERC721 contract does not exist on SKALE chain");
@@ -89,8 +89,8 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
      * Emits a {ERC721TokenCreated} event if to address = 0.
      */
     function sendERC721(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
-        address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
-            getLockAndDataERC721();
+        address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).
+            getLockAndDataErc721();
         uint256 contractPosition;
         address contractAddress;
         address receiver;
@@ -127,7 +127,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         string memory name;
         string memory symbol;
         (name, symbol) = _fallbackDataCreateERC721Parser(data);
-        address tokenFactoryAddress = IContractManagerForSchain(
+        address tokenFactoryAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getTokenFactory();
         return ITokenFactoryForERC721(tokenFactoryAddress).createERC721(name, symbol);
