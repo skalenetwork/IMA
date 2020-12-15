@@ -2530,7 +2530,7 @@ async function do_transfer(
                         const r = await jo_message_proxy_dst.methods.isAuthorizedCaller(
                             hashOfSchainName,
                             a
-                            ).call( {
+                        ).call( {
                             from: a
                         } );
                         if( verbose_get() >= RV_VERBOSE.trace )
