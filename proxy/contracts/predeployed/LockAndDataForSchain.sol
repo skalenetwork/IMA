@@ -319,7 +319,7 @@ contract LockAndDataForSchain is OwnableForSchain {
     }
 
     /**
-     * @dev Checks whether contract name and adress are permitted.
+     * @dev Checks whether contract name and address are permitted.
      */
     function _checkPermitted(string memory contractName, address contractAddress) 
         private
