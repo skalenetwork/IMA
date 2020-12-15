@@ -40,6 +40,7 @@ interface ContractReceiverForSchain {
 contract MessageProxyForSchain {
     using SafeMath for uint256;
 
+
     // 16 Agents
     // Synchronize time with time.nist.gov
     // Every agent checks if it is his time slot
@@ -88,6 +89,8 @@ contract MessageProxyForSchain {
         uint256 hashB;
         uint256 counter;
     }
+
+    SkaleFeatures public skaleFeatures = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2);
 
     bool public mainnetConnected;
     // Owner of this chain. For mainnet, the owner is SkaleManager
@@ -360,7 +363,7 @@ contract MessageProxyForSchain {
     function getChainID() public view returns (string memory) {
         if (!_isCustomDeploymentMode) {
             if ((keccak256(abi.encodePacked(_chainID))) == (keccak256(abi.encodePacked(""))) )
-                return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString(
+                return skaleFeatures.getConfigVariableString(
                     "skaleConfig.sChain.schainName"
                 );
         }
@@ -370,7 +373,7 @@ contract MessageProxyForSchain {
     function getOwner() public view returns (address) {
         if (!_isCustomDeploymentMode) {
             if ((ownerAddress) == (address(0)) )
-                return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+                return skaleFeatures.getConfigVariableAddress(
                     "skaleConfig.contractSettings.IMA.ownerAddress"
                 );
         }
@@ -386,7 +389,7 @@ contract MessageProxyForSchain {
             return true;
         if (_isCustomDeploymentMode)
             return false;
-        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigPermissionFlag(
+        uint256 u = skaleFeatures.getConfigPermissionFlag(
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
         if ( u != 0 )
