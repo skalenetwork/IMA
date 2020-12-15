@@ -116,7 +116,7 @@ function verbose_list() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-let g_nSleepBeforeFetchOutgoingMessageEvent = 5000;
+const g_nSleepBeforeFetchOutgoingMessageEvent = 5000;
 let g_nSleepBetweenTransactionsOnSChainMilliseconds = 0; // example - 5000
 let g_bWaitForNextBlockOnSChain = false;
 let g_amountToAddCost = null; // example - 10000000000000000", this is amount of real Eth to TokenManager.addEthConst() when sending ERC20/721 M->S
@@ -303,7 +303,7 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
         }
         const joResult = await methodWithArguments.call( {
             from: addressFrom,
-            gas: 12000000,
+            gas: 12000000
         } );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "got result " ) + cc.normal( cc.safeStringifyJSON( joResult ) ) + "\n" );
