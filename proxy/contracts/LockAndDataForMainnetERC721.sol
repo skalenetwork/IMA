@@ -53,6 +53,7 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
         allow("ERC721Module")
         returns (bool)
     {
+        require(contractHere.isContract(), "Given address is not a contract");
         if (IERC721(contractHere).ownerOf(tokenId) == address(this)) {
             IERC721(contractHere).transferFrom(address(this), to, tokenId);
             require(IERC721(contractHere).ownerOf(tokenId) == to, "Did not transfer");
@@ -65,6 +66,7 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
      * LockAndDataForMainnetERC721.
      */
     function addERC721Token(address addressERC721) external allow("ERC721Module") returns (uint256) {
+        require(addressERC721.isContract(), "Given address is not a contract");
         uint256 index = newIndexERC721;
         erc721Tokens[index] = addressERC721;
         erc721Mapper[addressERC721] = index;

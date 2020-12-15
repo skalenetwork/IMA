@@ -52,6 +52,7 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
      * - Transfer must be successful. 
      */
     function sendERC20(address contractHere, address to, uint256 amount) external allow("ERC20Module") returns (bool) {
+        require(contractHere.isContract(), "Given address is not a contract");
         require(IERC20(contractHere).balanceOf(address(this)) >= amount, "Not enough money");
         require(IERC20(contractHere).transfer(to, amount), "something went wrong with `transfer` in ERC20");
         return true;
@@ -61,6 +62,7 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
      * @dev Allows ERC20Module to add an ERC20 token to LockAndDataForMainnetERC20.
      */
     function addERC20Token(address addressERC20) external allow("ERC20Module") returns (uint256) {
+        require(addressERC20.isContract(), "Given address is not a contract");
         uint256 index = newIndexERC20;
         erc20Tokens[index] = addressERC20;
         erc20Mapper[addressERC20] = index;
