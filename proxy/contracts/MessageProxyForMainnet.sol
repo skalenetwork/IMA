@@ -23,10 +23,10 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./PermissionsForMainnet.sol";
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
-import "@nomiclabs/buidler/console.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
@@ -65,6 +65,7 @@ interface ISchains {
  * messages do not need to be signed.
  */
 contract MessageProxyForMainnet is PermissionsForMainnet {
+    using SafeMath for uint256;
 
     // 16 Agents
     // Synchronize time with time.nist.gov
@@ -116,11 +117,14 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     string public chainID;
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public owner;
-    uint256 private _idxHead;
-    uint256 private _idxTail;
 
-    mapping(bytes32 => ConnectedChainInfo) public connectedChains;
-    mapping ( uint256 => OutgoingMessageData ) private _outgoingMessageData;
+    mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
+    //      chainID  =>      message_id  => MessageData
+    mapping( bytes32 => mapping( uint256 => OutgoingMessageData )) private _outgoingMessageData;
+    //      chainID  => head of unprocessed messages
+    mapping( bytes32 => uint ) private _idxHead;
+    //      chainID  => tail of unprocessed messages
+    mapping( bytes32 => uint ) private _idxTail;
 
     /**
      * @dev Emitted for every outgoing message to `dstChain`.
@@ -210,7 +214,8 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
-        connectedChains[dstChainHash].outgoingMessageCounter++;
+        connectedChains[dstChainHash].outgoingMessageCounter = 
+            connectedChains[dstChainHash].outgoingMessageCounter.add(1);
         _pushOutgoingMessageData(
             OutgoingMessageData(
                 dstChainID,
@@ -278,8 +283,9 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
                 );
             }
         }
-        connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint256(messages.length);
-        _popOutgoingMessageData(idxLastToPopNotIncluding);
+        connectedChains[srcChainHash].incomingMessageCounter = 
+            connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
+        _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
     }
 
     /**
@@ -293,7 +299,8 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      */
     function moveIncomingCounter(string calldata schainName) external {
         require(msg.sender == owner, "Sender is not an owner");
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter++;
+        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 
+            connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
     }
 
     /**
@@ -371,6 +378,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      * @dev Checks whether outgoing message is valid.
      */
     function verifyOutgoingMessageData(
+        string memory chainName,
         uint256 idxMessage,
         address sender,
         address destinationContract,
@@ -381,9 +389,16 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         view
         returns (bool isValidMessage)
     {
+        bytes32 chainId = keccak256(abi.encodePacked(chainName));
         isValidMessage = false;
-        OutgoingMessageData memory d = _outgoingMessageData[idxMessage];
-        if ( d.dstContract == destinationContract && d.srcContract == sender && d.to == to && d.amount == amount )
+        OutgoingMessageData memory d = _outgoingMessageData[chainId][idxMessage];
+        if ( d.dstContract == destinationContract &&
+             d.srcContract == sender &&
+             d.to == to && 
+             d.amount == amount &&
+             keccak256(abi.encodePacked(d.dstChain)) == chainId &&
+             d.dstChainHash == chainId
+        )
             isValidMessage = true;
     }
 
@@ -499,22 +514,29 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             d.data,
             d.length
         );
-        _outgoingMessageData[_idxTail] = d;
-        ++_idxTail;
+        _outgoingMessageData[d.dstChainHash][_idxTail[d.dstChainHash]] = d;
+        _idxTail[d.dstChainHash] = _idxTail[d.dstChainHash].add(1);
     }
 
     /**
      * @dev Pop outgoing message from outgoingMessageData array.
      */
-    function _popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) private returns ( uint256 cntDeleted ) {
+    function _popOutgoingMessageData(
+        bytes32 chainId,
+        uint256 idxLastToPopNotIncluding
+    )
+        private
+        returns ( uint256 cntDeleted )
+    {
         cntDeleted = 0;
-        for ( uint256 i = _idxHead; i < idxLastToPopNotIncluding; ++ i ) {
-            if ( i >= _idxTail )
+        uint idxTail = _idxTail[chainId];
+        for ( uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++ i ) {
+            if ( i >= idxTail )
                 break;
-            delete _outgoingMessageData[i];
+            delete _outgoingMessageData[chainId][i];
             ++ cntDeleted;
         }
         if (cntDeleted > 0)
-            _idxHead += cntDeleted;
+            _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
     }
 }

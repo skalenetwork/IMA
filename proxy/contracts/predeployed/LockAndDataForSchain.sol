@@ -21,6 +21,7 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./OwnableForSchain.sol";
 
 interface IETHERC20 {
@@ -36,6 +37,7 @@ interface IETHERC20 {
  * balances of ETH tokens received through DepositBox.
  */
 contract LockAndDataForSchain is OwnableForSchain {
+    using SafeMath for uint256;
 
     address private _ethERC20Address;
 
@@ -211,7 +213,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * @dev Allows TokenManager to add gas costs to LockAndDataForSchain.
      */
     function addGasCosts(address to, uint256 amount) external allow("TokenManager") {
-        ethCosts[to] += amount;
+        ethCosts[to] = ethCosts[to].add(amount);
     }
 
     /**
@@ -257,7 +259,7 @@ contract LockAndDataForSchain is OwnableForSchain {
             return true;
         if (_isCustomDeploymentMode)
             return false;
-        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigPermissionFlag(
+        uint256 u = skaleFeatures.getConfigPermissionFlag(
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
         if ( u != 0 )
@@ -270,7 +272,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      */
     function getEthERC20Address() public view returns (address addressOfEthERC20) {
         if (_ethERC20Address == address(0) && (!_isCustomDeploymentMode)) {
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+            return skaleFeatures.getConfigVariableAddress(
                 "skaleConfig.contractSettings.IMA.EthERC20"
             );
         }
