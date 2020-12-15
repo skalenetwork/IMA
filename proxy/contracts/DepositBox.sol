@@ -50,8 +50,9 @@ contract DepositBox is PermissionsForMainnet {
         rawTransferERC721
     }
 
-    uint256 public constant GAS_AMOUNT_POST_MESSAGE = 200000;
-    uint256 public constant AVERAGE_TX_PRICE = 10000000000;
+    uint256 public averageGasAmount = 200000;
+    uint256 public averageTxPrice = 10000000000;
+    uint256 public numberOfTransactions = 0;
 
     event MoneyReceivedMessage(
         address sender,
@@ -76,10 +77,24 @@ contract DepositBox is PermissionsForMainnet {
     }
 
     modifier requireGasPayment() {
-        require(msg.value >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Gas was not paid");
+        require(msg.value >= averageGasAmount * averageTxPrice, "Gas was not paid");
         _;
         ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
     }
+
+    modifier replenishGas(address receiver, uint amount) {
+        uint gasTotal = gasleft();
+        _;
+        gasTotal -= gasleft();
+        gasTotal += gasTotal / 4;
+        uint gasPrice = tx.gasprice;
+        averageGasAmount = (averageGasAmount * numberOfTransactions + gasTotal) / (numberOfTransactions + 1);
+        averageTxPrice = (averageTxPrice * numberOfTransactions + gasPrice) / (numberOfTransactions + 1);
+        numberOfTransactions++;
+        if(amount > gasTotal * gasPrice)
+            ILockAndDataDB(lockAndDataAddress_).approveTransfer(receiver, amount - gasTotal * gasPrice);
+        ILockAndDataDB(lockAndDataAddress_).sendEth(tx.origin, gasTotal * gasPrice);
+    }    
 
     fallback() external payable {
         revert("Not allowed. in DepositBox");
@@ -274,6 +289,7 @@ contract DepositBox is PermissionsForMainnet {
         bytes calldata data
     )
         external
+        replenishGas()
         allow("MessageProxy")
     {
         require(data.length != 0, "Invalid data");
@@ -285,11 +301,11 @@ contract DepositBox is PermissionsForMainnet {
         );
         require(
             amount <= address(lockAndDataAddress_).balance ||
-            amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            amount >= averageGasAmount * averageTxPrice,
             "Not enough money to finish this transaction"
         );
         require(
-            ILockAndDataDB(lockAndDataAddress_).sendEth(getOwner(), GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
+            ILockAndDataDB(lockAndDataAddress_).sendEth(getOwner(), averageGasAmount * averageTxPrice),
             "Could not send money to owner"
         );
         _executePerOperation(to, amount, data);
@@ -335,40 +351,35 @@ contract DepositBox is PermissionsForMainnet {
         internal
     {
         TransactionOperation operation = _fallbackOperationTypeConvert(data);
-        if (operation == TransactionOperation.transferETH) {
-            if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
-                ILockAndDataDB(lockAndDataAddress_).approveTransfer(
-                    to,
-                    amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE
-                );
-            }
-        } else if ((operation == TransactionOperation.transferERC20 && to == address(0)) ||
-                  (operation == TransactionOperation.rawTransferERC20 && to != address(0))) {
+        address receiver = to;
+        if ((operation == TransactionOperation.transferERC20 && to == address(0)) ||
+            (operation == TransactionOperation.rawTransferERC20 && to != address(0))) {
             address erc20Module = IContractManagerForMainnet(lockAndDataAddress_).permitted(
                 keccak256(abi.encodePacked("ERC20Module"))
             );
             require(IERC20Module(erc20Module).sendERC20(to, data), "Sending of ERC20 was failed");
-            address receiver = IERC20Module(erc20Module).getReceiver(data);
-            if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
-                ILockAndDataDB(lockAndDataAddress_).approveTransfer(
-                    receiver,
-                    amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE
-                );
-            }
+            receiver = IERC20Module(erc20Module).getReceiver(data);
         } else if ((operation == TransactionOperation.transferERC721 && to == address(0)) ||
                   (operation == TransactionOperation.rawTransferERC721 && to != address(0))) {
             address erc721Module = IContractManagerForMainnet(lockAndDataAddress_).permitted(
                 keccak256(abi.encodePacked("ERC721Module"))
             );
             require(IERC721Module(erc721Module).sendERC721(to, data), "Sending of ERC721 was failed");
-            address receiver = IERC721Module(erc721Module).getReceiver(to, data);
-            if (amount > GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE) {
-                ILockAndDataDB(lockAndDataAddress_).approveTransfer(
-                    receiver,
-                    amount - GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE
-                );
-            }
+            receiver = IERC721Module(erc721Module).getReceiver(to, data);
         }
+        _sendAndCalculateGas(receiver, amount);
+    }
+
+    function _sendAndCalculateGas(address receiver, uint amount) private {
+        gasTotal -= gasleft();
+        gasTotal += gasTotal / 4;
+        uint gasPrice = tx.gasprice;
+        averageGasAmount = (averageGasAmount * numberOfTransactions + gasTotal) / (numberOfTransactions + 1);
+        averageTxPrice = (averageTxPrice * numberOfTransactions + gasPrice) / (numberOfTransactions + 1);
+        numberOfTransactions++;
+        if(amount > gasTotal * gasPrice)
+            ILockAndDataDB(lockAndDataAddress_).approveTransfer(receiver, amount - gasTotal * gasPrice);
+        ILockAndDataDB(lockAndDataAddress_).sendEth(tx.origin, gasTotal * gasPrice);
     }
 
     /**
