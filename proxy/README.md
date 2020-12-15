@@ -49,6 +49,10 @@ function postMessage(
     Data of Smart contracts stores in `data` folder
 3) Then continue developing your dApp
 
+## Ether clone on SKALE chain
+
+On SKALE chain exists Wrapped Ether clone(EthERC20.sol) - it is an ERC20 token. ERC20 token has an allowance issue - fully described in https://blog.smartdec.net/erc20-approve-issue-in-simple-words-a41aaf47bca6
+
 ## Interchain Messaging Agent system
 
 This system sends and receives ETH, ERC20, and ERC721 tokens from other chains.
