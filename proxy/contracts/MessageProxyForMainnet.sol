@@ -183,7 +183,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      * 
      * Requirements:
      * 
-     * - `msg.sender` must be owner.
+     * - `msg.sender` must be LockAndData contract.
      * - `newChainID` must be initialized.
      */
     function removeConnectedChain(string calldata newChainID) external allow("LockAndData") {
@@ -331,7 +331,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         view
         returns (bool)
     {
-        //require(msg.sender == owner); // todo: tmp!!!!!
         require(
             keccak256(abi.encodePacked(someChainID)) !=
             keccak256(abi.encodePacked("Mainnet")),
