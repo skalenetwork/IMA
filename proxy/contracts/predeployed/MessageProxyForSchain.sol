@@ -215,10 +215,10 @@ contract MessageProxyForSchain {
         external
         connectMainnet
     {
-        require(isAuthorizedCaller(keccak256(abi.encodePacked(newChainID)), msg.sender), "Not authorized caller");
         if ( keccak256(abi.encodePacked(newChainID)) ==
             keccak256(abi.encodePacked("Mainnet")) )
             return;
+        require(isAuthorizedCaller(keccak256(abi.encodePacked(newChainID)), msg.sender), "Not authorized caller");
 
         require(
             !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
