@@ -66,8 +66,7 @@ contract TokenManager is PermissionsForSchain {
     string private _chainID;
     // address private _proxyForSchainAddress;
 
-    uint256 public constant GAS_AMOUNT_POST_MESSAGE = 200000;
-    uint256 public constant AVERAGE_TX_PRICE = 10000000000;
+    uint256 public constant GAS_CONSUMPTION = 2000000000000000;
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -81,7 +80,7 @@ contract TokenManager is PermissionsForSchain {
     }
 
     modifier receivedEth(uint256 amount) {
-        require(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Null Amount");
+        require(amount >= GAS_CONSUMPTION, "Null Amount");
         require(ILockAndDataTM(getLockAndDataAddress()).receiveEth(msg.sender, amount), "Could not receive ETH Clone");
         _;
     }
@@ -154,7 +153,7 @@ contract TokenManager is PermissionsForSchain {
         require(
             ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
-                GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
+                GAS_CONSUMPTION),
             "Not enough gas sent");
         bytes memory data = IERC20Module(erc20Module).receiveERC20(
             contractHere,
@@ -164,7 +163,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            GAS_CONSUMPTION,
             address(0),
             data
         );
@@ -203,7 +202,7 @@ contract TokenManager is PermissionsForSchain {
         require(
             ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
-                GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
+                GAS_CONSUMPTION),
             "Not enough gas sent");
         bytes memory data = IERC20Module(erc20Module).receiveERC20(
             contractHere,
@@ -213,7 +212,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            GAS_CONSUMPTION,
             contractThere,
             data
         );
@@ -316,7 +315,7 @@ contract TokenManager is PermissionsForSchain {
         require(
             ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
-                GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
+                GAS_CONSUMPTION),
             "Not enough gas sent");
         bytes memory data = IERC721Module(erc721Module).receiveERC721(
             contractHere,
@@ -326,7 +325,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            GAS_CONSUMPTION,
             address(0),
             data
         );
@@ -351,7 +350,7 @@ contract TokenManager is PermissionsForSchain {
         require(
             ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
-                GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
+                GAS_CONSUMPTION),
             "Not enough gas sent");
         bytes memory data = IERC721Module(erc721Module).receiveERC721(
             contractHere,
@@ -361,7 +360,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            GAS_CONSUMPTION,
             contractThere,
             data
         );
