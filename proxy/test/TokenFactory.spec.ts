@@ -36,12 +36,12 @@ import {
     ERC721ModuleForSchainInstance,
     ERC721OnChainContract,
     ERC721OnChainInstance,
-    LockAndDataForSchainContract,
+    LockAndDataForSchainWorkaroundContract,
     LockAndDataForSchainERC20Contract,
     LockAndDataForSchainERC20Instance,
     LockAndDataForSchainERC721Contract,
     LockAndDataForSchainERC721Instance,
-    LockAndDataForSchainInstance,
+    LockAndDataForSchainWorkaroundInstance,
     MessageProxyForSchainContract,
     MessageProxyForSchainInstance,
     TokenFactoryContract,
@@ -52,7 +52,7 @@ chai.should();
 chai.use((chaiAsPromised as any));
 
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
-const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
+const LockAndDataForSchain: LockAndDataForSchainWorkaroundContract = artifacts.require("./LockAndDataForSchainWorkaround");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const LockAndDataForSchainERC20: LockAndDataForSchainERC20Contract =
     artifacts.require("./LockAndDataForSchainERC20");
@@ -65,7 +65,7 @@ const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain"
 
 contract("TokenFactory", ([user, deployer]) => {
   let messageProxy: MessageProxyForSchainInstance;
-  let lockAndDataForSchain: LockAndDataForSchainInstance;
+  let lockAndDataForSchain: LockAndDataForSchainWorkaroundInstance;
   let tokenFactory: TokenFactoryInstance;
   let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
   let lockAndDataForSchainERC20: LockAndDataForSchainERC20Instance;
@@ -140,15 +140,19 @@ contract("TokenFactory", ([user, deployer]) => {
 
 contract("ERC20OnChain", ([deployer, user]) => {
   let messageProxy: MessageProxyForSchainInstance;
-  let lockAndDataForSchain: LockAndDataForSchainInstance;
+  let lockAndDataForSchain: LockAndDataForSchainWorkaroundInstance;
   let eRC20OnChain: ERC20OnChainInstance;
+  let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
 
   beforeEach(async () => {
     messageProxy = await MessageProxyForSchain.new(
       "Mainnet", {from: deployer});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
+    eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
+      {from: deployer});
+    await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address);
     eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
-        ((1000000000).toString()), deployer, {from: deployer});
+        ((1000000000).toString()), lockAndDataForSchain.address, {from: deployer});
   });
 
   it("should invoke `totalSupplyOnMainnet`", async () => {
@@ -171,6 +175,7 @@ contract("ERC20OnChain", ([deployer, user]) => {
     // preparation
     const newTotalSupply = 500;
     // execution
+    await lockAndDataForSchain.setContract("ERC20Module", deployer);
     await eRC20OnChain.setTotalSupplyOnMainnet(newTotalSupply, {from: deployer});
     // expectation
     const totalSupply = await eRC20OnChain.totalSupplyOnMainnet({from: deployer});
@@ -220,7 +225,7 @@ contract("ERC20OnChain", ([deployer, user]) => {
 
 contract("ERC721OnChain", ([user, deployer]) => {
   let messageProxy: MessageProxyForSchainInstance;
-  let lockAndDataForSchain: LockAndDataForSchainInstance;
+  let lockAndDataForSchain: LockAndDataForSchainWorkaroundInstance;
   let eRC721OnChain: ERC721OnChainInstance;
 
   beforeEach(async () => {
