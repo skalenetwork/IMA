@@ -116,6 +116,7 @@ function verbose_list() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+const g_nSleepBeforeFetchOutgoingMessageEvent = 5000;
 let g_nSleepBetweenTransactionsOnSChainMilliseconds = 0; // example - 5000
 let g_bWaitForNextBlockOnSChain = false;
 let g_amountToAddCost = null; // example - 10000000000000000", this is amount of real Eth to TokenManager.addEthConst() when sending ERC20/721 M->S
@@ -178,8 +179,8 @@ async function get_contract_call_events( joContract, strEventName, nBlockNumber,
     joFilter = joFilter || {};
     const joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
         filter: joFilter,
-        fromBlock: nBlockNumber,
-        toBlock: nBlockNumber
+        fromBlock: nBlockNumber - 10,
+        toBlock: nBlockNumber + 10
     } );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
@@ -302,7 +303,7 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
         }
         const joResult = await methodWithArguments.call( {
             from: addressFrom,
-            gas: 8000000
+            gas: 12000000
         } );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "got result " ) + cc.normal( cc.safeStringifyJSON( joResult ) ) + "\n" );
@@ -1043,6 +1044,7 @@ async function do_eth_payment_from_main_net(
         if( jo_message_proxy_main_net ) {
             if( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 ) {
                 if( verbose_get() >= RV_VERBOSE.information )
@@ -1232,6 +1234,7 @@ async function do_eth_payment_from_s_chain(
         if( jo_message_proxy_s_chain ) {
             if( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 ) {
                 if( verbose_get() >= RV_VERBOSE.information )
@@ -1429,7 +1432,7 @@ async function do_erc721_payment_from_main_net(
         //
         strActionName = "create raw transactions M->S";
         //
-        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 0 );
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
@@ -1518,6 +1521,7 @@ async function do_erc721_payment_from_main_net(
         if( jo_message_proxy_main_net ) {
             if( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 ) {
                 if( verbose_get() >= RV_VERBOSE.information )
@@ -1640,10 +1644,11 @@ async function do_erc20_payment_from_main_net(
         //
         strActionName = "create raw transactions M->S";
         //
-        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 0 );
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
+        // console.log( "-----------> gasPrice is", gasPrice );
         const rawTxApprove = {
             chainId: cid_main_net,
             from: joAccountSrc.address( w3_main_net ), // accountForMainnet
@@ -1726,6 +1731,7 @@ async function do_erc20_payment_from_main_net(
         if( jo_message_proxy_main_net ) {
             if( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 ) {
                 if( verbose_get() >= RV_VERBOSE.information )
@@ -1979,6 +1985,7 @@ async function do_erc20_payment_from_s_chain(
         if( jo_message_proxy_s_chain ) {
             if( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 ) {
                 if( verbose_get() >= RV_VERBOSE.information )
@@ -2204,6 +2211,7 @@ async function do_erc721_payment_from_s_chain(
         if( jo_message_proxy_s_chain ) {
             if( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 ) {
                 if( verbose_get() >= RV_VERBOSE.information )
@@ -2586,7 +2594,7 @@ async function do_transfer(
                 const raw_tx_postIncomingMessages = compose_tx_instance( strLogPrefix, {
                     chainId: cid_dst,
                     nonce: tcnt,
-                    gas: 6000000, // 8000000
+                    gas: 12000000,
                     gasPrice: gasPrice,
                     // "gasLimit": 3000000,
                     to: jo_message_proxy_dst.options.address, // contract address
