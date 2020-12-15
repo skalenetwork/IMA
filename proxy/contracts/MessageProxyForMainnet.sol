@@ -253,7 +253,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
-            "Starning counter is not qual to incomin message counter");
+            "Starning counter is not equal to incomin message counter");
 
         if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
             _convertAndVerifyMessages(srcChainID, messages, sign);
