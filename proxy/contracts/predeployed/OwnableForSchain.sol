@@ -62,11 +62,19 @@ contract OwnableForSchain is Ownable {
      * @dev Returns owner address.
      */
     function getSchainOwner() public view returns (address) {
-        skaleFeatures.logMessage("Start getSchainOwner");
-        skaleFeatures.logMessage(string(abi.encodePacked("Address: ", owner())));
+        SkaleFeatures(
+                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                ).logMessage("Start getSchainOwner");
+        SkaleFeatures(
+                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                ).logMessage(string(abi.encodePacked("Address: ", owner())));
         if (owner() == (address(0)) )
-            skaleFeatures.logMessage("Calling ownerAddress");
-            return skaleFeatures.getConfigVariableAddress(
+            SkaleFeatures(
+                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                ).logMessage("Calling ownerAddress");
+            return SkaleFeatures(
+                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                ).getConfigVariableAddress(
                 "skaleConfig.contractSettings.IMA.ownerAddress"
             );
         return owner();
@@ -77,7 +85,9 @@ contract OwnableForSchain is Ownable {
      */
     function getLockAndDataOwner() public view returns (address) {
         if (owner() == (address(0)) )
-            return skaleFeatures.getConfigVariableAddress(
+            return SkaleFeatures(
+                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                ).getConfigVariableAddress(
                 "skaleConfig.contractSettings.IMA.LockAndData"
             );
         return owner();
