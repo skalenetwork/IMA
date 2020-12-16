@@ -45,7 +45,9 @@ jobs:
       run: cd proxy && yarn install
 
     - name: Install slither
-      run: pip3 install -r scripts/requirements.txt
+      run: |
+        pwd
+        pip3 install -r scripts/requirements.txt
 
     - name: Lint solidity
       run: yarn lint
