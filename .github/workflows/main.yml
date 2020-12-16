@@ -42,12 +42,15 @@ jobs:
         python-version: 3.8
 
     - name: Install project
-      run: cd proxy && yarn install
+      working-directory: ./proxy
+      run: yarn install
 
     - name: Install slither
-      run: cd proxy && pip3 install -r scripts/requirements.txt
+      working-directory: ./proxy
+      run: pip3 install -r scripts/requirements.txt
 
     - name: Lint solidity
+      working-directory: ./proxy
       run: yarn lint
 
     - name: Compile typescript
