@@ -314,7 +314,6 @@ contract MessageProxyForSchain {
             "Starting counter is not qual to incoming message counter");
 
         for (uint256 i = 0; i < messages.length; i++) {
-
             try ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                 messages[i].sender,
                 srcChainID,
@@ -416,7 +415,7 @@ contract MessageProxyForSchain {
             d.length
         );
         _outgoingMessageData[_idxTail] = d;
-        ++ _idxTail;
+        ++_idxTail;
     }
 
     function _popOutgoingMessageData( uint256 idxLastToPopNotIncluding ) private returns ( uint256 cntDeleted ) {

@@ -27,8 +27,6 @@ import "./../interfaces/IERC20ModuleForSchain.sol";
 import "./../interfaces/IERC721ModuleForSchain.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
-import "@nomiclabs/buidler/console.sol";
-
 
 interface ILockAndDataTM {
     function setContract(string calldata contractName, address newContract) external;

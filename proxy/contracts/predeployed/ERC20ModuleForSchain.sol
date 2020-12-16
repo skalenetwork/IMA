@@ -23,7 +23,6 @@ pragma solidity 0.6.12;
 
 import "./PermissionsForSchain.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
-import "@nomiclabs/buidler/console.sol";
 
 interface ITokenFactoryForERC20 {
     function createERC20(string memory name, string memory symbol, uint256 totalSupply)
