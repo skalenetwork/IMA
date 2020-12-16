@@ -198,50 +198,50 @@ contract("DepositBox", ([deployer, user]) => {
       });
     });
 
-    describe("tests for `rawDepositERC20` function", async () => {
-      it("should rejected with `Not allowed ERC20 Token` when invoke `rawDepositERC20`", async () => {
-        // preparation
-        const error = "Not allowed ERC20 Token";
-        const schainID = randomString(10);
-        // add schain to avoid the `Unconnected chain` error
-        const chain = await lockAndDataForMainnet
-          .addSchain(schainID, deployer, {from: deployer});
-        // execution/expectation
-        await depositBox
-          .rawDepositERC20(schainID, ethERC20.address, user, deployer, 100, {from: deployer})
-          .should.be.eventually.rejectedWith(error);
-      });
+  //   describe("tests for `rawDepositERC20` function", async () => {
+  //     it("should rejected with `Not allowed ERC20 Token` when invoke `rawDepositERC20`", async () => {
+  //       // preparation
+  //       const error = "Not allowed ERC20 Token";
+  //       const schainID = randomString(10);
+  //       // add schain to avoid the `Unconnected chain` error
+  //       const chain = await lockAndDataForMainnet
+  //         .addSchain(schainID, deployer, {from: deployer});
+  //       // execution/expectation
+  //       await depositBox
+  //         .rawDepositERC20(schainID, ethERC20.address, user, deployer, 100, {from: deployer})
+  //         .should.be.eventually.rejectedWith(error);
+  //     });
 
-      it("should invoke `rawDepositERC20` without mistakes", async () => {
-        // preparation
-        const schainID = randomString(10);
-        // add schain to avoid the `Unconnected chain` error
-        const chain = await lockAndDataForMainnet
-          .addSchain(schainID, deployer, {from: deployer});
-        // mint some quantity of ERC20 tokens for `deployer` address
-        await ethERC20.mint(deployer, "1000000000", {from: deployer});
-        // approve some quantity of ERC20 tokens for `depositBox` address
-        await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
-        // execution
-        await depositBox
-          .rawDepositERC20(schainID, ethERC20.address, user, deployer, 1, {from: deployer});
-      });
+  //     it("should invoke `rawDepositERC20` without mistakes", async () => {
+  //       // preparation
+  //       const schainID = randomString(10);
+  //       // add schain to avoid the `Unconnected chain` error
+  //       const chain = await lockAndDataForMainnet
+  //         .addSchain(schainID, deployer, {from: deployer});
+  //       // mint some quantity of ERC20 tokens for `deployer` address
+  //       await ethERC20.mint(deployer, "1000000000", {from: deployer});
+  //       // approve some quantity of ERC20 tokens for `depositBox` address
+  //       await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
+  //       // execution
+  //       await depositBox
+  //         .rawDepositERC20(schainID, ethERC20.address, user, deployer, 1, {from: deployer});
+  //     });
 
-      it("should invoke `rawDepositERC20` with some ETH without mistakes", async () => {
-        // preparation
-        const schainID = randomString(10);
-        // add schain to avoid the `Unconnected chain` error
-        const chain = await lockAndDataForMainnet
-          .addSchain(schainID, deployer, {from: deployer});
-        // mint some quantity of ERC20 tokens for `deployer` address
-        await ethERC20.mint(deployer, "1000000000", {from: deployer});
-        // approve some quantity of ERC20 tokens for `depositBox` address
-        await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
-        // execution
-        await depositBox
-          .rawDepositERC20(schainID, ethERC20.address, user, deployer, 1, {value: "1000000000000", from: deployer});
-      });
-    });
+  //     it("should invoke `rawDepositERC20` with some ETH without mistakes", async () => {
+  //       // preparation
+  //       const schainID = randomString(10);
+  //       // add schain to avoid the `Unconnected chain` error
+  //       const chain = await lockAndDataForMainnet
+  //         .addSchain(schainID, deployer, {from: deployer});
+  //       // mint some quantity of ERC20 tokens for `deployer` address
+  //       await ethERC20.mint(deployer, "1000000000", {from: deployer});
+  //       // approve some quantity of ERC20 tokens for `depositBox` address
+  //       await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
+  //       // execution
+  //       await depositBox
+  //         .rawDepositERC20(schainID, ethERC20.address, user, deployer, 1, {value: "1000000000000", from: deployer});
+  //     });
+  //   });
   });
 
   describe("tests with `ERC721`", async () => {
@@ -305,51 +305,51 @@ contract("DepositBox", ([deployer, user]) => {
       });
     });
 
-    describe("tests for `rawDepositERC721` function", async () => {
-      it("should rejected with `Not allowed ERC721 Token`", async () => {
-        // preparation
-        const error = "Not allowed ERC721 Token";
-        const schainID = randomString(10);
-        const contractHere = eRC721OnChain.address;
-        const contractThere = eRC721OnChain.address; // should be address of ERC721. In our case this no matter
-        const to = user;
-        const tokenId = 10;
-        // the wei should be MORE than (55000 * 1000000000)
-        // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-        const wei = "20000000000000000";
-        // add schain to avoid the `Unconnected chain` error
-        await lockAndDataForMainnet
-          .addSchain(schainID, deployer, {from: deployer});
-        // execution/expectation
-        await depositBox
-          .rawDepositERC721(schainID, contractHere, contractThere, to, tokenId, {value: wei, from: deployer})
-          .should.be.eventually.rejectedWith(error);
-      });
+    // describe("tests for `rawDepositERC721` function", async () => {
+    //   it("should rejected with `Not allowed ERC721 Token`", async () => {
+    //     // preparation
+    //     const error = "Not allowed ERC721 Token";
+    //     const schainID = randomString(10);
+    //     const contractHere = eRC721OnChain.address;
+    //     const contractThere = eRC721OnChain.address; // should be address of ERC721. In our case this no matter
+    //     const to = user;
+    //     const tokenId = 10;
+    //     // the wei should be MORE than (55000 * 1000000000)
+    //     // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
+    //     const wei = "20000000000000000";
+    //     // add schain to avoid the `Unconnected chain` error
+    //     await lockAndDataForMainnet
+    //       .addSchain(schainID, deployer, {from: deployer});
+    //     // execution/expectation
+    //     await depositBox
+    //       .rawDepositERC721(schainID, contractHere, contractThere, to, tokenId, {value: wei, from: deployer})
+    //       .should.be.eventually.rejectedWith(error);
+    //   });
 
-      it("should invoke `rawDepositERC721` without mistakes", async () => {
-        // preparation
-        const schainID = randomString(10);
-        const contractHere = eRC721OnChain.address;
-        const contractThere = eRC721OnChain.address; // should be address of ERC721. In our case this no matter
-        const to = user;
-        const tokenId = 10;
-        // the wei should be MORE than (55000 * 1000000000)
-        // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
-        const wei = "20000000000000000";
-        // add schain to avoid the `Unconnected chain` error
-        await lockAndDataForMainnet
-          .addSchain(schainID, deployer, {from: deployer});
-        // transfer tokenId from `deployer` to `depositBox`
-        await eRC721OnChain.transferFrom(deployer,
-          depositBox.address, tokenId, {from: deployer});
-        // execution
-        await depositBox
-          .rawDepositERC721(schainID, contractHere, contractThere, to, tokenId, {value: wei, from: deployer});
-        const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
-        // expectation
-        expect(lockAndDataBalance).to.equal(wei);
-      });
-    });
+    //   it("should invoke `rawDepositERC721` without mistakes", async () => {
+    //     // preparation
+    //     const schainID = randomString(10);
+    //     const contractHere = eRC721OnChain.address;
+    //     const contractThere = eRC721OnChain.address; // should be address of ERC721. In our case this no matter
+    //     const to = user;
+    //     const tokenId = 10;
+    //     // the wei should be MORE than (55000 * 1000000000)
+    //     // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
+    //     const wei = "20000000000000000";
+    //     // add schain to avoid the `Unconnected chain` error
+    //     await lockAndDataForMainnet
+    //       .addSchain(schainID, deployer, {from: deployer});
+    //     // transfer tokenId from `deployer` to `depositBox`
+    //     await eRC721OnChain.transferFrom(deployer,
+    //       depositBox.address, tokenId, {from: deployer});
+    //     // execution
+    //     await depositBox
+    //       .rawDepositERC721(schainID, contractHere, contractThere, to, tokenId, {value: wei, from: deployer});
+    //     const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
+    //     // expectation
+    //     expect(lockAndDataBalance).to.equal(wei);
+    //   });
+    // });
   });
 
   describe("tests for `postMessage` function", async () => {
@@ -535,8 +535,8 @@ contract("DepositBox", ([deployer, user]) => {
        */
       await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
       // get data from `receiveERC20`
-      const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
-      await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+      const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
+      await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
       // execution
       // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
@@ -579,8 +579,8 @@ contract("DepositBox", ([deployer, user]) => {
       // approve some quantity of ERC20 tokens for `depositBox` address
       await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
       // get data from `receiveERC20`
-      const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
-      await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+      const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
+      await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
       // execution
       // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
@@ -619,8 +619,8 @@ contract("DepositBox", ([deployer, user]) => {
       await eRC721OnChain.transferFrom(deployer,
         lockAndDataForMainnetERC721.address, tokenId, {from: deployer});
       // get data from `receiveERC721`
-      const data = await eRC721ModuleForMainnet.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
-      eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
+      const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
+      eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
       // execution
       // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
@@ -659,8 +659,8 @@ contract("DepositBox", ([deployer, user]) => {
       await eRC721OnChain.transferFrom(deployer,
         lockAndDataForMainnetERC721.address, tokenId, {from: deployer});
       // get data from `receiveERC721`
-      const data = await eRC721ModuleForMainnet.receiveERC721.call(contractHere, to, tokenId, isRaw, {from: deployer});
-      await eRC721ModuleForMainnet.receiveERC721(contractHere, to, tokenId, isRaw, {from: deployer});
+      const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
+      await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
       // execution
       // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
