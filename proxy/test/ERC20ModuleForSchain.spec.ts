@@ -76,9 +76,9 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
         {from: deployer});
     eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
-        ((1000000000).toString()), deployer, {from: deployer});
+        ((1000000000).toString()), lockAndDataForSchain.address, {from: deployer});
     eRC20OnChain2 = await ERC20OnChain.new("ERC20OnChain2", "ERC202",
-        ((1000000000).toString()), deployer, {from: deployer});
+        ((1000000000).toString()), lockAndDataForSchain.address, {from: deployer});
   });
 
   it("should invoke `receiveERC20` with `isRaw==true`", async () => {

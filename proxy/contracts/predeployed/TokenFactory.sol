@@ -31,25 +31,29 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     uint256 private _totalSupplyOnMainnet;
-    address private _addressOfErc20Module;
+    address private _addressOfLockAndData;
 
     constructor(
         string memory contractName,
         string memory contractSymbol,
         uint256 newTotalSupply,
-        address erc20Module
-        )
+        address _lockAndDataAddress
+    )
         public
     {
+        require(_lockAndDataAddress.isContract(), "LockAndData is not a contract");
         __ERC20_init(contractName, contractSymbol);
         _totalSupplyOnMainnet = newTotalSupply;
-        _addressOfErc20Module = erc20Module;
+        _addressOfLockAndData = _lockAndDataAddress;
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
         _setupRole(MINTER_ROLE, _msgSender());
     }
 
     function setTotalSupplyOnMainnet(uint256 newTotalSupply) external {
-        require(_addressOfErc20Module == _msgSender(), "Caller is not ERC20Module");
+        address erc20ModuleAddress = IContractManagerForSchain(
+            _addressOfLockAndData
+        ).getERC20Module();
+        require(erc20ModuleAddress == _msgSender(), "Caller is not ERC20Module");
         _totalSupplyOnMainnet = newTotalSupply;
     }
 
@@ -119,7 +123,7 @@ contract TokenFactory is PermissionsForSchain {
             name,
             symbol,
             totalSupply,
-            erc20ModuleAddress
+            getLockAndDataAddress()
         );
         address lockAndDataERC20 = IContractManagerForSchain(
             getLockAndDataAddress()
