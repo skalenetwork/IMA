@@ -259,7 +259,7 @@ contract LockAndDataForSchain is OwnableForSchain {
             return true;
         if (_isCustomDeploymentMode)
             return false;
-        uint256 u = skaleFeatures.getConfigPermissionFlag(
+        uint256 u = SkaleFeatures(getSkaleFeaturesAddress()).getConfigPermissionFlag(
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
         if ( u != 0 )
@@ -272,7 +272,9 @@ contract LockAndDataForSchain is OwnableForSchain {
      */
     function getEthERC20Address() public view returns (address addressOfEthERC20) {
         if (_ethERC20Address == address(0) && (!_isCustomDeploymentMode)) {
-            return skaleFeatures.getConfigVariableAddress(
+            return SkaleFeatures(
+                    getSkaleFeaturesAddress()
+                ).getConfigVariableAddress(
                 "skaleConfig.contractSettings.IMA.EthERC20"
             );
         }
@@ -289,7 +291,7 @@ contract LockAndDataForSchain is OwnableForSchain {
             ));
 
             address contractAddressInStorage = SkaleFeatures(
-                0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                getSkaleFeaturesAddress()
             ).getConfigVariableAddress(fullContractPath);
 
             return contractAddressInStorage;
@@ -346,7 +348,7 @@ contract LockAndDataForSchain is OwnableForSchain {
                     contractName
                 ));
                 address contractAddressInStorage = SkaleFeatures(
-                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                    getSkaleFeaturesAddress()
                 ).getConfigVariableAddress(fullContractPath);
                 if (contractAddressInStorage == contractAddress) {
                     permission = true;

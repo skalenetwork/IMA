@@ -2527,7 +2527,10 @@ async function do_transfer(
                             log.write( strLogPrefix + cc.debug( "Chain name " ) + cc.info( chain_id_src ) + "\n" );
                             log.write( strLogPrefix + cc.debug( "Hash of chain name " ) + cc.info( hashOfSchainName ) + "\n" );
                         }
-                        const r = await jo_message_proxy_dst.methods.isAuthorizedCaller( a ).call( {
+                        const r = await jo_message_proxy_dst.methods.isAuthorizedCaller(
+                            hashOfSchainName,
+                            a
+                        ).call( {
                             from: a
                         } );
                         if( verbose_get() >= RV_VERBOSE.trace )
