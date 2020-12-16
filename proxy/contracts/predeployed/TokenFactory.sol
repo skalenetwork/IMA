@@ -50,9 +50,9 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
     }
 
     function setTotalSupplyOnMainnet(uint256 newTotalSupply) external {
-        address erc20ModuleAddress = IContractManagerForSchain(
+        address erc20ModuleAddress = LockAndDataForSchain(
             _addressOfLockAndData
-        ).getERC20Module();
+        ).getErc20Module();
         require(erc20ModuleAddress == _msgSender(), "Caller is not ERC20Module");
         _totalSupplyOnMainnet = newTotalSupply;
     }

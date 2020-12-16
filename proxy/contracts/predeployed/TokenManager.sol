@@ -565,7 +565,7 @@ contract TokenManager is PermissionsForSchain {
      * @dev Returns MessageProxy address.
      */
     function getProxyForSchainAddress() public view returns ( address ow ) { // l_sergiy: added
-        address proxyForSchaniAddress = IContractManagerForSchain(
+        address proxyForSchaniAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getMessageProxy();
         if (proxyForSchaniAddress != address(0) )
