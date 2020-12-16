@@ -165,9 +165,6 @@ contract LockAndDataForSchain is OwnableForSchain {
      * - DepositBox address must be non-zero.
      */
     function addDepositBox(address depositBoxAddress) external {
-        SkaleFeatures(
-                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
-                ).logMessage("Start addDepositBox");
         require(isAuthorizedCaller(msg.sender) || getSchainOwner() == msg.sender, "Not authorized caller");
         require(depositBoxAddress != address(0), "Incorrect Deposit Box address");
         require(
@@ -258,30 +255,13 @@ contract LockAndDataForSchain is OwnableForSchain {
     }
 
     function isAuthorizedCaller(address a) public view returns (bool rv) { // l_sergiy: added
-        SkaleFeatures(
-                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
-                ).logMessage("Start isAuthorizedCaller");
-        SkaleFeatures(
-                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
-                ).logMessage(string(abi.encodePacked("Address: ", a)));
         if (authorizedCaller[a] )
-            SkaleFeatures(
-                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
-                ).logMessage("Authorized");
             return true;
         if (_isCustomDeploymentMode)
             return false;
-        SkaleFeatures(
-                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
-                ).logMessage("Calling mapAuthorizedCallers");
-        uint256 u = SkaleFeatures(
-                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
-                ).getConfigPermissionFlag(
+        uint256 u = SkaleFeatures(getSkaleFeaturesAddress()).getConfigPermissionFlag(
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
-        SkaleFeatures(
-                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
-                ).logMessage(string(abi.encodePacked("Successful", u)));
         if ( u != 0 )
             return true;
         return false;
@@ -293,7 +273,7 @@ contract LockAndDataForSchain is OwnableForSchain {
     function getEthERC20Address() public view returns (address addressOfEthERC20) {
         if (_ethERC20Address == address(0) && (!_isCustomDeploymentMode)) {
             return SkaleFeatures(
-                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                    getSkaleFeaturesAddress()
                 ).getConfigVariableAddress(
                 "skaleConfig.contractSettings.IMA.EthERC20"
             );
@@ -311,7 +291,7 @@ contract LockAndDataForSchain is OwnableForSchain {
             ));
 
             address contractAddressInStorage = SkaleFeatures(
-                0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                getSkaleFeaturesAddress()
             ).getConfigVariableAddress(fullContractPath);
 
             return contractAddressInStorage;
@@ -368,7 +348,7 @@ contract LockAndDataForSchain is OwnableForSchain {
                     contractName
                 ));
                 address contractAddressInStorage = SkaleFeatures(
-                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                    getSkaleFeaturesAddress()
                 ).getConfigVariableAddress(fullContractPath);
                 if (contractAddressInStorage == contractAddress) {
                     permission = true;
