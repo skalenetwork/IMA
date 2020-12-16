@@ -6,7 +6,7 @@ on: [push, pull_request]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  test-proxy:
+  test-contracts:
     runs-on: ubuntu-latest
 
     env:
@@ -74,7 +74,7 @@ jobs:
         npx buidler coverage --solcoverjs .solcover.js
         bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"         
 
-  build:
+  test-agent:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -249,32 +249,7 @@ jobs:
       run: |
         cd npms/skale-owasp
         yarn install
-        cd ../..
-
-    - name: START BACKGROUND GANACHE
-      run: |
-        echo ------------ ganache-cli install
-        sudo npm install -g ganache-cli
-        echo ------------ ganache-cli version check
-        which ganache-cli || echo "----> Looks like ganache-cli was not installed, next command will fail"
-        ganache-cli --version
-        echo ------------ ganache-cli startup
-        cd proxy
-        npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
-        cd ..
-
-    - name: TEST - PY - PRE-RUN
-      run: |
-        cd test
-        python3 ../scripts/config_from_accounts.py accounts.json config.json
-        pip3 install -r requirements.txt
-        cd ..
-
-    - name: TEST - PY - RUN
-      run: |
-        cd test
-        python3 test.py #|| travis_terminate 6
-        cd ..
+        cd ../..    
 
   test-integration:
     runs-on: ubuntu-latest
