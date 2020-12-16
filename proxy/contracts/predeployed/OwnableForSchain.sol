@@ -62,7 +62,10 @@ contract OwnableForSchain is Ownable {
      * @dev Returns owner address.
      */
     function getSchainOwner() public view returns (address) {
+        skaleFeatures.logMessage("Start getSchainOwner");
+        skaleFeatures.logMessage(string(abi.encodePacked("Address: ", owner())));
         if (owner() == (address(0)) )
+            skaleFeatures.logMessage("Calling ownerAddress");
             return skaleFeatures.getConfigVariableAddress(
                 "skaleConfig.contractSettings.IMA.ownerAddress"
             );

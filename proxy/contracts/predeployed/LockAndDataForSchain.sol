@@ -165,6 +165,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * - DepositBox address must be non-zero.
      */
     function addDepositBox(address depositBoxAddress) external {
+        skaleFeatures.logMessage("Start addDepositBox");
         require(isAuthorizedCaller(msg.sender) || getSchainOwner() == msg.sender, "Not authorized caller");
         require(depositBoxAddress != address(0), "Incorrect Deposit Box address");
         require(
@@ -255,13 +256,18 @@ contract LockAndDataForSchain is OwnableForSchain {
     }
 
     function isAuthorizedCaller(address a) public view returns (bool rv) { // l_sergiy: added
+        skaleFeatures.logMessage("Start isAuthorizedCaller");
+        skaleFeatures.logMessage(string(abi.encodePacked("Address: ", a)));
         if (authorizedCaller[a] )
+            skaleFeatures.logMessage("Authorized");
             return true;
         if (_isCustomDeploymentMode)
             return false;
+        skaleFeatures.logMessage("Calling mapAuthorizedCallers");
         uint256 u = skaleFeatures.getConfigPermissionFlag(
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
+        skaleFeatures.logMessage(string(abi.encodePacked("Successful", u)));
         if ( u != 0 )
             return true;
         return false;
