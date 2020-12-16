@@ -31,9 +31,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.
  */
 contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
 
-    mapping(uint256 => address) public erc721Tokens;
-    mapping(address => uint256) public erc721Mapper;
-    uint256 public  newIndexERC721;
+    mapping(string => mapping(address => bool)) public schainToERC721;
 
     /**
      * @dev Allows ERC721ModuleForMainnet to send an ERC721 token.
@@ -43,14 +41,14 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
      * - If ERC721 is held by LockAndDataForMainnetERC721, token must 
      * transferrable from the contract to the recipient address.
      */
-    function sendERC721(address contractHere, address to, uint256 tokenId)
+    function sendERC721(address contractOnMainnet, address to, uint256 tokenId)
         external
         allow("ERC721Module")
         returns (bool)
     {
-        if (IERC721(contractHere).ownerOf(tokenId) == address(this)) {
-            IERC721(contractHere).transferFrom(address(this), to, tokenId);
-            require(IERC721(contractHere).ownerOf(tokenId) == to, "Did not transfer");
+        if (IERC721(contractOnMainnet).ownerOf(tokenId) == address(this)) {
+            IERC721(contractOnMainnet).transferFrom(address(this), to, tokenId);
+            require(IERC721(contractOnMainnet).ownerOf(tokenId) == to, "Did not transfer");
         }
         return true;
     }
@@ -59,16 +57,15 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
      * @dev Allows ERC721ModuleForMainnet to add an ERC721 token to
      * LockAndDataForMainnetERC721.
      */
-    function addERC721Token(address addressERC721) external allow("ERC721Module") returns (uint256) {
-        uint256 index = newIndexERC721;
-        erc721Tokens[index] = addressERC721;
-        erc721Mapper[addressERC721] = index;
-        newIndexERC721++;
-        return index;
+    function addERC721ForSchain(string calldata schainID, address erc721OnMainnet) external allow("ERC721Module") {
+        schainToERC721[schainID][erc721OnMainnet] = true;
+    }
+
+    function getSchainToERC721(string calldata schainID, address erc721OnMainnet) external view returns (bool) {
+        return schainToERC721[schainID][erc721OnMainnet];
     }
 
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
-        newIndexERC721 = 1;
     }
 }
