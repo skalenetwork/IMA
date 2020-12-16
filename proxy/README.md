@@ -51,7 +51,7 @@ function postMessage(
 
 ## Ether clone on SKALE chain
 
-On SKALE chain exists Wrapped Ether clone(EthERC20.sol) - it is an ERC20 token. ERC20 token has an allowance issue - fully described in https://blog.smartdec.net/erc20-approve-issue-in-simple-words-a41aaf47bca6
+There is a Wrapped Ether clone(EthERC20.sol) on SKALE chains - it is an ERC20 token and inherits the known ERC-20 approve issue. Please find more details here https://blog.smartdec.net/erc20-approve-issue-in-simple-words-a41aaf47bca6
 
 ## Interchain Messaging Agent system
 
