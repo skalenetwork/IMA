@@ -363,7 +363,7 @@ contract MessageProxyForSchain {
     function getChainID() public view returns (string memory) {
         if (!_isCustomDeploymentMode) {
             if ((keccak256(abi.encodePacked(_chainID))) == (keccak256(abi.encodePacked(""))) )
-                return skaleFeatures.getConfigVariableString(
+                return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableString(
                     "skaleConfig.sChain.schainName"
                 );
         }
@@ -373,7 +373,7 @@ contract MessageProxyForSchain {
     function getOwner() public view returns (address) {
         if (!_isCustomDeploymentMode) {
             if ((ownerAddress) == (address(0)) )
-                return skaleFeatures.getConfigVariableAddress(
+                return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
                     "skaleConfig.contractSettings.IMA.ownerAddress"
                 );
         }
@@ -389,7 +389,7 @@ contract MessageProxyForSchain {
             return true;
         if (_isCustomDeploymentMode)
             return false;
-        uint256 u = skaleFeatures.getConfigPermissionFlag(
+        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigPermissionFlag(
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
         if ( u != 0 )
