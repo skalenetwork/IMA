@@ -957,7 +957,9 @@ function check_time_framing( d ) {
         if( d == null || d == undefined )
             d = new Date(); // now
 
-        const nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
+        // const nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
+        const nUtcUnixTimeStamp = Math.floor( ( new Date() ).getTime() / 1000 ); // https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
+
         const nSecondsRangeForAllSChains = imaState.nTimeFrameSeconds * imaState.nNodesCount;
         const nMod = Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
         const nActiveNodeFrameIndex = Math.floor( nMod / imaState.nTimeFrameSeconds );
