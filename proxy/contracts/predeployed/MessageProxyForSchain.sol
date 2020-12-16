@@ -90,8 +90,6 @@ contract MessageProxyForSchain {
         uint256 counter;
     }
 
-    SkaleFeatures public skaleFeatures = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2);
-
     bool public mainnetConnected;
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public ownerAddress;
@@ -215,10 +213,10 @@ contract MessageProxyForSchain {
         external
         connectMainnet
     {
-        require(isAuthorizedCaller(keccak256(abi.encodePacked(newChainID)), msg.sender), "Not authorized caller");
         if ( keccak256(abi.encodePacked(newChainID)) ==
             keccak256(abi.encodePacked("Mainnet")) )
             return;
+        require(isAuthorizedCaller(keccak256(abi.encodePacked(newChainID)), msg.sender), "Not authorized caller");
 
         require(
             !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
@@ -363,7 +361,7 @@ contract MessageProxyForSchain {
     function getChainID() public view returns (string memory) {
         if (!_isCustomDeploymentMode) {
             if ((keccak256(abi.encodePacked(_chainID))) == (keccak256(abi.encodePacked(""))) )
-                return skaleFeatures.getConfigVariableString(
+                return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableString(
                     "skaleConfig.sChain.schainName"
                 );
         }
@@ -373,7 +371,7 @@ contract MessageProxyForSchain {
     function getOwner() public view returns (address) {
         if (!_isCustomDeploymentMode) {
             if ((ownerAddress) == (address(0)) )
-                return skaleFeatures.getConfigVariableAddress(
+                return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
                     "skaleConfig.contractSettings.IMA.ownerAddress"
                 );
         }
@@ -389,7 +387,7 @@ contract MessageProxyForSchain {
             return true;
         if (_isCustomDeploymentMode)
             return false;
-        uint256 u = skaleFeatures.getConfigPermissionFlag(
+        uint256 u = SkaleFeatures(getSkaleFeaturesAddress()).getConfigPermissionFlag(
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
         if ( u != 0 )
@@ -420,6 +418,10 @@ contract MessageProxyForSchain {
              d.dstChainHash == chainId
         )
             isValidMessage = true;
+    }
+
+    function getSkaleFeaturesAddress() public view returns (address) {
+        return 0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2;
     }
 
     function _pushOutgoingMessageData( OutgoingMessageData memory d ) private {

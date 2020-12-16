@@ -70,7 +70,7 @@ contract PermissionsForSchain is OwnableForSchain {
     function getLockAndDataAddress() public view returns ( address a ) {
         if (lockAndDataAddress_ != address(0) )
             return lockAndDataAddress_;
-        return skaleFeatures.
+        return SkaleFeatures(getSkaleFeaturesAddress()).
             getConfigVariableAddress("skaleConfig.contractSettings.IMA.LockAndData");
     }
 

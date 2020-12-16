@@ -541,7 +541,7 @@ contract TokenManager is PermissionsForSchain {
      */
     function getChainID() public view returns ( string memory cID ) {
         if ((keccak256(abi.encodePacked(_chainID))) == (keccak256(abi.encodePacked(""))) ) {
-            return skaleFeatures
+            return SkaleFeatures(getSkaleFeaturesAddress())
                 .getConfigVariableString("skaleConfig.sChain.schainName");
         }
         return _chainID;
@@ -553,7 +553,7 @@ contract TokenManager is PermissionsForSchain {
     function getProxyForSchainAddress() public view returns ( address ow ) { // l_sergiy: added
         if (_proxyForSchainAddress != address(0) )
             return _proxyForSchainAddress;
-        return skaleFeatures.getConfigVariableAddress(
+        return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
             "skaleConfig.contractSettings.IMA.MessageProxy"
         );
     }
