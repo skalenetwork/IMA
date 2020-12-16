@@ -303,7 +303,7 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
         }
         const joResult = await methodWithArguments.call( {
             from: addressFrom,
-            gas: 12000000
+            gas: 10000000
         } );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "got result " ) + cc.normal( cc.safeStringifyJSON( joResult ) ) + "\n" );
@@ -2597,7 +2597,7 @@ async function do_transfer(
                 const raw_tx_postIncomingMessages = compose_tx_instance( strLogPrefix, {
                     chainId: cid_dst,
                     nonce: tcnt,
-                    gas: 12000000,
+                    gas: 10000000,
                     gasPrice: gasPrice,
                     // "gasLimit": 3000000,
                     to: jo_message_proxy_dst.options.address, // contract address
