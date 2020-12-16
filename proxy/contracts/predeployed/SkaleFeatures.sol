@@ -29,7 +29,7 @@ contract SkaleFeatures {
     uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;
     uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_ADDRESS = 0x14;
     uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_STRING = 0x15;
-    uint256 public constant FN_NUM_RESERVED_0x16 = 0x16;
+    uint256 public constant FN_NUM_RESERVED = 0x16;
     uint256 public constant FN_NUM_GET_CONFIG_PERMISSION_FLAG = 0x17;
 
     function logTextMessage( uint256 messageType, string memory strTextMessage ) public view returns ( uint256 rv ) {
