@@ -36,6 +36,7 @@ import {
 
 import chai = require("chai");
 import { gasMultiplier } from "./utils/command_line";
+import { randomString } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -49,6 +50,7 @@ contract("LockAndDataForSchainERC721", ([deployer, user]) => {
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForSchainERC721: LockAndDataForSchainERC721Instance;
   let eRC721OnChain: ERC721OnChainInstance;
+  let eRC721OnMainnet: ERC721OnChainInstance;
 
   beforeEach(async () => {
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
@@ -56,6 +58,7 @@ contract("LockAndDataForSchainERC721", ([deployer, user]) => {
         await LockAndDataForSchainERC721.new(lockAndDataForSchain.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
     eRC721OnChain = await ERC721OnChain.new("ELVIS", "ELV", {from: deployer});
+    eRC721OnMainnet = await ERC721OnChain.new("SKALE", "SKL", {from: deployer});
 
   });
 
@@ -105,16 +108,12 @@ contract("LockAndDataForSchainERC721", ([deployer, user]) => {
   it("should set `ERC721Tokens` and `ERC721Mapper`", async () => {
     // preparation
     const addressERC721 = eRC721OnChain.address;
-    const contractPosition = 10;
+    const schainID = randomString(10);
     // execution
     await lockAndDataForSchainERC721
-        .addERC721Token(addressERC721, contractPosition, {from: deployer});
+        .addERC721ForSchain(schainID, eRC721OnMainnet.address, addressERC721, {from: deployer});
     // expectation
-    expect(await lockAndDataForSchainERC721.erc721Tokens(contractPosition)).to.be.equal(addressERC721);
-    expect(parseInt(
-        new BigNumber(await lockAndDataForSchainERC721.erc721Mapper(addressERC721))
-        .toString(), 10))
-        .to.be.equal(contractPosition);
+    expect(await lockAndDataForSchainERC721.getERC721OnSchain(schainID, eRC721OnMainnet.address,)).to.be.equal(addressERC721);
   });
 
 });
