@@ -23,10 +23,10 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./PermissionsForMainnet.sol";
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
-import "@nomiclabs/buidler/console.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
@@ -65,6 +65,7 @@ interface ISchains {
  * messages do not need to be signed.
  */
 contract MessageProxyForMainnet is PermissionsForMainnet {
+    using SafeMath for uint256;
 
     // 16 Agents
     // Synchronize time with time.nist.gov
@@ -116,13 +117,13 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     string public chainID;
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public owner;
-    // uint256 private _idxHead;
-    // uint256 private _idxTail;
 
     mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
     //      chainID  =>      message_id  => MessageData
     mapping( bytes32 => mapping( uint256 => OutgoingMessageData )) private _outgoingMessageData;
+    //      chainID  => head of unprocessed messages
     mapping( bytes32 => uint ) private _idxHead;
+    //      chainID  => tail of unprocessed messages
     mapping( bytes32 => uint ) private _idxTail;
 
     /**
@@ -213,7 +214,8 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
-        connectedChains[dstChainHash].outgoingMessageCounter++;
+        connectedChains[dstChainHash].outgoingMessageCounter = 
+            connectedChains[dstChainHash].outgoingMessageCounter.add(1);
         _pushOutgoingMessageData(
             OutgoingMessageData(
                 dstChainID,
@@ -281,7 +283,8 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
                 );
             }
         }
-        connectedChains[keccak256(abi.encodePacked(srcChainID))].incomingMessageCounter += uint256(messages.length);
+        connectedChains[srcChainHash].incomingMessageCounter = 
+            connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
     }
 
@@ -296,7 +299,8 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      */
     function moveIncomingCounter(string calldata schainName) external {
         require(msg.sender == owner, "Sender is not an owner");
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter++;
+        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 
+            connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
     }
 
     /**
@@ -510,7 +514,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             d.length
         );
         _outgoingMessageData[d.dstChainHash][_idxTail[d.dstChainHash]] = d;
-        ++_idxTail[d.dstChainHash];
+        _idxTail[d.dstChainHash] = _idxTail[d.dstChainHash].add(1);
     }
 
     /**
@@ -532,6 +536,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             ++ cntDeleted;
         }
         if (cntDeleted > 0)
-            _idxHead[chainId] += cntDeleted;
+            _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
     }
 }

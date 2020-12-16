@@ -33,7 +33,12 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
 
     mapping(uint256 => address) public erc721Tokens;
     mapping(address => uint256) public erc721Mapper;
-    uint256 public  newIndexERC721;
+    uint256 public newIndexERC721;
+
+    /**
+     * @dev Emitted when token is mapped in LockAndDataForMainnetERC721.
+     */
+    event ERC721TokenAdded(address indexed tokenHere, uint256 contractPosition);
 
     /**
      * @dev Allows ERC721ModuleForMainnet to send an ERC721 token.
@@ -48,6 +53,7 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
         allow("ERC721Module")
         returns (bool)
     {
+        require(contractHere.isContract(), "Given address is not a contract");
         if (IERC721(contractHere).ownerOf(tokenId) == address(this)) {
             IERC721(contractHere).transferFrom(address(this), to, tokenId);
             require(IERC721(contractHere).ownerOf(tokenId) == to, "Did not transfer");
@@ -60,10 +66,12 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
      * LockAndDataForMainnetERC721.
      */
     function addERC721Token(address addressERC721) external allow("ERC721Module") returns (uint256) {
+        require(addressERC721.isContract(), "Given address is not a contract");
         uint256 index = newIndexERC721;
         erc721Tokens[index] = addressERC721;
         erc721Mapper[addressERC721] = index;
         newIndexERC721++;
+        emit ERC721TokenAdded(addressERC721, index);
         return index;
     }
 

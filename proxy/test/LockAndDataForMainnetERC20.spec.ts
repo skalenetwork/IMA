@@ -26,6 +26,8 @@
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
+    ERC20ModuleForSchainContract,
+    ERC20ModuleForSchainInstance,
     EthERC20Contract,
     EthERC20Instance,
     LockAndDataForMainnetERC20Instance,
@@ -45,6 +47,7 @@ import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainne
 import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
 
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
+const ERC20ModuleForSchain: ERC20ModuleForSchainContract = artifacts.require("./ERC20ModuleForSchain");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 
@@ -52,6 +55,7 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
+  let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
   let ethERC20: EthERC20Instance;
   let tokenFactory: TokenFactoryInstance;
 
@@ -61,6 +65,9 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
 
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     await lockAndDataForSchain.setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address);
+    eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
+        {from: deployer});
+    await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address);
     ethERC20 = await EthERC20.new({from: deployer});
     tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
         {from: deployer});

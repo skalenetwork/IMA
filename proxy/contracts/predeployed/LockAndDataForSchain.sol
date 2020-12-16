@@ -21,6 +21,8 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+
 import "./EthERC20.sol";
 import "./OwnableForSchain.sol";
 
@@ -31,6 +33,7 @@ import "./OwnableForSchain.sol";
  * balances of ETH tokens received through DepositBox.
  */
 contract LockAndDataForSchain is OwnableForSchain {
+    using SafeMath for uint256;
 
     address private _ethErc20Address;
 
@@ -80,7 +83,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * - New contract address must not already be added.
      * - Contract must contain code.
      */
-    function setContract(string calldata contractName, address newContract) external onlySchainOwner {
+    function setContract(string calldata contractName, address newContract) external virtual onlySchainOwner {
         require(newContract != address(0), "New address is equal zero");
 
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
@@ -206,7 +209,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * @dev Allows TokenManager to add gas costs to LockAndDataForSchain.
      */
     function addGasCosts(address to, uint256 amount) external allow("TokenManager") {
-        ethCosts[to] += amount;
+        ethCosts[to] = ethCosts[to].add(amount);
     }
 
     /**
@@ -252,7 +255,7 @@ contract LockAndDataForSchain is OwnableForSchain {
             return true;
         if (_isCustomDeploymentMode)
             return false;
-        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigPermissionFlag(
+        uint256 u = SkaleFeatures(getSkaleFeaturesAddress()).getConfigPermissionFlag(
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
         if ( u != 0 )
@@ -265,7 +268,9 @@ contract LockAndDataForSchain is OwnableForSchain {
      */
     function getEthErc20Address() public view returns (address addressOfEthErc20) {
         if (_ethErc20Address == address(0) && (!_isCustomDeploymentMode)) {
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+            return SkaleFeatures(
+                    getSkaleFeaturesAddress()
+                ).getConfigVariableAddress(
                 "skaleConfig.contractSettings.IMA.EthERC20"
             );
         }
@@ -282,7 +287,7 @@ contract LockAndDataForSchain is OwnableForSchain {
             ));
 
             address contractAddressInStorage = SkaleFeatures(
-                0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                getSkaleFeaturesAddress()
             ).getConfigVariableAddress(fullContractPath);
 
             return contractAddressInStorage;
@@ -339,7 +344,7 @@ contract LockAndDataForSchain is OwnableForSchain {
                     contractName
                 ));
                 address contractAddressInStorage = SkaleFeatures(
-                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                    getSkaleFeaturesAddress()
                 ).getConfigVariableAddress(fullContractPath);
                 if (contractAddressInStorage == contractAddress) {
                     permission = true;

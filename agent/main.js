@@ -117,8 +117,8 @@ global.imaState = {
     "isRawTokenTransfer": true,
     "isRawTokenTransfer_EXPLICIT": false,
 
-    "nTransferBlockSizeM2S": 10,
-    "nTransferBlockSizeS2M": 10,
+    "nTransferBlockSizeM2S": 4, // 10
+    "nTransferBlockSizeS2M": 4, // 10
     "nMaxTransactionsM2S": 0,
     "nMaxTransactionsS2M": 0,
 
