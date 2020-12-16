@@ -315,7 +315,15 @@ jobs:
         python-version: 3.8
 
     - name: Compile contracts
-      run: cd proxy && yarn install
+      working-directory: ./proxy
+      run: yarn install
+
+    - name: Install agent      
+      run: |
+        cd agent 
+        yarn install
+        cd ../npms/skale-ima
+        yarn install
 
     - name: Start background ganache
       run: |
