@@ -102,7 +102,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
 
   });
 
-  it("should rejected with `ERC20 contract does not exist on SKALE chain.` with `isRaw==false`", async () => {
+  it("should rejected with `ERC20 contract does not exist on SKALE chain.`", async () => {
     // preparation
     const error = "ERC20 contract does not exist on SKALE chain.";
     const contractHere = eRC20OnChain.address;
@@ -117,7 +117,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
       .should.be.eventually.rejectedWith(error);
   });
 
-  it("should invoke `receiveERC20` with `isRaw==false`", async () => {
+  it("should invoke `receiveERC20`", async () => {
     // preparation
     const contractHere = eRC20OnChain.address;
     const ERC20OnMainnet = erc20OnMainnet.address;

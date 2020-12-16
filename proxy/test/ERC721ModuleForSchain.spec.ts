@@ -83,7 +83,6 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     const schainID = randomString(10);
     const to = user;
     const tokenId = 1;
-    const isRaw = false;
     // set `LockAndDataERC721` contract before invoke `receiveERC721`
     await lockAndDataForSchain
         .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
@@ -194,8 +193,6 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     const to = user;
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const tokenId = 10;
-    const contractPosition = 10;
-    const isRaw = false;
     // set `ERC721Module` contract before invoke `receiveERC721`
     await lockAndDataForSchain
         .setContract("ERC721Module", eRC721ModuleForSchain.address, {from: deployer});
