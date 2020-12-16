@@ -87,7 +87,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * - New contract address must not already be added.
      * - Contract must contain code.
      */
-    function setContract(string calldata contractName, address newContract) external onlySchainOwner {
+    function setContract(string calldata contractName, address newContract) external virtual onlySchainOwner {
         require(newContract != address(0), "New address is equal zero");
 
         bytes32 contractId = keccak256(abi.encodePacked(contractName));

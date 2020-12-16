@@ -39,11 +39,6 @@ interface ILockAndDataERC721M {
 contract ERC721ModuleForMainnet is PermissionsForMainnet {
 
     /**
-     * @dev Emitted when token is mapped in LockAndDataForMainnetERC721.
-     */
-    event ERC721TokenAdded(address indexed tokenHere, uint256 contractPosition);
-
-    /**
      * @dev Allows DepositBox to receive ERC721 tokens.
      * 
      * Emits an {ERC721TokenAdded} event.  
@@ -65,7 +60,6 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
             uint256 contractPosition = ILockAndDataERC721M(lockAndDataERC721).erc721Mapper(contractHere);
             if (contractPosition == 0) {
                 contractPosition = ILockAndDataERC721M(lockAndDataERC721).addERC721Token(contractHere);
-                emit ERC721TokenAdded(contractHere, contractPosition);
             }
             data = _encodeData(
                 contractHere,

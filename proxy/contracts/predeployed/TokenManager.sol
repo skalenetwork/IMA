@@ -64,10 +64,9 @@ contract TokenManager is PermissionsForSchain {
 
     // ID of this schain,
     string private _chainID;
-    address private _proxyForSchainAddress;
+    // address private _proxyForSchainAddress;
 
-    uint256 public constant GAS_AMOUNT_POST_MESSAGE = 200000;
-    uint256 public constant AVERAGE_TX_PRICE = 10000000000;
+    uint256 public constant GAS_CONSUMPTION = 2000000000000000;
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -81,7 +80,7 @@ contract TokenManager is PermissionsForSchain {
     }
 
     modifier receivedEth(uint256 amount) {
-        require(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Null Amount");
+        require(amount >= GAS_CONSUMPTION, "Null Amount");
         require(ILockAndDataTM(getLockAndDataAddress()).receiveEth(msg.sender, amount), "Could not receive ETH Clone");
         _;
     }
@@ -91,14 +90,15 @@ contract TokenManager is PermissionsForSchain {
 
     constructor(
         string memory newChainID,
-        address newProxyAddress,
+        // address newProxyAddress,
         address newLockAndDataAddress
     )
         public
         PermissionsForSchain(newLockAndDataAddress)
     {
+        // require(newProxyAddress.isContract(), "ProxyAddress is not a contract");
         _chainID = newChainID;
-        _proxyForSchainAddress = newProxyAddress;
+        // _proxyForSchainAddress = newProxyAddress;
     }
 
     fallback() external payable {
@@ -153,7 +153,7 @@ contract TokenManager is PermissionsForSchain {
         require(
             ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
-                GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
+                GAS_CONSUMPTION),
             "Not enough gas sent");
         bytes memory data = IERC20Module(erc20Module).receiveERC20(
             contractHere,
@@ -163,7 +163,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            GAS_CONSUMPTION,
             address(0),
             data
         );
@@ -173,8 +173,11 @@ contract TokenManager is PermissionsForSchain {
         address contractHere,
         address contractThere,
         address to,
-        uint256 amount) external
-        {
+        uint256 amount
+    )
+        external
+    {
+        require(contractThere != address(0), "Incorrect contractThere address");
         address lockAndDataERC20 = IContractManagerForSchain(
             getLockAndDataAddress()
         ).getLockAndDataERC20();
@@ -199,7 +202,7 @@ contract TokenManager is PermissionsForSchain {
         require(
             ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
-                GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
+                GAS_CONSUMPTION),
             "Not enough gas sent");
         bytes memory data = IERC20Module(erc20Module).receiveERC20(
             contractHere,
@@ -209,7 +212,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            GAS_CONSUMPTION,
             contractThere,
             data
         );
@@ -261,8 +264,11 @@ contract TokenManager is PermissionsForSchain {
         address contractHere,
         address contractThere,
         address to,
-        uint256 amount) external
-        {
+        uint256 amount
+    )
+        external
+    {
+        require(contractThere != address(0), "Incorrect contractThere address");
         address lockAndDataERC20 = IContractManagerForSchain(
             getLockAndDataAddress()
         ).getLockAndDataERC20();
@@ -309,7 +315,7 @@ contract TokenManager is PermissionsForSchain {
         require(
             ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
-                GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
+                GAS_CONSUMPTION),
             "Not enough gas sent");
         bytes memory data = IERC721Module(erc721Module).receiveERC721(
             contractHere,
@@ -319,7 +325,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            GAS_CONSUMPTION,
             address(0),
             data
         );
@@ -329,8 +335,11 @@ contract TokenManager is PermissionsForSchain {
         address contractHere,
         address contractThere,
         address to,
-        uint256 tokenId) external
-        {
+        uint256 tokenId
+    )
+        external
+    {
+        require(contractThere != address(0), "Incorrect contractThere address");
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
             getLockAndDataERC721();
         address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).
@@ -341,7 +350,7 @@ contract TokenManager is PermissionsForSchain {
         require(
             ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
-                GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
+                GAS_CONSUMPTION),
             "Not enough gas sent");
         bytes memory data = IERC721Module(erc721Module).receiveERC721(
             contractHere,
@@ -351,7 +360,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            GAS_CONSUMPTION,
             contractThere,
             data
         );
@@ -389,8 +398,11 @@ contract TokenManager is PermissionsForSchain {
         address contractHere,
         address contractThere,
         address to,
-        uint256 tokenId) external
-        {
+        uint256 tokenId
+    )
+        external
+    {
+        require(contractThere != address(0), "Incorrect contractThere address");
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
             getLockAndDataERC721();
         address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).
@@ -483,6 +495,7 @@ contract TokenManager is PermissionsForSchain {
      * @dev Performs an exit (post outgoing message) to Mainnet.
      */
     function exitToMain(address to, uint256 amount, bytes memory data) public receivedEth(amount) {
+        require(to != address(0), "Incorrect contractThere address");
         bytes memory newData;
         newData = abi.encodePacked(bytes1(uint8(1)), data);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
@@ -513,6 +526,7 @@ contract TokenManager is PermissionsForSchain {
         rightTransaction(schainID)
         receivedEth(amount)
     {
+        require(to != address(0), "Incorrect contractThere address");
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))),
@@ -551,8 +565,11 @@ contract TokenManager is PermissionsForSchain {
      * @dev Returns MessageProxy address.
      */
     function getProxyForSchainAddress() public view returns ( address ow ) { // l_sergiy: added
-        if (_proxyForSchainAddress != address(0) )
-            return _proxyForSchainAddress;
+        address proxyForSchaniAddress = IContractManagerForSchain(
+            getLockAndDataAddress()
+        ).getMessageProxy();
+        if (proxyForSchaniAddress != address(0) )
+            return proxyForSchaniAddress;
         return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
             "skaleConfig.contractSettings.IMA.MessageProxy"
         );
