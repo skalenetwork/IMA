@@ -223,7 +223,7 @@ jobs:
         ganache-cli --version
         echo ------------ ganache-cli startup
         cd proxy
-        npx ganache-cli --gasLimit 8000000 --quiet --acctKeys ../test/accounts.json &
+        npx ganache-cli --gasLimit 12000000 --quiet --acctKeys ../test/accounts.json &
         cd ..
 
     - name: PROXY - LINT

@@ -40,6 +40,10 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
     mapping(uint256 => address) public erc721Tokens;
     mapping(address => uint256) public erc721Mapper;
 
+    /**
+     * @dev Emitted when token is mapped in LockAndDataForMainnetERC721.
+     */
+    event ERC721TokenAdded(address indexed tokenHere, uint256 contractPosition);
 
     /**
      * @dev Emitted upon minting ERC721 on the SKALE chain.
@@ -94,7 +98,9 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
      * @dev Allows ERC721Module to add an ERC721 token to LockAndDataForSchainERC721.
      */
     function addERC721Token(address addressERC721, uint256 contractPosition) external allow("ERC721Module") {
+        require(addressERC721.isContract(), "Given address is not a contract");
         erc721Tokens[contractPosition] = addressERC721;
         erc721Mapper[addressERC721] = contractPosition;
+        emit ERC721TokenAdded(addressERC721, contractPosition);
     }
 }

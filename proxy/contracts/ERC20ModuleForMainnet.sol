@@ -37,11 +37,6 @@ interface ILockAndDataERC20M {
  * and encoding contractPosition in LockAndDataForMainnetERC20.
  */
 contract ERC20ModuleForMainnet is PermissionsForMainnet {
-
-    /**
-     * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
-     */
-    event ERC20TokenAdded(address indexed tokenHere, uint256 contractPosition);
     
     /**
      * @dev Emitted when token is received by DepositBox and is ready to be cloned
@@ -77,7 +72,6 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         uint256 contractPosition = ILockAndDataERC20M(lockAndDataERC20).erc20Mapper(contractHere);
         if (contractPosition == 0) {
             contractPosition = ILockAndDataERC20M(lockAndDataERC20).addERC20Token(contractHere);
-            emit ERC20TokenAdded(contractHere, contractPosition);
         }
         if (!isRAW) {
             data = _encodeCreationData(

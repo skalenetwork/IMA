@@ -63,7 +63,8 @@ async function deploy( deployer, network ) {
     await deployer.deploy( MessageProxyForSchain, schainName, { gas: gasLimit } ).then( async function() {
         return await deployer.deploy( LockAndDataForSchain, { gas: gasLimit } );
     } ).then( async function( inst ) {
-        await deployer.deploy( TokenManager, schainName, MessageProxyForSchain.address, inst.address, { gas: gasLimit * gasMultiplier } );
+        await inst.setContract( "MessageProxy", MessageProxyForSchain.address );
+        await deployer.deploy( TokenManager, schainName, inst.address, { gas: gasLimit * gasMultiplier } );
         await deployer.deploy( EthERC20, { gas: gasLimit * gasMultiplier } ).then( async function( EthERC20Inst ) {
             await EthERC20Inst.transferOwnership( inst.address, { gas: gasLimit } );
         } );
