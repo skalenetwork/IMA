@@ -6,7 +6,7 @@ on: [push, pull_request]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  test-proxy:
+  test proxy:
     runs-on: ubuntu-latest
 
     steps:
@@ -45,9 +45,7 @@ jobs:
       run: cd proxy && yarn install
 
     - name: Install slither
-      run: |
-        pwd
-        pip3 install -r scripts/requirements.txt
+      run: cd proxy && pip3 install -r scripts/requirements.txt
 
     - name: Lint solidity
       run: yarn lint
