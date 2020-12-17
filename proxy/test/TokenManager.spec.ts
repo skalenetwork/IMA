@@ -123,7 +123,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         const to = deployer;
 
         // set EthERC20 address:
-        await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+        await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
 
         // set contract TokenManager:
         await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
@@ -148,7 +148,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         const to = deployer;
 
         // set EthERC20 address:
-        await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+        await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
 
         // set contract TokenManager:
         await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
@@ -178,7 +178,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         const amountAfter = new BigNumber("180000000000000000");
 
         // set EthERC20 address:
-        await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+        await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
 
         // set contract TokenManager:
         await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
@@ -211,7 +211,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         const amountAfter = new BigNumber("180000000000000000");
 
         // set EthERC20 address:
-        await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+        await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
 
         // set contract TokenManager:
         await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
@@ -1074,7 +1074,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             await lockAndDataForSchain
                 .addSchain(schainID, deployer, {from: deployer});
             // set EthERC20 address:
-            await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+            await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
             // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
             await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
             await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
@@ -1105,7 +1105,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             await lockAndDataForSchain
                 .addSchain(schainID, deployer, {from: deployer});
             // set EthERC20 address:
-            await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+            await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
             // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
             await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
             await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
@@ -1154,7 +1154,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             await lockAndDataForSchain
               .setContract("TokenManager", tokenManager.address, {from: deployer});
             // set EthERC20 address:
-            await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+            await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
             // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
             await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
             await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
@@ -1206,7 +1206,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             await lockAndDataForSchain
               .setContract("TokenManager", tokenManager.address, {from: deployer});
             // set EthERC20 address:
-            await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+            await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
             // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
             await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
             await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
@@ -1255,7 +1255,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             await lockAndDataForSchain
               .setContract("TokenManager", tokenManager.address, {from: deployer});
             // set EthERC20 address:
-            await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+            await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
             // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
             await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
             await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
@@ -1304,7 +1304,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             await lockAndDataForSchain
               .setContract("TokenManager", tokenManager.address, {from: deployer});
             // set EthERC20 address:
-            await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+            await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
             // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
             await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
             // execution

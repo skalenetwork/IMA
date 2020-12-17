@@ -53,18 +53,18 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
   it("should set EthERC20 address", async () => {
 
     // only owner can set EthERC20 address:
-    await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: user}).should.be.rejected;
-    await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: user}).should.be.rejected;
+    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
 
     // address which has been set should be equal to deployed contract address;
-    const address = await lockAndDataForSchain.getEthERC20Address();
+    const address = await lockAndDataForSchain.getEthErc20Address();
     expect(address).to.equal(ethERC20.address);
   });
 
   it("should set contract", async () => {
-    const nullAddress = await lockAndDataForSchain.getEthERC20Address();
-    await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
-    const address = await lockAndDataForSchain.getEthERC20Address();
+    const nullAddress = await lockAndDataForSchain.getEthErc20Address();
+    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
+    const address = await lockAndDataForSchain.getEthErc20Address();
 
     // only owner can set contract:
     await lockAndDataForSchain.setContract("EthERC20", address, {from: user})
@@ -202,7 +202,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     const amountSum = "121000000000000000000000200"
 
     // set EthERC20 address:
-    await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
 
     // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
     await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
@@ -231,7 +231,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     const amountZero = new BigNumber(0);
 
     // set EthERC20 address:
-    await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
 
     // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
     await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});

@@ -50,9 +50,9 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
     }
 
     function setTotalSupplyOnMainnet(uint256 newTotalSupply) external {
-        address erc20ModuleAddress = IContractManagerForSchain(
+        address erc20ModuleAddress = LockAndDataForSchain(
             _addressOfLockAndData
-        ).getERC20Module();
+        ).getErc20Module();
         require(erc20ModuleAddress == _msgSender(), "Caller is not ERC20Module");
         _totalSupplyOnMainnet = newTotalSupply;
     }
@@ -116,18 +116,18 @@ contract TokenFactory is PermissionsForSchain {
         allow("ERC20Module")
         returns (address)
     {
-        address erc20ModuleAddress = IContractManagerForSchain(
+        address erc20ModuleAddress = LockAndDataForSchain(
             getLockAndDataAddress()
-        ).getERC20Module();
+        ).getErc20Module();
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
             symbol,
             totalSupply,
             getLockAndDataAddress()
         );
-        address lockAndDataERC20 = IContractManagerForSchain(
+        address lockAndDataERC20 = LockAndDataForSchain(
             getLockAndDataAddress()
-        ).getLockAndDataERC20();
+        ).getLockAndDataErc20();
         newERC20.grantRole(newERC20.MINTER_ROLE(), lockAndDataERC20);
         newERC20.revokeRole(newERC20.MINTER_ROLE(), address(this));
         return address(newERC20);
@@ -139,8 +139,8 @@ contract TokenFactory is PermissionsForSchain {
         returns (address)
     {
         ERC721OnChain newERC721 = new ERC721OnChain(name, symbol);
-        address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
-            getLockAndDataERC721();
+        address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).
+            getLockAndDataErc721();
         newERC721.grantRole(newERC721.MINTER_ROLE(), lockAndDataERC721);
         newERC721.revokeRole(newERC721.MINTER_ROLE(), address(this));
         return address(newERC721);

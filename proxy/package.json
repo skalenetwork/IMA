@@ -14,7 +14,8 @@
         "skale-manager-integration": "bash ./scripts/prepare.sh",
         "test": "npx buidler test && yarn tsc",
         "tsc": "tsc --noEmit",
-        "tslint": "npx tslint --project ."
+        "tslint": "npx tslint --project .",
+        "slither": "slither ."
     },
     "dependencies": {
         "@openzeppelin/cli": "^2.8.2",

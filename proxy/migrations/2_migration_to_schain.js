@@ -69,7 +69,7 @@ async function deploy( deployer, network ) {
             await EthERC20Inst.transferOwnership( inst.address, { gas: gasLimit } );
         } );
         await inst.setContract( "TokenManager", TokenManager.address );
-        await inst.setEthERC20Address( EthERC20.address );
+        await inst.setEthErc20Address( EthERC20.address );
         await deployer.deploy( ERC20ModuleForSchain, inst.address, { gas: gasLimit * gasMultiplier } );
         await inst.setContract( "ERC20Module", ERC20ModuleForSchain.address );
         await deployer.deploy( LockAndDataForSchainERC20, inst.address, { gas: gasLimit * gasMultiplier } );
