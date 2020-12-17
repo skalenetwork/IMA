@@ -203,16 +203,18 @@ jobs:
         which python3 || echo "----> Looks like python3 was not installed, next command will fail"
         python3 --version
 
-    - name: SOLC CHECKS
-      run: |
-        echo ------------ solc install
-        # sudo npm install -g solc
-        sudo add-apt-repository ppa:ethereum/ethereum
-        sudo apt-get update
-        sudo apt-get install solc
-        echo ------------ solc version check
-        which solc || echo "----> Looks like solc was not installed, next command will fail"
-        solc --version
+    
+    # disabled while solc 0.8 is not compatible with ubuntu 20
+    # - name: SOLC CHECKS
+    #   run: |
+    #     echo ------------ solc install
+    #     # sudo npm install -g solc
+    #     sudo add-apt-repository ppa:ethereum/ethereum
+    #     sudo apt-get update
+    #     sudo apt-get install solc
+    #     echo ------------ solc version check
+    #     which solc || echo "----> Looks like solc was not installed, next command will fail"
+    #     solc --version
 
     - name: INSTALL PREREQUISITES - PY
       run: |
