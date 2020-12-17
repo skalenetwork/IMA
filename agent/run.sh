@@ -17,6 +17,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 : "${NODE_NUMBER?Need to set NODE_NUMBER}"
 : "${NODES_COUNT?Need to set NODES_COUNT}"
 
+: "${TM_URL_MAIN_NET?Need to set TM_URL_MAIN_NET}"
+
 # SGX variables
 
 : "${SGX_URL?Need to set SGX_URL}"
@@ -66,13 +68,9 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
     --cid-s-chain=$CID_SCHAIN \
     --abi-main-net=$MAINNET_PROXY_PATH \
     --abi-s-chain=$SCHAIN_PROXY_PATH \
-    --sgx-url-main-net=$SGX_URL \
     --sgx-url-s-chain=$SGX_URL \
-    --sgx-ecdsa-key-main-net=$ECDSA_KEY_NAME \
     --sgx-ecdsa-key-s-chain=$ECDSA_KEY_NAME \
-    --sgx-ssl-key-main-net=$SGX_SSL_KEY_PATH \
     --sgx-ssl-key-s-chain=$SGX_SSL_KEY_PATH \
-    --sgx-ssl-cert-main-net=$SGX_SSL_CERT_PATH \
     --sgx-ssl-cert-s-chain=$SGX_SSL_CERT_PATH \
     --address-main-net=$NODE_ADDRESS \
     --address-s-chain=$NODE_ADDRESS \
@@ -92,6 +90,7 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
     --node-number=$NODE_NUMBER \
     --nodes-count=$NODES_COUNT \
     --time-framing=$TIME_FRAMING \
+    --tm-url-main-net==$TM_URL_MAIN_NET \
     --time-gap=$TIME_GAP"
 
 echo Base options:
