@@ -204,7 +204,7 @@ jobs:
         python3 --version
 
     
-    disabled while solc 0.8 is not compatible with ubuntu 20
+    # disabled while solc 0.8 is not compatible with ubuntu 20
     - name: SOLC CHECKS
       run: |
         echo ------------ solc install
