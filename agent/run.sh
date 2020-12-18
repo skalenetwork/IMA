@@ -90,7 +90,7 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
     --node-number=$NODE_NUMBER \
     --nodes-count=$NODES_COUNT \
     --time-framing=$TIME_FRAMING \
-    --tm-url-main-net==$TM_URL_MAIN_NET \
+    --tm-url-main-net=$TM_URL_MAIN_NET \
     --time-gap=$TIME_GAP"
 
 echo Base options:
