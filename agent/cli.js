@@ -371,12 +371,18 @@ function parse( joExternalHandlers ) {
         //
         if( joArg.name == "tm-url-main-net" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.joAccount_main_net.strTransactionManagerURL = joArg.value;
+            let strURL = "" + joArg.value;
+            if( strURL.indexOf( "/sign-and-send" ) < 0 )
+                strURL += "/sign-and-send";
+            imaState.joAccount_main_net.strTransactionManagerURL = strURL;
             continue;
         }
         if( joArg.name == "tm-url-s-chain" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.joAccount_s_chain.strTransactionManagerURL = joArg.value;
+            let strURL = "" + joArg.value;
+            if( strURL.indexOf( "/sign-and-send" ) < 0 )
+                strURL += "/sign-and-send";
+            imaState.joAccount_s_chain.strTransactionManagerURL = strURL;
             continue;
         }
         if( joArg.name == "sgx-url-main-net" ) {
