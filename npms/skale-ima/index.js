@@ -375,8 +375,13 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
     };
     switch ( joSR.joACI.strType ) {
     case "tm": {
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) + cc.debug( " using account " ) + cc.j( joAccount ) + "\n" );
+        if( verbose_get() >= RV_VERBOSE.debug ) {
+            log.write(
+                cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
+                cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
+                cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            );
+        }
         let rpcCallOpts = null;
         if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
             "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
@@ -391,7 +396,7 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
                 console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager wallet failed" ) );
                 process.exit( 155 );
             }
-            const txAdjusted = JSON.parse( JSON.stringify( tx ) ); // tx // rawTx
+            const txAdjusted = JSON.parse( JSON.stringify( rawTx ) ); // tx // rawTx
             if( "chainId" in txAdjusted )
                 delete txAdjusted.chainId;
             if( "gasLimit" in txAdjusted && ( ! ( "gas" in txAdjusted ) ) ) {
@@ -402,7 +407,7 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
                 "transaction_dict": JSON.stringify( txAdjusted )
             };
             if( verbose_get() >= RV_VERBOSE.debug )
-                log.write( cc.debug( "Calling Transaction Manager to sign-and-send" ) + "\n" );
+                log.write( cc.debug( "Calling Transaction Manager to sign-and-send with " ) + cc.j( txAdjusted ) + "\n" );
             await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
                 if( err ) {
                     console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager failed, error: " ) + cc.warning( err ) );
@@ -416,8 +421,13 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
         await sleep( 5000 );
     } break;
     case "sgx": {
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx ) + cc.debug( " using account " ) + cc.j( joAccount ) + "\n" );
+        if( verbose_get() >= RV_VERBOSE.debug ) {
+            log.write(
+                cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx ) +
+                cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
+                cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            );
+        }
         let rpcCallOpts = null;
         if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
             "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
@@ -497,8 +507,13 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
         await sleep( 3000 );
     } break;
     case "direct": {
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( cc.debug( "Will sign with private key, transaction is " ) + cc.j( tx ) + cc.debug( " using account " ) + cc.j( joAccount ) + "\n" );
+        if( verbose_get() >= RV_VERBOSE.debug ) {
+            log.write(
+                cc.debug( "Will sign with private key, transaction is " ) + cc.j( tx ) +
+                cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
+                cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            );
+        }
         console.log( tx );
         const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
@@ -2594,7 +2609,7 @@ async function do_transfer(
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
                 //
-                const raw_tx_postIncomingMessages = compose_tx_instance( strLogPrefix, {
+                const raw_tx_postIncomingMessages = {
                     chainId: cid_dst,
                     nonce: tcnt,
                     gas: 10000000,
@@ -2603,7 +2618,7 @@ async function do_transfer(
                     to: jo_message_proxy_dst.options.address, // contract address
                     data: dataTx_postIncomingMessages //,
                     // "value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
-                } );
+                };
                 const tx_postIncomingMessages = compose_tx_instance( strLogPrefix, raw_tx_postIncomingMessages );
                 const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
                 let joReceipt = null;
