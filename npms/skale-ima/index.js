@@ -377,10 +377,10 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
     case "tm": {
         if( verbose_get() >= RV_VERBOSE.debug ) {
             log.write(
-                cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx )
-                + cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n"
-                + cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
-                );
+                cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
+                cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
+                cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            );
         }
         let rpcCallOpts = null;
         if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
@@ -423,10 +423,10 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
     case "sgx": {
         if( verbose_get() >= RV_VERBOSE.debug ) {
             log.write(
-                cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx )
-                + cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n"
-                + cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
-                );
+                cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx ) +
+                cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
+                cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            );
         }
         let rpcCallOpts = null;
         if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
@@ -509,10 +509,10 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
     case "direct": {
         if( verbose_get() >= RV_VERBOSE.debug ) {
             log.write(
-                cc.debug( "Will sign with private key, transaction is " ) + cc.j( tx )
-                + cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n"
-                + cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
-                );
+                cc.debug( "Will sign with private key, transaction is " ) + cc.j( tx ) +
+                cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
+                cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            );
         }
         console.log( tx );
         const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
