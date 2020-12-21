@@ -391,15 +391,15 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
                 console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager wallet failed" ) );
                 process.exit( 155 );
             }
-            const rawTxAdjusted = JSON.parse( JSON.stringify( rawTx ) );
-            if( "chainId" in rawTxAdjusted )
-                delete rawTxAdjusted.chainId;
-            if( "gasLimit" in rawTxAdjusted && ( ! ( "gas" in rawTxAdjusted ) ) ) {
-                rawTxAdjusted.gas = rawTxAdjusted.gasLimit;
-                delete rawTxAdjusted.gasLimit;
+            const txAdjusted = JSON.parse( JSON.stringify( tx ) ); // tx // rawTx
+            if( "chainId" in txAdjusted )
+                delete txAdjusted.chainId;
+            if( "gasLimit" in txAdjusted && ( ! ( "gas" in txAdjusted ) ) ) {
+                txAdjusted.gas = txAdjusted.gasLimit;
+                delete txAdjusted.gasLimit;
             }
             const joIn = {
-                "transaction_dict": JSON.stringify( rawTxAdjusted )
+                "transaction_dict": JSON.stringify( txAdjusted )
             };
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( cc.debug( "Calling Transaction Manager to sign-and-send" ) + "\n" );
