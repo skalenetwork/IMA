@@ -445,9 +445,7 @@ contract TokenManager is PermissionsForSchain {
         external
     {
         require(data.length != 0, "Invalid data");
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            "Sender in postMessage: "
-        );
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Sender in postMessage: ");
         SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
             SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(msg.sender)
         );
@@ -464,17 +462,17 @@ contract TokenManager is PermissionsForSchain {
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
         } else if ((operation == TransactionOperation.transferERC20 && to == address(0)) ||
                   (operation == TransactionOperation.rawTransferERC20 && to != address(0))) {
-            address erc20Module = LockAndDataForSchain(
-                getLockAndDataAddress()
-            ).getErc20Module();
-            SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-                "ERC20 Module: "
-            );
+            address erc20Module = LockAndDataForSchain(getLockAndDataAddress()).getErc20Module();
+            SkaleFeatures(getSkaleFeaturesAddress()).logMessage("ERC20 Module: ");
             SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
                 SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(erc20Module)
             );
             require(IERC20Module(erc20Module).sendERC20(to, data), "Failed to send ERC20");
             address receiver = IERC20Module(erc20Module).getReceiver(data);
+            SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Receiver: ");
+            SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+                SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(receiver)
+            );
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else if ((operation == TransactionOperation.transferERC721 && to == address(0)) ||
                   (operation == TransactionOperation.rawTransferERC721 && to != address(0))) {
