@@ -312,6 +312,8 @@ contract MessageProxyForSchain {
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
 
+        SkaleFeatures(getSkaleFeaturesAddress()).logTextMessage(string(abi.encodePacked("Sender: ", msg.sender)));
+
         require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller"); // l_sergiy: replacement
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
@@ -319,6 +321,8 @@ contract MessageProxyForSchain {
             "Starting counter is not qual to incoming message counter");
 
         for (uint256 i = 0; i < messages.length; i++) {
+
+            SkaleFeatures(getSkaleFeaturesAddress()).logTextMessage(string(abi.encodePacked("Will call message: ", i)));
 
             try ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                 messages[i].sender,
