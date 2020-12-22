@@ -154,22 +154,36 @@ contract SkaleFeatures {
         }
     }
 
-    function addressToAsciiString(address x) public pure returns (string memory) {
-        bytes memory s = new bytes(40);
-        for (uint i = 0; i < 20; i++) {
-            byte b = byte(uint8(uint(x) / (2**(8*(19 - i)))));
-            byte hi = byte(uint8(b) / 16);
-            byte lo = byte(uint8(b) - 16 * uint8(hi));
-            s[2*i] = byteToChar(hi);
-            s[2*i+1] = byteToChar(lo);
+    function addressToAsciiStringDec(address _pool) public pure returns (string memory _uintAsString) {
+        uint _i = uint256(_pool);
+        if (_i == 0) {
+            return "0";
         }
-        return string(s);
+        uint j = _i;
+        uint len;
+        while (j != 0) {
+            len++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(len);
+        uint k = len - 1;
+        while (_i != 0) {
+            bstr[k--] = byte(uint8(48 + _i % 10));
+            _i /= 10;
+        }
+        return string(bstr);
     }
-
-    function byteToChar(byte b) public pure returns (byte c) {
-        if (uint8(b) < 10) return byte(uint8(b) + 0x30);
-        else return byte(uint8(b) + 0x57);
+    function addressToAsciiString(address x) public pure returns (string memory) {
+        bytes memory data = abi.encodePacked(x);
+        bytes memory alphabet = "0123456789abcdef";
+        bytes memory str = new bytes(2 + data.length * 2);
+        str[0] = "0";
+        str[1] = "x";
+        for (uint i = 0; i < data.length; i++) {
+            str[2+i*2] = alphabet[uint(uint8(data[i] >> 4))];
+            str[3+i*2] = alphabet[uint(uint8(data[i] & 0x0f))];
+        }
+        return string(str);
     }
-
 }
 
