@@ -446,15 +446,16 @@ contract TokenManager is PermissionsForSchain {
     {
         require(data.length != 0, "Invalid data");
 
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            string(abi.encodePacked("Sender in postMessage: ", msg.sender))
+        );
         require(msg.sender == getProxyForSchainAddress(), "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
-
         require(
             schainHash != keccak256(abi.encodePacked(getChainID())) && 
             sender == ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash),
             "Receiver chain is incorrect"
         );
-
         TransactionOperation operation = _fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
             require(to != address(0), "Incorrect receiver");
@@ -465,6 +466,10 @@ contract TokenManager is PermissionsForSchain {
             address erc20Module = LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getErc20Module();
+
+            SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+                string(abi.encodePacked("ERC20 Module: ", erc20Module))
+            );
 
             require(IERC20Module(erc20Module).sendERC20(to, data), "Failed to send ERC20");
 
@@ -568,6 +573,9 @@ contract TokenManager is PermissionsForSchain {
         address proxyForSchaniAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getMessageProxy();
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            string(abi.encodePacked("Message Proxy: ", proxyForSchaniAddress))
+        );
         if (proxyForSchaniAddress != address(0) )
             return proxyForSchaniAddress;
         return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
