@@ -386,8 +386,12 @@ contract MessageProxyForSchain {
     }
 
     function isAuthorizedCaller(bytes32 , address a) public view returns (bool) {
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked("Authorized caller: ", _authorizedCaller[a])));
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked("Custom deploy: ", (_isCustomDeploymentMode ? 1 : 0))));
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            string(abi.encodePacked("Authorized caller: ", _authorizedCaller[a]))
+        );
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            string(abi.encodePacked("Custom deploy: ", (_isCustomDeploymentMode ? 1 : 0)))
+        );
         if (_authorizedCaller[a] )
             return true;
         if (_isCustomDeploymentMode)
