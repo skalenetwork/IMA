@@ -312,7 +312,8 @@ contract MessageProxyForSchain {
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
 
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked("Sender: ", msg.sender)));
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Sender: ");
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked(msg.sender)));
 
         require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller"); // l_sergiy: replacement
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
@@ -322,7 +323,8 @@ contract MessageProxyForSchain {
 
         for (uint256 i = 0; i < messages.length; i++) {
 
-            SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked("Will call message: ", i)));
+            SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Will call message: ");
+            SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked(i)));
 
             try ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                 messages[i].sender,
@@ -387,10 +389,16 @@ contract MessageProxyForSchain {
 
     function isAuthorizedCaller(bytes32 , address a) public view returns (bool) {
         SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            string(abi.encodePacked("Authorized caller: ", _authorizedCaller[a]))
+            "Authorized caller: "
         );
         SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            string(abi.encodePacked("Custom deploy: ", (_isCustomDeploymentMode ? 1 : 0)))
+            string(abi.encodePacked(_authorizedCaller[a]))
+        );
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            "Custom deploy: "
+        );
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            string(abi.encodePacked((_isCustomDeploymentMode ? 1 : 0)))
         );
         if (_authorizedCaller[a] )
             return true;
@@ -399,7 +407,8 @@ contract MessageProxyForSchain {
         uint256 u = SkaleFeatures(getSkaleFeaturesAddress()).getConfigPermissionFlag(
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked("Is authorized: ", u)));
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Is authorized: ");
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked(u)));
         if ( u != 0 )
             return true;
         return false;
