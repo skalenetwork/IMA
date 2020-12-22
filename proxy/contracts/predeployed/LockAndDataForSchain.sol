@@ -238,6 +238,18 @@ contract LockAndDataForSchain is OwnableForSchain {
      * @dev Allows TokenManager to send (mint) ETH from LockAndDataForSchain.
      */
     function sendEth(address to, uint256 amount) external allow("TokenManager") returns (bool) {
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            "Sender in sendEth: "
+        );
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(msg.sender)
+        );
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            "EthERC20 : "
+        );
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(getEthErc20Address())
+        );
         require(EthERC20(getEthErc20Address()).mint(to, amount), "Mint error");
         return true;
     }
