@@ -247,10 +247,16 @@ contract LockAndDataForSchain is OwnableForSchain {
      */
     function receiveEth(address sender, uint256 amount) external allow("TokenManager") returns (bool) {
         SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            string(abi.encodePacked("Sender in sendEth: ", msg.sender))
+            "Sender in sendEth: "
         );
         SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            string(abi.encodePacked("EthERC20 : ", getEthErc20Address()))
+            string(abi.encodePacked(msg.sender))
+        );
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            "EthERC20 : "
+        );
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            string(abi.encodePacked(getEthErc20Address()))
         );
         EthERC20(getEthErc20Address()).burnFrom(sender, amount);
         return true;
