@@ -311,21 +311,18 @@ contract MessageProxyForSchain {
         connectMainnet
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-
         SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Sender: ");
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked(msg.sender)));
-
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(msg.sender)
+        );
         require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller"); // l_sergiy: replacement
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
-
         for (uint256 i = 0; i < messages.length; i++) {
-
             SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Will call message: ");
             SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked(i)));
-
             try ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                 messages[i].sender,
                 srcChainID,

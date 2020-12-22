@@ -449,7 +449,7 @@ contract TokenManager is PermissionsForSchain {
             "Sender in postMessage: "
         );
         SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            string(abi.encodePacked(msg.sender))
+            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(msg.sender)
         );
         require(msg.sender == getProxyForSchainAddress(), "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
@@ -471,7 +471,7 @@ contract TokenManager is PermissionsForSchain {
                 "ERC20 Module: "
             );
             SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-                string(abi.encodePacked(erc20Module))
+                SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(erc20Module)
             );
             require(IERC20Module(erc20Module).sendERC20(to, data), "Failed to send ERC20");
             address receiver = IERC20Module(erc20Module).getReceiver(data);
@@ -576,7 +576,7 @@ contract TokenManager is PermissionsForSchain {
             "Message Proxy: "
         );
         SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            string(abi.encodePacked(proxyForSchaniAddress))
+            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(proxyForSchaniAddress)
         );
         if (proxyForSchaniAddress != address(0) )
             return proxyForSchaniAddress;
