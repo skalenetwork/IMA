@@ -313,8 +313,9 @@ contract MessageProxyForSchain {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
 
         SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Sender: ");
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked(msg.sender)));
-
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(msg.sender)
+        );
         require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller"); // l_sergiy: replacement
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(

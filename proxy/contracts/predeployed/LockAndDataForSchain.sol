@@ -250,13 +250,13 @@ contract LockAndDataForSchain is OwnableForSchain {
             "Sender in sendEth: "
         );
         SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            string(abi.encodePacked(msg.sender))
+            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(msg.sender)
         );
         SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
             "EthERC20 : "
         );
         SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            string(abi.encodePacked(getEthErc20Address()))
+            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(getEthErc20Address())
         );
         EthERC20(getEthErc20Address()).burnFrom(sender, amount);
         return true;
