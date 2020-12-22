@@ -22,7 +22,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./SkaleFeatures.sol";
 
 interface ContractReceiverForSchain {
@@ -321,8 +321,6 @@ contract MessageProxyForSchain {
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
         for (uint256 i = 0; i < messages.length; i++) {
-            SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Will call message: ");
-            SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked(i)));
             try ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                 messages[i].sender,
                 srcChainID,
@@ -385,18 +383,6 @@ contract MessageProxyForSchain {
     }
 
     function isAuthorizedCaller(bytes32 , address a) public view returns (bool) {
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            "Authorized caller: "
-        );
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            string(abi.encodePacked(_authorizedCaller[a]))
-        );
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            "Custom deploy: "
-        );
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            string(abi.encodePacked((_isCustomDeploymentMode ? 1 : 0)))
-        );
         if (_authorizedCaller[a] )
             return true;
         if (_isCustomDeploymentMode)
@@ -405,7 +391,7 @@ contract MessageProxyForSchain {
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
         SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Is authorized: ");
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked(u)));
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(u != 0 ? "Yes" : "No");
         if ( u != 0 )
             return true;
         return false;
@@ -469,7 +455,6 @@ contract MessageProxyForSchain {
         cntDeleted = 0;
         uint idxTail = _idxTail[chainId];
         for ( uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++ i ) {
-            SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked("Will remove: ", i)));
             if ( i >= idxTail )
                 break;
             delete _outgoingMessageData[chainId][i];
@@ -477,5 +462,6 @@ contract MessageProxyForSchain {
         }
         if (cntDeleted > 0)
             _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Finished removing messages");
     }
 }

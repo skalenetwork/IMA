@@ -22,12 +22,12 @@
 pragma solidity 0.6.12;
 
 import "./PermissionsForSchain.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20Burnable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/ERC721Burnable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721Burnable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
 
-contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
+contract ERC20OnChain is AccessControl, ERC20Burnable {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     uint256 private _totalSupplyOnMainnet;
@@ -40,9 +40,9 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
         address _lockAndDataAddress
     )
         public
+        ERC20(contractName, contractSymbol)
     {
         require(_lockAndDataAddress.isContract(), "LockAndData is not a contract");
-        __ERC20_init(contractName, contractSymbol);
         _totalSupplyOnMainnet = newTotalSupply;
         _addressOfLockAndData = _lockAndDataAddress;
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
@@ -69,7 +69,7 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
 }
 
 
-contract ERC721OnChain is AccessControlUpgradeSafe, ERC721BurnableUpgradeSafe {
+contract ERC721OnChain is AccessControl, ERC721Burnable {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -78,8 +78,8 @@ contract ERC721OnChain is AccessControlUpgradeSafe, ERC721BurnableUpgradeSafe {
         string memory contractSymbol
     )
         public
+        ERC721(contractName, contractSymbol)
     {
-        __ERC721_init(contractName, contractSymbol);
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
         _setupRole(MINTER_ROLE, _msgSender());
     }
@@ -119,16 +119,29 @@ contract TokenFactory is PermissionsForSchain {
         address erc20ModuleAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getErc20Module();
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("ERC20Module address: ");
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(erc20ModuleAddress)
+        );
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
             symbol,
             totalSupply,
             getLockAndDataAddress()
         );
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("New Token address: ");
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(address(newERC20))
+        );
         address lockAndDataERC20 = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getLockAndDataErc20();
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Lock And Data ERC20 address: ");
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
+            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(lockAndDataERC20)
+        );
         newERC20.grantRole(newERC20.MINTER_ROLE(), lockAndDataERC20);
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Will call revoke role");
         newERC20.revokeRole(newERC20.MINTER_ROLE(), address(this));
         return address(newERC20);
     }

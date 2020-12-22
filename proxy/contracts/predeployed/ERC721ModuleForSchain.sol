@@ -22,7 +22,7 @@
 pragma solidity 0.6.12;
 
 import "./PermissionsForSchain.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Metadata.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol";
 
 interface ITokenFactoryForERC721 {
     function createERC721(string memory name, string memory symbol)
