@@ -312,7 +312,7 @@ contract MessageProxyForSchain {
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
 
-        SkaleFeatures(getSkaleFeaturesAddress()).logTextMessage(string(abi.encodePacked("Sender: ", msg.sender)));
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked("Sender: ", msg.sender)));
 
         require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller"); // l_sergiy: replacement
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
@@ -322,7 +322,7 @@ contract MessageProxyForSchain {
 
         for (uint256 i = 0; i < messages.length; i++) {
 
-            SkaleFeatures(getSkaleFeaturesAddress()).logTextMessage(string(abi.encodePacked("Will call message: ", i)));
+            SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked("Will call message: ", i)));
 
             try ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                 messages[i].sender,
@@ -345,6 +345,7 @@ contract MessageProxyForSchain {
                 );
             }
         }
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Finished");
         connectedChains[srcChainHash].incomingMessageCounter 
             = connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
@@ -385,6 +386,8 @@ contract MessageProxyForSchain {
     }
 
     function isAuthorizedCaller(bytes32 , address a) public view returns (bool) {
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked("Authorized caller: ", _authorizedCaller[a])));
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked("Custom deploy: ", (_isCustomDeploymentMode ? 1 : 0))));
         if (_authorizedCaller[a] )
             return true;
         if (_isCustomDeploymentMode)
@@ -392,6 +395,7 @@ contract MessageProxyForSchain {
         uint256 u = SkaleFeatures(getSkaleFeaturesAddress()).getConfigPermissionFlag(
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked("Is authorized: ", u)));
         if ( u != 0 )
             return true;
         return false;
@@ -455,6 +459,7 @@ contract MessageProxyForSchain {
         cntDeleted = 0;
         uint idxTail = _idxTail[chainId];
         for ( uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++ i ) {
+            SkaleFeatures(getSkaleFeaturesAddress()).logMessage(string(abi.encodePacked("Will remove: ", i)));
             if ( i >= idxTail )
                 break;
             delete _outgoingMessageData[chainId][i];
