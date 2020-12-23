@@ -189,6 +189,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         view
         returns (bytes memory data)
     {
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Will call ERC20 Token for dat");
         string memory name = ERC20UpgradeSafe(contractHere).name();
         uint8 decimals = ERC20UpgradeSafe(contractHere).decimals();
         string memory symbol = ERC20UpgradeSafe(contractHere).symbol();
