@@ -42,11 +42,15 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
         public
     {
         require(_lockAndDataAddress.isContract(), "LockAndData is not a contract");
+        // SkaleFeatures(0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2).logMessage("Check is passed");
         __ERC20_init(contractName, contractSymbol);
+        SkaleFeatures(0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2).logMessage("ERC20 init is passed");
         _totalSupplyOnMainnet = newTotalSupply;
         _addressOfLockAndData = _lockAndDataAddress;
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
+        // SkaleFeatures(0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2).logMessage("set admin role is passed");
         _setupRole(MINTER_ROLE, _msgSender());
+        // SkaleFeatures(0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2).logMessage("setup role msg.sender is passed");
     }
 
     function setTotalSupplyOnMainnet(uint256 newTotalSupply) external {
@@ -119,16 +123,17 @@ contract TokenFactory is PermissionsForSchain {
         address erc20ModuleAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getErc20Module();
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("ERC20Module address: ");
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
             symbol,
             totalSupply,
             getLockAndDataAddress()
         );
+        // SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Token registered");
         address lockAndDataERC20 = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getLockAndDataErc20();
+        // SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Get LockAndDataERC20");
         newERC20.grantRole(newERC20.MINTER_ROLE(), lockAndDataERC20);
         newERC20.revokeRole(newERC20.MINTER_ROLE(), address(this));
         return address(newERC20);
