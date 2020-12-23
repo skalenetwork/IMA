@@ -154,8 +154,8 @@ contract SkaleFeatures {
         }
     }
 
-    function addressToAsciiStringDec(address _pool) public pure returns (string memory _uintAsString) {
-        uint _i = uint256(_pool);
+    function addressToAsciiStringDec(address x) public pure returns (string memory _uintAsString) {
+        uint _i = uint256(x);
         if (_i == 0) {
             return "0";
         }
