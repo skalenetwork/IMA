@@ -21,7 +21,7 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
 
 import "./PermissionsForSchain.sol";
 
@@ -185,10 +185,10 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         view
         returns (bytes memory data)
     {
-        string memory name = ERC20(contractHere).name();
-        uint8 decimals = ERC20(contractHere).decimals();
-        string memory symbol = ERC20(contractHere).symbol();
-        uint256 totalSupply = ERC20(contractHere).totalSupply();
+        string memory name = ERC20UpgradeSafe(contractHere).name();
+        uint8 decimals = ERC20UpgradeSafe(contractHere).decimals();
+        string memory symbol = ERC20UpgradeSafe(contractHere).symbol();
+        uint256 totalSupply = ERC20UpgradeSafe(contractHere).totalSupply();
         data = abi.encodePacked(
             bytes1(uint8(3)),
             bytes32(contractPosition),

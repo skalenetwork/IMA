@@ -1,4 +1,4 @@
 {
     "detectors_to_exclude": "locked-ether,uninitialized-local,shadowing-local,calls-loop,reentrancy-events,assembly,too-many-digits,external-function,solc-version,timestamp,unused-return",
-    "filter_paths": "@openzeppelin/contracts-ethereum-package|@nomiclabs/buidler/|Migrations.sol|test"
+    "filter_paths": "@openzeppelin/contracts-ethereum-package|@nomiclabs/buidler/|Migrations.sol|test|@openzeppelin/contracts"
 }
