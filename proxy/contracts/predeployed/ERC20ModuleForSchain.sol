@@ -144,6 +144,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
             }
             emit ERC20TokenReceived(0, contractAddress, amount);
         }
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("End of 20mod.send");
         return ILockAndDataERC20S(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
     }
 

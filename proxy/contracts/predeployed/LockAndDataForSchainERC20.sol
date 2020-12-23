@@ -71,8 +71,9 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
             SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(contractHere)
         );
         ERC20MintAndBurn(contractHere).mint(to, amount);
-
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Before emit 20");
         emit SentERC20(true);
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("After emit 20");
         return true;
     }
 
