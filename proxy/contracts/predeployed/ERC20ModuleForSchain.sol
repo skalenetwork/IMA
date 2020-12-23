@@ -138,7 +138,9 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
             emit ERC20TokenReceived(contractPosition, contractAddress, amount);
             SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Finished create contract ");
         } else {
+            SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Raw transfer");
             if (contractAddress == address(0)) {
+                SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Add token in Raw transfer");
                 ILockAndDataERC20S(lockAndDataERC20).addERC20Token(to, contractPosition);
                 contractAddress = to;
             }
@@ -157,6 +159,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
     }
 
     function _sendCreateERC20Request(bytes calldata data) internal returns (address) {
+        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Start send Create ERC20 Request");
         string memory name;
         string memory symbol;
         uint256 totalSupply;
