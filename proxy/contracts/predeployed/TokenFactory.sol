@@ -42,9 +42,9 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
         public
     {
         require(_lockAndDataAddress.isContract(), "LockAndData is not a contract");
-        // SkaleFeatures(0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2).logMessage("Check is passed");
+        SkaleFeatures(0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2).logMessage("Check is passed");
         __ERC20_init(contractName, contractSymbol);
-        SkaleFeatures(0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2).logMessage("ERC20 init is passed");
+        // SkaleFeatures(0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2).logMessage("ERC20 init is passed");
         _totalSupplyOnMainnet = newTotalSupply;
         _addressOfLockAndData = _lockAndDataAddress;
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
