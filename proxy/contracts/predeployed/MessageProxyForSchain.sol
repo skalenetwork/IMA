@@ -311,10 +311,6 @@ contract MessageProxyForSchain {
         connectMainnet
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Sender: ");
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(msg.sender)
-        );
         require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller"); // l_sergiy: replacement
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
@@ -342,7 +338,6 @@ contract MessageProxyForSchain {
                 );
             }
         }
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Finished");
         connectedChains[srcChainHash].incomingMessageCounter 
             = connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
@@ -390,8 +385,6 @@ contract MessageProxyForSchain {
         uint256 u = SkaleFeatures(getSkaleFeaturesAddress()).getConfigPermissionFlag(
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Is authorized: ");
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(u != 0 ? "Yes" : "No");
         if ( u != 0 )
             return true;
         return false;
@@ -462,6 +455,5 @@ contract MessageProxyForSchain {
         }
         if (cntDeleted > 0)
             _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Finished removing messages");
     }
 }

@@ -119,7 +119,6 @@ contract TokenFactory is PermissionsForSchain {
         address erc20ModuleAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getErc20Module();
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("ERC20Module address: ");
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
             symbol,
