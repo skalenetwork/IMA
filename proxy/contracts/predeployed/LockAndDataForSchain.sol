@@ -250,7 +250,7 @@ contract LockAndDataForSchain is OwnableForSchain {
         return true;
     }
 
-    function isAuthorizedCaller(address a) public view returns (bool rv) { // l_sergiy: added
+    function isAuthorizedCaller(address a) public view returns (bool rv) {
         if (authorizedCaller[a] )
             return true;
         if (_isCustomDeploymentMode)

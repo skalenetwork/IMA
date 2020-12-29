@@ -41,8 +41,10 @@ interface ILockAndDataTM {
     function removeGasCosts(address to) external returns (uint256);
 }
 
-// This contract runs on schains and accepts messages from main net creates ETH clones.
-// When the user exits, it burns them
+/**
+ * This contract runs on schains and accepts messages from main net creates ETH clones.
+ * When the user exits, it burns them
+ */
 
 /**
  * @title Token Manager
@@ -64,7 +66,6 @@ contract TokenManager is PermissionsForSchain {
 
     // ID of this schain,
     string private _chainID;
-    // address private _proxyForSchainAddress;
 
     uint256 public constant GAS_CONSUMPTION = 2000000000000000;
 
@@ -90,15 +91,12 @@ contract TokenManager is PermissionsForSchain {
 
     constructor(
         string memory newChainID,
-        // address newProxyAddress,
         address newLockAndDataAddress
     )
         public
         PermissionsForSchain(newLockAndDataAddress)
     {
-        // require(newProxyAddress.isContract(), "ProxyAddress is not a contract");
         _chainID = newChainID;
-        // _proxyForSchainAddress = newProxyAddress;
     }
 
     fallback() external payable {
@@ -554,7 +552,7 @@ contract TokenManager is PermissionsForSchain {
     /**
      * @dev Returns MessageProxy address.
      */
-    function getProxyForSchainAddress() public view returns ( address ow ) { // l_sergiy: added
+    function getProxyForSchainAddress() public view returns ( address ow ) {
         address proxyForSchaniAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getMessageProxy();
