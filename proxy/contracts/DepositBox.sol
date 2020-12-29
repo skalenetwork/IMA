@@ -53,6 +53,7 @@ contract DepositBox is PermissionsForMainnet {
     uint256 public averageGasAmount = 200000;
     uint256 public averageTxPrice = 10000000000;
     uint256 public numberOfTransactions = 0;
+    uint public gasTotal = 0;
 
     event MoneyReceivedMessage(
         address sender,
@@ -83,7 +84,7 @@ contract DepositBox is PermissionsForMainnet {
     }
 
     modifier replenishGas(address receiver, uint amount) {
-        uint gasTotal = gasleft();
+        gasTotal = gasleft();
         _;
         gasTotal -= gasleft();
         gasTotal += gasTotal / 4;
@@ -289,7 +290,7 @@ contract DepositBox is PermissionsForMainnet {
         bytes calldata data
     )
         external
-        replenishGas()
+        replenishGas(to, amount)
         allow("MessageProxy")
     {
         require(data.length != 0, "Invalid data");
