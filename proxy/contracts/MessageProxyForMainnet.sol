@@ -261,7 +261,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
             _convertAndVerifyMessages(srcChainID, messages, sign);
         }
-
         for (uint256 i = 0; i < messages.length; i++) {
             try ContractReceiverForMainnet(messages[i].destinationContract).postMessage(
                 messages[i].sender,

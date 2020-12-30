@@ -38,6 +38,8 @@ interface ILockAndDataERC721M {
  */
 contract ERC721ModuleForMainnet is PermissionsForMainnet {
 
+    event ERC721TokenReady(address indexed tokenHere, uint256 contractPosition, uint256 tokenId);
+
     /**
      * @dev Allows DepositBox to receive ERC721 tokens.
      * 
@@ -56,21 +58,21 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         address lockAndDataERC721 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
             keccak256(abi.encodePacked("LockAndDataERC721"))
         );
+        uint256 contractPosition = ILockAndDataERC721M(lockAndDataERC721).erc721Mapper(contractHere);
+        if (contractPosition == 0) {
+            contractPosition = ILockAndDataERC721M(lockAndDataERC721).addERC721Token(contractHere);
+        }
         if (!isRAW) {
-            uint256 contractPosition = ILockAndDataERC721M(lockAndDataERC721).erc721Mapper(contractHere);
-            if (contractPosition == 0) {
-                contractPosition = ILockAndDataERC721M(lockAndDataERC721).addERC721Token(contractHere);
-            }
             data = _encodeData(
                 contractHere,
                 contractPosition,
                 to,
                 tokenId);
-            return data;
         } else {
             data = _encodeRawData(to, tokenId);
-            return data;
         }
+        emit ERC721TokenReady(contractHere, contractPosition, tokenId);
+        return data;
     }
 
     /**
