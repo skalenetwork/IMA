@@ -53,9 +53,9 @@ ANSI colorizer for console and log output.
 
 ## For more information
 
--   [SKALE Network Website](https://skale.network)
--   [SKALE Network Twitter](https://twitter.com/SkaleNetwork)
--   [SKALE Network Blog](https://skale.network/blog)
+- [SKALE Network Website](https://skale.network)
+- [SKALE Network Twitter](https://twitter.com/SkaleNetwork)
+- [SKALE Network Blog](https://skale.network/blog)
 
 Learn more about the SKALE community over on [Discord](https://discord.gg/vvUtWJB).
 
