@@ -67,18 +67,19 @@ interface ISchains {
 contract MessageProxyForMainnet is PermissionsForMainnet {
     using SafeMath for uint256;
 
-    // 16 Agents
-    // Synchronize time with time.nist.gov
-    // Every agent checks if it is his time slot
-    // Time slots are in increments of 10 seconds
-    // At the start of his slot each agent:
-    // For each connected schain:
-    // Read incoming counter on the dst chain
-    // Read outgoing counter on the src chain
-    // Calculate the difference outgoing - incoming
-    // Call postIncomingMessages function passing (un)signed message array
-
-    // ID of this schain, Chain 0 represents ETH mainnet,
+    /**
+     * 16 Agents
+     * Synchronize time with time.nist.gov
+     * Every agent checks if it is his time slot
+     * Time slots are in increments of 10 seconds
+     * At the start of his slot each agent:
+     * For each connected schain:
+     * Read incoming counter on the dst chain
+     * Read outgoing counter on the src chain
+     * Calculate the difference outgoing - incoming
+     * Call postIncomingMessages function passing (un)signed message array
+     * ID of this schain, Chain 0 represents ETH mainnet,
+    */
 
     struct OutgoingMessageData {
         string dstChain;
@@ -260,7 +261,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
             _convertAndVerifyMessages(srcChainID, messages, sign);
         }
-
         for (uint256 i = 0; i < messages.length; i++) {
             try ContractReceiverForMainnet(messages[i].destinationContract).postMessage(
                 messages[i].sender,
@@ -365,7 +365,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         return connectedChains[srcChainHash].incomingMessageCounter;
     }
 
-    /// Create a new message proxy
+    // Create a new message proxy
 
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);

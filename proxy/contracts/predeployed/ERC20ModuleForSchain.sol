@@ -103,31 +103,16 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
      */
     function sendERC20(address to, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC20 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc20();
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Lock And Data ERC20 address: ");
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(lockAndDataERC20)
-        );
         uint256 contractPosition;
         address contractAddress;
         address receiver;
         uint256 amount;
         (contractPosition, receiver, amount) = _fallbackDataParser(data);
         contractAddress = ILockAndDataERC20S(lockAndDataERC20).erc20Tokens(contractPosition);
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Contract address: ");
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(contractAddress)
-        );
         if (to == address(0)) {
             if (contractAddress == address(0)) {
                 contractAddress = _sendCreateERC20Request(data);
-                SkaleFeatures(getSkaleFeaturesAddress()).logMessage("New contract address: ");
-                SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-                    SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(contractAddress)
-                );
                 emit ERC20TokenCreated(contractPosition, contractAddress);
-                SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-                    string(abi.encodePacked("Adding contract to contract position: ", contractPosition))
-                );
                 ILockAndDataERC20S(lockAndDataERC20).addERC20Token(contractAddress, contractPosition);
             } else {
                 uint256 totalSupply = _fallbackTotalSupplyParser(data);
@@ -136,7 +121,6 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
                 }
             }
             emit ERC20TokenReceived(contractPosition, contractAddress, amount);
-            SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Finished create contract ");
         } else {
             if (contractAddress == address(0)) {
                 ILockAndDataERC20S(lockAndDataERC20).addERC20Token(to, contractPosition);
@@ -144,7 +128,6 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
             }
             emit ERC20TokenReceived(0, contractAddress, amount);
         }
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("End of 20mod.send");
         return ILockAndDataERC20S(lockAndDataERC20).sendERC20(contractAddress, receiver, amount);
     }
 
@@ -162,14 +145,9 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         string memory symbol;
         uint256 totalSupply;
         (name, symbol, , totalSupply) = _fallbackDataCreateERC20Parser(data);
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Will call getTokenFactory");
         address tokenFactoryAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getTokenFactory();
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("TokenFactory address: ");
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(tokenFactoryAddress)
-        );
         return ITokenFactoryForERC20(tokenFactoryAddress).createERC20(name, symbol, totalSupply);
     }
 

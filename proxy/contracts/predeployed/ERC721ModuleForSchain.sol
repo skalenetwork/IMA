@@ -42,6 +42,7 @@ interface ILockAndDataERC721S {
 contract ERC721ModuleForSchain is PermissionsForSchain {
 
     event ERC721TokenCreated(uint256 indexed contractPosition, address tokenAddress);
+    event ERC721TokenReceived(uint256 indexed contractPosition, address tokenAddress, uint256 tokenId);
 
 
     constructor(address newLockAndDataAddress) public PermissionsForSchain(newLockAndDataAddress) {
@@ -103,9 +104,11 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
                 emit ERC721TokenCreated(contractPosition, contractAddress);
                 ILockAndDataERC721S(lockAndDataERC721).addERC721Token(contractAddress, contractPosition);
             }
+            emit ERC721TokenReceived(contractPosition, contractAddress, tokenId);
         } else {
             (receiver, tokenId) = _fallbackRawDataParser(data);
             contractAddress = to;
+            emit ERC721TokenReceived(0, contractAddress, tokenId);
         }
         return ILockAndDataERC721S(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
     }
