@@ -394,7 +394,7 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
         await rpcCall.create( joAccount.strTransactionManagerURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager wallet failed" ) );
-                process.exit( 155 );
+                return; // process.exit( 155 );
             }
             const txAdjusted = JSON.parse( JSON.stringify( rawTx ) ); // tx // rawTx
             if( "chainId" in txAdjusted )
@@ -409,18 +409,18 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( cc.debug( "Calling Transaction Manager to sign-and-send with " ) + cc.j( txAdjusted ) + "\n" );
             await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
-                if( err )
+                if( err ) {
                     console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager failed, error: " ) + cc.warning( err ) );
-                    // process.exit( 156 );
-
+                    return; // process.exit( 156 );
+                }
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( cc.debug( "Transaction Manager sign-and-send result is: " ) + cc.j( joOut ) + "\n" );
                 if( joOut && "data" in joOut && joOut.data && transaction_hash in joOut.data )
                     joSR.txHashSent = "" + joOut.data.transaction_hash;
-                else
+                else {
                     console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager returned bad answer: " ) + cc.j( joOut ) );
-                    // process.exit( 156 );
-
+                    return; // process.exit( 156 );
+                }
             } );
         } );
         await sleep( 5000 );
@@ -447,7 +447,7 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed" ) );
-                process.exit( 155 );
+                return; // process.exit( 155 );
             }
             const msgHash = tx.hash( false );
             const strHash = msgHash.toString( "hex" );
@@ -466,7 +466,7 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
             await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
                 if( err ) {
                     console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed, error: " ) + cc.warning( err ) );
-                    process.exit( 156 );
+                    return; // process.exit( 156 );
                 }
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
@@ -2396,8 +2396,8 @@ async function do_transfer(
                     }
                 }
                 if( joValues == "" ) {
-                    log.write( strLogPrefix + cc.error( "Can't get events from MessageProxy" ) + "\n" );
-                    process.exit( 126 );
+                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
+                    return; // process.exit( 126 );
                 }
                 //
                 //
