@@ -29,7 +29,7 @@ contract SkaleFeatures {
     uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;
     uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_ADDRESS = 0x14;
     uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_STRING = 0x15;
-    uint256 public constant FN_NUM_RESERVED_0x16 = 0x16;
+    uint256 public constant FN_NUM_RESERVED = 0x16;
     uint256 public constant FN_NUM_GET_CONFIG_PERMISSION_FLAG = 0x17;
 
     function logTextMessage( uint256 messageType, string memory strTextMessage ) public view returns ( uint256 rv ) {
@@ -154,5 +154,36 @@ contract SkaleFeatures {
         }
     }
 
+    function addressToAsciiStringDec(address x) public pure returns (string memory _uintAsString) {
+        uint _i = uint256(x);
+        if (_i == 0) {
+            return "0";
+        }
+        uint j = _i;
+        uint len;
+        while (j != 0) {
+            len++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(len);
+        uint k = len - 1;
+        while (_i != 0) {
+            bstr[k--] = byte(uint8(48 + _i % 10));
+            _i /= 10;
+        }
+        return string(bstr);
+    }
+    function addressToAsciiString(address x) public pure returns (string memory) {
+        bytes memory data = abi.encodePacked(x);
+        bytes memory alphabet = "0123456789abcdef";
+        bytes memory str = new bytes(2 + data.length * 2);
+        str[0] = "0";
+        str[1] = "x";
+        for (uint i = 0; i < data.length; i++) {
+            str[2+i*2] = alphabet[uint(uint8(data[i] >> 4))];
+            str[3+i*2] = alphabet[uint(uint8(data[i] & 0x0f))];
+        }
+        return string(str);
+    }
 }
 

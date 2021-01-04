@@ -26,6 +26,8 @@
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
+    ERC20ModuleForSchainContract,
+    ERC20ModuleForSchainInstance,
     ERC20OnChainContract,
     ERC20OnChainInstance,
     LockAndDataForSchainContract,
@@ -44,6 +46,7 @@ chai.use((chaiAsPromised as any));
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const LockAndDataForSchainERC20: LockAndDataForSchainERC20Contract =
     artifacts.require("./LockAndDataForSchainERC20");
+const ERC20ModuleForSchain: ERC20ModuleForSchainContract = artifacts.require("./ERC20ModuleForSchain");
 const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 
 contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
@@ -59,7 +62,7 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
         {from: deployer, gas: 8000000 * gasMultiplier});
     eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
         ((1000000000).toString()), deployer, {from: deployer});
-      eRC20OnMainnet = await ERC20OnChain.new("SKALE", "SKL",
+    eRC20OnMainnet = await ERC20OnChain.new("SKALE", "SKL",
         ((1000000000).toString()), deployer, {from: deployer});
   });
 

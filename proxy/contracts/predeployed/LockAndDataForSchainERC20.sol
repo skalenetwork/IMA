@@ -42,6 +42,11 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     mapping(string => mapping(address => address)) public schainToERC20OnSchain;
 
     /**
+     * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
+     */
+    event ERC20TokenAdded(string schainID, address indexed erc20OnMainnet, address erc20OnSchain);
+
+    /**
      * @dev Emitted upon minting on the SKALE chain.
      */
     event SentERC20(bool result);
@@ -106,7 +111,9 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         external
         allow("ERC20Module")
     {
+        require(addressERC20.isContract(), "Given address is not a contract");
         schainToERC20OnSchain[schainID][erc20OnMainnet] = erc20OnSchain;
+        emit ERC20TokenAdded(schainID, erc20OnMainnet, erc20OnSchain);
     }
 
     function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address) {

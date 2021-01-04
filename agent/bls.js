@@ -24,7 +24,7 @@
  */
 
 // const fs = require( "fs" );
-const path = require( "path" );
+// const path = require( "path" );
 // const url = require( "url" );
 // const os = require( "os" );
 const child_process = require( "child_process" );
@@ -165,7 +165,9 @@ function split_signature_share( signatureShare ) {
 }
 
 function get_bls_glue_tmp_dir() {
-    const strTmpDir = path.resolve( __dirname ) + "/tmp";
+    // NOTE: uncomment require( "path" ); at top of this file when using local tmp folder
+    // const strTmpDir = path.resolve( __dirname ) + "/tmp";
+    const strTmpDir = "/tmp/ima-bls-glue";
     shell.mkdir( "-p", strTmpDir );
     return strTmpDir;
 }
@@ -349,11 +351,17 @@ function perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonP
         imaUtils.jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
         // let joCommonPublicKey_for_O = joCommonPublicKey;
+        // const joCommonPublicKey_for_O = {
+        //     commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey1,
+        //     commonBLSPublicKey1: joCommonPublicKey.commonBLSPublicKey0,
+        //     commonBLSPublicKey2: joCommonPublicKey.commonBLSPublicKey3,
+        //     commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey2
+        // };
         const joCommonPublicKey_for_O = {
-            commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey1,
-            commonBLSPublicKey1: joCommonPublicKey.commonBLSPublicKey0,
-            commonBLSPublicKey2: joCommonPublicKey.commonBLSPublicKey3,
-            commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey2
+            commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey0,
+            commonBLSPublicKey1: joCommonPublicKey.commonBLSPublicKey1,
+            commonBLSPublicKey2: joCommonPublicKey.commonBLSPublicKey2,
+            commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey3
         };
         imaUtils.jsonFileSave( strActionDir + "/common_public_key.json", joCommonPublicKey_for_O );
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
@@ -382,15 +390,17 @@ function perform_bls_verify( strDirection, joGlueResult, jarrMessages, joCommonP
 }
 
 async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart ) {
-    let w3 = null; let joMessageProxy = null; let joAccount = null;
+    let w3 = null; let joMessageProxy = null; let joAccount = null; let joChainName = null;
     if( strDirection == "M2S" ) {
         w3 = imaState.w3_main_net;
         joMessageProxy = imaState.jo_message_proxy_main_net;
         joAccount = imaState.joAccount_main_net;
+        joChainName = imaState.strChainID_s_chain;
     } else if( strDirection == "S2M" ) {
         w3 = imaState.w3_s_chain;
         joMessageProxy = imaState.jo_message_proxy_s_chain;
         joAccount = imaState.joAccount_s_chain;
+        joChainName = imaState.strChainID_main_net;
     }
     const strCallerAccountAddress = joAccount.address( w3 );
     log.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " message correctness validation through call to " ) +
@@ -406,6 +416,7 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
         try {
             const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
             const m = joMessageProxy.methods.verifyOutgoingMessageData(
+                joChainName,
                 idxMessage,
                 joMessage.sender,
                 joMessage.destinationContract,
@@ -421,6 +432,7 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
             ++cntBadMessages;
             log.write( strLogPrefix + cc.fatal( "BAD ERROR:" ) +
                 cc.error( " Correctness validation failed for message " ) + cc.info( idxMessage ) +
+                cc.error( " sent to " ) + cc.info( joChainName ) +
                 cc.error( ", message is: " ) + cc.j( joMessage ) +
                 cc.error( ", error information: " ) + cc.warning( err.toString() ) +
                 "\n" );
@@ -525,13 +537,11 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 }
                 if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {
                     ++nCountErrors;
-                    if( "error" in joOut && "message" in joOut.error ) {
-                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) +
-                            cc.error( "S-Chain reported wallet error: " ) + cc.warning( joOut.error.message ) );
-                    } else {
-                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) +
-                            cc.error( "JSON RPC call to S-Chain failed with " ) + cc.warning( "unknown wallet error" ) );
-                    }
+                    if( "error" in joOut && "message" in joOut.error )
+                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " + cc.error( "S-Chain reported wallet error: " ) + cc.warning( joOut.error.message ) + "\n" );
+                    else
+                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " + cc.error( "JSON RPC call to S-Chain failed with " ) + cc.warning( "unknown wallet error" ) + "\n" );
+
                     return;
                 }
                 log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " sign result: " ) + cc.j( joOut.result ? joOut.result : null ) + "\n" );

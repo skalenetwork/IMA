@@ -140,26 +140,6 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
-    // /**
-    //  * @dev Returns encoded regular data.
-    //  */
-    // function _encodeRegularData(
-    //     address contractHere,
-    //     address to,
-    //     uint256 amount
-    // )
-    //     private
-    //     pure
-    //     returns (bytes memory data)
-    // {
-    //     data = abi.encodePacked(
-    //         bytes1(uint8(19)),
-    //         bytes32(bytes20(contractHere)),
-    //         bytes32(bytes20(to)),
-    //         bytes32(amount)
-    //     );
-    // }
-
     /**
      * @dev Returns fallback data.
      */

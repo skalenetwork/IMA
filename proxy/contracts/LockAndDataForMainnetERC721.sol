@@ -33,6 +33,8 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
 
     mapping(string => mapping(address => bool)) public schainToERC721;
 
+    event ERC721TokenAdded(address indexed tokenHere, string schainID);
+
     /**
      * @dev Allows ERC721ModuleForMainnet to send an ERC721 token.
      * 
@@ -46,6 +48,7 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
         allow("ERC721Module")
         returns (bool)
     {
+        require(contractOnMainnet.isContract(), "Given address is not a contract");
         if (IERC721(contractOnMainnet).ownerOf(tokenId) == address(this)) {
             IERC721(contractOnMainnet).transferFrom(address(this), to, tokenId);
             require(IERC721(contractOnMainnet).ownerOf(tokenId) == to, "Did not transfer");
@@ -58,7 +61,9 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
      * LockAndDataForMainnetERC721.
      */
     function addERC721ForSchain(string calldata schainID, address erc721OnMainnet) external allow("ERC721Module") {
+        require(erc721OnMainnet.isContract(), "Given address is not a contract");
         schainToERC721[schainID][erc721OnMainnet] = true;
+        emit ERC721TokenAdded(erc721OnMainnet, schainID);
     }
 
     function getSchainToERC721(string calldata schainID, address erc721OnMainnet) external view returns (bool) {

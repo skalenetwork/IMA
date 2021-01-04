@@ -17,6 +17,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 : "${NODE_NUMBER?Need to set NODE_NUMBER}"
 : "${NODES_COUNT?Need to set NODES_COUNT}"
 
+: "${TM_URL_MAIN_NET?Need to set TM_URL_MAIN_NET}"
+
 # SGX variables
 
 : "${SGX_URL?Need to set SGX_URL}"
@@ -30,8 +32,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 export GAS_PRICE_MULTIPLIER=${GAS_PRICE_MULTIPLIER:-2}
 export VERBOSE=${VERBOSE:-9}
 
-export M2S_TRANSFER_BLOCK_SIZE=${M2S_TRANSFER_BLOCK_SIZE:-10}
-export S2M_TRANSFER_BLOCK_SIZE=${S2M_TRANSFER_BLOCK_SIZE:-10}
+export M2S_TRANSFER_BLOCK_SIZE=${M2S_TRANSFER_BLOCK_SIZE:-4}
+export S2M_TRANSFER_BLOCK_SIZE=${S2M_TRANSFER_BLOCK_SIZE:-4}
 export M2S_MAX_TRANSACTIONS=${M2S_MAX_TRANSACTIONS:-0}
 export S2M_MAX_TRANSACTIONS=${S2M_MAX_TRANSACTIONS:-0}
 export M2S_AWAIT_BLOCKS=${M2S_AWAIT_BLOCKS:-0}
@@ -40,8 +42,8 @@ export M2S_AWAIT_TIME=${M2S_AWAIT_TIME:-0}
 export S2M_AWAIT_TIME=${S2M_AWAIT_TIME:-0}
 
 export PERIOD=${PERIOD:-10}
-export TIME_FRAMING=${TIME_FRAMING:-60}
-export TIME_GAP=${TIME_GAP:-10}
+export TIME_FRAMING=${TIME_FRAMING:-300}
+export TIME_GAP=${TIME_GAP:-15}
 
 export CID_MAIN_NET=${CID_MAIN_NET:--4}
 export CID_SCHAIN=${CID_SCHAIN:--4}
@@ -66,13 +68,9 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
     --cid-s-chain=$CID_SCHAIN \
     --abi-main-net=$MAINNET_PROXY_PATH \
     --abi-s-chain=$SCHAIN_PROXY_PATH \
-    --sgx-url-main-net=$SGX_URL \
     --sgx-url-s-chain=$SGX_URL \
-    --sgx-ecdsa-key-main-net=$ECDSA_KEY_NAME \
     --sgx-ecdsa-key-s-chain=$ECDSA_KEY_NAME \
-    --sgx-ssl-key-main-net=$SGX_SSL_KEY_PATH \
     --sgx-ssl-key-s-chain=$SGX_SSL_KEY_PATH \
-    --sgx-ssl-cert-main-net=$SGX_SSL_CERT_PATH \
     --sgx-ssl-cert-s-chain=$SGX_SSL_CERT_PATH \
     --address-main-net=$NODE_ADDRESS \
     --address-s-chain=$NODE_ADDRESS \
@@ -92,6 +90,8 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
     --node-number=$NODE_NUMBER \
     --nodes-count=$NODES_COUNT \
     --time-framing=$TIME_FRAMING \
+    --tm-url-main-net=$TM_URL_MAIN_NET \
+    --ignore-dry-run \
     --time-gap=$TIME_GAP"
 
 echo Base options:

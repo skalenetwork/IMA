@@ -107,7 +107,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         string memory name;
         string memory symbol;
         (name, symbol) = _fallbackDataCreateERC721Parser(data);
-        address tokenFactoryAddress = IContractManagerForSchain(
+        address tokenFactoryAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getTokenFactory();
         return ITokenFactoryForERC721(tokenFactoryAddress).createERC721(name, symbol);

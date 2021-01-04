@@ -117,8 +117,8 @@ global.imaState = {
     "isRawTokenTransfer": true,
     "isRawTokenTransfer_EXPLICIT": false,
 
-    "nTransferBlockSizeM2S": 10,
-    "nTransferBlockSizeS2M": 10,
+    "nTransferBlockSizeM2S": 4, // 10
+    "nTransferBlockSizeS2M": 4, // 10
     "nMaxTransactionsM2S": 0,
     "nMaxTransactionsS2M": 0,
 
@@ -701,8 +701,16 @@ async function discover_s_chain_network( fnAfter, isSilent ) {
                 } );
             }
             // process.exit( 0 );
+            let nCountToWait = 0 + jarrNodes.length;
+            if( nCountToWait > 2 )
+                nCountToWait = Math.ceil( nCountToWait * 2 / 3 );
+
+            if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug( "Waiting for response from at least " ) + cc.info( nCountToWait ) + cc.debug( " node(s)..." ) + "\n" );
             const iv = setInterval( function() {
-                if( nCountReceivedImaDescriptions == jarrNodes.length ) {
+                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                    log.write( strLogPrefix + cc.debug( "Have response from " ) + cc.info( nCountReceivedImaDescriptions ) + cc.debug( " node(s)." ) + "\n" );
+                if( nCountReceivedImaDescriptions >= nCountToWait ) {
                     clearInterval( iv );
                     fnAfter( null, joSChainNetworkInfo );
                 }
@@ -949,33 +957,39 @@ function check_time_framing( d ) {
         if( d == null || d == undefined )
             d = new Date(); // now
 
-        const nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
+        // const nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
+        const nUtcUnixTimeStamp = Math.floor( ( d ).getTime() / 1000 ); // https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
+
         const nSecondsRangeForAllSChains = imaState.nTimeFrameSeconds * imaState.nNodesCount;
         const nMod = Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
         const nActiveNodeFrameIndex = Math.floor( nMod / imaState.nTimeFrameSeconds );
         let bSkip = ( nActiveNodeFrameIndex != imaState.nNodeNumber ) ? true : false;
         let bInsideGap = false;
+        //
+        const nRangeStart = nUtcUnixTimeStamp - Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
+        const nFrameStart = nRangeStart + imaState.nNodeNumber * imaState.nTimeFrameSeconds;
+        const nGapStart = nFrameStart + imaState.nTimeFrameSeconds - imaState.nNextFrameGap;
         if( !bSkip ) {
-            const nRangeStart = nUtcUnixTimeStamp - Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
-            const nFrameStart = nRangeStart + imaState.nNodeNumber * imaState.nTimeFrameSeconds;
-            const nGapStart = nFrameStart + imaState.nTimeFrameSeconds - imaState.nNextFrameGap;
             if( nUtcUnixTimeStamp >= nGapStart ) {
                 bSkip = true;
                 bInsideGap = true;
             }
         }
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace ) {
-            log.write(
-                "\n" +
-                cc.info( "Unix UTC time stamp" ) + cc.debug( "........" ) + cc.notice( nUtcUnixTimeStamp ) + "\n" +
-                cc.info( "All Chains Range" ) + cc.debug( "..........." ) + cc.notice( nSecondsRangeForAllSChains ) + "\n" +
-                cc.info( "S-Chain Range Mod" ) + cc.debug( ".........." ) + cc.notice( nMod ) + "\n" +
-                cc.info( "Active Node Frame Index" ) + cc.debug( "...." ) + cc.notice( nActiveNodeFrameIndex ) + "\n" +
-                cc.info( "Testing Frame Index" ) + cc.debug( "........" ) + cc.notice( imaState.nNodeNumber ) + "\n" +
-                cc.info( "Is skip" ) + cc.debug( "...................." ) + cc.yn( bSkip ) + "\n" +
-                cc.info( "Is inside gap" ) + cc.debug( ".............." ) + cc.yn( bInsideGap ) + "\n"
-            );
-        }
+        // if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace ) {
+        log.write(
+            "\n" +
+            cc.info( "Unix UTC time stamp" ) + cc.debug( "........" ) + cc.notice( nUtcUnixTimeStamp ) + "\n" +
+            cc.info( "All Chains Range" ) + cc.debug( "..........." ) + cc.notice( nSecondsRangeForAllSChains ) + "\n" +
+            cc.info( "S-Chain Range Mod" ) + cc.debug( ".........." ) + cc.notice( nMod ) + "\n" +
+            cc.info( "Active Node Frame Index" ) + cc.debug( "...." ) + cc.notice( nActiveNodeFrameIndex ) + "\n" +
+            cc.info( "Testing Frame Index" ) + cc.debug( "........" ) + cc.notice( imaState.nNodeNumber ) + "\n" +
+            cc.info( "Is skip" ) + cc.debug( "...................." ) + cc.yn( bSkip ) + "\n" +
+            cc.info( "Is inside gap" ) + cc.debug( ".............." ) + cc.yn( bInsideGap ) + "\n" +
+            cc.info( "Range Start" ) + cc.debug( "................" ) + cc.notice( nRangeStart ) + "\n" +
+            cc.info( "Frame Start" ) + cc.debug( "................" ) + cc.notice( nFrameStart ) + "\n" +
+            cc.info( "Gap Start" ) + cc.debug( ".................." ) + cc.notice( nGapStart ) + "\n"
+        );
+        // }
         if( bSkip )
             return false;
     } catch ( e ) {

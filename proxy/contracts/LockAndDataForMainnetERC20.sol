@@ -36,6 +36,11 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
     mapping(string => mapping(address => bool)) public schainToERC20;
 
     /**
+     * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
+     */
+    event ERC20TokenAdded(address indexed tokenHere, string schainID);
+
+    /**
      * @dev Allows ERC20Module to send an ERC20 token from
      * LockAndDataForMainnetERC20.
      * 
@@ -54,6 +59,7 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
         allow("ERC20Module")
         returns (bool)
     {
+        require(contractOnMainnet.isContract(), "Given address is not a contract");
         require(IERC20(contractOnMainnet).balanceOf(address(this)) >= amount, "Not enough money");
         require(IERC20(contractOnMainnet).transfer(to, amount), "Something went wrong with `transfer` in ERC20");
         return true;
@@ -63,7 +69,9 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
      * @dev Allows ERC20Module to add an ERC20 token to LockAndDataForMainnetERC20.
      */
     function addERC20ForSchain(string calldata schainID, address erc20OnMainnet) external allow("ERC20Module") {
+        require(erc20OnMainnet.isContract(), "Given address is not a contract");
         schainToERC20[schainID][erc20OnMainnet] = true;
+        emit ERC20TokenAdded(erc20OnMainnet, schainID);
     }
 
     function getSchainToERC20(string calldata schainID, address erc20OnMainnet) external view returns (bool) {

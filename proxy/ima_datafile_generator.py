@@ -13,37 +13,37 @@ CONTRACTS_METADATA = {
         'address': '0x47cf4c2d6891377952a7e0e08a6f17180a91a0f9',
         'filename': 'LockAndDataForSchain'
     },
-    'eth_erc20': {
-        'address': '0xd3cdbc1b727b2ed91b8ad21333841d2e96f255af',
-        'filename': 'EthERC20'
+    'message_proxy_chain': {
+        'address': '0x427c74e358eb1f620e71f64afc9b1b5d2309dd01',
+        'filename': 'MessageProxyForSchain'
     },
     'token_manager': {
         'address': '0x57ad607c6e90df7d7f158985c3e436007a15d744',
         'filename': 'TokenManager'
     },
-    'lock_and_data_for_schain_erc20': {
-        'address': '0xc7085eb0ba5c2d449e80c22d6da8f0edbb86dd82',
-        'filename': 'LockAndDataForSchainERC20'
+    'eth_erc20': {
+        'address': '0xd3cdbc1b727b2ed91b8ad21333841d2e96f255af',
+        'filename': 'EthERC20'
     },
     'erc20_module_for_schain': {
         'address': '0xc30516c1dedfa91a948349209da6d6b1c8868ed7',
         'filename': 'ERC20ModuleForSchain'
     },
-    'lock_and_data_for_schain_erc721': {
-        'address': '0x97438fdfbdcc4ccc533ea874bfeb71f4098585ab',
-        'filename': 'LockAndDataForSchainERC721'
-    },
     'erc721_module_for_schain': {
         'address': '0xc1b336da9058efd1e9f5636a70bfe2ec17e15abb',
         'filename': 'ERC721ModuleForSchain'
     },
+    'lock_and_data_for_schain_erc20': {
+        'address': '0xc7085eb0ba5c2d449e80c22d6da8f0edbb86dd82',
+        'filename': 'LockAndDataForSchainERC20'
+    },
+    'lock_and_data_for_schain_erc721': {
+        'address': '0x97438fdfbdcc4ccc533ea874bfeb71f4098585ab',
+        'filename': 'LockAndDataForSchainERC721'
+    },
     'token_factory': {
         'address': '0xe9e8e031685137c3014793bef2875419c304aa72',
         'filename': 'TokenFactory'
-    },
-    'message_proxy_chain': {
-        'address': '0x427c74e358eb1f620e71f64afc9b1b5d2309dd01',
-        'filename': 'MessageProxyForSchain'
     }
 }
 
@@ -63,7 +63,7 @@ def generate_ima_data_file(artifacts_folder, results_folder):
             contract_data = json.load(f)
         ima_data[f'{name}_address'] = contract['address']
         ima_data[f'{name}_abi'] = contract_data['abi']
-        ima_data[f'{name}_bytecode'] = contract_data['bytecode']
+        ima_data[f'{name}_bytecode'] = contract_data['deployedBytecode'] # not 'bytecode'
     with open(ima_data_filepath, 'w') as json_file:
         json.dump(ima_data, json_file, indent=4)
 

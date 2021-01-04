@@ -14,7 +14,8 @@
         "skale-manager-integration": "bash ./scripts/prepare.sh",
         "test": "npx buidler test && yarn tsc",
         "tsc": "tsc --noEmit",
-        "tslint": "npx tslint --project ."
+        "tslint": "npx tslint --project .",
+        "slither": "slither ."
     },
     "dependencies": {
         "@openzeppelin/cli": "^2.8.2",
@@ -27,7 +28,7 @@
         "openzeppelin-solidity": "^2.2.0",
         "path": "^0.12.7",
         "solc": "^0.5.4",
-        "truffle": "^5.1.50"
+        "truffle": "^5.1.55"
     },
     "devDependencies": {
         "@nomiclabs/buidler": "^1.4.7",
@@ -51,6 +52,6 @@
         "typechain": "^1.0.5",
         "typechain-target-truffle": "^1.0.2",
         "typescript": "^3.8.3",
-        "web3": "^1.2.1"
+        "web3": "1.3.1"
     }
 }

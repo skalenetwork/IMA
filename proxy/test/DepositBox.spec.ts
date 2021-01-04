@@ -414,12 +414,11 @@ contract("DepositBox", ([deployer, user]) => {
       await depositBox
         .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
       // get constants
-      const gasAmountPostMessage = parseInt((new BigNumber(await depositBox.GAS_AMOUNT_POST_MESSAGE())).toString(), 10);
-      const averageTxPrise = parseInt((new BigNumber(await depositBox.AVERAGE_TX_PRICE())).toString(), 10);
+      const gasConsumption = parseInt((new BigNumber(await depositBox.GAS_CONSUMPTION())).toString(), 10);
       // expectation
       const bn = new BigNumber(await lockAndDataForMainnet.approveTransfers(user));
       parseInt(bn.toString(), 10).should.be.
-        equal(parseInt(amount.toString(), 10) - gasAmountPostMessage * averageTxPrise);
+        equal(parseInt(amount.toString(), 10) - gasConsumption);
     });
 
     it("should transfer ERC20 token", async () => {
@@ -455,12 +454,11 @@ contract("DepositBox", ([deployer, user]) => {
       await depositBox
         .postMessage(sender, schainID, to0, amount0, data, {from: deployer});
       // get constants
-      const gasAmountPostMessage = parseInt((new BigNumber(await depositBox.GAS_AMOUNT_POST_MESSAGE())).toString(), 10);
-      const averageTxPrise = parseInt((new BigNumber(await depositBox.AVERAGE_TX_PRICE())).toString(), 10);
+      const gasConsumption = parseInt((new BigNumber(await depositBox.GAS_CONSUMPTION())).toString(), 10);
       // expectation
       const bn = new BigNumber(await lockAndDataForMainnet.approveTransfers(user));
       parseInt(bn.toString(), 10).should.be.
-        equal(parseInt(amount0.toString(), 10) - gasAmountPostMessage * averageTxPrise);
+        equal(parseInt(amount0.toString(), 10) - gasConsumption);
     });
 
     it("should transfer ERC721 token", async () => {
@@ -494,12 +492,11 @@ contract("DepositBox", ([deployer, user]) => {
       await depositBox
         .postMessage(sender, schainID, to0, amount0, data, {from: deployer});
       // get constants
-      const gasAmountPostMessage = parseInt((new BigNumber(await depositBox.GAS_AMOUNT_POST_MESSAGE())).toString(), 10);
-      const averageTxPrise = parseInt((new BigNumber(await depositBox.AVERAGE_TX_PRICE())).toString(), 10);
+      const gasConsumption = parseInt((new BigNumber(await depositBox.GAS_CONSUMPTION())).toString(), 10);
       // expectation
       const bn = new BigNumber(await lockAndDataForMainnet.approveTransfers(user));
       parseInt(bn.toString(), 10).should.be.
-        equal(parseInt(amount0.toString(), 10) - gasAmountPostMessage * averageTxPrise);
+        equal(parseInt(amount0.toString(), 10) - gasConsumption);
     });
 
   });

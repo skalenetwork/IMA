@@ -28,6 +28,7 @@ import * as chaiAsPromised from "chai-as-promised";
 
 import chai = require("chai");
 import {
+    DepositBoxInstance,
     ContractManagerContract,
     ContractManagerInstance,
     LockAndDataForMainnetInstance,
@@ -51,6 +52,7 @@ chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
+import { deployDepositBox } from "./utils/deploy/depositBox";
 
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
@@ -69,6 +71,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     let contractManager: ContractManagerInstance;
     let schains: SchainsInstance;
     let schainsInternal: SchainsInternalInstance;
+    let depositBox: DepositBoxInstance;
 
     const publicKeyArray = [
         "1122334455667788990011223344556677889900112233445566778899001122",
@@ -95,6 +98,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             await contractManager.setContractsAddress("SchainsInternal", schainsInternal.address, {from: deployer});
             lockAndDataForMainnet = await deployLockAndDataForMainnet();
             messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
+            depositBox = await deployDepositBox(lockAndDataForMainnet);
             await lockAndDataForMainnet.setContract("ContractManagerForSkaleManager", contractManager.address, {from: deployer});
         });
 
@@ -162,23 +166,21 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
         it("should post incoming messages", async () => {
             const chainID = randomString(10);
-            tokenManager1 = await TokenManager.new(chainID, messageProxyForMainnet.address,
-                lockAndDataForMainnet.address, {from: deployer});
-            tokenManager2 = await TokenManager.new(chainID, messageProxyForMainnet.address,
-                lockAndDataForMainnet.address, {from: deployer});
+            // tokenManager1 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
+            // tokenManager2 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
             const startingCounter = 0;
 
             const message1 = {
                 amount: 3,
-                data: "0x11",
-                destinationContract: tokenManager1.address,
+                data: "0x01",
+                destinationContract: depositBox.address,
                 sender: deployer,
                 to: client};
 
             const message2 = {
                 amount: 7,
-                data: "0x22",
-                destinationContract: tokenManager2.address,
+                data: "0x01",
+                destinationContract: depositBox.address,
                 sender: user,
                 to: customer};
 
@@ -243,21 +245,19 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
         it("should get incoming messages counter", async () => {
             const chainID = randomString(10);
-            tokenManager1 = await TokenManager.new(chainID, messageProxyForMainnet.address,
-                lockAndDataForMainnet.address, {from: deployer});
-            tokenManager2 = await TokenManager.new(chainID, messageProxyForMainnet.address,
-                lockAndDataForMainnet.address, {from: deployer});
+            tokenManager1 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
+            tokenManager2 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
                 data: "0x11",
-                destinationContract: tokenManager1.address,
+                destinationContract: depositBox.address,
                 sender: deployer,
                 to: client};
             const message2 = {
                 amount: 7,
                 data: "0x22",
-                destinationContract: tokenManager2.address,
+                destinationContract: depositBox.address,
                 sender: user,
                 to: customer};
             const messages = [message1, message2];
@@ -314,21 +314,19 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
         it("should get incoming messages counter", async () => {
             const chainID = randomString(10);
-            tokenManager1 = await TokenManager.new(chainID, messageProxyForMainnet.address,
-                lockAndDataForMainnet.address, {from: deployer});
-            tokenManager2 = await TokenManager.new(chainID, messageProxyForMainnet.address,
-                lockAndDataForMainnet.address, {from: deployer});
+            tokenManager1 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
+            tokenManager2 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
                 data: "0x11",
-                destinationContract: tokenManager1.address,
+                destinationContract: depositBox.address,
                 sender: deployer,
                 to: client};
             const message2 = {
                 amount: 7,
                 data: "0x22",
-                destinationContract: tokenManager2.address,
+                destinationContract: depositBox.address,
                 sender: user,
                 to: customer};
             const messages = [message1, message2];
@@ -399,6 +397,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
         beforeEach(async () => {
             messageProxyForSchain = await MessageProxyForSchain.new("MyChain", {from: deployer});
             lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
+            await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address, {from: deployer});
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -463,10 +462,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
         it("should post incoming messages", async () => {
             const chainID = randomString(10);
-            tokenManager1 = await TokenManager.new(chainID, messageProxyForSchain.address,
-                lockAndDataForSchain.address, {from: deployer});
-            tokenManager2 = await TokenManager.new(chainID, messageProxyForSchain.address,
-                lockAndDataForSchain.address, {from: deployer});
+            tokenManager1 = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
+            tokenManager2 = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
@@ -521,7 +518,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const bytesData = "0x0";
 
             // chain should be inited:
-            await messageProxyForSchain.getOutgoingMessagesCounter(chainID).should.be.rejected;
+            new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID)).should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
@@ -539,10 +536,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
         it("should get incoming messages counter", async () => {
             const chainID = randomString(10);
-            tokenManager1 = await TokenManager.new(chainID, messageProxyForSchain.address,
-                lockAndDataForSchain.address, {from: deployer});
-            tokenManager2 = await TokenManager.new(chainID, messageProxyForSchain.address,
-                lockAndDataForSchain.address, {from: deployer});
+            tokenManager1 = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
+            tokenManager2 = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
@@ -565,7 +560,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             };
 
             // chain should be inited:
-            await messageProxyForSchain.getIncomingMessagesCounter(chainID).should.be.rejected;
+            new BigNumber(await messageProxyForSchain.getIncomingMessagesCounter(chainID)).should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 

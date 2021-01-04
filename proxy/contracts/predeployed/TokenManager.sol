@@ -45,8 +45,10 @@ interface ILockAndDataERCOnSchain {
     function getERC721OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address);
 }
 
-// This contract runs on schains and accepts messages from main net creates ETH clones.
-// When the user exits, it burns them
+/**
+ * This contract runs on schains and accepts messages from main net creates ETH clones.
+ * When the user exits, it burns them
+ */
 
 /**
  * @title Token Manager
@@ -66,10 +68,8 @@ contract TokenManager is PermissionsForSchain {
 
     // ID of this schain,
     string private _chainID;
-    address private _proxyForSchainAddress;
 
-    uint256 public constant GAS_AMOUNT_POST_MESSAGE = 200000;
-    uint256 public constant AVERAGE_TX_PRICE = 10000000000;
+    uint256 public constant GAS_CONSUMPTION = 2000000000000000;
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -83,7 +83,7 @@ contract TokenManager is PermissionsForSchain {
     }
 
     modifier receivedEth(uint256 amount) {
-        require(amount >= GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE, "Null Amount");
+        require(amount >= GAS_CONSUMPTION, "Null Amount");
         require(ILockAndDataTM(getLockAndDataAddress()).receiveEth(msg.sender, amount), "Could not receive ETH Clone");
         _;
     }
@@ -93,14 +93,12 @@ contract TokenManager is PermissionsForSchain {
 
     constructor(
         string memory newChainID,
-        address newProxyAddress,
         address newLockAndDataAddress
     )
         public
         PermissionsForSchain(newLockAndDataAddress)
     {
         _chainID = newChainID;
-        _proxyForSchainAddress = newProxyAddress;
     }
 
     fallback() external payable {
@@ -130,9 +128,13 @@ contract TokenManager is PermissionsForSchain {
         require(ILockAndDataTM(getLockAndDataAddress()).sendEth(msg.sender, returnBalance), "Not sent");
     }
 
-    function exitToMainERC20(address contractOnMainnet, address to, uint256 amount) external {
-        address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).getLockAndDataERC20();
-        address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).getERC20Module();
+    function exitToMainERC20(address contractHere, address to, uint256 amount) external {
+        address lockAndDataERC20 = LockAndDataForSchain(
+            getLockAndDataAddress()
+        ).getLockAndDataErc20();
+        address erc20Module = LockAndDataForSchain(
+            getLockAndDataAddress()
+        ).getErc20Module();
         address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC20)
             .getERC20OnSchain(getChainID(), contractOnMainnet);
         require(
@@ -153,7 +155,7 @@ contract TokenManager is PermissionsForSchain {
         require(
             ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
-                GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
+                GAS_CONSUMPTION),
             "Not enough gas sent");
         bytes memory data = IERC20ModuleForSchain(erc20Module).receiveERC20(
             getChainID(),
@@ -163,7 +165,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            GAS_CONSUMPTION,
             address(0),
             data
         );
@@ -221,7 +223,7 @@ contract TokenManager is PermissionsForSchain {
         require(
             ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
-                GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
+                GAS_CONSUMPTION),
             "Not enough gas sent");
         bytes memory data = IERC721ModuleForSchain(erc721Module).receiveERC721(
             getChainID(),
@@ -231,7 +233,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
+            GAS_CONSUMPTION,
             address(0),
             data
         );
@@ -287,16 +289,13 @@ contract TokenManager is PermissionsForSchain {
         external
     {
         require(data.length != 0, "Invalid data");
-
         require(msg.sender == getProxyForSchainAddress(), "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
-
         require(
             schainHash != keccak256(abi.encodePacked(getChainID())) && 
             sender == ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash),
             "Receiver chain is incorrect"
         );
-
         TransactionOperation operation = _fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
             require(to != address(0), "Incorrect receiver");
@@ -330,6 +329,7 @@ contract TokenManager is PermissionsForSchain {
      * @dev Performs an exit (post outgoing message) to Mainnet.
      */
     function exitToMain(address to, uint256 amount, bytes memory data) public receivedEth(amount) {
+        require(to != address(0), "Incorrect contractThere address");
         bytes memory newData;
         newData = abi.encodePacked(bytes1(uint8(1)), data);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
@@ -360,6 +360,7 @@ contract TokenManager is PermissionsForSchain {
         rightTransaction(schainID)
         receivedEth(amount)
     {
+        require(to != address(0), "Incorrect contractThere address");
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))),
@@ -388,7 +389,7 @@ contract TokenManager is PermissionsForSchain {
      */
     function getChainID() public view returns ( string memory cID ) {
         if ((keccak256(abi.encodePacked(_chainID))) == (keccak256(abi.encodePacked(""))) ) {
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2)
+            return SkaleFeatures(getSkaleFeaturesAddress())
                 .getConfigVariableString("skaleConfig.sChain.schainName");
         }
         return _chainID;
@@ -397,10 +398,13 @@ contract TokenManager is PermissionsForSchain {
     /**
      * @dev Returns MessageProxy address.
      */
-    function getProxyForSchainAddress() public view returns ( address ow ) { // l_sergiy: added
-        if (_proxyForSchainAddress != address(0) )
-            return _proxyForSchainAddress;
-        return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+    function getProxyForSchainAddress() public view returns ( address ow ) {
+        address proxyForSchaniAddress = LockAndDataForSchain(
+            getLockAndDataAddress()
+        ).getMessageProxy();
+        if (proxyForSchaniAddress != address(0) )
+            return proxyForSchaniAddress;
+        return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
             "skaleConfig.contractSettings.IMA.MessageProxy"
         );
     }

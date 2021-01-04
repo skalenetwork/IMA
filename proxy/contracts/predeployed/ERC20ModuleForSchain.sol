@@ -21,8 +21,10 @@
 
 pragma solidity 0.6.12;
 
-import "./PermissionsForSchain.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
+
+import "./PermissionsForSchain.sol";
+
 
 interface ITokenFactoryForERC20 {
     function createERC20(string memory name, string memory symbol, uint256 totalSupply)
@@ -124,7 +126,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         string memory symbol;
         uint256 totalSupply;
         (name, symbol, , totalSupply) = _fallbackDataCreateERC20Parser(data);
-        address tokenFactoryAddress = IContractManagerForSchain(
+        address tokenFactoryAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getTokenFactory();
         return ITokenFactoryForERC20(tokenFactoryAddress).createERC20(name, symbol, totalSupply);

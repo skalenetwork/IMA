@@ -21,14 +21,11 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+
+import "./EthERC20.sol";
 import "./OwnableForSchain.sol";
 
-interface IETHERC20 {
-    function allowance(address from, address to) external returns (uint256);
-    function mint(address account, uint256 amount) external returns (bool);
-    function burn(uint256 amount) external;
-    function burnFrom(address from, uint256 amount) external;
-}
 
 /**
  * @title Lock and Data For SKALE chain
@@ -36,8 +33,9 @@ interface IETHERC20 {
  * balances of ETH tokens received through DepositBox.
  */
 contract LockAndDataForSchain is OwnableForSchain {
+    using SafeMath for uint256;
 
-    address private _ethERC20Address;
+    address private _ethErc20Address;
 
     mapping(bytes32 => address) public permitted;
 
@@ -72,8 +70,8 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Allows Owner to set a EthERC20 contract address.
      */
-    function setEthERC20Address(address newEthERC20Address) external onlySchainOwner {
-        _ethERC20Address = newEthERC20Address;
+    function setEthErc20Address(address newEthErc20Address) external onlySchainOwner {
+        _ethErc20Address = newEthErc20Address;
     }
 
     /**
@@ -85,7 +83,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * - New contract address must not already be added.
      * - Contract must contain code.
      */
-    function setContract(string calldata contractName, address newContract) external onlySchainOwner {
+    function setContract(string calldata contractName, address newContract) external virtual onlySchainOwner {
         require(newContract != address(0), "New address is equal zero");
 
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
@@ -211,7 +209,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * @dev Allows TokenManager to add gas costs to LockAndDataForSchain.
      */
     function addGasCosts(address to, uint256 amount) external allow("TokenManager") {
-        ethCosts[to] += amount;
+        ethCosts[to] = ethCosts[to].add(amount);
     }
 
     /**
@@ -240,7 +238,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * @dev Allows TokenManager to send (mint) ETH from LockAndDataForSchain.
      */
     function sendEth(address to, uint256 amount) external allow("TokenManager") returns (bool) {
-        require(IETHERC20(getEthERC20Address()).mint(to, amount), "Mint error");
+        require(EthERC20(getEthErc20Address()).mint(to, amount), "Mint error");
         return true;
     }
 
@@ -248,16 +246,16 @@ contract LockAndDataForSchain is OwnableForSchain {
      * @dev Allows TokenManager to receive (burn) ETH to LockAndDataForSchain.
      */
     function receiveEth(address sender, uint256 amount) external allow("TokenManager") returns (bool) {
-        IETHERC20(getEthERC20Address()).burnFrom(sender, amount);
+        EthERC20(getEthErc20Address()).burnFrom(sender, amount);
         return true;
     }
 
-    function isAuthorizedCaller(address a) public view returns (bool rv) { // l_sergiy: added
+    function isAuthorizedCaller(address a) public view returns (bool rv) {
         if (authorizedCaller[a] )
             return true;
         if (_isCustomDeploymentMode)
             return false;
-        uint256 u = SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigPermissionFlag(
+        uint256 u = SkaleFeatures(getSkaleFeaturesAddress()).getConfigPermissionFlag(
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
         if ( u != 0 )
@@ -268,13 +266,15 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Returns EthERC20 contract address.
      */
-    function getEthERC20Address() public view returns (address addressOfEthERC20) {
-        if (_ethERC20Address == address(0) && (!_isCustomDeploymentMode)) {
-            return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).getConfigVariableAddress(
+    function getEthErc20Address() public view returns (address addressOfEthErc20) {
+        if (_ethErc20Address == address(0) && (!_isCustomDeploymentMode)) {
+            return SkaleFeatures(
+                    getSkaleFeaturesAddress()
+                ).getConfigVariableAddress(
                 "skaleConfig.contractSettings.IMA.EthERC20"
             );
         }
-        addressOfEthERC20 = _ethERC20Address;
+        addressOfEthErc20 = _ethErc20Address;
     }
 
     function getContract(string memory contractName) public view returns (address) {
@@ -287,7 +287,7 @@ contract LockAndDataForSchain is OwnableForSchain {
             ));
 
             address contractAddressInStorage = SkaleFeatures(
-                0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                getSkaleFeaturesAddress()
             ).getConfigVariableAddress(fullContractPath);
 
             return contractAddressInStorage;
@@ -295,19 +295,19 @@ contract LockAndDataForSchain is OwnableForSchain {
         return permitted[contractId];
     }
 
-    function getERC20Module() external view returns (address) {
+    function getErc20Module() external view returns (address) {
         return getContract(ERC20_MODULE);
     }
 
-    function getERC721Module() external view returns (address) {
+    function getErc721Module() external view returns (address) {
         return getContract(ERC721_MODULE);
     }
 
-    function getLockAndDataERC20() external view returns (address) {
+    function getLockAndDataErc20() external view returns (address) {
         return getContract(LOCK_AND_DATA_ERC20);
     }
 
-    function getLockAndDataERC721() external view returns (address) {
+    function getLockAndDataErc721() external view returns (address) {
         return getContract(LOCK_AND_DATA_ERC721);
     }
 
@@ -324,7 +324,7 @@ contract LockAndDataForSchain is OwnableForSchain {
     }
 
     /**
-     * @dev Checks whether contract name and adress are permitted.
+     * @dev Checks whether contract name and address are permitted.
      */
     function _checkPermitted(string memory contractName, address contractAddress) 
         private
@@ -344,7 +344,7 @@ contract LockAndDataForSchain is OwnableForSchain {
                     contractName
                 ));
                 address contractAddressInStorage = SkaleFeatures(
-                    0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2
+                    getSkaleFeaturesAddress()
                 ).getConfigVariableAddress(fullContractPath);
                 if (contractAddressInStorage == contractAddress) {
                     permission = true;

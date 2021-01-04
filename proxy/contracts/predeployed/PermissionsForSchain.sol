@@ -21,18 +21,8 @@
 
 pragma solidity 0.6.12;
 
+import "./LockAndDataForSchain.sol";
 import "./OwnableForSchain.sol";
-
-interface IContractManagerForSchain {
-    function getContract(string memory contractName) external view returns (address);
-    function getERC20Module() external view returns (address);
-    function getERC721Module() external view returns (address);
-    function getLockAndDataERC20() external view returns (address);
-    function getLockAndDataERC721() external view returns (address);
-    function getTokenManager() external view returns (address);
-    function getTokenFactory() external view returns (address);
-    function getMessageProxy() external view returns (address);
-}
 
 
 /**
@@ -59,7 +49,7 @@ contract PermissionsForSchain is OwnableForSchain {
      */
     modifier allow(string memory contractName) {
         require(
-            IContractManagerForSchain(
+            LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getContract(contractName) == msg.sender ||
             getSchainOwner() == msg.sender, "Message sender is invalid"
@@ -70,7 +60,7 @@ contract PermissionsForSchain is OwnableForSchain {
     function getLockAndDataAddress() public view returns ( address a ) {
         if (lockAndDataAddress_ != address(0) )
             return lockAndDataAddress_;
-        return SkaleFeatures(0x00c033b369416c9ecd8e4a07aafa8b06b4107419e2).
+        return SkaleFeatures(getSkaleFeaturesAddress()).
             getConfigVariableAddress("skaleConfig.contractSettings.IMA.LockAndData");
     }
 

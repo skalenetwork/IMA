@@ -116,6 +116,7 @@ function verbose_list() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+const g_nSleepBeforeFetchOutgoingMessageEvent = 5000;
 let g_nSleepBetweenTransactionsOnSChainMilliseconds = 0; // example - 5000
 let g_bWaitForNextBlockOnSChain = false;
 let g_amountToAddCost = null; // example - 10000000000000000", this is amount of real Eth to TokenManager.addEthConst() when sending ERC20/721 M->S
@@ -178,8 +179,8 @@ async function get_contract_call_events( joContract, strEventName, nBlockNumber,
     joFilter = joFilter || {};
     const joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
         filter: joFilter,
-        fromBlock: nBlockNumber,
-        toBlock: nBlockNumber
+        fromBlock: nBlockNumber - 10,
+        toBlock: nBlockNumber + 10
     } );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
@@ -302,7 +303,7 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
         }
         const joResult = await methodWithArguments.call( {
             from: addressFrom,
-            gas: 8000000
+            gas: 10000000
         } );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "got result " ) + cc.normal( cc.safeStringifyJSON( joResult ) ) + "\n" );
@@ -374,8 +375,13 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
     };
     switch ( joSR.joACI.strType ) {
     case "tm": {
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) + cc.debug( " using account " ) + cc.j( joAccount ) + "\n" );
+        if( verbose_get() >= RV_VERBOSE.debug ) {
+            log.write(
+                cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
+                cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
+                cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            );
+        }
         let rpcCallOpts = null;
         if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
             "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
@@ -388,35 +394,45 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
         await rpcCall.create( joAccount.strTransactionManagerURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager wallet failed" ) );
-                process.exit( 155 );
+                return; // process.exit( 155 );
             }
-            const rawTxAdjusted = JSON.parse( JSON.stringify( rawTx ) );
-            if( "chainId" in rawTxAdjusted )
-                delete rawTxAdjusted.chainId;
-            if( "gasLimit" in rawTxAdjusted && ( ! ( "gas" in rawTxAdjusted ) ) ) {
-                rawTxAdjusted.gas = rawTxAdjusted.gasLimit;
-                delete rawTxAdjusted.gasLimit;
+            const txAdjusted = JSON.parse( JSON.stringify( rawTx ) ); // tx // rawTx
+            if( "chainId" in txAdjusted )
+                delete txAdjusted.chainId;
+            if( "gasLimit" in txAdjusted && ( ! ( "gas" in txAdjusted ) ) ) {
+                txAdjusted.gas = txAdjusted.gasLimit;
+                delete txAdjusted.gasLimit;
             }
             const joIn = {
-                "transaction_dict": JSON.stringify( rawTxAdjusted )
+                "transaction_dict": JSON.stringify( txAdjusted )
             };
             if( verbose_get() >= RV_VERBOSE.debug )
-                log.write( cc.debug( "Calling Transaction Manager to sign-and-send" ) + "\n" );
+                log.write( cc.debug( "Calling Transaction Manager to sign-and-send with " ) + cc.j( txAdjusted ) + "\n" );
             await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
                 if( err ) {
                     console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager failed, error: " ) + cc.warning( err ) );
-                    process.exit( 156 );
+                    return; // process.exit( 156 );
                 }
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( cc.debug( "Transaction Manager sign-and-send result is: " ) + cc.j( joOut ) + "\n" );
-                joSR.txHashSent = "" + joOut.data.transaction_hash;
+                if( joOut && "data" in joOut && joOut.data && transaction_hash in joOut.data )
+                    joSR.txHashSent = "" + joOut.data.transaction_hash;
+                else {
+                    console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager returned bad answer: " ) + cc.j( joOut ) );
+                    return; // process.exit( 156 );
+                }
             } );
         } );
         await sleep( 5000 );
     } break;
     case "sgx": {
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx ) + cc.debug( " using account " ) + cc.j( joAccount ) + "\n" );
+        if( verbose_get() >= RV_VERBOSE.debug ) {
+            log.write(
+                cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx ) +
+                cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
+                cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            );
+        }
         let rpcCallOpts = null;
         if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
             "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
@@ -431,7 +447,7 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed" ) );
-                process.exit( 155 );
+                return; // process.exit( 155 );
             }
             const msgHash = tx.hash( false );
             const strHash = msgHash.toString( "hex" );
@@ -450,7 +466,7 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
             await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
                 if( err ) {
                     console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed, error: " ) + cc.warning( err ) );
-                    process.exit( 156 );
+                    return; // process.exit( 156 );
                 }
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
@@ -496,8 +512,13 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
         await sleep( 3000 );
     } break;
     case "direct": {
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( cc.debug( "Will sign with private key, transaction is " ) + cc.j( tx ) + cc.debug( " using account " ) + cc.j( joAccount ) + "\n" );
+        if( verbose_get() >= RV_VERBOSE.debug ) {
+            log.write(
+                cc.debug( "Will sign with private key, transaction is " ) + cc.j( tx ) +
+                cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
+                cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            );
+        }
         console.log( tx );
         const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
@@ -1043,6 +1064,7 @@ async function do_eth_payment_from_main_net(
         if( jo_message_proxy_main_net ) {
             if( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 ) {
                 if( verbose_get() >= RV_VERBOSE.information )
@@ -1232,6 +1254,7 @@ async function do_eth_payment_from_s_chain(
         if( jo_message_proxy_s_chain ) {
             if( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 ) {
                 if( verbose_get() >= RV_VERBOSE.information )
@@ -1429,7 +1452,7 @@ async function do_erc721_payment_from_main_net(
         //
         strActionName = "create raw transactions M->S";
         //
-        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 0 );
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
@@ -1518,6 +1541,7 @@ async function do_erc721_payment_from_main_net(
         if( jo_message_proxy_main_net ) {
             if( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 ) {
                 if( verbose_get() >= RV_VERBOSE.information )
@@ -1640,10 +1664,11 @@ async function do_erc20_payment_from_main_net(
         //
         strActionName = "create raw transactions M->S";
         //
-        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 0 );
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
+        // console.log( "-----------> gasPrice is", gasPrice );
         const rawTxApprove = {
             chainId: cid_main_net,
             from: joAccountSrc.address( w3_main_net ), // accountForMainnet
@@ -1726,6 +1751,7 @@ async function do_erc20_payment_from_main_net(
         if( jo_message_proxy_main_net ) {
             if( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 ) {
                 if( verbose_get() >= RV_VERBOSE.information )
@@ -1979,6 +2005,7 @@ async function do_erc20_payment_from_s_chain(
         if( jo_message_proxy_s_chain ) {
             if( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 ) {
                 if( verbose_get() >= RV_VERBOSE.information )
@@ -2204,6 +2231,7 @@ async function do_erc721_payment_from_s_chain(
         if( jo_message_proxy_s_chain ) {
             if( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 ) {
                 if( verbose_get() >= RV_VERBOSE.information )
@@ -2368,8 +2396,8 @@ async function do_transfer(
                     }
                 }
                 if( joValues == "" ) {
-                    log.write( strLogPrefix + cc.error( "Can't get events from MessageProxy" ) + "\n" );
-                    process.exit( 126 );
+                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
+                    return; // process.exit( 126 );
                 }
                 //
                 //
@@ -2519,7 +2547,10 @@ async function do_transfer(
                             log.write( strLogPrefix + cc.debug( "Chain name " ) + cc.info( chain_id_src ) + "\n" );
                             log.write( strLogPrefix + cc.debug( "Hash of chain name " ) + cc.info( hashOfSchainName ) + "\n" );
                         }
-                        const r = await jo_message_proxy_dst.methods.isAuthorizedCaller( a ).call( {
+                        const r = await jo_message_proxy_dst.methods.isAuthorizedCaller(
+                            hashOfSchainName,
+                            a
+                        ).call( {
                             from: a
                         } );
                         if( verbose_get() >= RV_VERBOSE.trace )
@@ -2583,16 +2614,16 @@ async function do_transfer(
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
                 //
-                const raw_tx_postIncomingMessages = compose_tx_instance( strLogPrefix, {
+                const raw_tx_postIncomingMessages = {
                     chainId: cid_dst,
                     nonce: tcnt,
-                    gas: 6000000, // 8000000
+                    gas: 10000000,
                     gasPrice: gasPrice,
                     // "gasLimit": 3000000,
                     to: jo_message_proxy_dst.options.address, // contract address
                     data: dataTx_postIncomingMessages //,
                     // "value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
-                } );
+                };
                 const tx_postIncomingMessages = compose_tx_instance( strLogPrefix, raw_tx_postIncomingMessages );
                 const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
                 let joReceipt = null;
@@ -2630,20 +2661,23 @@ async function do_transfer(
                     if( verbose_get() >= RV_VERBOSE.information )
                         log.write( strLogPrefix + cc.debug( "Validating transfer to Main Net via DepositBox error absence on Main Net..." ) + "\n" );
                     if( jo_deposit_box_main_net ) {
-                        if( verbose_get() >= RV_VERBOSE.information )
-                            log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-                        const joEvents = await get_contract_call_events( jo_deposit_box_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-                        if( joEvents.length == 0 ) {
+                        if( joReceipt && "blockNumber" in joReceipt && "transactionHash" in joReceipt ) {
                             if( verbose_get() >= RV_VERBOSE.information )
-                                log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_main_net.options.address ) + cc.success( " contract, no events found" ) + "\n" );
-                        } else {
-                            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "DepositBox" ) + cc.error( "/" ) + cc.notice( jo_deposit_box_main_net.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-                            throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_main_net.options.address + " contract, error events found" );
-                        }
-                        if( verbose_get() >= RV_VERBOSE.information )
-                            log.write( strLogPrefix + cc.success( "Done, validated transfer to Main Net via DepositBox error absence on Main Net" ) + "\n" );
+                                log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
+                            const joEvents = await get_contract_call_events( jo_deposit_box_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+                            if( joEvents.length == 0 ) {
+                                if( verbose_get() >= RV_VERBOSE.information )
+                                    log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_main_net.options.address ) + cc.success( " contract, no events found" ) + "\n" );
+                            } else {
+                                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "DepositBox" ) + cc.error( "/" ) + cc.notice( jo_deposit_box_main_net.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                                throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_main_net.options.address + " contract, error events found" );
+                            }
+                            if( verbose_get() >= RV_VERBOSE.information )
+                                log.write( strLogPrefix + cc.success( "Done, validated transfer to Main Net via DepositBox error absence on Main Net" ) + "\n" );
+                        } else
+                            log.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via DepositBox error absence on Main Net, no valid transaction receipt provided" ) + "\n" );
                     } else
-                        log.write( strLogPrefix + cc.console.warn( "Cannot validate transfer to Main Net via DepositBox error absence on Main Net, no DepositBox provided" ) + "\n" );
+                        log.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via DepositBox error absence on Main Net, no DepositBox provided" ) + "\n" );
                 } // if( chain_id_dst == "Mainnet" )
                 /*
                 //
@@ -2666,7 +2700,7 @@ async function do_transfer(
                         if ( verbose_get() >= RV_VERBOSE.information )
                             log.write( strLogPrefix + cc.success("Done, validated transfer to S-Chain via TokenManager error absence on S-Chain") + "\n" );
                     } else
-                        log.write( strLogPrefix + cc.console.warn("Cannot validate transfer to S-Chain via TokenManager error absence on S-Chain, no TokenManager provided") + "\n" );
+                        log.write( strLogPrefix + cc.warn("Cannot validate transfer to S-Chain via TokenManager error absence on S-Chain, no TokenManager provided") + "\n" );
                 } // if( chain_id_dst != "Mainnet" )
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Done, validated transfer from ") + cc.info(chain_id_src) + cc.debug(" to ") + cc.info(chain_id_dst) + cc.debug(", everything is OKay") + "\n" );

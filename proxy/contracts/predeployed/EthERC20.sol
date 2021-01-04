@@ -21,8 +21,7 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 
 import "./OwnableForSchain.sol";
@@ -44,15 +43,12 @@ contract EthERC20 is OwnableForSchain, IERC20 {
 
     bool private _initialized = false;
 
-    uint private _capacity;
-
     constructor() public {
         _delayedInit();
     }
 
     function mint(address account, uint256 amount) external onlyLockAndDataOwner returns (bool) {
         _delayedInit();
-        require(totalSupply().add(amount) <= _capacity, "Capacity exceeded");
         _mint(account, amount);
         return true;
     }
@@ -304,17 +300,6 @@ contract EthERC20 is OwnableForSchain, IERC20 {
         emit Approval(owner, spender, amount);
     }
 
-    /**
-     * @dev Sets {decimals} to a value other than the default one of 18.
-     *
-     * WARNING: This function should only be called from the constructor. Most
-     * applications that interact with token contracts will not expect
-     * {decimals} to ever change, and may work incorrectly if it does.
-     */
-    function _setupDecimals(uint8 decimals_) internal {
-        _decimals = decimals_;
-    }
-
     function _delayedInit() internal {
         if (_initialized) {
             return;
@@ -323,7 +308,6 @@ contract EthERC20 is OwnableForSchain, IERC20 {
         _name = "ERC20 Ether Clone";
         _symbol = "ETHC";
         _decimals = 18;
-        _capacity = 120 * (10 ** 6) * (10 ** 18);
     }
 
     /**
