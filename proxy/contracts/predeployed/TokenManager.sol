@@ -41,8 +41,10 @@ interface ILockAndDataTM {
     function removeGasCosts(address to) external returns (uint256);
 }
 
-// This contract runs on schains and accepts messages from main net creates ETH clones.
-// When the user exits, it burns them
+/**
+ * This contract runs on schains and accepts messages from main net creates ETH clones.
+ * When the user exits, it burns them
+ */
 
 /**
  * @title Token Manager
@@ -64,7 +66,6 @@ contract TokenManager is PermissionsForSchain {
 
     // ID of this schain,
     string private _chainID;
-    // address private _proxyForSchainAddress;
 
     uint256 public constant GAS_CONSUMPTION = 2000000000000000;
 
@@ -90,15 +91,12 @@ contract TokenManager is PermissionsForSchain {
 
     constructor(
         string memory newChainID,
-        // address newProxyAddress,
         address newLockAndDataAddress
     )
         public
         PermissionsForSchain(newLockAndDataAddress)
     {
-        // require(newProxyAddress.isContract(), "ProxyAddress is not a contract");
         _chainID = newChainID;
-        // _proxyForSchainAddress = newProxyAddress;
     }
 
     fallback() external payable {
@@ -445,10 +443,6 @@ contract TokenManager is PermissionsForSchain {
         external
     {
         require(data.length != 0, "Invalid data");
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Sender in postMessage: ");
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(msg.sender)
-        );
         require(msg.sender == getProxyForSchainAddress(), "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
@@ -463,16 +457,8 @@ contract TokenManager is PermissionsForSchain {
         } else if ((operation == TransactionOperation.transferERC20 && to == address(0)) ||
                   (operation == TransactionOperation.rawTransferERC20 && to != address(0))) {
             address erc20Module = LockAndDataForSchain(getLockAndDataAddress()).getErc20Module();
-            SkaleFeatures(getSkaleFeaturesAddress()).logMessage("ERC20 Module: ");
-            SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-                SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(erc20Module)
-            );
             require(IERC20Module(erc20Module).sendERC20(to, data), "Failed to send ERC20");
             address receiver = IERC20Module(erc20Module).getReceiver(data);
-            SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Receiver: ");
-            SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-                SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(receiver)
-            );
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else if ((operation == TransactionOperation.transferERC721 && to == address(0)) ||
                   (operation == TransactionOperation.rawTransferERC721 && to != address(0))) {
@@ -566,13 +552,10 @@ contract TokenManager is PermissionsForSchain {
     /**
      * @dev Returns MessageProxy address.
      */
-    function getProxyForSchainAddress() public view returns ( address ow ) { // l_sergiy: added
+    function getProxyForSchainAddress() public view returns ( address ow ) {
         address proxyForSchaniAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getMessageProxy();
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(proxyForSchaniAddress)
-        );
         if (proxyForSchaniAddress != address(0) )
             return proxyForSchaniAddress;
         return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(

@@ -64,16 +64,8 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
      * Emits a {SentERC20} event.
      */
     function sendERC20(address contractHere, address to, uint256 amount) external allow("ERC20Module") returns (bool) {
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            "Contract Here: "
-        );
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(contractHere)
-        );
         ERC20MintAndBurn(contractHere).mint(to, amount);
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Before emit 20");
         emit SentERC20(true);
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("After emit 20");
         return true;
     }
 

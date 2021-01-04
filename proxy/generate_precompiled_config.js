@@ -236,7 +236,6 @@ const g_arrContracts = [
         referenceVariableName: "TokenFactory"
     }
 ];
-//proxyForSchainAddress
 
 const g_joSummaryABI = {};
 

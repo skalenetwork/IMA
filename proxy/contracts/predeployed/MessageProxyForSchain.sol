@@ -41,18 +41,19 @@ contract MessageProxyForSchain {
     using SafeMath for uint256;
 
 
-    // 16 Agents
-    // Synchronize time with time.nist.gov
-    // Every agent checks if it is his time slot
-    // Time slots are in increments of 10 seconds
-    // At the start of his slot each agent:
-    // For each connected schain:
-    // Read incoming counter on the dst chain
-    // Read outgoing counter on the src chain
-    // Calculate the difference outgoing - incoming
-    // Call postIncomingMessages function passing (un)signed message array
-
-    // ID of this schain, Chain 0 represents ETH mainnet,
+    /**
+     * 16 Agents
+     * Synchronize time with time.nist.gov
+     * Every agent checks if it is his time slot
+     * Time slots are in increments of 10 seconds
+     * At the start of his slot each agent:
+     * For each connected schain:
+     * Read incoming counter on the dst chain
+     * Read outgoing counter on the src chain
+     * Calculate the difference outgoing - incoming
+     * Call postIncomingMessages function passing (un)signed message array
+     * ID of this schain, Chain 0 represents ETH mainnet,
+     */
 
     struct OutgoingMessageData {
         string dstChain;
@@ -202,10 +203,12 @@ contract MessageProxyForSchain {
         return true;
     }
 
-    // This is called by  schain owner.
-    // On mainnet, SkaleManager will call it every time a SKALE chain is
-    // created. Therefore, any SKALE chain is always connected to the main chain.
-    // To connect to other chains, the owner needs to explicitly call this function
+    /**
+     * This is called by  schain owner.
+     * On mainnet, SkaleManager will call it every time a SKALE chain is
+     * created. Therefore, any SKALE chain is always connected to the main chain.
+     * To connect to other chains, the owner needs to explicitly call this function
+     */
     function addConnectedChain(
         string calldata newChainID,
         uint256[4] calldata newPublicKey
@@ -311,11 +314,7 @@ contract MessageProxyForSchain {
         connectMainnet
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Sender: ");
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(
-            SkaleFeatures(getSkaleFeaturesAddress()).addressToAsciiString(msg.sender)
-        );
-        require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller"); // l_sergiy: replacement
+        require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
@@ -342,7 +341,6 @@ contract MessageProxyForSchain {
                 );
             }
         }
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Finished");
         connectedChains[srcChainHash].incomingMessageCounter 
             = connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
@@ -390,8 +388,6 @@ contract MessageProxyForSchain {
         uint256 u = SkaleFeatures(getSkaleFeaturesAddress()).getConfigPermissionFlag(
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Is authorized: ");
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage(u != 0 ? "Yes" : "No");
         if ( u != 0 )
             return true;
         return false;
@@ -462,6 +458,5 @@ contract MessageProxyForSchain {
         }
         if (cntDeleted > 0)
             _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
-        SkaleFeatures(getSkaleFeaturesAddress()).logMessage("Finished removing messages");
     }
 }
