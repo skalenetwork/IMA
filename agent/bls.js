@@ -537,13 +537,11 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 }
                 if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {
                     ++nCountErrors;
-                    if( "error" in joOut && "message" in joOut.error ) {
-                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) +
-                            cc.error( "S-Chain reported wallet error: " ) + cc.warning( joOut.error.message ) );
-                    } else {
-                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) +
-                            cc.error( "JSON RPC call to S-Chain failed with " ) + cc.warning( "unknown wallet error" ) );
-                    }
+                    if( "error" in joOut && "message" in joOut.error )
+                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " + cc.error( "S-Chain reported wallet error: " ) + cc.warning( joOut.error.message ) + "\n" );
+                    else
+                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " + cc.error( "JSON RPC call to S-Chain failed with " ) + cc.warning( "unknown wallet error" ) + "\n" );
+
                     return;
                 }
                 log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " sign result: " ) + cc.j( joOut.result ? joOut.result : null ) + "\n" );
