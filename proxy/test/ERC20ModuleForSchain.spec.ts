@@ -70,7 +70,6 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
   let tokenFactory: TokenFactoryInstance;
   let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
   let eRC20OnChain: ERC20OnChainInstance;
-  let eRC20OnChain2: ERC20OnChainInstance;
   let erc20OnMainnet: ERC20OnChainInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
@@ -94,8 +93,6 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
 
     eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
         ((1000000000).toString()), eRC20ModuleForSchain.address, {from: deployer});
-    eRC20OnChain2 = await ERC20OnChain.new("ERC20OnChain2", "ERC202",
-        ((1000000000).toString()), deployer, {from: deployer});
     erc20OnMainnet = await ERC20OnChain.new("SKALE", "SKL", 
         ((1000000000).toString()), eRC20ModuleForMainnet.address, {from: deployer});
 
@@ -183,7 +180,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const amount = 10;
     const data = "0x03" +
-    "000000000000000000000000000000000000000000000000000000000000000a" + // contractPosition
+    (erc20OnMainnet.address).substr(2)+ "000000000000000000000000" +  // contractPosition
     to.substr(2) + "000000000000000000000000" + // receiver
     "000000000000000000000000000000000000000000000000000000000000000a" + // tokenId
     "000000000000000000000000000000000000000000000000000000000000000c" + // token name
@@ -193,7 +190,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     "000000000000000000000000000000000000000000000000000000003b9ac9f6"; // total supply
 
     const data2 = "0x03" +
-    "000000000000000000000000000000000000000000000000000000000000000a" + // contractPosition
+    (erc20OnMainnet.address).substr(2)+ "000000000000000000000000" + // contractPosition
     to.substr(2) + "000000000000000000000000" + // receiver
     "000000000000000000000000000000000000000000000000000000000000000a" + // tokenId
     "000000000000000000000000000000000000000000000000000000000000000c" + // token name
@@ -228,7 +225,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const amount = 10;
     const data = "0x03" +
-    "000000000000000000000000000000000000000000000000000000000000000a" + // contractPosition
+    (erc20OnMainnet.address).substr(2)+ "000000000000000000000000" +  // contractPosition
     to.substr(2) + "000000000000000000000000" + // receiver
     "000000000000000000000000000000000000000000000000000000000000000a" + // tokenId
     "000000000000000000000000000000000000000000000000000000000000000c" + // token name

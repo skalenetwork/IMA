@@ -76,9 +76,9 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         allow("TokenManager")
         returns (bytes memory data)
     {
-        address lockAndDataERC20 = IContractManagerForSchain(
+        address lockAndDataERC20 = LockAndDataForSchain(
             getLockAndDataAddress()
-        ).getLockAndDataERC20();
+        ).getLockAndDataErc20();
         address contractOnSchain = ILockAndDataERC20S(lockAndDataERC20).getERC20OnSchain(schainID, contractOnMainnet);
         require(contractOnSchain != address(0), "ERC20 contract does not exist on SKALE chain.");
         require(
@@ -95,7 +95,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
      * Emits a {ERC20TokenReceived} event on success.
      */
     function sendERC20(string calldata schainID, bytes calldata data) external allow("TokenManager") returns (bool) {
-        address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).getLockAndDataERC20();
+        address lockAndDataERC20 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc20();
         address contractOnMainnet;
         address receiver;
         uint256 amount;

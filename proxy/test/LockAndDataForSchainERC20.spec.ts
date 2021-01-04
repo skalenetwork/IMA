@@ -61,9 +61,9 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
         await LockAndDataForSchainERC20.new(lockAndDataForSchain.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
     eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
-        ((1000000000).toString()), deployer, {from: deployer});
+        ((1000000000).toString()), lockAndDataForSchain.address, {from: deployer});
     eRC20OnMainnet = await ERC20OnChain.new("SKALE", "SKL",
-        ((1000000000).toString()), deployer, {from: deployer});
+        ((1000000000).toString()), lockAndDataForSchain.address, {from: deployer});
   });
 
   it("should invoke `sendERC20` without mistakes", async () => {

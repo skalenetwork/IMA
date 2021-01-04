@@ -128,7 +128,7 @@ contract TokenManager is PermissionsForSchain {
         require(ILockAndDataTM(getLockAndDataAddress()).sendEth(msg.sender, returnBalance), "Not sent");
     }
 
-    function exitToMainERC20(address contractHere, address to, uint256 amount) external {
+    function exitToMainERC20(address contractOnMainnet, address to, uint256 amount) external {
         address lockAndDataERC20 = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getLockAndDataErc20();
@@ -179,8 +179,8 @@ contract TokenManager is PermissionsForSchain {
     )
         external
     {
-        address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).getLockAndDataERC20();
-        address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).getERC20Module();
+        address lockAndDataERC20 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc20();
+        address erc20Module = LockAndDataForSchain(getLockAndDataAddress()).getErc20Module();
         address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC20)
             .getERC20OnSchain(getChainID(), contractOnMainnet);
         require(
@@ -213,8 +213,8 @@ contract TokenManager is PermissionsForSchain {
     }
 
     function exitToMainERC721(address contractOnMainnet, address to, uint256 tokenId) external {
-        address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).getLockAndDataERC721();
-        address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).getERC721Module();
+        address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
+        address erc721Module = LockAndDataForSchain(getLockAndDataAddress()).getErc721Module();
         address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC721)
             .getERC721OnSchain(getChainID(), contractOnMainnet);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
@@ -247,8 +247,8 @@ contract TokenManager is PermissionsForSchain {
     ) 
         external
     {
-        address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).getLockAndDataERC721();
-        address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).getERC721Module();
+        address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
+        address erc721Module = LockAndDataForSchain(getLockAndDataAddress()).getErc721Module();
         address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC721)
             .getERC721OnSchain(getChainID(), contractOnMainnet);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
@@ -301,16 +301,16 @@ contract TokenManager is PermissionsForSchain {
             require(to != address(0), "Incorrect receiver");
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
         } else if (operation == TransactionOperation.transferERC20) {
-            address erc20Module = IContractManagerForSchain(
+            address erc20Module = LockAndDataForSchain(
                 getLockAndDataAddress()
-            ).getERC20Module();
+            ).getErc20Module();
             require(IERC20ModuleForSchain(erc20Module).sendERC20(getChainID(), data), "Failed to send ERC20");
             address receiver = IERC20ModuleForSchain(erc20Module).getReceiver(data);
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else if (operation == TransactionOperation.transferERC721) {
-            address erc721Module = IContractManagerForSchain(
+            address erc721Module = LockAndDataForSchain(
                 getLockAndDataAddress()
-            ).getERC721Module();
+            ).getErc721Module();
             require(IERC721ModuleForSchain(erc721Module).sendERC721(getChainID(), data), "Failed to send ERC721");
             address receiver = IERC721ModuleForSchain(erc721Module).getReceiver(data);
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");

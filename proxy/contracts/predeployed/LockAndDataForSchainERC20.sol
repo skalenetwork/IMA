@@ -60,10 +60,6 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         // solhint-disable-previous-line no-empty-blocks
     }
 
-    function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address) {
-        return schainToERC20OnSchain[schainID][contractOnMainnet];
-    }
-
     /**
      * @dev Allows ERC20Module to send (mint) ERC20 tokens from LockAndDataForSchainERC20.
      * 
@@ -111,7 +107,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         external
         allow("ERC20Module")
     {
-        require(addressERC20.isContract(), "Given address is not a contract");
+        require(erc20OnMainnet.isContract(), "Given address is not a contract");
         schainToERC20OnSchain[schainID][erc20OnMainnet] = erc20OnSchain;
         emit ERC20TokenAdded(schainID, erc20OnMainnet, erc20OnSchain);
     }

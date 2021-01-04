@@ -103,13 +103,13 @@ contract("TokenManager", ([deployer, user, client]) => {
             .new(lockAndDataForSchain.address, {from: deployer});
         eRC20ModuleForSchain = await ERC20ModuleForSchain
             .new(lockAndDataForSchain.address, {from: deployer});
-        eRC20OnChain = await ERC20OnChain.new("ERC20", "ER2",
-            ((1000000000).toString()), deployer, {from: deployer});
+        eRC20OnChain = await ERC20OnChain.new("ERC20", "ERC20",
+            "20000000000000000", lockAndDataForSchain.address, {from: deployer});
         eRC20 = await ERC20OnChain.new("SKALE", "SKL",
-            ((1000000000).toString()), deployer, {from: deployer});
+            "20000000000000000", lockAndDataForSchain.address, {from: deployer});
         eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721",
             {from: deployer});
-        eRC721 = await ERC721OnChain.new("eRC721", "ERR",
+        eRC721 = await ERC721OnChain.new("eRC721", "ERC721",
             {from: deployer});
         eRC721ModuleForSchain = await ERC721ModuleForSchain.new(lockAndDataForSchain.address,
             {from: deployer});
@@ -320,8 +320,8 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         await lockAndDataForSchain.setContract("ERC20Module", deployer, {from: deployer});
 
-        // invoke `setTotalSupplyOnMainnet` before `mint` to avoid `SafeMath: subtraction overflow` exception:
-        await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
+        // // invoke `setTotalSupplyOnMainnet` before `mint` to avoid `SafeMath: subtraction overflow` exception:
+        // await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
 
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC20OnChain.mint(deployer, amountMint, {from: deployer});
@@ -381,8 +381,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchain
             .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
         // invoke `setTotalSupplyOnMainnet` before `mint` to avoid `SafeMath: subtraction overflow` exception:
-        await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
-        await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
+        // await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC20OnChain.mint(deployer, amountMint, {from: deployer});
         // invoke `addGasCosts` to avoid `Not enough gas sent` exception on `exitToMainERC20` function:
@@ -415,8 +414,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         // add connected chain:
         await messageProxyForSchain.addConnectedChain(schainID, publicKeyArray, {from: deployer});
         // invoke `setTotalSupplyOnMainnet` before `mint` to avoid `SafeMath: subtraction overflow` exception:
-        await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
-        await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
+        // await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC20OnChain.mint(deployer, amountMint, {from: deployer});
         // invoke `addGasCosts` to avoid `Not enough gas sent` exception on `exitToMainERC20` function:
@@ -738,7 +736,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             const to0 = "0x0000000000000000000000000000000000000000"; // ERC20 address
             const sender = deployer;
             const data = "0x03" +
-            "000000000000000000000000000000000000000000000000000000000000000a" + // contractPosition
+            (eRC20.address).substr(2) + "000000000000000000000000" + // contractPosition
             to.substr(2) + "000000000000000000000000" + // receiver
             "000000000000000000000000000000000000000000000000000000000000000a" + // tokenId
             "000000000000000000000000000000000000000000000000000000000000000c" + // token name
@@ -789,7 +787,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             const to0 = "0x0000000000000000000000000000000000000000"; // ERC20 address
             const sender = deployer;
             const data = "0x05" +
-            "0000000000000000000000000000000000000000000000000000000000000001" + // contractPosition
+            (eRC721.address).substr(2) + "000000000000000000000000" + // contractPosition
             to.substr(2) + "000000000000000000000000" + // receiver
             "0000000000000000000000000000000000000000000000000000000000000002" + // tokenId
             "000000000000000000000000000000000000000000000000000000000000000d" + // token name

@@ -120,7 +120,6 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
   it("should return `true` for `sendERC721`", async () => {
     // preparation
     const to = user;
-    const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const schainID = randomString(10);
     const tokenId = 2;
     // set `ERC721Module` contract before invoke `receiveERC721`
@@ -134,7 +133,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // mint ERC721 to avoid "ERC721: owner query for nonexistent token" error
     await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
     const data = "0x05" +
-    "0000000000000000000000000000000000000000000000000000000000000001" + // contractPosition
+    (eRC721OnMainnet.address).substr(2) + "000000000000000000000000" + // contractPosition
     to.substr(2) + "000000000000000000000000" + // receiver
     "0000000000000000000000000000000000000000000000000000000000000002" + // tokenId
     "000000000000000000000000000000000000000000000000000000000000000d" + // token name

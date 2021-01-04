@@ -61,10 +61,6 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
         // solhint-disable-previous-line no-empty-blocks
     }
 
-    function getERC721OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address) {
-        return schainToERC721OnSchain[schainID][contractOnMainnet];
-    }
-
     /**
      * @dev Allows ERC721Module to send (mint) an ERC721 token from LockAndDataForSchainERC721.
      * 
@@ -111,7 +107,7 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
         external
         allow("ERC721Module")
     {
-        require(addressERC721.isContract(), "Given address is not a contract");
+        require(erc721OnMainnet.isContract(), "Given address is not a contract");
         schainToERC721OnSchain[schainID][erc721OnMainnet] = erc721OnSchain;
         emit ERC721TokenAdded(schainID, erc721OnMainnet, erc721OnSchain);
     }
