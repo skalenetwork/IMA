@@ -409,13 +409,18 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( cc.debug( "Calling Transaction Manager to sign-and-send with " ) + cc.j( txAdjusted ) + "\n" );
             await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
-                if( err ) {
+                if( err )
                     console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager failed, error: " ) + cc.warning( err ) );
-                    process.exit( 156 );
-                }
+                    // process.exit( 156 );
+
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( cc.debug( "Transaction Manager sign-and-send result is: " ) + cc.j( joOut ) + "\n" );
-                joSR.txHashSent = "" + joOut.data.transaction_hash;
+                if( joOut && "data" in joOut && joOut.data && transaction_hash in joOut.data )
+                    joSR.txHashSent = "" + joOut.data.transaction_hash;
+                else
+                    console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager returned bad answer: " ) + cc.j( joOut ) );
+                    // process.exit( 156 );
+
             } );
         } );
         await sleep( 5000 );
@@ -2656,20 +2661,23 @@ async function do_transfer(
                     if( verbose_get() >= RV_VERBOSE.information )
                         log.write( strLogPrefix + cc.debug( "Validating transfer to Main Net via DepositBox error absence on Main Net..." ) + "\n" );
                     if( jo_deposit_box_main_net ) {
-                        if( verbose_get() >= RV_VERBOSE.information )
-                            log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-                        const joEvents = await get_contract_call_events( jo_deposit_box_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-                        if( joEvents.length == 0 ) {
+                        if( joReceipt && "blockNumber" in joReceipt && "transactionHash" in joReceipt ) {
                             if( verbose_get() >= RV_VERBOSE.information )
-                                log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_main_net.options.address ) + cc.success( " contract, no events found" ) + "\n" );
-                        } else {
-                            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "DepositBox" ) + cc.error( "/" ) + cc.notice( jo_deposit_box_main_net.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-                            throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_main_net.options.address + " contract, error events found" );
-                        }
-                        if( verbose_get() >= RV_VERBOSE.information )
-                            log.write( strLogPrefix + cc.success( "Done, validated transfer to Main Net via DepositBox error absence on Main Net" ) + "\n" );
+                                log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
+                            const joEvents = await get_contract_call_events( jo_deposit_box_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+                            if( joEvents.length == 0 ) {
+                                if( verbose_get() >= RV_VERBOSE.information )
+                                    log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_main_net.options.address ) + cc.success( " contract, no events found" ) + "\n" );
+                            } else {
+                                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "DepositBox" ) + cc.error( "/" ) + cc.notice( jo_deposit_box_main_net.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                                throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_main_net.options.address + " contract, error events found" );
+                            }
+                            if( verbose_get() >= RV_VERBOSE.information )
+                                log.write( strLogPrefix + cc.success( "Done, validated transfer to Main Net via DepositBox error absence on Main Net" ) + "\n" );
+                        } else
+                            log.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via DepositBox error absence on Main Net, no valid transaction receipt provided" ) + "\n" );
                     } else
-                        log.write( strLogPrefix + cc.console.warn( "Cannot validate transfer to Main Net via DepositBox error absence on Main Net, no DepositBox provided" ) + "\n" );
+                        log.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via DepositBox error absence on Main Net, no DepositBox provided" ) + "\n" );
                 } // if( chain_id_dst == "Mainnet" )
                 /*
                 //
@@ -2692,7 +2700,7 @@ async function do_transfer(
                         if ( verbose_get() >= RV_VERBOSE.information )
                             log.write( strLogPrefix + cc.success("Done, validated transfer to S-Chain via TokenManager error absence on S-Chain") + "\n" );
                     } else
-                        log.write( strLogPrefix + cc.console.warn("Cannot validate transfer to S-Chain via TokenManager error absence on S-Chain, no TokenManager provided") + "\n" );
+                        log.write( strLogPrefix + cc.warn("Cannot validate transfer to S-Chain via TokenManager error absence on S-Chain, no TokenManager provided") + "\n" );
                 } // if( chain_id_dst != "Mainnet" )
                 if ( verbose_get() >= RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success("Done, validated transfer from ") + cc.info(chain_id_src) + cc.debug(" to ") + cc.info(chain_id_dst) + cc.debug(", everything is OKay") + "\n" );
