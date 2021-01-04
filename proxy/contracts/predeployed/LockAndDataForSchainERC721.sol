@@ -98,7 +98,19 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
     /**
      * @dev Allows ERC721Module to add an ERC721 token to LockAndDataForSchainERC721.
      */
-    function addERC721ForSchain(string calldata schainID, address erc721OnMainnet, address erc721OnSchain) external allow("ERC721Module") {
+    function addERC721ForSchain(
+        string calldata schainID,
+        address erc721OnMainnet,
+        address erc721OnSchain
+    )
+        external
+        allow("ERC721Module")
+    {
         schainToERC721OnSchain[schainID][erc721OnMainnet] = erc721OnSchain;
     }
+
+    function getERC721OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address) {
+        return schainToERC721OnSchain[schainID][contractOnMainnet];
+    }
+
 }

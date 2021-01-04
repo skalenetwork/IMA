@@ -45,9 +45,7 @@ contract DepositBox is PermissionsForMainnet {
     enum TransactionOperation {
         transferETH,
         transferERC20,
-        transferERC721,
-        rawTransferERC20,
-        rawTransferERC721
+        transferERC721
     }
 
     uint256 public constant GAS_AMOUNT_POST_MESSAGE = 200000;
@@ -142,54 +140,6 @@ contract DepositBox is PermissionsForMainnet {
         }
     }
 
-    // function rawDepositERC20(
-    //     string calldata schainID,
-    //     address contractHere,
-    //     address contractThere,
-    //     address to,
-    //     uint256 amount
-    // )
-    //     external
-    //     payable
-    //     rightTransaction(schainID)
-    // {
-    //     address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(
-    //         keccak256(abi.encodePacked(schainID))
-    //     );
-    //     address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-    //         keccak256(abi.encodePacked("LockAndDataERC20"))
-    //     );
-    //     address erc20Module = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-    //         keccak256(abi.encodePacked("ERC20Module"))
-    //     );
-    //     require(
-    //         IERC20(contractHere).allowance(
-    //             msg.sender,
-    //             address(this)
-    //         ) >= amount, "Not allowed ERC20 Token"
-    //     );
-    //     require(
-    //         IERC20(contractHere).transferFrom(
-    //             msg.sender,
-    //             lockAndDataERC20,
-    //             amount
-    //         ), "Could not transfer ERC20 Token"
-    //     );
-    //     bytes memory data = IERC20ModuleForMainnet(erc20Module).receiveERC20(contractHere, to, amount, true);
-    //     IMessageProxy(IContractManagerForMainnet(lockAndDataAddress_).permitted(
-    //         keccak256(abi.encodePacked("MessageProxy"))
-    //     )).postOutgoingMessage(
-    //         schainID,
-    //         tokenManagerAddress,
-    //         msg.value,
-    //         contractThere,
-    //         data
-    //     );
-    //     if (msg.value > 0) {
-    //         ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
-    //     }
-    // }
-
     function depositERC721(
         string calldata schainID,
         address contractOnMainnet,
@@ -229,46 +179,6 @@ contract DepositBox is PermissionsForMainnet {
             ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
         }
     }
-
-    // function rawDepositERC721(
-    //     string calldata schainID,
-    //     address contractHere,
-    //     address contractThere,
-    //     address to,
-    //     uint256 tokenId
-    // )
-    //     external
-    //     payable
-    //     rightTransaction(schainID)
-    // {
-    //     bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-    //     address lockAndDataERC721 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-    //         keccak256(abi.encodePacked("LockAndDataERC721"))
-    //     );
-    //     address erc721Module = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-    //         keccak256(abi.encodePacked("ERC721Module"))
-    //     );
-    //     require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-    //     IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
-    //     require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-    //     bytes memory data =IERC721ModuleForMainnet(erc721Module).receiveERC721(
-    //         contractHere,
-    //         to,
-    //         tokenId,
-    //         true);
-    //     IMessageProxy(IContractManagerForMainnet(lockAndDataAddress_).permitted(
-    //         keccak256(abi.encodePacked("MessageProxy"))
-    //     )).postOutgoingMessage(
-    //         schainID,
-    //         ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash),
-    //         msg.value,
-    //         contractThere,
-    //         data
-    //     );
-    //     if (msg.value > 0) {
-    //         ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
-    //     }
-    // }
 
     function postMessage(
         address sender,
@@ -378,8 +288,6 @@ contract DepositBox is PermissionsForMainnet {
      * 0x01 - transfer eth
      * 0x03 - transfer ERC20 token
      * 0x05 - transfer ERC721 token
-     * 0x13 - transfer ERC20 token - raw mode
-     * 0x15 - transfer ERC721 token - raw mode
      * @param data - received data
      * @return operation
      */
@@ -407,10 +315,6 @@ contract DepositBox is PermissionsForMainnet {
             return TransactionOperation.transferERC20;
         } else if (operationType == 0x05) {
             return TransactionOperation.transferERC721;
-        } else if (operationType == 0x13) {
-            return TransactionOperation.rawTransferERC20;
-        } else if (operationType == 0x15) {
-            return TransactionOperation.rawTransferERC721;
-        }
+        } 
     }
 }

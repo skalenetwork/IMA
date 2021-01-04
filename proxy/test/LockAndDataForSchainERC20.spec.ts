@@ -36,6 +36,7 @@ import {
 
 import chai = require("chai");
 import { gasMultiplier } from "./utils/command_line";
+import { randomString } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -49,15 +50,17 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForSchainERC20: LockAndDataForSchainERC20Instance;
   let eRC20OnChain: ERC20OnChainInstance;
+  let eRC20OnMainnet: ERC20OnChainInstance;
 
   beforeEach(async () => {
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchainERC20 =
         await LockAndDataForSchainERC20.new(lockAndDataForSchain.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
-    eRC20OnChain = await ERC20OnChain.new("ERC721OnChain", "ERC721",
+    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
         ((1000000000).toString()), deployer, {from: deployer});
-
+      eRC20OnMainnet = await ERC20OnChain.new("SKALE", "SKL",
+        ((1000000000).toString()), deployer, {from: deployer});
   });
 
   it("should invoke `sendERC20` without mistakes", async () => {
@@ -107,16 +110,12 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
   it("should set `ERC20Tokens` and `ERC20Mapper`", async () => {
     // preparation
     const addressERC20 = eRC20OnChain.address;
-    const contractPosition = 10;
+    const schainID = randomString(10);
     // execution
     await lockAndDataForSchainERC20
-        .addERC20Token(addressERC20, contractPosition, {from: deployer});
+        .addERC20ForSchain(schainID, eRC20OnMainnet.address, addressERC20, {from: deployer});
     // expectation
-    expect(await lockAndDataForSchainERC20.erc20Tokens(contractPosition)).to.be.equal(addressERC20);
-    expect(parseInt(
-        new BigNumber(await lockAndDataForSchainERC20.erc20Mapper(addressERC20))
-        .toString(), 10))
-        .to.be.equal(contractPosition);
+    expect(await lockAndDataForSchainERC20.getERC20OnSchain(schainID, eRC20OnMainnet.address)).to.be.equal(addressERC20);
   });
 
 });

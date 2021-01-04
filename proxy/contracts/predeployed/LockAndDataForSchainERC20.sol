@@ -64,9 +64,16 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
      * 
      * Emits a {SentERC20} event.
      */
-    function sendERC20(address contractOnSchain, address to, uint256 amount) external allow("ERC20Module") returns (bool) {
+    function sendERC20(
+        address contractOnSchain, 
+        address to, 
+        uint256 amount
+    )
+        external
+        allow("ERC20Module")
+        returns (bool)
+    {
         ERC20MintAndBurn(contractOnSchain).mint(to, amount);
-
         emit SentERC20(true);
         return true;
     }
@@ -91,8 +98,19 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     /**
      * @dev Allows ERC20Module to add an ERC20 token to LockAndDataForSchainERC20.
      */
-    function addERC20ForSchain(string calldata schainID, address erc20OnMainnet, address erc20OnSchain) external allow("ERC20Module") {
+    function addERC20ForSchain(
+        string calldata schainID,
+        address erc20OnMainnet,
+        address erc20OnSchain
+    )
+        external
+        allow("ERC20Module")
+    {
         schainToERC20OnSchain[schainID][erc20OnMainnet] = erc20OnSchain;
+    }
+
+    function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address) {
+        return schainToERC20OnSchain[schainID][contractOnMainnet];
     }
 }
 

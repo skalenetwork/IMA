@@ -65,7 +65,8 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         returns (bytes memory data)
     {
         address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).getLockAndDataERC721();
-        address contractOnSchain = ILockAndDataERC721S(lockAndDataERC721).getERC721OnSchain(schainID, contractOnMainnet);
+        address contractOnSchain = ILockAndDataERC721S(lockAndDataERC721)
+            .getERC721OnSchain(schainID, contractOnMainnet);
         require(contractOnSchain != address(0), "ERC721 contract does not exist on SKALE chain");
         require(
             ILockAndDataERC721S(lockAndDataERC721).receiveERC721(contractOnSchain, tokenId),
@@ -85,7 +86,8 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         address receiver;
         uint256 tokenId;
         (contractOnMainnet, receiver, tokenId) = _fallbackDataParser(data);
-        address contractOnSchain = ILockAndDataERC721S(lockAndDataERC721).getERC721OnSchain(schainID, contractOnMainnet);
+        address contractOnSchain = ILockAndDataERC721S(lockAndDataERC721)
+            .getERC721OnSchain(schainID, contractOnMainnet);
         if (contractOnSchain == address(0)) {
             contractOnSchain = _sendCreateERC721Request(data);
             ILockAndDataERC721S(lockAndDataERC721).addERC721ForSchain(schainID, contractOnMainnet, contractOnSchain);
@@ -137,17 +139,6 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         );
     }
 
-    // /**
-    //  * @dev Returns encoded raw data.
-    //  */
-    // function _encodeRawData(address to, uint256 tokenId) private pure returns (bytes memory data) {
-    //     data = abi.encodePacked(
-    //         bytes1(uint8(21)),
-    //         bytes32(bytes20(to)),
-    //         bytes32(tokenId)
-    //     );
-    // }
-
     /**
      * @dev Returns fallback data.
      */
@@ -169,24 +160,6 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
             address(bytes20(contractOnMainnet)), address(bytes20(to)), uint256(token)
         );
     }
-
-    // /**
-    //  * @dev Returns fallback data.
-    //  */
-    // function _fallbackRawDataParser(bytes memory data)
-    //     private
-    //     pure
-    //     returns (address payable, uint256)
-    // {
-    //     bytes32 to;
-    //     bytes32 token;
-    //     // solhint-disable-next-line no-inline-assembly
-    //     assembly {
-    //         to := mload(add(data, 33))
-    //         token := mload(add(data, 65))
-    //     }
-    //     return (address(bytes20(to)), uint256(token));
-    // }
 
     function _fallbackDataCreateERC721Parser(bytes memory data)
         private

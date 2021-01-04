@@ -28,7 +28,6 @@ import "./../interfaces/IERC721ModuleForSchain.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
 
-
 interface ILockAndDataTM {
     function setContract(string calldata contractName, address newContract) external;
     function tokenManagerAddresses(bytes32 schainHash) external returns (address);
@@ -41,8 +40,9 @@ interface ILockAndDataTM {
     function removeGasCosts(address to) external returns (uint256);
 }
 
-interface ILockAndDataERC20S {
-    function erc20MainnetToSchain(address contractOnMainnet) external returns (address);
+interface ILockAndDataERCOnSchain {
+    function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address);
+    function getERC721OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address);
 }
 
 // This contract runs on schains and accepts messages from main net creates ETH clones.
@@ -61,9 +61,7 @@ contract TokenManager is PermissionsForSchain {
     enum TransactionOperation {
         transferETH,
         transferERC20,
-        transferERC721,
-        rawTransferERC20,
-        rawTransferERC721
+        transferERC721
     }
 
     // ID of this schain,
@@ -133,13 +131,10 @@ contract TokenManager is PermissionsForSchain {
     }
 
     function exitToMainERC20(address contractOnMainnet, address to, uint256 amount) external {
-        address lockAndDataERC20 = IContractManagerForSchain(
-            getLockAndDataAddress()
-        ).getLockAndDataERC20();
-        address erc20Module = IContractManagerForSchain(
-            getLockAndDataAddress()
-        ).getERC20Module();
-        address contractOnSchain = ILockAndDataERC20S(lockAndDataERC20).erc20MainnetToSchain(contractOnMainnet);
+        address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).getLockAndDataERC20();
+        address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).getERC20Module();
+        address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC20)
+            .getERC20OnSchain(getChainID(), contractOnMainnet);
         require(
             IERC20(contractOnSchain).allowance(
                 msg.sender,
@@ -174,73 +169,27 @@ contract TokenManager is PermissionsForSchain {
         );
     }
 
-    // function rawExitToMainERC20(
-    //     address contractHere,
-    //     address contractThere,
-    //     address to,
-    //     uint256 amount) external
-    //     {
-    //     address lockAndDataERC20 = IContractManagerForSchain(
-    //         getLockAndDataAddress()
-    //     ).getLockAndDataERC20();
-    //     address erc20Module = IContractManagerForSchain(
-    //         getLockAndDataAddress()
-    //     ).getERC20Module();
-    //     require(
-    //         IERC20(contractHere).allowance(
-    //             msg.sender,
-    //             address(this)
-    //         ) >= amount,
-    //         "Not allowed ERC20 Token"
-    //     );
-    //     require(
-    //         IERC20(contractHere).transferFrom(
-    //             msg.sender,
-    //             lockAndDataERC20,
-    //             amount
-    //         ),
-    //         "Could not transfer ERC20 Token"
-    //     );
-    //     require(
-    //         ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
-    //             msg.sender,
-    //             GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
-    //         "Not enough gas sent");
-    //     bytes memory data = IERC20ModuleForSchain(erc20Module).receiveERC20(
-    //         contractHere,
-    //         to,
-    //         amount,
-    //         true);
-    //     IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
-    //         "Mainnet",
-    //         ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-    //         GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
-    //         contractThere,
-    //         data
-    //     );
-    // }
-
     function transferToSchainERC20(
         string calldata schainID,
-        address contractHere,
+        address contractOnMainnet,
         address to,
-        uint256 amount) external
-        {
-        address lockAndDataERC20 = IContractManagerForSchain(
-            getLockAndDataAddress()
-        ).getLockAndDataERC20();
-        address erc20Module = IContractManagerForSchain(
-            getLockAndDataAddress()
-        ).getERC20Module();
+        uint256 amount
+    )
+        external
+    {
+        address lockAndDataERC20 = IContractManagerForSchain(getLockAndDataAddress()).getLockAndDataERC20();
+        address erc20Module = IContractManagerForSchain(getLockAndDataAddress()).getERC20Module();
+        address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC20)
+            .getERC20OnSchain(getChainID(), contractOnMainnet);
         require(
-            IERC20(contractHere).allowance(
+            IERC20(contractOnSchain).allowance(
                 msg.sender,
                 address(this)
             ) >= amount,
             "Not allowed ERC20 Token"
         );
         require(
-            IERC20(contractHere).transferFrom(
+            IERC20(contractOnSchain).transferFrom(
                 msg.sender,
                 lockAndDataERC20,
                 amount
@@ -249,7 +198,7 @@ contract TokenManager is PermissionsForSchain {
         );
         bytes memory data = IERC20ModuleForSchain(erc20Module).receiveERC20(
             getChainID(),
-            contractHere,
+            contractOnMainnet,
             to,
             amount);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
@@ -261,56 +210,14 @@ contract TokenManager is PermissionsForSchain {
         );
     }
 
-    // function rawTransferToSchainERC20(
-    //     string calldata schainID,
-    //     address contractHere,
-    //     address contractThere,
-    //     address to,
-    //     uint256 amount) external
-    //     {
-    //     address lockAndDataERC20 = IContractManagerForSchain(
-    //         getLockAndDataAddress()
-    //     ).getLockAndDataERC20();
-    //     address erc20Module = IContractManagerForSchain(
-    //         getLockAndDataAddress()
-    //     ).getERC20Module();
-    //     require(
-    //         IERC20(contractHere).allowance(
-    //             msg.sender,
-    //             address(this)
-    //         ) >= amount,
-    //         "Not allowed ERC20 Token"
-    //     );
-    //     require(
-    //         IERC20(contractHere).transferFrom(
-    //             msg.sender,
-    //             lockAndDataERC20,
-    //             amount
-    //         ),
-    //         "Could not transfer ERC20 Token"
-    //     );
-    //     bytes memory data = IERC20ModuleForSchain(erc20Module).receiveERC20(
-    //         contractHere,
-    //         to,
-    //         amount,
-    //         true);
-    //     IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
-    //         schainID,
-    //         ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-    //         0,
-    //         contractThere,
-    //         data
-    //     );
-    // }
-
-    function exitToMainERC721(address contractHere, address to, uint256 tokenId) external {
-        address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
-            getLockAndDataERC721();
-        address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).
-            getERC721Module();
-        require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
-        require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
+    function exitToMainERC721(address contractOnMainnet, address to, uint256 tokenId) external {
+        address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).getLockAndDataERC721();
+        address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).getERC721Module();
+        address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC721)
+            .getERC721OnSchain(getChainID(), contractOnMainnet);
+        require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
+        IERC721(contractOnSchain).transferFrom(address(this), lockAndDataERC721, tokenId);
+        require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         require(
             ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
                 msg.sender,
@@ -318,7 +225,7 @@ contract TokenManager is PermissionsForSchain {
             "Not enough gas sent");
         bytes memory data = IERC721ModuleForSchain(erc721Module).receiveERC721(
             getChainID(),
-            contractHere,
+            contractOnMainnet,
             to,
             tokenId);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
@@ -330,54 +237,24 @@ contract TokenManager is PermissionsForSchain {
         );
     }
 
-    // function rawExitToMainERC721(
-    //     address contractHere,
-    //     address contractThere,
-    //     address to,
-    //     uint256 tokenId) external
-    //     {
-    //     address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
-    //         getLockAndDataERC721();
-    //     address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).
-    //         getERC721Module();
-    //     require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-    //     IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
-    //     require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-    //     require(
-    //         ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
-    //             msg.sender,
-    //             GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE),
-    //         "Not enough gas sent");
-    //     bytes memory data = IERC721ModuleForSchain(erc721Module).receiveERC721(
-    //         contractHere,
-    //         to,
-    //         tokenId,
-    //         true);
-    //     IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
-    //         "Mainnet",
-    //         ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-    //         GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE,
-    //         contractThere,
-    //         data
-    //     );
-    // }
-
     function transferToSchainERC721(
         string calldata schainID,
-        address contractHere,
+        address contractOnMainnet,
         address to,
-        uint256 tokenId) external
-        {
-        address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
-            getLockAndDataERC721();
-        address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).
-            getERC721Module();
-        require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
-        require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
+        uint256 tokenId
+    ) 
+        external
+    {
+        address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).getLockAndDataERC721();
+        address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).getERC721Module();
+        address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC721)
+            .getERC721OnSchain(getChainID(), contractOnMainnet);
+        require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
+        IERC721(contractOnSchain).transferFrom(address(this), lockAndDataERC721, tokenId);
+        require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         bytes memory data = IERC721ModuleForSchain(erc721Module).receiveERC721(
             getChainID(),
-            contractHere,
+            contractOnMainnet,
             to,
             tokenId);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
@@ -388,33 +265,6 @@ contract TokenManager is PermissionsForSchain {
             data
         );
     }
-
-    // function rawTransferToSchainERC721(
-    //     string calldata schainID,
-    //     address contractHere,
-    //     address contractThere,
-    //     address to,
-    //     uint256 tokenId) external
-    //     {
-    //     address lockAndDataERC721 = IContractManagerForSchain(getLockAndDataAddress()).
-    //         getLockAndDataERC721();
-    //     address erc721Module = IContractManagerForSchain(getLockAndDataAddress()).
-    //         getERC721Module();
-    //     require(IERC721(contractHere).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-    //     IERC721(contractHere).transferFrom(address(this), lockAndDataERC721, tokenId);
-    //     require(IERC721(contractHere).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-    //     bytes memory data = IERC721ModuleForSchain(erc721Module).receiveERC721(
-    //         contractHere,
-    //         to,
-    //         tokenId);
-    //     IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
-    //         schainID,
-    //         ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-    //         0,
-    //         contractThere,
-    //         data
-    //     );
-    // }
 
     /**
      * @dev Allows MessageProxy to post operational message from mainnet
@@ -561,8 +411,6 @@ contract TokenManager is PermissionsForSchain {
      * 0x01 - transfer ETH
      * 0x03 - transfer ERC20 token
      * 0x05 - transfer ERC721 token
-     * 0x13 - transfer ERC20 token - raw mode
-     * 0x15 - transfer ERC721 token - raw mode
      * 
      * Requirements:
      * 
@@ -592,10 +440,6 @@ contract TokenManager is PermissionsForSchain {
             return TransactionOperation.transferERC20;
         } else if (operationType == 0x05) {
             return TransactionOperation.transferERC721;
-        } else if (operationType == 0x13) {
-            return TransactionOperation.rawTransferERC20;
-        } else if (operationType == 0x15) {
-            return TransactionOperation.rawTransferERC721;
         }
     }
 

@@ -31,15 +31,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.
  */
 contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
 
-    // mapping(uint256 => address) public erc721Tokens;
-    // mapping(address => uint256) public erc721Mapper;
-    // uint256 public  newIndexERC721;
-
     mapping(string => mapping(address => bool)) public schainToERC721;
-
-    function getSchainToERC721(string calldata schainID, address erc721OnMainnet) external view returns (bool) {
-        return schainToERC721[schainID][erc721OnMainnet];
-    }
 
     /**
      * @dev Allows ERC721ModuleForMainnet to send an ERC721 token.
@@ -67,6 +59,10 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
      */
     function addERC721ForSchain(string calldata schainID, address erc721OnMainnet) external allow("ERC721Module") {
         schainToERC721[schainID][erc721OnMainnet] = true;
+    }
+
+    function getSchainToERC721(string calldata schainID, address erc721OnMainnet) external view returns (bool) {
+        return schainToERC721[schainID][erc721OnMainnet];
     }
 
     function initialize(address newLockAndDataAddress) public override initializer {

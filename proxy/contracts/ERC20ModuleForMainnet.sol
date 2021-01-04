@@ -25,9 +25,9 @@ import "./PermissionsForMainnet.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
 
 interface ILockAndDataERC20M {
-    function getSchainToERC20(string calldata schainID, address erc20OnMainnet) external view returns (bool);
     function sendERC20(address contractOnMainnet, address to, uint256 amount) external returns (bool);
-     function addERC20ForSchain(string calldata schainID, address erc20OnMainnet) external;
+    function addERC20ForSchain(string calldata schainID, address erc20OnMainnet) external;
+    function getSchainToERC20(string calldata schainID, address erc20OnMainnet) external view returns (bool);
 }
 
 /**

@@ -25,9 +25,9 @@ import "./PermissionsForMainnet.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Metadata.sol";
 
 interface ILockAndDataERC721M {
-    function getSchainToERC721(string calldata schainID, address erc721OnMainnet) external view returns (bool);
     function sendERC721(address contractOnMainnet, address to, uint256 token) external returns (bool);
     function addERC721ForSchain(string calldata schainID, address erc721OnMainnet) external;
+    function getSchainToERC721(string calldata schainID, address erc721OnMainnet) external view returns (bool);
 }
 
 /**
@@ -61,16 +61,13 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         address lockAndDataERC721 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
             keccak256(abi.encodePacked("LockAndDataERC721"))
         );
-         bool isERC721AddedToSchain= ILockAndDataERC721M(lockAndDataERC721).getSchainToERC721(schainID, contractOnMainnet);
+        bool isERC721AddedToSchain= ILockAndDataERC721M(lockAndDataERC721)
+            .getSchainToERC721(schainID, contractOnMainnet);
         if (!isERC721AddedToSchain) {
             ILockAndDataERC721M(lockAndDataERC721).addERC721ForSchain(schainID, contractOnMainnet);
             emit ERC721TokenAdded(schainID, contractOnMainnet);
         }
         data = _encodeData(contractOnMainnet, to, tokenId);
-        // else {
-        //     data = _encodeRawData(to, tokenId);
-        //     return data;
-        // }
         emit ERC721TokenReady(contractOnMainnet, tokenId);
     }
 
@@ -125,17 +122,6 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         );
     }
 
-    // /**
-    //  * @dev Returns encoded regular data.
-    //  */
-    // function _encodeRawData(address to, uint256 tokenId) private pure returns (bytes memory data) {
-    //     data = abi.encodePacked(
-    //         bytes1(uint8(21)),
-    //         bytes32(bytes20(to)),
-    //         bytes32(tokenId)
-    //     );
-    // }
-
     /**
      * @dev Returns fallback data.
      */
@@ -157,23 +143,5 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
             address(bytes20(contractOnMainnet)), address(bytes20(to)), uint256(token)
         );
     }
-
-    // /**
-    //  * @dev Returns fallback raw data.
-    //  */
-    // function _fallbackRawDataParser(bytes memory data)
-    //     private
-    //     pure
-    //     returns (address payable, uint256)
-    // {
-    //     bytes32 to;
-    //     bytes32 token;
-    //     // solhint-disable-next-line no-inline-assembly
-    //     assembly {
-    //         to := mload(add(data, 33))
-    //         token := mload(add(data, 65))
-    //     }
-    //     return (address(bytes20(to)), uint256(token));
-    // }
 
 }

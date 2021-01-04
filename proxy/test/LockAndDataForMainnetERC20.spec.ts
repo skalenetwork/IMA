@@ -105,20 +105,17 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
     // for execution#2
     const contractHer = ethERC20.address;
     // execution#1
-    // just call transaction without any changes
-    const res = await lockAndDataForMainnetERC20
-        .addERC20ForSchain.call(schainID, contractHere, {from: deployer});
     await lockAndDataForMainnetERC20
-        .addERC20ForSchain(contractHere, {from: deployer});
+        .addERC20ForSchain(schainID, contractHere, {from: deployer});
     // expectation#1
-    parseInt(new BigNumber(res).toString(), 10)
-        .should.be.equal(1);
+    const res = await lockAndDataForMainnetERC20.getSchainToERC20(schainID, contractHere);
+    res.should.be.equal(true);
     // execution#2
-    const res1 = await lockAndDataForMainnetERC20
-        .addERC20ForSchain.call(contractHer, {from: deployer});
+    await lockAndDataForMainnetERC20
+        .addERC20ForSchain(schainID, contractHer, {from: deployer});
+    const res1 = await lockAndDataForMainnetERC20.getSchainToERC20(schainID, contractHer);
     // expectation#2
-    parseInt(new BigNumber(res1).toString(), 10)
-        .should.be.equal(2);
+    res1.should.be.equal(true);
   });
 
 });

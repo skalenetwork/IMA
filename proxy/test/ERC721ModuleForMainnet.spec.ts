@@ -56,19 +56,7 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     eRC721ModuleForMainnet = await deployERC721ModuleForMainnet(lockAndDataForMainnet);
   });
 
-  it("should invoke `receiveERC721` with `isRaw==true`", async () => {
-    // preparation
-    const schainID = randomString(10);
-    const contractHere = eRC721OnChain.address;
-    const to = user;
-    const tokenId = 1;
-    // execution
-    const res = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
-    // expectation
-    (res).should.include("0x");
-  });
-
-  it("should invoke `receiveERC721` with `isRaw==false`", async () => {
+  it("should invoke `receiveERC721`", async () => {
     // preparation
     const schainID = randomString(10);
     const contractHere = eRC721OnChain.address;

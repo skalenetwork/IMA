@@ -32,16 +32,8 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.so
  */
 contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
 
-    // mapping(uint256 => address) public erc20Tokens;
-    // mapping(address => uint256) public erc20Mapper;
-    // mapping(address => mapping(address => bool)) public erc20MtoS
-    // uint256 public newIndexERC20;
     // schainID => address of ERC20 on Mainnet
     mapping(string => mapping(address => bool)) public schainToERC20;
-
-    function getSchainToERC20(string calldata schainID, address erc20OnMainnet) external view returns (bool) {
-        return schainToERC20[schainID][erc20OnMainnet];
-    }
 
     /**
      * @dev Allows ERC20Module to send an ERC20 token from
@@ -53,7 +45,15 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
      * in LockAndDataForMainnetERC20.
      * - Transfer must be successful. 
      */
-    function sendERC20(address contractOnMainnet, address to, uint256 amount) external allow("ERC20Module") returns (bool) {
+    function sendERC20(
+        address contractOnMainnet,
+        address to,
+        uint256 amount
+    )
+        external
+        allow("ERC20Module")
+        returns (bool)
+    {
         require(IERC20(contractOnMainnet).balanceOf(address(this)) >= amount, "Not enough money");
         require(IERC20(contractOnMainnet).transfer(to, amount), "Something went wrong with `transfer` in ERC20");
         return true;
@@ -64,6 +64,10 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
      */
     function addERC20ForSchain(string calldata schainID, address erc20OnMainnet) external allow("ERC20Module") {
         schainToERC20[schainID][erc20OnMainnet] = true;
+    }
+
+    function getSchainToERC20(string calldata schainID, address erc20OnMainnet) external view returns (bool) {
+        return schainToERC20[schainID][erc20OnMainnet];
     }
 
     function initialize(address newLockAndDataAddress) public override initializer {
