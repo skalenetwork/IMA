@@ -388,8 +388,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
     it("should not receive ETH", async () => {
         await web3.eth.sendTransaction({from: deployer, to: tokenManager.address, value: "1000000000000000000"})
-            .should.be.eventually
-            .rejectedWith("Transaction reverted: function selector was not recognized and there's no fallback nor receive function");
+            .should.be.eventually.rejected;
     });
 
     // it("should return money if it has it", async () => {
