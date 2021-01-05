@@ -79,24 +79,22 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
     lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
     eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
-    
+
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     lockAndDataForSchainERC20 =
         await LockAndDataForSchainERC20.new(lockAndDataForSchain.address,
         {from: deployer});
     eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
         {from: deployer});
-  
+
     ethERC20 = await EthERC20.new({from: deployer});
     tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
         {from: deployer});
 
     eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
         ((1000000000).toString()), eRC20ModuleForSchain.address, {from: deployer});
-    erc20OnMainnet = await ERC20OnChain.new("SKALE", "SKL", 
+    erc20OnMainnet = await ERC20OnChain.new("SKALE", "SKL",
         ((1000000000).toString()), eRC20ModuleForMainnet.address, {from: deployer});
-
-
   });
 
   it("should rejected with `ERC20 contract does not exist on SKALE chain.`", async () => {
@@ -167,7 +165,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // execution
     const {logs} = await eRC20ModuleForSchain.sendERC20(schainID, data, {from: deployer});
     const contractOnSchain  = logs[0].args.contractOnSchain;
-    let newERC20: ERC20OnChainInstance = await ERC20OnChain.at(contractOnSchain);
+    const newERC20: ERC20OnChainInstance = await ERC20OnChain.at(contractOnSchain);
     // expectation
     const balance = await newERC20.balanceOf(to);
     parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount);
