@@ -39,7 +39,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     // mapping(uint256 => address) public erc20Tokens;
     // mapping(address => uint256) public erc20Mapper;
     // address of ERC20 on Mainnet => address of ERC20 on Schain
-    mapping(string => mapping(address => address)) public schainToERC20OnSchain;
+    mapping(bytes32 => mapping(address => address)) public schainToERC20OnSchain;
 
     /**
      * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
@@ -108,12 +108,12 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         allow("ERC20Module")
     {
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
-        schainToERC20OnSchain[schainID][erc20OnMainnet] = erc20OnSchain;
+        schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][erc20OnMainnet] = erc20OnSchain;
         emit ERC20TokenAdded(schainID, erc20OnMainnet, erc20OnSchain);
     }
 
     function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address) {
-        return schainToERC20OnSchain[schainID][contractOnMainnet];
+        return schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
     }
 }
 

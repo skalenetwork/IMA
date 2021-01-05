@@ -1855,8 +1855,9 @@ async function do_erc20_payment_from_s_chain(
             dataExitToMainERC20 = methodWithArguments_rawExitToMainERC20.encodeABI();
         } else {
             // TO-DO: this is beta version, need to re-check and improve it later
+            const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
             const methodWithArguments_exitToMainERC20 = jo_token_manager.methods.exitToMainERC20(
-                erc20Address_s_chain, accountForMainnet, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
+                erc20Address_main_net, accountForMainnet, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             );
             const isIgnore_exitToMainERC20 = true;
             const strDRC_exitToMainERC20 = "do_erc20_payment_from_s_chain, exitToMainERC20";
@@ -2080,8 +2081,9 @@ async function do_erc721_payment_from_s_chain(
             dataTxExitToMainERC721 = methodWithArguments_rawExitToMainERC721.encodeABI();
         } else {
             // TO-DO: this is beta version, need to re-check and improve it later
+            const erc721Address_main_net = joErc721_main_net[strCoinNameErc721_main_net + "_address"];
             const methodWithArguments_exitToMainERC721 = jo_token_manager.methods.exitToMainERC721(
-                erc721Address_s_chain, accountForMainnet, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
+                erc721Address_main_net, accountForMainnet, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
             );
             const isIgnore_exitToMainERC721 = true;
             const strDRC_exitToMainERC721 = "erc721_payment_from_s_chain, exitToMainERC721";
@@ -2150,7 +2152,7 @@ async function do_erc721_payment_from_s_chain(
                 "0x" + w3_main_net.utils.toBN( g_amountToAddCost ).toString( 16 )
             );
             //
-            const strDRC_addEthCost = "do_erc20_payment_from_s_chain, addEthCost";
+            const strDRC_addEthCost = "do_erc721_payment_from_s_chain, addEthCost";
             await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
             dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
             //

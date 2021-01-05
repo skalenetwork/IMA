@@ -40,7 +40,7 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
     // mapping(uint256 => address) public erc721Tokens;
     // mapping(address => uint256) public erc721Mapper;
 
-    mapping(string => mapping(address => address)) public schainToERC721OnSchain;
+    mapping(bytes32 => mapping(address => address)) public schainToERC721OnSchain;
 
     /**
      * @dev Emitted when token is mapped in LockAndDataForMainnetERC721.
@@ -108,12 +108,12 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
         allow("ERC721Module")
     {
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
-        schainToERC721OnSchain[schainID][erc721OnMainnet] = erc721OnSchain;
+        schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][erc721OnMainnet] = erc721OnSchain;
         emit ERC721TokenAdded(schainID, erc721OnMainnet, erc721OnSchain);
     }
 
     function getERC721OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address) {
-        return schainToERC721OnSchain[schainID][contractOnMainnet];
+        return schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
     }
 
 }

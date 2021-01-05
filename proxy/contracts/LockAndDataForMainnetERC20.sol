@@ -33,7 +33,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.so
 contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
 
     // schainID => address of ERC20 on Mainnet
-    mapping(string => mapping(address => bool)) public schainToERC20;
+    mapping(bytes32 => mapping(address => bool)) public schainToERC20;
 
     /**
      * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
@@ -70,12 +70,12 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
      */
     function addERC20ForSchain(string calldata schainID, address erc20OnMainnet) external allow("ERC20Module") {
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
-        schainToERC20[schainID][erc20OnMainnet] = true;
+        schainToERC20[keccak256(abi.encodePacked(schainID))][erc20OnMainnet] = true;
         emit ERC20TokenAdded(erc20OnMainnet, schainID);
     }
 
     function getSchainToERC20(string calldata schainID, address erc20OnMainnet) external view returns (bool) {
-        return schainToERC20[schainID][erc20OnMainnet];
+        return schainToERC20[keccak256(abi.encodePacked(schainID))][erc20OnMainnet];
     }
 
     function initialize(address newLockAndDataAddress) public override initializer {
