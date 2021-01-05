@@ -386,12 +386,10 @@ contract("TokenManager", ([deployer, user, client]) => {
             .should.be.eventually.rejectedWith(error);
     });
 
-    it("should revert `Not allowed. in TokenManager`", async () => {
-        // preparation
-        const error = "Not allowed. in TokenManager";
-        // execution/expectation
+    it("should not receive ETH", async () => {
         await web3.eth.sendTransaction({from: deployer, to: tokenManager.address, value: "1000000000000000000"})
-            .should.be.eventually.rejectedWith(error);
+            .should.be.eventually
+            .rejectedWith("Transaction reverted: function selector was not recognized and there's no fallback nor receive function");
     });
 
     // it("should return money if it has it", async () => {

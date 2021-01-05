@@ -99,10 +99,6 @@ contract TokenManager is PermissionsForSchain {
         _chainID = newChainID;
     }
 
-    fallback() external payable {
-        revert("Not allowed. in TokenManager");
-    }
-
     function exitToMainWithoutData(address to, uint256 amount) external {
         exitToMain(to, amount);
     }
