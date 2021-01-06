@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   IERC721Module.sol - SKALE Interchain Messaging Agent
+ *   IERC20ModuleForMainnet.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -22,12 +22,13 @@
 pragma solidity 0.6.12;
 
 
-interface IERC721Module {
-    function receiveERC721(
-        address contractHere,
+interface IERC20ModuleForMainnet {
+    function receiveERC20(
+        string calldata schainID,
+        address contractOnMainnet,
         address to,
-        uint256 tokenId,
-        bool isRaw) external returns (bytes memory);
-    function sendERC721(address to, bytes calldata data) external returns (bool);
-    function getReceiver(address to, bytes calldata data) external pure returns (address);
+        uint256 amount) external returns (bytes memory);
+    function sendERC20(bytes calldata data) external returns (bool);
+    function getReceiver(bytes calldata data) external pure returns (address);
+
 }

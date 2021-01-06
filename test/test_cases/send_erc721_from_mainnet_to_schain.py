@@ -57,7 +57,7 @@ class SendERC721ToSchain(TestCase):
                                                          self.tokenId,
                                                          self.timeout)
 
-        erc721 = self.blockchain.get_erc721_on_schain(self.tokenId)
+        erc721 = self.blockchain.get_erc721_on_schain(self.config.schain_name, self.erc721.address)
         destination_address = self.blockchain.key_to_address(self.config.schain_key)
         new_owner_address = erc721.functions.ownerOf(self.tokenId).call()
         if destination_address == new_owner_address:

@@ -36,13 +36,15 @@ interface ERC20MintAndBurn {
  */
 contract LockAndDataForSchainERC20 is PermissionsForSchain {
 
-    mapping(uint256 => address) public erc20Tokens;
-    mapping(address => uint256) public erc20Mapper;
+    // mapping(uint256 => address) public erc20Tokens;
+    // mapping(address => uint256) public erc20Mapper;
+    // address of ERC20 on Mainnet => address of ERC20 on Schain
+    mapping(bytes32 => mapping(address => address)) public schainToERC20OnSchain;
 
     /**
      * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
      */
-    event ERC20TokenAdded(address indexed tokenHere, uint256 contractPosition);
+    event ERC20TokenAdded(string schainID, address indexed erc20OnMainnet, address erc20OnSchain);
 
     /**
      * @dev Emitted upon minting on the SKALE chain.
@@ -63,8 +65,16 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
      * 
      * Emits a {SentERC20} event.
      */
-    function sendERC20(address contractHere, address to, uint256 amount) external allow("ERC20Module") returns (bool) {
-        ERC20MintAndBurn(contractHere).mint(to, amount);
+    function sendERC20(
+        address contractOnSchain, 
+        address to, 
+        uint256 amount
+    )
+        external
+        allow("ERC20Module")
+        returns (bool)
+    {
+        ERC20MintAndBurn(contractOnSchain).mint(to, amount);
         emit SentERC20(true);
         return true;
     }
@@ -79,9 +89,9 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
      * - `amount` must be less than or equal to the balance in
      * LockAndDataForSchainERC20.
      */
-    function receiveERC20(address contractHere, uint256 amount) external allow("ERC20Module") returns (bool) {
-        require(ERC20MintAndBurn(contractHere).balanceOf(address(this)) >= amount, "Amount not transfered");
-        ERC20MintAndBurn(contractHere).burn(amount);
+    function receiveERC20(address contractOnSchain, uint256 amount) external allow("ERC20Module") returns (bool) {
+        require(ERC20MintAndBurn(contractOnSchain).balanceOf(address(this)) >= amount, "Amount not transfered");
+        ERC20MintAndBurn(contractOnSchain).burn(amount);
         emit ReceivedERC20(true);
         return true;
     }
@@ -89,11 +99,21 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     /**
      * @dev Allows ERC20Module to add an ERC20 token to LockAndDataForSchainERC20.
      */
-    function addERC20Token(address addressERC20, uint256 contractPosition) external allow("ERC20Module") {
-        require(addressERC20.isContract(), "Given address is not a contract");
-        erc20Tokens[contractPosition] = addressERC20;
-        erc20Mapper[addressERC20] = contractPosition;
-        emit ERC20TokenAdded(addressERC20, contractPosition);
+    function addERC20ForSchain(
+        string calldata schainID,
+        address erc20OnMainnet,
+        address erc20OnSchain
+    )
+        external
+        allow("ERC20Module")
+    {
+        require(erc20OnMainnet.isContract(), "Given address is not a contract");
+        schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][erc20OnMainnet] = erc20OnSchain;
+        emit ERC20TokenAdded(schainID, erc20OnMainnet, erc20OnSchain);
+    }
+
+    function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address) {
+        return schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
     }
 }
 

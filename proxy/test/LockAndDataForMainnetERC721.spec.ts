@@ -41,6 +41,7 @@ chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
 import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
+import { randomString } from "./utils/helper";
 
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
@@ -94,20 +95,12 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
   it("should add ERC721 token when invoke `sendERC721`", async () => {
     // preparation
     const contractHere = eRC721OnChain.address;
+    const schainID = randomString(10);
     // execution#1
-    const res = await lockAndDataForMainnetERC721
-        .addERC721Token.call(contractHere, {from: deployer});
-    await lockAndDataForMainnetERC721
-        .addERC721Token(contractHere, {from: deployer});
+    await lockAndDataForMainnetERC721.addERC721ForSchain(schainID, contractHere, {from: deployer});
+    const res = await lockAndDataForMainnetERC721.getSchainToERC721(schainID, contractHere);
     // expectation#1
-    parseInt(new BigNumber(res).toString(), 10)
-        .should.be.equal(1);
-    // execution#2
-    const res1 = await lockAndDataForMainnetERC721
-        .addERC721Token.call(contractHere, {from: deployer});
-    // expectation#2
-    parseInt(new BigNumber(res1).toString(), 10)
-        .should.be.equal(2);
+    res.should.be.equal(true);
   });
 
 });
