@@ -107,7 +107,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         external
         allow("ERC20Module")
     {
-        require(erc20OnMainnet.isContract(), "Given address is not a contract");
+        require(erc20OnSchain.isContract(), "Given address is not a contract");
         schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][erc20OnMainnet] = erc20OnSchain;
         emit ERC20TokenAdded(schainID, erc20OnMainnet, erc20OnSchain);
     }

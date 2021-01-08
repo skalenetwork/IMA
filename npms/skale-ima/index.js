@@ -1397,7 +1397,6 @@ async function do_erc721_payment_from_main_net(
     erc721PrivateTestnetJson_main_net,
     strCoinNameErc721_s_chain,
     erc721PrivateTestnetJson_s_chain,
-    isRawTokenTransfer,
     tc_main_net
 ) {
     const jarrReceipts = []; // do_erc721_payment_from_main_net
@@ -1426,26 +1425,16 @@ async function do_erc721_payment_from_main_net(
         const strDRC_approve = "do_erc721_payment_from_main_net, transferFrom";
         await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve );
         let dataTxDeposit = null;
-        if( isRawTokenTransfer ) {
-            const erc721Address_s_chain = erc721PrivateTestnetJson_s_chain[strCoinNameErc721_s_chain + "_address"];
-            const methodWithArguments_rawDepositERC721 = jo_deposit_box.methods.rawDepositERC721(
-                chain_id_s_chain, erc721Address_main_net, erc721Address_s_chain // specific for rawDepositERC721() only
-                , accountForSchain, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
-            );
-            const isIgnore_rawDepositERC721 = true;
-            const strDRC_rawDepositERC721 = "do_erc721_payment_from_main_net, rawDepositERC721";
-            await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721 );
-            dataTxDeposit = methodWithArguments_rawDepositERC721.encodeABI();
-        } else {
-            // TO-DO: this is beta version, need to re-check and improve it later
-            const methodWithArguments_depositERC721 = jo_deposit_box.methods.depositERC721(
-                chain_id_s_chain, erc721Address_main_net, accountForSchain, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
-            );
-            const isIgnore_depositERC721 = true;
-            const strDRC_depositERC721 = "do_erc721_payment_from_main_net, depositERC721";
-            await dry_run_call( w3_main_net, methodWithArguments_depositERC721, joAccountSrc, strDRC_depositERC721, isIgnore_depositERC721 );
-            dataTxDeposit = methodWithArguments_depositERC721.encodeABI();
-        }
+        const methodWithArguments_rawDepositERC721 = jo_deposit_box.methods.depositERC721(
+            chain_id_s_chain,
+            erc721Address_main_net,
+            accountForSchain,
+            "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
+        );
+        const isIgnore_rawDepositERC721 = true;
+        const strDRC_rawDepositERC721 = "do_erc721_payment_from_main_net, rawDepositERC721";
+        await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721 );
+        dataTxDeposit = methodWithArguments_rawDepositERC721.encodeABI();
         //
         //
         // create raw transactions
@@ -1519,21 +1508,6 @@ async function do_erc721_payment_from_main_net(
         }
         //
         //
-
-        // TO-DO: Fix event getting
-        // if ( !isRawTokenTransfer ) {
-        //     strActionName = "getPastEvents/ERC721TokenCreated";
-        //     let joEvents = await jo_token_manager.getPastEvents( "ERC721TokenCreated", {
-        //         "filter": {
-        //             "contractThere": [ erc721Address_main_net ]
-        //         },
-        //         "fromBlock": 0,
-        //         "toBlock": "latest"
-        //     } );
-        //     if ( verbose_get() >= RV_VERBOSE.information )
-        //         log.write( strLogPrefix + cc.success( "Got events for ERC721TokenCreated: " ) + cc.j( joEvents ) + "\n" );
-        // } // if( ! isRawTokenTransfer )
-
         const joReceipt = joReceiptDeposit;
         //
         // Must-have event(s) analysis as indicator(s) of success
@@ -1606,7 +1580,6 @@ async function do_erc20_payment_from_main_net(
     erc20PrivateTestnetJson_main_net,
     strCoinNameErc20_s_chain,
     erc20PrivateTestnetJson_s_chain,
-    isRawTokenTransfer,
     tc_main_net
 ) {
     const jarrReceipts = []; // do_erc20_payment_from_main_net
@@ -1638,27 +1611,16 @@ async function do_erc20_payment_from_main_net(
         await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
         let dataTxDeposit = null;
-        log.write( strLogPrefix + cc.normal( "isRawTokenTransfer = " ) + cc.info( isRawTokenTransfer ) + "\n" );
-        if( isRawTokenTransfer ) {
-            const erc20Address_s_chain = erc20PrivateTestnetJson_s_chain[strCoinNameErc20_s_chain + "_address"];
-            const methodWithArguments_rawDepositERC20 = jo_deposit_box.methods.rawDepositERC20(
-                chain_id_s_chain, erc20Address_main_net, erc20Address_s_chain // specific for rawDepositERC20() only
-                , accountForSchain, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
-            );
-            const isIgnore_rawDepositERC20 = true;
-            const strDRC_rawDepositERC20 = "do_erc20_payment_from_main_net, ";
-            await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20 );
-            dataTxDeposit = methodWithArguments_rawDepositERC20.encodeABI();
-        } else {
-            // TO-DO: this is beta version, need to re-check and improve it later
-            const methodWithArguments_depositERC20 = jo_deposit_box.methods.depositERC20(
-                chain_id_s_chain, erc20Address_main_net, accountForSchain, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
-            );
-            const isIgnore_depositERC20 = true;
-            const strDRC_depositERC20 = "do_erc20_payment_from_main_net, ";
-            await dry_run_call( w3_main_net, methodWithArguments_depositERC20, joAccountSrc, strDRC_depositERC20, isIgnore_depositERC20 );
-            dataTxDeposit = methodWithArguments_depositERC20.encodeABI();
-        }
+        const methodWithArguments_rawDepositERC20 = jo_deposit_box.methods.depositERC20(
+            chain_id_s_chain,
+            erc20Address_main_net,
+            accountForSchain,
+            "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
+        );
+        const isIgnore_rawDepositERC20 = true;
+        const strDRC_rawDepositERC20 = "do_erc20_payment_from_main_net, ";
+        await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20 );
+        dataTxDeposit = methodWithArguments_rawDepositERC20.encodeABI();
         //
         // create raw transactions
         //
@@ -1729,21 +1691,6 @@ async function do_erc20_payment_from_main_net(
         }
         //
         //
-
-        // TO-DO: Fix event getting
-        // if ( !isRawTokenTransfer ) {
-        //     strActionName = "getPastEvents/ERC20TokenCreated";
-        //     let joEvents = await jo_token_manager.getPastEvents( "ERC20TokenCreated", {
-        //         "filter": {
-        //             "contractThere": [ erc20Address_main_net ]
-        //         },
-        //         "fromBlock": 0,
-        //         "toBlock": "latest"
-        //     } );
-        //     if ( verbose_get() >= RV_VERBOSE.information )
-        //         log.write( strLogPrefix + cc.success( "Got events for ERC20TokenCreated: " ) + cc.j( joEvents ) + "\n" );
-        // } // if( ! isRawTokenTransfer )
-
         const joReceipt = joReceiptDeposit;
         //
         // Must-have event(s) analysis as indicator(s) of success
@@ -1813,7 +1760,6 @@ async function do_erc20_payment_from_s_chain(
     joErc20_main_net,
     strCoinNameErc20_s_chain,
     joErc20_s_chain,
-    isRawTokenTransfer,
     tc_s_chain
 ) {
     const jarrReceipts = []; // do_erc20_payment_from_s_chain
@@ -1843,27 +1789,16 @@ async function do_erc20_payment_from_s_chain(
         await dry_run_call( w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
         let dataExitToMainERC20 = null;
-        if( isRawTokenTransfer ) {
-            const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
-            const methodWithArguments_rawExitToMainERC20 = jo_token_manager.methods.rawExitToMainERC20(
-                erc20Address_s_chain, erc20Address_main_net // specific for rawExitToMainERC20() only
-                , accountForMainnet, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
-            );
-            const isIgnore_rawExitToMainERC20 = true;
-            const strDRC_rawExitToMainERC20 = "do_erc20_payment_from_s_chain, rawExitToMainERC20";
-            await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20 );
-            dataExitToMainERC20 = methodWithArguments_rawExitToMainERC20.encodeABI();
-        } else {
-            // TO-DO: this is beta version, need to re-check and improve it later
-            const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
-            const methodWithArguments_exitToMainERC20 = jo_token_manager.methods.exitToMainERC20(
-                erc20Address_main_net, accountForMainnet, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
-            );
-            const isIgnore_exitToMainERC20 = true;
-            const strDRC_exitToMainERC20 = "do_erc20_payment_from_s_chain, exitToMainERC20";
-            await dry_run_call( w3_s_chain, methodWithArguments_exitToMainERC20, joAccountSrc, strDRC_exitToMainERC20, isIgnore_exitToMainERC20 );
-            dataExitToMainERC20 = methodWithArguments_exitToMainERC20.encodeABI();
-        }
+        const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
+        const methodWithArguments_rawExitToMainERC20 = jo_token_manager.methods.exitToMainERC20(
+            erc20Address_main_net,
+            accountForMainnet,
+            "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
+        );
+        const isIgnore_rawExitToMainERC20 = true;
+        const strDRC_rawExitToMainERC20 = "do_erc20_payment_from_s_chain, rawExitToMainERC20";
+        await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20 );
+        dataExitToMainERC20 = methodWithArguments_rawExitToMainERC20.encodeABI();
         //
         // prepare for transactions
         //
@@ -2041,7 +1976,6 @@ async function do_erc721_payment_from_s_chain(
     joErc721_main_net,
     strCoinNameErc721_s_chain,
     joErc721_s_chain,
-    isRawTokenTransfer,
     tc_s_chain
 ) {
     const jarrReceipts = []; // do_erc721_payment_from_s_chain
@@ -2069,27 +2003,16 @@ async function do_erc721_payment_from_s_chain(
         await dry_run_call( w3_s_chain, methodWithArguments_transferFrom, joAccountSrc, strDRC_transferFrom,isIgnore_transferFrom );
         const dataTxTransferFrom = methodWithArguments_transferFrom.encodeABI();
         let dataTxExitToMainERC721 = null;
-        if( isRawTokenTransfer ) {
-            const erc721Address_main_net = joErc721_main_net[strCoinNameErc721_main_net + "_address"];
-            const methodWithArguments_rawExitToMainERC721 = jo_token_manager.methods.rawExitToMainERC721(
-                erc721Address_s_chain, erc721Address_main_net // specific for rawExitToMainERC721() only
-                , accountForMainnet, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
-            );
-            const isIgnore_rawExitToMainERC721 = true;
-            const strDRC_rawExitToMainERC721 = "erc721_payment_from_s_chain, rawExitToMainERC721";
-            await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721 );
-            dataTxExitToMainERC721 = methodWithArguments_rawExitToMainERC721.encodeABI();
-        } else {
-            // TO-DO: this is beta version, need to re-check and improve it later
-            const erc721Address_main_net = joErc721_main_net[strCoinNameErc721_main_net + "_address"];
-            const methodWithArguments_exitToMainERC721 = jo_token_manager.methods.exitToMainERC721(
-                erc721Address_main_net, accountForMainnet, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
-            );
-            const isIgnore_exitToMainERC721 = true;
-            const strDRC_exitToMainERC721 = "erc721_payment_from_s_chain, exitToMainERC721";
-            await dry_run_call( w3_s_chain, methodWithArguments_exitToMainERC721, joAccountSrc, strDRC_exitToMainERC721, isIgnore_exitToMainERC721 );
-            dataTxExitToMainERC721 = methodWithArguments_exitToMainERC721.encodeABI();
-        }
+        const erc721Address_main_net = joErc721_main_net[strCoinNameErc721_main_net + "_address"];
+        const methodWithArguments_rawExitToMainERC721 = jo_token_manager.methods.exitToMainERC721(
+            erc721Address_main_net,
+            accountForMainnet,
+            "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
+        );
+        const isIgnore_rawExitToMainERC721 = true;
+        const strDRC_rawExitToMainERC721 = "erc721_payment_from_s_chain, rawExitToMainERC721";
+        await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721 );
+        dataTxExitToMainERC721 = methodWithArguments_rawExitToMainERC721.encodeABI();
         //
         // prepare transactions
         //

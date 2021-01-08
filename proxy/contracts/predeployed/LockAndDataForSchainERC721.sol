@@ -107,7 +107,7 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
         external
         allow("ERC721Module")
     {
-        require(erc721OnMainnet.isContract(), "Given address is not a contract");
+        require(erc721OnSchain.isContract(), "Given address is not a contract");
         schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][erc721OnMainnet] = erc721OnSchain;
         emit ERC721TokenAdded(schainID, erc721OnMainnet, erc721OnSchain);
     }
