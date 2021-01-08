@@ -32,6 +32,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.
 contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
 
     mapping(bytes32 => mapping(address => bool)) public schainToERC721;
+    mapping(bytes32 => bool) public withoutWhitelist;
 
     event ERC721TokenAdded(address indexed tokenHere, string schainID);
 
@@ -62,8 +63,27 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
      */
     function addERC721ForSchain(string calldata schainID, address erc721OnMainnet) external allow("ERC721Module") {
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
+        require(!withoutWhitelist[keccak256(abi.encodePacked(schainID))], "Whitelist is enabled");
         schainToERC721[keccak256(abi.encodePacked(schainID))][erc721OnMainnet] = true;
         emit ERC721TokenAdded(erc721OnMainnet, schainID);
+    }
+
+    function addERC721TokenByOwner(string calldata schainID, address erc721OnMainnet) external {
+        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
+        require(erc721OnMainnet.isContract(), "Given address is not a contract");
+        require(withoutWhitelist[keccak256(abi.encodePacked(schainID))], "Whitelist is disabled");
+        schainToERC721[keccak256(abi.encodePacked(schainID))][erc721OnMainnet] = true;
+        emit ERC721TokenAdded(erc20OnMainnet, schainID);
+    }
+
+    function enableWhitelist(bytes32 schainId) external {
+        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
+        withoutWhitelist[schainId] = false;
+    }
+
+    function disableWhitelist(bytes32 schainId) external {
+        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
+        withoutWhitelist[schainId] = true;
     }
 
     function getSchainToERC721(string calldata schainID, address erc721OnMainnet) external view returns (bool) {

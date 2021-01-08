@@ -34,6 +34,7 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
 
     // schainID => address of ERC20 on Mainnet
     mapping(bytes32 => mapping(address => bool)) public schainToERC20;
+    mapping(bytes32 => bool) public withoutWhitelist;
 
     /**
      * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
@@ -70,8 +71,27 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
      */
     function addERC20ForSchain(string calldata schainID, address erc20OnMainnet) external allow("ERC20Module") {
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
+        require(!withoutWhitelist[keccak256(abi.encodePacked(schainID))], "Whitelist is enabled");
         schainToERC20[keccak256(abi.encodePacked(schainID))][erc20OnMainnet] = true;
         emit ERC20TokenAdded(erc20OnMainnet, schainID);
+    }
+
+    function addERC20TokenByOwner(string calldata schainID, address erc20OnMainnet) external {
+        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
+        require(erc20OnMainnet.isContract(), "Given address is not a contract");
+        require(!withoutWhitelist[keccak256(abi.encodePacked(schainID))], "Whitelist is enabled");
+        schainToERC20[keccak256(abi.encodePacked(schainID))][erc20OnMainnet] = true;
+        emit ERC20TokenAdded(erc20OnMainnet, schainID);
+    }
+
+    function enableWhitelist(bytes32 schainId) external {
+        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
+        withoutWhitelist[schainId] = false;
+    }
+
+    function disableWhitelist(bytes32 schainId) external {
+        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
+        withoutWhitelist[schainId] = true;
     }
 
     function getSchainToERC20(string calldata schainID, address erc20OnMainnet) external view returns (bool) {
