@@ -117,8 +117,8 @@ contract("TokenManager", ([deployer, user, client]) => {
             {from: deployer});
         tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
             {from: deployer});
-        await lockAndDataForSchainERC20.enableAutomaticDeploy(web3.utils.soliditySha3(chainID), {from: deployer});
-        await lockAndDataForSchainERC721.enableAutomaticDeploy(web3.utils.soliditySha3(chainID), {from: deployer});
+        await lockAndDataForSchainERC20.enableAutomaticDeploy(chainID, {from: deployer});
+        await lockAndDataForSchainERC721.enableAutomaticDeploy(chainID, {from: deployer});
     });
 
     it("should send Eth to somebody on Mainnet, closed to Mainnet, called by schain", async () => {

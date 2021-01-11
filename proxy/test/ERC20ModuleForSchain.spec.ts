@@ -96,7 +96,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     erc20OnMainnet = await ERC20OnChain.new("SKALE", "SKL",
         ((1000000000).toString()), eRC20ModuleForMainnet.address, {from: deployer});
 
-    await lockAndDataForSchainERC20.enableAutomaticDeploy(web3.utils.soliditySha3("Mainnet"), {from: deployer});
+    await lockAndDataForSchainERC20.enableAutomaticDeploy("Mainnet", {from: deployer});
   });
 
   it("should rejected with `ERC20 contract does not exist on SKALE chain.`", async () => {
@@ -136,7 +136,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await lockAndDataForSchain
         .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
     // add ERC20 token to avoid "ERC20 contract does not exist on SKALE chain." error
-    await lockAndDataForSchainERC20.enableAutomaticDeploy(web3.utils.soliditySha3(schainID), {from: deployer});
+    await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
     await lockAndDataForSchainERC20
       .addERC20ForSchain(schainID, ERC20OnMainnet ,contractHere, {from: deployer});
     // execution
@@ -162,7 +162,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
         .setContract("TokenFactory", tokenFactory.address, {from: deployer});
     // mint some quantity of ERC20 tokens for `deployer` address
     await erc20OnMainnet.mint(deployer, "1000000000", {from: deployer});
-    await lockAndDataForSchainERC20.enableAutomaticDeploy(web3.utils.soliditySha3(schainID), {from: deployer});
+    await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
     // get data from `receiveERC20`
     const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, ERC20OnMainnet, to, amount, {from: deployer});
     // await eRC20ModuleForMainnet.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer});
@@ -210,7 +210,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     //
     await lockAndDataForSchain
         .setContract("TokenFactory", tokenFactory.address, {from: deployer});
-    await lockAndDataForSchainERC20.enableAutomaticDeploy(web3.utils.soliditySha3(schainID), {from: deployer});
+    await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
     // execution
     const res = await eRC20ModuleForSchain.sendERC20(schainID, data, {from: deployer});
     const newAddress = res.logs[0].args.contractOnSchain;
@@ -245,7 +245,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     //
     await lockAndDataForSchain
         .setContract("TokenFactory", tokenFactory.address, {from: deployer});
-    await lockAndDataForSchainERC20.enableAutomaticDeploy(web3.utils.soliditySha3(schainID), {from: deployer});
+    await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
     // execution
     const res = await eRC20ModuleForSchain.sendERC20(schainID, data, {from: deployer});
     const newAddress = res.logs[0].args.contractOnSchain;
@@ -274,7 +274,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await ethERC20.mint(deployer, "1000000000", {from: deployer});
     // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForSchainERC20` to avoid `Not enough money`
     await ethERC20.transfer(lockAndDataForSchainERC20.address, "1000000", {from: deployer});
-    await lockAndDataForSchainERC20.enableAutomaticDeploy(web3.utils.soliditySha3(schainID), {from: deployer});
+    await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
     // add ERC20 token to avoid "ERC20 contract does not exist on SKALE chain." error
     await lockAndDataForSchainERC20
       .addERC20ForSchain(schainID, ERC20OnMainnet, contractHere, {from: deployer});

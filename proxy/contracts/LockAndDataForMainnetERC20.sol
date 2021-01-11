@@ -86,14 +86,14 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
         emit ERC20TokenAdded(erc20OnMainnet, schainName);
     }
 
-    function enableWhitelist(bytes32 schainId) external {
-        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
-        withoutWhitelist[schainId] = false;
+    function enableWhitelist(string memory schainName) external {
+        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not a Schain owner");
+        withoutWhitelist[keccak256(abi.encodePacked(schainName))] = false;
     }
 
-    function disableWhitelist(bytes32 schainId) external {
-        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
-        withoutWhitelist[schainId] = true;
+    function disableWhitelist(string memory schainName) external {
+        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not a Schain owner");
+        withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
     }
 
     function getSchainToERC20(string calldata schainName, address erc20OnMainnet) external view returns (bool) {

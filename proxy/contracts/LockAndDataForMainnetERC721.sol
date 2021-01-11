@@ -78,14 +78,14 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
         emit ERC721TokenAdded(erc721OnMainnet, schainName);
     }
 
-    function enableWhitelist(bytes32 schainId) external {
-        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
-        withoutWhitelist[schainId] = false;
+    function enableWhitelist(string memory schainName) external {
+        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not a Schain owner");
+        withoutWhitelist[keccak256(abi.encodePacked(schainName))] = false;
     }
 
-    function disableWhitelist(bytes32 schainId) external {
-        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
-        withoutWhitelist[schainId] = true;
+    function disableWhitelist(string memory schainName) external {
+        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not a Schain owner");
+        withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
     }
 
     function getSchainToERC721(string calldata schainName, address erc721OnMainnet) external view returns (bool) {

@@ -122,14 +122,14 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         emit ERC20TokenAdded(schainName, erc20OnMainnet, erc20OnSchain);
     }
 
-    function enableAutomaticDeploy(bytes32 schainId) external {
+    function enableAutomaticDeploy(string memory schainName) external {
         require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
-        automaticDeploy[schainId] = true;
+        automaticDeploy[keccak256(abi.encodePacked(schainName))] = true;
     }
 
-    function disableAutomaticDeploy(bytes32 schainId) external {
+    function disableAutomaticDeploy(string memory schainName) external {
         require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
-        automaticDeploy[schainId] = false;
+        automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
     }
 
     function getERC20OnSchain(string calldata schainName, address contractOnMainnet) external view returns (address) {
