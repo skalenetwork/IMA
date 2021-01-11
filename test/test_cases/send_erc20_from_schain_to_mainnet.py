@@ -74,7 +74,7 @@ class SendERC20ToMainnet(TestCase):
         self.blockchain.add_eth_cost(self.config.schain_key,
                                      amount_of_eth)
 
-        self.erc20_clone = self.blockchain.get_erc20_on_schain(self.config.schain_name, self.erc20.address)
+        self.erc20_clone = self.blockchain.get_erc20_on_schain("Mainnet", self.erc20.address)
 
     def _execute(self):
         source_address = self.blockchain.key_to_address(self.config.schain_key)
