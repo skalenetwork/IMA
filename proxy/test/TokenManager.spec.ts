@@ -773,6 +773,8 @@ contract("TokenManager", ([deployer, user, client]) => {
             // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
             await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
             await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
+
+            await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
             // execution
             await tokenManager
               .postMessage(sender, schainID, to0, amount, data, {from: deployer});
@@ -822,6 +824,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
             await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
             await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
+            await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
             // execution
             await tokenManager
               .postMessage(sender, schainID, to0, amount, data, {from: deployer});
