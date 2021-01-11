@@ -81,7 +81,7 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
         bytes32 schainId = keccak256(abi.encodePacked(schainName));
         require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
-        require(!withoutWhitelist[schainId], "Whitelist is enabled");
+        // require(!withoutWhitelist[schainId], "Whitelist is enabled");
         schainToERC20[schainId][erc20OnMainnet] = true;
         emit ERC20TokenAdded(erc20OnMainnet, schainName);
     }
