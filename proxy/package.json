@@ -27,7 +27,7 @@
         "ethereumjs-tx": "2.1.2",
         "openzeppelin-solidity": "^2.2.0",
         "path": "^0.12.7",
-        "solc": "^0.5.4",
+        "solc": "^0.8.0",
         "truffle": "^5.1.55"
     },
     "devDependencies": {
