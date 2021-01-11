@@ -25,9 +25,7 @@
         "@truffle/hdwallet-provider": "^1.1.1",
         "dotenv": "^8.2.0",
         "ethereumjs-tx": "2.1.2",
-        "openzeppelin-solidity": "^2.2.0",
         "path": "^0.12.7",
-        "solc": "^0.5.4",
         "truffle": "^5.1.55"
     },
     "devDependencies": {
