@@ -304,14 +304,14 @@ contract TokenManager is PermissionsForSchain {
             address erc20Module = LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getErc20Module();
-            require(IERC20ModuleForSchain(erc20Module).sendERC20(getChainID(), data), "Failed to send ERC20");
+            require(IERC20ModuleForSchain(erc20Module).sendERC20(fromSchainID, data), "Failed to send ERC20");
             address receiver = IERC20ModuleForSchain(erc20Module).getReceiver(data);
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else if (operation == TransactionOperation.transferERC721) {
             address erc721Module = LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getErc721Module();
-            require(IERC721ModuleForSchain(erc721Module).sendERC721(getChainID(), data), "Failed to send ERC721");
+            require(IERC721ModuleForSchain(erc721Module).sendERC721(fromSchainID, data), "Failed to send ERC721");
             address receiver = IERC721ModuleForSchain(erc721Module).getReceiver(data);
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         }
