@@ -6261,10 +6261,10 @@ onetime@^5.1.0:
   dependencies:
     mimic-fn "^2.1.0"
 
-openzeppelin-solidity@^2.2.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/openzeppelin-solidity/-/openzeppelin-solidity-2.3.0.tgz#1ab7b4cc3782a5472ed61eb740c56a8bfdd74119"
-  integrity sha512-QYeiPLvB1oSbDt6lDQvvpx7k8ODczvE474hb2kLXZBPKMsxKT1WxTCHBYrCU7kS7hfAku4DcJ0jqOyL+jvjwQw==
+openzeppelin-solidity@^3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/openzeppelin-solidity/-/openzeppelin-solidity-3.3.0.tgz#20844436e84fa2d76ffe8c8ff7613acbfe6132c8"
+  integrity sha512-hTgOBwCGxJEn6KnNaSzCKYT72aw84VpBl9AuZSLqpxFoQIr0ST/06M2jTVlv+YEQu2q4kq+1GU8CaTBmOotrgA==
 
 optionator@^0.8.1:
   version "0.8.2"
