@@ -40,6 +40,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     // mapping(address => uint256) public erc20Mapper;
     // address of ERC20 on Mainnet => address of ERC20 on Schain
     mapping(bytes32 => mapping(address => address)) public schainToERC20OnSchain;
+    mapping(bytes32 => bool) public automaticDeploy;
 
     /**
      * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
@@ -110,6 +111,24 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
         schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][erc20OnMainnet] = erc20OnSchain;
         emit ERC20TokenAdded(schainID, erc20OnMainnet, erc20OnSchain);
+    }
+
+    function addERC20TokenByOwner(string calldata schainID, address erc20OnMainnet) external {
+        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
+        require(erc20OnMainnet.isContract(), "Given address is not a contract");
+        require(!automaticDeploy[keccak256(abi.encodePacked(schainID))], "Custom deploy is enabled");
+        schainToERC20[keccak256(abi.encodePacked(schainID))][erc20OnMainnet] = true;
+        emit ERC20TokenAdded(erc20OnMainnet, schainID);
+    }
+
+    function enableWhitelist(bytes32 schainId) external {
+        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
+        withoutWhitelist[schainId] = false;
+    }
+
+    function disableWhitelist(bytes32 schainId) external {
+        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
+        withoutWhitelist[schainId] = true;
     }
 
     function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address) {
