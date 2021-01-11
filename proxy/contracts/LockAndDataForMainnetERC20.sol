@@ -69,19 +69,21 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
     /**
      * @dev Allows ERC20Module to add an ERC20 token to LockAndDataForMainnetERC20.
      */
-    function addERC20ForSchain(string calldata schainID, address erc20OnMainnet) external allow("ERC20Module") {
+    function addERC20ForSchain(string calldata schainName, address erc20OnMainnet) external allow("ERC20Module") {
+        bytes32 schainId = keccak256(abi.encodePacked(schainName));
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
-        require(!withoutWhitelist[keccak256(abi.encodePacked(schainID))], "Whitelist is enabled");
-        schainToERC20[keccak256(abi.encodePacked(schainID))][erc20OnMainnet] = true;
-        emit ERC20TokenAdded(erc20OnMainnet, schainID);
+        require(!withoutWhitelist[schainId], "Whitelist is enabled");
+        schainToERC20[schainId][erc20OnMainnet] = true;
+        emit ERC20TokenAdded(erc20OnMainnet, schainName);
     }
 
-    function addERC20TokenByOwner(string calldata schainID, address erc20OnMainnet) external {
+    function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet) external {
+        bytes32 schainId = keccak256(abi.encodePacked(schainName));
         require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
-        require(!withoutWhitelist[keccak256(abi.encodePacked(schainID))], "Whitelist is enabled");
-        schainToERC20[keccak256(abi.encodePacked(schainID))][erc20OnMainnet] = true;
-        emit ERC20TokenAdded(erc20OnMainnet, schainID);
+        require(!withoutWhitelist[schainId], "Whitelist is enabled");
+        schainToERC20[schainId][erc20OnMainnet] = true;
+        emit ERC20TokenAdded(erc20OnMainnet, schainName);
     }
 
     function enableWhitelist(bytes32 schainId) external {
@@ -94,8 +96,8 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
         withoutWhitelist[schainId] = true;
     }
 
-    function getSchainToERC20(string calldata schainID, address erc20OnMainnet) external view returns (bool) {
-        return schainToERC20[keccak256(abi.encodePacked(schainID))][erc20OnMainnet];
+    function getSchainToERC20(string calldata schainName, address erc20OnMainnet) external view returns (bool) {
+        return schainToERC20[keccak256(abi.encodePacked(schainName))][erc20OnMainnet];
     }
 
     function initialize(address newLockAndDataAddress) public override initializer {
