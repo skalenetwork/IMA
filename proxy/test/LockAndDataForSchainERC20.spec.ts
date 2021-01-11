@@ -114,6 +114,7 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     // preparation
     const addressERC20 = eRC20OnChain.address;
     const schainID = randomString(10);
+    await lockAndDataForSchainERC20.enableAutomaticDeploy(web3.utils.soliditySha3(schainID), {from: deployer});
     // execution
     await lockAndDataForSchainERC20
         .addERC20ForSchain(schainID, eRC20OnMainnet.address, addressERC20, {from: deployer});

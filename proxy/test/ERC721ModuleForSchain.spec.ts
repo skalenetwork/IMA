@@ -86,6 +86,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // set `LockAndDataERC721` contract before invoke `receiveERC721`
     await lockAndDataForSchain
         .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
+    await lockAndDataForSchainERC721.enableAutomaticDeploy(web3.utils.soliditySha3(schainID), {from: deployer});
     // execution/expectation
     await eRC721ModuleForSchain.receiveERC721(schainID, contractHere , to, tokenId, {from: deployer})
       .should.be.eventually.rejectedWith(error);
@@ -104,6 +105,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // set `LockAndDataERC721` contract before invoke `receiveERC721`
     await lockAndDataForSchain
         .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
+    await lockAndDataForSchainERC721.enableAutomaticDeploy(web3.utils.soliditySha3(schainID), {from: deployer});
     // add ERC721 token to avoid "ERC721 contract does not exist on SKALE chain" error
     await lockAndDataForSchainERC721
       .addERC721ForSchain(schainID, eRC721OnMainnet.address, contractHere, {from: deployer});
@@ -140,6 +142,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     "4552433732314f6e436861696e" + // token name
     "0000000000000000000000000000000000000000000000000000000000000006" + // token symbol
     "455243373231"; // token symbol
+    await lockAndDataForSchainERC721.enableAutomaticDeploy(web3.utils.soliditySha3(schainID), {from: deployer});
     // execution
     const res = await eRC721ModuleForSchain.sendERC721(schainID, data, {from: deployer});
     // expectation
@@ -169,6 +172,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // transfer tokenId from `deployer` to `lockAndDataForSchainERC721`
     await eRC721OnChain.transferFrom(deployer,
       lockAndDataForSchainERC721.address, tokenId, {from: deployer});
+    await lockAndDataForSchainERC721.enableAutomaticDeploy(web3.utils.soliditySha3(schainID), {from: deployer});
     // add ERC721 token to avoid "ERC721 contract does not exist on SKALE chain" error
     await lockAndDataForSchainERC721
       .addERC721ForSchain(schainID, contractThere, contractHere, {from: deployer});
@@ -198,6 +202,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // set `LockAndDataERC721` contract before invoke `receiveERC721`
     await lockAndDataForSchain
         .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
+    await lockAndDataForSchainERC721.enableAutomaticDeploy(web3.utils.soliditySha3(schainID), {from: deployer});
     // add ERC721 token to avoid "ERC721 contract does not exist on SKALE chain" error
     await lockAndDataForSchainERC721
       .addERC721ForSchain(schainID, contractThere, contractHere, {from: deployer});
