@@ -68,8 +68,8 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         allow("DepositBox")
         returns (bytes memory data)
     {
-        address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-            keccak256(abi.encodePacked("LockAndDataERC20"))
+        address lockAndDataERC20 = IContractManager(lockAndDataAddress_).getContract(
+            "LockAndDataERC20"
         );
         uint256 totalSupply = ERC20UpgradeSafe(contractOnMainnet).totalSupply();
         require(amount <= totalSupply, "Amount is incorrect");
@@ -89,8 +89,8 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
      * @dev Allows DepositBox to send ERC20 tokens.
      */
     function sendERC20(bytes calldata data) external allow("DepositBox") returns (bool) {
-        address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-            keccak256(abi.encodePacked("LockAndDataERC20"))
+        address lockAndDataERC20 = IContractManager(lockAndDataAddress_).getContract(
+            "LockAndDataERC20"
         );
         address contractOnMainnet;
         address receiver;

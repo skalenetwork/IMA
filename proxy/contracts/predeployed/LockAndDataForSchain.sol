@@ -249,6 +249,9 @@ contract LockAndDataForSchain is OwnableForSchain {
         EthERC20(getEthErc20Address()).burnFrom(sender, amount);
         return true;
     }
+    function isSchainOwner(address sender) external view returns (bool) {
+        return sender == getSchainOwner();
+    }
 
     function isAuthorizedCaller(address a) public view returns (bool rv) {
         if (authorizedCaller[a] )

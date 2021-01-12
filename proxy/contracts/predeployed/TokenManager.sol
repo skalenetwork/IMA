@@ -136,7 +136,7 @@ contract TokenManager is PermissionsForSchain {
             getLockAndDataAddress()
         ).getErc20Module();
         address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC20)
-            .getERC20OnSchain(getChainID(), contractOnMainnet);
+            .getERC20OnSchain("Mainnet", contractOnMainnet);
         require(
             IERC20(contractOnSchain).allowance(
                 msg.sender,
@@ -158,7 +158,7 @@ contract TokenManager is PermissionsForSchain {
                 GAS_CONSUMPTION),
             "Not enough gas sent");
         bytes memory data = IERC20ModuleForSchain(erc20Module).receiveERC20(
-            getChainID(),
+            "Mainnet",
             contractOnMainnet,
             to,
             amount);
@@ -182,7 +182,7 @@ contract TokenManager is PermissionsForSchain {
         address lockAndDataERC20 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc20();
         address erc20Module = LockAndDataForSchain(getLockAndDataAddress()).getErc20Module();
         address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC20)
-            .getERC20OnSchain(getChainID(), contractOnMainnet);
+            .getERC20OnSchain(schainID, contractOnMainnet);
         require(
             IERC20(contractOnSchain).allowance(
                 msg.sender,
@@ -199,7 +199,7 @@ contract TokenManager is PermissionsForSchain {
             "Could not transfer ERC20 Token"
         );
         bytes memory data = IERC20ModuleForSchain(erc20Module).receiveERC20(
-            getChainID(),
+            schainID,
             contractOnMainnet,
             to,
             amount);
@@ -216,7 +216,7 @@ contract TokenManager is PermissionsForSchain {
         address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
         address erc721Module = LockAndDataForSchain(getLockAndDataAddress()).getErc721Module();
         address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC721)
-            .getERC721OnSchain(getChainID(), contractOnMainnet);
+            .getERC721OnSchain("Mainnet", contractOnMainnet);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractOnSchain).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
@@ -226,7 +226,7 @@ contract TokenManager is PermissionsForSchain {
                 GAS_CONSUMPTION),
             "Not enough gas sent");
         bytes memory data = IERC721ModuleForSchain(erc721Module).receiveERC721(
-            getChainID(),
+            "Mainnet",
             contractOnMainnet,
             to,
             tokenId);
@@ -250,12 +250,12 @@ contract TokenManager is PermissionsForSchain {
         address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
         address erc721Module = LockAndDataForSchain(getLockAndDataAddress()).getErc721Module();
         address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC721)
-            .getERC721OnSchain(getChainID(), contractOnMainnet);
+            .getERC721OnSchain(schainID, contractOnMainnet);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractOnSchain).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         bytes memory data = IERC721ModuleForSchain(erc721Module).receiveERC721(
-            getChainID(),
+            schainID,
             contractOnMainnet,
             to,
             tokenId);
@@ -304,14 +304,14 @@ contract TokenManager is PermissionsForSchain {
             address erc20Module = LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getErc20Module();
-            require(IERC20ModuleForSchain(erc20Module).sendERC20(getChainID(), data), "Failed to send ERC20");
+            require(IERC20ModuleForSchain(erc20Module).sendERC20(fromSchainID, data), "Failed to send ERC20");
             address receiver = IERC20ModuleForSchain(erc20Module).getReceiver(data);
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else if (operation == TransactionOperation.transferERC721) {
             address erc721Module = LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getErc721Module();
-            require(IERC721ModuleForSchain(erc721Module).sendERC721(getChainID(), data), "Failed to send ERC721");
+            require(IERC721ModuleForSchain(erc721Module).sendERC721(fromSchainID, data), "Failed to send ERC721");
             address receiver = IERC721ModuleForSchain(erc721Module).getReceiver(data);
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         }
