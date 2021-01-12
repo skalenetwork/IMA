@@ -117,8 +117,8 @@ contract("TokenManager", ([deployer, user, client]) => {
             {from: deployer});
         tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
             {from: deployer});
-        await lockAndDataForSchainERC20.enableAutomaticDeploy(chainID, {from: deployer});
-        await lockAndDataForSchainERC721.enableAutomaticDeploy(chainID, {from: deployer});
+        await lockAndDataForSchainERC20.enableAutomaticDeploy("Mainnet", {from: deployer});
+        await lockAndDataForSchainERC721.enableAutomaticDeploy("Mainnet", {from: deployer});
     });
 
     it("should send Eth to somebody on Mainnet, closed to Mainnet, called by schain", async () => {
@@ -262,7 +262,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         const minterRole = await eRC20OnChain.MINTER_ROLE();
         await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address, {from: deployer});
         //
-        await lockAndDataForSchainERC20.addERC20ForSchain(chainID, eRC20.address, eRC20OnChain.address, {from: deployer});
+        await lockAndDataForSchainERC20.addERC20ForSchain("Mainnet", eRC20.address, eRC20OnChain.address, {from: deployer});
         await lockAndDataForSchainERC20.sendERC20(eRC20OnChain.address, user, amount, {from: deployer});
         //
         await eRC20OnChain.approve(tokenManager.address, amountTo, {from: user});
@@ -280,7 +280,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
         await lockAndDataForSchain.setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
         // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
-        await lockAndDataForSchainERC20.addERC20ForSchain(chainID, eRC20.address, eRC20OnChain.address, {from: deployer});
+        await lockAndDataForSchainERC20.addERC20ForSchain("Mainnet", eRC20.address, eRC20OnChain.address, {from: deployer});
         const minterRole = await eRC20OnChain.MINTER_ROLE();
         await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address);
         await eRC20OnChain.mint(deployer, amount, {from: deployer});
@@ -332,7 +332,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchain.addGasCosts(deployer, amountToCost, {from: deployer});
 
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
-       await lockAndDataForSchainERC20.addERC20ForSchain(chainID, eRC20.address, eRC20OnChain.address, {from: deployer});
+       await lockAndDataForSchainERC20.addERC20ForSchain("Mainnet", eRC20.address, eRC20OnChain.address, {from: deployer});
 
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
         await eRC20OnChain.approve(tokenManager.address, amountMint, {from: deployer});
@@ -388,8 +388,10 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC20OnChain.mint(deployer, amountMint, {from: deployer});
         // invoke `addGasCosts` to avoid `Not enough gas sent` exception on `exitToMainERC20` function:
         await lockAndDataForSchain.addGasCosts(deployer, amountToCost, {from: deployer});
+        await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
+
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
-       await lockAndDataForSchainERC20.addERC20ForSchain(chainID, eRC20.address, eRC20OnChain.address, {from: deployer});
+        await lockAndDataForSchainERC20.addERC20ForSchain(schainID, eRC20.address, eRC20OnChain.address, {from: deployer});
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
         await eRC20OnChain.approve(tokenManager.address, amountMint, {from: deployer});
 
@@ -421,8 +423,9 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC20OnChain.mint(deployer, amountMint, {from: deployer});
         // invoke `addGasCosts` to avoid `Not enough gas sent` exception on `exitToMainERC20` function:
         await lockAndDataForSchain.addGasCosts(deployer, amountToCost, {from: deployer});
+        await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
-       await lockAndDataForSchainERC20.addERC20ForSchain(chainID, eRC20.address, eRC20OnChain.address, {from: deployer});
+        await lockAndDataForSchainERC20.addERC20ForSchain(schainID, eRC20.address, eRC20OnChain.address, {from: deployer});
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
         await eRC20OnChain.approve(tokenManager.address, amountMint, {from: deployer});
 
@@ -451,7 +454,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchain.setContract(
             "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
-        await lockAndDataForSchainERC721.addERC721ForSchain(chainID, eRC20.address,eRC20OnChain.address, {from: deployer});
+        await lockAndDataForSchainERC721.addERC721ForSchain("Mainnet", eRC20.address,eRC20OnChain.address, {from: deployer});
         // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
         const minterRole = await eRC721OnChain.MINTER_ROLE();
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
@@ -460,7 +463,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         // invoke `addGasCosts` to avoid `Not enough gas sent` exception on `exitToMainERC20` function:
         await lockAndDataForSchain.addGasCosts(deployer, amountToCost, {from: deployer});
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
-        await lockAndDataForSchainERC721.addERC721ForSchain(chainID, eRC721.address, eRC721OnChain.address, {from: deployer});
+        await lockAndDataForSchainERC721.addERC721ForSchain("Mainnet", eRC721.address, eRC721OnChain.address, {from: deployer});
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
         await eRC721OnChain.approve(tokenManager.address, tokenId, {from: deployer});
 
@@ -486,14 +489,14 @@ contract("TokenManager", ([deployer, user, client]) => {
             "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
         await lockAndDataForSchainERC721
-            .addERC721ForSchain(chainID, eRC20.address,eRC20OnChain.address, {from: deployer});
+            .addERC721ForSchain("Mainnet", eRC20.address,eRC20OnChain.address, {from: deployer});
         // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
         const minterRole = await eRC721OnChain.MINTER_ROLE();
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-        // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
-        await lockAndDataForSchainERC721.addERC721ForSchain(chainID, eRC721.address, eRC721OnChain.address, {from: deployer});
+        // invoke `addERC721ForSchain` to avoid `Not existing ERC-721 contract` exception on `exitToMainERC721` function:
+        await lockAndDataForSchainERC721.addERC721ForSchain("Mainnet", eRC721.address, eRC721OnChain.address, {from: deployer});
         await eRC721OnChain.transferFrom(deployer, tokenManager.address, tokenId, {from: deployer});
 
         // execution:
@@ -519,7 +522,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
         await lockAndDataForSchain.setContract(
             "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
-        await lockAndDataForSchainERC721.addERC721ForSchain(chainID, contractThere, contractHere, {from: deployer});
+        await lockAndDataForSchainERC721.addERC721ForSchain("Mainnet", contractThere, contractHere, {from: deployer});
         // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
         const minterRole = await eRC721OnChain.MINTER_ROLE();
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
@@ -556,8 +559,9 @@ contract("TokenManager", ([deployer, user, client]) => {
             "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
         await messageProxyForSchain.addConnectedChain(schainID, publicKeyArray, {from: deployer});
+        await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
         await lockAndDataForSchainERC721
-            .addERC721ForSchain(chainID, contractThere, contractHere, {from: deployer});
+            .addERC721ForSchain(schainID, contractThere, contractHere, {from: deployer});
         // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
         const minterRole = await eRC721OnChain.MINTER_ROLE();
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
@@ -595,8 +599,9 @@ contract("TokenManager", ([deployer, user, client]) => {
         // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
         await lockAndDataForSchain.setContract(
             "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
+        await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
         await lockAndDataForSchainERC721
-            .addERC721ForSchain(chainID, contractThere, contractHere, {from: deployer});
+            .addERC721ForSchain(schainID, contractThere, contractHere, {from: deployer});
         // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
         const minterRole = await eRC721OnChain.MINTER_ROLE();
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
@@ -605,7 +610,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         // invoke `addGasCosts` to avoid `Not enough gas sent` exception on `exitToMainERC20` function:
         await lockAndDataForSchain.addGasCosts(deployer, amountToCost, {from: deployer});
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
-        await lockAndDataForSchainERC721.addERC721ForSchain(chainID, eRC721.address, eRC721OnChain.address, {from: deployer});
+        await lockAndDataForSchainERC721.addERC721ForSchain(schainID, eRC721.address, eRC721OnChain.address, {from: deployer});
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
         await eRC721OnChain.approve(tokenManager.address, tokenId, {from: deployer});
 
