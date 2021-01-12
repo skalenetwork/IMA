@@ -43,6 +43,8 @@ class SendERC20ToSchain(TestCase):
         signed_txn = self.blockchain.web3_mainnet.eth.account.signTransaction(mint_txn,
                                                                               private_key=self.config.mainnet_key)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+        self.blockchain.addERC20TokenByOwner(self.config.mainnet_key, self.config.schain_name, self.erc20.address)
+        self.blockchain.enableAutomaticDeployERC20(self.config.schain_key, "Mainnet")
 
     def _execute(self):
         amount = 1
@@ -52,7 +54,7 @@ class SendERC20ToSchain(TestCase):
                                                          amount,
                                                          self.timeout)
 
-        erc20 = self.blockchain.get_erc20_on_schain(self.config.schain_name, self.erc20.address)
+        erc20 = self.blockchain.get_erc20_on_schain("Mainnet", self.erc20.address)
         destination_address = self.blockchain.key_to_address(self.config.schain_key)
         balance = erc20.functions.balanceOf(destination_address).call()
         if balance == amount:

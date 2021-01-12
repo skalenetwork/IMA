@@ -109,6 +109,7 @@ contract("LockAndDataForSchainERC721", ([deployer, user]) => {
     // preparation
     const addressERC721 = eRC721OnChain.address;
     const schainID = randomString(10);
+    await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
     // execution
     await lockAndDataForSchainERC721
         .addERC721ForSchain(schainID, eRC721OnMainnet.address, addressERC721, {from: deployer});

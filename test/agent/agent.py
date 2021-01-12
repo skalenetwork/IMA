@@ -127,7 +127,7 @@ class Agent:
         start = time()
         while time() < start + timeout if timeout > 0 else True:
             try:
-                self.blockchain.get_erc20_on_schain(self.config.schain_name, token_contract.address)
+                self.blockchain.get_erc20_on_schain("Mainnet", token_contract.address)
                 return
             except ValueError:
                 debug('Wait for erc20 deployment')
@@ -150,7 +150,7 @@ class Agent:
         start = time()
         while time() < start + timeout if timeout > 0 else True:
             try:
-                self.blockchain.get_erc721_on_schain(self.config.schain_name, token_contract.address)
+                self.blockchain.get_erc721_on_schain("Mainnet", token_contract.address)
                 return
             except ValueError:
                 debug('Wait for erc721 deployment')
@@ -211,15 +211,13 @@ class Agent:
         # destination_address = self.blockchain.key_to_address(to_key)
         tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
         sleep(10)
-        print("-------------------------------------------------------------------------------")
-        self._execute_command('s2m-payment', {
+        self._execute_command('s2m-payment', {'no-raw-transfer': None,
                                               'tid': token_id,
                                               'key-main-net': to_key,
                                               'key-s-chain': from_key,
                                               'erc721-main-net': erc721_config_filename,
                                               'erc721-s-chain': erc721_clone_config_filename})
 
-        print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         start = time()
         while (time() < start + timeout if timeout > 0 else True) and \
                 destination_address == erc721.functions.ownerOf(token_id).call():

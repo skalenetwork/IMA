@@ -22,10 +22,9 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/access/AccessControl.sol";
-
-interface IContractManagerForMainnet {
-    function permitted(bytes32 contractName) external view returns (address);
-}
+import "./interfaces/IContractManager.sol";
+import "./interfaces/ISchainsInternal.sol";
+import "./interfaces/ILockAndDataForMainnet.sol";
 
 
 /**
@@ -44,9 +43,9 @@ contract PermissionsForMainnet is AccessControlUpgradeSafe {
      */
     modifier allow(string memory contractName) {
         require(
-            IContractManagerForMainnet(
+            IContractManager(
                 lockAndDataAddress_
-            ).permitted(keccak256(abi.encodePacked(contractName))) == msg.sender ||
+            ).getContract(contractName) == msg.sender ||
             getOwner() == msg.sender, "Message sender is invalid"
         );
         _;
@@ -76,6 +75,13 @@ contract PermissionsForMainnet is AccessControlUpgradeSafe {
      */
     function getOwner() public view returns ( address ow ) {
         return getRoleMember(DEFAULT_ADMIN_ROLE, 0);
+    }
+
+    /**
+     * @dev Checks whether sender is owner of SKALE chain
+     */
+    function isSchainOwner(address sender, bytes32 schainId) public virtual view returns (bool) {
+        return ILockAndDataForMainnet(lockAndDataAddress_).isSchainOwner(sender, schainId);
     }
 
     function _isOwner() internal view returns (bool) {

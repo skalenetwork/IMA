@@ -58,8 +58,8 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         allow("DepositBox")
         returns (bytes memory data)
     {
-        address lockAndDataERC721 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-            keccak256(abi.encodePacked("LockAndDataERC721"))
+        address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract(
+            "LockAndDataERC721"
         );
         bool isERC721AddedToSchain= ILockAndDataERC721M(lockAndDataERC721)
             .getSchainToERC721(schainID, contractOnMainnet);
@@ -75,8 +75,8 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
      * @dev Allows DepositBox to send ERC721 tokens.
      */
     function sendERC721(bytes calldata data) external allow("DepositBox") returns (bool) {
-        address lockAndDataERC721 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-            keccak256(abi.encodePacked("LockAndDataERC721"))
+        address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract(
+            "LockAndDataERC721"
         );
         address contractOnMainnet;
         address receiver;

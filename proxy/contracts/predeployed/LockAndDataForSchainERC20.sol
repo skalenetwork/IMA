@@ -40,6 +40,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     // mapping(address => uint256) public erc20Mapper;
     // address of ERC20 on Mainnet => address of ERC20 on Schain
     mapping(bytes32 => mapping(address => address)) public schainToERC20OnSchain;
+    mapping(bytes32 => bool) public automaticDeploy;
 
     /**
      * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
@@ -100,7 +101,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
      * @dev Allows ERC20Module to add an ERC20 token to LockAndDataForSchainERC20.
      */
     function addERC20ForSchain(
-        string calldata schainID,
+        string calldata schainName,
         address erc20OnMainnet,
         address erc20OnSchain
     )
@@ -108,12 +109,31 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         allow("ERC20Module")
     {
         require(erc20OnSchain.isContract(), "Given address is not a contract");
-        schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][erc20OnMainnet] = erc20OnSchain;
-        emit ERC20TokenAdded(schainID, erc20OnMainnet, erc20OnSchain);
+        require(automaticDeploy[keccak256(abi.encodePacked(schainName))], "Automatic deploy is disabled");
+        schainToERC20OnSchain[keccak256(abi.encodePacked(schainName))][erc20OnMainnet] = erc20OnSchain;
+        emit ERC20TokenAdded(schainName, erc20OnMainnet, erc20OnSchain);
     }
 
-    function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address) {
-        return schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
+    function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet, address erc20OnSchain) external {
+        require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        require(erc20OnSchain.isContract(), "Given address is not a contract");
+        // require(!automaticDeploy[keccak256(abi.encodePacked(schainName))], "Custom deploy is enabled");
+        schainToERC20OnSchain[keccak256(abi.encodePacked(schainName))][erc20OnMainnet] = erc20OnSchain;
+        emit ERC20TokenAdded(schainName, erc20OnMainnet, erc20OnSchain);
+    }
+
+    function enableAutomaticDeploy(string calldata schainName) external {
+        require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        automaticDeploy[keccak256(abi.encodePacked(schainName))] = true;
+    }
+
+    function disableAutomaticDeploy(string calldata schainName) external {
+        require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
+    }
+
+    function getERC20OnSchain(string calldata schainName, address contractOnMainnet) external view returns (address) {
+        return schainToERC20OnSchain[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
     }
 }
 

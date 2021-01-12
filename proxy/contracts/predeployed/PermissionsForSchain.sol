@@ -57,6 +57,10 @@ contract PermissionsForSchain is OwnableForSchain {
         _;
     }
 
+    function isSchainOwner(address sender) public virtual view returns (bool) {
+        return LockAndDataForSchain(getLockAndDataAddress()).isSchainOwner(sender);
+    }
+
     function getLockAndDataAddress() public view returns ( address a ) {
         if (lockAndDataAddress_ != address(0) )
             return lockAndDataAddress_;
