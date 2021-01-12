@@ -98,14 +98,14 @@ contract DepositBox is PermissionsForMainnet {
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
-        address lockAndDataERC20 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-            keccak256(abi.encodePacked("LockAndDataERC20"))
+        address lockAndDataERC20 = IContractManager(lockAndDataAddress_).getContract(
+            "LockAndDataERC20"
         );
-        address erc20Module = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-            keccak256(abi.encodePacked("ERC20Module"))
+        address erc20Module = IContractManager(lockAndDataAddress_).getContract(
+            "ERC20Module"
         );
-        address proxyAddress = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-            keccak256(abi.encodePacked("MessageProxy"))
+        address proxyAddress = IContractManager(lockAndDataAddress_).getContract(
+            "MessageProxy"
         );
         require(
             IERC20(contractOnMainnet).allowance(
@@ -150,14 +150,14 @@ contract DepositBox is PermissionsForMainnet {
         rightTransaction(schainID)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address lockAndDataERC721 = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-            keccak256(abi.encodePacked("LockAndDataERC721"))
+        address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract(
+            "LockAndDataERC721"
         );
-        address erc721Module = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-            keccak256(abi.encodePacked("ERC721Module"))
+        address erc721Module = IContractManager(lockAndDataAddress_).getContract(
+            "ERC721Module"
         );
-        address proxyAddress = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-            keccak256(abi.encodePacked("MessageProxy"))
+        address proxyAddress = IContractManager(lockAndDataAddress_).getContract(
+            "MessageProxy"
         );
         require(IERC721(contractOnMainnet).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractOnMainnet).transferFrom(address(this), lockAndDataERC721, tokenId);
@@ -226,8 +226,8 @@ contract DepositBox is PermissionsForMainnet {
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
-        address proxyAddress = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-            keccak256(abi.encodePacked("MessageProxy"))
+        address proxyAddress = IContractManager(lockAndDataAddress_).getContract(
+            "MessageProxy"
         );
         bytes memory newData;
         newData = abi.encodePacked(bytes1(uint8(1)), data);
@@ -256,8 +256,8 @@ contract DepositBox is PermissionsForMainnet {
                 );
             }
         } else if (operation == TransactionOperation.transferERC20) {
-            address erc20Module = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-                keccak256(abi.encodePacked("ERC20Module"))
+            address erc20Module = IContractManager(lockAndDataAddress_).getContract(
+                "ERC20Module"
             );
             require(IERC20ModuleForMainnet(erc20Module).sendERC20(data), "Sending of ERC20 was failed");
             address receiver = IERC20ModuleForMainnet(erc20Module).getReceiver(data);
@@ -268,8 +268,8 @@ contract DepositBox is PermissionsForMainnet {
                 );
             }
         } else if (operation == TransactionOperation.transferERC721) {
-            address erc721Module = IContractManagerForMainnet(lockAndDataAddress_).permitted(
-                keccak256(abi.encodePacked("ERC721Module"))
+            address erc721Module = IContractManager(lockAndDataAddress_).getContract(
+                "ERC721Module"
             );
             require(IERC721ModuleForMainnet(erc721Module).sendERC721(data), "Sending of ERC721 was failed");
             address receiver = IERC721ModuleForMainnet(erc721Module).getReceiver(data);

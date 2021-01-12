@@ -50,6 +50,9 @@ class Senderc721ToMainnet(TestCase):
         #
         sleep(5)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+
+        self.blockchain.addERC721TokenByOwner(self.config.mainnet_key, self.config.schain_name, self.erc721.address)
+        self.blockchain.enableAutomaticDeployERC721(self.config.schain_key, "Mainnet")
         sleep(5)
         # send to schain
         self.agent.transfer_erc721_from_mainnet_to_schain(self.erc721,
@@ -72,7 +75,7 @@ class Senderc721ToMainnet(TestCase):
                                      amount_eth)
         #
         sleep(5)
-        self.erc721_clone = self.blockchain.get_erc721_on_schain(self.config.schain_name, self.erc721.address)
+        self.erc721_clone = self.blockchain.get_erc721_on_schain("Mainnet", self.erc721.address)
 
     def _execute(self):
         source_address = self.blockchain.key_to_address(self.config.schain_key)
@@ -83,7 +86,6 @@ class Senderc721ToMainnet(TestCase):
             return
         #
         sleep(5)
-        print("==============================================================================")
         self.agent.transfer_erc721_from_schain_to_mainnet(self.erc721_clone,
                                                           self.erc721,
                                                           self.config.schain_key,
