@@ -27,6 +27,7 @@ interface ERC20MintAndBurn {
     function mint(address to, uint256 amount) external;
     function burn(uint256 amount) external;
     function balanceOf(address to) external view returns (uint256);
+    function totalSupply() external view returns (uint256);
 }
 
 /**
@@ -40,7 +41,9 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     // mapping(address => uint256) public erc20Mapper;
     // address of ERC20 on Mainnet => address of ERC20 on Schain
     mapping(bytes32 => mapping(address => address)) public schainToERC20OnSchain;
+    //     schainId => bool 
     mapping(bytes32 => bool) public automaticDeploy;
+    mapping(address => uint) public totalSupplyOnMainnet;
 
     /**
      * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
@@ -75,6 +78,10 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         allow("ERC20Module")
         returns (bool)
     {
+        require(
+            ERC20MintAndBurn(contractOnSchain).totalSupply() + amount <= totalSupplyOnMainnet[contractOnSchain],
+            "Total supply exceeded"
+        );
         ERC20MintAndBurn(contractOnSchain).mint(to, amount);
         emit SentERC20(true);
         return true;
@@ -130,6 +137,10 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     function disableAutomaticDeploy(string calldata schainName) external {
         require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
+    }
+
+    function setTotalSupplyOnMainnet(address contractOnSchain, uint256 newTotalSupplyOnMainnet) external {
+        totalSupplyOnMainnet[contractOnSchain] = newTotalSupplyOnMainnet;
     }
 
     function getERC20OnSchain(string calldata schainName, address contractOnMainnet) external view returns (address) {

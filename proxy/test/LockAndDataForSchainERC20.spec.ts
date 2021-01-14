@@ -74,6 +74,11 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
     const minterRole = await eRC20OnChain.MINTER_ROLE();
     await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address);
+    await lockAndDataForSchainERC20.setTotalSupplyOnMainnet(contractHere, 9);
+    // execution
+    await lockAndDataForSchainERC20
+        .sendERC20(contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Total supply exceeded");
+    await lockAndDataForSchainERC20.setTotalSupplyOnMainnet(contractHere, 11);
     // execution
     const res = await lockAndDataForSchainERC20
         .sendERC20(contractHere, to, amount, {from: deployer});

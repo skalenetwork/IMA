@@ -263,6 +263,9 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address, {from: deployer});
         //
         await lockAndDataForSchainERC20.addERC20ForSchain("Mainnet", eRC20.address, eRC20OnChain.address, {from: deployer});
+        await lockAndDataForSchainERC20.setTotalSupplyOnMainnet(eRC20OnChain.address, 199);
+        await lockAndDataForSchainERC20.sendERC20(eRC20OnChain.address, user, amount, {from: deployer}).should.be.eventually.rejectedWith("Total supply exceeded");
+        await lockAndDataForSchainERC20.setTotalSupplyOnMainnet(eRC20OnChain.address, 200);
         await lockAndDataForSchainERC20.sendERC20(eRC20OnChain.address, user, amount, {from: deployer});
         //
         await eRC20OnChain.approve(tokenManager.address, amountTo, {from: user});
