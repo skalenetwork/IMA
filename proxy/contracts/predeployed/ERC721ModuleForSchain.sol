@@ -72,7 +72,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
             ILockAndDataERC721S(lockAndDataERC721).receiveERC721(contractOnSchain, tokenId),
             "Could not receive ERC721 Token"
         );
-        data = _encodeData(contractOnMainnet, receiver, tokenId);
+        data = _encodeData(contractOnMainnet, contractOnSchain, receiver, tokenId);
     }
 
     /**
@@ -118,6 +118,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
      */
     function _encodeData(
         address contractOnMainnet,
+        address contractOnSchain,
         address to,
         uint256 tokenId
     )
@@ -125,8 +126,8 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         view
         returns (bytes memory data)
     {
-        string memory name = IERC721Metadata(contractOnMainnet).name();
-        string memory symbol = IERC721Metadata(contractOnMainnet).symbol();
+        string memory name = IERC721Metadata(contractOnSchain).name();
+        string memory symbol = IERC721Metadata(contractOnSchain).symbol();
         data = abi.encodePacked(
             bytes1(uint8(5)),
             bytes32(bytes20(contractOnMainnet)),
