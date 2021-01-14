@@ -345,6 +345,13 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         return true;
     }
 
+    /**
+     * @dev Returns number of outgoing messages to some schain
+     * 
+     * Requirements:
+     * 
+     * - `dstChainID` must be initialized.
+     */
     function getOutgoingMessagesCounter(string calldata dstChainID)
         external
         view
@@ -355,6 +362,13 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         return connectedChains[dstChainHash].outgoingMessageCounter;
     }
 
+    /**
+     * @dev Returns number of incoming messages from some schain
+     * 
+     * Requirements:
+     * 
+     * - `srcChainID` must be initialized.
+     */
     function getIncomingMessagesCounter(string calldata srcChainID)
         external
         view
@@ -418,6 +432,10 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         );
     }
 
+    /**
+     * @dev Converts calldata structure to memory structure and checks
+     * whether message BLS signature is valid.
+     */
     function _convertAndVerifyMessages(
         string calldata srcChainID,
         Message[] calldata messages,

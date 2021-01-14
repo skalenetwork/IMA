@@ -85,7 +85,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
             ILockAndDataERC20S(lockAndDataERC20).receiveERC20(contractOnSchain, amount),
             "Cound not receive ERC20 Token"
         );
-        data = _encodeData(contractOnMainnet, receiver, amount);
+        data = _encodeData(contractOnMainnet, contractOnSchain, receiver, amount);
     }
 
     /**
@@ -137,6 +137,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
      */
     function _encodeData(
         address contractOnMainnet,
+        address contractOnSchain,
         address to,
         uint256 amount
     )
@@ -144,10 +145,10 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         view
         returns (bytes memory data)
     {
-        string memory name = ERC20UpgradeSafe(contractOnMainnet).name();
-        uint8 decimals = ERC20UpgradeSafe(contractOnMainnet).decimals();
-        string memory symbol = ERC20UpgradeSafe(contractOnMainnet).symbol();
-        uint256 totalSupply = ERC20UpgradeSafe(contractOnMainnet).totalSupply();
+        string memory name = ERC20UpgradeSafe(contractOnSchain).name();
+        uint8 decimals = ERC20UpgradeSafe(contractOnSchain).decimals();
+        string memory symbol = ERC20UpgradeSafe(contractOnSchain).symbol();
+        uint256 totalSupply = ERC20UpgradeSafe(contractOnSchain).totalSupply();
         data = abi.encodePacked(
             bytes1(uint8(3)),
             bytes32(bytes20(contractOnMainnet)),

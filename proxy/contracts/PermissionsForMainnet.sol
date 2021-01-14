@@ -51,6 +51,9 @@ contract PermissionsForMainnet is AccessControlUpgradeSafe {
         _;
     }
 
+    /**
+     * @dev onlyOwner - throws if called by any account and contract other than the owner
+     */
     modifier onlyOwner() {
         require(_isOwner(), "Caller is not the owner");
         _;
@@ -66,6 +69,9 @@ contract PermissionsForMainnet is AccessControlUpgradeSafe {
         lockAndDataAddress_ = newContractsAddress;
     }
 
+    /**
+     * @dev Returns LockAndDataForMainnet address
+     */
     function getLockAndDataAddress() public view returns ( address a ) {
         return lockAndDataAddress_;
     }
@@ -84,6 +90,9 @@ contract PermissionsForMainnet is AccessControlUpgradeSafe {
         return ILockAndDataForMainnet(lockAndDataAddress_).isSchainOwner(sender, schainId);
     }
 
+    /**
+     * @dev Checks whether sender is owner of SKALE chain
+     */
     function _isOwner() internal view returns (bool) {
         return hasRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
