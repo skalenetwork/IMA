@@ -72,7 +72,7 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
     function addERC20ForSchain(string calldata schainName, address erc20OnMainnet) external allow("ERC20Module") {
         bytes32 schainId = keccak256(abi.encodePacked(schainName));
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
-        require(!withoutWhitelist[schainId], "Whitelist is enabled");
+        require(withoutWhitelist[schainId], "Whitelist is enabled");
         schainToERC20[schainId][erc20OnMainnet] = true;
         emit ERC20TokenAdded(erc20OnMainnet, schainName);
     }
