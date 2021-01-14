@@ -121,18 +121,6 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
       await lockAndDataForMainnetERC721.disableWhitelist(schainID);
       await lockAndDataForMainnetERC721.addERC721TokenByOwner(schainID, contractHere);
     }
-    // // execution#1
-    // await lockAndDataForMainnetERC721
-    //     .addERC20ForSchain(schainID, contractHere, {from: deployer});
-    // // expectation#1
-    // const res = await lockAndDataForMainnetERC721.getSchainToERC20(schainID, contractHere);
-    // res.should.be.equal(true);
-    // // execution#2
-    // await lockAndDataForMainnetERC721
-    //     .addERC20ForSchain(schainID, contractHer, {from: deployer});
-    // const res1 = await lockAndDataForMainnetERC721.getSchainToERC20(schainID, contractHer);
-    // // expectation#2
-    // res1.should.be.equal(true);
   });
 
 });
