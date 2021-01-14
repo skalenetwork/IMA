@@ -111,6 +111,9 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
     await tokenFactory.createERC20(name, tokenName, "0x" + sopply.toString(16), {from: deployer});
     // for execution#2
     const contractHer = ethERC20.address;
+    await lockAndDataForMainnetERC20
+        .addERC20ForSchain(schainID, contractHere, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC20.disableWhitelist(schainID);
     // execution#1
     await lockAndDataForMainnetERC20
         .addERC20ForSchain(schainID, contractHere, {from: deployer});
@@ -123,6 +126,45 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
     const res1 = await lockAndDataForMainnetERC20.getSchainToERC20(schainID, contractHer);
     // expectation#2
     res1.should.be.equal(true);
+  });
+
+  it("should add token by owner", async () => {
+    // preparation
+    const name = "elvis";
+    const schainID = randomString(10);
+    const tokenName = "ELV";
+    const sopply = 1000000 * 10 ** 18;
+    // create ERC20 token
+    // const erc20TokenAddress = await tokenFactory.createERC20(data, {from: deployer});
+    const contractHere = await tokenFactory.createERC20.call(name, tokenName, "0x" + sopply.toString(16), {from: deployer});
+    await tokenFactory.createERC20(name, tokenName, "0x" + sopply.toString(16), {from: deployer});
+    // for execution#2
+    const contractHer = ethERC20.address;
+
+    const contractHere2 = await tokenFactory.createERC20.call(name, tokenName, "0x" + sopply.toString(16), {from: deployer});
+    await tokenFactory.createERC20(name, tokenName, "0x" + sopply.toString(16), {from: deployer});
+    const whitelist = await lockAndDataForMainnetERC20.withoutWhitelist(web3.utils.soliditySha3(schainID));
+    await lockAndDataForMainnetERC20.addERC20TokenByOwner(schainID, contractHere);
+    // whitelist == true - disabled whitelist = false - enabled
+    if (whitelist) {
+      await lockAndDataForMainnetERC20.enableWhitelist(schainID);
+      await lockAndDataForMainnetERC20.addERC20TokenByOwner(schainID, contractHere2);
+    } else {
+      await lockAndDataForMainnetERC20.disableWhitelist(schainID);
+      await lockAndDataForMainnetERC20.addERC20TokenByOwner(schainID, contractHere2);
+    }
+    // // execution#1
+    // await lockAndDataForMainnetERC20
+    //     .addERC20ForSchain(schainID, contractHere, {from: deployer});
+    // // expectation#1
+    // const res = await lockAndDataForMainnetERC20.getSchainToERC20(schainID, contractHere);
+    // res.should.be.equal(true);
+    // // execution#2
+    // await lockAndDataForMainnetERC20
+    //     .addERC20ForSchain(schainID, contractHer, {from: deployer});
+    // const res1 = await lockAndDataForMainnetERC20.getSchainToERC20(schainID, contractHer);
+    // // expectation#2
+    // res1.should.be.equal(true);
   });
 
 });
