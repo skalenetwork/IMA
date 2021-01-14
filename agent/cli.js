@@ -250,8 +250,6 @@ function parse( joExternalHandlers ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "ether" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( ".................." ) + cc.notice( "Amount of " ) + cc.attention( "ether" ) + cc.info( "(wei*1000*1000*1000*1000*1000*1000)" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "amount" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "................." ) + cc.notice( "Amount of " ) + cc.attention( "tokens" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "tid" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "...................." ) + cc.attention( "ERC721" ) + cc.notice( " token id to transfer." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "raw-transfer" ) + cc.debug( ".................." ) + cc.notice( "Perform " ) + cc.error( "raw" ) + cc.notice( " " ) + cc.attention( "ERC20" ) + cc.notice( "/" ) + cc.attention( "ERC721" ) + cc.notice( " token transfer to pre-deployed contract on S-Chain(do not instantiate new contract)." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "no-raw-transfer" ) + cc.debug( "..............." ) + cc.notice( "Perform " ) + cc.attention( "ERC20" ) + cc.notice( "/" ) + cc.attention( "ERC721" ) + cc.notice( " token transfer to auto instantiated contract on S-Chain." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "add-cost" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.warning( "unitName" ) + cc.debug( "......." ) + cc.notice( "Amount of additional ETH cost for transferring custom " ) + cc.attention( "ERC20" ) + cc.notice( "/" ) + cc.attention( "ERC721" ) + cc.notice( " tokens from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( ", where " ) + cc.attention( "unitName" ) + cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) + cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sleep-between-tx" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "......." ) + cc.notice( "Number of of " ) + cc.attention( "milliseconds" ) + cc.notice( " to sleep between transactions during complex operations." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "wait-next-block" ) + cc.debug( "..............." ) + cc.notice( "Wait for next block between transactions during complex operations." ) );
@@ -564,14 +562,6 @@ function parse( joExternalHandlers ) {
         if( joArg.name == "tid" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.idToken = joArg.value;
-            continue;
-        }
-        if( joArg.name == "raw-transfer" ) {
-            imaState.isRawTokenTransfer = imaState.isRawTokenTransfer_EXPLICIT = true;
-            continue;
-        }
-        if( joArg.name == "no-raw-transfer" ) {
-            imaState.isRawTokenTransfer = imaState.isRawTokenTransfer_EXPLICIT = false;
             continue;
         }
         if( joArg.name == "gas-price-multiplier-mn" ) {
@@ -899,21 +889,11 @@ function ima_common_init() {
             imaState.strCoinNameErc721_s_chain = "" + imaState.strCoinNameErc721_main_net; // assume same
             imaState.joErc721_s_chain = JSON.parse( JSON.stringify( imaState.joErc721_main_net ) ); // clone
             imaState.joErc721_s_chain[imaState.strCoinNameErc721_s_chain + "_address"] = "" + imaState.strAddrErc721_explicit; // set explicit address
-            if( imaState.isRawTokenTransfer ) {
-                imaState.isRawTokenTransfer = false;
-                if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                    log.write( cc.warning( "ERC721 raw transfer is force " ) + cc.success( "OFF" ) + "\n" );
-            }
             // if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
             //     log.write( cc.info("Auto-generated S-Chain ERC721 JSON is ") + cc.j(imaState.joErc721_s_chain) + "\n" );
         }
     } else {
         if( n1 != 0 && n2 != 0 ) {
-            if( !imaState.isRawTokenTransfer ) {
-                imaState.isRawTokenTransfer = imaState.isRawTokenTransfer_EXPLICIT; // true;
-                if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                    log.write( cc.warning( "ERC721 raw transfer is force " ) + cc.error( imaState.isRawTokenTransfer_EXPLICIT ? "ON" : "OFF" ) + "\n" );
-            }
         }
     }
     //
@@ -1000,21 +980,11 @@ function ima_common_init() {
             imaState.strCoinNameErc20_s_chain = "" + imaState.strCoinNameErc20_main_net; // assume same
             imaState.joErc20_s_chain = JSON.parse( JSON.stringify( imaState.joErc20_main_net ) ); // clone
             imaState.joErc20_s_chain[imaState.strCoinNameErc20_s_chain + "_address"] = "" + imaState.strAddrErc20_explicit; // set explicit address
-            if( imaState.isRawTokenTransfer ) {
-                imaState.isRawTokenTransfer = false;
-                if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                    log.write( cc.warning( "ERC20 raw transfer is force " ) + cc.success( "OFF" ) + "\n" );
-            }
             // if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
             //     log.write( cc.info("Auto-generated S-Chain ERC20 JSON is ") + cc.j(imaState.joErc20_s_chain) + "\n" );
         }
     } else {
         if( n1 != 0 && n2 != 0 ) {
-            if( !imaState.isRawTokenTransfer ) {
-                imaState.isRawTokenTransfer = imaState.isRawTokenTransfer_EXPLICIT; // true;
-                if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                    log.write( cc.warning( "ERC20 raw transfer is force " ) + cc.error( imaState.isRawTokenTransfer_EXPLICIT ? "ON" : "OFF" ) + "\n" );
-            }
         }
     }
     //
@@ -1136,8 +1106,6 @@ function ima_common_init() {
             ensure_have_value( "ERC721 token id ", imaState.idToken, false, true, null, ( x ) => {
                 return cc.info( x );
             } );
-            if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                log.write( cc.info( "ERC721 raw transfer is " ) + cc.yn( imaState.isRawTokenTransfer ) + "\n" );
             log.write( cc.info( "ERC721 explicit S-Chain address is " ) + cc.attention( imaState.strAddrErc721_explicit ) + "\n" );
         }
         if( imaState.strCoinNameErc20_main_net.length > 0 /* && imaState.strCoinNameErc20_s_chain.length > 0 */ ) {
@@ -1150,8 +1118,6 @@ function ima_common_init() {
             ensure_have_value( "Amount of tokens to transfer", imaState.nAmountOfToken, false, true, null, ( x ) => {
                 return cc.info( x );
             } );
-            if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                log.write( cc.info( "ERC20 raw transfer is " ) + cc.yn( imaState.isRawTokenTransfer ) + "\n" );
             log.write( cc.info( "ERC20 explicit S-Chain address is " ) + cc.attention( imaState.strAddrErc20_explicit ) + "\n" );
         }
         log.write( cc.info( "Main Net Gas Price Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasPriceMultiplier ? cc.info( imaState.tc_main_net.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );

@@ -63,6 +63,8 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     const to = user;
     const tokenId = 1;
     // execution
+    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC721.disableWhitelist(schainID);
     const res = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
     // expectation
     (res).should.include("0x");
@@ -81,6 +83,8 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     await eRC721OnChain.transferFrom(deployer,
       lockAndDataForMainnetERC721.address, tokenId, {from: deployer});
     // get data from `receiveERC721`
+    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC721.disableWhitelist(schainID);
     const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
     await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
     // execution
@@ -102,6 +106,8 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     await eRC721OnChain.transferFrom(deployer,
       lockAndDataForMainnetERC721.address, tokenId, {from: deployer});
     // get data from `receiveERC721`
+    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC721.disableWhitelist(schainID);
     const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
     await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
     // execution
@@ -118,6 +124,8 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     const to0 = invoker; // bytes20
     const tokenId = 10;
     // get data from `receiveERC721`
+    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC721.disableWhitelist(schainID);
     const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
     await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
     // execution
@@ -134,6 +142,8 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const tokenId = 10;
     // get data from `receiveERC721`
+    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC721.disableWhitelist(schainID);
     const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
     await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
     // execution
