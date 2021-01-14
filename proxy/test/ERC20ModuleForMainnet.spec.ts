@@ -66,6 +66,8 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const amount = 6;
     await ethERC20.mint(deployer, 10, {from: deployer});
     // execution
+    await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC20.disableWhitelist(schainID);
     const res = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
     // expectation
     res.should.include("0x");
@@ -84,6 +86,8 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
     await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
+    await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC20.disableWhitelist(schainID);
     const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
     await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
     // execution
@@ -142,6 +146,8 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
     await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
+    await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC20.disableWhitelist(schainID);
     const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
     await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
     // execution

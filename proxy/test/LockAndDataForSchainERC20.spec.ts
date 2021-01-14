@@ -114,12 +114,31 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     // preparation
     const addressERC20 = eRC20OnChain.address;
     const schainID = randomString(10);
+    await lockAndDataForSchainERC20
+        .addERC20ForSchain(schainID, eRC20OnMainnet.address, addressERC20, {from: deployer}).should.be.eventually.rejectedWith("Automatic deploy is disabled");
     await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
     // execution
     await lockAndDataForSchainERC20
         .addERC20ForSchain(schainID, eRC20OnMainnet.address, addressERC20, {from: deployer});
     // expectation
     expect(await lockAndDataForSchainERC20.getERC20OnSchain(schainID, eRC20OnMainnet.address)).to.be.equal(addressERC20);
+  });
+
+  it("should add token by owner", async () => {
+    // preparation
+    const schainID = randomString(10);
+    const addressERC20 = eRC20OnChain.address;
+    const addressERC201 = eRC20OnMainnet.address;
+    const automaticDeploy = await lockAndDataForSchainERC20.automaticDeploy(web3.utils.soliditySha3(schainID));
+    await lockAndDataForSchainERC20.addERC20TokenByOwner(schainID, addressERC201, addressERC20);
+    // automaticDeploy == true - enabled automaticDeploy = false - disabled
+    if (automaticDeploy) {
+      await lockAndDataForSchainERC20.disableAutomaticDeploy(schainID);
+      await lockAndDataForSchainERC20.addERC20TokenByOwner(schainID, addressERC201, addressERC20);
+    } else {
+      await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID);
+      await lockAndDataForSchainERC20.addERC20TokenByOwner(schainID, addressERC201, addressERC20);
+    }
   });
 
 });
