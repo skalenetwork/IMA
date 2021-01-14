@@ -111,123 +111,122 @@ class Agent:
                 else:
                     sleep(1)
 
-    #def transfer_erc20_from_mainnet_to_schain(self, token_contract, from_key, to_key, amount, timeout=0):
-    #    config_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
-    #    erc20_config_filename = self.config.test_working_dir + '/erc20.json'
-    #    self._create_path(erc20_config_filename)
-    #    with open(erc20_config_filename, 'w') as erc20_file:
-    #        json.dump(config_json, erc20_file)
-    #
-    #    self._execute_command('m2s-payment', {
-    #                                          'amount': amount,
-    #                                          'key-main-net': from_key,
-    #                                          'key-s-chain': to_key,
-    #                                          'erc20-main-net': erc20_config_filename})
-    #
-    #    start = time()
-    #    while time() < start + timeout if timeout > 0 else True:
-    #        try:
-    #            self.blockchain.get_erc20_on_schain("Mainnet", token_contract.address)
-    #            return
-    #        except ValueError:
-    #            debug('Wait for erc20 deployment')
-    #            sleep(1)
+    def transfer_erc20_from_mainnet_to_schain(self, token_contract, from_key, to_key, amount, timeout=0):
+        config_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
+        erc20_config_filename = self.config.test_working_dir + '/erc20.json'
+        self._create_path(erc20_config_filename)
+        with open(erc20_config_filename, 'w') as erc20_file:
+            json.dump(config_json, erc20_file)
 
-    #def transfer_erc721_from_mainnet_to_schain(self, token_contract, from_key, to_key, token_id, timeout=0):
-    #    config_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
-    #    erc721_config_filename = self.config.test_working_dir + '/erc721.json'
-    #    self._create_path(erc721_config_filename)
-    #    with open(erc721_config_filename, 'w') as erc721_file:
-    #        json.dump(config_json, erc721_file)
-    #    sleep(5)
-    #
-    #    self._execute_command('m2s-payment', {
-    #                                          'tid': token_id,
-    #                                          'key-main-net': from_key,
-    #                                          'key-s-chain': to_key,
-    #                                          'erc721-main-net': erc721_config_filename})
-    #
-    #    start = time()
-    #    while time() < start + timeout if timeout > 0 else True:
-    #        try:
-    #            self.blockchain.get_erc721_on_schain("Mainnet", token_contract.address)
-    #            return
-    #        except ValueError:
-    #            debug('Wait for erc721 deployment')
-    #            sleep(1)
+        self._execute_command('m2s-payment', {
+                                              'amount': amount,
+                                              'key-main-net': from_key,
+                                              'key-s-chain': to_key,
+                                              'erc20-main-net': erc20_config_filename})
 
-    #def transfer_erc20_from_schain_to_mainnet(self, token_contract, token_contract_on_mainnet, from_key, to_key, amount, index, timeout=0):
-    #    config_schain_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
-    #    config_mainnet_json = {'token_address': token_contract_on_mainnet.address, 'token_abi': token_contract_on_mainnet.abi}
-    #    erc20_clone_config_filename = self.config.test_working_dir + '/erc20_clone.json'
-    #    erc20_config_filename = self.config.test_working_dir + '/erc20.json'
-    #    self._create_path(erc20_clone_config_filename)
-    #    self._create_path(erc20_config_filename)
-    #    with open(erc20_clone_config_filename, 'w') as erc20_file:
-    #        json.dump(config_schain_json, erc20_file)
-    #    with open(erc20_config_filename, 'w') as erc20_file:
-    #        json.dump(config_mainnet_json, erc20_file)
-    #
-    #    destination_address = self.blockchain.key_to_address(to_key)
-    #    erc20 = token_contract_on_mainnet
-    #    balance = erc20.functions.balanceOf(destination_address).call()
-    #    # balance = erc20.functions.balanceOf(destination_address)
-    #
-    #    tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
-    #
-    #    self._execute_command('s2m-payment', {
-    #                                          'amount': amount,
-    #                                          'key-main-net': to_key,
-    #                                          'key-s-chain': from_key,
-    #                                          'erc20-main-net': erc20_config_filename,
-    #                                          'erc20-s-chain': erc20_clone_config_filename})
-    #    # sleep(30)
-    #
-    #    start = time()
-    #    while (time() < start + timeout if timeout > 0 else True) and \
-    #            balance == erc20.functions.balanceOf(destination_address).call():
-    #        debug('Wait for erc20 payment')
-    #        sleep(1)
-    #    # start = time()
-    #    # while (time() < start + timeout if timeout > 0 else True) and \
-    #    #         self.blockchain.get_transactions_count_on_mainnet(destination_address) == tx_count:
-    #    #     debug('Wait for erc20 payment')
-    #    #     sleep(1)
+        start = time()
+        while time() < start + timeout if timeout > 0 else True:
+            try:
+                self.blockchain.get_erc20_on_schain("Mainnet", token_contract.address)
+                return
+            except ValueError:
+                debug('Wait for erc20 deployment')
+                sleep(1)
 
-    # def transfer_erc721_from_schain_to_mainnet(self, token_contract, token_contract_on_mainnet, from_key, to_key, token_id, timeout=0):
-    #     config_schain_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
-    #     config_mainnet_json = {'token_address': token_contract_on_mainnet.address, 'token_abi': token_contract_on_mainnet.abi}
-    #     erc721_clone_config_filename = self.config.test_working_dir + '/erc721_clone.json'
-    #     erc721_config_filename = self.config.test_working_dir + '/erc721.json'
-    #     self._create_path(erc721_clone_config_filename)
-    #     self._create_path(erc721_config_filename)
-    #     with open(erc721_clone_config_filename, 'w') as erc721_file:
-    #         json.dump(config_schain_json, erc721_file)
-    #     with open(erc721_config_filename, 'w') as erc721_file:
-    #         json.dump(config_mainnet_json, erc721_file)
-    #
-    #     erc721 = token_contract_on_mainnet
-    #     destination_address = erc721.functions.ownerOf(token_id).call()
-    #     # destination_address = self.blockchain.key_to_address(to_key)
-    #     tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
-    #     sleep(10)
-    #     self._execute_command('s2m-payment', {'no-raw-transfer': None,
-    #                                           'tid': token_id,
-    #                                           'key-main-net': to_key,
-    #                                           'key-s-chain': from_key,
-    #                                           'erc721-main-net': erc721_config_filename,
-    #                                           'erc721-s-chain': erc721_clone_config_filename})
-    #
-    #     start = time()
-    #     while (time() < start + timeout if timeout > 0 else True) and \
-    #             destination_address == erc721.functions.ownerOf(token_id).call():
-    #         debug('Wait for erc721 payment')
-    #         sleep(1)
-    #     # start = time()
-    #     # while (time() < start + timeout if timeout > 0 else True) and \
-    #     #         self.blockchain.get_transactions_count_on_mainnet(destination_address) == tx_count:
-    #     #     debug('Wait for erc721 payment')
-    #     #     sleep(1)
+    def transfer_erc721_from_mainnet_to_schain(self, token_contract, from_key, to_key, token_id, timeout=0):
+        config_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
+        erc721_config_filename = self.config.test_working_dir + '/erc721.json'
+        self._create_path(erc721_config_filename)
+        with open(erc721_config_filename, 'w') as erc721_file:
+            json.dump(config_json, erc721_file)
+        sleep(5)
+
+        self._execute_command('m2s-payment', {
+                                              'tid': token_id,
+                                              'key-main-net': from_key,
+                                              'key-s-chain': to_key,
+                                              'erc721-main-net': erc721_config_filename})
+
+        start = time()
+        while time() < start + timeout if timeout > 0 else True:
+            try:
+                self.blockchain.get_erc721_on_schain("Mainnet", token_contract.address)
+                return
+            except ValueError:
+                debug('Wait for erc721 deployment')
+                sleep(1)
+
+    def transfer_erc20_from_schain_to_mainnet(self, token_contract, token_contract_on_mainnet, from_key, to_key, amount, index, timeout=0):
+        config_schain_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
+        config_mainnet_json = {'token_address': token_contract_on_mainnet.address, 'token_abi': token_contract_on_mainnet.abi}
+        erc20_clone_config_filename = self.config.test_working_dir + '/erc20_clone.json'
+        erc20_config_filename = self.config.test_working_dir + '/erc20.json'
+        self._create_path(erc20_clone_config_filename)
+        self._create_path(erc20_config_filename)
+        with open(erc20_clone_config_filename, 'w') as erc20_file:
+            json.dump(config_schain_json, erc20_file)
+        with open(erc20_config_filename, 'w') as erc20_file:
+            json.dump(config_mainnet_json, erc20_file)
+
+        destination_address = self.blockchain.key_to_address(to_key)
+        erc20 = token_contract_on_mainnet
+        balance = erc20.functions.balanceOf(destination_address).call()
+        # balance = erc20.functions.balanceOf(destination_address)
+
+        tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
+
+        self._execute_command('s2m-payment', {
+                                              'amount': amount,
+                                              'key-main-net': to_key,
+                                              'key-s-chain': from_key,
+                                              'erc20-main-net': erc20_config_filename,
+                                              'erc20-s-chain': erc20_clone_config_filename})
+        # sleep(30)
+
+        start = time()
+        while (time() < start + timeout if timeout > 0 else True) and \
+                balance == erc20.functions.balanceOf(destination_address).call():
+            debug('Wait for erc20 payment')
+            sleep(1)
+        # start = time()
+        # while (time() < start + timeout if timeout > 0 else True) and \
+        #         self.blockchain.get_transactions_count_on_mainnet(destination_address) == tx_count:
+        #     debug('Wait for erc20 payment')
+        #     sleep(1)
+
+    def transfer_erc721_from_schain_to_mainnet(self, token_contract, token_contract_on_mainnet, from_key, to_key, token_id, timeout=0):
+        config_schain_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
+        config_mainnet_json = {'token_address': token_contract_on_mainnet.address, 'token_abi': token_contract_on_mainnet.abi}
+        erc721_clone_config_filename = self.config.test_working_dir + '/erc721_clone.json'
+        erc721_config_filename = self.config.test_working_dir + '/erc721.json'
+        self._create_path(erc721_clone_config_filename)
+        self._create_path(erc721_config_filename)
+        with open(erc721_clone_config_filename, 'w') as erc721_file:
+            json.dump(config_schain_json, erc721_file)
+        with open(erc721_config_filename, 'w') as erc721_file:
+            json.dump(config_mainnet_json, erc721_file)
+
+        erc721 = token_contract_on_mainnet
+        destination_address = erc721.functions.ownerOf(token_id).call()
+        # destination_address = self.blockchain.key_to_address(to_key)
+        tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
+        sleep(10)
+        self._execute_command('s2m-payment', {'tid': token_id,
+                                              'key-main-net': to_key,
+                                              'key-s-chain': from_key,
+                                              'erc721-main-net': erc721_config_filename,
+                                              'erc721-s-chain': erc721_clone_config_filename})
+
+        start = time()
+        while (time() < start + timeout if timeout > 0 else True) and \
+                destination_address == erc721.functions.ownerOf(token_id).call():
+            debug('Wait for erc721 payment')
+            sleep(1)
+        # start = time()
+        # while (time() < start + timeout if timeout > 0 else True) and \
+        #         self.blockchain.get_transactions_count_on_mainnet(destination_address) == tx_count:
+        #     debug('Wait for erc721 payment')
+        #     sleep(1)
 
     # private
 
