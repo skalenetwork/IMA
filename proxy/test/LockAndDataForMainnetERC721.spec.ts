@@ -97,10 +97,30 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
     const contractHere = eRC721OnChain.address;
     const schainID = randomString(10);
     // execution#1
+    await lockAndDataForMainnetERC721
+        .addERC721ForSchain(schainID, contractHere, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC721.disableWhitelist(schainID);
     await lockAndDataForMainnetERC721.addERC721ForSchain(schainID, contractHere, {from: deployer});
     const res = await lockAndDataForMainnetERC721.getSchainToERC721(schainID, contractHere);
     // expectation#1
     res.should.be.equal(true);
+  });
+
+  it("should add token by owner", async () => {
+    // preparation
+    const contractHere = eRC721OnChain.address;
+    const schainID = randomString(10);
+
+    const whitelist = await lockAndDataForMainnetERC721.withoutWhitelist(web3.utils.soliditySha3(schainID));
+    await lockAndDataForMainnetERC721.addERC721TokenByOwner(schainID, contractHere);
+    // whitelist == true - disabled whitelist = false - enabled
+    if (whitelist) {
+      await lockAndDataForMainnetERC721.enableWhitelist(schainID);
+      await lockAndDataForMainnetERC721.addERC721TokenByOwner(schainID, contractHere);
+    } else {
+      await lockAndDataForMainnetERC721.disableWhitelist(schainID);
+      await lockAndDataForMainnetERC721.addERC721TokenByOwner(schainID, contractHere);
+    }
   });
 
 });

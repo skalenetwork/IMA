@@ -178,7 +178,10 @@ contract("DepositBox", ([deployer, user]) => {
         // approve some quantity of ERC20 tokens for `depositBox` address
         await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
         // execution
-        const res = await depositBox
+        await depositBox
+          .depositERC20(schainID, ethERC20.address, deployer, 1, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+        await lockAndDataForMainnetERC20.disableWhitelist(schainID);
+        await depositBox
           .depositERC20(schainID, ethERC20.address, deployer, 1, {from: deployer});
       });
 
@@ -193,6 +196,9 @@ contract("DepositBox", ([deployer, user]) => {
         // approve some quantity of ERC20 tokens for `depositBox` address
         await ethERC20.approve(depositBox.address, "1000000", {from: deployer});
         // execution
+        await depositBox
+          .depositERC20(schainID, ethERC20.address, deployer, 1, {value: "1000000000000", from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+        await lockAndDataForMainnetERC20.disableWhitelist(schainID);
         await depositBox
           .depositERC20(schainID, ethERC20.address, deployer, 1, {value: "1000000000000", from: deployer});
       });
@@ -252,6 +258,9 @@ contract("DepositBox", ([deployer, user]) => {
         await eRC721OnChain.transferFrom(deployer,
           depositBox.address, tokenId, {from: deployer});
         // execution
+        await depositBox
+          .depositERC721(schainID, contractHere, to, tokenId, {value: wei, from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+        await lockAndDataForMainnetERC721.disableWhitelist(schainID);
         await depositBox
           .depositERC721(schainID, contractHere, to, tokenId, {value: wei, from: deployer});
         const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
@@ -442,6 +451,8 @@ contract("DepositBox", ([deployer, user]) => {
        */
       await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
       // get data from `receiveERC20`
+      await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+      await lockAndDataForMainnetERC20.disableWhitelist(schainID);
       const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
       await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
       // execution
@@ -480,6 +491,8 @@ contract("DepositBox", ([deployer, user]) => {
       await eRC721OnChain.transferFrom(deployer,
         lockAndDataForMainnetERC721.address, tokenId, {from: deployer});
       // get data from `receiveERC721`
+      eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+      await lockAndDataForMainnetERC721.disableWhitelist(schainID);
       const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
       eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
       // execution

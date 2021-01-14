@@ -164,6 +164,8 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await erc20OnMainnet.mint(deployer, "1000000000", {from: deployer});
     await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
     // get data from `receiveERC20`
+    await eRC20ModuleForMainnet.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC20.disableWhitelist(schainID);
     const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, ERC20OnMainnet, to, amount, {from: deployer});
     // await eRC20ModuleForMainnet.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer});
     // execution
