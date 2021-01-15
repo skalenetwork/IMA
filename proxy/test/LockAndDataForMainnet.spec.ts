@@ -65,41 +65,41 @@ contract("LockAndDataForMainnet", ([deployer, invoker]) => {
     // preparation
     const wei = "10000";
     const lockAndDataBalanceBefore = await web3.eth.getBalance(lockAndDataForMainnet.address);
-    // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract through `receiveETH` because `receiveETH` have `payable` parameter
     await lockAndDataForMainnet
-      .receiveEth(invoker, {value: wei, from: deployer});
+      .receiveETH(invoker, {value: wei, from: deployer});
     const lockAndDataBalanceAfter = await web3.eth.getBalance(lockAndDataForMainnet.address);
     // expectation
     expect(parseInt(lockAndDataBalanceAfter, 10) -
       parseInt(lockAndDataBalanceBefore, 10)).to.be.equal(parseInt(wei, 10));
   });
 
-  it("should check sendEth returned bool value", async () => {
+  it("should check sendETH returned bool value", async () => {
     // preparation
     const wei = 1000;
-    // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract through `receiveETH` because `receiveETH` have `payable` parameter
     await lockAndDataForMainnet
-      .receiveEth(invoker, {value: wei.toString(), from: deployer});
+      .receiveETH(invoker, {value: wei.toString(), from: deployer});
     // execution/expectation
     let value = await lockAndDataForMainnet
-      .sendEth.call(invoker, wei, {from: deployer});
+      .sendETH.call(invoker, wei, {from: deployer});
     expect(value).to.be.equal(true);
 
     value = await lockAndDataForMainnet
-      .sendEth.call(invoker, wei + 1, {from: deployer});
+      .sendETH.call(invoker, wei + 1, {from: deployer});
     expect(value).to.be.equal(false);
   });
 
-  it("should work `sendEth`", async () => {
+  it("should work `sendETH`", async () => {
     // preparation
     const addWeiToContract = "1000";
     const sendWeiFromContract = 100;
-    // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract through `receiveETH` because `receiveETH` have `payable` parameter
     await lockAndDataForMainnet
-      .receiveEth(invoker, {value: addWeiToContract, from: deployer});
+      .receiveETH(invoker, {value: addWeiToContract, from: deployer});
     // execution
     await lockAndDataForMainnet
-      .sendEth(invoker, sendWeiFromContract,
+      .sendETH(invoker, sendWeiFromContract,
         {from: deployer});
     const contractBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
     // expectation
@@ -111,9 +111,9 @@ contract("LockAndDataForMainnet", ([deployer, invoker]) => {
     // preparation
     const addWeiToContract = "1000";
     const sendWeiFromContract = 100;
-    // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract through `receiveETH` because `receiveETH` have `payable` parameter
     await lockAndDataForMainnet
-      .receiveEth(invoker, {value: addWeiToContract, from: deployer});
+      .receiveETH(invoker, {value: addWeiToContract, from: deployer});
     // execution
     await lockAndDataForMainnet
       .approveTransfer(deployer, sendWeiFromContract, {from: deployer});
@@ -127,9 +127,9 @@ contract("LockAndDataForMainnet", ([deployer, invoker]) => {
     // preparation
     const addWeiToContract = "1000";
     const setWeiToApproveTransfers = 100;
-    // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract through `receiveETH` because `receiveETH` have `payable` parameter
     await lockAndDataForMainnet
-      .receiveEth(invoker, {value: addWeiToContract, from: deployer});
+      .receiveETH(invoker, {value: addWeiToContract, from: deployer});
     // without `approveTransfer` `getMyEth` not invoke
     await lockAndDataForMainnet
       .approveTransfer(deployer, setWeiToApproveTransfers, {from: deployer});
@@ -156,9 +156,9 @@ contract("LockAndDataForMainnet", ([deployer, invoker]) => {
     const error = "Not enough ETH. in `LockAndDataForMainnet.getMyEth`";
     const addWeiToContract = "1";
     const setWeiToApproveTransfers = 100;
-    // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
+    // add wei to contract through `receiveETH` because `receiveETH` have `payable` parameter
     await lockAndDataForMainnet
-      .receiveEth(invoker, {value: addWeiToContract, from: deployer});
+      .receiveETH(invoker, {value: addWeiToContract, from: deployer});
     // without `approveTransfer` `getMyEth` not invoke
     await lockAndDataForMainnet
       .approveTransfer(deployer, setWeiToApproveTransfers, {from: deployer});

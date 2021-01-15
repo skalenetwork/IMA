@@ -57,14 +57,14 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
 
     // address which has been set should be equal to deployed contract address;
-    const address = await lockAndDataForSchain.getEthErc20Address();
+    const address = await lockAndDataForSchain.getETH_ERC20Address();
     expect(address).to.equal(ethERC20.address);
   });
 
   it("should set contract", async () => {
-    const nullAddress = await lockAndDataForSchain.getEthErc20Address();
+    const nullAddress = await lockAndDataForSchain.getETH_ERC20Address();
     await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
-    const address = await lockAndDataForSchain.getEthErc20Address();
+    const address = await lockAndDataForSchain.getETH_ERC20Address();
 
     // only owner can set contract:
     await lockAndDataForSchain.setContract("EthERC20", address, {from: user})
@@ -208,17 +208,17 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
 
     // only owner can send Eth:
-    await lockAndDataForSchain.sendEth(address, amount, {from: user}).should.be.rejected;
+    await lockAndDataForSchain.sendETH(address, amount, {from: user}).should.be.rejected;
 
     // amount more zen cap = 120 * (10 ** 6) * (10 ** 18) can't be sent:
-    await lockAndDataForSchain.sendEth(address, amountMoreThenCap, {from: deployer});
+    await lockAndDataForSchain.sendETH(address, amountMoreThenCap, {from: deployer});
 
     // balance of account  equal to zero:
     const balanceBefore = new BigNumber(await ethERC20.balanceOf(user)).toFixed();
     balanceBefore.should.be.deep.equal(amountMoreThenCap);
 
     // send Eth:
-    await lockAndDataForSchain.sendEth(address, amount, {from: deployer});
+    await lockAndDataForSchain.sendETH(address, amount, {from: deployer});
 
     // balance of account equal to amount which has been sent:
     const balanceAfter = new BigNumber(await ethERC20.balanceOf(user)).toFixed();
@@ -237,14 +237,14 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
 
     //  send Eth to account:
-    await lockAndDataForSchain.sendEth(address, amount, {from: deployer});
+    await lockAndDataForSchain.sendETH(address, amount, {from: deployer});
 
     // balance of account equal to amount which has been sent:
     const balance = new BigNumber(await ethERC20.balanceOf(address));
     balance.should.be.deep.equal(amount);
 
-    // burn Eth through `receiveEth` function:
-    await lockAndDataForSchain.receiveEth(address, amount, {from: deployer});
+    // burn Eth through `receiveETH` function:
+    await lockAndDataForSchain.receiveETH(address, amount, {from: deployer});
 
     // balance after "receiving" equal to zero:
     const balanceAfter = new BigNumber(await ethERC20.balanceOf(address));

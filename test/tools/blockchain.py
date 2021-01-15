@@ -161,7 +161,7 @@ class BlockChain:
     def add_eth_cost(self, from_key, amount):
         sender_address = self.key_to_address(from_key)
         token_manager = self._get_contract_on_schain('token_manager')
-        add_eth_cost_encode_abi = token_manager.encodeABI(fn_name="addEthCostWithoutAddress", args=[amount])
+        add_eth_cost_encode_abi = token_manager.encodeABI(fn_name="addETHCostWithoutAddress", args=[amount])
         signed_txn = self.web3_schain.eth.account.signTransaction(dict(
                 nonce=self.web3_schain.eth.getTransactionCount(sender_address),
                 gasPrice=self.web3_schain.eth.gasPrice,

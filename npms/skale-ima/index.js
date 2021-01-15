@@ -1153,19 +1153,19 @@ async function do_eth_payment_from_s_chain(
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
         //
         if( g_amountToAddCost != null && g_amountToAddCost != undefined ) {
-            strActionName = "w3_s_chain.eth.sendSignedTransaction()/addEthCost";
+            strActionName = "w3_s_chain.eth.sendSignedTransaction()/addETHCost";
             const tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
             //
-            const isIgnore_addEthCost = false;
-            const methodWithArguments_addEthCost = jo_token_manager.methods.addEthCost(
+            const isIgnore_addETHCost = false;
+            const methodWithArguments_addETHCost = jo_token_manager.methods.addETHCost(
                 "0x" + w3_s_chain.utils.toBN( g_amountToAddCost ).toString( 16 )
             );
             //
-            const strDRC_addEthCost = "do_erc20_payment_from_s_chain, addEthCost";
-            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
-            dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
+            const strDRC_addETHCost = "do_erc20_payment_from_s_chain, addETHCost";
+            await dry_run_call( w3_s_chain, methodWithArguments_addETHCost, joAccountSrc, strDRC_addETHCost, isIgnore_addETHCost );
+            dataAddEthCost = methodWithArguments_addETHCost.encodeABI();
             //
             const rawTxAddEthCost = {
                 chainId: cid_s_chain,
@@ -1852,19 +1852,19 @@ async function do_erc20_payment_from_s_chain(
         //
         //
         if( g_amountToAddCost != null && g_amountToAddCost != undefined ) {
-            strActionName = "w3_s_chain.eth.sendSignedTransaction()/addEthCost";
+            strActionName = "w3_s_chain.eth.sendSignedTransaction()/addETHCost";
             tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
             //
-            const isIgnore_addEthCost = false;
-            const methodWithArguments_addEthCost = jo_token_manager.methods.addEthCost(
+            const isIgnore_addETHCost = false;
+            const methodWithArguments_addETHCost = jo_token_manager.methods.addETHCost(
                 "0x" + w3_main_net.utils.toBN( g_amountToAddCost ).toString( 16 )
             );
             //
-            const strDRC_addEthCost = "do_erc20_payment_from_s_chain, addEthCost";
-            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
-            dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
+            const strDRC_addETHCost = "do_erc20_payment_from_s_chain, addETHCost";
+            await dry_run_call( w3_s_chain, methodWithArguments_addETHCost, joAccountSrc, strDRC_addETHCost, isIgnore_addETHCost );
+            dataAddEthCost = methodWithArguments_addETHCost.encodeABI();
             //
             const rawTxAddEthCost = {
                 chainId: cid_s_chain,
@@ -2065,19 +2065,19 @@ async function do_erc721_payment_from_s_chain(
         //
         //
         if( g_amountToAddCost != null && g_amountToAddCost != undefined ) {
-            strActionName = "w3_s_chain.eth.sendSignedTransaction()/addEthCost";
+            strActionName = "w3_s_chain.eth.sendSignedTransaction()/addETHCost";
             tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
             //
-            const isIgnore_addEthCost = false;
-            const methodWithArguments_addEthCost = jo_token_manager.methods.addEthCost(
+            const isIgnore_addETHCost = false;
+            const methodWithArguments_addETHCost = jo_token_manager.methods.addETHCost(
                 "0x" + w3_main_net.utils.toBN( g_amountToAddCost ).toString( 16 )
             );
             //
-            const strDRC_addEthCost = "do_erc721_payment_from_s_chain, addEthCost";
-            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
-            dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
+            const strDRC_addETHCost = "do_erc721_payment_from_s_chain, addETHCost";
+            await dry_run_call( w3_s_chain, methodWithArguments_addETHCost, joAccountSrc, strDRC_addETHCost, isIgnore_addETHCost );
+            dataAddEthCost = methodWithArguments_addETHCost.encodeABI();
             //
             const rawTxAddEthCost = {
                 chainId: cid_s_chain,

@@ -368,9 +368,9 @@ contract("DepositBox", ([deployer, user]) => {
       // add schain to avoid the `Receiver chain is incorrect` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
+      // add wei to contract through `receiveETH` because `receiveETH` have `payable` parameter
       await lockAndDataForMainnet
-        .receiveEth(deployer, {value: wei, from: deployer});
+        .receiveETH(deployer, {value: wei, from: deployer});
       // execution
       await depositBox
         .postMessage(sender, schainID, user, amount, bytesData, {from: deployer})
@@ -393,9 +393,9 @@ contract("DepositBox", ([deployer, user]) => {
       // add schain to avoid the `Receiver chain is incorrect` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
+      // add wei to contract through `receiveETH` because `receiveETH` have `payable` parameter
       await lockAndDataForMainnet
-        .receiveEth(deployer, {value: wei, from: deployer});
+        .receiveETH(deployer, {value: wei, from: deployer});
       // execution
       await depositBox
         .postMessage(sender, schainID, user, amount, bytesData, {from: deployer})
@@ -416,9 +416,9 @@ contract("DepositBox", ([deployer, user]) => {
       // add schain to avoid the `Receiver chain is incorrect` error
       await lockAndDataForMainnet
         .addSchain(schainID, deployer, {from: deployer});
-      // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
+      // add wei to contract through `receiveETH` because `receiveETH` have `payable` parameter
       await lockAndDataForMainnet
-        .receiveEth(deployer, {value: wei, from: deployer});
+        .receiveETH(deployer, {value: wei, from: deployer});
       // execution
       await depositBox
         .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
@@ -456,9 +456,9 @@ contract("DepositBox", ([deployer, user]) => {
       const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
       await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
       // execution
-      // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
+      // add wei to contract through `receiveETH` because `receiveETH` have `payable` parameter
       await lockAndDataForMainnet
-        .receiveEth(deployer, {value: wei, from: deployer});
+        .receiveETH(deployer, {value: wei, from: deployer});
       // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
       await lockAndDataForMainnet.setContract("MessageProxy", deployer);
@@ -496,9 +496,9 @@ contract("DepositBox", ([deployer, user]) => {
       const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
       eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
       // execution
-      // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
+      // add wei to contract through `receiveETH` because `receiveETH` have `payable` parameter
       await lockAndDataForMainnet
-        .receiveEth(deployer, {value: wei, from: deployer});
+        .receiveETH(deployer, {value: wei, from: deployer});
       // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
       await lockAndDataForMainnet.setContract("MessageProxy", deployer);

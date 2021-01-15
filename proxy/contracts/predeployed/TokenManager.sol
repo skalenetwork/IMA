@@ -31,8 +31,8 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.
 interface ILockAndDataTM {
     function setContract(string calldata contractName, address newContract) external;
     function tokenManagerAddresses(bytes32 schainHash) external returns (address);
-    function sendEth(address to, uint256 amount) external returns (bool);
-    function receiveEth(address sender, uint256 amount) external returns (bool);
+    function sendETH(address to, uint256 amount) external returns (bool);
+    function receiveETH(address sender, uint256 amount) external returns (bool);
     function approveTransfer(address to, uint256 amount) external;
     function ethCosts(address to) external returns (uint256);
     function addGasCosts(address to, uint256 amount) external;
@@ -76,7 +76,7 @@ contract TokenManager is PermissionsForSchain {
         address schainTokenManagerAddress = ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash);
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")),
-            "This function is not for transfering to Mainnet"
+            "This function is not for transferring to Mainnet"
         );
         require(schainTokenManagerAddress != address(0), "Incorrect Token Manager address");
         _;
@@ -84,7 +84,7 @@ contract TokenManager is PermissionsForSchain {
 
     modifier receivedEth(uint256 amount) {
         require(amount >= GAS_CONSUMPTION, "Null Amount");
-        require(ILockAndDataTM(getLockAndDataAddress()).receiveEth(msg.sender, amount), "Could not receive ETH Clone");
+        require(ILockAndDataTM(getLockAndDataAddress()).receiveETH(msg.sender, amount), "Could not receive ETH Clone");
         _;
     }
 
@@ -116,8 +116,8 @@ contract TokenManager is PermissionsForSchain {
     /**
      * @dev Adds ETH cost to perform exit transaction.
      */
-    function addEthCostWithoutAddress(uint256 amount) external {
-        addEthCost(amount);
+    function addETHCostWithoutAddress(uint256 amount) external {
+        addETHCost(amount);
     }
 
     /**
@@ -125,7 +125,7 @@ contract TokenManager is PermissionsForSchain {
      */
     function removeEthCost() external {
         uint256 returnBalance = ILockAndDataTM(getLockAndDataAddress()).removeGasCosts(msg.sender);
-        require(ILockAndDataTM(getLockAndDataAddress()).sendEth(msg.sender, returnBalance), "Not sent");
+        require(ILockAndDataTM(getLockAndDataAddress()).sendETH(msg.sender, returnBalance), "Not sent");
     }
 
     function exitToMainERC20(address contractOnMainnet, address to, uint256 amount) external {
@@ -299,21 +299,21 @@ contract TokenManager is PermissionsForSchain {
         TransactionOperation operation = _fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
             require(to != address(0), "Incorrect receiver");
-            require(ILockAndDataTM(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
+            require(ILockAndDataTM(getLockAndDataAddress()).sendETH(to, amount), "Not Sent");
         } else if (operation == TransactionOperation.transferERC20) {
             address erc20Module = LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getErc20Module();
             require(IERC20ModuleForSchain(erc20Module).sendERC20(fromSchainID, data), "Failed to send ERC20");
             address receiver = IERC20ModuleForSchain(erc20Module).getReceiver(data);
-            require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
+            require(ILockAndDataTM(getLockAndDataAddress()).sendETH(receiver, amount), "Not Sent");
         } else if (operation == TransactionOperation.transferERC721) {
             address erc721Module = LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getErc721Module();
             require(IERC721ModuleForSchain(erc721Module).sendERC721(fromSchainID, data), "Failed to send ERC721");
             address receiver = IERC721ModuleForSchain(erc721Module).getReceiver(data);
-            require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
+            require(ILockAndDataTM(getLockAndDataAddress()).sendETH(receiver, amount), "Not Sent");
         }
     }
 
@@ -373,14 +373,14 @@ contract TokenManager is PermissionsForSchain {
     /**
      * @dev Adds ETH cost for `msg.sender` exit transaction.
      */
-    function addEthCost(uint256 amount) public {
-        addEthCost(msg.sender, amount);
+    function addETHCost(uint256 amount) public {
+        addETHCost(msg.sender, amount);
     }
 
     /**
      * @dev Adds ETH cost for user's exit transaction.
      */
-    function addEthCost(address sender, uint256 amount) public receivedEth(amount) {
+    function addETHCost(address sender, uint256 amount) public receivedEth(amount) {
         ILockAndDataTM(getLockAndDataAddress()).addGasCosts(sender, amount);
     }
 
@@ -399,11 +399,11 @@ contract TokenManager is PermissionsForSchain {
      * @dev Returns MessageProxy address.
      */
     function getProxyForSchainAddress() public view returns ( address ow ) {
-        address proxyForSchaniAddress = LockAndDataForSchain(
+        address proxyForSchainAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getMessageProxy();
-        if (proxyForSchaniAddress != address(0) )
-            return proxyForSchaniAddress;
+        if (proxyForSchainAddress != address(0) )
+            return proxyForSchainAddress;
         return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
             "skaleConfig.contractSettings.IMA.MessageProxy"
         );

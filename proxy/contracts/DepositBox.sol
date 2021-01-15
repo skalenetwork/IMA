@@ -31,10 +31,10 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.
 interface ILockAndDataDB {
     function setContract(string calldata contractName, address newContract) external;
     function tokenManagerAddresses(bytes32 schainHash) external returns (address);
-    function sendEth(address to, uint256 amount) external returns (bool);
+    function sendETH(address to, uint256 amount) external returns (bool);
     function approveTransfer(address to, uint256 amount) external;
     function addSchain(string calldata schainID, address tokenManagerAddress) external;
-    function receiveEth(address from) external payable;
+    function receiveETH(address from) external payable;
 }
 
 // This contract runs on the main net and accepts deposits
@@ -75,7 +75,7 @@ contract DepositBox is PermissionsForMainnet {
     modifier requireGasPayment() {
         require(msg.value >= GAS_CONSUMPTION, "Gas was not paid");
         _;
-        ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
+        ILockAndDataDB(lockAndDataAddress_).receiveETH.value(msg.value)(msg.sender);
     }
 
     fallback() external payable {
@@ -135,7 +135,7 @@ contract DepositBox is PermissionsForMainnet {
             data
         );
         if (msg.value > 0) {
-            ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
+            ILockAndDataDB(lockAndDataAddress_).receiveETH.value(msg.value)(msg.sender);
         }
     }
 
@@ -175,7 +175,7 @@ contract DepositBox is PermissionsForMainnet {
             data
         );
         if (msg.value > 0) {
-            ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
+            ILockAndDataDB(lockAndDataAddress_).receiveETH.value(msg.value)(msg.sender);
         }
     }
 
@@ -202,7 +202,7 @@ contract DepositBox is PermissionsForMainnet {
             "Not enough money to finish this transaction"
         );
         require(
-            ILockAndDataDB(lockAndDataAddress_).sendEth(getOwner(), GAS_CONSUMPTION),
+            ILockAndDataDB(lockAndDataAddress_).sendETH(getOwner(), GAS_CONSUMPTION),
             "Could not send money to owner"
         );
         _executePerOperation(to, amount, data);

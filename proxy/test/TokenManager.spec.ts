@@ -137,7 +137,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
 
         // send Eth:
-        await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
+        await lockAndDataForSchain.sendETH(user, amount, {from: deployer});
 
         // send Eth to a client on Mainnet:
         await tokenManager.exitToMainWithoutData(to, amountTo, {from: user});
@@ -165,7 +165,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
 
         // send Eth:
-        await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
+        await lockAndDataForSchain.sendETH(user, amount, {from: deployer});
 
         // add schain:
         await lockAndDataForSchain.addSchain(chainID, user, {from: deployer});
@@ -195,13 +195,13 @@ contract("TokenManager", ([deployer, user, client]) => {
         await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
 
         // send Eth:
-        await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
+        await lockAndDataForSchain.sendETH(user, amount, {from: deployer});
 
         // // add schain:
         await lockAndDataForSchain.addSchain(chainID, user, {from: deployer});
 
         // add Eth cost:
-        await tokenManager.addEthCostWithoutAddress(amountTo, {from: user});
+        await tokenManager.addETHCostWithoutAddress(amountTo, {from: user});
 
         const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
         balanceAfter.should.be.deep.equal(amountAfter);
@@ -228,13 +228,13 @@ contract("TokenManager", ([deployer, user, client]) => {
         await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
 
         // send Eth:
-        await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
+        await lockAndDataForSchain.sendETH(user, amount, {from: deployer});
 
         // // add schain:
         await lockAndDataForSchain.addSchain(chainID, user, {from: deployer});
 
         // add Eth cost:
-        await tokenManager.addEthCostWithoutAddress(amountTo, {from: user});
+        await tokenManager.addETHCostWithoutAddress(amountTo, {from: user});
 
         const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
         balanceAfter.should.be.deep.equal(amountAfter);

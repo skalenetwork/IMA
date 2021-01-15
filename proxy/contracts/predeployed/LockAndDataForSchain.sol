@@ -237,16 +237,16 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Allows TokenManager to send (mint) ETH from LockAndDataForSchain.
      */
-    function sendEth(address to, uint256 amount) external allow("TokenManager") returns (bool) {
-        require(EthERC20(getEthErc20Address()).mint(to, amount), "Mint error");
+    function sendETH(address to, uint256 amount) external allow("TokenManager") returns (bool) {
+        require(EthERC20(getETH_ERC20Address()).mint(to, amount), "Mint error");
         return true;
     }
 
     /**
      * @dev Allows TokenManager to receive (burn) ETH to LockAndDataForSchain.
      */
-    function receiveEth(address sender, uint256 amount) external allow("TokenManager") returns (bool) {
-        EthERC20(getEthErc20Address()).burnFrom(sender, amount);
+    function receiveETH(address sender, uint256 amount) external allow("TokenManager") returns (bool) {
+        EthERC20(getETH_ERC20Address()).burnFrom(sender, amount);
         return true;
     }
     function isSchainOwner(address sender) external view returns (bool) {
@@ -269,7 +269,7 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Returns EthERC20 contract address.
      */
-    function getEthErc20Address() public view returns (address addressOfEthErc20) {
+    function getETH_ERC20Address() public view returns (address addressOfEthErc20) {
         if (_ethErc20Address == address(0) && (!_isCustomDeploymentMode)) {
             return SkaleFeatures(
                     getSkaleFeaturesAddress()

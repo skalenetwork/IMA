@@ -71,7 +71,7 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
      *
      * Emits a {ETHReceived} event.
      */
-    function receiveEth(address from) external allow("DepositBox") payable {
+    function receiveETH(address from) external allow("DepositBox") payable {
         emit ETHReceived(from, msg.value);
     }
     
@@ -169,7 +169,7 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
      *
      * Emits an {Error} upon insufficient ETH in LockAndDataForMainnet.
      */
-    function sendEth(address payable to, uint256 amount) external allow("DepositBox") returns (bool) {
+    function sendETH(address payable to, uint256 amount) external allow("DepositBox") returns (bool) {
         if (address(this).balance >= amount) {
             to.transfer(amount);
             return true;
@@ -184,7 +184,7 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
     }
 
     /**
-     * @dev Checks whether LockAndDataforMainnet is connected to a SKALE chain.
+     * @dev Checks whether LockAndDataForMainnet is connected to a SKALE chain.
      */
     function hasSchain( string calldata schainID ) external view returns (bool) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
