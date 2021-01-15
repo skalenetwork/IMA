@@ -269,6 +269,7 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Returns EthERC20 contract address.
      */
+     // solhint-disable-next-line func-name-mixedcase
     function getETH_ERC20Address() public view returns (address addressOfEthErc20) {
         if (_ethErc20Address == address(0) && (!_isCustomDeploymentMode)) {
             return SkaleFeatures(
