@@ -114,8 +114,6 @@ global.imaState = {
     "nAmountOfWei": 0, // 1000000000000000000
     "nAmountOfToken": 0,
     "idToken": 0,
-    "isRawTokenTransfer": true,
-    "isRawTokenTransfer_EXPLICIT": false,
 
     "nTransferBlockSizeM2S": 4, // 10
     "nTransferBlockSizeS2M": 4, // 10
@@ -305,7 +303,6 @@ imaCLI.parse( {
                         imaState.joErc721_main_net,
                         imaState.strCoinNameErc721_s_chain,
                         imaState.joErc721_s_chain,
-                        imaState.isRawTokenTransfer,
                         imaState.tc_main_net
                     );
                 }
@@ -331,7 +328,6 @@ imaCLI.parse( {
                         imaState.joErc20_main_net,
                         imaState.strCoinNameErc20_s_chain,
                         imaState.joErc20_s_chain,
-                        imaState.isRawTokenTransfer,
                         imaState.tc_main_net
                     );
                 }
@@ -374,7 +370,6 @@ imaCLI.parse( {
                         imaState.joErc721_main_net,
                         imaState.strCoinNameErc721_s_chain,
                         imaState.joErc721_s_chain,
-                        imaState.isRawTokenTransfer,
                         imaState.tc_s_chain
                     );
                 }
@@ -396,7 +391,6 @@ imaCLI.parse( {
                         imaState.joErc20_main_net,
                         imaState.strCoinNameErc20_s_chain,
                         imaState.joErc20_s_chain,
-                        imaState.isRawTokenTransfer,
                         imaState.tc_s_chain
                     );
                 }

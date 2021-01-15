@@ -506,7 +506,6 @@ describe('tests for `npms/skale-ima`', function () {
         let erc20PrivateTestnetJson_main_net;
         let strCoinNameErc20_s_chain;
         let erc20PrivateTestnetJson_s_chain;
-        let isRawTokenTransfer = true;
         // 
         expect(await IMA.
             do_erc20_payment_from_main_net(
@@ -522,40 +521,9 @@ describe('tests for `npms/skale-ima`', function () {
                 erc20PrivateTestnetJson_main_net,
                 strCoinNameErc20_s_chain,
                 erc20PrivateTestnetJson_s_chain,
-                isRawTokenTransfer,
                 tc_main_net
             )
         ).to.be.false;
-    });
-
-    it('should return `true` invoke `do_erc20_payment_from_main_net`', async function () {
-        let token_amount = "123";
-        let strCoinNameErc20_main_net = "test";
-        let erc20PrivateTestnetJson_main_net = {test_abi: "0x0", 
-            test_address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"};
-        let strCoinNameErc20_s_chain = "test";
-        let erc20PrivateTestnetJson_s_chain = {test_abi: "0x0", 
-            test_address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"};
-        let isRawTokenTransfer = false;
-        // 
-        expect(await IMA.
-            do_erc20_payment_from_main_net(
-                w3_main_net,
-                w3_s_chain,
-                joAccountSrc,
-                joAccountDst,
-                jo_deposit_box,
-                chain_id_s_chain,
-                token_amount, // how much ERC20 tokens to send
-                jo_token_manager, // only s-chain
-                strCoinNameErc20_main_net,
-                erc20PrivateTestnetJson_main_net,
-                strCoinNameErc20_s_chain,
-                erc20PrivateTestnetJson_s_chain,
-                isRawTokenTransfer,
-                tc_main_net
-            )
-        ).to.be.true;
     });
 
     it('should return `false` invoke `do_erc20_payment_from_s_chain`', async function () {
@@ -564,7 +532,6 @@ describe('tests for `npms/skale-ima`', function () {
         let joErc20_main_net;
         let strCoinNameErc20_s_chain;
         let joErc20_s_chain;
-        let isRawTokenTransfer = true;
         // 
         expect(await IMA.
             do_erc20_payment_from_s_chain(
@@ -579,39 +546,9 @@ describe('tests for `npms/skale-ima`', function () {
                 joErc20_main_net,
                 strCoinNameErc20_s_chain,
                 joErc20_s_chain,
-                isRawTokenTransfer,
                 tc_s_chain
             )
         ).to.be.false;
-    });
-
-    it('should return `true` invoke `do_erc20_payment_from_s_chain`', async function () {
-        let token_amount = "123";
-        let strCoinNameErc20_main_net = "test";
-        let joErc20_main_net = {test_abi: "0x0", 
-            test_address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"};
-        let strCoinNameErc20_s_chain = "test";
-        let joErc20_s_chain = {test_abi: "0x0", 
-            test_address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"};
-        let isRawTokenTransfer = false;
-        // 
-        expect(await IMA.
-            do_erc20_payment_from_s_chain(
-                w3_main_net,
-                w3_s_chain,
-                joAccountSrc,
-                joAccountDst,
-                jo_token_manager, // only s-chain
-                jo_deposit_box, // only main net
-                token_amount, // how much ERC20 tokens to send
-                strCoinNameErc20_main_net,
-                joErc20_main_net,
-                strCoinNameErc20_s_chain,
-                joErc20_s_chain,
-                isRawTokenTransfer,
-                tc_s_chain
-            )
-        ).to.be.true;
     });
 
     it('should return `false` invoke `do_transfer`', async function () {

@@ -380,68 +380,9 @@ Performed with the **--transfer** command line option:
 
 The **--node-number** and **--nodes-count** must me used for **IMA** instances running on S-Chain nodes which are part of multi-node S-Chain.
 
-#### ERC20 Default Transfer from Main Net Account to S-Chain
+#### ERC20 transfer from Main Net account to S-Chain
 
-Performed with the **--m2s-payment** and **--no-raw-transfer** command line options:
-
-```bash
-    node ./main.js --verbose=9 \
-        --m2s-payment \
-        --amount=1 \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
-        --id-main-net=Mainnet \
-        --id-s-chain=Bob \
-        --cid-main-net=-4 \
-        --cid-s-chain=-4 \
-        --abi-main-net=../proxy/data/proxyMainnet.json \
-        --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --erc20-main-net=data-mn.json \
-        --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
-        --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852 \
-        --no-raw-transfer
-```
-
-Notice: The command above does payment from `Main Net` and that is why we need to specify private key for source account inside `Main Net` blockchain using the **--key-main-net** command line argument. Target `S-Chain` account is specified as address with the **--address-s-chain** command line argument. We don't need to specify private key for target account.
-
-#### ERC721 Default Transfer from Main Net Account to S-Chain
-
-Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
-
-#### ERC20 Default Transfer from S-Chain Account to Main Net
-
-Performed with the **--s2m-payment**, **--no-raw-transfer** and **--addr-erc20-s-chain** command line options:
-
-```bash
-    node ./main.js --verbose=9 \
-        --s2m-payment \
-        --amount=1 \
-        --add-cost=10ether \
-        --sleep-between-tx=5000 \
-        --url-main-net=http://127.0.0.1:8545 \
-        --url-s-chain=http://127.0.0.1:15000 \
-        --id-main-net=Mainnet \
-        --id-s-chain=Bob \
-        --cid-main-net=-4 \
-        --cid-s-chain=-4 \
-        --abi-main-net=../proxy/data/proxyMainnet.json \
-        --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-        --erc20-main-net=data-mn.json \
-        --addr-erc20-s-chain=[ADDRESS] \
-        --address-main-net=[ADDRESS] \
-        --key-s-chain=[YOUR_PRIVATE_KEY] \
-        --no-raw-transfer
-```
-
-Notice: The command above does payment from `Main Net` and that is why we need to specify private key for source account inside `S-Chain` blockchain using the **--key-s-chain** command line argument. Target `Main Net` account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
-
-#### ERC721 Default Transfer from S-Chain Account to Main Net
-
-Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
-
-#### ERC20 raw transfer from Main Net account to S-Chain
-
-Performed with the **--m2s-payment** and **--raw-transfer** command line options:
+Performed with the **--m2s-payment** command line option:
 
 ```bash
     node ./main.js --verbose=9 \
@@ -458,19 +399,18 @@ Performed with the **--m2s-payment** and **--raw-transfer** command line options
         --erc20-main-net=data-mn.json \
         --erc20-s-chain=data-sc.json \
         --key-main-net=[YOUR_ETH_PRIVATE_KEY] \
-        --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852 \
-        --raw-transfer
+        --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852
 ```
 
 Notice: The command above does payment from `Main Net` and that is why we need to specify private key for source account inside `Main Net` blockchain using the **--key-main-net** command line argument. Target `S-Chain` account is specified as address with the **--address-s-chain** command line argument. We don't need to specify private key for target account.
 
-#### ERC721 Raw Transfer from Main Net Account to S-Chain
+#### ERC721 Transfer from Main Net Account to S-Chain
 
 Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
 
-#### ERC20 Raw Transfer from S-Chain Account to Main Net
+#### ERC20 Transfer from S-Chain Account to Main Net
 
-Performed with the **--s2m-payment** and **--raw-transfer** command line options:
+Performed with the **--s2m-payment** command line option:
 
 ```bash
     node ./main.js --verbose=9 \
@@ -489,13 +429,12 @@ Performed with the **--s2m-payment** and **--raw-transfer** command line options
         --erc20-main-net=data-mn.json \
         --erc20-s-chain=data-sc.json \
         --address-main-net=[ADDRESS] \
-        --key-s-chain=[YOUR_PRIVATE_KEY] \
-        --raw-transfer
+        --key-s-chain=[YOUR_PRIVATE_KEY]
 ```
 
 Notice: The command above does payment from `Main Net` and that is why we need to specify private key for source account inside `S-Chain` blockchain using the **--key-s-chain** command line argument. Target `Main Net` account is specified as address with the **--address-main-net** command line argument. We don't need to specify private key for target account.
 
-#### ERC721 Raw Transfer From S-Chain Account to Main Net
+#### ERC721 Transfer From S-Chain Account to Main Net
 
 Same as above. But use **721** instead of **20** in command names. Also use **--tid** to specify ERC721 token id to send instead of **--amount**.
 

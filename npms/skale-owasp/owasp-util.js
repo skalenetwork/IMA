@@ -422,8 +422,30 @@ const g_mapMoneyNameSuffixAliases = {
     "be": "babbage",
     // "b": "babbage",
     "we": "wei",
-    "wi": "wei"
-    // "w": "wei"
+    "wi": "wei",
+    // "w": "wei",
+    //
+    // next going as is because supported by wev3.utils.toWei() API
+    //
+    "noether": "noether",
+    "noeth": "noether",
+    "kwei": "kwei",
+    "femtoether": "femtoether",
+    "femto": "femtoether",
+    "mwei": "mwei",
+    "picoether": "picoether",
+    "pico": "picoether",
+    "gwei": "gwei",
+    "nanoether": "nanoether",
+    "nano": "nanoether",
+    "microether": "microether",
+    "micro": "microether",
+    "milliether": "milliether",
+    "milli": "milliether",
+    "kether": "kether",
+    "mether": "mether",
+    "gether": "gether",
+    "tether": "tether"
 };
 
 function parseMoneyUnitName( s ) {

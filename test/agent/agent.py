@@ -118,7 +118,7 @@ class Agent:
         with open(erc20_config_filename, 'w') as erc20_file:
             json.dump(config_json, erc20_file)
 
-        self._execute_command('m2s-payment', {'no-raw-transfer': None,
+        self._execute_command('m2s-payment', {
                                               'amount': amount,
                                               'key-main-net': from_key,
                                               'key-s-chain': to_key,
@@ -141,7 +141,7 @@ class Agent:
             json.dump(config_json, erc721_file)
         sleep(5)
 
-        self._execute_command('m2s-payment', {'no-raw-transfer': None,
+        self._execute_command('m2s-payment', {
                                               'tid': token_id,
                                               'key-main-net': from_key,
                                               'key-s-chain': to_key,
@@ -175,7 +175,7 @@ class Agent:
 
         tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
 
-        self._execute_command('s2m-payment', {'no-raw-transfer': None,
+        self._execute_command('s2m-payment', {
                                               'amount': amount,
                                               'key-main-net': to_key,
                                               'key-s-chain': from_key,
@@ -211,8 +211,7 @@ class Agent:
         # destination_address = self.blockchain.key_to_address(to_key)
         tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
         sleep(10)
-        self._execute_command('s2m-payment', {'no-raw-transfer': None,
-                                              'tid': token_id,
+        self._execute_command('s2m-payment', {'tid': token_id,
                                               'key-main-net': to_key,
                                               'key-s-chain': from_key,
                                               'erc721-main-net': erc721_config_filename,
