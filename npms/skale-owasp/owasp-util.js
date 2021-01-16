@@ -178,6 +178,8 @@ function toStringURL( s, defValue ) {
 function toBoolean( value ) {
     let b = false;
     try {
+        if( typeof value === "boolean" )
+            return value;
         if( typeof value === "string" ) {
             const ch = value[0].toLowerCase();
             if( ch == "y" || ch == "t" )
@@ -197,7 +199,7 @@ function toBoolean( value ) {
 // see https://ethereum.stackexchange.com/questions/1374/how-can-i-check-if-an-ethereum-address-is-valid
 function validateEthAddress( value ) {
     try {
-        if( ethereumjs_util.isValidAddress( value ) )
+        if( ethereumjs_util.isValidAddress( ensure_starts_with_0x( value ) ) )
             return true;
     } catch ( err ) {
     }
@@ -218,7 +220,7 @@ function validateEthPrivateKey( value ) {
 
 function toEthAddress( value, defValue ) {
     try {
-        value = "" + ( value ? value.toString() : "" );
+        value = "" + ( value ? ensure_starts_with_0x( value.toString() ) : "" );
         defValue = defValue || "";
         if( !validateEthAddress( value ) )
             return defValue;

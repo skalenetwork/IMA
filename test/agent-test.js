@@ -24,6 +24,9 @@
  */
 
 const assert = require( "assert" );
+// const fs = require( "fs" );
+// const os = require( "os") ;
+// const path = require( "path" );
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 
@@ -163,45 +166,384 @@ global.imaState = {
 
 imaCLI.ima_common_init();
 
-describe( "OWASP", function () {
+describe( "OWASP", function() {
 
-    it( "Extract address from private key", function () {
+    describe( "Parsing Utilities", function() {
+
+        it( "Integer Basic validation", function() {
+            assert.equal( owaspUtils.is_numeric( "0" ), true );
+            assert.equal( owaspUtils.is_numeric( "123" ), true );
+        } );
+
+        it( "Integer RegEx validation", function() {
+            assert.equal( owaspUtils.rxIsInt( "0" ), true );
+            assert.equal( owaspUtils.rxIsInt( "123" ), true );
+            assert.equal( owaspUtils.rxIsInt( "-456" ), true );
+            assert.equal( owaspUtils.rxIsInt( "a012" ), false );
+        } );
+
+        it( "Floating point RegEx validation", function() {
+            assert.equal( owaspUtils.rxIsFloat( "0" ), true );
+            assert.equal( owaspUtils.rxIsFloat( "0.0" ), true );
+            assert.equal( owaspUtils.rxIsFloat( "123.456" ), true );
+            assert.equal( owaspUtils.rxIsFloat( "-123.456" ), true );
+            assert.equal( owaspUtils.rxIsFloat( "a012" ), false );
+        } );
+
+        it( "Radix validation", function() {
+            assert.equal( owaspUtils.validateRadix( "123", "10" ), 10 );
+            assert.equal( owaspUtils.validateRadix( "0x20", "16" ), 16 );
+        } );
+
+        it( "Integer conversion", function() {
+            assert.equal( owaspUtils.toInteger( "12345", 10 ), 12345 );
+            assert.equal( owaspUtils.toInteger( "0x20", 16 ), 0x20 );
+        } );
+
+        it( "Floating point validation", function() {
+            assert.equal( owaspUtils.validateFloat( "123.456" ), true );
+            assert.equal( owaspUtils.validateFloat( "hello 123.456" ), false );
+        } );
+
+        it( "Floating point conversion", function() {
+            assert.equal( owaspUtils.toFloat( "123.456" ), 123.456 );
+            assert.equal( owaspUtils.rxIsFloat( owaspUtils.toFloat( "hello 123.456" ) ), false );
+        } );
+
+        it( "Boolean conversion", function() {
+            assert.equal( owaspUtils.toBoolean( "true" ), true );
+            assert.equal( owaspUtils.toBoolean( "false" ), false );
+            assert.equal( owaspUtils.toBoolean( true ), true );
+            assert.equal( owaspUtils.toBoolean( false ), false );
+            assert.equal( owaspUtils.toBoolean( "True" ), true );
+            assert.equal( owaspUtils.toBoolean( "False" ), false );
+            assert.equal( owaspUtils.toBoolean( "TRUE" ), true );
+            assert.equal( owaspUtils.toBoolean( "FALSE" ), false );
+            assert.equal( owaspUtils.toBoolean( "t" ), true );
+            assert.equal( owaspUtils.toBoolean( "f" ), false );
+            assert.equal( owaspUtils.toBoolean( "T" ), true );
+            assert.equal( owaspUtils.toBoolean( "F" ), false );
+            assert.equal( owaspUtils.toBoolean( "1" ), true );
+            assert.equal( owaspUtils.toBoolean( "-1" ), true );
+            assert.equal( owaspUtils.toBoolean( "0" ), false );
+            assert.equal( owaspUtils.toBoolean( "0.123" ), true );
+            assert.equal( owaspUtils.toBoolean( "" ), false );
+        } );
+
+        it( "URL validation", function() {
+            assert.equal( owaspUtils.validateURL( "http://127.0.0.1" ), true );
+            assert.equal( owaspUtils.validateURL( "http://127.0.0.1/" ), true );
+            assert.equal( owaspUtils.validateURL( "https://127.0.0.1:3344" ), true );
+            assert.equal( owaspUtils.validateURL( "https://127.0.0.1:3344/" ), true );
+            assert.equal( owaspUtils.validateURL( "ws://[::1]" ), true );
+            assert.equal( owaspUtils.validateURL( "ws://[::1]/" ), true );
+            assert.equal( owaspUtils.validateURL( "wss://[::1]:3344" ), true );
+            assert.equal( owaspUtils.validateURL( "wss://[::1]:3344/" ), true );
+            assert.equal( owaspUtils.validateURL( "http://some.domain.org" ), true );
+            assert.equal( owaspUtils.validateURL( "http://some.domain.org/" ), true );
+            assert.equal( owaspUtils.validateURL( "https://some.domain.org:3344" ), true );
+            assert.equal( owaspUtils.validateURL( "https://some.domain.org:3344/" ), true );
+            assert.equal( owaspUtils.validateURL( "hello ws://[::1]" ), false );
+            assert.equal( owaspUtils.validateURL( "hello ws://[::1]/" ), false );
+            assert.equal( owaspUtils.validateURL( "hello wss://[::1]:3344" ), false );
+            assert.equal( owaspUtils.validateURL( "hello wss://[::1]:3344/" ), false );
+        } );
+
+        it( "URL conversion", function() {
+            assert.equal( owaspUtils.toURL( "http://127.0.0.1" ).constructor.name, "URL" );
+            assert.equal( owaspUtils.toURL( "https://127.0.0.1:3344" ).constructor.name, "URL" );
+            assert.equal( owaspUtils.toURL( "https://127.0.0.1:3344/" ).constructor.name, "URL" );
+            assert.equal( owaspUtils.toURL( "ws://[::1]" ).constructor.name, "URL" );
+            assert.equal( owaspUtils.toURL( "ws://[::1]/" ).constructor.name, "URL" );
+            assert.equal( owaspUtils.toURL( "wss://[::1]:3344" ).constructor.name, "URL" );
+            assert.equal( owaspUtils.toURL( "wss://[::1]:3344/" ).constructor.name, "URL" );
+            assert.equal( owaspUtils.toURL( "http://some.domain.org" ).constructor.name, "URL" );
+            assert.equal( owaspUtils.toURL( "http://some.domain.org/" ).constructor.name, "URL" );
+            assert.equal( owaspUtils.toURL( "https://some.domain.org3344" ).constructor.name, "URL" );
+            assert.equal( owaspUtils.toURL( "https://some.domain.org:3344/" ).constructor.name, "URL" );
+            assert.equal( owaspUtils.toURL( "http://127.0.0.1" ).toString(), "http://127.0.0.1/" );
+            assert.equal( owaspUtils.toURL( "http://127.0.0.1/" ).toString(), "http://127.0.0.1/" );
+            assert.equal( owaspUtils.toURL( "https://127.0.0.1:3344" ).toString(), "https://127.0.0.1:3344/" );
+            assert.equal( owaspUtils.toURL( "https://127.0.0.1:3344/" ).toString(), "https://127.0.0.1:3344/" );
+            assert.equal( owaspUtils.toURL( "ws://[::1]" ).toString(), "ws://[::1]/" );
+            assert.equal( owaspUtils.toURL( "ws://[::1]/" ).toString(), "ws://[::1]/" );
+            assert.equal( owaspUtils.toURL( "wss://[::1]:3344" ).toString(), "wss://[::1]:3344/" );
+            assert.equal( owaspUtils.toURL( "wss://[::1]:3344/" ).toString(), "wss://[::1]:3344/" );
+            assert.equal( owaspUtils.toURL( "http://some.domain.org" ).toString(), "http://some.domain.org/" );
+            assert.equal( owaspUtils.toURL( "http://some.domain.org/" ).toString(), "http://some.domain.org/" );
+            assert.equal( owaspUtils.toURL( "https://some.domain.org:3344" ).toString(), "https://some.domain.org:3344/" );
+            assert.equal( owaspUtils.toURL( "https://some.domain.org:3344/" ).toString(), "https://some.domain.org:3344/" );
+            assert.equal( owaspUtils.toStringURL( "http://127.0.0.1" ), "http://127.0.0.1/" );
+            assert.equal( owaspUtils.toStringURL( "http://127.0.0.1/" ), "http://127.0.0.1/" );
+            assert.equal( owaspUtils.toStringURL( "https://127.0.0.1:3344" ), "https://127.0.0.1:3344/" );
+            assert.equal( owaspUtils.toStringURL( "https://127.0.0.1:3344/" ), "https://127.0.0.1:3344/" );
+            assert.equal( owaspUtils.toStringURL( "ws://[::1]" ), "ws://[::1]/" );
+            assert.equal( owaspUtils.toStringURL( "ws://[::1]/" ), "ws://[::1]/" );
+            assert.equal( owaspUtils.toStringURL( "wss://[::1]:3344" ), "wss://[::1]:3344/" );
+            assert.equal( owaspUtils.toStringURL( "wss://[::1]:3344/" ), "wss://[::1]:3344/" );
+            assert.equal( owaspUtils.toStringURL( "http://some.domain.org" ), "http://some.domain.org/" );
+            assert.equal( owaspUtils.toStringURL( "http://some.domain.org/" ), "http://some.domain.org/" );
+            assert.equal( owaspUtils.toStringURL( "https://some.domain.org:3344" ), "https://some.domain.org:3344/" );
+            assert.equal( owaspUtils.toStringURL( "https://some.domain.org:3344/" ), "https://some.domain.org:3344/" );
+        } );
+
+        const strAddressValid0 = "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F";
+        const strAddressValid1 = "7aa5E36AA15E93D10F4F26357C30F052DacDde5F";
+        const strAddressInvalid0 = "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5";
+        const strAddressInvalid1 = "hello";
+        const strAddressInvalid2 = "";
+
+        it( "Validate Ethereum Address", function() {
+            assert.equal( owaspUtils.validateEthAddress( strAddressValid0 ), true );
+            assert.equal( owaspUtils.validateEthAddress( strAddressValid1 ), true );
+            assert.equal( owaspUtils.validateEthAddress( strAddressInvalid0 ), false );
+            assert.equal( owaspUtils.validateEthAddress( strAddressInvalid1 ), false );
+            assert.equal( owaspUtils.validateEthAddress( strAddressInvalid2 ), false );
+        } );
+
+        it( "Parse Ethereum Address", function() {
+            assert.equal( owaspUtils.toEthAddress( strAddressValid0 ), strAddressValid0 );
+            assert.equal( owaspUtils.toEthAddress( strAddressValid1 ), strAddressValid0 );
+            assert.equal( owaspUtils.toEthAddress( strAddressInvalid0, strAddressValid0 ), strAddressValid0 );
+            assert.equal( owaspUtils.toEthAddress( strAddressInvalid0, "invalid value" ), "invalid value" );
+            assert.equal( owaspUtils.toEthAddress( strAddressInvalid1, strAddressValid0 ), strAddressValid0 );
+            assert.equal( owaspUtils.toEthAddress( strAddressInvalid1, "invalid value" ), "invalid value" );
+            assert.equal( owaspUtils.toEthAddress( strAddressInvalid2, strAddressValid0 ), strAddressValid0 );
+            assert.equal( owaspUtils.toEthAddress( strAddressInvalid2, "invalid value" ), "invalid value" );
+        } );
+
+        const strPrivateKeyValid0 = "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC";
+        const strPrivateKeyValid1 = "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC";
+        const strPrivateKeyInvalid0 = "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1F";
+        const strPrivateKeyInvalid1 = "hello";
+        const strPrivateKeyInvalid2 = "";
+
+        it( "Validate Ethereum Private Key", function() {
+            assert.equal( owaspUtils.validateEthPrivateKey( strPrivateKeyValid0 ), true );
+            assert.equal( owaspUtils.validateEthPrivateKey( strPrivateKeyValid1 ), true );
+            assert.equal( owaspUtils.validateEthPrivateKey( strPrivateKeyInvalid0 ), false );
+            assert.equal( owaspUtils.validateEthPrivateKey( strPrivateKeyInvalid1 ), false );
+            assert.equal( owaspUtils.validateEthPrivateKey( strPrivateKeyInvalid2 ), false );
+        } );
+
+        it( "Parse Ethereum Private Key", function() {
+            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyValid0 ), strPrivateKeyValid0 );
+            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyValid1 ), strPrivateKeyValid0 );
+            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyInvalid0, strPrivateKeyValid0 ), strPrivateKeyValid0 );
+            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyInvalid0, "invalid value" ), "invalid value" );
+            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyInvalid1, strPrivateKeyValid0 ), strPrivateKeyValid0 );
+            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyInvalid1, "invalid value" ), "invalid value" );
+            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyInvalid2, strPrivateKeyValid0 ), strPrivateKeyValid0 );
+            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyInvalid2, "invalid value" ), "invalid value" );
+        } );
+
+        it( "Byte sequence utilities", function() {
+            assert.equal( owaspUtils.ensure_starts_with_0x( "0x123" ), "0x123" );
+            assert.equal( owaspUtils.ensure_starts_with_0x( "123" ), "0x123" );
+            assert.equal( owaspUtils.remove_starting_0x( "0x123" ), "123" );
+            assert.equal( owaspUtils.remove_starting_0x( "123" ), "123" );
+        } );
+
+    } );
+
+    describe( "Command Line Argument Utilities", function() {
+
+        it( "Basic verification", function() {
+            assert.equal( typeof owaspUtils.verifyArgumentWithNonEmptyValue( { name: "path", value: "/tmp/file.name.here" } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsURL( { name: "url", value: "http://127.0.0.1" } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsInteger( { name: "url", value: "123" } ), "object" );
+        } );
+
+        it( "Paths verification", function() {
+            assert.equal( typeof owaspUtils.verifyArgumentIsPathToExistingFile( { name: "url", value: __filename } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsPathToExistingFolder( { name: "url", value: __dirname } ), "object" );
+        } );
+
+    } );
+
+    describe( "Key/address Utilities", function() {
         const joAccount_test = {
             "privateKey": owaspUtils.toEthPrivateKey( "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
             "address": IMA.owaspUtils.fn_address_impl_
         };
-        const address = joAccount_test.address( imaState.w3_main_net );
-        const address2 = owaspUtils.private_key_2_account_address(imaState.w3_main_net, joAccount_test.privateKey )
-        // console.log( "private key is", joAccount_test.privateKey );
-        // console.log( "computed address is", joAccount_test.address( imaState.w3_main_net ) );
-        assert.equal( address.toLowerCase(), "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F".toLowerCase() );
-        assert.equal( address2.toLowerCase(), "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F".toLowerCase() );
-    });
 
-    it( "Extract public key from private key", function () {
-        const joAccount_test = {
-            "privateKey": owaspUtils.toEthPrivateKey( "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
-            "address": IMA.owaspUtils.fn_address_impl_
-        };
-        // const address = joAccount_test.address( imaState.w3_main_net );
-        const publicKey = owaspUtils.private_key_2_public_key( imaState.w3_main_net, joAccount_test.privateKey );
-        // console.log( "private key is", joAccount_test.privateKey );
-        // console.log( "extracted public is", publicKey );
-        assert.equal( publicKey.toLowerCase(), "5dd431d36ce6b88f27d351051b31a26848c4a886f0dd0bc87a7d5a9d821417c9e807e8589f680ab0f2ab29831231ad7b3d6659990ee830582fede785fc3c33c4".toLowerCase() );
-    });
+        it( "Extract address from private key", function() {
+            const address = joAccount_test.address( imaState.w3_main_net );
+            const address2 = owaspUtils.private_key_2_account_address( imaState.w3_main_net, joAccount_test.privateKey );
+            // console.log( "private key is", joAccount_test.privateKey );
+            // console.log( "computed address is", joAccount_test.address( imaState.w3_main_net ) );
+            assert.equal( address.toLowerCase(), "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F".toLowerCase() );
+            assert.equal( address2.toLowerCase(), "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F".toLowerCase() );
+        } );
 
-    it( "Extract address from public key", function () {
-        const joAccount_test = {
-            "privateKey": owaspUtils.toEthPrivateKey( "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
-            "address": IMA.owaspUtils.fn_address_impl_
-        };
-        const address = joAccount_test.address( imaState.w3_main_net );
-        const publicKey = owaspUtils.private_key_2_public_key( imaState.w3_main_net, joAccount_test.privateKey );
-        const address2 = owaspUtils.public_key_2_account_address( imaState.w3_main_net, publicKey );
-        // console.log( "computed address is", joAccount_test.address( imaState.w3_main_net ) );
-        // console.log( "private key is", joAccount_test.privateKey );
-        // console.log( "extracted address is", publicKey );
-        assert.equal( address.toLowerCase(), address2.toLowerCase() );
-    });
+        it( "Extract public key from private key", function() {
+            // const address = joAccount_test.address( imaState.w3_main_net );
+            const publicKey = owaspUtils.private_key_2_public_key( imaState.w3_main_net, joAccount_test.privateKey );
+            // console.log( "private key is", joAccount_test.privateKey );
+            // console.log( "extracted public is", publicKey );
+            assert.equal( publicKey.toLowerCase(), "5dd431d36ce6b88f27d351051b31a26848c4a886f0dd0bc87a7d5a9d821417c9e807e8589f680ab0f2ab29831231ad7b3d6659990ee830582fede785fc3c33c4".toLowerCase() );
+        } );
 
-});
+        it( "Extract address from public key", function() {
+            const address = joAccount_test.address( imaState.w3_main_net );
+            const publicKey = owaspUtils.private_key_2_public_key( imaState.w3_main_net, joAccount_test.privateKey );
+            const address2 = owaspUtils.public_key_2_account_address( imaState.w3_main_net, publicKey );
+            // console.log( "computed address is", joAccount_test.address( imaState.w3_main_net ) );
+            // console.log( "private key is", joAccount_test.privateKey );
+            // console.log( "extracted address is", publicKey );
+            assert.equal( address.toLowerCase(), address2.toLowerCase() );
+        } );
+    } );
+
+    describe( "Ethereum Value of Money Utilities", function() {
+
+        it( "Parse Money Unit Name", function() {
+            assert.equal( owaspUtils.parseMoneyUnitName( "ethe" ), "ether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "ethr" ), "ether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "eth" ), "ether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "eter" ), "ether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "ete" ), "ether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "et" ), "ether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "eh" ), "ether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "er" ), "ether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "finne" ), "finney" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "finn" ), "finney" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "fin" ), "finney" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "fn" ), "finney" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "fi" ), "finney" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "szab" ), "szabo" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "szb" ), "szabo" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "sza" ), "szabo" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "sz" ), "szabo" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "shanno" ), "shannon" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "shannn" ), "shannon" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "shann" ), "shannon" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "shan" ), "shannon" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "sha" ), "shannon" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "shn" ), "shannon" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "sh" ), "shannon" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "lovelac" ), "lovelace" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "lovela" ), "lovelace" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "lovel" ), "lovelace" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "love" ), "lovelace" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "lovl" ), "lovelace" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "lvl" ), "lovelace" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "lvla" ), "lovelace" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "lvlc" ), "lovelace" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "lvc" ), "lovelace" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "lv" ), "lovelace" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "lo" ), "lovelace" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "lc" ), "lovelace" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "ll" ), "lovelace" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "babbag" ), "babbage" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "babba" ), "babbage" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "babbg" ), "babbage" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "babb" ), "babbage" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "bab" ), "babbage" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "bag" ), "babbage" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "bbb" ), "babbage" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "bb" ), "babbage" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "bg" ), "babbage" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "ba" ), "babbage" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "be" ), "babbage" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "we" ), "wei" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "wi" ), "wei" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "noether" ), "noether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "noeth" ), "noether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "kwei" ), "kwei" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "femtoether" ), "femtoether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "femto" ), "femtoether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "mwei" ), "mwei" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "picoether" ), "picoether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "pico" ), "picoether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "gwei" ), "gwei" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "nanoether" ), "nanoether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "nano" ), "nanoether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "microether" ), "microether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "micro" ), "microether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "milliether" ), "milliether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "milli" ), "milliether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "kether" ), "kether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "mether" ), "mether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "gether" ), "gether" );
+            assert.equal( owaspUtils.parseMoneyUnitName( "tether" ), "tether" );
+        } );
+
+        it( "Parse Money Value", function() {
+            const w3 = null;
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1ether" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1ethe" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1ethr" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1eth" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1eter" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1ete" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1et" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1eh" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1er" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1finney" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1finne" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1finn" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1fin" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1fn" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1fi" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1szab" ), "1000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1szb" ), "1000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1sza" ), "1000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1sz" ), "1000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1shanno" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1shannn" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1shann" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1shan" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1sha" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1shn" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1sh" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lovelac" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lovela" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lovel" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1love" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lovl" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lvl" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lvla" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lvlc" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lvc" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lv" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lo" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lc" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1ll" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1babbag" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1babba" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1babbg" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1babb" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1bab" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1bag" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1bbb" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1bb" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1bg" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1ba" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1be" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1we" ), "1" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1wi" ), "1" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1noether" ), "0" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1noeth" ), "0" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1kwei" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1femtoether" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1femto" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1mwei" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1picoether" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1pico" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1gwei" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1nanoether" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1nano" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1microether" ), "1000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1micro" ), "1000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1milliether" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1milli" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1kether" ), "1000000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1mether" ), "1000000000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1gether" ), "1000000000000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1tether" ), "1000000000000000000000000000000" );
+        } );
+
+    } );
+
+} );
