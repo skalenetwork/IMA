@@ -503,6 +503,12 @@ function parseMoneySpecToWei( w3, s, isThrowException ) {
     return "0";
 }
 
+function fn_address_impl_( w3 ) {
+    if( this.address_ == undefined || this.address_ == null )
+        this.address_ = "" + owaspUtils.private_key_2_account_address( w3, this.privateKey );
+    return this.address_;
+}
+
 module.exports = {
     cc: cc,
     w3mod: w3mod,
@@ -537,5 +543,6 @@ module.exports = {
     private_key_2_account_address: private_key_2_account_address,
     is_numeric: is_numeric,
     parseMoneyUnitName: parseMoneyUnitName,
-    parseMoneySpecToWei: parseMoneySpecToWei
+    parseMoneySpecToWei: parseMoneySpecToWei,
+    fn_address_impl_: fn_address_impl_
 }; // module.exports

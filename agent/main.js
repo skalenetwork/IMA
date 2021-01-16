@@ -45,12 +45,6 @@ global.imaBLS = require( "./bls.js" );
 global.rpcCall = require( "./rpc-call.js" );
 global.rpcCall.init();
 
-function fn_address_impl_( w3 ) {
-    if( this.address_ == undefined || this.address_ == null )
-        this.address_ = "" + owaspUtils.private_key_2_account_address( w3, this.privateKey );
-    return this.address_;
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -66,7 +60,6 @@ global.imaState = {
     "strPathHashG1": "", // path to hash_g1 app, must have if --sign-messages specified
     "strPathBlsVerify": "", // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
 
-    // TO-DO: the next ABI JSON should contain main-net only contract info - S-chain contract addresses must be downloaded from S-chain
     "joTrufflePublishResult_main_net": { },
     "joTrufflePublishResult_s_chain": { },
 
@@ -82,11 +75,6 @@ global.imaState = {
     "strAddrErc721_explicit": "",
     "strCoinNameErc721_main_net": "", // in-JSON coin name
     "strCoinNameErc721_s_chain": "", // in-JSON coin name
-
-    // deposit_box_address           --> deposit_box_abi
-    // token_manager_address         --> token_manager_abi
-    // message_proxy_mainnet_address --> message_proxy_mainnet_abi
-    // message_proxy_chain_address   --> message_proxy_chain_abi
 
     "strPathAbiJson_main_net": imaUtils.normalizePath( "../proxy/data/proxyMainnet.json" ), // "./abi_main_net.json"
     "strPathAbiJson_s_chain": imaUtils.normalizePath( "../proxy/data/proxySchain.json" ), // "./abi_s_chain.json"
@@ -111,7 +99,7 @@ global.imaState = {
     "strPathJsonErc721_main_net": "",
     "strPathJsonErc721_s_chain": "",
 
-    "nAmountOfWei": 0, // 1000000000000000000
+    "nAmountOfWei": 0,
     "nAmountOfToken": 0,
     "idToken": 0,
 
@@ -133,8 +121,6 @@ global.imaState = {
     "nNextFrameGap": 10,
 
     //
-    //
-
     "w3http_main_net": null,
     "w3_main_net": null,
 
@@ -147,24 +133,24 @@ global.imaState = {
     "jo_message_proxy_s_chain": null,
     "jo_lock_and_data_main_net": null,
     "jo_lock_and_data_s_chain": null,
-    // "eth_erc721": null, // only s-chain
     "eth_erc20": null, // only s-chain
+    // "eth_erc721": null, // only s-chain
 
     //
     // example:
     //
-    // "joAccount_main_net": { "name": "g3",    "privateKey": "<YOUR_PRIVATE_KEY_HERE>", "address": fn_address_impl_ },
-    // "joAccount_s_chain ": { "name": "Bob",   "privateKey": "<YOUR_PRIVATE_KEY_HERE>", "address": fn_address_impl_ },
+    // "joAccount_main_net": { "name": "g3",    "privateKey": "<YOUR_PRIVATE_KEY_HERE>", "address": IMA.owaspUtils.fn_address_impl_ },
+    // "joAccount_s_chain ": { "name": "Bob",   "privateKey": "<YOUR_PRIVATE_KEY_HERE>", "address": IMA.owaspUtils.fn_address_impl_ },
     //
     //
     // example of empty values to fill from command line arguments:
     //
-    // "joAccount_main_net": { "privateKey": "", "address": fn_address_impl_ },
-    // "joAccount_s_chain": { "privateKey": "", "address": fn_address_impl_ },
+    // "joAccount_main_net": { "privateKey": "", "address": IMA.owaspUtils.fn_address_impl_ },
+    // "joAccount_s_chain": { "privateKey": "", "address": IMA.owaspUtils.fn_address_impl_ },
     //
     "joAccount_main_net": {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
-        "address": fn_address_impl_,
+        "address": IMA.owaspUtils.fn_address_impl_,
         "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM ),
@@ -173,18 +159,17 @@ global.imaState = {
     },
     "joAccount_s_chain": {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
-        "address": fn_address_impl_,
+        "address": IMA.owaspUtils.fn_address_impl_,
         "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
         "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim()
     },
-    //
+
     //
     "tc_main_net": IMA.tc_main_net, // new IMA.TransactionCustomizer( 1.25 ),
     "tc_s_chain": IMA.tc_s_chain, // new IMA.TransactionCustomizer( null ),
-    //
     //
 
     "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
