@@ -48,6 +48,7 @@ global.rpcCall.init();
 
 log.removeAll();
 // log.addStdout();
+// log.addMemory(); // console.log( log.getStreamWithFilePath( "memory" ).strAccumulatedLogText );
 
 global.imaState = {
     "strLogFilePath": "",
