@@ -42,8 +42,10 @@ function print_about( isLog ) {
     isLog = isLog || false;
     const strMsg = cc.attention( g_strAppName ) + cc.normal( " version " ) + cc.sunny( g_strVersion );
     if( isLog )
-        log.write( strMsg + "\n" ); else
+        log.write( strMsg + "\n" );
+    else
         console.log( strMsg );
+    return true;
 }
 
 function parse_command_line_argument( s ) {
@@ -174,8 +176,8 @@ function load_node_config( strPath ) {
     }
 }
 
-function parse( joExternalHandlers ) {
-    let idxArg; const cntArgs = process.argv.length;
+function parse( joExternalHandlers, argv ) {
+    let idxArg; const cntArgs = argv || process.argv.length;
     for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         const joArg = parse_command_line_argument( process.argv[idxArg] );
         if( joArg.name == "help" ) {
@@ -441,8 +443,6 @@ function parse( joExternalHandlers ) {
             imaState.joAccount_main_net.privateKey = joArg.value;
             continue;
         }
-        //
-        //
         if( joArg.name == "key-s-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_s_chain.privateKey = joArg.value;
@@ -757,6 +757,7 @@ function parse( joExternalHandlers ) {
         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " unknown command line argument " ) + cc.info( joArg.name ) );
         return 666;
     }
+    return 0;
 }
 
 function ima_common_init() {
@@ -1133,6 +1134,7 @@ module.exports = {
     print_about: print_about,
     parse_command_line_argument: parse_command_line_argument,
     ensure_have_value: ensure_have_value,
+    ensure_have_chain_credentials: ensure_have_chain_credentials,
     find_node_index: find_node_index,
     load_node_config: load_node_config,
     parse: parse,

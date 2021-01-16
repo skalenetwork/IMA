@@ -46,6 +46,9 @@ global.imaBLS = require( "../agent/bls.js" );
 global.rpcCall = require( "../agent/rpc-call.js" );
 global.rpcCall.init();
 
+log.removeAll();
+// log.addStdout();
+
 global.imaState = {
     "strLogFilePath": "",
     "nLogMaxSizeBeforeRotation": -1,
@@ -168,9 +171,9 @@ imaCLI.ima_common_init();
 
 describe( "OWASP", function() {
 
-    describe( "Parsing Utilities", function() {
+    describe( "Parsing utilities", function() {
 
-        it( "Integer Basic validation", function() {
+        it( "Integer basic validation", function() {
             assert.equal( owaspUtils.is_numeric( "0" ), true );
             assert.equal( owaspUtils.is_numeric( "123" ), true );
         } );
@@ -293,7 +296,7 @@ describe( "OWASP", function() {
         const strAddressInvalid1 = "hello";
         const strAddressInvalid2 = "";
 
-        it( "Validate Ethereum Address", function() {
+        it( "Validate Ethereum address", function() {
             assert.equal( owaspUtils.validateEthAddress( strAddressValid0 ), true );
             assert.equal( owaspUtils.validateEthAddress( strAddressValid1 ), true );
             assert.equal( owaspUtils.validateEthAddress( strAddressInvalid0 ), false );
@@ -301,7 +304,7 @@ describe( "OWASP", function() {
             assert.equal( owaspUtils.validateEthAddress( strAddressInvalid2 ), false );
         } );
 
-        it( "Parse Ethereum Address", function() {
+        it( "Parse Ethereum address", function() {
             assert.equal( owaspUtils.toEthAddress( strAddressValid0 ), strAddressValid0 );
             assert.equal( owaspUtils.toEthAddress( strAddressValid1 ), strAddressValid0 );
             assert.equal( owaspUtils.toEthAddress( strAddressInvalid0, strAddressValid0 ), strAddressValid0 );
@@ -318,7 +321,7 @@ describe( "OWASP", function() {
         const strPrivateKeyInvalid1 = "hello";
         const strPrivateKeyInvalid2 = "";
 
-        it( "Validate Ethereum Private Key", function() {
+        it( "Validate Ethereum private key", function() {
             assert.equal( owaspUtils.validateEthPrivateKey( strPrivateKeyValid0 ), true );
             assert.equal( owaspUtils.validateEthPrivateKey( strPrivateKeyValid1 ), true );
             assert.equal( owaspUtils.validateEthPrivateKey( strPrivateKeyInvalid0 ), false );
@@ -326,7 +329,7 @@ describe( "OWASP", function() {
             assert.equal( owaspUtils.validateEthPrivateKey( strPrivateKeyInvalid2 ), false );
         } );
 
-        it( "Parse Ethereum Private Key", function() {
+        it( "Parse Ethereum private key", function() {
             assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyValid0 ), strPrivateKeyValid0 );
             assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyValid1 ), strPrivateKeyValid0 );
             assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyInvalid0, strPrivateKeyValid0 ), strPrivateKeyValid0 );
@@ -346,7 +349,7 @@ describe( "OWASP", function() {
 
     } );
 
-    describe( "Command Line Argument Utilities", function() {
+    describe( "Command line argument utilities", function() {
 
         it( "Basic verification", function() {
             assert.equal( typeof owaspUtils.verifyArgumentWithNonEmptyValue( { name: "path", value: "/tmp/file.name.here" } ), "object" );
@@ -361,7 +364,7 @@ describe( "OWASP", function() {
 
     } );
 
-    describe( "Key/address Utilities", function() {
+    describe( "Key/address utilities", function() {
         const joAccount_test = {
             "privateKey": owaspUtils.toEthPrivateKey( "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
             "address": IMA.owaspUtils.fn_address_impl_
@@ -395,9 +398,9 @@ describe( "OWASP", function() {
         } );
     } );
 
-    describe( "Ethereum Value of Money Utilities", function() {
+    describe( "Ethereum value of money utilities", function() {
 
-        it( "Parse Money Unit Name", function() {
+        it( "Parse money unit name", function() {
             assert.equal( owaspUtils.parseMoneyUnitName( "ethe" ), "ether" );
             assert.equal( owaspUtils.parseMoneyUnitName( "ethr" ), "ether" );
             assert.equal( owaspUtils.parseMoneyUnitName( "eth" ), "ether" );
@@ -469,7 +472,7 @@ describe( "OWASP", function() {
             assert.equal( owaspUtils.parseMoneyUnitName( "tether" ), "tether" );
         } );
 
-        it( "Parse Money Value", function() {
+        it( "Parse money value specification", function() {
             const w3 = null;
             assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1ether" ), "1000000000000000000" );
             assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1ethe" ), "1000000000000000000" );
@@ -542,6 +545,100 @@ describe( "OWASP", function() {
             assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1mether" ), "1000000000000000000000000" );
             assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1gether" ), "1000000000000000000000000000" );
             assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1tether" ), "1000000000000000000000000000000" );
+        } );
+
+    } );
+
+} );
+
+describe( "CLI", function() {
+
+    describe( "IMA Agent command line helpers", function() {
+
+        it( "About", function() {
+            assert.equal( imaCLI.print_about( true ), true );
+        } );
+
+        it( "Parse and collect CLI argument", function() {
+            let joArg = imaCLI.parse_command_line_argument( "--help" );
+            assert.equal( joArg.name, "help" );
+            assert.equal( joArg.value, "" );
+            joArg = imaCLI.parse_command_line_argument( "--test-url=http://127.0.0.1:3456" );
+            assert.equal( joArg.name, "test-url" );
+            assert.equal( joArg.value, "http://127.0.0.1:3456" );
+            const isExitIfEmpty = false;
+            const isPrintValue = true;
+            const fnNameColorizer = null;
+            const fnValueColorizer = null;
+            assert.equal( imaCLI.ensure_have_value( "test-url", "http://127.0.0.1:3456", isExitIfEmpty, isPrintValue, fnNameColorizer, fnValueColorizer ), true );
+            const joAccount_test = {
+                "privateKey": owaspUtils.toEthPrivateKey( "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
+                "address": IMA.owaspUtils.fn_address_impl_
+            };
+            assert.equal( imaCLI.ensure_have_chain_credentials( imaState.strChainID_s_chain, joAccount_test, isExitIfEmpty, isPrintValue ), true );
+        } );
+
+    } );
+
+    // TO-DO: imaCLI.find_node_index
+    // TO-DO: imaCLI.load_node_config
+
+    describe( "IMA Agent command line parser", function() {
+
+        it( "Minimal command line parse", function() {
+            const joExternalHandlers = {};
+            const argv = [];
+            assert.equal( imaCLI.parse( joExternalHandlers, argv ), 0 );
+        } );
+
+        it( "Basic command line parse", function() {
+            const joExternalHandlers = {};
+            const argv = [
+                "--verbose=9",
+                "--url-main-net=" + imaState.strURL_main_net,
+                "--url-s-chain=" + imaState.strURL_s_chain,
+                "--id-main-net=" + imaState.strChainID_main_net,
+                "--id-s-chain=" + imaState.strChainID_s_chain,
+                "--cid-main-net=" + imaState.cid_main_net,
+                "--cid-s-chain=" + imaState.cid_s_chain,
+                "--address-main-net=" + imaState.joAccount_main_net.address(),
+                "--address-s-chain=" + imaState.joAccount_s_chain.address(),
+                "--key-main-net=" + imaState.joAccount_main_net.privateKey,
+                "--key-s-chain=" + imaState.joAccount_s_chain.privateKey,
+                "--abi-main-net=" + imaState.strPathAbiJson_main_net,
+                "--abi-s-chain=" + imaState.strPathAbiJson_s_chain,
+                // --erc721-main-net --erc721-s-chain --addr-erc721-s-chain
+                // --erc20-main-net --erc20-s-chain --addr-erc20-s-chain
+                "--add-cost=1ether",
+                "--sleep-between-tx=5000",
+                "--wait-next-block=true",
+                // --value...
+                "--gas-price-multiplier-mn=2",
+                "--gas-price-multiplier-sc=2",
+                "--gas-price-multiplier=2",
+                // --no-wait-s-chain --max-wait-attempts
+                "--skip-dry-run", // --skip-dry-run --ignore-dry-run --dry-run
+                "--m2s-transfer-block-size=4",
+                "--s2m-transfer-block-size=4",
+                "--transfer-block-size=4",
+                "--m2s-max-transactions=0",
+                "--s2m-max-transactions=0",
+                "--max-transactions=0",
+                "--m2s-await-blocks=0",
+                "--s2m-await-blocks=0",
+                "--await-blocks=0",
+                "--m2s-await-time=0",
+                "--s2m-await-time=0",
+                "--await-time=0",
+                "--period=300",
+                "--node-number=0",
+                "--nodes-count=1",
+                "--time-framing=0",
+                "--time-gap=10"
+                // --log-size --log-files --log
+                // --sign-messages --bls-glue --hash-g1 --bls-verify
+            ];
+            assert.equal( imaCLI.parse( joExternalHandlers, argv ), 0 );
         } );
 
     } );
