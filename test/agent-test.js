@@ -24,9 +24,9 @@
  */
 
 const assert = require( "assert" );
-// const fs = require( "fs" );
-// const os = require( "os") ;
-// const path = require( "path" );
+const fs = require( "fs" );
+const os = require( "os" );
+const path = require( "path" );
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 
@@ -640,6 +640,203 @@ describe( "CLI", function() {
                 // --sign-messages --bls-glue --hash-g1 --bls-verify
             ];
             assert.equal( imaCLI.parse( joExternalHandlers, argv ), 0 );
+        } );
+
+    } );
+
+} );
+
+describe( "Agent Utils Module", function() {
+
+    describe( "String helpers", function() {
+
+        it( "Text replacement", function() {
+            assert.equal( imaUtils.replaceAll( "abc123abcdef456abc", "abc", "" ), "123def456" );
+        } );
+
+        it( "Random file name", function() {
+            const strPathTmpFolder = os.tmpdir();
+            const strPathTmpFile = path.join( strPathTmpFolder, imaUtils.getRandomFileName() + ".txt" );
+            // console.log( "Tmp file is", strPathTmpFile );
+            assert.equal( strPathTmpFile ? true : false, true );
+        } );
+
+        it( "UTF8 encode/decode", function() {
+            const strSrc = "Test string 123, Тестовая строка 123, 테스트 문자열 123, Cadena de prueba 123, テスト文字列123, Chaîne de test 123, Testzeichenfolge 123, 測試字符串123";
+            const arrBytes = imaUtils.encodeUTF8( strSrc );
+            const strDst = imaUtils.decodeUTF8( arrBytes );
+            assert.equal( strSrc, strDst );
+        } );
+
+        it( "Compose S-Chain URL", function() {
+            assert.equal( imaUtils.compose_schain_node_url( { ip: "127.0.0.1", httpRpcPort: 3456 } ), "http://127.0.0.1:3456" );
+            assert.equal( imaUtils.compose_schain_node_url( { ip: "127.0.0.1", httpsRpcPort: 3456 } ), "https://127.0.0.1:3456" );
+            assert.equal( imaUtils.compose_schain_node_url( { ip: "127.0.0.1", wsRpcPort: 3456 } ), "ws://127.0.0.1:3456" );
+            assert.equal( imaUtils.compose_schain_node_url( { ip: "127.0.0.1", wssRpcPort: 3456 } ), "wss://127.0.0.1:3456" );
+            assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", httpRpcPort6: 3456 } ), "http://[::1]:3456" );
+            assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", httpsRpcPort6: 3456 } ), "https://[::1]:3456" );
+            assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", wsRpcPort6: 3456 } ), "ws://[::1]:3456" );
+            assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", wssRpcPort6: 3456 } ), "wss://[::1]:3456" );
+        } );
+
+    } );
+
+    describe( "Byte array manipulation helpers", function() {
+
+        it( "HEX encode/decode raw", function() {
+            const strSrc = "5465737420737472696e6720313233";
+            const arrBytes = imaUtils.hexToBytes( strSrc, false );
+            const strDst = imaUtils.bytesToHex( arrBytes, false );
+            assert.equal( strSrc, strDst );
+        } );
+
+        it( "HEX encode/decode 0x-prefixed", function() {
+            const strSrc = "0x5465737420737472696e6720313233";
+            const arrBytes = imaUtils.hexToBytes( strSrc, false );
+            const strDst = imaUtils.bytesToHex( arrBytes, false );
+            assert.equal( strSrc, "0x" + strDst );
+        } );
+
+        it( "HEX encode/decode with inversive order raw", function() {
+            const strSrc = "5465737420737472696e6720313233";
+            const arrBytes = imaUtils.hexToBytes( strSrc, true );
+            const strDst = imaUtils.bytesToHex( arrBytes, true );
+            assert.equal( strSrc, strDst );
+        } );
+
+        it( "HEX encode/decode with inversive order 0x-prefixed", function() {
+            const strSrc = "0x5465737420737472696e6720313233";
+            const arrBytes = imaUtils.hexToBytes( strSrc, true );
+            const strDst = imaUtils.bytesToHex( arrBytes, true );
+            assert.equal( strSrc, "0x" + strDst );
+        } );
+
+        it( "Array padding with zeroes at left", function() {
+            const strSrc = "123";
+            const arrBytes = imaUtils.bytesAlignLeftWithZeroes( imaUtils.hexToBytes( strSrc, false ), 4 );
+            const strDst = imaUtils.bytesToHex( arrBytes, false );
+            assert.equal( strDst, "00000123" );
+        } );
+
+        it( "Array padding with zeroes at right", function() {
+            const strSrc = "123";
+            const arrBytes = imaUtils.bytesAlignRightWithZeroes( imaUtils.hexToBytes( strSrc, false ), 4 );
+            const strDst = imaUtils.bytesToHex( arrBytes, false );
+            assert.equal( strDst, "01230000" );
+        } );
+
+        it( "Typed array concatenation", function() {
+            const strSrcLeft = "0xbaad", strSrcRight = "0xf00d";
+            const arrBytesLeft = imaUtils.hexToBytes( strSrcLeft, false );
+            const arrBytesRight = imaUtils.hexToBytes( strSrcRight, false );
+            const arrBytes = imaUtils.concatTypedArrays( arrBytesLeft, arrBytesRight );
+            const strDst = imaUtils.bytesToHex( arrBytes, false );
+            assert.equal( strDst, "baadf00d" );
+        } );
+
+        it( "Byte array concatenation", function() {
+            const strSrcLeft = "0xbaad", strSrcRight = "0xf00d";
+            const arrBytesLeft = imaUtils.hexToBytes( strSrcLeft, false );
+            const arrBytesRight = imaUtils.hexToBytes( strSrcRight, false );
+            const arrBytes = imaUtils.bytesConcat( arrBytesLeft, arrBytesRight );
+            const strDst = imaUtils.bytesToHex( arrBytes, false );
+            assert.equal( strDst, "baadf00d" );
+        } );
+
+        it( "Single Byte concatenation", function() {
+            const strSrcLeft = "0xbaadf0", nSrcRight = 0x0d;
+            const arrBytesLeft = imaUtils.hexToBytes( strSrcLeft, false );
+            const arrBytes = imaUtils.concatByte( arrBytesLeft, nSrcRight );
+            const strDst = imaUtils.bytesToHex( arrBytes, false );
+            assert.equal( strDst, "baadf00d" );
+        } );
+
+        it( "Array/buffer conversion", function() {
+            const strSrc = "baadf00d";
+            const arrBytes = imaUtils.toBuffer( imaUtils.toArrayBuffer( imaUtils.hexToBytes( strSrc, true ) ) );
+            const strDst = imaUtils.bytesToHex( arrBytes, true );
+            assert.equal( strDst, "baadf00d" );
+        } );
+
+    } );
+
+    describe( "Path/file/JSON helpers", function() {
+
+        it( "Home directory and path normalization", function() {
+            const strPathHomeFolder = imaUtils.normalizePath( "~" );
+            const strPathSrc = "~/some/file/path/here";
+            const strPathDst = strPathHomeFolder + "/some/file/path/here";
+            assert.equal( imaUtils.normalizePath( strPathSrc ), strPathDst );
+        } );
+
+        it( "File existence and text loading/saving", function() {
+            const strPathTmpFolder = os.tmpdir();
+            const strPathTmpFile = path.join( strPathTmpFolder, imaUtils.getRandomFileName() + ".txt" );
+            // console.log( "Tmp file is", strPathTmpFile );
+            try { fs.unlinkSync( strPathTmpFile ); } catch ( err ) { };
+            assert.equal( imaUtils.fileExists( strPathTmpFile ), false );
+            const strContentSaved = "Text file content";
+            assert.equal( imaUtils.fileSave( strPathTmpFile, strContentSaved ), true );
+            assert.equal( imaUtils.fileExists( strPathTmpFile ), true );
+            const strContentLoaded = imaUtils.fileLoad( strPathTmpFile, "file \"" + strPathTmpFile + "\"was not loaded" );
+            assert.equal( strContentLoaded, strContentSaved );
+            try { fs.unlinkSync( strPathTmpFile ); } catch ( err ) { };
+        } );
+
+        it( "File existence and JSON loading/saving", function() {
+            const strPathTmpFolder = os.tmpdir();
+            const strPathTmpFile = path.join( strPathTmpFolder, imaUtils.getRandomFileName() + ".json" );
+            // console.log( "Tmp file is", strPathTmpFile );
+            try { fs.unlinkSync( strPathTmpFile ); } catch ( err ) { };
+            assert.equal( imaUtils.fileExists( strPathTmpFile ), false );
+            const joContentSaved = { a: 123, b: 456 };
+            assert.equal( imaUtils.jsonFileSave( strPathTmpFile, joContentSaved, false ), true );
+            assert.equal( imaUtils.fileExists( strPathTmpFile ), true );
+            const joContentLoaded = imaUtils.jsonFileLoad( strPathTmpFile, { error: "file \"" + strPathTmpFile + "\"was not loaded" }, false );
+            assert.equal( JSON.stringify( joContentSaved ), JSON.stringify( joContentLoaded ) );
+            try { fs.unlinkSync( strPathTmpFile ); } catch ( err ) { };
+        } );
+
+    } );
+
+    describe( "ABI JSON Helpers", function() {
+
+        it( "Find ABI entries", function() {
+            const strName = imaState.strChainID_s_chain;
+            const strFile = imaState.strPathAbiJson_s_chain;
+            const joABI = imaUtils.jsonFileLoad( strFile, { error: "file \"" + strFile + "\"was not loaded" }, false );
+            const strKey = "lock_and_data_for_schain_address";
+            const arrKeys = [
+                "lock_and_data_for_schain_address",
+                "lock_and_data_for_schain_abi",
+                "eth_erc20_address",
+                "eth_erc20_abi",
+                "token_manager_address",
+                "token_manager_abi",
+                "lock_and_data_for_schain_erc20_address",
+                "lock_and_data_for_schain_erc20_abi",
+                "lock_and_data_for_schain_erc721_address",
+                "lock_and_data_for_schain_erc721_abi",
+                "erc20_module_for_schain_address",
+                "erc20_module_for_schain_abi",
+                "erc721_module_for_schain_address",
+                "erc721_module_for_schain_abi",
+                "token_factory_address",
+                "token_factory_abi",
+                "message_proxy_chain_address",
+                "message_proxy_chain_abi"
+            ];
+            const isExitOnError = false;
+            assert.equal( imaUtils.check_key_exist_in_abi( strName, strFile, joABI, strKey, isExitOnError ), true );
+            assert.equal( imaUtils.check_keys_exist_in_abi( strName, strFile, joABI, arrKeys, isExitOnError ), true );
+        } );
+
+        it( "Discover coin name", function() {
+            const strFile = imaState.strPathAbiJson_s_chain;
+            const joABI = imaUtils.jsonFileLoad( strFile, { error: "file \"" + strFile + "\"was not loaded" }, false );
+            const strCoinName = imaUtils.discover_in_json_coin_name( joABI );
+            // console.log( "strCoinName is", strCoinName );
+            assert.equal( strCoinName.length > 0, true );
         } );
 
     } );
