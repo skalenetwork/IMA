@@ -415,7 +415,7 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
                 }
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( cc.debug( "Transaction Manager sign-and-send result is: " ) + cc.j( joOut ) + "\n" );
-                if( joOut && "data" in joOut && joOut.data && transaction_hash in joOut.data )
+                if( joOut && "data" in joOut && joOut.data && "transaction_hash" in joOut.data )
                     joSR.txHashSent = "" + joOut.data.transaction_hash;
                 else {
                     console.log( cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager returned bad answer: " ) + cc.j( joOut ) );
