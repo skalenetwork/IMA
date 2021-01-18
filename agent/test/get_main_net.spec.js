@@ -94,25 +94,21 @@ function toWei(string, string) {
 }
 
 // mockup for `joAccountDst`
-let joAccountDst = { address: fn_address_impl_, 
+let joAccountDst = { address: IMA.owaspUtils.fn_address_impl_, 
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `joAccountSrc`
-let joAccountSrc = { address: fn_address_impl_, 
+let joAccountSrc = { address: IMA.owaspUtils.fn_address_impl_, 
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `joAccount`
-let joAccount = { address: fn_address_impl_, 
+let joAccount = { address: IMA.owaspUtils.fn_address_impl_, 
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `joAccount_main_net`
-let joAccount_main_net = { address: fn_address_impl_,
+let joAccount_main_net = { address: IMA.owaspUtils.fn_address_impl_,
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
-function fn_address_impl_( w3 ) {
-    return "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f";
-}
-
 // mockup for `jo_deposit_box`
 let jo_deposit_box = {methods: {deposit: deposit, depositERC20: depositERC20,
     rawDepositERC20: rawDepositERC20}, 
