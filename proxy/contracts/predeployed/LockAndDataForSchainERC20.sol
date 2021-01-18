@@ -91,7 +91,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
      * LockAndDataForSchainERC20.
      */
     function receiveERC20(address contractOnSchain, uint256 amount) external allow("ERC20Module") returns (bool) {
-        require(ERC20MintAndBurn(contractOnSchain).balanceOf(address(this)) >= amount, "Amount not transfered");
+        require(ERC20MintAndBurn(contractOnSchain).balanceOf(address(this)) >= amount, "Amount not transferred");
         ERC20MintAndBurn(contractOnSchain).burn(amount);
         emit ReceivedERC20(true);
         return true;

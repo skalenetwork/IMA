@@ -184,7 +184,7 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
     }
 
     /**
-     * @dev Checks whether LockAndDataforMainnet is connected to a SKALE chain.
+     * @dev Checks whether LockAndDataForMainnet is connected to a SKALE chain.
      */
     function hasSchain( string calldata schainID ) external view returns (bool) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
