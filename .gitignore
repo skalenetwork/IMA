@@ -2,6 +2,13 @@
 proxy/build/
 proxy/types/
 
+# artifacts
+proxy/artifacts/
+proxy/cache/
+
+# openzeppelin
+proxy/.openzeppelin/dev-*.json
+proxy/.openzeppelin/.session
 
 # idea
 .DS_Store
@@ -24,6 +31,9 @@ pids
 proxy/coverageEnv
 proxy/coverage/
 proxy/coverage.json
+
+# tmp file after precompiled contracts generation
+proxy/data/precompiled.json.file
 
 # nyc test coverage
 .nyc_output
@@ -61,6 +71,20 @@ __pycache__/
 
 proxy/proxy.json
 proxy/data/*.json
+ima_data.json
 
 test/working
 test/config.json
+
+
+.vscode
+
+actions-runner/
+
+
+bls_glue
+hash_g1
+verify_bls
+
+venv
+

@@ -1,3 +1,23 @@
+#   SPDX-License-Identifier: AGPL-3.0-only
+#   -*- coding: utf-8 -*-
+#
+#   This file is part of SKALE IMA.
+#
+#   Copyright (C) 2019-Present SKALE Labs
+#
+#   SKALE IMA is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU Affero General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   SKALE IMA is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Affero General Public License for more details.
+#
+#   You should have received a copy of the GNU Affero General Public License
+#   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
+
 from time import sleep, time
 from logging import debug, error
 
@@ -30,6 +50,9 @@ class Senderc721ToMainnet(TestCase):
         #
         sleep(5)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+
+        self.blockchain.addERC721TokenByOwner(self.config.mainnet_key, self.config.schain_name, self.erc721.address)
+        self.blockchain.enableAutomaticDeployERC721(self.config.schain_key, "Mainnet")
         sleep(5)
         # send to schain
         self.agent.transfer_erc721_from_mainnet_to_schain(self.erc721,
@@ -52,7 +75,7 @@ class Senderc721ToMainnet(TestCase):
                                      amount_eth)
         #
         sleep(5)
-        self.erc721_clone = self.blockchain.get_erc721_on_schain(self.token_id)
+        self.erc721_clone = self.blockchain.get_erc721_on_schain("Mainnet", self.erc721.address)
 
     def _execute(self):
         source_address = self.blockchain.key_to_address(self.config.schain_key)
@@ -64,6 +87,7 @@ class Senderc721ToMainnet(TestCase):
         #
         sleep(5)
         self.agent.transfer_erc721_from_schain_to_mainnet(self.erc721_clone,
+                                                          self.erc721,
                                                           self.config.schain_key,
                                                           self.config.mainnet_key,
                                                           self.token_id,

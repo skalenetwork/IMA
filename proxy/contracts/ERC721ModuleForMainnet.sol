@@ -1,86 +1,118 @@
-pragma solidity ^0.5.3;
+// SPDX-License-Identifier: AGPL-3.0-only
 
-import "./Permissions.sol";
-import "openzeppelin-solidity/contracts/token/ERC721/IERC721Full.sol";
+/**
+ *   ERC721ModuleForMainnet.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2019-Present SKALE Labs
+ *   @author Artem Payvin
+ *
+ *   SKALE IMA is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as published
+ *   by the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   SKALE IMA is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Affero General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Affero General Public License
+ *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+pragma solidity 0.6.12;
+
+import "./PermissionsForMainnet.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Metadata.sol";
 
 interface ILockAndDataERC721M {
-    function erc721Tokens(uint index) external returns (address);
-    function erc721Mapper(address contractERC721) external returns (uint);
-    function addERC721Token(address contractERC721) external returns (uint);
-    function sendERC721(address contractHere, address to, uint token) external returns (bool);
+    function sendERC721(address contractOnMainnet, address to, uint256 token) external returns (bool);
+    function addERC721ForSchain(string calldata schainID, address erc721OnMainnet) external;
+    function getSchainToERC721(string calldata schainID, address erc721OnMainnet) external view returns (bool);
 }
 
+/**
+ * @title ERC721 Module For Mainnet
+ * @dev Runs on Mainnet, and manages receiving and sending of ERC721 token contracts
+ * and encoding contractPosition in LockAndDataForMainnetERC721.
+ */
+contract ERC721ModuleForMainnet is PermissionsForMainnet {
 
-contract ERC721ModuleForMainnet is Permissions {
+    /**
+     * @dev Emitted when token is mapped in LockAndDataForMainnetERC721.
+     */
+    event ERC721TokenAdded(string schainID, address indexed contractOnMainnet);
+    event ERC721TokenReady(address indexed contractOnMainnet, uint256 tokenId);
 
-    event ERC721TokenAdded(address indexed tokenHere, uint contractPosition);
-
-    constructor(address newLockAndDataAddress) Permissions(newLockAndDataAddress) public {
-        // solium-disable-previous-line no-empty-blocks
-    }
-
+    /**
+     * @dev Allows DepositBox to receive ERC721 tokens.
+     * 
+     * Emits an {ERC721TokenAdded} event.  
+     */
     function receiveERC721(
-        address contractHere,
+        string calldata schainID,
+        address contractOnMainnet,
         address to,
-        uint tokenId,
-        bool isRAW) external allow("DepositBox") returns (bytes memory data)
-        {
-        address lockAndDataERC721 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
-        if (!isRAW) {
-            uint contractPosition = ILockAndDataERC721M(lockAndDataERC721).erc721Mapper(contractHere);
-            if (contractPosition == 0) {
-                contractPosition = ILockAndDataERC721M(lockAndDataERC721).addERC721Token(contractHere);
-                emit ERC721TokenAdded(contractHere, contractPosition);
-            }
-            data = encodeData(
-                contractHere,
-                contractPosition,
-                to,
-                tokenId);
-            return data;
-        } else {
-            data = encodeRawData(to, tokenId);
-            return data;
+        uint256 tokenId
+    )
+        external
+        allow("DepositBox")
+        returns (bytes memory data)
+    {
+        address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract(
+            "LockAndDataERC721"
+        );
+        bool isERC721AddedToSchain= ILockAndDataERC721M(lockAndDataERC721)
+            .getSchainToERC721(schainID, contractOnMainnet);
+        if (!isERC721AddedToSchain) {
+            ILockAndDataERC721M(lockAndDataERC721).addERC721ForSchain(schainID, contractOnMainnet);
+            emit ERC721TokenAdded(schainID, contractOnMainnet);
         }
+        data = _encodeData(contractOnMainnet, to, tokenId);
+        emit ERC721TokenReady(contractOnMainnet, tokenId);
     }
 
-    function sendERC721(address to, bytes calldata data) external allow("DepositBox") returns (bool) {
-        address lockAndDataERC721 = IContractManager(lockAndDataAddress).permitted(keccak256(abi.encodePacked("LockAndDataERC721")));
-        uint contractPosition;
-        address contractAddress;
+    /**
+     * @dev Allows DepositBox to send ERC721 tokens.
+     */
+    function sendERC721(bytes calldata data) external allow("DepositBox") returns (bool) {
+        address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract(
+            "LockAndDataERC721"
+        );
+        address contractOnMainnet;
         address receiver;
-        uint tokenId;
-        if (to == address(0)) {
-            (contractPosition, receiver, tokenId) = fallbackDataParser(data);
-            contractAddress = ILockAndDataERC721M(lockAndDataERC721).erc721Tokens(contractPosition);
-        } else {
-            (receiver, tokenId) = fallbackRawDataParser(data);
-            contractAddress = to;
-        }
-        return ILockAndDataERC721M(lockAndDataERC721).sendERC721(contractAddress, receiver, tokenId);
+        uint256 tokenId;
+        (contractOnMainnet, receiver, tokenId) = _fallbackDataParser(data);
+        return ILockAndDataERC721M(lockAndDataERC721).sendERC721(contractOnMainnet, receiver, tokenId);
     }
 
-    function getReceiver(address to, bytes calldata data) external pure returns (address receiver) {
-        uint contractPosition;
-        uint amount;
-        if (to == address(0)) {
-            (contractPosition, receiver, amount) = fallbackDataParser(data);
-        } else {
-            (receiver, amount) = fallbackRawDataParser(data);
-        }
+    /**
+     * @dev Returns the receiver address of the ERC721 token.
+     */
+    function getReceiver(bytes calldata data) external pure returns (address receiver) {
+        (, receiver, ) = _fallbackDataParser(data);
     }
 
-    function encodeData(
-        address contractHere,
-        uint contractPosition,
+    function initialize(address newLockAndDataAddress) public override initializer {
+        PermissionsForMainnet.initialize(newLockAndDataAddress);
+    }
+
+    /**
+     * @dev Returns encoded creation data for ERC721 token.
+     */
+    function _encodeData(
+        address contractOnMainnet,
         address to,
-        uint tokenId) internal view returns (bytes memory data)
-        {
-        string memory name = IERC721Full(contractHere).name();
-        string memory symbol = IERC721Full(contractHere).symbol();
+        uint256 tokenId
+    )
+        private
+        view
+        returns (bytes memory data)
+    {
+        string memory name = IERC721Metadata(contractOnMainnet).name();
+        string memory symbol = IERC721Metadata(contractOnMainnet).symbol();
         data = abi.encodePacked(
             bytes1(uint8(5)),
-            bytes32(contractPosition),
+            bytes32(bytes20(contractOnMainnet)),
             bytes32(bytes20(to)),
             bytes32(tokenId),
             bytes(name).length,
@@ -90,44 +122,26 @@ contract ERC721ModuleForMainnet is Permissions {
         );
     }
 
-    function encodeRawData(address to, uint tokenId) internal pure returns (bytes memory data) {
-        data = abi.encodePacked(
-            bytes1(uint8(21)),
-            bytes32(bytes20(to)),
-            bytes32(tokenId)
-        );
-    }
-
-    function fallbackDataParser(bytes memory data)
-        internal
+    /**
+     * @dev Returns fallback data.
+     */
+    function _fallbackDataParser(bytes memory data)
+        private
         pure
-        returns (uint, address payable, uint)
+        returns (address, address payable, uint256)
     {
-        bytes32 contractIndex;
+        bytes32 contractOnMainnet;
         bytes32 to;
         bytes32 token;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
-            contractIndex := mload(add(data, 33))
+            contractOnMainnet := mload(add(data, 33))
             to := mload(add(data, 65))
             token := mload(add(data, 97))
         }
         return (
-            uint(contractIndex), address(bytes20(to)), uint(token)
+            address(bytes20(contractOnMainnet)), address(bytes20(to)), uint256(token)
         );
-    }
-
-    function fallbackRawDataParser(bytes memory data)
-        internal
-        pure
-        returns (address payable, uint)
-    {
-        bytes32 to;
-        bytes32 token;
-        assembly {
-            to := mload(add(data, 33))
-            token := mload(add(data, 65))
-        }
-        return (address(bytes20(to)), uint(token));
     }
 
 }

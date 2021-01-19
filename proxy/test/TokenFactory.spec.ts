@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
+/**
+ * @license
+ * SKALE IMA
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file TokenFactory.spec.ts
+ * @copyright SKALE Labs 2019-Present
+ */
+
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 
@@ -11,28 +36,23 @@ import {
     ERC721ModuleForSchainInstance,
     ERC721OnChainContract,
     ERC721OnChainInstance,
-    LockAndDataForSchainContract,
+    LockAndDataForSchainWorkaroundContract,
     LockAndDataForSchainERC20Contract,
     LockAndDataForSchainERC20Instance,
     LockAndDataForSchainERC721Contract,
     LockAndDataForSchainERC721Instance,
-    LockAndDataForSchainInstance,
-    MessageProxyContract,
-    MessageProxyInstance,
+    LockAndDataForSchainWorkaroundInstance,
+    MessageProxyForSchainContract,
+    MessageProxyForSchainInstance,
     TokenFactoryContract,
     TokenFactoryInstance,
   } from "../types/truffle-contracts";
-import { gasMultiplier } from "./utils/command_line";
-import { randomString } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
-// tslint:disable-next-line: no-var-requires
-const ABIERC20OnChain = require("../build/contracts/ERC20OnChain.json");
-
-const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
-const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
+const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
+const LockAndDataForSchain: LockAndDataForSchainWorkaroundContract = artifacts.require("./LockAndDataForSchainWorkaround");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const LockAndDataForSchainERC20: LockAndDataForSchainERC20Contract =
     artifacts.require("./LockAndDataForSchainERC20");
@@ -43,11 +63,9 @@ const ERC721ModuleForSchain: ERC721ModuleForSchainContract = artifacts.require("
 const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 
-const contractManager = "0x0000000000000000000000000000000000000000";
-
 contract("TokenFactory", ([user, deployer]) => {
-  let messageProxy: MessageProxyInstance;
-  let lockAndDataForSchain: LockAndDataForSchainInstance;
+  let messageProxy: MessageProxyForSchainInstance;
+  let lockAndDataForSchain: LockAndDataForSchainWorkaroundInstance;
   let tokenFactory: TokenFactoryInstance;
   let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
   let lockAndDataForSchainERC20: LockAndDataForSchainERC20Instance;
@@ -55,19 +73,20 @@ contract("TokenFactory", ([user, deployer]) => {
   let lockAndDataForSchainERC721: LockAndDataForSchainERC721Instance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxyForSchain.new(
+      "Mainnet", {from: deployer});
+    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
-      {from: deployer, gas: 8000000 * gasMultiplier});
+      {from: deployer});
     eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
-      {from: deployer, gas: 8000000 * gasMultiplier});
+      {from: deployer});
     eRC721ModuleForSchain = await ERC721ModuleForSchain.new(lockAndDataForSchain.address,
-      {from: deployer, gas: 8000000 * gasMultiplier});
+      {from: deployer});
     lockAndDataForSchainERC20 =
-      await LockAndDataForSchainERC20.new(lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+      await LockAndDataForSchainERC20.new(lockAndDataForSchain.address, {from: deployer});
     lockAndDataForSchainERC721 =
       await LockAndDataForSchainERC721.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
+        {from: deployer});
   });
 
   it("should createERC20", async () => {
@@ -89,7 +108,7 @@ contract("TokenFactory", ([user, deployer]) => {
     await lockAndDataForSchain
       .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
     // execution
-    const res = await tokenFactory.createERC20.call(data, {from: deployer});
+    const res = await tokenFactory.createERC20.call("elvis", "ELV", "0x3b9ac9f6", {from: deployer});
     // expectation
     expect(res).to.include("0x");
   });
@@ -112,23 +131,28 @@ contract("TokenFactory", ([user, deployer]) => {
     await lockAndDataForSchain
         .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
     // execution
-    const res = await tokenFactory.createERC721.call(data, {from: deployer});
+    const res = await tokenFactory.createERC721.call("elvis", "ELV", {from: deployer});
     // expectation
     expect(res).to.include("0x");
   });
 
 });
 
-contract("ERC20OnChain", ([user, deployer]) => {
-  let messageProxy: MessageProxyInstance;
-  let lockAndDataForSchain: LockAndDataForSchainInstance;
+contract("ERC20OnChain", ([deployer, user]) => {
+  let messageProxy: MessageProxyForSchainInstance;
+  let lockAndDataForSchain: LockAndDataForSchainWorkaroundInstance;
   let eRC20OnChain: ERC20OnChainInstance;
+  let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
-    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20", 18,
-        ((1000000000).toString()), deployer, {from: deployer});
+    messageProxy = await MessageProxyForSchain.new(
+      "Mainnet", {from: deployer});
+    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
+    eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
+      {from: deployer});
+    await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address);
+    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
+        ((1000000000).toString()), lockAndDataForSchain.address, {from: deployer});
   });
 
   it("should invoke `totalSupplyOnMainnet`", async () => {
@@ -140,7 +164,7 @@ contract("ERC20OnChain", ([user, deployer]) => {
 
   it("should rejected with `Call does not go from ERC20Module` when invoke `setTotalSupplyOnMainnet`", async () => {
     // preparation
-    const error = "Call does not go from ERC20Module";
+    const error = "Caller is not ERC20Module";
     const newTotalSupply = 500;
     // execution
     await eRC20OnChain.setTotalSupplyOnMainnet(newTotalSupply, {from: user})
@@ -151,6 +175,7 @@ contract("ERC20OnChain", ([user, deployer]) => {
     // preparation
     const newTotalSupply = 500;
     // execution
+    await lockAndDataForSchain.setContract("ERC20Module", deployer);
     await eRC20OnChain.setTotalSupplyOnMainnet(newTotalSupply, {from: deployer});
     // expectation
     const totalSupply = await eRC20OnChain.totalSupplyOnMainnet({from: deployer});
@@ -199,13 +224,14 @@ contract("ERC20OnChain", ([user, deployer]) => {
 });
 
 contract("ERC721OnChain", ([user, deployer]) => {
-  let messageProxy: MessageProxyInstance;
-  let lockAndDataForSchain: LockAndDataForSchainInstance;
+  let messageProxy: MessageProxyForSchainInstance;
+  let lockAndDataForSchain: LockAndDataForSchainWorkaroundInstance;
   let eRC721OnChain: ERC721OnChainInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxy = await MessageProxyForSchain.new(
+      "Mainnet", {from: deployer});
+    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721", {from: deployer});
   });
 

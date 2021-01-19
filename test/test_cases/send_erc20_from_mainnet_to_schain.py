@@ -1,3 +1,23 @@
+#   SPDX-License-Identifier: AGPL-3.0-only
+#   -*- coding: utf-8 -*-
+#
+#   This file is part of SKALE IMA.
+#
+#   Copyright (C) 2019-Present SKALE Labs
+#
+#   SKALE IMA is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU Affero General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   SKALE IMA is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Affero General Public License for more details.
+#
+#   You should have received a copy of the GNU Affero General Public License
+#   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
+
 from time import sleep, time
 from logging import debug
 
@@ -23,6 +43,8 @@ class SendERC20ToSchain(TestCase):
         signed_txn = self.blockchain.web3_mainnet.eth.account.signTransaction(mint_txn,
                                                                               private_key=self.config.mainnet_key)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+        self.blockchain.addERC20TokenByOwner(self.config.mainnet_key, self.config.schain_name, self.erc20.address)
+        self.blockchain.enableAutomaticDeployERC20(self.config.schain_key, "Mainnet")
 
     def _execute(self):
         amount = 1
@@ -32,7 +54,7 @@ class SendERC20ToSchain(TestCase):
                                                          amount,
                                                          self.timeout)
 
-        erc20 = self.blockchain.get_erc20_on_schain(1)
+        erc20 = self.blockchain.get_erc20_on_schain("Mainnet", self.erc20.address)
         destination_address = self.blockchain.key_to_address(self.config.schain_key)
         balance = erc20.functions.balanceOf(destination_address).call()
         if balance == amount:

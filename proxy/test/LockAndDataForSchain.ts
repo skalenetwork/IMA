@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
+/**
+ * @license
+ * SKALE IMA
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file LockAndDataForSchain.ts
+ * @copyright SKALE Labs 2019-Present
+ */
+
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 
@@ -6,27 +31,21 @@ import { EthERC20Contract,
   EthERC20Instance,
   LockAndDataForSchainContract,
   LockAndDataForSchainInstance,
-  MessageProxyContract,
-  MessageProxyInstance} from "../types/truffle-contracts";
+  } from "../types/truffle-contracts";
 import { gasMultiplier } from "./utils/command_line";
 import { randomString } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 
-const contractManager = "0x0000000000000000000000000000000000000000";
-
 contract("LockAndDataForSchain", ([user, deployer]) => {
-  let messageProxy: MessageProxyInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let ethERC20: EthERC20Instance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
     ethERC20 = await EthERC20.new({from: deployer, gas: 8000000 * gasMultiplier});
   });
@@ -34,18 +53,18 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
   it("should set EthERC20 address", async () => {
 
     // only owner can set EthERC20 address:
-    await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: user}).should.be.rejected;
-    await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: user}).should.be.rejected;
+    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
 
     // address which has been set should be equal to deployed contract address;
-    const address = await lockAndDataForSchain.ethERC20Address();
+    const address = await lockAndDataForSchain.getEthErc20Address();
     expect(address).to.equal(ethERC20.address);
   });
 
   it("should set contract", async () => {
-    const nullAddress = await lockAndDataForSchain.ethERC20Address();
-    await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
-    const address = await lockAndDataForSchain.ethERC20Address();
+    const nullAddress = await lockAndDataForSchain.getEthErc20Address();
+    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
+    const address = await lockAndDataForSchain.getEthErc20Address();
 
     // only owner can set contract:
     await lockAndDataForSchain.setContract("EthERC20", address, {from: user})
@@ -66,7 +85,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await lockAndDataForSchain.setContract("EthERC20", deployer, {from: deployer}).
     should.be.rejectedWith("Given contract address does not contain code");
 
-    const getMapping = await lockAndDataForSchain.permitted(web3.utils.soliditySha3("EthERC20"));
+    const getMapping = await lockAndDataForSchain.getContract("EthERC20");
     expect(getMapping).to.equal(ethERC20.address);
   });
 
@@ -89,7 +108,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await lockAndDataForSchain.addSchain(schainID, tokenManagerAddress, {from: deployer}).
     should.be.rejectedWith("SKALE chain is already set");
 
-    const getMapping = await lockAndDataForSchain.tokenManagerAddresses(web3.utils.soliditySha3(schainID));
+    const getMapping = await lockAndDataForSchain.tokenManagerAddresses(await web3.utils.soliditySha3(schainID));
     expect(getMapping).to.equal(tokenManagerAddress);
   });
 
@@ -167,7 +186,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     const amountMoreThenCap = 1210000000000000000;
 
     // set EthERC20 address:
-    await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
 
     // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
     await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
@@ -175,17 +194,17 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     // only owner can send Eth:
     await lockAndDataForSchain.sendEth(address, amount, {from: user}).should.be.rejected;
 
-    // amoult more zen cap = 120 * (10 ** 6) * (10 ** 18) can't be sent:
+    // amount more zen cap = 120 * (10 ** 6) * (10 ** 18) can't be sent:
     await lockAndDataForSchain.sendEth(address, amountMoreThenCap, {from: deployer}).should.be.rejected;
 
-    // balace of account  equal to zero:
+    // balance of account  equal to zero:
     const balanceBefore = parseInt(new BigNumber(await ethERC20.balanceOf(user)).toString(), 10);
     balanceBefore.should.be.deep.equal(amountZero);
 
     // send Eth:
     await lockAndDataForSchain.sendEth(address, amount, {from: deployer});
 
-    // balace of account equal to amount which has been sent:
+    // balance of account equal to amount which has been sent:
     const balanceAfter = parseInt(new BigNumber(await ethERC20.balanceOf(user)).toString(), 10);
     balanceAfter.should.be.deep.equal(amount);
   });
@@ -196,7 +215,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     const amountZero = new BigNumber(0);
 
     // set EthERC20 address:
-    await lockAndDataForSchain.setEthERC20Address(ethERC20.address, {from: deployer});
+    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
 
     // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
     await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
@@ -204,11 +223,11 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     //  send Eth to account:
     await lockAndDataForSchain.sendEth(address, amount, {from: deployer});
 
-    // balace of account equal to amount which has been sent:
+    // balance of account equal to amount which has been sent:
     const balance = new BigNumber(await ethERC20.balanceOf(address));
     balance.should.be.deep.equal(amount);
 
-    // burn Eth throught `receiveEth` function:
+    // burn Eth through `receiveEth` function:
     await lockAndDataForSchain.receiveEth(address, amount, {from: deployer});
 
     // balance after "receiving" equal to zero:

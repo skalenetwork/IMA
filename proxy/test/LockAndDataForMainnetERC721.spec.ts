@@ -1,57 +1,62 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
+/**
+ * @license
+ * SKALE IMA
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file LockAndDataForMainnetERC721.spec.ts
+ * @copyright SKALE Labs 2019-Present
+ */
+
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
     ERC721OnChainContract,
     ERC721OnChainInstance,
-    LockAndDataForMainnetContract,
-    LockAndDataForMainnetERC721Contract,
     LockAndDataForMainnetERC721Instance,
     LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainInstance,
-    MessageProxyContract,
-    MessageProxyInstance,
-    TokenFactoryContract,
-    TokenFactoryInstance,
     } from "../types/truffle-contracts";
 
-import { createBytes32 } from "./utils/helper";
-import { stringToHex } from "./utils/helper";
-
 import chai = require("chai");
-import { gasMultiplier } from "./utils/command_line";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxy: MessageProxyContract = artifacts.require("./MessageProxy");
-const LockAndDataForMainnet: LockAndDataForMainnetContract = artifacts.require("./LockAndDataForMainnet");
+import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
+import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
+import { randomString } from "./utils/helper";
+
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
-const LockAndDataForMainnetERC721: LockAndDataForMainnetERC721Contract =
-    artifacts.require("./LockAndDataForMainnetERC721");
-const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 
-const contractManager = "0x0000000000000000000000000000000000000000";
-
 contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
-  let messageProxy: MessageProxyInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForMainnetERC721: LockAndDataForMainnetERC721Instance;
-  let tokenFactory: TokenFactoryInstance;
   let eRC721OnChain: ERC721OnChainInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxy.new("Mainnet", contractManager, {from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForMainnet = await LockAndDataForMainnet.new({from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForMainnetERC721 =
-        await LockAndDataForMainnetERC721.new(lockAndDataForMainnet.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
+    lockAndDataForMainnet = await deployLockAndDataForMainnet();
+    lockAndDataForMainnetERC721 = await deployLockAndDataForMainnetERC721(lockAndDataForMainnet);
+    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     await lockAndDataForSchain.setContract("LockAndDataERC721", lockAndDataForMainnetERC721.address);
-    tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
     eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
 
   });
@@ -90,20 +95,32 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
   it("should add ERC721 token when invoke `sendERC721`", async () => {
     // preparation
     const contractHere = eRC721OnChain.address;
+    const schainID = randomString(10);
     // execution#1
-    const res = await lockAndDataForMainnetERC721
-        .addERC721Token.call(contractHere, {from: deployer});
     await lockAndDataForMainnetERC721
-        .addERC721Token(contractHere, {from: deployer});
+        .addERC721ForSchain(schainID, contractHere, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC721.disableWhitelist(schainID);
+    await lockAndDataForMainnetERC721.addERC721ForSchain(schainID, contractHere, {from: deployer});
+    const res = await lockAndDataForMainnetERC721.getSchainToERC721(schainID, contractHere);
     // expectation#1
-    parseInt(new BigNumber(res).toString(), 10)
-        .should.be.equal(1);
-    // execution#2
-    const res1 = await lockAndDataForMainnetERC721
-        .addERC721Token.call(contractHere, {from: deployer});
-    // expectation#2
-    parseInt(new BigNumber(res1).toString(), 10)
-        .should.be.equal(2);
+    res.should.be.equal(true);
+  });
+
+  it("should add token by owner", async () => {
+    // preparation
+    const contractHere = eRC721OnChain.address;
+    const schainID = randomString(10);
+
+    const whitelist = await lockAndDataForMainnetERC721.withoutWhitelist(web3.utils.soliditySha3(schainID));
+    await lockAndDataForMainnetERC721.addERC721TokenByOwner(schainID, contractHere);
+    // whitelist == true - disabled whitelist = false - enabled
+    if (whitelist) {
+      await lockAndDataForMainnetERC721.enableWhitelist(schainID);
+      await lockAndDataForMainnetERC721.addERC721TokenByOwner(schainID, contractHere);
+    } else {
+      await lockAndDataForMainnetERC721.disableWhitelist(schainID);
+      await lockAndDataForMainnetERC721.addERC721TokenByOwner(schainID, contractHere);
+    }
   });
 
 });
