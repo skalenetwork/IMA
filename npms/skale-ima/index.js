@@ -349,6 +349,35 @@ function get_account_connectivity_info( joAccount ) {
     return joACI;
 }
 
+async function wait_for_transaction_receipt( w3, txHash, nMaxWaitAttempts, nSleepMilliseconds ) {
+    if( w3 == null || w3 == undefined || txHash == null || txHash == undefined || typeof txHash != "string" || txHash.length == 0 )
+        return null;
+    nMaxWaitAttempts = nMaxWaitAttempts || 100;
+    nSleepMilliseconds = nSleepMilliseconds || 5000;
+    let idxAttempt;
+    for( idxAttempt = 0; idxAttempt < nMaxWaitAttempts; ++ idxAttempt ) {
+        try {
+            const joReceipt = await w3_main_net.eth.getTransactionReceipt( txHash );
+            if( joReceipt == null ) {
+                log.write(
+                    cc.debug( "Got " ) + cc.notice( txHash ) +
+                    cc.debug( " transaction receipt: " ) + cc.j( joReceipt ) +
+                    "\n" );
+                return joReceipt;
+            }
+        } catch ( err ) {
+        }
+        log.write(
+            cc.debug( "Attempt " ) + cc.info( idxAttempt ) + cc.debug( " of " ) + cc.info( nMaxWaitAttempts ) +
+            cc.debug( "done, sleeping " ) + cc.info( nSleepMilliseconds ) +
+            cc.debug( " milliseconds while waiting for " ) + cc.notice( txHash ) +
+            cc.debug( " transaction receipt..." ) +
+            "\n" );
+        await sleep( nSleepMilliseconds );
+    }
+    return null;
+}
+
 // function to_eth_v( v_raw, chain_id ) { // see https://github.com/ethereum/eth-account/blob/master/eth_account/_utils/signing.py
 //     const CHAIN_ID_OFFSET = 35;
 //     const V_OFFSET = 27;
@@ -366,7 +395,7 @@ function get_account_connectivity_info( joAccount ) {
 //     return v;
 // }
 
-async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
+async function safe_sign_transaction_with_account( w3, tx, rawTx, joAccount ) {
     // console.log( joAccount );
     const joSR = {
         joACI: get_account_connectivity_info( joAccount ),
@@ -424,6 +453,7 @@ async function safe_sign_transaction_with_account( tx, rawTx, joAccount ) {
             } );
         } );
         await sleep( 5000 );
+        await wait_for_transaction_receipt( w3, joSR.txHashSent );
     } break;
     case "sgx": {
         if( verbose_get() >= RV_VERBOSE.debug ) {
@@ -719,7 +749,7 @@ async function register_s_chain_in_deposit_box( // step 1
                 data: dataTx
             };
             const tx = compose_tx_instance( strLogPrefix, rawTx );
-            const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
+            const joSR = await safe_sign_transaction_with_account( w3_main_net, tx, rawTx, joAccount_main_net );
             let joReceipt = null;
             if( joSR.joACI.isAutoSend )
                 joReceipt = await w3_main_net.eth.getTransactionReceipt( joSR.txHashSent );
@@ -837,7 +867,7 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
             data: dataTx
         };
         const tx = compose_tx_instance( strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccount );
+        const joSR = await safe_sign_transaction_with_account( w3_s_chain, tx, rawTx, joAccount );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
             joReceipt = await w3_s_chain.eth.getTransactionReceipt( joSR.txHashSent );
@@ -952,7 +982,7 @@ async function register_main_net_on_s_chain( // step 2B
             data: dataTx
         };
         const tx = compose_tx_instance( strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccount_s_chain );
+        const joSR = await safe_sign_transaction_with_account( w3_s_chain, tx, rawTx, joAccount_s_chain );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
             joReceipt = await w3_s_chain.eth.getTransactionReceipt( joSR.txHashSent );
@@ -1040,7 +1070,7 @@ async function do_eth_payment_from_main_net(
             value: "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 ) // wei_how_much // how much money to send
         };
         const tx = compose_tx_instance( strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccountSrc );
+        const joSR = await safe_sign_transaction_with_account( w3_main_net, tx, rawTx, joAccountSrc );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
             joReceipt = await w3_main_net.eth.getTransactionReceipt( joSR.txHashSent );
@@ -1177,7 +1207,7 @@ async function do_eth_payment_from_s_chain(
                 gas: 8000000
             };
             const txAddEthCost = compose_tx_instance( strLogPrefix, rawTxAddEthCost );
-            const joAddEthCostSR = await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
+            const joAddEthCostSR = await safe_sign_transaction_with_account( w3_s_chain, txAddEthCost, rawTxAddEthCost, joAccountSrc );
             let joReceiptAddEthCost = null;
             if( joAddEthCostSR.joACI.isAutoSend )
                 joReceiptAddEthCost = await w3_s_chain.eth.getTransactionReceipt( joAddEthCostSR.txHashSent );
@@ -1230,7 +1260,7 @@ async function do_eth_payment_from_s_chain(
             value: 0 // how much money to send
         };
         const tx = compose_tx_instance( strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccountSrc );
+        const joSR = await safe_sign_transaction_with_account( w3_s_chain, tx, rawTx, joAccountSrc );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
             joReceipt = await w3_s_chain.eth.getTransactionReceipt( joSR.txHashSent );
@@ -1315,7 +1345,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             value: 0 // how much money to send
         };
         const tx = compose_tx_instance( strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( tx, rawTx, joAccount_main_net );
+        const joSR = await safe_sign_transaction_with_account( w3_main_net, tx, rawTx, joAccount_main_net );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
             joReceipt = await w3_main_net.eth.getTransactionReceipt( joSR.txHashSent );
@@ -1472,8 +1502,8 @@ async function do_erc721_payment_from_main_net(
         // sign transactions
         //
         strActionName = "sign transactions M->S";
-        const joApproveSR = await safe_sign_transaction_with_account( txApprove, rawTxApprove, joAccountSrc );
-        const joDepositSR = await safe_sign_transaction_with_account( txDeposit, rawTxDeposit, joAccountSrc );
+        const joApproveSR = await safe_sign_transaction_with_account( w3_main_net, txApprove, rawTxApprove, joAccountSrc );
+        const joDepositSR = await safe_sign_transaction_with_account( w3_main_net, txDeposit, rawTxDeposit, joAccountSrc );
         let joReceiptApprove = null, joReceiptDeposit = null;
         if( joApproveSR.joACI.isAutoSend && joDepositSR.joACI.isAutoSend ) {
             joReceiptApprove = await w3_main_net.eth.getTransactionReceipt( joApproveSR.txHashSent );
@@ -1656,8 +1686,8 @@ async function do_erc20_payment_from_main_net(
         // sign transactions
         //
         strActionName = "sign transactions M->S";
-        const joApproveSR = await safe_sign_transaction_with_account( txApprove, rawTxApprove, joAccountSrc );
-        const joDepositSR = await safe_sign_transaction_with_account( txDeposit, rawTxDeposit, joAccountSrc );
+        const joApproveSR = await safe_sign_transaction_with_account( w3_main_net, txApprove, rawTxApprove, joAccountSrc );
+        const joDepositSR = await safe_sign_transaction_with_account( w3_main_net, txDeposit, rawTxDeposit, joAccountSrc );
         let joReceiptApprove = null, joReceiptDeposit = null;
         if( joApproveSR.joACI.isAutoSend && joDepositSR.joACI.isAutoSend ) {
             joReceiptApprove = await w3_main_net.eth.getTransactionReceipt( joApproveSR.txHashSent );
@@ -1825,7 +1855,7 @@ async function do_erc20_payment_from_s_chain(
             gas: 8000000
         };
         const txApprove = compose_tx_instance( strLogPrefix, rawTxApprove );
-        const joApproveSR = await safe_sign_transaction_with_account( txApprove, rawTxApprove, joAccountSrc );
+        const joApproveSR = await safe_sign_transaction_with_account( w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
         let joReceiptApprove = null;
         if( joApproveSR.joACI.isAutoSend && joDepositSR.joACI.isAutoSend )
             joReceiptApprove = await w3_s_chain.eth.getTransactionReceipt( joApproveSR.txHashSent );
@@ -1876,7 +1906,7 @@ async function do_erc20_payment_from_s_chain(
                 gas: 8000000
             };
             const txAddEthCost = compose_tx_instance( strLogPrefix, rawTxAddEthCost );
-            const joAddEthCostSR = await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
+            const joAddEthCostSR = await safe_sign_transaction_with_account( w3_s_chain, txAddEthCost, rawTxAddEthCost, joAccountSrc );
             let joReceiptAddEthCost = null;
             if( joAddEthCostSR.joACI.isAutoSend )
                 joReceiptAddEthCost = await w3_s_chain.eth.getTransactionReceipt( joAddEthCostSR.txHashSent );
@@ -1917,7 +1947,7 @@ async function do_erc20_payment_from_s_chain(
             gas: 8000000
         };
         const txExitToMainERC20 = compose_tx_instance( strLogPrefix, rawTxExitToMainERC20 );
-        const joExitToMainERC20SR = await safe_sign_transaction_with_account( txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc );
+        const joExitToMainERC20SR = await safe_sign_transaction_with_account( w3_s_chain, txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc );
         let joReceiptExitToMainERC20 = null;
         if( joExitToMainERC20SR.joACI.isAutoSend )
             joReceiptExitToMainERC20 = await w3_s_chain.eth.getTransactionReceipt( joExitToMainERC20SR.txHashSent );
@@ -2038,7 +2068,7 @@ async function do_erc721_payment_from_s_chain(
             gas: 8000000
         };
         const txTransferFrom = compose_tx_instance( strLogPrefix, rawTxTransferFrom );
-        const joTransferFromSR = await safe_sign_transaction_with_account( txTransferFrom, rawTxTransferFrom, joAccountSrc );
+        const joTransferFromSR = await safe_sign_transaction_with_account( w3_s_chain, txTransferFrom, rawTxTransferFrom, joAccountSrc );
         let joReceiptTransferFrom = null;
         if( joTransferFromSR.joACI.isAutoSend )
             joReceiptTransferFrom = await w3_s_chain.eth.getTransactionReceipt( joTransferFromSR.txHashSent );
@@ -2089,7 +2119,7 @@ async function do_erc721_payment_from_s_chain(
                 gas: 8000000
             };
             const txAddEthCost = compose_tx_instance( strLogPrefix, rawTxAddEthCost );
-            const joAddEthCostSR = await safe_sign_transaction_with_account( txAddEthCost, rawTxAddEthCost, joAccountSrc );
+            const joAddEthCostSR = await safe_sign_transaction_with_account( w3_s_chain, txAddEthCost, rawTxAddEthCost, joAccountSrc );
             let joReceiptAddEthCost = null;
             if( joAddEthCostSR.joACI.isAutoSend )
                 joReceiptAddEthCost = await w3_s_chain.eth.getTransactionReceipt( joAddEthCostSR.txHashSent );
@@ -2130,7 +2160,7 @@ async function do_erc721_payment_from_s_chain(
             gas: 8000000
         } );
         const txExitToMainERC721 = compose_tx_instance( strLogPrefix, rawTxExitToMainERC721 );
-        const joExitToMainErc721SR = await safe_sign_transaction_with_account( txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc );
+        const joExitToMainErc721SR = await safe_sign_transaction_with_account( w3_s_chain, txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc );
         let joReceiptExitToMainERC721 = null;
         if( joExitToMainErc721SR.joACI.isAutoSend )
             joReceiptExitToMainERC721 = await w3_s_chain.eth.getTransactionReceipt( joExitToMainErc721SR.txHashSent );
@@ -2550,7 +2580,7 @@ async function do_transfer(
                     // "value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
                 };
                 const tx_postIncomingMessages = compose_tx_instance( strLogPrefix, raw_tx_postIncomingMessages );
-                const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
+                const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( w3_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
                 let joReceipt = null;
                 if( joPostIncomingMessagesSR.joACI.isAutoSend )
                     joReceipt = await w3_dst.eth.getTransactionReceipt( joPostIncomingMessagesSR.txHashSent );
