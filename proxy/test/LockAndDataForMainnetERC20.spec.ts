@@ -104,11 +104,11 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
     const name = "elvis";
     const schainID = randomString(10);
     const tokenName = "ELV";
-    const sopply = 1000000 * 10 ** 18;
+    const supply = 1000000 * 10 ** 18;
     // create ERC20 token
     // const erc20TokenAddress = await tokenFactory.createERC20(data, {from: deployer});
-    const contractHere = await tokenFactory.createERC20.call(name, tokenName, "0x" + sopply.toString(16), {from: deployer});
-    await tokenFactory.createERC20(name, tokenName, "0x" + sopply.toString(16), {from: deployer});
+    const contractHere = await tokenFactory.createERC20.call(name, tokenName, "0x" + supply.toString(16), {from: deployer});
+    await tokenFactory.createERC20(name, tokenName, "0x" + supply.toString(16), {from: deployer});
     // for execution#2
     const contractHer = ethERC20.address;
     await lockAndDataForMainnetERC20
@@ -133,16 +133,16 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
     const name = "elvis";
     const schainID = randomString(10);
     const tokenName = "ELV";
-    const sopply = 1000000 * 10 ** 18;
+    const supply = 1000000 * 10 ** 18;
     // create ERC20 token
     // const erc20TokenAddress = await tokenFactory.createERC20(data, {from: deployer});
-    const contractHere = await tokenFactory.createERC20.call(name, tokenName, "0x" + sopply.toString(16), {from: deployer});
-    await tokenFactory.createERC20(name, tokenName, "0x" + sopply.toString(16), {from: deployer});
+    const contractHere = await tokenFactory.createERC20.call(name, tokenName, "0x" + supply.toString(16), {from: deployer});
+    await tokenFactory.createERC20(name, tokenName, "0x" + supply.toString(16), {from: deployer});
     // for execution#2
     const contractHer = ethERC20.address;
 
-    const contractHere2 = await tokenFactory.createERC20.call(name, tokenName, "0x" + sopply.toString(16), {from: deployer});
-    await tokenFactory.createERC20(name, tokenName, "0x" + sopply.toString(16), {from: deployer});
+    const contractHere2 = await tokenFactory.createERC20.call(name, tokenName, "0x" + supply.toString(16), {from: deployer});
+    await tokenFactory.createERC20(name, tokenName, "0x" + supply.toString(16), {from: deployer});
     const whitelist = await lockAndDataForMainnetERC20.withoutWhitelist(web3.utils.soliditySha3(schainID));
     await lockAndDataForMainnetERC20.addERC20TokenByOwner(schainID, contractHere);
     // whitelist == true - disabled whitelist = false - enabled
