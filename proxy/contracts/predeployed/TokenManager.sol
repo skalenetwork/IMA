@@ -76,7 +76,7 @@ contract TokenManager is PermissionsForSchain {
         address schainTokenManagerAddress = ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash);
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")),
-            "This function is not for transfering to Mainnet"
+            "This function is not for transferring to Mainnet"
         );
         require(schainTokenManagerAddress != address(0), "Incorrect Token Manager address");
         _;
@@ -399,11 +399,11 @@ contract TokenManager is PermissionsForSchain {
      * @dev Returns MessageProxy address.
      */
     function getProxyForSchainAddress() public view returns ( address ow ) {
-        address proxyForSchaniAddress = LockAndDataForSchain(
+        address proxyForSchainAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getMessageProxy();
-        if (proxyForSchaniAddress != address(0) )
-            return proxyForSchaniAddress;
+        if (proxyForSchainAddress != address(0) )
+            return proxyForSchainAddress;
         return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
             "skaleConfig.contractSettings.IMA.MessageProxy"
         );

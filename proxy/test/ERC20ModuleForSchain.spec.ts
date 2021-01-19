@@ -223,7 +223,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount * 2);
   });
 
-  it("should return `true` for `sendERC20` with `to0==address(0)` and `contractAddreess==address(0)`", async () => {
+  it("should return `true` for `sendERC20` with `to0==address(0)` and `contractAddress==address(0)`", async () => {
     // preparation
     const schainID = randomString(10);
     const to = user;

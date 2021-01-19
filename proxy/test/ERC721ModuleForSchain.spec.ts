@@ -111,7 +111,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
       .addERC721ForSchain(schainID, eRC721OnMainnet.address, contractHere, {from: deployer});
     // mint ERC721 to avoid "ERC721: owner query for nonexistent token" error
     await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-    // transfer ERC721 token to `lockAndDataForMainnetERC721` to avoid "Token not transfered" error
+    // transfer ERC721 token to `lockAndDataForMainnetERC721` to avoid "Token not transferred" error
     await eRC721OnChain.transferFrom(deployer, lockAndDataForSchainERC721.address, tokenId, {from: deployer});
     // execution
     const res = await eRC721ModuleForSchain.receiveERC721.call(schainID, contractThere , to, tokenId, {from: deployer});
@@ -208,7 +208,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
       .addERC721ForSchain(schainID, contractThere, contractHere, {from: deployer});
     // mint ERC721 to avoid "ERC721: owner query for nonexistent token" error
     await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-    // transfer ERC721 token to `lockAndDataForMainnetERC721` to avoid "Token not transfered" error
+    // transfer ERC721 token to `lockAndDataForMainnetERC721` to avoid "Token not transferred" error
     await eRC721OnChain.transferFrom(deployer, lockAndDataForSchainERC721.address, tokenId, {from: deployer});
     // get data from `receiveERC721`
     const data = await eRC721ModuleForSchain.receiveERC721.call(schainID, contractThere , to, tokenId, {from: deployer});
