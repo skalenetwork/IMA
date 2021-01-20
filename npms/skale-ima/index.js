@@ -357,8 +357,8 @@ async function wait_for_transaction_receipt( w3, txHash, nMaxWaitAttempts, nSlee
     let idxAttempt;
     for( idxAttempt = 0; idxAttempt < nMaxWaitAttempts; ++ idxAttempt ) {
         try {
-            const joReceipt = await w3_main_net.eth.getTransactionReceipt( txHash );
-            if( joReceipt == null ) {
+            const joReceipt = await w3.eth.getTransactionReceipt( txHash );
+            if( joReceipt != null ) {
                 log.write(
                     cc.debug( "Got " ) + cc.notice( txHash ) +
                     cc.debug( " transaction receipt: " ) + cc.j( joReceipt ) +
@@ -369,7 +369,7 @@ async function wait_for_transaction_receipt( w3, txHash, nMaxWaitAttempts, nSlee
         }
         log.write(
             cc.debug( "Attempt " ) + cc.info( idxAttempt ) + cc.debug( " of " ) + cc.info( nMaxWaitAttempts ) +
-            cc.debug( "done, sleeping " ) + cc.info( nSleepMilliseconds ) +
+            cc.debug( " done, sleeping " ) + cc.info( nSleepMilliseconds ) +
             cc.debug( " milliseconds while waiting for " ) + cc.notice( txHash ) +
             cc.debug( " transaction receipt..." ) +
             "\n" );
