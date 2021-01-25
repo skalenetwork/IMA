@@ -32,6 +32,9 @@ proxy/coverageEnv
 proxy/coverage/
 proxy/coverage.json
 
+# tmp file after precompiled contracts generation
+proxy/data/precompiled.json.file
+
 # nyc test coverage
 .nyc_output
 

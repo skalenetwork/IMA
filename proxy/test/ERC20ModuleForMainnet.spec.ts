@@ -32,6 +32,7 @@ import {
     LockAndDataForMainnetInstance,
     } from "../types/truffle-contracts";
 
+import { randomString } from "./utils/helper";
 import chai = require("chai");
 
 chai.should();
@@ -57,107 +58,98 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
   });
 
-  it("should invoke `receiveERC20` with `isRaw==true`", async () => {
+  it("should invoke `receiveERC20`", async () => {
     // preparation
     const contractHere = ethERC20.address;
-    const to = user;
-    const amount = 10;
-    const isRaw = true;
-    await ethERC20.mint(deployer, 10, {from: deployer});
-    // execution
-    const res = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
-    // expectation
-    res.should.include("0x"); // l_sergiy: FIX - not passing
-  });
-
-  it("should invoke `receiveERC20` with `isRaw==false`", async () => {
-    // preparation
-    const contractHere = ethERC20.address;
+    const schainID = randomString(10);
     const to = user;
     const amount = 6;
-    const isRaw = false;
     await ethERC20.mint(deployer, 10, {from: deployer});
     // execution
-    const res = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
+    await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC20.disableWhitelist(schainID);
+    const res = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
     // expectation
     res.should.include("0x");
 
   });
 
-  it("should return `true` when invoke `sendERC20` with `to0==address(0)`", async () => {
+  it("should return `true` when invoke `sendERC20`", async () => {
     // preparation
     const contractHere = ethERC20.address;
+    const schainID = randomString(10);
     const to = user;
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const amount = 10;
-    const isRaw = false;
     // mint some quantity of ERC20 tokens for `deployer` address
     await ethERC20.mint(deployer, "1000000000", {from: deployer});
     // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
     await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
-    const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
-    await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+    await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC20.disableWhitelist(schainID);
+    const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
+    await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
     // execution
-    const res = await eRC20ModuleForMainnet.sendERC20.call(to0, data, {from: deployer});
+    const res = await eRC20ModuleForMainnet.sendERC20.call(data, {from: deployer});
     // expectation
     expect(res).to.be.true;
   });
 
-  it("should return `true` when invoke `sendERC20` with `to0==ethERC20.address`", async () => {
-    // preparation
-    const contractHere = ethERC20.address;
-    const to = user;
-    const to0 = ethERC20.address; // bytes20
-    const amount = 10;
-    const isRaw = true;
-    // mint some quantity of ERC20 tokens for `deployer` address
-    await ethERC20.mint(deployer, "1000000000", {from: deployer});
-    // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
-    await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
-    // get data from `receiveERC20`
-    const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
-    await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-    // execution
-    const res = await eRC20ModuleForMainnet.sendERC20.call(to0, data, {from: deployer});
-    // expectation
-    expect(res).to.be.true;
-  });
+  // it("should return `true` when invoke `sendERC20` with `to0==ethERC20.address`", async () => {
+  //   // preparation
+  //   const contractHere = ethERC20.address;
+  //   const to = user;
+  //   const to0 = ethERC20.address; // bytes20
+  //   const amount = 10;
+  //   // mint some quantity of ERC20 tokens for `deployer` address
+  //   await ethERC20.mint(deployer, "1000000000", {from: deployer});
+  //   // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
+  //   await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
+  //   // get data from `receiveERC20`
+  //   const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
+  //   await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
+  //   // execution
+  //   const res = await eRC20ModuleForMainnet.sendERC20.call(to0, data, {from: deployer});
+  //   // expectation
+  //   expect(res).to.be.true;
+  // });
 
-  it("should return `receiver` when invoke `getReceiver` with `to0==ethERC20.address`", async () => {
-    // preparation
-    const contractHere = ethERC20.address;
-    const to = user;
-    const to0 = invoker; // bytes20
-    const amount = 10;
-    const isRaw = true;
-    // mint some quantity of ERC20 tokens for `deployer` address
-    await ethERC20.mint(deployer, "1000000000", {from: deployer});
-    // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
-    await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
-    // get data from `receiveERC20`
-    const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
-    await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
-    // execution
-    const res = await eRC20ModuleForMainnet.getReceiver(data, {from: deployer});
-    // expectation
-    res.should.be.equal(user);
-  });
+  // it("should return `receiver` when invoke `getReceiver` with `to0==ethERC20.address`", async () => {
+  //   // preparation
+  //   const contractHere = ethERC20.address;
+  //   const to = user;
+  //   const to0 = invoker; // bytes20
+  //   const amount = 10;
+  //   // mint some quantity of ERC20 tokens for `deployer` address
+  //   await ethERC20.mint(deployer, "1000000000", {from: deployer});
+  //   // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
+  //   await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
+  //   // get data from `receiveERC20`
+  //   const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, {from: deployer});
+  //   await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, {from: deployer});
+  //   // execution
+  //   const res = await eRC20ModuleForMainnet.getReceiver(data, {from: deployer});
+  //   // expectation
+  //   res.should.be.equal(user);
+  // });
 
-  it("should return `receiver` when invoke `getReceiver` with `to0==address(0)`", async () => {
+  it("should return `receiver` when invoke `getReceiver`", async () => {
     // preparation
     const contractHere = ethERC20.address;
+    const schainID = randomString(10);
     const to = user;
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const amount = 10;
-    const isRaw = false;
     // mint some quantity of ERC20 tokens for `deployer` address
     await ethERC20.mint(deployer, "1000000000", {from: deployer});
     // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
     await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
-    const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, isRaw, {from: deployer});
-    await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, isRaw, {from: deployer});
+    await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await lockAndDataForMainnetERC20.disableWhitelist(schainID);
+    const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
+    await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
     // execution
     const res = await eRC20ModuleForMainnet.getReceiver(data, {from: deployer});
     // expectation

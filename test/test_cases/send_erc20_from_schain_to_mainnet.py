@@ -53,6 +53,9 @@ class SendERC20ToMainnet(TestCase):
                                                                               private_key=self.config.mainnet_key)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
+        self.blockchain.addERC20TokenByOwner(self.config.mainnet_key, self.config.schain_name, self.erc20.address)
+        self.blockchain.enableAutomaticDeployERC20(self.config.schain_key, "Mainnet")
+
         # send to schain
 
         self.agent.transfer_erc20_from_mainnet_to_schain(self.erc20,
@@ -71,7 +74,7 @@ class SendERC20ToMainnet(TestCase):
         self.blockchain.add_eth_cost(self.config.schain_key,
                                      amount_of_eth)
 
-        self.erc20_clone = self.blockchain.get_erc20_on_schain(self.index)
+        self.erc20_clone = self.blockchain.get_erc20_on_schain("Mainnet", self.erc20.address)
 
     def _execute(self):
         source_address = self.blockchain.key_to_address(self.config.schain_key)
@@ -83,6 +86,7 @@ class SendERC20ToMainnet(TestCase):
         balance = self.erc20.functions.balanceOf(destination_address).call()
 
         self.agent.transfer_erc20_from_schain_to_mainnet(self.erc20_clone, # token
+                                                         self.erc20, # token on mainnet
                                                          self.config.schain_key, # from
                                                          self.config.mainnet_key, # to
                                                          (self.amount - 2), # 2 tokens

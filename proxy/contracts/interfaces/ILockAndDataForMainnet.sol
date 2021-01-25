@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   LockAndDataForMainnet.sol - SKALE Interchain Messaging Agent
+ *   ILockAndDataForMainnet.sol - Interface of ContractManager Contract
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -21,20 +21,6 @@
 
 pragma solidity 0.6.12;
 
-import "../LockAndDataForMainnet.sol";
-
-
-contract LockAndDataForMainnetWorkaround is LockAndDataForMainnet {
-
-    function setContract(string calldata contractName, address newContract) external override onlyOwner {
-        require(newContract != address(0), "New address is equal zero");
-        bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        require(permitted[contractId] != newContract, "Contract is already added");
-        permitted[contractId] = newContract;
-    }
-
-    function isSchainOwner(address sender, bytes32 schainId) public override view returns (bool) {
-        return true;
-    }
-
+interface ILockAndDataForMainnet {
+    function isSchainOwner(address sender, bytes32 schainId) external view returns(bool);
 }

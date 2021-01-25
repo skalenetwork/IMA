@@ -32,14 +32,14 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.so
  */
 contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
 
-    mapping(uint256 => address) public erc20Tokens;
-    mapping(address => uint256) public erc20Mapper;
-    uint256 public newIndexERC20;
+    // schainID => address of ERC20 on Mainnet
+    mapping(bytes32 => mapping(address => bool)) public schainToERC20;
+    mapping(bytes32 => bool) public withoutWhitelist;
 
     /**
      * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
      */
-    event ERC20TokenAdded(address indexed tokenHere, uint256 contractPosition);
+    event ERC20TokenAdded(address indexed tokenHere, string schainID);
 
     /**
      * @dev Allows ERC20Module to send an ERC20 token from
@@ -51,28 +51,56 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
      * in LockAndDataForMainnetERC20.
      * - Transfer must be successful. 
      */
-    function sendERC20(address contractHere, address to, uint256 amount) external allow("ERC20Module") returns (bool) {
-        require(contractHere.isContract(), "Given address is not a contract");
-        require(IERC20(contractHere).balanceOf(address(this)) >= amount, "Not enough money");
-        require(IERC20(contractHere).transfer(to, amount), "something went wrong with `transfer` in ERC20");
+    function sendERC20(
+        address contractOnMainnet,
+        address to,
+        uint256 amount
+    )
+        external
+        allow("ERC20Module")
+        returns (bool)
+    {
+        require(contractOnMainnet.isContract(), "Given address is not a contract");
+        require(IERC20(contractOnMainnet).balanceOf(address(this)) >= amount, "Not enough money");
+        require(IERC20(contractOnMainnet).transfer(to, amount), "Something went wrong with `transfer` in ERC20");
         return true;
     }
 
     /**
      * @dev Allows ERC20Module to add an ERC20 token to LockAndDataForMainnetERC20.
      */
-    function addERC20Token(address addressERC20) external allow("ERC20Module") returns (uint256) {
-        require(addressERC20.isContract(), "Given address is not a contract");
-        uint256 index = newIndexERC20;
-        erc20Tokens[index] = addressERC20;
-        erc20Mapper[addressERC20] = index;
-        newIndexERC20++;
-        emit ERC20TokenAdded(addressERC20, index);
-        return index;
+    function addERC20ForSchain(string calldata schainName, address erc20OnMainnet) external allow("ERC20Module") {
+        bytes32 schainId = keccak256(abi.encodePacked(schainName));
+        require(erc20OnMainnet.isContract(), "Given address is not a contract");
+        require(withoutWhitelist[schainId], "Whitelist is enabled");
+        schainToERC20[schainId][erc20OnMainnet] = true;
+        emit ERC20TokenAdded(erc20OnMainnet, schainName);
+    }
+
+    function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet) external {
+        bytes32 schainId = keccak256(abi.encodePacked(schainName));
+        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
+        require(erc20OnMainnet.isContract(), "Given address is not a contract");
+        // require(!withoutWhitelist[schainId], "Whitelist is enabled");
+        schainToERC20[schainId][erc20OnMainnet] = true;
+        emit ERC20TokenAdded(erc20OnMainnet, schainName);
+    }
+
+    function enableWhitelist(string memory schainName) external {
+        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not a Schain owner");
+        withoutWhitelist[keccak256(abi.encodePacked(schainName))] = false;
+    }
+
+    function disableWhitelist(string memory schainName) external {
+        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not a Schain owner");
+        withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
+    }
+
+    function getSchainToERC20(string calldata schainName, address erc20OnMainnet) external view returns (bool) {
+        return schainToERC20[keccak256(abi.encodePacked(schainName))][erc20OnMainnet];
     }
 
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
-        newIndexERC20 = 1;
     }
 }

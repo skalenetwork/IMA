@@ -49,6 +49,13 @@ function normalizePath( strPath ) {
     return strPath;
 }
 
+function getRandomFileName() {
+    const timestamp = new Date().toISOString().replace( /[-:.]/g,"" );
+    const random = ( "" + Math.random() ).substring( 2, 8 );
+    const random_number = timestamp + random;
+    return random_number;
+}
+
 function fileExists( strPath ) {
     try {
         if( fs.existsSync( strPath ) ) {
@@ -193,14 +200,17 @@ function hexToBytes( strHex, isInversiveOrder ) { // convert a hex string to a b
     strHex = strHex || "";
     strHex = "" + strHex;
     strHex = strHex.trim().toLowerCase();
-    if( strHex.length > 1 && strHex[0] == 0 && strHex[1] == "x" )
+    if( strHex.length > 1 && strHex[0] == "0" && ( strHex[1] == "x" || strHex[1] == "X" ) )
         strHex = strHex.substr( 2, strHex.length - 2 );
     if( ( strHex.length & 1 ) != 0 )
         strHex = "0" + strHex;
-    let i; let j; const cnt = strHex.length;
+    const cnt = strHex.length;
+    let i, j;
     const arrBytes = new Uint8Array( cnt / 2 );
     for( i = 0, j = 0; i < cnt; ++j, i += 2 )
-        arrBytes[isInversiveOrder ? ( cnt - j - 1 ) : j] = parseInt( strHex.substr( i, 2 ), 16 );
+        arrBytes[j] = parseInt( strHex.substr( i, 2 ), 16 );
+    if( isInversiveOrder )
+        invertArrayItemsLR( arrBytes );
     return arrBytes;
 }
 
@@ -317,22 +327,29 @@ function discover_in_json_coin_name( jo ) {
     return s1;
 }
 
-function check_key_exist_in_abi( strName, strFile, joABI, strKey ) {
+function check_key_exist_in_abi( strName, strFile, joABI, strKey, isExitOnError ) {
+    if( isExitOnError == null || isExitOnError == undefined )
+        isExitOnError = true;
     try {
         if( strKey in joABI )
-            return;
+            return true;
     } catch ( err ) {
     }
-    log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Loaded " ) + cc.warning( strName ) + cc.error( " ABI JSON file " ) + cc.info( strFile ) + cc.error( " does not contain needed key " ) + cc.warning( strKey ) + "\n" );
-    process.exit( 126 );
+    if( isExitOnError ) {
+        log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Loaded " ) + cc.warning( strName ) + cc.error( " ABI JSON file " ) + cc.info( strFile ) + cc.error( " does not contain needed key " ) + cc.warning( strKey ) + "\n" );
+        process.exit( 126 );
+    }
+    return false;
 }
 
-function check_keys_exist_in_abi( strName, strFile, joABI, arrKeys ) {
+function check_keys_exist_in_abi( strName, strFile, joABI, arrKeys, isExitOnError ) {
     const cnt = arrKeys.length;
     for( let i = 0; i < cnt; ++i ) {
         const strKey = arrKeys[i];
-        check_key_exist_in_abi( strName, strFile, joABI, strKey );
+        if( ! check_key_exist_in_abi( strName, strFile, joABI, strKey, isExitOnError ) )
+            return false;
     }
+    return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -393,6 +410,7 @@ module.exports = {
     replaceAll: replaceAll,
     //
     normalizePath: normalizePath,
+    getRandomFileName: getRandomFileName,
     fileExists: fileExists,
     fileLoad: fileLoad,
     fileSave: fileSave,

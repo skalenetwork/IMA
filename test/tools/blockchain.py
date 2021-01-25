@@ -68,6 +68,96 @@ class BlockChain:
         lock_and_data_for_mainnet = self._get_contract_on_mainnet('lock_and_data_for_mainnet')
         return lock_and_data_for_mainnet.functions.approveTransfers(address).call()
 
+    def enableAutomaticDeployERC20(self, from_key, schainName):
+        sender_address = self.key_to_address(from_key)
+        lock_and_data_for_schain_erc20 = self._get_contract_on_schain('lock_and_data_for_schain_erc20')
+        enable = lock_and_data_for_schain_erc20.encodeABI(fn_name="enableAutomaticDeploy", args=[schainName])
+        signed_txn = self.web3_schain.eth.account.signTransaction(dict(
+                nonce=self.web3_schain.eth.getTransactionCount(sender_address),
+                gasPrice=self.web3_schain.eth.gasPrice,
+                gas=200000,
+                to=lock_and_data_for_schain_erc20.address,
+                value=0,
+                data = enable
+            ),
+            from_key)
+        self.web3_schain.eth.sendRawTransaction(signed_txn.rawTransaction)
+
+    def enableAutomaticDeployERC721(self, from_key, schainName):
+        sender_address = self.key_to_address(from_key)
+        lock_and_data_for_schain_erc721 = self._get_contract_on_schain('lock_and_data_for_schain_erc721')
+        enable = lock_and_data_for_schain_erc721.encodeABI(fn_name="enableAutomaticDeploy", args=[schainName])
+        signed_txn = self.web3_schain.eth.account.signTransaction(dict(
+                nonce=self.web3_schain.eth.getTransactionCount(sender_address),
+                gasPrice=self.web3_schain.eth.gasPrice,
+                gas=200000,
+                to=lock_and_data_for_schain_erc721.address,
+                value=0,
+                data = enable
+            ),
+            from_key)
+        self.web3_schain.eth.sendRawTransaction(signed_txn.rawTransaction)
+
+    def disableWhitelistERC20(self, from_key, schainName):
+        sender_address = self.key_to_address(from_key)
+        lock_and_data_for_mainnet_erc20 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc20')
+        disable = lock_and_data_for_mainnet_erc20.encodeABI(fn_name="disableWhitelist", args=[schainName])
+        signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
+                nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
+                gasPrice=self.web3_mainnet.eth.gasPrice,
+                gas=200000,
+                to=lock_and_data_for_mainnet_erc20.address,
+                value=0,
+                data = disable
+            ),
+            from_key)
+        self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+
+    def disableWhitelistERC721(self, from_key, schainName):
+        sender_address = self.key_to_address(from_key)
+        lock_and_data_for_mainnet_erc721 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc721')
+        disable = lock_and_data_for_mainnet_erc721.encodeABI(fn_name="disableWhitelist", args=[schainName])
+        signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
+                nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
+                gasPrice=self.web3_mainnet.eth.gasPrice,
+                gas=200000,
+                to=lock_and_data_for_mainnet_erc721.address,
+                value=0,
+                data = disable
+            ),
+            from_key)
+        self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+
+    def addERC20TokenByOwner(self, from_key, schainName, erc20Address):
+        sender_address = self.key_to_address(from_key)
+        lock_and_data_for_mainnet_erc20 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc20')
+        disable = lock_and_data_for_mainnet_erc20.encodeABI(fn_name="addERC20TokenByOwner", args=[schainName, erc20Address])
+        signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
+                nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
+                gasPrice=self.web3_mainnet.eth.gasPrice,
+                gas=200000,
+                to=lock_and_data_for_mainnet_erc20.address,
+                value=0,
+                data = disable
+            ),
+            from_key)
+        self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+
+    def addERC721TokenByOwner(self, from_key, schainName, erc20Address):
+        sender_address = self.key_to_address(from_key)
+        lock_and_data_for_mainnet_erc721 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc721')
+        disable = lock_and_data_for_mainnet_erc721.encodeABI(fn_name="addERC721TokenByOwner", args=[schainName, erc20Address])
+        signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
+                nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
+                gasPrice=self.web3_mainnet.eth.gasPrice,
+                gas=200000,
+                to=lock_and_data_for_mainnet_erc721.address,
+                value=0,
+                data = disable
+            ),
+            from_key)
+        self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+
     def add_eth_cost(self, from_key, amount):
         sender_address = self.key_to_address(from_key)
         token_manager = self._get_contract_on_schain('token_manager')
@@ -109,18 +199,18 @@ class BlockChain:
     def get_transactions_count_on_mainnet(self, address):
         return self.web3_mainnet.eth.getTransactionCount(address)
 
-    def get_erc20_on_schain(self, index):
+    def get_erc20_on_schain(self, schain_name, erc20_address_mainnet):
         lock_erc20 = self._get_contract_on_schain('lock_and_data_for_schain_erc20')
-        erc20_address = lock_erc20.functions.erc20Tokens(index).call()
+        erc20_address = lock_erc20.functions.getERC20OnSchain(schain_name, erc20_address_mainnet).call()
         if erc20_address == '0x0000000000000000000000000000000000000000':
             raise ValueError('No such token')
         with open(self.config.proxy_root + '/build/contracts/ERC20OnChain.json') as erc20_on_chain_file:
             erc20_on_chain_json = json.load(erc20_on_chain_file)
             return self.web3_schain.eth.contract(address=erc20_address, abi=erc20_on_chain_json['abi'])
 
-    def get_erc721_on_schain(self, index):
+    def get_erc721_on_schain(self, schain_name, erc721_address_mainnet):
         lock_erc721 = self._get_contract_on_schain('lock_and_data_for_schain_erc721')
-        erc721_address = lock_erc721.functions.erc721Tokens(index).call()
+        erc721_address = lock_erc721.functions.getERC721OnSchain(schain_name, erc721_address_mainnet).call()
         if erc721_address == '0x0000000000000000000000000000000000000000':
             raise ValueError('No such token')
         with open(self.config.proxy_root + '/build/contracts/ERC721OnChain.json') as erc721_on_chain_file:

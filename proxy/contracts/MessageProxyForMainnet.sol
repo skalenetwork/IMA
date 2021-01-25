@@ -256,7 +256,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
-            "Starning counter is not equal to incomin message counter");
+            "Starting counter is not equal to incoming message counter");
 
         if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
             _convertAndVerifyMessages(srcChainID, messages, sign);
@@ -345,6 +345,13 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         return true;
     }
 
+    /**
+     * @dev Returns number of outgoing messages to some schain
+     * 
+     * Requirements:
+     * 
+     * - `dstChainID` must be initialized.
+     */
     function getOutgoingMessagesCounter(string calldata dstChainID)
         external
         view
@@ -355,6 +362,13 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         return connectedChains[dstChainHash].outgoingMessageCounter;
     }
 
+    /**
+     * @dev Returns number of incoming messages from some schain
+     * 
+     * Requirements:
+     * 
+     * - `srcChainID` must be initialized.
+     */
     function getIncomingMessagesCounter(string calldata srcChainID)
         external
         view
@@ -418,6 +432,10 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         );
     }
 
+    /**
+     * @dev Converts calldata structure to memory structure and checks
+     * whether message BLS signature is valid.
+     */
     function _convertAndVerifyMessages(
         string calldata srcChainID,
         Message[] calldata messages,

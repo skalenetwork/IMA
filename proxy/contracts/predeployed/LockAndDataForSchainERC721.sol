@@ -37,13 +37,16 @@ interface ERC721MintAndBurn {
 
 contract LockAndDataForSchainERC721 is PermissionsForSchain {
 
-    mapping(uint256 => address) public erc721Tokens;
-    mapping(address => uint256) public erc721Mapper;
+    // mapping(uint256 => address) public erc721Tokens;
+    // mapping(address => uint256) public erc721Mapper;
+
+    mapping(bytes32 => mapping(address => address)) public schainToERC721OnSchain;
+    mapping(bytes32 => bool) public automaticDeploy;
 
     /**
      * @dev Emitted when token is mapped in LockAndDataForMainnetERC721.
      */
-    event ERC721TokenAdded(address indexed tokenHere, uint256 contractPosition);
+    event ERC721TokenAdded(string schainID, address indexed erc721OnMainnet, address erc721OnSchain);
 
     /**
      * @dev Emitted upon minting ERC721 on the SKALE chain.
@@ -51,7 +54,7 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
     event SentERC721(bool result);
     
     /**
-     * @dev Emitted upon ERC721 receipt in LockAndDataForSchainERC20.
+     * @dev Emitted upon ERC721 receipt in LockAndDataForSchainERC721.
      */
     event ReceivedERC721(bool result);
 
@@ -68,12 +71,12 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
      * 
      * - ERC721 must be mintable.
      */
-    function sendERC721(address contractHere, address to, uint256 tokenId)
+    function sendERC721(address contractOnSchain, address to, uint256 tokenId)
         external
         allow("ERC721Module")
         returns (bool)
     {
-        require(ERC721MintAndBurn(contractHere).mint(to, tokenId), "Could not mint ERC721 Token");
+        require(ERC721MintAndBurn(contractOnSchain).mint(to, tokenId), "Could not mint ERC721 Token");
         emit SentERC721(true);
         return true;
     }
@@ -85,11 +88,11 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
      *
      * Requirements:
      * 
-     * - LockAndDataForSchainERC721 must be the onwer of ERC721 token.
+     * - LockAndDataForSchainERC721 must be the owner of ERC721 token.
      */
-    function receiveERC721(address contractHere, uint256 tokenId) external allow("ERC721Module") returns (bool) {
-        require(ERC721MintAndBurn(contractHere).ownerOf(tokenId) == address(this), "Token not transfered");
-        ERC721MintAndBurn(contractHere).burn(tokenId);
+    function receiveERC721(address contractOnSchain, uint256 tokenId) external allow("ERC721Module") returns (bool) {
+        require(ERC721MintAndBurn(contractOnSchain).ownerOf(tokenId) == address(this), "Token not transferred");
+        ERC721MintAndBurn(contractOnSchain).burn(tokenId);
         emit ReceivedERC721(true);
         return true;
     }
@@ -97,10 +100,46 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
     /**
      * @dev Allows ERC721Module to add an ERC721 token to LockAndDataForSchainERC721.
      */
-    function addERC721Token(address addressERC721, uint256 contractPosition) external allow("ERC721Module") {
-        require(addressERC721.isContract(), "Given address is not a contract");
-        erc721Tokens[contractPosition] = addressERC721;
-        erc721Mapper[addressERC721] = contractPosition;
-        emit ERC721TokenAdded(addressERC721, contractPosition);
+    function addERC721ForSchain(
+        string calldata schainName,
+        address erc721OnMainnet,
+        address erc721OnSchain
+    )
+        external
+        allow("ERC721Module")
+    {
+        require(erc721OnSchain.isContract(), "Given address is not a contract");
+        require(automaticDeploy[keccak256(abi.encodePacked(schainName))], "Automatic deploy is disabled");
+        schainToERC721OnSchain[keccak256(abi.encodePacked(schainName))][erc721OnMainnet] = erc721OnSchain;
+        emit ERC721TokenAdded(schainName, erc721OnMainnet, erc721OnSchain);
     }
+
+    function addERC721TokenByOwner(
+        string calldata schainName,
+        address erc721OnMainnet,
+        address erc721OnSchain
+    )
+        external
+    {
+        require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        require(erc721OnSchain.isContract(), "Given address is not a contract");
+        // require(!automaticDeploy[keccak256(abi.encodePacked(schainName))], "Custom deploy is enabled");
+        schainToERC721OnSchain[keccak256(abi.encodePacked(schainName))][erc721OnMainnet] = erc721OnSchain;
+        emit ERC721TokenAdded(schainName, erc721OnMainnet, erc721OnSchain);
+    }
+
+    function enableAutomaticDeploy(string calldata schainName) external {
+        require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        automaticDeploy[keccak256(abi.encodePacked(schainName))] = true;
+    }
+
+    function disableAutomaticDeploy(string calldata schainName) external {
+        require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
+    }
+
+    function getERC721OnSchain(string calldata schainName, address contractOnMainnet) external view returns (address) {
+        return schainToERC721OnSchain[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
+    }
+
 }
