@@ -121,10 +121,7 @@ global.imaState = {
     "nNextFrameGap": 10,
 
     //
-    "w3http_main_net": null,
     "w3_main_net": null,
-
-    "w3http_s_chain": null,
     "w3_s_chain": null,
 
     "jo_deposit_box": null, // only main net

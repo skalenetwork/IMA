@@ -2205,6 +2205,33 @@ async function do_erc721_payment_from_s_chain(
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function w3provider_2_url( provider ) {
+    if( ! provider )
+        return null;
+    if( "host" in provider ) {
+        const u = provider.host.toString();
+        if( u && cc.safeURL( u ) )
+            return u;
+    }
+    if( "url" in provider ) {
+        const u = provider.url.toString();
+        if( u && cc.safeURL( u ) )
+            return u;
+    }
+    return null;
+}
+
+function w3_2_url( w3 ) {
+    if( ! w3 )
+        return null;
+    if( !( "currentProvider" in w3 ) )
+        return null;
+    return w3provider_2_url( w3.currentProvider );
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Do real money movement from main-net to S-chain by sniffing events
 // 1) main-net.MessageProxyForMainnet.getOutgoingMessagesCounter -> save to nOutMsgCnt
@@ -2461,6 +2488,33 @@ async function do_transfer(
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
             if( cntAccumulatedForBlock == 0 )
                 break;
+            //
+            //
+            // Analyze pending transactions potentially awaited by previous IMA agent running in previous time frame
+            try {
+                if( verbose_get() >= RV_VERBOSE.trace )
+                    log.write( strLogPrefix + cc.debug( "Scanning pending transactions from " ) + cc.u( w3_2_url( w3_dst ) ) + cc.debug( "..." ) + "\n" );
+                let arrTXs = w3_dst.eth.getPendingTransactions( function( err, rslt ) {
+                    if( err ) {
+                        if( verbose_get() >= RV_VERBOSE.error )
+                            log.write( strLogPrefix + cc.error( "PENDING TRANSACTIONS SCAN ERROR: Error result returned from " ) + cc.u( w3_2_url( w3_dst ) ) + cc.error( ": " ) + cc.error( err ) + "\n" );
+                        return;
+                    }
+                    arrTXs = rslt;
+                } );
+                if( verbose_get() >= RV_VERBOSE.trace )
+                    log.write( strLogPrefix + cc.debug( "Got pending transactions: " ) + cc.j( arrTXs ) + "\n" );
+                for( const joTX of arrTXs ) {
+                    if( "to" in joTX && owaspUtils.remove_starting_0x( joTX.to ).toLowerCase() == owaspUtils.remove_starting_0x( jo_message_proxy_dst.options.address ) ) {
+                        if( verbose_get() >= RV_VERBOSE.information )
+                            log.write( strLogPrefix + cc.warning( "PENDING TRANSACTIONS SCAN from " ) + cc.u( w3_2_url( w3_dst ) ) + cc.warning( " found un-finished transactions in pending queue to be processed by destination message proxy" ) + "\n" );
+                        return;
+                    }
+                }
+            } catch ( err ) {
+                if( verbose_get() >= RV_VERBOSE.error )
+                    log.write( strLogPrefix + cc.error( "PENDING TRANSACTIONS SCAN ERROR: API call error from " ) + cc.u( w3_2_url( w3_dst ) ) + cc.error( ": " ) + cc.error( err ) + "\n" );
+            }
             //
             //
             strActionName = "sign messages";

@@ -760,6 +760,27 @@ function parse( joExternalHandlers, argv ) {
     return 0;
 }
 
+function getWeb3FromURL( strURL ) {
+    let w3 = null;
+    try {
+        const u = cc.safeURL( strURL );
+        const strProtocol = u.protocol.trim().toLowerCase().replace( ":", "" ).replace( "/", "" );
+        if( strProtocol == "ws" || strProtocol == "wss" ) {
+            const w3ws = new w3mod.providers.WebsocketProvider( strURL );
+            w3 = new w3mod( w3ws );
+        } else {
+            const w3http = new w3mod.providers.HttpProvider( strURL );
+            w3 = new w3mod( w3http );
+        }
+    } catch ( err ) {
+        log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Failed to create " ) +
+            cc.attention( "Web3" ) + cc.error( " connection to " ) + cc.info( strURL ) +
+            cc.error( ": " ) + cc.warning( err.toString() ) + "\n" );
+        w3 = null;
+    }
+    return w3;
+}
+
 function ima_common_init() {
     let n1 = 0;
     let n2 = 0;
@@ -783,11 +804,8 @@ function ima_common_init() {
         process.exit( 126 );
     }
 
-    imaState.w3http_main_net = new w3mod.providers.HttpProvider( imaState.strURL_main_net );
-    imaState.w3_main_net = new w3mod( imaState.w3http_main_net );
-
-    imaState.w3http_s_chain = new w3mod.providers.HttpProvider( imaState.strURL_s_chain );
-    imaState.w3_s_chain = new w3mod( imaState.w3http_s_chain );
+    imaState.w3_main_net = getWeb3FromURL( imaState.strURL_main_net );
+    imaState.w3_s_chain = getWeb3FromURL( imaState.strURL_s_chain );
 
     imaState.jo_deposit_box = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.deposit_box_abi, imaState.joTrufflePublishResult_main_net.deposit_box_address ); // only main net
     imaState.jo_token_manager = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.token_manager_abi, imaState.joTrufflePublishResult_s_chain.token_manager_address ); // only s-chain
@@ -1138,5 +1156,6 @@ module.exports = {
     find_node_index: find_node_index,
     load_node_config: load_node_config,
     parse: parse,
-    ima_common_init: ima_common_init
+    ima_common_init: ima_common_init,
+    getWeb3FromURL: getWeb3FromURL
 }; // module.exports
