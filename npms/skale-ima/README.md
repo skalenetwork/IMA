@@ -75,7 +75,8 @@ The following code demonstrates money transfer event processing:
         g_nBlockAwaitDepthM2S,
         g_nBlockAgeM2S,
         fn_do_sign_messages_m2s, // fn_sign_messages or null
-        tc_s_chain
+        tc_s_chain,
+        null // optsPendingTxAnalysis
         );
     var b2 = await IMA.do_transfer( // s-chain --> main-net
         /**/ g_w3_s_chain,
@@ -95,7 +96,8 @@ The following code demonstrates money transfer event processing:
         g_nBlockAwaitDepthS2M,
         g_nBlockAgeS2M,
         fn_do_sign_messages_s2m, // fn_sign_messages or null
-        tc_main_net
+        tc_main_net,
+        null // optsPendingTxAnalysis
         );
 
 The following code demonstrates cross-chain payments:

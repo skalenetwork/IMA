@@ -172,6 +172,10 @@ global.imaState = {
     "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
     "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
 
+    optsPendingTxAnalysis: {
+        isEnabled: true
+    },
+
     "arrActions": [] // array of actions to run
 };
 
@@ -451,7 +455,8 @@ imaCLI.parse( {
                     imaState.nBlockAwaitDepthM2S,
                     imaState.nBlockAgeM2S,
                     imaBLS.do_sign_messages_m2s, // fn_sign_messages
-                    imaState.tc_s_chain
+                    imaState.tc_s_chain,
+                    imaState.optsPendingTxAnalysis
                 );
             }
         } );
@@ -482,7 +487,8 @@ imaCLI.parse( {
                     imaState.nBlockAwaitDepthS2M,
                     imaState.nBlockAgeS2M,
                     imaBLS.do_sign_messages_s2m, // fn_sign_messages
-                    imaState.tc_main_net
+                    imaState.tc_main_net,
+                    imaState.optsPendingTxAnalysis
                 );
             }
         } );
@@ -1009,7 +1015,8 @@ async function single_transfer_loop() {
         imaState.nBlockAwaitDepthM2S,
         imaState.nBlockAgeM2S,
         imaBLS.do_sign_messages_m2s, // fn_sign_messages
-        imaState.tc_s_chain
+        imaState.tc_s_chain,
+        imaState.optsPendingTxAnalysis
     );
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
@@ -1037,7 +1044,8 @@ async function single_transfer_loop() {
         imaState.nBlockAwaitDepthS2M,
         imaState.nBlockAgeS2M,
         imaBLS.do_sign_messages_s2m, // fn_sign_messages
-        imaState.tc_main_net
+        imaState.tc_main_net,
+        imaState.optsPendingTxAnalysis
     );
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );

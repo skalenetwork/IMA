@@ -306,6 +306,8 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "nodes-count" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.notice( "S-Chain " ) + cc.note( "nodes count" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "time-framing" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "............" ) + cc.notice( "Specifies " ) + cc.note( "period" ) + cc.notice( "(in seconds) " ) + cc.note( "for time framing" ) + cc.notice( ". Zero means disable time framing." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "time-gap" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "................" ) + cc.notice( "Specifies " ) + cc.note( "gap" ) + cc.notice( "(in seconds) " ) + cc.note( "before next time frame" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "pta" ) + cc.debug( "...,......................." ) + cc.notice( "Enable pending transaction analysis to avoid transaction conflicts." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-pta" ) + cc.debug( "........................" ) + cc.notice( "Disable pending transaction analysis. Not recommended for slow and overloaded blockchains." ) );
             //
             console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "................." ) + cc.notice( "Sign transferred messages." ) );
@@ -697,6 +699,14 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "time-gap" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
             imaState.nNextFrameGap = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
+        if( joArg.name == "ptx" ) {
+            imaState.optsPendingTxAnalysis.isEnabled = true;
+            continue;
+        }
+        if( joArg.name == "no-ptx" ) {
+            imaState.optsPendingTxAnalysis.isEnabled = false;
             continue;
         }
         if( joArg.name == "log-size" ) {
@@ -1141,6 +1151,7 @@ function ima_common_init() {
         }
         log.write( cc.info( "Main Net Gas Price Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasPriceMultiplier ? cc.info( imaState.tc_main_net.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
         log.write( cc.info( "S-Chain Gas Price Multiplier is" ) + cc.debug( "......................" ) + ( imaState.tc_s_chain.gasPriceMultiplier ? cc.info( imaState.tc_s_chain.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
+        log.write( cc.info( "Pending transaction analysis is" ) + cc.debug( "......................" ) + ( imaState.optsPendingTxAnalysis.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
     }
     //
     //
