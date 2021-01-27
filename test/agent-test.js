@@ -123,10 +123,7 @@ global.imaState = {
     "nNextFrameGap": 10,
 
     //
-    "w3http_main_net": null,
     "w3_main_net": null,
-
-    "w3http_s_chain": null,
     "w3_s_chain": null,
 
     "jo_deposit_box": null, // only main net
@@ -164,6 +161,10 @@ global.imaState = {
 
     "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
     "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
+
+    optsPendingTxAnalysis: {
+        isEnabled: true
+    },
 
     "arrActions": [] // array of actions to run
 };
@@ -635,7 +636,8 @@ describe( "CLI", function() {
                 "--node-number=0",
                 "--nodes-count=1",
                 "--time-framing=0",
-                "--time-gap=10"
+                "--time-gap=10",
+                "--no-ptx"
                 // --log-size --log-files --log
                 // --sign-messages --bls-glue --hash-g1 --bls-verify
             ];
