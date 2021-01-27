@@ -931,7 +931,7 @@ function print_summary_registration_costs() {
 // Run transfer loop
 //
 
-function check_time_framing( d ) {
+global.check_time_framing = function( d ) {
     try {
         if( imaState.nTimeFrameSeconds <= 0 || imaState.nNodesCount <= 1 )
             return true; // time framing is disabled
@@ -979,14 +979,14 @@ function check_time_framing( d ) {
             log.write( cc.fatal( "Exception in check_time_framing():" ) + cc.error( e ) + "\n" );
     }
     return true;
-}
+};
 
 async function single_transfer_loop() {
     const strLogPrefix = cc.attention( "Single Loop:" ) + " ";
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
 
-    if( !check_time_framing() ) {
+    if( ! global.check_time_framing() ) {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.warning( "Skipped due to time framing" ) + "\n" );
 

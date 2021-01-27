@@ -2268,18 +2268,29 @@ async function async_pending_tx_scanner( w3, cb ) {
                         return;
                     }
                 } catch ( err ) {
-                    if( verbose_get() >= RV_VERBOSE.error )
-                        log.write( strLogPrefix + cc.error( "PENDING TRANSACTIONS ENUMERATION HANDLER ERROR: from " ) + cc.u( w3_2_url( w3 ) ) + cc.error( ": " ) + cc.error( err ) + "\n" );
+                    if( verbose_get() >= RV_VERBOSE.error ) {
+                        log.write(
+                            strLogPrefix + cc.error( "PENDING TRANSACTIONS ENUMERATION HANDLER ERROR: from " ) + cc.u( w3_2_url( w3 ) ) +
+                            cc.error( ": " ) + cc.error( err ) +
+                            "\n" );
+                    }
                 }
             } );
             if( ! have_next_tx )
                 break;
             ++ tx_idx;
         }
-        log.write( strLogPrefix + cc.debug( "Got " ) + cc.j( Object.keys( mapTXs ).length ) + cc.debug( " pending transaction(s)" ) + "\n" );
+        if( verbose_get() >= RV_VERBOSE.trace ) {
+            const cntTXNs = Object.keys( mapTXs ).length;
+            log.write( strLogPrefix + cc.debug( "Got " ) + cc.j( cntTXNs ) + cc.debug( " pending transaction(s)" ) + "\n" );
+        }
     } catch ( err ) {
-        if( verbose_get() >= RV_VERBOSE.error )
-            log.write( strLogPrefix + cc.error( "PENDING TRANSACTIONS SCAN ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) + cc.error( ": " ) + cc.error( err ) + "\n" );
+        if( verbose_get() >= RV_VERBOSE.error ) {
+            log.write(
+                strLogPrefix + cc.error( "PENDING TRANSACTIONS SCAN ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
+                cc.error( ": " ) + cc.error( err ) +
+                "\n" );
+        }
     }
 }
 
@@ -2399,8 +2410,21 @@ async function do_transfer(
         nIdxCurrentMsg = nIncMsgCnt;
         let cntProcessed = 0;
         while( nIdxCurrentMsg < nOutMsgCnt ) {
-            if( verbose_get() >= RV_VERBOSE.trace )
-                log.write( strLogPrefix + cc.debug( "Entering block former iteration with " ) + cc.notice( "message counter" ) + cc.debug( " set to " ) + cc.info( nIdxCurrentMsg ) + "\n" );
+            if( verbose_get() >= RV_VERBOSE.trace ) {
+                log.write(
+                    strLogPrefix + cc.debug( "Entering block former iteration with " ) + cc.notice( "message counter" ) +
+                    cc.debug( " set to " ) + cc.info( nIdxCurrentMsg ) +
+                    "\n" );
+            }
+            if( "check_time_framing" in global && ( ! global.check_time_framing() ) ) {
+                if( verbose_get() >= RV_VERBOSE.information ) {
+                    log.write(
+                        strLogPrefix + cc.error( "WARNING:" ) + " " +
+                        cc.warning( "Time framing overflow (after entering block former iteration loop)" ) +
+                        "\n" );
+                }
+                return;
+            }
             const arrMessageCounters = [];
             const messages = [];
             const nIdxCurrentMsgBlockStart = 0 + nIdxCurrentMsg;
@@ -2543,30 +2567,64 @@ async function do_transfer(
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
             if( cntAccumulatedForBlock == 0 )
                 break;
+            if( "check_time_framing" in global && ( ! global.check_time_framing() ) ) {
+                if( verbose_get() >= RV_VERBOSE.information ) {
+                    log.write(
+                        strLogPrefix + cc.error( "WARNING:" ) + " " +
+                        cc.warning( "Time framing overflow (after forming block of messages)" ) +
+                        "\n" );
+                }
+                return;
+            }
             //
             //
             // Analyze pending transactions potentially awaited by previous IMA agent running in previous time frame
             if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled ) {
                 let joFountPendingTX = null;
                 try {
+                    const strShortMessageProxyAddressToCompareWith = owaspUtils.remove_starting_0x( jo_message_proxy_dst.options.address ).toLowerCase();
                     await async_pending_tx_scanner( w3_dst, function( joTX ) {
-                        if( "to" in joTX && owaspUtils.remove_starting_0x( joTX.to ).toLowerCase() == owaspUtils.remove_starting_0x( jo_message_proxy_dst.options.address ) ) {
-                            joFountPendingTX = joTX;
-                            return false; // stop pending tx scanner
+                        if( "to" in joTX ) {
+                            const strShortToAddress = owaspUtils.remove_starting_0x( joTX.to ).toLowerCase();
+                            if( strShortToAddress == strShortMessageProxyAddressToCompareWith ) {
+                                joFountPendingTX = joTX;
+                                return false; // stop pending tx scanner
+                            }
                         }
                         return true; // continue pending tx scanner
                     } );
                     if( joFountPendingTX ) {
-                        if( verbose_get() >= RV_VERBOSE.information )
-                            log.write( strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS from " ) + cc.u( w3_2_url( w3_dst ) ) + cc.warning( " found un-finished transactions in pending queue to be processed by destination message proxy: " ) + cc.j( joFountPendingTX ) + "\n" );
+                        if( verbose_get() >= RV_VERBOSE.information ) {
+                            log.write(
+                                strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                                cc.warning( " found un-finished transactions in pending queue to be processed by destination message proxy: " ) +
+                                cc.j( joFountPendingTX ) +
+                                "\n" );
+                        }
                         return;
                     }
                 } catch ( err ) {
-                    if( verbose_get() >= RV_VERBOSE.error )
-                        log.write( strLogPrefix + cc.error( "PENDING TRANSACTION ANALYSIS ERROR: API call error from " ) + cc.u( w3_2_url( w3_dst ) ) + cc.error( ": " ) + cc.error( err ) + "\n" );
+                    if( verbose_get() >= RV_VERBOSE.error ) {
+                        log.write(
+                            strLogPrefix + cc.error( "PENDING TRANSACTION ANALYSIS ERROR: API call error from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                            cc.error( ": " ) + cc.error( err ) +
+                            "\n" );
+                    }
                 }
-                if( verbose_get() >= RV_VERBOSE.information )
-                    log.write( strLogPrefix + cc.success( "PENDING TRANSACTION ANALYSIS did not found transactions to wait for complete" ) + "\n" );
+                if( verbose_get() >= RV_VERBOSE.information ) {
+                    log.write(
+                        strLogPrefix + cc.success( "PENDING TRANSACTION ANALYSIS did not found transactions to wait for complete" ) +
+                        "\n" );
+                }
+                if( "check_time_framing" in global && ( ! global.check_time_framing() ) ) {
+                    if( verbose_get() >= RV_VERBOSE.information ) {
+                        log.write(
+                            strLogPrefix + cc.error( "WARNING:" ) + " " +
+                            cc.warning( "Time framing overflow (after pending transactions analysis)" ) +
+                            "\n" );
+                    }
+                    return;
+                }
             }
             //
             //
@@ -2576,6 +2634,15 @@ async function do_transfer(
                     bErrorInSigningMessages = true;
                     if( verbose_get() >= RV_VERBOSE.fatal )
                         log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error signing messages: " ) + cc.error( err ) + "\n" );
+                    return;
+                }
+                if( "check_time_framing" in global && ( ! global.check_time_framing() ) ) {
+                    if( verbose_get() >= RV_VERBOSE.information ) {
+                        log.write(
+                            strLogPrefix + cc.error( "WARNING:" ) + " " +
+                            cc.warning( "Time framing overflow (after signing messages)" ) +
+                            "\n" );
+                    }
                     return;
                 }
                 strActionName = "dst-chain.getTransactionCount()";
