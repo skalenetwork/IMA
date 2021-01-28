@@ -2845,7 +2845,7 @@ async function do_transfer(
                         if( joReceipt && "blockNumber" in joReceipt && "transactionHash" in joReceipt ) {
                             if( verbose_get() >= RV_VERBOSE.information )
                                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-                            const joEvents = await get_contract_call_events( w3_main_net, jo_deposit_box_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+                            const joEvents = await get_contract_call_events( w3_dst, jo_deposit_box_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
                             if( joEvents.length == 0 ) {
                                 if( verbose_get() >= RV_VERBOSE.information )
                                     log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_main_net.options.address ) + cc.success( " contract, no events found" ) + "\n" );
@@ -2870,7 +2870,7 @@ async function do_transfer(
                     if( jo_token_manager_schain ) {
                         if ( verbose_get() >= RV_VERBOSE.information )
                             log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("Error") + cc.debug(" event of the ") + cc.info("TokenManager") + cc.debug("/") + cc.notice(jo_token_manager_schain.options.address) + cc.debug(" contract..." ) + "\n" );
-                        let joEvents = await get_contract_call_events( w3_s_chain, jo_token_manager_schain, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+                        let joEvents = await get_contract_call_events( w3_????????????????????????, jo_token_manager_schain, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
                         if( joEvents.length == 0 ) {
                             if ( verbose_get() >= RV_VERBOSE.information )
                                 log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("TokenManager") + cc.success("/") + cc.notice(jo_token_manager_schain.options.address) + cc.success(" contract, no events found" ) + "\n" );
