@@ -2581,6 +2581,7 @@ async function do_transfer(
             // Analyze pending transactions potentially awaited by previous IMA agent running in previous time frame
             if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled ) {
                 let joFountPendingTX = null;
+                let wasIgnoredPTX = false;
                 try {
                     const strShortMessageProxyAddressToCompareWith = owaspUtils.remove_starting_0x( jo_message_proxy_dst.options.address ).toLowerCase();
                     await async_pending_tx_scanner( w3_dst, function( joTX ) {
@@ -2596,12 +2597,57 @@ async function do_transfer(
                     if( joFountPendingTX ) {
                         if( verbose_get() >= RV_VERBOSE.information ) {
                             log.write(
-                                strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS from " ) + cc.u( w3_2_url( w3_dst ) ) +
-                                cc.warning( " found un-finished transactions in pending queue to be processed by destination message proxy: " ) +
+                                strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                                cc.warning( " found un-finished transaction(s) in pending queue to be processed by destination message proxy: " ) +
                                 cc.j( joFountPendingTX ) +
                                 "\n" );
                         }
-                        return;
+                        if( "nTimeoutSecondsBeforeSecondAttempt" in optsPendingTxAnalysis && optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt > 0 ) {
+                            if( verbose_get() >= RV_VERBOSE.trace )
+                                log.write( cc.debug( "Sleeping " ) + cc.info( optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt ) + cc.debug( " seconds before secondary pending transactions analysis..." ) + "\n" );
+                            await sleep( optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt * 1000 );
+                            //
+                            joFountPendingTX = null;
+                            await async_pending_tx_scanner( w3_dst, function( joTX ) {
+                                if( "to" in joTX ) {
+                                    const strShortToAddress = owaspUtils.remove_starting_0x( joTX.to ).toLowerCase();
+                                    if( strShortToAddress == strShortMessageProxyAddressToCompareWith ) {
+                                        joFountPendingTX = joTX;
+                                        return false; // stop pending tx scanner
+                                    }
+                                }
+                                return true; // continue pending tx scanner
+                            } );
+                            if( joFountPendingTX ) {
+                                if( verbose_get() >= RV_VERBOSE.information ) {
+                                    log.write(
+                                        strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                                        cc.warning( " found un-finished transaction(s) in pending queue to be processed by destination message proxy: " ) +
+                                        cc.j( joFountPendingTX ) +
+                                        "\n" );
+                                }
+                                if( "isIgnore2" in optsPendingTxAnalysis && ( !optsPendingTxAnalysis.isIgnore2 ) )
+                                    return; // return after 2nd pending transactions analysis
+                                if( verbose_get() >= RV_VERBOSE.information ) {
+                                    log.write(
+                                        strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                                        cc.warning( " result is " ) + cc.error( "ignored" ) +
+                                        "\n" );
+                                }
+                                wasIgnoredPTX = true;
+                            }
+                        } else {
+                            if( "isIgnore" in optsPendingTxAnalysis && ( !optsPendingTxAnalysis.isIgnore ) )
+                                return; // return after first 1st transactions analysis
+                            if( verbose_get() >= RV_VERBOSE.information ) {
+                                log.write(
+                                    strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                                    cc.warning( " result is " ) + cc.error( "ignored" ) +
+                                    "\n" );
+                            }
+                            wasIgnoredPTX = true;
+                        }
+
                     }
                 } catch ( err ) {
                     if( verbose_get() >= RV_VERBOSE.error ) {
@@ -2611,7 +2657,7 @@ async function do_transfer(
                             "\n" );
                     }
                 }
-                if( verbose_get() >= RV_VERBOSE.information ) {
+                if( ( !wasIgnoredPTX ) && verbose_get() >= RV_VERBOSE.information ) {
                     log.write(
                         strLogPrefix + cc.success( "PENDING TRANSACTION ANALYSIS did not found transactions to wait for complete" ) +
                         "\n" );

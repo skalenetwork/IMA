@@ -306,8 +306,15 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "nodes-count" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.notice( "S-Chain " ) + cc.note( "nodes count" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "time-framing" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "............" ) + cc.notice( "Specifies " ) + cc.note( "period" ) + cc.notice( "(in seconds) " ) + cc.note( "for time framing" ) + cc.notice( ". Zero means disable time framing." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "time-gap" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "................" ) + cc.notice( "Specifies " ) + cc.note( "gap" ) + cc.notice( "(in seconds) " ) + cc.note( "before next time frame" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "pta" ) + cc.debug( "...,......................." ) + cc.notice( "Enable pending transaction analysis to avoid transaction conflicts." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "no-pta" ) + cc.debug( "........................" ) + cc.notice( "Disable pending transaction analysis. Not recommended for slow and overloaded blockchains." ) );
+            //
+            console.log( cc.sunny( "PENDING TRANSACTIONS ANALYSIS" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx" ) + cc.debug( "..........................." ) + cc.notice( "Enable pending transaction analysis to avoid transaction conflicts." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx" ) + cc.debug( "........................" ) + cc.notice( "Disable pending transaction analysis. Not recommended for slow and overloaded blockchains." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-attempt" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "...,........." ) + cc.notice( "Timeout in seconds to perform secondary pending transaction analysis." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-ignore" ) + cc.debug( "...................." ) + cc.notice( "Ignore result of pending transaction analysis." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx-ignore" ) + cc.debug( "................." ) + cc.notice( "Do not ignore result of pending transaction analysis. Transfer loop will be delayed until pending transactions disappear." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-ignore2" ) + cc.debug( "..................." ) + cc.notice( "Ignore secondary result of pending transaction analysis." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx-ignore2" ) + cc.debug( "................" ) + cc.notice( "Do not ignore secondary result of pending transaction analysis. Transfer loop will be delayed until pending transactions disappear." ) );
             //
             console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "................." ) + cc.notice( "Sign transferred messages." ) );
@@ -707,6 +714,27 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "no-ptx" ) {
             imaState.optsPendingTxAnalysis.isEnabled = false;
+            continue;
+        }
+        if( joArg.name == "ptx-attempt" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
+        if( joArg.name == "ptx-ignore" ) {
+            imaState.optsPendingTxAnalysis.isIgnore = true;
+            continue;
+        }
+        if( joArg.name == "no-ptx-ignore" ) {
+            imaState.optsPendingTxAnalysis.isIgnore = false;
+            continue;
+        }
+        if( joArg.name == "ptx-ignore2" ) {
+            imaState.optsPendingTxAnalysis.isIgnore2 = true;
+            continue;
+        }
+        if( joArg.name == "no-ptx-ignore2" ) {
+            imaState.optsPendingTxAnalysis.isIgnore2 = false;
             continue;
         }
         if( joArg.name == "log-size" ) {
@@ -1151,7 +1179,10 @@ function ima_common_init() {
         }
         log.write( cc.info( "Main Net Gas Price Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasPriceMultiplier ? cc.info( imaState.tc_main_net.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
         log.write( cc.info( "S-Chain Gas Price Multiplier is" ) + cc.debug( "......................" ) + ( imaState.tc_s_chain.gasPriceMultiplier ? cc.info( imaState.tc_s_chain.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
-        log.write( cc.info( "Pending transaction analysis is" ) + cc.debug( "......................" ) + ( imaState.optsPendingTxAnalysis.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
+        log.write( cc.info( "Pending transaction analysis(PTX) is" ) + cc.debug( "................." ) + ( imaState.optsPendingTxAnalysis.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
+        log.write( cc.info( "Pending transaction analysis 2nd attempt after" ) + cc.debug( "......." ) + cc.bright( imaState.optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt ) + "\n" );
+        log.write( cc.info( "Ignore result of PTX is" ) + cc.debug( ".............................." ) + ( imaState.optsPendingTxAnalysis.isIgnore ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
+        log.write( cc.info( "Ignore secondary result of PTX is" ) + cc.debug( "...................." ) + ( imaState.optsPendingTxAnalysis.isIgnore2 ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
     }
     //
     //
