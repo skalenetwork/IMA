@@ -2239,6 +2239,64 @@ function w3_2_url( w3 ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+async function async_pending_tx_start( w3, w3_opposite, chain_id, chain_id_opposite, txHash ) {
+    const strLogPrefix = "";
+    try {
+        if( chain_id == "Mainnet" ) {
+            if( verbose_get() >= RV_VERBOSE.trace )
+                log.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " start from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
+            const strNodeURL = w3_2_url( w3_opposite );
+            if( verbose_get() >= RV_VERBOSE.trace )
+                log.write( strLogPrefix + cc.debug( "Will report pending work cache to " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
+            const rpcCallOpts = null;
+            await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
+                if( err ) {
+                    console.log( cc.fatal( "PENDING WORK START ERROR:" ) + cc.error( " JSON RPC call to S-Chain node failed" ) );
+                    return; // process.exit( 155 );
+                }
+                const joIn = {
+                    method: "skale_imaTxnErase",
+                    params: {
+                        hash: "" + txHash
+                    }
+                };
+                if( verbose_get() >= RV_VERBOSE.debug )
+                    log.write( cc.debug( "Starting pending work with " ) + cc.j( joIn ) + "\n" );
+                await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
+                    if( err ) {
+                        console.log( cc.fatal( "PENDING WORK START ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, error: " ) + cc.warning( err ) );
+                        return; // process.exit( 156 );
+                    }
+                    if( verbose_get() >= RV_VERBOSE.debug )
+                        log.write( cc.debug( "Pending work start result is: " ) + cc.j( joOut ) + "\n" );
+                    if( joOut && "result" in joOut && "success" in joOut.result ) {
+                        if( joOut.result.success ) {
+                            if( verbose_get() >= RV_VERBOSE.trace )
+                                log.write( strLogPrefix + cc.success( "Success, pending work start reported" ) + "\n" );
+                            return;
+                        } else {
+                            if( verbose_get() >= RV_VERBOSE.trace )
+                                log.write( strLogPrefix + cc.warning( "Pending work start was not reported with success" ) + "\n" );
+                            return;
+                        }
+                    } else {
+                        console.log( cc.fatal( "PENDING WORK START ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, returned bad answer: " ) + cc.j( joOut ) );
+                        return; // process.exit( 156 );
+                    }
+                } );
+            } );
+
+        }
+    } catch ( err ) {
+        if( verbose_get() >= RV_VERBOSE.error ) {
+            log.write(
+                strLogPrefix + cc.error( "PENDING WORK START ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
+                cc.error( ": " ) + cc.error( err ) +
+                "\n" );
+        }
+    }
+}
+
 async function async_pending_tx_complete( w3, w3_opposite, chain_id, chain_id_opposite, txHash ) {
     const strLogPrefix = "";
     try {
@@ -2280,7 +2338,7 @@ async function async_pending_tx_complete( w3, w3_opposite, chain_id, chain_id_op
                             return;
                         }
                     } else {
-                        console.log( cc.fatal( "PENDING WORK CACHE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, returned bad answer: " ) + cc.j( joOut ) );
+                        console.log( cc.fatal( "PENDING WORK COMPLETE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, returned bad answer: " ) + cc.j( joOut ) );
                         return; // process.exit( 156 );
                     }
                 } );
@@ -2943,9 +3001,10 @@ async function do_transfer(
                 const tx_postIncomingMessages = compose_tx_instance( strLogPrefix, raw_tx_postIncomingMessages );
                 const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( w3_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
                 let joReceipt = null;
-                if( joPostIncomingMessagesSR.joACI.isAutoSend )
+                if( joPostIncomingMessagesSR.joACI.isAutoSend ) {
+                    await async_pending_tx_start( w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joPostIncomingMessagesSR.txHashSent );
                     joReceipt = await w3_dst.eth.getTransactionReceipt( joPostIncomingMessagesSR.txHashSent );
-                else {
+                } else {
                     const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
                     strActionName = "w3_dst.eth.sendSignedTransaction()";
                     // let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx_postIncomingMessages.toString( "hex" ) );
