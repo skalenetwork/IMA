@@ -4,32 +4,33 @@
 
 [![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
 
-## An important note about production readiness
+## A critical note about production readiness
 
-The IMA is still in active development and therefore should be regarded as _alpha software_. The development is still subject to security hardening, further testing, and breaking changes.
-**This software has not yet  been reviewed or audited for security.**
-Please see [SECURITY.md](SECURITY.md) for reporting policies.
+The IMA is still in active development and therefore should be regarded as _alpha software_. The development is still subject to further security hardening, testing, and breaking changes.
+
+**The proxy contracts have been reviewed and audited by a third-party for security.**
+Please see [SECURITY.md](.github/SECURITY.md) for audit reports and reporting policies.
 
 ## Software Architecture
 
 IMA consists of the following three parts:
 
-1) `Main Net` smart contracts.
-2) `S-Chain` smart contract.
-3) Agent application.
+1) `Mainnet` smart contracts.
+2) `SKALE Chain` smart contracts.
+3) A containerized Agent application.
 
-Smart contracts are interfaces for any software working with `Main Net` and `S-Chain` like other smart contracts deployed there or software connecting these Ethereum networks.
-Agent is Node JS application connecting first two parts.
+Smart contracts are interfaces for any software working with `Mainnet` and `SKALE Chain` like other smart contracts deployed there or software connecting these Ethereum networks.
+The Agent is a Node JS application connecting the smart contracts on Mainnet with SKALE Chains.
 
 ## Components Structure
 
 ### Proxy
 
-IMA proxy is Ethereum part of IMA containing sets of `Main Net` and `S-Chain` smart contracts.
+IMA proxy is the Solidity part of IMA containing `Mainnet` and `SKALE Chain` smart contracts.
 
 ### Agent
 
-IMA Agent is the main application implementing connectivity and message transfer between `Main Net` and `S-Chain`. Agent also provides easy way to do ETH, ERC20 and ERC721 transfers between `Main Net` and `S-Chain` nevertheless this can be done without it.
+IMA Agent is the main application implementing connectivity and message transfer between `Mainnet` and `SKALE Chains`. The Agent also provides an easy way to perform ETH, ERC20, and ERC721 transfers between `Main Net` and `S-Chain` nevertheless, this can be done without it.
 
 ### NPMs
 
@@ -37,7 +38,7 @@ The `npms` folder contains helper modules implementing parts of IMA functionalit
 
 #### SKALE-IMA
 
-Module implementing core IMA functionality.
+A module implementing core IMA functionality.
 
 #### SKALE-OWASP
 
@@ -53,9 +54,9 @@ ANSI colorizer for console and log output.
 
 ## For more information
 
-- [SKALE Network Website](https://skale.network)
-- [SKALE Network Twitter](https://twitter.com/SkaleNetwork)
-- [SKALE Network Blog](https://skale.network/blog)
+-   [SKALE Network Website](https://skale.network)
+-   [SKALE Network Twitter](https://twitter.com/SkaleNetwork)
+-   [SKALE Network Blog](https://skale.network/blog)
 
 Learn more about the SKALE community over on [Discord](https://discord.gg/vvUtWJB).
 
