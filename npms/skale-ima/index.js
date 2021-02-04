@@ -2255,7 +2255,7 @@ async function async_pending_tx_start( w3, w3_opposite, chain_id, chain_id_oppos
                     return; // process.exit( 155 );
                 }
                 const joIn = {
-                    method: "skale_imaTxnErase",
+                    method: "skale_imaTxnInsert",
                     params: {
                         hash: "" + txHash
                     }
