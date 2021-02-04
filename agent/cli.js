@@ -260,6 +260,9 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "gas-price-multiplier-mn" ) + cc.debug( "......." ) + cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( " transactions, Default value is " ) + cc.info( "1.25" ) + cc.notice( ". Specify value " ) + cc.info( "0.0" ) + cc.notice( " to disable " ) + cc.attention( "Gas Price Customization" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "gas-price-multiplier-sc" ) + cc.debug( "......." ) + cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) + cc.notice( " for " ) + cc.attention( "S-Chain" ) + cc.notice( " transactions, Default value is " ) + cc.info( "0.0" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "gas-price-multiplier" ) + cc.debug( ".........." ) + cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) + cc.notice( " for both " ) + cc.attention( "Main Net" ) + cc.notice( " and " ) + cc.attention( "S-Chain" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "gas-multiplier-mn" ) + cc.debug( "............." ) + cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( " transactions, Default value is " ) + cc.info( "1.25" ) + cc.notice( ". Specify value " ) + cc.info( "0.0" ) + cc.notice( " to disable " ) + cc.attention( "Gas Price Customization" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "gas-multiplier-sc" ) + cc.debug( "............." ) + cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) + cc.notice( " for " ) + cc.attention( "S-Chain" ) + cc.notice( " transactions, Default value is " ) + cc.info( "1.25" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "gas-multiplier" ) + cc.debug( "................" ) + cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) + cc.notice( " for both " ) + cc.attention( "Main Net" ) + cc.notice( " and " ) + cc.attention( "S-Chain" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "REGISTRATION" ) + cc.info( " commands:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "register" ) + cc.debug( "......................" ) + cc.note( "Register" ) + cc.notice( "(perform all steps)" ) );
@@ -573,6 +576,7 @@ function parse( joExternalHandlers, argv ) {
             imaState.idToken = joArg.value;
             continue;
         }
+        //
         if( joArg.name == "gas-price-multiplier-mn" ) {
             let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
             if( gasPriceMultiplier < 0.0 )
@@ -594,6 +598,29 @@ function parse( joExternalHandlers, argv ) {
             imaState.tc_main_net.gasPriceMultiplier = imaState.tc_s_chain.gasPriceMultiplier = gasPriceMultiplier;
             continue;
         }
+        //
+        if( joArg.name == "gas-multiplier-mn" ) {
+            let gasMultiplier = owaspUtils.toFloat( joArg.value );
+            if( gasMultiplier < 0.0 )
+                gasMultiplier = 0.0;
+            imaState.tc_main_net.gasMultiplier = gasMultiplier;
+            continue;
+        }
+        if( joArg.name == "gas-multiplier-sc" ) {
+            let gasMultiplier = owaspUtils.toFloat( joArg.value );
+            if( gasMultiplier < 0.0 )
+                gasMultiplier = 0.0;
+            imaState.tc_s_chain.gasMultiplier = gasMultiplier;
+            continue;
+        }
+        if( joArg.name == "gas-multiplier" ) {
+            let gasMultiplier = owaspUtils.toFloat( joArg.value );
+            if( gasMultiplier < 0.0 )
+                gasMultiplier = 0.0;
+            imaState.tc_main_net.gasMultiplier = imaState.tc_s_chain.gasMultiplier = gasMultiplier;
+            continue;
+        }
+        //
         if( joArg.name == "show-config" ) {
             imaState.bShowConfigMode = true;
             continue;
@@ -1179,6 +1206,8 @@ function ima_common_init() {
         }
         log.write( cc.info( "Main Net Gas Price Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasPriceMultiplier ? cc.info( imaState.tc_main_net.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
         log.write( cc.info( "S-Chain Gas Price Multiplier is" ) + cc.debug( "......................" ) + ( imaState.tc_s_chain.gasPriceMultiplier ? cc.info( imaState.tc_s_chain.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
+        log.write( cc.info( "Main Net Gas Value Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasMultiplier ? cc.info( imaState.tc_main_net.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
+        log.write( cc.info( "S-Chain Gas Value Multiplier is" ) + cc.debug( "......................" ) + ( imaState.tc_s_chain.gasMultiplier ? cc.info( imaState.tc_s_chain.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
         log.write( cc.info( "Pending transaction analysis(PTX) is" ) + cc.debug( "................." ) + ( imaState.optsPendingTxAnalysis.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
         log.write( cc.info( "Pending transaction analysis 2nd attempt after" ) + cc.debug( "......." ) + cc.bright( imaState.optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt ) + "\n" );
         log.write( cc.info( "Ignore result of PTX is" ) + cc.debug( ".............................." ) + ( imaState.optsPendingTxAnalysis.isIgnore ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
