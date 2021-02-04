@@ -2239,57 +2239,242 @@ function w3_2_url( w3 ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+async function async_pending_tx_start( w3, w3_opposite, chain_id, chain_id_opposite, txHash ) {
+    const strLogPrefix = "";
+    try {
+        if( chain_id == "Mainnet" ) {
+            if( verbose_get() >= RV_VERBOSE.trace )
+                log.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " start from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
+            const strNodeURL = w3_2_url( w3_opposite );
+            if( verbose_get() >= RV_VERBOSE.trace )
+                log.write( strLogPrefix + cc.debug( "Will report pending work cache to " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
+            const rpcCallOpts = null;
+            await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
+                if( err ) {
+                    console.log( cc.fatal( "PENDING WORK START ERROR:" ) + cc.error( " JSON RPC call to S-Chain node failed" ) );
+                    return; // process.exit( 155 );
+                }
+                const joIn = {
+                    method: "skale_imaTxnErase",
+                    params: {
+                        hash: "" + txHash
+                    }
+                };
+                if( verbose_get() >= RV_VERBOSE.debug )
+                    log.write( cc.debug( "Starting pending work with " ) + cc.j( joIn ) + "\n" );
+                await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
+                    if( err ) {
+                        console.log( cc.fatal( "PENDING WORK START ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, error: " ) + cc.warning( err ) );
+                        return; // process.exit( 156 );
+                    }
+                    if( verbose_get() >= RV_VERBOSE.debug )
+                        log.write( cc.debug( "Pending work start result is: " ) + cc.j( joOut ) + "\n" );
+                    if( joOut && "result" in joOut && "success" in joOut.result ) {
+                        if( joOut.result.success ) {
+                            if( verbose_get() >= RV_VERBOSE.trace )
+                                log.write( strLogPrefix + cc.success( "Success, pending work start reported" ) + "\n" );
+                            return;
+                        } else {
+                            if( verbose_get() >= RV_VERBOSE.trace )
+                                log.write( strLogPrefix + cc.warning( "Pending work start was not reported with success" ) + "\n" );
+                            return;
+                        }
+                    } else {
+                        console.log( cc.fatal( "PENDING WORK START ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, returned bad answer: " ) + cc.j( joOut ) );
+                        return; // process.exit( 156 );
+                    }
+                } );
+            } );
+
+        }
+    } catch ( err ) {
+        if( verbose_get() >= RV_VERBOSE.error ) {
+            log.write(
+                strLogPrefix + cc.error( "PENDING WORK START ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
+                cc.error( ": " ) + cc.error( err ) +
+                "\n" );
+        }
+    }
+}
+
+async function async_pending_tx_complete( w3, w3_opposite, chain_id, chain_id_opposite, txHash ) {
+    const strLogPrefix = "";
+    try {
+        if( chain_id == "Mainnet" ) {
+            if( verbose_get() >= RV_VERBOSE.trace )
+                log.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " completion from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
+            const strNodeURL = w3_2_url( w3_opposite );
+            if( verbose_get() >= RV_VERBOSE.trace )
+                log.write( strLogPrefix + cc.debug( "Will report pending work cache to " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
+            const rpcCallOpts = null;
+            await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
+                if( err ) {
+                    console.log( cc.fatal( "PENDING WORK COMPLETE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node failed" ) );
+                    return; // process.exit( 155 );
+                }
+                const joIn = {
+                    method: "skale_imaTxnErase",
+                    params: {
+                        hash: "" + txHash
+                    }
+                };
+                if( verbose_get() >= RV_VERBOSE.debug )
+                    log.write( cc.debug( "Completing pending work with " ) + cc.j( joIn ) + "\n" );
+                await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
+                    if( err ) {
+                        console.log( cc.fatal( "PENDING WORK COMPLETE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, error: " ) + cc.warning( err ) );
+                        return; // process.exit( 156 );
+                    }
+                    if( verbose_get() >= RV_VERBOSE.debug )
+                        log.write( cc.debug( "Pending work complete result is: " ) + cc.j( joOut ) + "\n" );
+                    if( joOut && "result" in joOut && "success" in joOut.result ) {
+                        if( joOut.result.success ) {
+                            if( verbose_get() >= RV_VERBOSE.trace )
+                                log.write( strLogPrefix + cc.success( "Success, pending work complete reported" ) + "\n" );
+                            return;
+                        } else {
+                            if( verbose_get() >= RV_VERBOSE.trace )
+                                log.write( strLogPrefix + cc.warning( "Pending work complete was not reported with success" ) + "\n" );
+                            return;
+                        }
+                    } else {
+                        console.log( cc.fatal( "PENDING WORK COMPLETE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, returned bad answer: " ) + cc.j( joOut ) );
+                        return; // process.exit( 156 );
+                    }
+                } );
+            } );
+
+        }
+    } catch ( err ) {
+        if( verbose_get() >= RV_VERBOSE.error ) {
+            log.write(
+                strLogPrefix + cc.error( "PENDING WORK COMPLETE ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
+                cc.error( ": " ) + cc.error( err ) +
+                "\n" );
+        }
+    }
+}
+
 // function isIterable( value ) {
 //     return Symbol.iterator in Object( value );
 // }
 
-async function async_pending_tx_scanner( w3, cb ) {
+async function async_pending_tx_scanner( w3, w3_opposite, chain_id, chain_id_opposite, cb ) {
     cb = cb || function( tx ) { };
     const strLogPrefix = "";
     try {
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Scanning pending transactions from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
-        const mapTXs = {};
-        let tx_idx = 0;
-        while( true ) {
-            let have_next_tx = false;
-            await w3.eth.getTransactionFromBlock( "pending", tx_idx, function( err, rslt ) {
-                try {
-                    if( err )
-                        return;
-                    if( ! rslt )
-                        return;
-                    if( typeof rslt != "object" )
-                        return;
-                    have_next_tx = true;
-                    const hash = "" + rslt.hash;
-                    if( hash in mapTXs )
-                        return;
-                    mapTXs[hash] = rslt;
-                    // if( verbose_get() >= RV_VERBOSE.trace )
-                    //     log.write( strLogPrefix + cc.debug( "Got pending transaction: " ) + cc.j( rslt ) + "\n" );
-                    const isContinue = cb( rslt );
-                    if( ! isContinue ) {
-                        have_next_tx = false;
-                        return;
-                    }
-                } catch ( err ) {
-                    if( verbose_get() >= RV_VERBOSE.error ) {
-                        log.write(
-                            strLogPrefix + cc.error( "PENDING TRANSACTIONS ENUMERATION HANDLER ERROR: from " ) + cc.u( w3_2_url( w3 ) ) +
-                            cc.error( ": " ) + cc.error( err ) +
-                            "\n" );
-                    }
+        if( chain_id == "Mainnet" ) {
+            const strNodeURL = w3_2_url( w3_opposite );
+            if( verbose_get() >= RV_VERBOSE.trace )
+                log.write( strLogPrefix + cc.debug( "Using pending work cache from " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
+            let havePendingWorkInfo = false;
+            const rpcCallOpts = null;
+            await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
+                if( err ) {
+                    console.log( cc.fatal( "PENDING WORK CACHE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node failed" ) );
+                    return; // process.exit( 155 );
                 }
+                const joIn = {
+                    method: "skale_imaTxnListAll",
+                    params: {}
+                };
+                if( verbose_get() >= RV_VERBOSE.debug )
+                    log.write( cc.debug( "Calling pending work cache with " ) + cc.j( joIn ) + "\n" );
+                await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
+                    if( err ) {
+                        havePendingWorkInfo = true;
+                        console.log( cc.fatal( "PENDING WORK CACHE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, error: " ) + cc.warning( err ) );
+                        return; // process.exit( 156 );
+                    }
+                    if( verbose_get() >= RV_VERBOSE.debug )
+                        log.write( cc.debug( "Pending work cache result is: " ) + cc.j( joOut ) + "\n" );
+                    if( joOut && "result" in joOut && "success" in joOut.result ) {
+                        if( joOut.result.success && "allTrackedTXNs" in joOut.result && joOut.result.allTrackedTXNs.length > 0 ) {
+                            if( verbose_get() >= RV_VERBOSE.trace )
+                                log.write( strLogPrefix + cc.debug( "Got " ) + cc.j( joOut.result.allTrackedTXNs.length ) + cc.debug( " pending transaction(s)" ) + "\n" );
+                            let cntReviewedTNXs = 0;
+                            for( const joTXE of joOut.result.allTrackedTXNs ) {
+                                ++ cntReviewedTNXs;
+                                const joTX = {
+                                    hash: "" + joTXE.hash,
+                                    to: "holder.value.MessageProxy"
+                                };
+                                const isContinue = cb( joTX );
+                                if( ! isContinue )
+                                    break;
+                            }
+                            if( verbose_get() >= RV_VERBOSE.trace )
+                                log.write( strLogPrefix + cc.debug( "Reviewed " ) + cc.info( cntReviewedTNXs ) + cc.debug( " pending transaction(s)" ) + "\n" );
+                            havePendingWorkInfo = true;
+                            return;
+                        } else {
+                            if( verbose_get() >= RV_VERBOSE.trace )
+                                log.write( strLogPrefix + cc.debug( "Reviewed " ) + cc.info( 0 ) + cc.debug( " pending transaction(s)" ) + "\n" );
+                            havePendingWorkInfo = true;
+                            return;
+                        }
+                    } else {
+                        console.log( cc.fatal( "PENDING WORK CACHE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, returned bad answer: " ) + cc.j( joOut ) );
+                        havePendingWorkInfo = true;
+                        return; // process.exit( 156 );
+                    }
+                } );
             } );
-            if( ! have_next_tx )
-                break;
-            ++ tx_idx;
-        }
-        if( verbose_get() >= RV_VERBOSE.trace ) {
-            const cntTXNs = Object.keys( mapTXs ).length;
-            log.write( strLogPrefix + cc.debug( "Got " ) + cc.j( cntTXNs ) + cc.debug( " pending transaction(s)" ) + "\n" );
-        }
+            let nWaitAttempt = 0;
+            while( ! havePendingWorkInfo ) {
+                await sleep( 3000 );
+                ++ nWaitAttempt;
+                if( nWaitAttempt >= 10 ) {
+                    havePendingWorkInfo = true; // workaround for es-lint
+                    console.log( cc.fatal( "PENDING WORK CACHE ERROR:" ) + cc.error( " Wait timeout" ) );
+                    break;
+                }
+            }
+        } else { // if( chain_id == "Mainnet" )
+            const mapTXs = {};
+            let tx_idx = 0;
+            while( true ) {
+                let have_next_tx = false;
+                await w3.eth.getTransactionFromBlock( "pending", tx_idx, function( err, rslt ) {
+                    try {
+                        if( err )
+                            return;
+                        if( ! rslt )
+                            return;
+                        if( typeof rslt != "object" )
+                            return;
+                        have_next_tx = true;
+                        const hash = "" + rslt.hash;
+                        if( hash in mapTXs )
+                            return;
+                        mapTXs[hash] = rslt;
+                        // if( verbose_get() >= RV_VERBOSE.trace )
+                        //     log.write( strLogPrefix + cc.debug( "Got pending transaction: " ) + cc.j( rslt ) + "\n" );
+                        const isContinue = cb( rslt );
+                        if( ! isContinue ) {
+                            have_next_tx = false;
+                            return;
+                        }
+                    } catch ( err ) {
+                        if( verbose_get() >= RV_VERBOSE.error ) {
+                            log.write(
+                                strLogPrefix + cc.error( "PENDING TRANSACTIONS ENUMERATION HANDLER ERROR: from " ) + cc.u( w3_2_url( w3 ) ) +
+                                cc.error( ": " ) + cc.error( err ) +
+                                "\n" );
+                        }
+                    }
+                } );
+                if( ! have_next_tx )
+                    break;
+                ++ tx_idx;
+            }
+            if( verbose_get() >= RV_VERBOSE.trace ) {
+                const cntTXNs = Object.keys( mapTXs ).length;
+                log.write( strLogPrefix + cc.debug( "Got " ) + cc.j( cntTXNs ) + cc.debug( " pending transaction(s)" ) + "\n" );
+            }
+        } // else from if( chain_id == "Mainnet" )
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.error ) {
             log.write(
@@ -2590,8 +2775,12 @@ async function do_transfer(
                 let wasIgnoredPTX = false;
                 try {
                     const strShortMessageProxyAddressToCompareWith = owaspUtils.remove_starting_0x( jo_message_proxy_dst.options.address ).toLowerCase();
-                    await async_pending_tx_scanner( w3_dst, function( joTX ) {
+                    await async_pending_tx_scanner( w3_dst, w3_src, chain_id_dst, chain_id_src, function( joTX ) {
                         if( "to" in joTX ) {
+                            if( joTX.to == "holder.value.MessageProxy" ) {
+                                joFountPendingTX = joTX;
+                                return false; // stop pending tx scanner
+                            }
                             const strShortToAddress = owaspUtils.remove_starting_0x( joTX.to ).toLowerCase();
                             if( strShortToAddress == strShortMessageProxyAddressToCompareWith ) {
                                 joFountPendingTX = joTX;
@@ -2614,8 +2803,12 @@ async function do_transfer(
                             await sleep( optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt * 1000 );
                             //
                             joFountPendingTX = null;
-                            await async_pending_tx_scanner( w3_dst, function( joTX ) {
+                            await async_pending_tx_scanner( w3_dst, w3_src, chain_id_dst, chain_id_src, function( joTX ) {
                                 if( "to" in joTX ) {
+                                    if( joTX.to == "holder.value.MessageProxy" ) {
+                                        joFountPendingTX = joTX;
+                                        return false; // stop pending tx scanner
+                                    }
                                     const strShortToAddress = owaspUtils.remove_starting_0x( joTX.to ).toLowerCase();
                                     if( strShortToAddress == strShortMessageProxyAddressToCompareWith ) {
                                         joFountPendingTX = joTX;
@@ -2808,9 +3001,10 @@ async function do_transfer(
                 const tx_postIncomingMessages = compose_tx_instance( strLogPrefix, raw_tx_postIncomingMessages );
                 const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( w3_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
                 let joReceipt = null;
-                if( joPostIncomingMessagesSR.joACI.isAutoSend )
+                if( joPostIncomingMessagesSR.joACI.isAutoSend ) {
+                    await async_pending_tx_start( w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joPostIncomingMessagesSR.txHashSent );
                     joReceipt = await w3_dst.eth.getTransactionReceipt( joPostIncomingMessagesSR.txHashSent );
-                else {
+                } else {
                     const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
                     strActionName = "w3_dst.eth.sendSignedTransaction()";
                     // let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx_postIncomingMessages.toString( "hex" ) );
@@ -2824,6 +3018,7 @@ async function do_transfer(
                         "receipt": joReceipt
                     } );
                     print_gas_usage_report_from_array( "(intermediate result) TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
+                    await async_pending_tx_complete( w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joReceipt.transactionHash );
                 }
                 cntProcessed += cntAccumulatedForBlock;
                 //
