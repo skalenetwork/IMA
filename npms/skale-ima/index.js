@@ -283,7 +283,7 @@ function extract_dry_run_method_name( methodWithArguments ) {
     return "N/A-method-name";
 }
 
-async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnore ) {
+async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnore, gasPrice, gasValue ) {
     if( verbose_get() >= RV_VERBOSE.information )
         log.write( cc.attention( "DRY RUN" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version ) + "\n" );
     isIgnore = ( isIgnore != null && isIgnore != undefined ) ? ( isIgnore ? true : false ) : false;
@@ -309,7 +309,8 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
         }
         const joResult = await methodWithArguments.call( {
             from: addressFrom,
-            gas: 10000000
+            gasPrice: gasPrice,
+            gas: gasValue // 10000000
         } );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "got result " ) + cc.normal( cc.safeStringifyJSON( joResult ) ) + "\n" );
@@ -736,9 +737,6 @@ async function register_s_chain_in_deposit_box( // step 1
             const methodWithArguments = jo_lock_and_data_main_net.methods.addSchain(
                 chain_id_s_chain, jo_token_manager.options.address // call params
             );
-            const isIgnore = false;
-            const strDRC = "register_s_chain_in_deposit_box, step 1, addSchain";
-            await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore );
             const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
             //
             const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
@@ -747,6 +745,10 @@ async function register_s_chain_in_deposit_box( // step 1
             const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ) );
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+            //
+            const isIgnore = false;
+            const strDRC = "register_s_chain_in_deposit_box, step 1, addSchain";
+            await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas );
             //
             const rawTx = {
                 chainId: cid_main_net,
@@ -857,9 +859,6 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
         const methodWithArguments = jo_lock_and_data_s_chain.methods.addDepositBox(
             jo_deposit_box_main_net.options.address // call params
         );
-        const isIgnore = false;
-        const strDRC = "register_main_net_depositBox_on_s_chain, step 2A, addDepositBox";
-        await dry_run_call( w3_s_chain, methodWithArguments, joAccount, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
@@ -868,6 +867,10 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
         const estimatedGas = await tc_s_chain.computeGas( methodWithArguments, w3_s_chain, 3000000, gasPrice, joAccount.address( w3_s_chain ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        //
+        const isIgnore = false;
+        const strDRC = "register_main_net_depositBox_on_s_chain, step 2A, addDepositBox";
+        await dry_run_call( w3_s_chain, methodWithArguments, joAccount, strDRC, isIgnore, gasPrice, estimatedGas );
         //
         const rawTx = {
             chainId: cid_s_chain,
@@ -975,9 +978,6 @@ async function register_main_net_on_s_chain( // step 2B
         const methodWithArguments = jo_message_proxy_s_chain.methods.addConnectedChain(
             chain_id_main_net, [ 0, 0, 0, 0 ] // call params
         );
-        const isIgnore = false;
-        const strDRC = "register_main_net_on_s_chain, step 2B, addConnectedChain";
-        await dry_run_call( w3_s_chain, methodWithArguments, joAccount_s_chain, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
@@ -986,6 +986,10 @@ async function register_main_net_on_s_chain( // step 2B
         const estimatedGas = await tc_s_chain.computeGas( methodWithArguments, w3_s_chain, 3000000, gasPrice, joAccount_s_chain.address( w3_s_chain ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        //
+        const isIgnore = false;
+        const strDRC = "register_main_net_on_s_chain, step 2B, addConnectedChain";
+        await dry_run_call( w3_s_chain, methodWithArguments, joAccount_s_chain, strDRC, isIgnore, gasPrice, estimatedGas );
         //
         const rawTx = {
             chainId: cid_s_chain,
@@ -1065,9 +1069,6 @@ async function do_eth_payment_from_main_net(
             // call params, last is destination account on S-chain
             chain_id_s_chain, joAccountDst.address( w3_main_net ), w3_main_net.utils.fromAscii( "" ) // TO-DO: string is "data" parameter, we need to allow user to specify it
         );
-        const isIgnore = true;
-        const strDRC = "do_eth_payment_from_main_net, deposit";
-        await dry_run_call( w3_main_net, methodWithArguments, joAccountSrc, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
@@ -1076,6 +1077,10 @@ async function do_eth_payment_from_main_net(
         const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccountSrc.address( w3_main_net ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        //
+        const isIgnore = true;
+        const strDRC = "do_eth_payment_from_main_net, deposit";
+        await dry_run_call( w3_main_net, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1196,7 +1201,7 @@ async function do_eth_payment_from_s_chain(
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         const tokenManagerAddress = jo_token_manager.options.address;
         //
-        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
+        let gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
         //
@@ -1206,18 +1211,18 @@ async function do_eth_payment_from_s_chain(
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
             //
-            const isIgnore_addEthCost = false;
             const methodWithArguments_addEthCost = jo_token_manager.methods.addEthCost(
                 "0x" + w3_s_chain.utils.toBN( g_amountToAddCost ).toString( 16 )
             );
-            //
-            const strDRC_addEthCost = "do_erc20_payment_from_s_chain, addEthCost";
-            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
             dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
             //
             const estimatedGas_addEthCost = await tc_s_chain.computeGas( methodWithArguments_addEthCost, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ) );
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_addEthCost ) + "\n" );
+            //
+            const strDRC_addEthCost = "do_erc20_payment_from_s_chain, addEthCost";
+            const isIgnore_addEthCost = false;
+            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost, gasPrice, estimatedGas_addEthCost );
             //
             const rawTxAddEthCost = {
                 chainId: cid_s_chain,
@@ -1266,14 +1271,19 @@ async function do_eth_payment_from_s_chain(
             "0x" + w3_s_chain.utils.toBN( wei_how_much ).toString( 16 ),
             "0x" // w3_s_chain.utils.fromAscii( "" ) // TO-DO: string is "data" parameter, we need to allow user to specify it
         );
-        const isIgnore = true;
-        const strDRC = "do_eth_payment_from_s_chain, exitToMain";
-        await dry_run_call( w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+        //
+        gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
         //
         const estimatedGas = await tc_s_chain.computeGas( methodWithArguments, w3_s_chain, 6000000, gasPrice, joAccountSrc.address( w3_s_chain ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        //
+        const isIgnore = true;
+        const strDRC = "do_eth_payment_from_s_chain, exitToMain";
+        await dry_run_call( w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas );
         //
         const rawTx = {
             chainId: cid_s_chain,
@@ -1351,9 +1361,6 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         const methodWithArguments = jo_lock_and_data_main_net.methods.getMyEth(
             // call params(empty)
         );
-        const isIgnore = false;
-        const strDRC = "receive_eth_payment_from_s_chain_on_main_net, getMyEth";
-        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
@@ -1362,6 +1369,10 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        //
+        const isIgnore = false;
+        const strDRC = "receive_eth_payment_from_s_chain_on_main_net, getMyEth";
+        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1480,9 +1491,6 @@ async function do_erc721_payment_from_main_net(
             joAccountSrc.address( w3_main_net ), depositBoxAddress, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
         );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
-        const isIgnore_approve = false;
-        const strDRC_approve = "do_erc721_payment_from_main_net, transferFrom";
-        await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve );
         let dataTxDeposit = null;
         const methodWithArguments_rawDepositERC721 = jo_deposit_box.methods.depositERC721(
             chain_id_s_chain,
@@ -1490,70 +1498,45 @@ async function do_erc721_payment_from_main_net(
             accountForSchain,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
         );
-        const isIgnore_rawDepositERC721 = true;
-        const strDRC_rawDepositERC721 = "do_erc721_payment_from_main_net, rawDepositERC721";
-        await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721 );
         dataTxDeposit = methodWithArguments_rawDepositERC721.encodeABI();
         //
         //
-        // create raw transactions
-        //
-        strActionName = "create raw transactions M->S";
-        //
-        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+        strActionName = "compute gas price for ERC721 transactions M->S";
+        let gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
+        //
+        strActionName = "create ERC721/approve transaction M->S";
         const estimatedGas_approve = await tc_main_net.computeGas( methodWithArguments_approve, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
-        const estimatedGas_deposit = await tc_main_net.computeGas( methodWithArguments_rawDepositERC721, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ) );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_deposit ) + "\n" );
+        //
+        const isIgnore_approve = false;
+        const strDRC_approve = "do_erc721_payment_from_main_net, approve";
+        await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve );
+        //
         const rawTxApprove = {
             chainId: cid_main_net,
-            from: joAccountSrc.address( w3_main_net ), // accountForMainnet
+            from: joAccountSrc.address( w3_main_net ),
             nonce: "0x" + tcnt.toString( 16 ),
             data: dataTxApprove,
             to: erc721Address_main_net,
-            gasPrice: gasPrice, // 0
+            gasPrice: gasPrice,
             gas: estimatedGas_approve
         };
         const txApprove = compose_tx_instance( strLogPrefix, rawTxApprove );
-        tcnt += 1;
-        const rawTxDeposit = {
-            chainId: cid_main_net,
-            from: joAccountSrc.address( w3_main_net ), // accountForMainnet
-            nonce: "0x" + tcnt.toString( 16 ),
-            data: dataTxDeposit,
-            to: depositBoxAddress,
-            gasPrice: gasPrice, // 0
-            gas: estimatedGas_deposit //,
-            //value: 2000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" )
-        };
-        const txDeposit = compose_tx_instance( strLogPrefix, rawTxDeposit );
-        //
-        //
-        // sign transactions
-        //
-        strActionName = "sign transactions M->S";
+        strActionName = "sign ERC721/approve transaction M->S";
         const joApproveSR = await safe_sign_transaction_with_account( w3_main_net, txApprove, rawTxApprove, joAccountSrc );
-        const joDepositSR = await safe_sign_transaction_with_account( w3_main_net, txDeposit, rawTxDeposit, joAccountSrc );
-        let joReceiptApprove = null, joReceiptDeposit = null;
-        if( joApproveSR.joACI.isAutoSend && joDepositSR.joACI.isAutoSend ) {
+        let joReceiptApprove = null;
+        if( joApproveSR.joACI.isAutoSend )
             joReceiptApprove = await w3_main_net.eth.getTransactionReceipt( joApproveSR.txHashSent );
-            joReceiptDeposit = await w3_main_net.eth.getTransactionReceipt( joDepositSR.txHashSent );
-        } else {
+        else {
             const serializedTxApprove = txApprove.serialize();
-            const serializedTxDeposit = txDeposit.serialize();
-            // send transactions
+            log.write( cc.normal( "Will send ERC721/approve signed transaction from " ) + cc.warning( joAccountSrc.address( w3_main_net ) ) + "\n" );
             strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
             // let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
             joReceiptApprove = await safe_send_signed_transaction( w3_main_net, serializedTxApprove, strActionName, strLogPrefix );
-            log.write( cc.normal( "Will send ERC721 signed transaction from " ) + cc.warning( joAccountSrc.address( w3_main_net ) ) + "\n" );
-            strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
-            // let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
-            joReceiptDeposit = await safe_send_signed_transaction( w3_main_net, serializedTxDeposit, strActionName, strLogPrefix );
         }
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
@@ -1562,6 +1545,47 @@ async function do_erc721_payment_from_main_net(
                 "description": "do_erc721_payment_from_main_net/approve",
                 "receipt": joReceiptApprove
             } );
+        }
+        //
+        //
+        strActionName = "create ERC721/deposit transaction M->S";
+        tcnt += 1;
+        //
+        gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
+        const estimatedGas_deposit = await tc_main_net.computeGas( methodWithArguments_rawDepositERC721, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ) );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_deposit ) + "\n" );
+        //
+        const isIgnore_rawDepositERC721 = true;
+        const strDRC_rawDepositERC721 = "do_erc721_payment_from_main_net, rawDepositERC721";
+        await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721, gasPrice, estimatedGas_deposit );
+        //
+        const rawTxDeposit = {
+            chainId: cid_main_net,
+            from: joAccountSrc.address( w3_main_net ),
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTxDeposit,
+            to: depositBoxAddress,
+            gasPrice: gasPrice,
+            gas: estimatedGas_deposit
+            //, value: 2000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" )
+        };
+        const txDeposit = compose_tx_instance( strLogPrefix, rawTxDeposit );
+        strActionName = "sign ERC721/deposit transaction M->S";
+        const joDepositSR = await safe_sign_transaction_with_account( w3_main_net, txDeposit, rawTxDeposit, joAccountSrc );
+        let joReceiptDeposit = null;
+        if( joDepositSR.joACI.isAutoSend )
+            joReceiptDeposit = await w3_main_net.eth.getTransactionReceipt( joDepositSR.txHashSent );
+        else {
+            const serializedTxDeposit = txDeposit.serialize();
+            // send transactions
+            log.write( cc.normal( "Will send ERC721/deposit signed transaction from " ) + cc.warning( joAccountSrc.address( w3_main_net ) ) + "\n" );
+            strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
+            // let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+            joReceiptDeposit = await safe_send_signed_transaction( w3_main_net, serializedTxDeposit, strActionName, strLogPrefix );
         }
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
@@ -1671,9 +1695,6 @@ async function do_erc20_payment_from_main_net(
         const methodWithArguments_approve = contractERC20.methods.approve(
             depositBoxAddress, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
-        const isIgnore_approve = false;
-        const strDRC_approve = "do_erc20_payment_from_main_net, ";
-        await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
         let dataTxDeposit = null;
         const methodWithArguments_rawDepositERC20 = jo_deposit_box.methods.depositERC20(
@@ -1682,26 +1703,24 @@ async function do_erc20_payment_from_main_net(
             accountForSchain,
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
-        const isIgnore_rawDepositERC20 = true;
-        const strDRC_rawDepositERC20 = "do_erc20_payment_from_main_net, ";
-        await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20 );
         dataTxDeposit = methodWithArguments_rawDepositERC20.encodeABI();
         //
-        // create raw transactions
         //
-        strActionName = "create raw transactions M->S";
-        //
-        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+        strActionName = "compute gas price for ERC20 transactions M->S";
+        let gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
+        //
+        strActionName = "create ERC20/approve transaction M->S";
         const estimatedGas_approve = await tc_main_net.computeGas( methodWithArguments_approve, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
-        const estimatedGas_deposit = await tc_main_net.computeGas( methodWithArguments_rawDepositERC20, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ) );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_deposit ) + "\n" );
         //
-        // console.log( "-----------> gasPrice is", gasPrice );
+        const isIgnore_approve = false;
+        const strDRC_approve = "do_erc20_payment_from_main_net, approve";
+        await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve );
+        //
         const rawTxApprove = {
             chainId: cid_main_net,
             from: joAccountSrc.address( w3_main_net ), // accountForMainnet
@@ -1712,6 +1731,42 @@ async function do_erc20_payment_from_main_net(
             gas: estimatedGas_approve
         };
         const txApprove = compose_tx_instance( strLogPrefix, rawTxApprove );
+        strActionName = "sign ERC20/approve transaction M->S";
+        const joApproveSR = await safe_sign_transaction_with_account( w3_main_net, txApprove, rawTxApprove, joAccountSrc );
+        let joReceiptApprove = null;
+        if( joApproveSR.joACI.isAutoSend )
+            joReceiptApprove = await w3_main_net.eth.getTransactionReceipt( joApproveSR.txHashSent );
+        else {
+            const serializedTxApprove = txApprove.serialize();
+            strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
+            log.write( cc.normal( "Will send ERC20/approve signed transaction from " ) + cc.warning( joAccountSrc.address( w3_main_net ) ) + "\n" );
+            // let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+            joReceiptApprove = await safe_send_signed_transaction( w3_main_net, serializedTxApprove, strActionName, strLogPrefix );
+        }
+        if( verbose_get() >= RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
+            jarrReceipts.push( {
+                "description": "do_erc20_payment_from_main_net/approve",
+                "receipt": joReceiptApprove
+            } );
+        }
+        //
+        //
+        strActionName = "create ERC20/deposit transaction M->S";
+        //
+        gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
+        const estimatedGas_deposit = await tc_main_net.computeGas( methodWithArguments_rawDepositERC20, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ) );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_deposit ) + "\n" );
+        //
+        const isIgnore_rawDepositERC20 = true;
+        const strDRC_rawDepositERC20 = "do_erc20_payment_from_main_net, rawDepositERC20";
+        await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20, gasPrice, estimatedGas_deposit );
+        //
         tcnt += 1;
         const rawTxDeposit = {
             chainId: cid_main_net,
@@ -1723,34 +1778,18 @@ async function do_erc20_payment_from_main_net(
             gas: estimatedGas_deposit
         };
         const txDeposit = compose_tx_instance( strLogPrefix, rawTxDeposit );
-        //
-        // sign transactions
-        //
-        strActionName = "sign transactions M->S";
-        const joApproveSR = await safe_sign_transaction_with_account( w3_main_net, txApprove, rawTxApprove, joAccountSrc );
+        strActionName = "sign ERC20/deposit transaction M->S";
         const joDepositSR = await safe_sign_transaction_with_account( w3_main_net, txDeposit, rawTxDeposit, joAccountSrc );
-        let joReceiptApprove = null, joReceiptDeposit = null;
-        if( joApproveSR.joACI.isAutoSend && joDepositSR.joACI.isAutoSend ) {
-            joReceiptApprove = await w3_main_net.eth.getTransactionReceipt( joApproveSR.txHashSent );
+        let joReceiptDeposit = null;
+        if( joDepositSR.joACI.isAutoSend )
             joReceiptDeposit = await w3_main_net.eth.getTransactionReceipt( joDepositSR.txHashSent );
-        } else {
-            const serializedTxApprove = txApprove.serialize();
+        else {
             const serializedTxDeposit = txDeposit.serialize();
             // send transactions
-            strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
-            // let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
-            joReceiptApprove = await safe_send_signed_transaction( w3_main_net, serializedTxApprove, strActionName, strLogPrefix );
             strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
+            log.write( cc.normal( "Will send ERC20/deposit signed transaction from " ) + cc.warning( joAccountSrc.address( w3_main_net ) ) + "\n" );
             // let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
             joReceiptDeposit = await safe_send_signed_transaction( w3_main_net, serializedTxDeposit, strActionName, strLogPrefix );
-        }
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
-        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
-            jarrReceipts.push( {
-                "description": "do_erc20_payment_from_main_net/approve",
-                "receipt": joReceiptApprove
-            } );
         }
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
@@ -1855,9 +1894,6 @@ async function do_erc20_payment_from_s_chain(
         const methodWithArguments_approve = contractERC20.methods.approve(
             tokenManagerAddress, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
-        const isIgnore_approve = false;
-        const strDRC_approve = "do_erc20_payment_from_s_chain, approve";
-        await dry_run_call( w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
         let dataExitToMainERC20 = null;
         const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
@@ -1866,27 +1902,25 @@ async function do_erc20_payment_from_s_chain(
             accountForMainnet,
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
-        const isIgnore_rawExitToMainERC20 = true;
-        const strDRC_rawExitToMainERC20 = "do_erc20_payment_from_s_chain, rawExitToMainERC20";
-        await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20 );
         dataExitToMainERC20 = methodWithArguments_rawExitToMainERC20.encodeABI();
         //
         // prepare for transactions
         //
-        strActionName = "prepare info for transactions S->M";
-        //
-        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
+        strActionName = "compute gas price for ERC20 transactions S->M";
+        let gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
+        //
+        strActionName = "create ERC20/approve transaction S->M";
         const estimatedGas_approve = await tc_s_chain.computeGas( methodWithArguments_approve, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         //
-        strActionName = "prepare key for transactions S->M";
+        const isIgnore_approve = false;
+        const strDRC_approve = "do_erc20_payment_from_s_chain, approve";
+        await dry_run_call( w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve );
         //
-        // send transactions
-        //
-        strActionName = "w3_s_chain.eth.sendSignedTransaction()/Approve";
         let tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
@@ -1900,6 +1934,7 @@ async function do_erc20_payment_from_s_chain(
             gas: estimatedGas_approve
         };
         const txApprove = compose_tx_instance( strLogPrefix, rawTxApprove );
+        strActionName = "sign ERC20/approve transaction S->M";
         const joApproveSR = await safe_sign_transaction_with_account( w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
         let joReceiptApprove = null;
         if( joApproveSR.joACI.isAutoSend && joDepositSR.joACI.isAutoSend )
@@ -1937,13 +1972,18 @@ async function do_erc20_payment_from_s_chain(
                 "0x" + w3_main_net.utils.toBN( g_amountToAddCost ).toString( 16 )
             );
             //
-            const strDRC_addEthCost = "do_erc20_payment_from_s_chain, addEthCost";
-            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
             dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
+            //
+            gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
+            if( verbose_get() >= RV_VERBOSE.debug )
+                log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
             //
             const estimatedGas_addEthCost = await tc_s_chain.computeGas( methodWithArguments_addEthCost, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ) );
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Using estimated(cost) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_addEthCost ) + "\n" );
+            //
+            const strDRC_addEthCost = "do_erc20_payment_from_s_chain, addEthCost";
+            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost, gasPrice, estimatedGas_addEthCost );
             //
             const rawTxAddEthCost = {
                 chainId: cid_s_chain,
@@ -1982,10 +2022,22 @@ async function do_erc20_payment_from_s_chain(
         } // if( g_amountToAddCost != null && g_amountToAddCost != undefined )
         //
         //
-        strActionName = "w3_s_chain.eth.sendSignedTransaction()/ExitToMainERC20";
+        strActionName = "create ERC20/exitToMain transaction S->M";
+        const estimatedGas_rawExitToMainERC20 = await tc_s_chain.computeGas( methodWithArguments_rawExitToMainERC20, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ) );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_rawExitToMainERC20 ) + "\n" );
         tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        //
+        gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
+        const isIgnore_rawExitToMainERC20 = true;
+        const strDRC_rawExitToMainERC20 = "do_erc20_payment_from_s_chain, rawExitToMainERC20";
+        await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20, gasPrice, estimatedGas_rawExitToMainERC20 );
+        //
         const rawTxExitToMainERC20 = {
             chainId: cid_s_chain,
             from: accountForSchain,
@@ -1993,9 +2045,10 @@ async function do_erc20_payment_from_s_chain(
             data: dataExitToMainERC20,
             to: tokenManagerAddress,
             gasPrice: gasPrice,
-            gas: 8000000
+            gas: estimatedGas_rawExitToMainERC20
         };
         const txExitToMainERC20 = compose_tx_instance( strLogPrefix, rawTxExitToMainERC20 );
+        strActionName = "sign ERC20/exitToMain transaction S->M";
         const joExitToMainERC20SR = await safe_sign_transaction_with_account( w3_s_chain, txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc );
         let joReceiptExitToMainERC20 = null;
         if( joExitToMainERC20SR.joACI.isAutoSend )
@@ -2077,9 +2130,6 @@ async function do_erc721_payment_from_s_chain(
         const methodWithArguments_transferFrom = contractERC721.methods.transferFrom(
             accountForSchain, tokenManagerAddress, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
         );
-        const isIgnore_transferFrom = false;
-        const strDRC_transferFrom = "erc721_payment_from_s_chain, transferFrom";
-        await dry_run_call( w3_s_chain, methodWithArguments_transferFrom, joAccountSrc, strDRC_transferFrom,isIgnore_transferFrom );
         const dataTxTransferFrom = methodWithArguments_transferFrom.encodeABI();
         let dataTxExitToMainERC721 = null;
         const erc721Address_main_net = joErc721_main_net[strCoinNameErc721_main_net + "_address"];
@@ -2088,22 +2138,16 @@ async function do_erc721_payment_from_s_chain(
             accountForMainnet,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
         );
-        const isIgnore_rawExitToMainERC721 = true;
-        const strDRC_rawExitToMainERC721 = "erc721_payment_from_s_chain, rawExitToMainERC721";
-        await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721 );
         dataTxExitToMainERC721 = methodWithArguments_rawExitToMainERC721.encodeABI();
         //
-        // prepare transactions
         //
-        strActionName = "prepare transactions S->M";
-        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
+        strActionName = "compute gas price for ERC721 transactions S->M";
+        let gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-        strActionName = "sign transactions S->M";
         //
-        // send transactions
         //
-        strActionName = "w3_s_chain.eth.sendSignedTransaction()/TransferFrom";
+        strActionName = "create ERC721/transferFrom transaction S->M";
         let tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
@@ -2111,6 +2155,10 @@ async function do_erc721_payment_from_s_chain(
         const estimatedGas_transferFrom = await tc_s_chain.computeGas( methodWithArguments_transferFrom, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transferFrom ) + "\n" );
+        //
+        const isIgnore_transferFrom = false;
+        const strDRC_transferFrom = "erc721_payment_from_s_chain, transferFrom";
+        await dry_run_call( w3_s_chain, methodWithArguments_transferFrom, joAccountSrc, strDRC_transferFrom,isIgnore_transferFrom, gasPrice, estimatedGas_transferFrom );
         //
         const rawTxTransferFrom = {
             chainId: cid_s_chain,
@@ -2122,6 +2170,7 @@ async function do_erc721_payment_from_s_chain(
             gas: estimatedGas_transferFrom
         };
         const txTransferFrom = compose_tx_instance( strLogPrefix, rawTxTransferFrom );
+        strActionName = "sign ERC721/transferFrom transaction S->M";
         const joTransferFromSR = await safe_sign_transaction_with_account( w3_s_chain, txTransferFrom, rawTxTransferFrom, joAccountSrc );
         let joReceiptTransferFrom = null;
         if( joTransferFromSR.joACI.isAutoSend )
@@ -2154,18 +2203,22 @@ async function do_erc721_payment_from_s_chain(
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
             //
-            const isIgnore_addEthCost = false;
             const methodWithArguments_addEthCost = jo_token_manager.methods.addEthCost(
                 "0x" + w3_main_net.utils.toBN( g_amountToAddCost ).toString( 16 )
             );
-            //
-            const strDRC_addEthCost = "do_erc721_payment_from_s_chain, addEthCost";
-            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost );
             dataAddEthCost = methodWithArguments_addEthCost.encodeABI();
             //
             const estimatedGas_addEthCost = await tc_s_chain.computeGas( methodWithArguments_addEthCost, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ) );
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Using estimated(cost) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_addEthCost ) + "\n" );
+            //
+            gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
+            if( verbose_get() >= RV_VERBOSE.debug )
+                log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+            //
+            const isIgnore_addEthCost = false;
+            const strDRC_addEthCost = "do_erc721_payment_from_s_chain, addEthCost";
+            await dry_run_call( w3_s_chain, methodWithArguments_addEthCost, joAccountSrc, strDRC_addEthCost, isIgnore_addEthCost, gasPrice, estimatedGas_addEthCost );
             //
             const rawTxAddEthCost = {
                 chainId: cid_s_chain,
@@ -2204,14 +2257,22 @@ async function do_erc721_payment_from_s_chain(
         } // if( g_amountToAddCost != null && g_amountToAddCost != undefined )
         //
         //
-        strActionName = "w3_s_chain.eth.sendSignedTransaction()/ExitToMainERC721";
+        strActionName = "create ERC721/rawExitToMain transaction S->M";
         tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
+        gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
         const estimatedGas_exitToMainERC721 = await tc_s_chain.computeGas( methodWithArguments_rawExitToMainERC721, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(exit to main) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_exitToMainERC721 ) + "\n" );
+        //
+        const isIgnore_rawExitToMainERC721 = true;
+        const strDRC_rawExitToMainERC721 = "erc721_payment_from_s_chain, rawExitToMainERC721";
+        await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721, gasPrice, estimatedGas_exitToMainERC721 );
         //
         const rawTxExitToMainERC721 = compose_tx_instance( strLogPrefix, {
             chainId: cid_s_chain,
@@ -2223,6 +2284,7 @@ async function do_erc721_payment_from_s_chain(
             gas: estimatedGas_exitToMainERC721
         } );
         const txExitToMainERC721 = compose_tx_instance( strLogPrefix, rawTxExitToMainERC721 );
+        strActionName = "sign ERC721/rawExitToMain transaction S->M";
         const joExitToMainErc721SR = await safe_sign_transaction_with_account( w3_s_chain, txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc );
         let joReceiptExitToMainERC721 = null;
         if( joExitToMainErc721SR.joACI.isAutoSend )
@@ -3018,9 +3080,6 @@ async function do_transfer(
                     sign, // bls signature components
                     idxLastToPopNotIncluding
                 );
-                const isIgnore_postIncomingMessages = false;
-                const strDRC_postIncomingMessages = "postIncomingMessages in message signer";
-                await dry_run_call( w3_dst, methodWithArguments_postIncomingMessages, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages );
                 const dataTx_postIncomingMessages = methodWithArguments_postIncomingMessages.encodeABI(); // the encoded ABI of the method
                 //
                 if( verbose_get() >= RV_VERBOSE.trace ) {
@@ -3047,6 +3106,10 @@ async function do_transfer(
                 const estimatedGas_postIncomingMessages = await tc_dst.computeGas( methodWithArguments_postIncomingMessages, w3_dst, 10000000, gasPrice, joAccountDst.address( w3_dst ) );
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_postIncomingMessages ) + "\n" );
+                //
+                const isIgnore_postIncomingMessages = false;
+                const strDRC_postIncomingMessages = "postIncomingMessages in message signer";
+                await dry_run_call( w3_dst, methodWithArguments_postIncomingMessages, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages, gasPrice, estimatedGas_postIncomingMessages );
                 //
                 const raw_tx_postIncomingMessages = {
                     chainId: cid_dst,
@@ -3222,6 +3285,7 @@ class TransactionCustomizer {
             estimatedGas = 0;
         }
         estimatedGas *= this.gasMultiplier;
+        estimatedGas = parseInt( "" + estimatedGas ); // avoid using floating point
         if( estimatedGas == 0 )
             estimatedGas = recommendedGas;
         return estimatedGas;
