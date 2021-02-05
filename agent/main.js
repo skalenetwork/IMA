@@ -165,8 +165,8 @@ global.imaState = {
     },
 
     //
-    "tc_main_net": IMA.tc_main_net, // new IMA.TransactionCustomizer( 1.25 ),
-    "tc_s_chain": IMA.tc_s_chain, // new IMA.TransactionCustomizer( null ),
+    "tc_main_net": IMA.tc_main_net,
+    "tc_s_chain": IMA.tc_s_chain,
     //
 
     "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
