@@ -18,20 +18,20 @@ Deploy process includes:
 2) `SKALE Chain` network with known HTTP(S) URL of **Web3** interface.
 3) Preliminary deployed **Skale Manager** software with known address of **ContractManager** smart contract saved into the `proxy/data/skaleManagerComponents.json` file like shown in the following example:
 
-```json
-{
-    "contract_manager_address": "0xe89d660C1a4642C12A2846e8AF4d3F76c6BDbeF2"
-}
-```
+    ```json
+    {
+        "contract_manager_address": "0xe89d660C1a4642C12A2846e8AF4d3F76c6BDbeF2"
+    }
+    ```
 
 4) `libBLS` command utilities
 5) Truffle version **5.0.12** is recommended to install (notice, the _-g_ option of _npm_ may require _sudo_):
 
-```shell
-sudo npm uninstall -g truffle
-sudo npm install -g truffle@5.0.12
-truffle --version
-```
+    ```shell
+    sudo npm uninstall -g truffle
+    sudo npm install -g truffle@5.0.12
+    truffle --version
+    ```
 
 6) Node modules should be initialized in the following folders:
 
@@ -470,8 +470,8 @@ The **--hash-g1** command line parameter must be used to specify path to the **h
 
 Message signing will work only on `SKALE Chain` where each **skaled** node configured properly and able to:
 
--   provide browse information for entire `SKALE Chain` network
--   provide **IMA** signing APIs and parameters
+- provide browse information for entire `SKALE Chain` network
+- provide **IMA** signing APIs and parameters
 
 Here is example of correct **config.json** file for **skaled** node:
 
