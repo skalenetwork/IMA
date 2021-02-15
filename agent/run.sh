@@ -91,8 +91,8 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
     --nodes-count=$NODES_COUNT \
     --time-framing=$TIME_FRAMING \
     --tm-url-main-net=$TM_URL_MAIN_NET \
-    --ignore-dry-run \
-    --time-gap=$TIME_GAP"
+    --time-gap=$TIME_GAP \
+    --ptx"
 
 echo Base options:
 echo $BASE_OPTIONS

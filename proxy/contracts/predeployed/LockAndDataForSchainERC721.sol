@@ -88,10 +88,10 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
      *
      * Requirements:
      * 
-     * - LockAndDataForSchainERC721 must be the onwer of ERC721 token.
+     * - LockAndDataForSchainERC721 must be the owner of ERC721 token.
      */
     function receiveERC721(address contractOnSchain, uint256 tokenId) external allow("ERC721Module") returns (bool) {
-        require(ERC721MintAndBurn(contractOnSchain).ownerOf(tokenId) == address(this), "Token not transfered");
+        require(ERC721MintAndBurn(contractOnSchain).ownerOf(tokenId) == address(this), "Token not transferred");
         ERC721MintAndBurn(contractOnSchain).burn(tokenId);
         emit ReceivedERC721(true);
         return true;
