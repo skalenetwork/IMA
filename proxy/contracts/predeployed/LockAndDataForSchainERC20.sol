@@ -140,7 +140,13 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
     }
 
-    function setTotalSupplyOnMainnet(address contractOnSchain, uint256 newTotalSupplyOnMainnet) external allow("ERC20Module") {
+    function setTotalSupplyOnMainnet(
+        address contractOnSchain,
+        uint256 newTotalSupplyOnMainnet
+    )
+        external
+        allow("ERC20Module")
+    {
         totalSupplyOnMainnet[contractOnSchain] = newTotalSupplyOnMainnet;
     }
 
