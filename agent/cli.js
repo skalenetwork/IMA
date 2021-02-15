@@ -260,6 +260,9 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "gas-price-multiplier-mn" ) + cc.debug( "......." ) + cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( " transactions, Default value is " ) + cc.info( "1.25" ) + cc.notice( ". Specify value " ) + cc.info( "0.0" ) + cc.notice( " to disable " ) + cc.attention( "Gas Price Customization" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "gas-price-multiplier-sc" ) + cc.debug( "......." ) + cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) + cc.notice( " for " ) + cc.attention( "S-Chain" ) + cc.notice( " transactions, Default value is " ) + cc.info( "0.0" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "gas-price-multiplier" ) + cc.debug( ".........." ) + cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) + cc.notice( " for both " ) + cc.attention( "Main Net" ) + cc.notice( " and " ) + cc.attention( "S-Chain" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "gas-multiplier-mn" ) + cc.debug( "............." ) + cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( " transactions, Default value is " ) + cc.info( "1.25" ) + cc.notice( ". Specify value " ) + cc.info( "0.0" ) + cc.notice( " to disable " ) + cc.attention( "Gas Price Customization" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "gas-multiplier-sc" ) + cc.debug( "............." ) + cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) + cc.notice( " for " ) + cc.attention( "S-Chain" ) + cc.notice( " transactions, Default value is " ) + cc.info( "1.25" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "gas-multiplier" ) + cc.debug( "................" ) + cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) + cc.notice( " for both " ) + cc.attention( "Main Net" ) + cc.notice( " and " ) + cc.attention( "S-Chain" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "REGISTRATION" ) + cc.info( " commands:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "register" ) + cc.debug( "......................" ) + cc.note( "Register" ) + cc.notice( "(perform all steps)" ) );
@@ -306,6 +309,15 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "nodes-count" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.notice( "S-Chain " ) + cc.note( "nodes count" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "time-framing" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "............" ) + cc.notice( "Specifies " ) + cc.note( "period" ) + cc.notice( "(in seconds) " ) + cc.note( "for time framing" ) + cc.notice( ". Zero means disable time framing." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "time-gap" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "................" ) + cc.notice( "Specifies " ) + cc.note( "gap" ) + cc.notice( "(in seconds) " ) + cc.note( "before next time frame" ) + cc.notice( "." ) );
+            //
+            console.log( cc.sunny( "PENDING TRANSACTIONS ANALYSIS" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx" ) + cc.debug( "..........................." ) + cc.notice( "Enable pending transaction analysis to avoid transaction conflicts." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx" ) + cc.debug( "........................" ) + cc.notice( "Disable pending transaction analysis. Not recommended for slow and overloaded blockchains." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-attempt" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "...,........." ) + cc.notice( "Timeout in seconds to perform secondary pending transaction analysis." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-ignore" ) + cc.debug( "...................." ) + cc.notice( "Ignore result of pending transaction analysis." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx-ignore" ) + cc.debug( "................." ) + cc.notice( "Do not ignore result of pending transaction analysis. Transfer loop will be delayed until pending transactions disappear." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-ignore2" ) + cc.debug( "..................." ) + cc.notice( "Ignore secondary result of pending transaction analysis." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx-ignore2" ) + cc.debug( "................" ) + cc.notice( "Do not ignore secondary result of pending transaction analysis. Transfer loop will be delayed until pending transactions disappear." ) );
             //
             console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "................." ) + cc.notice( "Sign transferred messages." ) );
@@ -564,6 +576,7 @@ function parse( joExternalHandlers, argv ) {
             imaState.idToken = joArg.value;
             continue;
         }
+        //
         if( joArg.name == "gas-price-multiplier-mn" ) {
             let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
             if( gasPriceMultiplier < 0.0 )
@@ -585,6 +598,29 @@ function parse( joExternalHandlers, argv ) {
             imaState.tc_main_net.gasPriceMultiplier = imaState.tc_s_chain.gasPriceMultiplier = gasPriceMultiplier;
             continue;
         }
+        //
+        if( joArg.name == "gas-multiplier-mn" ) {
+            let gasMultiplier = owaspUtils.toFloat( joArg.value );
+            if( gasMultiplier < 0.0 )
+                gasMultiplier = 0.0;
+            imaState.tc_main_net.gasMultiplier = gasMultiplier;
+            continue;
+        }
+        if( joArg.name == "gas-multiplier-sc" ) {
+            let gasMultiplier = owaspUtils.toFloat( joArg.value );
+            if( gasMultiplier < 0.0 )
+                gasMultiplier = 0.0;
+            imaState.tc_s_chain.gasMultiplier = gasMultiplier;
+            continue;
+        }
+        if( joArg.name == "gas-multiplier" ) {
+            let gasMultiplier = owaspUtils.toFloat( joArg.value );
+            if( gasMultiplier < 0.0 )
+                gasMultiplier = 0.0;
+            imaState.tc_main_net.gasMultiplier = imaState.tc_s_chain.gasMultiplier = gasMultiplier;
+            continue;
+        }
+        //
         if( joArg.name == "show-config" ) {
             imaState.bShowConfigMode = true;
             continue;
@@ -699,6 +735,35 @@ function parse( joExternalHandlers, argv ) {
             imaState.nNextFrameGap = owaspUtils.toInteger( joArg.value );
             continue;
         }
+        if( joArg.name == "ptx" ) {
+            imaState.optsPendingTxAnalysis.isEnabled = true;
+            continue;
+        }
+        if( joArg.name == "no-ptx" ) {
+            imaState.optsPendingTxAnalysis.isEnabled = false;
+            continue;
+        }
+        if( joArg.name == "ptx-attempt" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
+        if( joArg.name == "ptx-ignore" ) {
+            imaState.optsPendingTxAnalysis.isIgnore = true;
+            continue;
+        }
+        if( joArg.name == "no-ptx-ignore" ) {
+            imaState.optsPendingTxAnalysis.isIgnore = false;
+            continue;
+        }
+        if( joArg.name == "ptx-ignore2" ) {
+            imaState.optsPendingTxAnalysis.isIgnore2 = true;
+            continue;
+        }
+        if( joArg.name == "no-ptx-ignore2" ) {
+            imaState.optsPendingTxAnalysis.isIgnore2 = false;
+            continue;
+        }
         if( joArg.name == "log-size" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
             imaState.nLogMaxSizeBeforeRotation = owaspUtils.toInteger( joArg.value );
@@ -760,6 +825,27 @@ function parse( joExternalHandlers, argv ) {
     return 0;
 }
 
+function getWeb3FromURL( strURL ) {
+    let w3 = null;
+    try {
+        const u = cc.safeURL( strURL );
+        const strProtocol = u.protocol.trim().toLowerCase().replace( ":", "" ).replace( "/", "" );
+        if( strProtocol == "ws" || strProtocol == "wss" ) {
+            const w3ws = new w3mod.providers.WebsocketProvider( strURL );
+            w3 = new w3mod( w3ws );
+        } else {
+            const w3http = new w3mod.providers.HttpProvider( strURL );
+            w3 = new w3mod( w3http );
+        }
+    } catch ( err ) {
+        log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Failed to create " ) +
+            cc.attention( "Web3" ) + cc.error( " connection to " ) + cc.info( strURL ) +
+            cc.error( ": " ) + cc.warning( err.toString() ) + "\n" );
+        w3 = null;
+    }
+    return w3;
+}
+
 function ima_common_init() {
     let n1 = 0;
     let n2 = 0;
@@ -783,11 +869,8 @@ function ima_common_init() {
         process.exit( 126 );
     }
 
-    imaState.w3http_main_net = new w3mod.providers.HttpProvider( imaState.strURL_main_net );
-    imaState.w3_main_net = new w3mod( imaState.w3http_main_net );
-
-    imaState.w3http_s_chain = new w3mod.providers.HttpProvider( imaState.strURL_s_chain );
-    imaState.w3_s_chain = new w3mod( imaState.w3http_s_chain );
+    imaState.w3_main_net = getWeb3FromURL( imaState.strURL_main_net );
+    imaState.w3_s_chain = getWeb3FromURL( imaState.strURL_s_chain );
 
     imaState.jo_deposit_box = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.deposit_box_abi, imaState.joTrufflePublishResult_main_net.deposit_box_address ); // only main net
     imaState.jo_token_manager = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.token_manager_abi, imaState.joTrufflePublishResult_s_chain.token_manager_address ); // only s-chain
@@ -1123,6 +1206,12 @@ function ima_common_init() {
         }
         log.write( cc.info( "Main Net Gas Price Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasPriceMultiplier ? cc.info( imaState.tc_main_net.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
         log.write( cc.info( "S-Chain Gas Price Multiplier is" ) + cc.debug( "......................" ) + ( imaState.tc_s_chain.gasPriceMultiplier ? cc.info( imaState.tc_s_chain.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
+        log.write( cc.info( "Main Net Gas Value Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasMultiplier ? cc.info( imaState.tc_main_net.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
+        log.write( cc.info( "S-Chain Gas Value Multiplier is" ) + cc.debug( "......................" ) + ( imaState.tc_s_chain.gasMultiplier ? cc.info( imaState.tc_s_chain.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
+        log.write( cc.info( "Pending transaction analysis(PTX) is" ) + cc.debug( "................." ) + ( imaState.optsPendingTxAnalysis.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
+        log.write( cc.info( "Pending transaction analysis 2nd attempt after" ) + cc.debug( "......." ) + cc.bright( imaState.optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt ) + "\n" );
+        log.write( cc.info( "Ignore result of PTX is" ) + cc.debug( ".............................." ) + ( imaState.optsPendingTxAnalysis.isIgnore ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
+        log.write( cc.info( "Ignore secondary result of PTX is" ) + cc.debug( "...................." ) + ( imaState.optsPendingTxAnalysis.isIgnore2 ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
     }
     //
     //
@@ -1138,5 +1227,6 @@ module.exports = {
     find_node_index: find_node_index,
     load_node_config: load_node_config,
     parse: parse,
-    ima_common_init: ima_common_init
+    ima_common_init: ima_common_init,
+    getWeb3FromURL: getWeb3FromURL
 }; // module.exports
