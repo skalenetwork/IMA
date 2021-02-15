@@ -124,6 +124,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet, address erc20OnSchain) external {
         require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
         require(erc20OnSchain.isContract(), "Given address is not a contract");
+        require(ERC20MintAndBurn(erc20OnSchain).totalSupply() == 0, "TotalSupply is not zero");
         // require(!automaticDeploy[keccak256(abi.encodePacked(schainName))], "Custom deploy is enabled");
         schainToERC20OnSchain[keccak256(abi.encodePacked(schainName))][erc20OnMainnet] = erc20OnSchain;
         emit ERC20TokenAdded(schainName, erc20OnMainnet, erc20OnSchain);
@@ -139,7 +140,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
     }
 
-    function setTotalSupplyOnMainnet(address contractOnSchain, uint256 newTotalSupplyOnMainnet) external {
+    function setTotalSupplyOnMainnet(address contractOnSchain, uint256 newTotalSupplyOnMainnet) external allow("ERC20Module") {
         totalSupplyOnMainnet[contractOnSchain] = newTotalSupplyOnMainnet;
     }
 
