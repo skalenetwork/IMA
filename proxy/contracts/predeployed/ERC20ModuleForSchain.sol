@@ -36,12 +36,9 @@ interface ILockAndDataERC20S {
     function addERC20ForSchain(string calldata schainID, address erc20OnMainnet, address erc20OnSchain) external;
     function sendERC20(address contractOnSchain, address to, uint256 amount) external returns (bool);
     function receiveERC20(address contractOnSchain, uint256 amount) external returns (bool);
+    function setTotalSupplyOnMainnet(address contractOnSchain, uint256 newTotalSupplyOnMainnet) external;
     function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address);
-}
-
-interface ERC20Clone {
-    function setTotalSupplyOnMainnet(uint256 newTotalSupply) external;
-    function totalSupplyOnMainnet() external view returns (uint256);
+    function totalSupplyOnMainnet(address contractOnSchain) external view returns (uint256);
 }
 
 /**
@@ -107,8 +104,8 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
             emit ERC20TokenCreated(schainID, contractOnMainnet, contractOnSchain);
         }
         uint256 totalSupply = _fallbackTotalSupplyParser(data);
-        if (totalSupply != ERC20Clone(contractOnSchain).totalSupplyOnMainnet()) {
-            ERC20Clone(contractOnSchain).setTotalSupplyOnMainnet(totalSupply);
+        if (totalSupply != ILockAndDataERC20S(lockAndDataERC20).totalSupplyOnMainnet(contractOnSchain)) {
+            ILockAndDataERC20S(lockAndDataERC20).setTotalSupplyOnMainnet(contractOnSchain, totalSupply);
         }
         emit ERC20TokenReceived(contractOnMainnet, contractOnSchain, amount);
         return ILockAndDataERC20S(lockAndDataERC20).sendERC20(contractOnSchain, receiver, amount);
@@ -121,7 +118,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         (, receiver, ) = _fallbackDataParser(data);
     }
 
-    function _sendCreateERC20Request(bytes calldata data) internal returns (address) {
+    function _sendCreateERC20Request(bytes calldata data) internal returns (address newToken) {
         string memory name;
         string memory symbol;
         uint256 totalSupply;
@@ -129,7 +126,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         address tokenFactoryAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getTokenFactory();
-        return ITokenFactoryForERC20(tokenFactoryAddress).createERC20(name, symbol, totalSupply);
+        newToken = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(name, symbol, totalSupply);
     }
 
     /**
