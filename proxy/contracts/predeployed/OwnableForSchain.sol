@@ -45,8 +45,8 @@ contract OwnableForSchain is Ownable {
     /**
      * @dev Throws if called by any account other than the owner.
      */
-    modifier onlyLockAndDataOwner() {
-        require(msg.sender == getLockAndDataOwner(), "Only lockAndData owner can execute this method");
+    modifier onlyLockAndData() {
+        require(msg.sender == getLockAndData(), "Only lockAndData owner can execute this method");
         _;
     }
 
@@ -70,9 +70,9 @@ contract OwnableForSchain is Ownable {
     }
 
     /**
-     * @dev Returns owner address.
+     * @dev Returns LockAndData address.
      */
-    function getLockAndDataOwner() public view returns (address) {
+    function getLockAndData() public view returns (address) {
         if (owner() == (address(0)) )
             return SkaleFeatures(
                     getSkaleFeaturesAddress()

@@ -47,7 +47,7 @@ contract EthERC20 is OwnableForSchain, IERC20 {
         _delayedInit();
     }
 
-    function mint(address account, uint256 amount) external onlyLockAndDataOwner returns (bool) {
+    function mint(address account, uint256 amount) external onlyLockAndData returns (bool) {
         _delayedInit();
         _mint(account, amount);
         return true;
@@ -58,7 +58,7 @@ contract EthERC20 is OwnableForSchain, IERC20 {
         _burn(msg.sender, amount);
     }
 
-    function burnFrom(address account, uint256 amount) external onlyLockAndDataOwner {
+    function burnFrom(address account, uint256 amount) external onlyLockAndData {
         _delayedInit();
         _burn(account, amount);
     }
