@@ -60,10 +60,8 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     lockAndDataForSchainERC20 =
         await LockAndDataForSchainERC20.new(lockAndDataForSchain.address,
         {from: deployer, gas: 8000000 * gasMultiplier});
-    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
-        ((1000000000).toString()), lockAndDataForSchain.address, {from: deployer});
-    eRC20OnMainnet = await ERC20OnChain.new("SKALE", "SKL",
-        ((1000000000).toString()), lockAndDataForSchain.address, {from: deployer});
+    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20", {from: deployer});
+    eRC20OnMainnet = await ERC20OnChain.new("SKALE", "SKL", {from: deployer});
   });
 
   it("should invoke `sendERC20` without mistakes", async () => {
@@ -144,6 +142,16 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
       await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID);
       await lockAndDataForSchainERC20.addERC20TokenByOwner(schainID, addressERC201, addressERC20);
     }
+  });
+
+  it("should set and check totalSupplyOnMainnet", async () => {
+    const contractHere = eRC20OnChain.address;
+    await lockAndDataForSchainERC20.setTotalSupplyOnMainnet(contractHere, 9);
+    expect((await lockAndDataForSchainERC20.totalSupplyOnMainnet(contractHere)).toNumber()).to.be.equal(9);
+    await lockAndDataForSchainERC20.setTotalSupplyOnMainnet(contractHere, 11);
+    expect((await lockAndDataForSchainERC20.totalSupplyOnMainnet(contractHere)).toNumber()).to.be.equal(11);
+    await lockAndDataForSchainERC20.setTotalSupplyOnMainnet(contractHere, 1);
+    expect((await lockAndDataForSchainERC20.totalSupplyOnMainnet(contractHere)).toNumber()).to.be.equal(1);
   });
 
 });
