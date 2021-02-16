@@ -53,7 +53,9 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForSchainERC20: LockAndDataForSchainERC20Instance;
   let eRC20OnChain: ERC20OnChainInstance;
+  let eRC20OnChain2: ERC20OnChainInstance;
   let eRC20OnMainnet: ERC20OnChainInstance;
+  let eRC20OnMainnet2: ERC20OnChainInstance;
 
   beforeEach(async () => {
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
@@ -137,11 +139,23 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     // automaticDeploy == true - enabled automaticDeploy = false - disabled
     if (automaticDeploy) {
       await lockAndDataForSchainERC20.disableAutomaticDeploy(schainID);
-      await lockAndDataForSchainERC20.addERC20TokenByOwner(schainID, addressERC201, addressERC20);
     } else {
       await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID);
-      await lockAndDataForSchainERC20.addERC20TokenByOwner(schainID, addressERC201, addressERC20);
     }
+
+    await lockAndDataForSchainERC20.addERC20TokenByOwner(schainID, addressERC201, addressERC20);
+
+    eRC20OnChain2 = await ERC20OnChain.new("NewToken", "NTN");
+    eRC20OnMainnet2 = await ERC20OnChain.new("NewToken", "NTN");
+
+    if (automaticDeploy) {
+      await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID);
+    } else {
+      await lockAndDataForSchainERC20.disableAutomaticDeploy(schainID);
+    }
+
+    await lockAndDataForSchainERC20.addERC20TokenByOwner(schainID, eRC20OnMainnet2.address, eRC20OnChain2.address);
+
   });
 
   it("should set and check totalSupplyOnMainnet", async () => {
