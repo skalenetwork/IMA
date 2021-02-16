@@ -73,9 +73,8 @@ contract("TokenFactory", ([user, deployer]) => {
   let lockAndDataForSchainERC721: LockAndDataForSchainERC721Instance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxyForSchain.new(
-      "Mainnet", {from: deployer});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
+    messageProxy = await MessageProxyForSchain.new("Mainnet", lockAndDataForSchain.address, {from: deployer});
     tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
       {from: deployer});
     eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
@@ -145,9 +144,8 @@ contract("ERC20OnChain", ([deployer, user]) => {
   let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxyForSchain.new(
-      "Mainnet", {from: deployer});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
+    messageProxy = await MessageProxyForSchain.new("Mainnet", lockAndDataForSchain.address, {from: deployer});
     eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
       {from: deployer});
     await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address);
@@ -229,9 +227,8 @@ contract("ERC721OnChain", ([user, deployer]) => {
   let eRC721OnChain: ERC721OnChainInstance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxyForSchain.new(
-      "Mainnet", {from: deployer});
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
+    messageProxy = await MessageProxyForSchain.new("Mainnet", lockAndDataForSchain.address, {from: deployer});
     eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721", {from: deployer});
   });
 

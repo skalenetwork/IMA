@@ -93,9 +93,8 @@ contract("TokenManager", ([deployer, user, client]) => {
     const chainID = randomString(10);
 
     beforeEach(async () => {
-        messageProxyForSchain = await MessageProxyForSchain.new(
-            chainID, {from: deployer});
         lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
+        messageProxyForSchain = await MessageProxyForSchain.new(chainID, lockAndDataForSchain.address, {from: deployer});
         await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address);
         tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
         ethERC20 = await EthERC20.new({from: deployer});

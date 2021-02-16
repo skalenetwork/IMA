@@ -136,7 +136,7 @@ contract MessageProxyForSchain is PermissionsForSchain {
     modifier connectMainnet() {
         if (!mainnetConnected) {
             bytes32 mainnetHash = keccak256(abi.encodePacked("Mainnet"));
-            address tokenManagerAddress = IContractManager(getLockAndData()).getContract("TokenManager");
+            address tokenManagerAddress = IContractManager(getLockAndDataAddress()).getContract("TokenManager");
             connectedChains[mainnetHash] = ConnectedChainInfo(
                 [ uint256(0), uint256(0), uint256(0), uint256(0) ],
                 0,
@@ -157,7 +157,7 @@ contract MessageProxyForSchain is PermissionsForSchain {
         _authorizedCaller[msg.sender] = true;
         _chainID = newChainID;
         bytes32 mainnetHash = keccak256(abi.encodePacked("Mainnet"));
-        address tokenManagerAddress = IContractManager(getLockAndData()).getContract("TokenManager");
+        address tokenManagerAddress = IContractManager(getLockAndDataAddress()).getContract("TokenManager");
         if (keccak256(abi.encodePacked(newChainID)) != mainnetHash) {
             connectedChains[mainnetHash] = ConnectedChainInfo(
                 [ uint256(0), uint256(0), uint256(0), uint256(0) ],
@@ -206,7 +206,7 @@ contract MessageProxyForSchain is PermissionsForSchain {
         connectMainnet
     {
         bytes32 newChainIDHash = keccak256(abi.encodePacked(newChainID));
-        address tokenManagerAddress = IContractManager(getLockAndData()).getContract("TokenManager");
+        address tokenManagerAddress = IContractManager(getLockAndDataAddress()).getContract("TokenManager");
         if (newChainIDHash == keccak256(abi.encodePacked("Mainnet")) )
             return;
         require(isAuthorizedCaller(newChainIDHash, msg.sender), "Not authorized caller");
@@ -227,7 +227,7 @@ contract MessageProxyForSchain is PermissionsForSchain {
 
     function removeConnectedChain(string calldata newChainID) external onlySchainOwner {
         bytes32 newChainIDHash = keccak256(abi.encodePacked(newChainID));
-        address tokenManagerAddress = IContractManager(getLockAndData()).getContract("TokenManager");
+        address tokenManagerAddress = IContractManager(getLockAndDataAddress()).getContract("TokenManager");
         require(newChainIDHash != keccak256(abi.encodePacked("Mainnet")), "New chain id can not be equal Mainnet");
         require(connectedChains[newChainIDHash].inited, "Chain is not initialized");
         require(
@@ -311,17 +311,9 @@ contract MessageProxyForSchain is PermissionsForSchain {
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
         for (uint256 i = 0; i < messages.length; i++) {
+            string memory revertReason = "";
             if (!registryContracts[srcChainHash][messages[i].destinationContract]) {
-                emit PostMessageError(
-                    ++startingCounter,
-                    srcChainHash,
-                    messages[i].sender,
-                    srcChainID,
-                    messages[i].to,
-                    messages[i].amount,
-                    messages[i].data,
-                    "Destination contract is not registered"
-                );
+                revertReason = "Destination contract is not registered";
             } else {
                 try ContractReceiverForSchain(messages[i].destinationContract).postMessage(
                     messages[i].sender,
@@ -332,17 +324,20 @@ contract MessageProxyForSchain is PermissionsForSchain {
                 ) {
                     ++startingCounter;
                 } catch Error(string memory reason) {
-                    emit PostMessageError(
-                        ++startingCounter,
-                        srcChainHash,
-                        messages[i].sender,
-                        srcChainID,
-                        messages[i].to,
-                        messages[i].amount,
-                        messages[i].data,
-                        reason
-                    );
+                    revertReason = revertReason;
                 }
+            }
+            if (keccak256(abi.encodePacked(revertReason)) != keccak256(abi.encodePacked(""))) {
+                emit PostMessageError(
+                    ++startingCounter,
+                    srcChainHash,
+                    messages[i].sender,
+                    srcChainID,
+                    messages[i].to,
+                    messages[i].amount,
+                    messages[i].data,
+                    revertReason
+                );
             }
         }
         connectedChains[srcChainHash].incomingMessageCounter 
@@ -396,7 +391,7 @@ contract MessageProxyForSchain is PermissionsForSchain {
     //     return ownerAddress;
     // }
 
-    // function getLockAndData() public view returns (address) {
+    // function getLockAndDataAddress() public view returns (address) {
     //     if (!_isCustomDeploymentMode) {
     //         if (lockAndDataAddress_ == address(0))
     //             return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(

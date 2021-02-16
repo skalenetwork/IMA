@@ -61,11 +61,11 @@ contract PermissionsForSchain is OwnableForSchain {
         return LockAndDataForSchain(getLockAndDataAddress()).isSchainOwner(sender);
     }
 
-    function getLockAndDataAddress() public view returns ( address a ) {
-        if (lockAndDataAddress_ != address(0) )
-            return lockAndDataAddress_;
-        return SkaleFeatures(getSkaleFeaturesAddress()).
-            getConfigVariableAddress("skaleConfig.contractSettings.IMA.LockAndData");
-    }
+    // function getLockAndDataAddress() public view returns ( address a ) {
+    //     if (lockAndDataAddress_ != address(0) )
+    //         return lockAndDataAddress_;
+    //     return SkaleFeatures(getSkaleFeaturesAddress()).
+    //         getConfigVariableAddress("skaleConfig.contractSettings.IMA.LockAndData");
+    // }
 
 }

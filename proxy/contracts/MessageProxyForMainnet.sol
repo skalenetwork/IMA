@@ -268,22 +268,13 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not equal to incoming message counter");
-
         if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
             _convertAndVerifyMessages(srcChainID, messages, sign);
         }
         for (uint256 i = 0; i < messages.length; i++) {
+            string memory revertReason = "";
             if (!registryContracts[srcChainHash][messages[i].destinationContract]) {
-                emit PostMessageError(
-                    ++startingCounter,
-                    srcChainHash,
-                    messages[i].sender,
-                    srcChainID,
-                    messages[i].to,
-                    messages[i].amount,
-                    messages[i].data,
-                    "Destination contract is not registered"
-                );
+                revertReason = "Destination contract is not registered";
             } else {
                 try ContractReceiverForMainnet(messages[i].destinationContract).postMessage(
                     messages[i].sender,
@@ -294,17 +285,20 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
                 ) {
                     ++startingCounter;
                 } catch Error(string memory reason) {
-                    emit PostMessageError(
-                        ++startingCounter,
-                        srcChainHash,
-                        messages[i].sender,
-                        srcChainID,
-                        messages[i].to,
-                        messages[i].amount,
-                        messages[i].data,
-                        reason
-                    );
+                    revertReason = revertReason;
                 }
+            }
+            if (keccak256(abi.encodePacked(revertReason)) != keccak256(abi.encodePacked(""))) {
+                emit PostMessageError(
+                    ++startingCounter,
+                    srcChainHash,
+                    messages[i].sender,
+                    srcChainID,
+                    messages[i].to,
+                    messages[i].amount,
+                    messages[i].data,
+                    revertReason
+                );
             }
         }
         connectedChains[srcChainHash].incomingMessageCounter = 

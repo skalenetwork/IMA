@@ -395,8 +395,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
     describe("MessageProxyForSchain for schain", async () => {
         beforeEach(async () => {
-            messageProxyForSchain = await MessageProxyForSchain.new("MyChain", {from: deployer});
             lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
+            messageProxyForSchain = await MessageProxyForSchain.new("MyChain", lockAndDataForSchain.address, {from: deployer});
             await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address, {from: deployer});
         });
 
