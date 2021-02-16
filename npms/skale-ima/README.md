@@ -22,10 +22,8 @@ Mainnet and S-Chains should be pre initialized as following:
     let g_str_url_s_chain  = "http://127.0.0.1:2231";
     let g_chain_id_main_net = "Mainnet";
     let g_chain_id_s_chain  = "id-S-chain";
-    const g_w3http_main_net = new w3mod.providers.HttpProvider( g_str_url_main_net );
-    const g_w3_main_net = new w3mod( g_w3http_main_net );
-    const g_w3http_s_chain = new w3mod.providers.HttpProvider( g_str_url_s_chain );
-    const g_w3_s_chain = new w3mod( g_w3http_s_chain );
+    const g_w3_main_net = new w3mod( new w3mod.providers.HttpProvider( g_str_url_main_net ) );
+    const g_w3_s_chain = new w3mod( new w3mod.providers.HttpProvider( g_str_url_s_chain ) );
 
 The **joTrufflePublishResult_main_net** and **joTrufflePublishResult_s_chain** ABI description objects are ABIs loaded from **truffle**-generated files. They are used to initialize contract description objects:
 
@@ -77,7 +75,8 @@ The following code demonstrates money transfer event processing:
         g_nBlockAwaitDepthM2S,
         g_nBlockAgeM2S,
         fn_do_sign_messages_m2s, // fn_sign_messages or null
-        tc_s_chain
+        tc_s_chain,
+        null // optsPendingTxAnalysis
         );
     var b2 = await IMA.do_transfer( // s-chain --> main-net
         /**/ g_w3_s_chain,
@@ -97,7 +96,8 @@ The following code demonstrates money transfer event processing:
         g_nBlockAwaitDepthS2M,
         g_nBlockAgeS2M,
         fn_do_sign_messages_s2m, // fn_sign_messages or null
-        tc_main_net
+        tc_main_net,
+        null // optsPendingTxAnalysis
         );
 
 The following code demonstrates cross-chain payments:

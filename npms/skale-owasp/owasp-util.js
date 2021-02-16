@@ -178,6 +178,8 @@ function toStringURL( s, defValue ) {
 function toBoolean( value ) {
     let b = false;
     try {
+        if( typeof value === "boolean" )
+            return value;
         if( typeof value === "string" ) {
             const ch = value[0].toLowerCase();
             if( ch == "y" || ch == "t" )
@@ -197,7 +199,7 @@ function toBoolean( value ) {
 // see https://ethereum.stackexchange.com/questions/1374/how-can-i-check-if-an-ethereum-address-is-valid
 function validateEthAddress( value ) {
     try {
-        if( ethereumjs_util.isValidAddress( value ) )
+        if( ethereumjs_util.isValidAddress( ensure_starts_with_0x( value ) ) )
             return true;
     } catch ( err ) {
     }
@@ -218,7 +220,7 @@ function validateEthPrivateKey( value ) {
 
 function toEthAddress( value, defValue ) {
     try {
-        value = "" + ( value ? value.toString() : "" );
+        value = "" + ( value ? ensure_starts_with_0x( value.toString() ) : "" );
         defValue = defValue || "";
         if( !validateEthAddress( value ) )
             return defValue;
@@ -503,6 +505,12 @@ function parseMoneySpecToWei( w3, s, isThrowException ) {
     return "0";
 }
 
+function fn_address_impl_( w3 ) {
+    if( this.address_ == undefined || this.address_ == null )
+        this.address_ = "" + owaspUtils.private_key_2_account_address( w3, this.privateKey );
+    return this.address_;
+}
+
 module.exports = {
     cc: cc,
     w3mod: w3mod,
@@ -537,5 +545,6 @@ module.exports = {
     private_key_2_account_address: private_key_2_account_address,
     is_numeric: is_numeric,
     parseMoneyUnitName: parseMoneyUnitName,
-    parseMoneySpecToWei: parseMoneySpecToWei
+    parseMoneySpecToWei: parseMoneySpecToWei,
+    fn_address_impl_: fn_address_impl_
 }; // module.exports

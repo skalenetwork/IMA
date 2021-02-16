@@ -80,7 +80,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         require(contractOnSchain != address(0), "ERC20 contract does not exist on SKALE chain.");
         require(
             ILockAndDataERC20S(lockAndDataERC20).receiveERC20(contractOnSchain, amount),
-            "Cound not receive ERC20 Token"
+            "Could not receive ERC20 Token"
         );
         data = _encodeData(contractOnMainnet, contractOnSchain, receiver, amount);
     }

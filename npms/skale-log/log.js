@@ -132,6 +132,42 @@ function insertStandardOutputStream() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function createMemoryOutputStream() {
+    try {
+        const objEntry = {
+			  strPath: "memory",
+			  nMaxSizeBeforeRotation: -1,
+			  nMaxFilesCount: -1,
+			  strAccumulatedLogText: "",
+			  write: function( s ) {
+                this.strAccumulatedLogText += s;
+            },
+			  close: function() { this.strAccumulatedLogText = ""; },
+			  open: function() { this.strAccumulatedLogText = ""; },
+			  size: function() { return 0; },
+			  rotate: function( nBytesToWrite ) { this.strAccumulatedLogText = ""; }
+        };
+        objEntry.open();
+        return objEntry;
+    } catch ( err ) {
+    }
+    return null;
+}
+
+function insertMemoryOutputStream() {
+    let objEntry = getStreamWithFilePath( "memory" );
+    if( objEntry !== null )
+        return true;
+    objEntry = createMemoryOutputStream();
+    if( !objEntry )
+        return false;
+    g_arrStreams.push( objEntry );
+    return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
     try {
         // const fd = fs.openSync( "" + strFilePath, "a", fs.constants.O_NONBLOCK | fs.constants.O_WR );
@@ -233,13 +269,17 @@ module.exports = {
     addStdout: function() {
         return insertStandardOutputStream();
     },
+    addMemory: function() {
+        return insertMemoryOutputStream();
+    },
     add: function( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
         return insertFileOutput(
             strFilePath,
             ( nMaxSizeBeforeRotation <= 0 ) ? -1 : nMaxSizeBeforeRotation,
             ( nMaxFilesCount <= 1 ) ? -1 : nMaxFilesCount
         );
-    }
+    },
+    getStreamWithFilePath: getStreamWithFilePath
 }; // module.exports
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

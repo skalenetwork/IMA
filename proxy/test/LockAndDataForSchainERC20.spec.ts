@@ -86,9 +86,9 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     expect(res.logs[0].args.result).to.be.true;
   });
 
-  it("should rejected with `Amount not transfered`", async () => {
+  it("should rejected with `Amount not transferred`", async () => {
     // preparation
-    const error = "Amount not transfered";
+    const error = "Amount not transferred";
     const contractHere = eRC20OnChain.address;
     const amount = 10;
     // execution/expectation
