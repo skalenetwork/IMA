@@ -151,35 +151,7 @@ contract("ERC20OnChain", ([deployer, user]) => {
     eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
       {from: deployer});
     await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address);
-    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
-        ((1000000000).toString()), lockAndDataForSchain.address, {from: deployer});
-  });
-
-  it("should invoke `totalSupplyOnMainnet`", async () => {
-    // execution
-    const totalSupply = await eRC20OnChain.totalSupplyOnMainnet({from: deployer});
-    // expectation
-    parseInt(new BigNumber(totalSupply).toString(), 10).should.be.equal(1000000000);
-  });
-
-  it("should rejected with `Call does not go from ERC20Module` when invoke `setTotalSupplyOnMainnet`", async () => {
-    // preparation
-    const error = "Caller is not ERC20Module";
-    const newTotalSupply = 500;
-    // execution
-    await eRC20OnChain.setTotalSupplyOnMainnet(newTotalSupply, {from: user})
-      .should.be.eventually.rejectedWith(error);
-  });
-
-  it("should invoke `setTotalSupplyOnMainnet`", async () => {
-    // preparation
-    const newTotalSupply = 500;
-    // execution
-    await lockAndDataForSchain.setContract("ERC20Module", deployer);
-    await eRC20OnChain.setTotalSupplyOnMainnet(newTotalSupply, {from: deployer});
-    // expectation
-    const totalSupply = await eRC20OnChain.totalSupplyOnMainnet({from: deployer});
-    parseInt(new BigNumber(totalSupply).toString(), 10).should.be.equal(newTotalSupply);
+    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20", {from: deployer});
   });
 
   it("should invoke `_mint` as internal", async () => {

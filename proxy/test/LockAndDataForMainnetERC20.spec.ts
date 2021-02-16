@@ -28,6 +28,8 @@ import * as chaiAsPromised from "chai-as-promised";
 import {
     ERC20ModuleForSchainContract,
     ERC20ModuleForSchainInstance,
+    ERC20OnChainContract,
+    ERC20OnChainInstance,
     EthERC20Contract,
     EthERC20Instance,
     LockAndDataForMainnetERC20Instance,
@@ -51,6 +53,7 @@ const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./
 const ERC20ModuleForSchain: ERC20ModuleForSchainContract = artifacts.require("./ERC20ModuleForSchain");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
+const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 
 contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
@@ -59,6 +62,7 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
   let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
   let ethERC20: EthERC20Instance;
   let tokenFactory: TokenFactoryInstance;
+  let erc20OnChain: ERC20OnChainInstance;
 
   beforeEach(async () => {
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
@@ -142,29 +146,28 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
     const contractHer = ethERC20.address;
 
     const contractHere2 = await tokenFactory.createERC20.call(name, tokenName, "0x" + supply.toString(16), {from: deployer});
+    const contractHere3 = await tokenFactory.createERC20.call(name, tokenName, "0x" + supply.toString(16), {from: deployer});
     await tokenFactory.createERC20(name, tokenName, "0x" + supply.toString(16), {from: deployer});
     const whitelist = await lockAndDataForMainnetERC20.withoutWhitelist(web3.utils.soliditySha3(schainID));
     await lockAndDataForMainnetERC20.addERC20TokenByOwner(schainID, contractHere);
     // whitelist == true - disabled whitelist = false - enabled
     if (whitelist) {
       await lockAndDataForMainnetERC20.enableWhitelist(schainID);
-      await lockAndDataForMainnetERC20.addERC20TokenByOwner(schainID, contractHere2);
     } else {
       await lockAndDataForMainnetERC20.disableWhitelist(schainID);
-      await lockAndDataForMainnetERC20.addERC20TokenByOwner(schainID, contractHere2);
     }
-    // // execution#1
-    // await lockAndDataForMainnetERC20
-    //     .addERC20ForSchain(schainID, contractHere, {from: deployer});
-    // // expectation#1
-    // const res = await lockAndDataForMainnetERC20.getSchainToERC20(schainID, contractHere);
-    // res.should.be.equal(true);
-    // // execution#2
-    // await lockAndDataForMainnetERC20
-    //     .addERC20ForSchain(schainID, contractHer, {from: deployer});
-    // const res1 = await lockAndDataForMainnetERC20.getSchainToERC20(schainID, contractHer);
-    // // expectation#2
-    // res1.should.be.equal(true);
+
+    await lockAndDataForMainnetERC20.addERC20TokenByOwner(schainID, contractHere2);
+
+    erc20OnChain = await ERC20OnChain.new("NewToken", "NTN");
+
+    if (whitelist) {
+      await lockAndDataForMainnetERC20.disableWhitelist(schainID);
+    } else {
+      await lockAndDataForMainnetERC20.enableWhitelist(schainID);
+    }
+
+    await lockAndDataForMainnetERC20.addERC20TokenByOwner(schainID, erc20OnChain.address);
   });
 
 });

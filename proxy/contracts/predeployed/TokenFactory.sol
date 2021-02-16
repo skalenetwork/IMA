@@ -30,39 +30,19 @@ import "@openzeppelin/contracts-ethereum-package/contracts/access/AccessControl.
 contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    uint256 private _totalSupplyOnMainnet;
-    address private _addressOfLockAndData;
 
     constructor(
         string memory contractName,
-        string memory contractSymbol,
-        uint256 newTotalSupply,
-        address _lockAndDataAddress
+        string memory contractSymbol
     )
         public
     {
-        require(_lockAndDataAddress.isContract(), "LockAndData is not a contract");
         __ERC20_init(contractName, contractSymbol);
-        _totalSupplyOnMainnet = newTotalSupply;
-        _addressOfLockAndData = _lockAndDataAddress;
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
         _setupRole(MINTER_ROLE, _msgSender());
     }
 
-    function setTotalSupplyOnMainnet(uint256 newTotalSupply) external {
-        address erc20ModuleAddress = LockAndDataForSchain(
-            _addressOfLockAndData
-        ).getErc20Module();
-        require(erc20ModuleAddress == _msgSender(), "Caller is not ERC20Module");
-        _totalSupplyOnMainnet = newTotalSupply;
-    }
-
-    function totalSupplyOnMainnet() external view returns (uint256) {
-        return _totalSupplyOnMainnet;
-    }
-
     function mint(address account, uint256 value) public {
-        require(totalSupply().add(value) <= _totalSupplyOnMainnet, "Total supply exceeded");
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, value);
     }
@@ -116,14 +96,9 @@ contract TokenFactory is PermissionsForSchain {
         allow("ERC20Module")
         returns (address)
     {
-        address erc20ModuleAddress = LockAndDataForSchain(
-            getLockAndDataAddress()
-        ).getErc20Module();
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
-            symbol,
-            totalSupply,
-            getLockAndDataAddress()
+            symbol
         );
         address lockAndDataERC20 = LockAndDataForSchain(
             getLockAndDataAddress()

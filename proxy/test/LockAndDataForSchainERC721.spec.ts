@@ -50,7 +50,9 @@ contract("LockAndDataForSchainERC721", ([deployer, user]) => {
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForSchainERC721: LockAndDataForSchainERC721Instance;
   let eRC721OnChain: ERC721OnChainInstance;
+  let eRC721OnChain2: ERC721OnChainInstance;
   let eRC721OnMainnet: ERC721OnChainInstance;
+  let eRC721OnMainnet2: ERC721OnChainInstance;
 
   beforeEach(async () => {
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
@@ -126,15 +128,27 @@ contract("LockAndDataForSchainERC721", ([deployer, user]) => {
     const schainID = randomString(10);
 
     const automaticDeploy = await lockAndDataForSchainERC721.automaticDeploy(web3.utils.soliditySha3(schainID));
-    await lockAndDataForSchainERC721.addERC721TokenByOwner(schainID, contractHere2, contractHere2);
+    await lockAndDataForSchainERC721.addERC721TokenByOwner(schainID, contractHere2, contractHere);
     // automaticDeploy == true - enabled automaticDeploy = false - disabled
     if (automaticDeploy) {
       await lockAndDataForSchainERC721.disableAutomaticDeploy(schainID);
-      await lockAndDataForSchainERC721.addERC721TokenByOwner(schainID, contractHere2, contractHere2);
     } else {
       await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID);
-      await lockAndDataForSchainERC721.addERC721TokenByOwner(schainID, contractHere2, contractHere2);
     }
+
+    await lockAndDataForSchainERC721.addERC721TokenByOwner(schainID, contractHere2, contractHere);
+
+    eRC721OnChain2 = await ERC721OnChain.new("NewToken", "NTN");
+    eRC721OnMainnet2 = await ERC721OnChain.new("NewToken", "NTN");
+
+    if (automaticDeploy) {
+      await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID);
+    } else {
+      await lockAndDataForSchainERC721.disableAutomaticDeploy(schainID);
+    }
+
+    await lockAndDataForSchainERC721.addERC721TokenByOwner(schainID, eRC721OnMainnet2.address, eRC721OnChain2.address);
+
   });
 
 });
