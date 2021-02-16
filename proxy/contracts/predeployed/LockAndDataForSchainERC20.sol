@@ -43,6 +43,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     mapping(bytes32 => mapping(address => address)) public schainToERC20OnSchain;
     //     schainId => bool 
     mapping(bytes32 => bool) public automaticDeploy;
+    // address of clone on schain => totalSupplyOnMainnet
     mapping(address => uint) public totalSupplyOnMainnet;
 
     /**
@@ -121,6 +122,9 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         emit ERC20TokenAdded(schainName, erc20OnMainnet, erc20OnSchain);
     }
 
+    /**
+     * @dev Allows Schain owner to add an ERC20 token to LockAndDataForSchainERC20.
+     */
     function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet, address erc20OnSchain) external {
         require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
         require(erc20OnSchain.isContract(), "Given address is not a contract");
@@ -130,16 +134,26 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         emit ERC20TokenAdded(schainName, erc20OnMainnet, erc20OnSchain);
     }
 
+    /**
+     * @dev Allows Schain owner turn on automatic deploy on schain.
+     */
     function enableAutomaticDeploy(string calldata schainName) external {
         require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = true;
     }
 
+    /**
+     * @dev Allows Schain owner turn off automatic deploy on schain.
+     */
     function disableAutomaticDeploy(string calldata schainName) external {
         require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
     }
 
+    /**
+     * @dev Allows ERC20Module to set a totalSupply of
+     * Mainnet cloned ERC20 token to LockAndDataForSchainERC20.
+     */
     function setTotalSupplyOnMainnet(
         address contractOnSchain,
         uint256 newTotalSupplyOnMainnet
@@ -150,6 +164,9 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
         totalSupplyOnMainnet[contractOnSchain] = newTotalSupplyOnMainnet;
     }
 
+    /**
+     * @dev Should return a clone of token on SKALE chain
+     */
     function getERC20OnSchain(string calldata schainName, address contractOnMainnet) external view returns (address) {
         return schainToERC20OnSchain[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
     }

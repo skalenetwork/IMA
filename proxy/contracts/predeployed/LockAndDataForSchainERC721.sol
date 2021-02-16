@@ -114,6 +114,9 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
         emit ERC721TokenAdded(schainName, erc721OnMainnet, erc721OnSchain);
     }
 
+    /**
+     * @dev Allows Schain owner to add an ERC721 token to LockAndDataForSchainERC721.
+     */
     function addERC721TokenByOwner(
         string calldata schainName,
         address erc721OnMainnet,
@@ -128,16 +131,25 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
         emit ERC721TokenAdded(schainName, erc721OnMainnet, erc721OnSchain);
     }
 
+    /**
+     * @dev Allows Schain owner turn on automatic deploy on schain.
+     */
     function enableAutomaticDeploy(string calldata schainName) external {
         require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = true;
     }
 
+    /**
+     * @dev Allows Schain owner turn off automatic deploy on schain.
+     */
     function disableAutomaticDeploy(string calldata schainName) external {
         require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
     }
 
+    /**
+     * @dev Should return a clone of token on SKALE chain
+     */
     function getERC721OnSchain(string calldata schainName, address contractOnMainnet) external view returns (address) {
         return schainToERC721OnSchain[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
     }

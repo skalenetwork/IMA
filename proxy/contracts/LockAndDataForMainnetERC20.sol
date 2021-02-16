@@ -77,6 +77,9 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
         emit ERC20TokenAdded(erc20OnMainnet, schainName);
     }
 
+    /**
+     * @dev Allows Schain owner to add an ERC20 token to LockAndDataForMainnetERC20.
+     */
     function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet) external {
         bytes32 schainId = keccak256(abi.encodePacked(schainName));
         require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
@@ -86,20 +89,32 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
         emit ERC20TokenAdded(erc20OnMainnet, schainName);
     }
 
+    /**
+     * @dev Allows Schain owner turn on whitelist of tokens.
+     */
     function enableWhitelist(string memory schainName) external {
         require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not a Schain owner");
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = false;
     }
 
+    /**
+     * @dev Allows Schain owner turn off whitelist of tokens.
+     */
     function disableWhitelist(string memory schainName) external {
         require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not a Schain owner");
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
     }
 
+    /**
+     * @dev Should return true if token in whitelist.
+     */
     function getSchainToERC20(string calldata schainName, address erc20OnMainnet) external view returns (bool) {
         return schainToERC20[keccak256(abi.encodePacked(schainName))][erc20OnMainnet];
     }
 
+    /**
+     * @dev constructor
+     */
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
