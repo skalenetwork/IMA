@@ -26,7 +26,7 @@
         "dotenv": "^8.2.0",
         "ethereumjs-tx": "2.1.2",
         "path": "^0.12.7",
-        "truffle": "^5.1.55"
+        "truffle": "^5.1.67"
     },
     "devDependencies": {
         "@nomiclabs/buidler": "^1.4.7",
