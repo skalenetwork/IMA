@@ -498,7 +498,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
         return;
     }
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-        log.write( strLogPrefix + cc.debug( "Will collect " ) + cc.info( nThreshold ) + cc.debug( " from " ) + cc.info( jarrNodes.length ) + cc.debug( "nodes" ) + "\n" );
+        log.write( strLogPrefix + cc.debug( "Will collect " ) + cc.info( nThreshold ) + cc.debug( " from " ) + cc.info( jarrNodes.length ) + cc.debug( " nodes" ) + "\n" );
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         const strNodeURL = imaUtils.compose_schain_node_url( joNode );
