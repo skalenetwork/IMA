@@ -52,6 +52,11 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
         _;
     }
 
+    modifier onlySchainOwner(bytes32 schainId) {
+        require(owner() == msg.sender || isSchainOwner(msg.sender, schainId), "Caller is not the schain owner");
+        _;
+    }
+
     /**
      * @dev Emitted when DepositBox receives ETH.
      */
@@ -107,16 +112,15 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addSchain(string calldata schainID, address tokenManagerAddress) external {
-        require(
-            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            msg.sender == owner(), "Not authorized caller"
-        );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+    function addSchain(string calldata schainName, address tokenManagerAddress)
+        external
+        onlySchainOwner(keccak256(abi.encodePacked(schainName)))
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
-        IMessageProxy(permitted[keccak256(abi.encodePacked("MessageProxy"))]).addConnectedChain(schainID);
+        IMessageProxy(permitted[keccak256(abi.encodePacked("MessageProxy"))]).addConnectedChain(schainName);
     }
 
     /**
@@ -127,15 +131,14 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
      * - `msg.sender` must be schain owner or contract owner
      * - SKALE chain must already be set.
      */
-    function removeSchain(string calldata schainID) external {
-        require(
-            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            msg.sender == owner(), "Not authorized caller"
-        );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+    function removeSchain(string calldata schainName)
+        external
+        onlySchainOwner(keccak256(abi.encodePacked(schainName)))
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(tokenManagerAddresses[schainHash] != address(0), "SKALE chain is not set");
         delete tokenManagerAddresses[schainHash];
-        IMessageProxy(permitted[keccak256(abi.encodePacked("MessageProxy"))]).removeConnectedChain(schainID);
+        IMessageProxy(permitted[keccak256(abi.encodePacked("MessageProxy"))]).removeConnectedChain(schainName);
     }
 
     /**
@@ -186,8 +189,8 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
     /**
      * @dev Checks whether LockAndDataForMainnet is connected to a SKALE chain.
      */
-    function hasSchain( string calldata schainID ) external view returns (bool) {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+    function hasSchain( string calldata schainName ) external view returns (bool) {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         if ( tokenManagerAddresses[schainHash] == address(0) ) {
             return false;
         }
