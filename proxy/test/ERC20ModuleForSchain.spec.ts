@@ -112,10 +112,8 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     tokenManager = await TokenManager.new("NewSchain", lockAndDataForSchain.address, {from: deployer});
     await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
 
-    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
-        ((1000000000).toString()), eRC20ModuleForSchain.address, {from: deployer});
-    erc20OnMainnet = await ERC20OnChain.new("SKALE", "SKL",
-        ((1000000000).toString()), eRC20ModuleForMainnet.address, {from: deployer});
+    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20", {from: deployer});
+    erc20OnMainnet = await ERC20OnChain.new("SKALE", "SKL", {from: deployer});
 
     await lockAndDataForSchainERC20.enableAutomaticDeploy("Mainnet", {from: deployer});
   });
@@ -218,7 +216,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount * 2);
   });
 
-  it("should return `true` for `sendERC20` with `to0==address(0)` and `contractAddress==address(0)`", async () => {
+  it("should return `true` for `sendERC20` with `to0==address(0)` and `contractAddreess==address(0)`", async () => {
     // preparation
     const schainID = randomString(10);
     const to = user;

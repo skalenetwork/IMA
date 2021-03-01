@@ -111,30 +111,10 @@ contract("TokenManager", ([deployer, user, client]) => {
             {from: deployer}
         );
         await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address);
-        eRC20OnChain = await ERC20OnChain.new(
-            "ERC20",
-            "ERC20",
-            "20000000000000000",
-            lockAndDataForSchain.address,
-            {from: deployer}
-        );
-        eRC20 = await ERC20OnChain.new(
-            "SKALE",
-            "SKL",
-            "20000000000000000",
-            lockAndDataForSchain.address,
-            {from: deployer}
-        );
-        eRC721OnChain = await ERC721OnChain.new(
-            "ERC721OnChain",
-            "ERC721",
-            {from: deployer}
-        );
-        eRC721 = await ERC721OnChain.new(
-            "eRC721",
-            "ERC721",
-            {from: deployer}
-        );
+        eRC20OnChain = await ERC20OnChain.new("ERC20", "ERC20", {from: deployer});
+        eRC20 = await ERC20OnChain.new("SKALE", "SKL", {from: deployer});
+        eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721", {from: deployer});
+        eRC721 = await ERC721OnChain.new("eRC721", "ERC721", {from: deployer});
         eRC721ModuleForSchain = await ERC721ModuleForSchain.new(
             lockAndDataForSchain.address,
             {from: deployer}
@@ -267,6 +247,9 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address, {from: deployer});
         //
         await lockAndDataForSchainERC20.addERC20ForSchain("Mainnet", eRC20.address, eRC20OnChain.address, {from: deployer});
+        await lockAndDataForSchainERC20.setTotalSupplyOnMainnet(eRC20OnChain.address, 199);
+        await lockAndDataForSchainERC20.sendERC20(eRC20OnChain.address, user, amount, {from: deployer}).should.be.eventually.rejectedWith("Total supply exceeded");
+        await lockAndDataForSchainERC20.setTotalSupplyOnMainnet(eRC20OnChain.address, 200);
         await lockAndDataForSchainERC20.sendERC20(eRC20OnChain.address, user, amount, {from: deployer});
         //
         await eRC20OnChain.approve(tokenManager.address, amountTo, {from: user});

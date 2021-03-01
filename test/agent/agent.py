@@ -259,7 +259,8 @@ class Agent:
             'abi-main-net': self.config.abi_mainnet,
             'abi-s-chain': self.config.abi_schain,
             'key-main-net': self.config.mainnet_key,
-            'key-s-chain': self.config.schain_key
+            'key-s-chain': self.config.schain_key,
+            'no-ptx': None
         }
 
     def _wei_to_bigger(self, amount):
