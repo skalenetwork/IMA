@@ -69,7 +69,7 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
     eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
         {from: deployer});
     await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address);
-    ethERC20 = await EthERC20.new({from: deployer});
+    ethERC20 = await EthERC20.new(lockAndDataForMainnet.address, {from: deployer});
     tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
         {from: deployer});
   });

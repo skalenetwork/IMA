@@ -54,7 +54,7 @@ import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainne
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
 import { deployDepositBox } from "./utils/deploy/depositBox";
 
-const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
+const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchainWorkaround");
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
@@ -157,6 +157,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForMainnet.addConnectedChain(chainID, {from: deployer});
+            // register deployer as extra contract to call postOutgoingMessage
+            await messageProxyForMainnet.registerExtraContract(chainID, deployer, {from: deployer});
             await messageProxyForMainnet
             .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
             const outgoingMessagesCounter = new BigNumber(
@@ -235,6 +237,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 await messageProxyForMainnet.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
+            // register deployer as extra contract to call postOutgoingMessage
+            await messageProxyForMainnet.registerExtraContract(chainID, deployer, {from: deployer});
             await messageProxyForMainnet
             .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
 
@@ -367,6 +371,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 await messageProxyForMainnet.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
+            // register deployer as extra contract to call postOutgoingMessage
+            await messageProxyForMainnet.registerExtraContract(chainID, deployer, {from: deployer});
             await messageProxyForMainnet.postOutgoingMessage(
                 chainID,
                 lockAndDataForMainnet.address,
@@ -396,15 +402,19 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     describe("MessageProxyForSchain for schain", async () => {
         beforeEach(async () => {
             lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
+            await lockAndDataForSchain.setContract("LockAndData", lockAndDataForSchain.address, {from: deployer});
             messageProxyForSchain = await MessageProxyForSchain.new("MyChain", lockAndDataForSchain.address, {from: deployer});
             await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address, {from: deployer});
+            tokenManager1 = await TokenManager.new("MyChain", lockAndDataForSchain.address, {from: deployer});
+            await lockAndDataForSchain.setContract("TokenManager", tokenManager1.address, {from: deployer});
+
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
             const someCainID = randomString(10);
             const isConnectedChain = await messageProxyForSchain.isConnectedChain(someCainID);
             isConnectedChain.should.be.deep.equal(Boolean(false));
-            await messageProxyForSchain.addConnectedChain(someCainID, publicKeyArray, {from: deployer});
+            await messageProxyForSchain.addConnectedChain(someCainID, {from: deployer});
             const connectedChain = await messageProxyForSchain.isConnectedChain(someCainID);
             connectedChain.should.be.deep.equal(Boolean(true));
             // // main net does not have a public key and is implicitly connected:
@@ -413,20 +423,20 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
         it("should add connected chain", async () => {
             const chainID = randomString(10);
-            await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
+            await messageProxyForSchain.addConnectedChain(chainID, {from: deployer});
             const isConnectedChain = await messageProxyForSchain.isConnectedChain(chainID);
             isConnectedChain.should.be.deep.equal(Boolean(true));
             // chain can't be connected twice:
-            await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer})
+            await messageProxyForSchain.addConnectedChain(chainID, {from: deployer})
             .should.be.rejectedWith("Chain is already connected");
             // main net does not have a public key and is implicitly connected:
-            // await messageProxyForSchain.addConnectedChain("Mainnet", publicKeyArray, {from: deployer})
+            // await messageProxyForSchain.addConnectedChain("Mainnet", {from: deployer})
             // .should.be.rejectedWith("SKALE chain name is incorrect. Inside in MessageProxy");
         });
 
         it("should remove connected chain", async () => {
             const chainID = randomString(10);
-            await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
+            await messageProxyForSchain.addConnectedChain(chainID, {from: deployer});
             const connectedChain = await messageProxyForSchain.isConnectedChain(chainID);
             connectedChain.should.be.deep.equal(Boolean(true));
 
@@ -452,7 +462,9 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer})
             .should.be.rejectedWith("Destination chain is not initialized");
 
-            await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
+            await messageProxyForSchain.addConnectedChain(chainID, {from: deployer});
+            // register deployer as extra contract to call postOutgoingMessage
+            await messageProxyForSchain.registerExtraContract(chainID, deployer, {from: deployer});
             await messageProxyForSchain
             .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
             const outgoingMessagesCounter = new BigNumber(
@@ -495,7 +507,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 {from: deployer},
             ).should.be.rejected;
 
-            await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
+            await messageProxyForSchain.addConnectedChain(chainID, {from: deployer});
 
             await messageProxyForSchain.postIncomingMessages(
                 chainID,
@@ -520,12 +532,14 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             // chain should be inited:
             new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID)).should.be.deep.equal(new BigNumber(0));
 
-            await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
+            await messageProxyForSchain.addConnectedChain(chainID, {from: deployer});
 
             const outgoingMessagesCounter0 = new BigNumber(
                 await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
+            // register deployer as extra contract to call postOutgoingMessage
+            await messageProxyForSchain.registerExtraContract(chainID, deployer, {from: deployer});
             await messageProxyForSchain
             .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
 
@@ -562,7 +576,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             // chain should be inited:
             new BigNumber(await messageProxyForSchain.getIncomingMessagesCounter(chainID)).should.be.deep.equal(new BigNumber(0));
 
-            await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
+            await messageProxyForSchain.addConnectedChain(chainID, {from: deployer});
 
             const incomingMessagesCounter0 = new BigNumber(
                 await messageProxyForSchain.getIncomingMessagesCounter(chainID));

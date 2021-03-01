@@ -9,6 +9,7 @@ log.addStdout();
 const g_bVerbose = false;
 
 const ownerAddress = "0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852"; // "0x9e7f3c7e85b104415b2ac3b7436fc956c3100aae";
+const schainOwnerAddress = "0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852";
 
 const g_arrExampleAuthorizedCallers = [
     {
@@ -248,7 +249,8 @@ const g_joSkaleConfigTemplate = {
                 enableContractLogMessages: false
             },
             IMA: {
-                ownerAddress: ownerAddress,
+                adminAddress: ownerAddress,
+                schainOwnerAddress: schainOwnerAddress,
                 variables: {
                     LockAndData: {
                         permitted: {

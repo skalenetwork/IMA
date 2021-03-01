@@ -26,6 +26,8 @@
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
+    ERC721ModuleForSchainContract,
+    ERC721ModuleForSchainInstance,
     ERC721OnChainContract,
     ERC721OnChainInstance,
     LockAndDataForSchainContract,
@@ -45,20 +47,31 @@ const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./
 const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract =
     artifacts.require("./LockAndDataForSchainERC721");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
+const ERC721ModuleForSchain: ERC721ModuleForSchainContract = artifacts.require("./ERC721ModuleForSchain");
 
 contract("LockAndDataForSchainERC721", ([deployer, user]) => {
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForSchainERC721: LockAndDataForSchainERC721Instance;
   let eRC721OnChain: ERC721OnChainInstance;
   let eRC721OnMainnet: ERC721OnChainInstance;
+  let erc721Module: ERC721ModuleForSchainInstance;
 
   beforeEach(async () => {
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchainERC721 =
-        await LockAndDataForSchainERC721.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
+    await lockAndDataForSchain.setContract("LockAndData", lockAndDataForSchain.address, {from: deployer});
+    lockAndDataForSchainERC721 = await LockAndDataForSchainERC721.new(
+      lockAndDataForSchain.address,
+      {from: deployer, gas: 8000000 * gasMultiplier}
+    );
+    await lockAndDataForSchain.setContract(
+      "LockAndDataERC721",
+      lockAndDataForSchainERC721.address,
+      {from: deployer}
+    );
     eRC721OnChain = await ERC721OnChain.new("ELVIS", "ELV", {from: deployer});
     eRC721OnMainnet = await ERC721OnChain.new("SKALE", "SKL", {from: deployer});
+    erc721Module = await ERC721ModuleForSchain.new(lockAndDataForSchain.address, {from: deployer});
+    await lockAndDataForSchain.setContract("ERC721Module", erc721Module.address, {from: deployer});
 
   });
 

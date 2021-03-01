@@ -54,14 +54,25 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
   let lockAndDataForSchainERC20: LockAndDataForSchainERC20Instance;
   let eRC20OnChain: ERC20OnChainInstance;
   let eRC20OnMainnet: ERC20OnChainInstance;
+  let erc20Module: ERC20ModuleForSchainInstance;
 
   beforeEach(async () => {
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchainERC20 =
-        await LockAndDataForSchainERC20.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
-    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
-        ((1000000000).toString()), lockAndDataForSchain.address, {from: deployer});
+    await lockAndDataForSchain.setContract("LockAndData", lockAndDataForSchain.address, {from: deployer});
+    lockAndDataForSchainERC20 = await LockAndDataForSchainERC20.new(
+      lockAndDataForSchain.address,
+      {from: deployer, gas: 8000000 * gasMultiplier}
+    );
+    await lockAndDataForSchain.setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
+    erc20Module = await ERC20ModuleForSchain.new(lockAndDataForSchain.address, {from: deployer});
+    await lockAndDataForSchain.setContract("ERC20Module", erc20Module.address, {from: deployer});
+    eRC20OnChain = await ERC20OnChain.new(
+      "ERC20OnChain",
+      "ERC20",
+      ((1000000000).toString()),
+      lockAndDataForSchain.address,
+      {from: deployer}
+    );
     eRC20OnMainnet = await ERC20OnChain.new("SKALE", "SKL",
         ((1000000000).toString()), lockAndDataForSchain.address, {from: deployer});
   });

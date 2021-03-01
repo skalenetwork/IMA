@@ -22,24 +22,27 @@
 pragma solidity 0.6.12;
 
 import "./LockAndDataForSchain.sol";
-import "./OwnableForSchain.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/utils/Address.sol";
 
 
 /**
  * @title PermissionsForSchain - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-contract PermissionsForSchain is OwnableForSchain {
+contract PermissionsForSchain is Ownable {
+
+    using Address for address;
 
     // address of ContractManager
-    address public lockAndDataAddress_;
+    address public lockAndDataAddress;
 
     /**
      * @dev constructor - sets current address of ContractManager
      * @param newContractsAddress - current address of ContractManager
      */
     constructor(address newContractsAddress) public {
-        lockAndDataAddress_ = newContractsAddress;
+        lockAndDataAddress = newContractsAddress;
     }
 
     /**
@@ -49,23 +52,62 @@ contract PermissionsForSchain is OwnableForSchain {
      */
     modifier allow(string memory contractName) {
         require(
-            LockAndDataForSchain(
-                getLockAndDataAddress()
-            ).getContract(contractName) == msg.sender ||
-            getSchainOwner() == msg.sender, "Message sender is invalid"
+            LockAndDataForSchain(getLockAndDataAddress()).getContract(contractName) == _msgSender() ||
+            getAdmin() == _msgSender(),
+            "Message sender is invalid"
         );
         _;
     }
 
-    function isSchainOwner(address sender) public virtual view returns (bool) {
-        return LockAndDataForSchain(getLockAndDataAddress()).isSchainOwner(sender);
+    /**
+     * @dev Throws if called by any account other than the schain owner.
+     */
+    modifier onlySchainOwner() {
+        require(
+            isSchainOwner(_msgSender()) || _msgSender() == getAdmin(),
+            "Only schain owner can execute this method"
+        );
+        _;
     }
 
-    // function getLockAndDataAddress() public view returns ( address a ) {
-    //     if (lockAndDataAddress_ != address(0) )
-    //         return lockAndDataAddress_;
-    //     return SkaleFeatures(getSkaleFeaturesAddress()).
-    //         getConfigVariableAddress("skaleConfig.contractSettings.IMA.LockAndData");
-    // }
+    /**
+     * @dev Throws if called by any account other than the admin.
+     */
+    modifier onlyAdmin() {
+        require(_msgSender() == getAdmin(), "Only admin can execute this method");
+        _;
+    }
 
+    /**
+     * @dev Returns true if sender is Schain owner
+     */
+    function isSchainOwner(address sender) public view returns (bool) {
+        return LockAndDataForSchain(getLockAndDataAddress()).getSchainOwner() == sender;
+    }
+
+    /**
+     * @dev Returns LockAndData address.
+     */
+    function getLockAndDataAddress() public view returns (address) {
+        if (lockAndDataAddress == address(0))
+            return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
+                "skaleConfig.contractSettings.IMA.LockAndData"
+            );
+        return lockAndDataAddress;
+    }
+
+    /**
+     * @dev Returns admin address.
+     */
+    function getAdmin() public view returns (address) {
+        if (owner() == address(0))
+            return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
+                "skaleConfig.contractSettings.IMA.adminAddress"
+            );
+        return owner();
+    }
+
+    function getSkaleFeaturesAddress() public view returns (address) {
+        return 0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2;
+    }
 }

@@ -22,9 +22,11 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "./EthERC20.sol";
-import "./OwnableForSchain.sol";
+import "../interfaces/IEthERC20.sol";
+import "../interfaces/IMessageProxy.sol";
+import "./SkaleFeatures.sol";
 
 
 /**
@@ -32,7 +34,7 @@ import "./OwnableForSchain.sol";
  * @dev Runs on SKALE chains, holds deposited ETH, and contains mappings and
  * balances of ETH tokens received through DepositBox.
  */
-contract LockAndDataForSchain is OwnableForSchain {
+contract LockAndDataForSchain is Ownable {
     using SafeMath for uint256;
 
     address private _ethErc20Address;
@@ -52,26 +54,40 @@ contract LockAndDataForSchain is OwnableForSchain {
     string public constant TOKEN_MANAGER = "TokenManager";
     string public constant TOKEN_FACTORY = "TokenFactory";
     string public constant MESSAGE_PROXY = "MessageProxy";
+    string public constant ETH_ERC20 = "EthERC20";
+    string public constant LOCK_AND_DATA = "LockAndData";
 
     bool private _isCustomDeploymentMode = false;
+
+    address public schainOwner;
 
     modifier allow(string memory contractName) {
         require(
             _checkPermitted(contractName,msg.sender) ||
-            getSchainOwner() == msg.sender, "Not allowed LockAndDataForSchain");
+            getAdmin() == msg.sender, "Not allowed LockAndDataForSchain");
         _;
     }
 
-    constructor() public {
-        _isCustomDeploymentMode = true;
-        authorizedCaller[msg.sender] = true;
+    /**
+     * @dev Throws if called by any account other than the schain owner.
+     */
+    modifier onlySchainOwner() {
+        require(_msgSender() == getSchainOwner() || _msgSender() == getAdmin(), "Only schain owner can execute this method");
+        _;
     }
 
     /**
-     * @dev Allows Owner to set a EthERC20 contract address.
+     * @dev Throws if called by any account other than the admin.
      */
-    function setEthErc20Address(address newEthErc20Address) external onlySchainOwner {
-        _ethErc20Address = newEthErc20Address;
+    modifier onlyAdmin() {
+        require(_msgSender() == getAdmin(), "Only admin can execute this method");
+        _;
+    }
+
+    constructor() public Ownable() {
+        _isCustomDeploymentMode = true;
+        authorizedCaller[msg.sender] = true;
+        schainOwner = msg.sender;
     }
 
     /**
@@ -83,7 +99,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * - New contract address must not already be added.
      * - Contract must contain code.
      */
-    function setContract(string calldata contractName, address newContract) external virtual onlySchainOwner {
+    function setContract(string calldata contractName, address newContract) external virtual onlyAdmin {
         require(newContract != address(0), "New address is equal zero");
 
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
@@ -119,12 +135,12 @@ contract LockAndDataForSchain is OwnableForSchain {
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addSchain(string calldata schainID, address tokenManagerAddress) external {
-        require(isAuthorizedCaller(msg.sender) || getSchainOwner() == msg.sender, "Not authorized caller");
+    function addSchain(string calldata schainID, address tokenManagerAddress) external onlySchainOwner {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] == address(0), "SKALE chain is already set");
         require(tokenManagerAddress != address(0), "Incorrect Token Manager address");
         tokenManagerAddresses[schainHash] = tokenManagerAddress;
+        IMessageProxy(getMessageProxy()).addConnectedChain(schainID);
     }
 
     /**
@@ -138,6 +154,7 @@ contract LockAndDataForSchain is OwnableForSchain {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerAddresses[schainHash] != address(0), "SKALE chain is not set");
         delete tokenManagerAddresses[schainHash];
+        IMessageProxy(getMessageProxy()).removeConnectedChain(schainID);
     }
 
     /**
@@ -161,17 +178,12 @@ contract LockAndDataForSchain is OwnableForSchain {
      * - DepositBox address must be non-zero.
      */
     function addDepositBox(address depositBoxAddress) external {
-        require(isAuthorizedCaller(msg.sender) || getSchainOwner() == msg.sender, "Not authorized caller");
+        bytes32 mainnetHash = keccak256(abi.encodePacked("Mainnet"));
+        require(isAuthorizedCaller(msg.sender) || getAdmin() == msg.sender, "Not authorized caller");
+        require(tokenManagerAddresses[mainnetHash] == address(0), "Deposit Box is already set");
         require(depositBoxAddress != address(0), "Incorrect Deposit Box address");
-        require(
-            tokenManagerAddresses[
-                keccak256(abi.encodePacked("Mainnet"))
-            ] != depositBoxAddress,
-            "Deposit Box is already set"
-        );
-        tokenManagerAddresses[
-            keccak256(abi.encodePacked("Mainnet"))
-        ] = depositBoxAddress;
+        tokenManagerAddresses[mainnetHash] = depositBoxAddress;
+        IMessageProxy(getMessageProxy()).addConnectedChain("Mainnet");
     }
 
     /**
@@ -181,27 +193,24 @@ contract LockAndDataForSchain is OwnableForSchain {
      *
      * - DepositBox must already be set.
      */
-    function removeDepositBox() external onlySchainOwner {
-        require(
-            tokenManagerAddresses[
-                keccak256(abi.encodePacked("Mainnet"))
-            ] != address(0),
-            "Deposit Box is not set"
-        );
-        delete tokenManagerAddresses[keccak256(abi.encodePacked("Mainnet"))];
+    function removeDepositBox() external onlyAdmin {
+        bytes32 mainnetHash = keccak256(abi.encodePacked("Mainnet"));
+        require(tokenManagerAddresses[mainnetHash] != address(0), "Deposit Box is not set");
+        delete tokenManagerAddresses[mainnetHash];
+        IMessageProxy(getMessageProxy()).removeConnectedChain("Mainnet");
     }
 
     /**
      * @dev Allows Owner to add an authorized caller.
      */
-    function addAuthorizedCaller(address caller) external onlySchainOwner {
+    function addAuthorizedCaller(address caller) external onlyAdmin {
         authorizedCaller[caller] = true;
     }
 
     /**
      * @dev Allows Owner to remove an authorized caller.
      */
-    function removeAuthorizedCaller(address caller) external onlySchainOwner {
+    function removeAuthorizedCaller(address caller) external onlyAdmin {
         authorizedCaller[caller] = false;
     }
 
@@ -238,7 +247,7 @@ contract LockAndDataForSchain is OwnableForSchain {
      * @dev Allows TokenManager to send (mint) ETH from LockAndDataForSchain.
      */
     function sendEth(address to, uint256 amount) external allow("TokenManager") returns (bool) {
-        require(EthERC20(getEthErc20Address()).mint(to, amount), "Mint error");
+        require(IEthERC20(getEthErc20Address()).mint(to, amount), "Mint error");
         return true;
     }
 
@@ -246,11 +255,43 @@ contract LockAndDataForSchain is OwnableForSchain {
      * @dev Allows TokenManager to receive (burn) ETH to LockAndDataForSchain.
      */
     function receiveEth(address sender, uint256 amount) external allow("TokenManager") returns (bool) {
-        EthERC20(getEthErc20Address()).burnFrom(sender, amount);
+        IEthERC20(getEthErc20Address()).burnFrom(sender, amount);
         return true;
     }
-    function isSchainOwner(address sender) external view returns (bool) {
-        return sender == getSchainOwner();
+
+    /**
+     * @dev Transfer schain owner role to new address
+     */
+    function transferSchainOwnership(address newSchainOwner) external onlySchainOwner {
+        require(newSchainOwner != address(0), "New schain owner is zero address");
+        require(newSchainOwner != getSchainOwner(), "New schain owner is the same");
+        schainOwner = newSchainOwner;
+    }
+
+    /**
+     * @dev Returns admin address.
+     */
+    function getAdmin() public view returns (address) {
+        if (owner() == address(0))
+            return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
+                "skaleConfig.contractSettings.IMA.adminAddress"
+            );
+        return owner();
+    }
+
+    /**
+     * @dev Returns schain owner address.
+     */
+    function getSchainOwner() public view returns (address) {
+        if (schainOwner == address(0))
+            return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
+                "skaleConfig.contractSettings.IMA.schainOwnerAddress"
+            );
+        return schainOwner;
+    }
+
+    function getSkaleFeaturesAddress() public view returns (address) {
+        return 0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2;
     }
 
     function isAuthorizedCaller(address a) public view returns (bool rv) {
@@ -270,32 +311,22 @@ contract LockAndDataForSchain is OwnableForSchain {
      * @dev Returns EthERC20 contract address.
      */
     function getEthErc20Address() public view returns (address addressOfEthErc20) {
-        if (_ethErc20Address == address(0) && (!_isCustomDeploymentMode)) {
-            return SkaleFeatures(
-                    getSkaleFeaturesAddress()
-                ).getConfigVariableAddress(
-                "skaleConfig.contractSettings.IMA.EthERC20"
-            );
-        }
-        addressOfEthErc20 = _ethErc20Address;
+        return getContract(ETH_ERC20);
     }
 
-    function getContract(string memory contractName) public view returns (address) {
-        bytes32 contractId = keccak256(abi.encodePacked(contractName));
+    function getContract(string memory contractName) public view returns (address contractAddress) {
+        contractAddress = permitted[keccak256(abi.encodePacked(contractName))];
 
-        if (permitted[contractId] == address(0) && (!_isCustomDeploymentMode)) {
-            string memory fullContractPath = string(abi.encodePacked(
-                "skaleConfig.contractSettings.IMA.",
-                contractName
-            ));
-
-            address contractAddressInStorage = SkaleFeatures(
-                getSkaleFeaturesAddress()
-            ).getConfigVariableAddress(fullContractPath);
-
-            return contractAddressInStorage;
+        if (contractAddress == address(0) && (!_isCustomDeploymentMode)) {
+            contractAddress = SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
+                string(abi.encodePacked("skaleConfig.contractSettings.IMA.", contractName))
+            );
         }
-        return permitted[contractId];
+        require(contractAddress != address(0), "Contract has not been found");
+    }
+
+    function getMessageProxy() public view returns (address) {
+        return getContract(MESSAGE_PROXY);
     }
 
     function getErc20Module() external view returns (address) {
@@ -320,10 +351,6 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     function getTokenFactory() external view returns (address) {
         return getContract(TOKEN_FACTORY);
-    }
-
-    function getMessageProxy() external view returns (address) {
-        return getContract(MESSAGE_PROXY);
     }
 
     /**

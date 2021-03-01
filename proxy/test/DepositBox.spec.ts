@@ -149,7 +149,7 @@ contract("DepositBox", ([deployer, user]) => {
     beforeEach(async () => {
       eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
       lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
-      ethERC20 = await EthERC20.new({from: deployer});
+      ethERC20 = await EthERC20.new(lockAndDataForMainnet.address, {from: deployer});
     });
 
     describe("tests for `depositERC20` function", async () => {
@@ -281,7 +281,7 @@ contract("DepositBox", ([deployer, user]) => {
     beforeEach(async () => {
       eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
       lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
-      ethERC20 = await EthERC20.new({from: deployer});
+      ethERC20 = await EthERC20.new(lockAndDataForMainnet.address, {from: deployer});
       eRC721ModuleForMainnet = await deployERC721ModuleForMainnet(lockAndDataForMainnet);
       lockAndDataForMainnetERC721 = await deployLockAndDataForMainnetERC721(lockAndDataForMainnet);
       eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");

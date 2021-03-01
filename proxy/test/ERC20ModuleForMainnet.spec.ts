@@ -54,7 +54,7 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
 
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
     lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
-    ethERC20 = await EthERC20.new({from: deployer});
+    ethERC20 = await EthERC20.new(lockAndDataForMainnet.address, {from: deployer});
     eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
   });
 

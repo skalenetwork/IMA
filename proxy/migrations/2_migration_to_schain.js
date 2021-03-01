@@ -60,26 +60,27 @@ async function deploy( deployer, network ) {
         process.exit( 126 );
     }
     const schainName = process.env.CHAIN_NAME_SCHAIN;
-    await deployer.deploy( MessageProxyForSchain, schainName, { gas: gasLimit } ).then( async function() {
-        return await deployer.deploy( LockAndDataForSchain, { gas: gasLimit } );
-    } ).then( async function( inst ) {
-        await inst.setContract( "MessageProxy", MessageProxyForSchain.address );
-        await deployer.deploy( TokenManager, schainName, inst.address, { gas: gasLimit * gasMultiplier } );
-        await deployer.deploy( EthERC20, { gas: gasLimit * gasMultiplier } ).then( async function( EthERC20Inst ) {
-            await EthERC20Inst.transferOwnership( inst.address, { gas: gasLimit } );
-        } );
-        await inst.setContract( "TokenManager", TokenManager.address );
-        await inst.setEthErc20Address( EthERC20.address );
-        await deployer.deploy( ERC20ModuleForSchain, inst.address, { gas: gasLimit * gasMultiplier } );
-        await inst.setContract( "ERC20Module", ERC20ModuleForSchain.address );
-        await deployer.deploy( LockAndDataForSchainERC20, inst.address, { gas: gasLimit * gasMultiplier } );
-        await inst.setContract( "LockAndDataERC20", LockAndDataForSchainERC20.address );
-        await deployer.deploy( ERC721ModuleForSchain, inst.address, { gas: gasLimit * gasMultiplier } );
-        await inst.setContract( "ERC721Module", ERC721ModuleForSchain.address );
-        await deployer.deploy( LockAndDataForSchainERC721, inst.address, { gas: gasLimit * gasMultiplier } );
-        await inst.setContract( "LockAndDataERC721", LockAndDataForSchainERC721.address );
-        await deployer.deploy( TokenFactory, inst.address, { gas: gasLimit * gasMultiplier } );
-        await inst.setContract( "TokenFactory", TokenFactory.address );
+    const lockAndDataForSchainContract = await deployer.deploy( LockAndDataForSchain, { gas: gasLimit } );
+    const messageProxyForSchainContract = await deployer.deploy( MessageProxyForSchain, schainName, { gas: gasLimit } ); //then( async function() {
+    await lockAndDataForSchainContract.setContract( "MessageProxy", MessageProxyForSchain.address );
+    await deployer.deploy( TokenManager, schainName, lockAndDataForSchainContract.address, { gas: gasLimit * gasMultiplier } );
+    await lockAndDataForSchainContract.setContract( "TokenManager", TokenManager.address );
+    await deployer.deploy( EthERC20, lockAndDataForSchainContract.address, { gas: gasLimit * gasMultiplier } ).then( 
+        async function( EthERC20Inst ) {
+            await EthERC20Inst.transferOwnership( lockAndDataForSchainContract.address, { gas: gasLimit } );
+        }
+    );
+    await lockAndDataForSchainContract.setContract( "EthERC20", EthERC20.address );
+    await deployer.deploy( ERC20ModuleForSchain, lockAndDataForSchainContract.address, { gas: gasLimit * gasMultiplier } );
+    await lockAndDataForSchainContract.setContract( "ERC20Module", ERC20ModuleForSchain.address );
+    await deployer.deploy( LockAndDataForSchainERC20, lockAndDataForSchainContract.address, { gas: gasLimit * gasMultiplier } );
+    await lockAndDataForSchainContract.setContract( "LockAndDataERC20", LockAndDataForSchainERC20.address );
+    await deployer.deploy( ERC721ModuleForSchain, lockAndDataForSchainContract.address, { gas: gasLimit * gasMultiplier } );
+    await lockAndDataForSchainContract.setContract( "ERC721Module", ERC721ModuleForSchain.address );
+    await deployer.deploy( LockAndDataForSchainERC721, lockAndDataForSchainContract.address, { gas: gasLimit * gasMultiplier } );
+    await lockAndDataForSchainContract.setContract( "LockAndDataERC721", LockAndDataForSchainERC721.address );
+    await deployer.deploy( TokenFactory, lockAndDataForSchainContract.address, { gas: gasLimit * gasMultiplier } );
+    await lockAndDataForSchainContract.setContract( "TokenFactory", TokenFactory.address );
 
         const strPathToBuildDir = path.join( __dirname, "../build/contracts" );
         const strPathToERC20OnChainJSON = path.join( strPathToBuildDir, "ERC20OnChain.json" );

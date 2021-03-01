@@ -41,6 +41,8 @@ import {
     LockAndDataForSchainInstance,
     TokenFactoryContract,
     TokenFactoryInstance,
+    TokenManagerContract,
+    TokenManagerInstance,
     } from "../types/truffle-contracts";
 
 import chai = require("chai");
@@ -60,6 +62,7 @@ const LockAndDataForSchainERC20: LockAndDataForSchainERC20Contract =
     artifacts.require("./LockAndDataForSchainERC20");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
+const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const ERC20ModuleForSchain: ERC20ModuleForSchainContract = artifacts.require("./ERC20ModuleForSchain");
 const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 
@@ -68,6 +71,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
   let lockAndDataForSchainERC20: LockAndDataForSchainERC20Instance;
   let ethERC20: EthERC20Instance;
   let tokenFactory: TokenFactoryInstance;
+  let tokenManager: TokenManagerInstance;
   let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
   let eRC20OnChain: ERC20OnChainInstance;
   let erc20OnMainnet: ERC20OnChainInstance;
@@ -81,15 +85,32 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
 
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
-    lockAndDataForSchainERC20 =
-        await LockAndDataForSchainERC20.new(lockAndDataForSchain.address,
-        {from: deployer});
-    eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
-        {from: deployer});
+    await lockAndDataForSchain.setContract("LockAndData", lockAndDataForSchain.address, {from: deployer});
+    lockAndDataForSchainERC20 = await LockAndDataForSchainERC20.new(
+      lockAndDataForSchain.address,
+      {from: deployer}
+    );
+    await lockAndDataForSchain.setContract(
+      "LockAndDataERC20",
+      lockAndDataForSchainERC20.address,
+      {from: deployer}
+    );
+    eRC20ModuleForSchain = await ERC20ModuleForSchain.new(
+      lockAndDataForSchain.address,
+      {from: deployer}
+    );
+    await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
 
-    ethERC20 = await EthERC20.new({from: deployer});
-    tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
-        {from: deployer});
+    ethERC20 = await EthERC20.new(lockAndDataForSchain.address, {from: deployer});
+    await lockAndDataForSchain.setContract("EthERC20", ethERC20.address, {from: deployer});
+    tokenFactory = await TokenFactory.new(
+      lockAndDataForSchain.address,
+      {from: deployer}
+    );
+    await lockAndDataForSchain.setContract("TokenFactory", tokenFactory.address, {from: deployer});
+
+    tokenManager = await TokenManager.new("NewSchain", lockAndDataForSchain.address, {from: deployer});
+    await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
 
     eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20",
         ((1000000000).toString()), eRC20ModuleForSchain.address, {from: deployer});
@@ -106,9 +127,6 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const schainID = randomString(10);
     const to = user;
     const amount = 10;
-    // set `LockAndDataERC20` contract before invoke `receiveERC20`
-    await lockAndDataForSchain
-        .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
     // execution/expectation
     await eRC20ModuleForSchain.receiveERC20(schainID, contractHere, to, amount, {from: deployer})
       .should.be.eventually.rejectedWith(error);
@@ -129,12 +147,6 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await eRC20OnChain.mint(deployer, "1000000000", {from: deployer});
     // transfer some quantity of ERC20 tokens for `lockAndDataForMainnetERC20` address
     await eRC20OnChain.transfer(lockAndDataForSchainERC20.address, "1000000", {from: deployer});
-    // set `ERC20Module` contract before invoke `receiveERC20`
-    await lockAndDataForSchain
-        .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
-    // set `LockAndDataERC20` contract before invoke `receiveERC20`
-    await lockAndDataForSchain
-        .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
     // add ERC20 token to avoid "ERC20 contract does not exist on SKALE chain." error
     await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
     await lockAndDataForSchainERC20
@@ -152,14 +164,6 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const ERC20OnMainnet = erc20OnMainnet.address;
     const schainID = randomString(10);
     const amount = 10;
-    // set `ERC20Module` contract before invoke `receiveERC20`
-    await lockAndDataForSchain
-        .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
-    // set `LockAndDataERC20` contract before invoke `receiveERC20`
-    await lockAndDataForSchain
-        .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
-    await lockAndDataForSchain
-        .setContract("TokenFactory", tokenFactory.address, {from: deployer});
     // mint some quantity of ERC20 tokens for `deployer` address
     await erc20OnMainnet.mint(deployer, "1000000000", {from: deployer});
     await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
@@ -203,15 +207,6 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     "455243323012" + // token symbol
     "000000000000000000000000000000000000000000000000000000003b9ac9f7"; // total supply
 
-    // set `ERC20Module` contract before invoke `receiveERC20`
-    await lockAndDataForSchain
-        .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
-    // set `LockAndDataERC20` contract before invoke `receiveERC20`
-    await lockAndDataForSchain
-        .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
-    //
-    await lockAndDataForSchain
-        .setContract("TokenFactory", tokenFactory.address, {from: deployer});
     await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
     // execution
     const res = await eRC20ModuleForSchain.sendERC20(schainID, data, {from: deployer});
@@ -238,15 +233,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     "0000000000000000000000000000000000000000000000000000000000000005" + // token symbol
     "455243323012" + // token symbol
     "000000000000000000000000000000000000000000000000000000003b9ac9f6"; // total supply
-    // set `ERC20Module` contract before invoke `receiveERC20`
-    await lockAndDataForSchain
-        .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
-    // set `LockAndDataERC20` contract before invoke `receiveERC20`
-    await lockAndDataForSchain
-        .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
-    //
-    await lockAndDataForSchain
-        .setContract("TokenFactory", tokenFactory.address, {from: deployer});
+
     await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
     // execution
     const res = await eRC20ModuleForSchain.sendERC20(schainID, data, {from: deployer});
@@ -266,12 +253,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const amount = 10;
     const contractPosition = 10;
-    // set `ERC20Module` contract before invoke `receiveERC20`
-    await lockAndDataForSchain
-        .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
-    // set `LockAndDataERC20` contract before invoke `receiveERC20`
-    await lockAndDataForSchain
-        .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
+
     // mint some quantity of ERC20 tokens for `deployer` address
     await ethERC20.mint(deployer, "1000000000", {from: deployer});
     // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForSchainERC20` to avoid `Not enough money`

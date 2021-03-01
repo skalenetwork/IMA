@@ -70,8 +70,6 @@ contract MessageProxyForSchain is PermissionsForSchain {
     }
 
     struct ConnectedChainInfo {
-        // BLS key is null for main chain, and not null for schains
-        uint256[4] publicKey;
         // message counters start with 0
         uint256 incomingMessageCounter;
         uint256 outgoingMessageCounter;
@@ -93,9 +91,7 @@ contract MessageProxyForSchain is PermissionsForSchain {
         uint256 counter;
     }
 
-    bool public mainnetConnected;
     // Owner of this chain. For mainnet, the owner is SkaleManager
-    address public ownerAddress;
     string private _chainID;
     bool private _isCustomDeploymentMode;
 
@@ -133,48 +129,19 @@ contract MessageProxyForSchain is PermissionsForSchain {
         string message
     );
 
-    modifier connectMainnet() {
-        if (!mainnetConnected) {
-            bytes32 mainnetHash = keccak256(abi.encodePacked("Mainnet"));
-            address tokenManagerAddress = IContractManager(getLockAndDataAddress()).getContract("TokenManager");
-            connectedChains[mainnetHash] = ConnectedChainInfo(
-                [ uint256(0), uint256(0), uint256(0), uint256(0) ],
-                0,
-                0,
-                true
-            );
-            registryContracts[mainnetHash][tokenManagerAddress] = true;
-            mainnetConnected = true;
-        }
-        _;
-    }
-
     /// Create a new message proxy
 
     constructor(string memory newChainID, address lockAndDataAddress) public PermissionsForSchain(lockAndDataAddress) {
         _isCustomDeploymentMode = true;
-        ownerAddress = msg.sender;
         _authorizedCaller[msg.sender] = true;
         _chainID = newChainID;
-        bytes32 mainnetHash = keccak256(abi.encodePacked("Mainnet"));
-        address tokenManagerAddress = IContractManager(getLockAndDataAddress()).getContract("TokenManager");
-        if (keccak256(abi.encodePacked(newChainID)) != mainnetHash) {
-            connectedChains[mainnetHash] = ConnectedChainInfo(
-                [ uint256(0), uint256(0), uint256(0), uint256(0) ],
-                0,
-                0,
-                true
-            );
-            registryContracts[mainnetHash][tokenManagerAddress] = true;
-            mainnetConnected = true;
-        }
     }
 
-    function addAuthorizedCaller(address caller) external onlySchainOwner {
+    function addAuthorizedCaller(address caller) external onlyAdmin {
         _authorizedCaller[caller] = true;
     }
 
-    function removeAuthorizedCaller(address caller) external onlySchainOwner {
+    function removeAuthorizedCaller(address caller) external onlyAdmin {
         _authorizedCaller[caller] = false;
     }
 
@@ -199,17 +166,13 @@ contract MessageProxyForSchain is PermissionsForSchain {
      * To connect to other chains, the owner needs to explicitly call this function
      */
     function addConnectedChain(
-        string calldata newChainID,
-        uint256[4] calldata newPublicKey
+        string calldata newChainID
     )
         external
-        connectMainnet
+        allow("LockAndData")
     {
         bytes32 newChainIDHash = keccak256(abi.encodePacked(newChainID));
         address tokenManagerAddress = IContractManager(getLockAndDataAddress()).getContract("TokenManager");
-        if (newChainIDHash == keccak256(abi.encodePacked("Mainnet")) )
-            return;
-        require(isAuthorizedCaller(newChainIDHash, msg.sender), "Not authorized caller");
 
         require(!connectedChains[newChainIDHash].inited, "Chain is already connected");
         require(
@@ -217,7 +180,6 @@ contract MessageProxyForSchain is PermissionsForSchain {
             "TokenManager is already registered to Skale chain"
         );
         connectedChains[newChainIDHash] = ConnectedChainInfo({
-            publicKey: newPublicKey,
             incomingMessageCounter: 0,
             outgoingMessageCounter: 0,
             inited: true
@@ -225,10 +187,9 @@ contract MessageProxyForSchain is PermissionsForSchain {
         registryContracts[newChainIDHash][tokenManagerAddress] = true;
     }
 
-    function removeConnectedChain(string calldata newChainID) external onlySchainOwner {
+    function removeConnectedChain(string calldata newChainID) external allow("LockAndData") {
         bytes32 newChainIDHash = keccak256(abi.encodePacked(newChainID));
         address tokenManagerAddress = IContractManager(getLockAndDataAddress()).getContract("TokenManager");
-        require(newChainIDHash != keccak256(abi.encodePacked("Mainnet")), "New chain id can not be equal Mainnet");
         require(connectedChains[newChainIDHash].inited, "Chain is not initialized");
         require(
             registryContracts[newChainIDHash][tokenManagerAddress],
@@ -302,7 +263,6 @@ contract MessageProxyForSchain is PermissionsForSchain {
         uint256 idxLastToPopNotIncluding
     )
         external
-        connectMainnet
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller");
@@ -345,17 +305,21 @@ contract MessageProxyForSchain is PermissionsForSchain {
         _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
     }
 
-    function moveIncomingCounter(string calldata schainName) external onlySchainOwner {
+    function moveIncomingCounter(string calldata schainName) external onlyAdmin {
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter =
             connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
     }
 
-    function setCountersToZero(string calldata schainName) external onlySchainOwner {
+    function setCountersToZero(string calldata schainName) external onlyAdmin {
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
-    function registerExtraContract(string calldata schainName, address contractOnSchain) external {
+    function registerExtraContract(string calldata schainName, address contractOnSchain)
+        external
+        virtual
+        onlySchainOwner
+    {
         // check schain owner
         bytes32 schainNameHash = keccak256(abi.encodePacked(schainName));
         require(contractOnSchain.isContract(), "Given address is not a contract");
@@ -363,7 +327,7 @@ contract MessageProxyForSchain is PermissionsForSchain {
         registryContracts[schainNameHash][contractOnSchain] = true;
     }
 
-    function removeExtraContract(string calldata schainName, address contractOnSchain) external {
+    function removeExtraContract(string calldata schainName, address contractOnSchain) external onlySchainOwner {
         // check schain owner
         bytes32 schainNameHash = keccak256(abi.encodePacked(schainName));
         require(contractOnSchain.isContract(), "Given address is not a contract");
@@ -379,30 +343,6 @@ contract MessageProxyForSchain is PermissionsForSchain {
                 );
         }
         return _chainID;
-    }
-
-    // function getOwner() public view returns (address) {
-    //     if (!_isCustomDeploymentMode) {
-    //         if ((ownerAddress) == (address(0)) )
-    //             return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
-    //                 "skaleConfig.contractSettings.IMA.ownerAddress"
-    //             );
-    //     }
-    //     return ownerAddress;
-    // }
-
-    // function getLockAndDataAddress() public view returns (address) {
-    //     if (!_isCustomDeploymentMode) {
-    //         if (lockAndDataAddress_ == address(0))
-    //             return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
-    //                 "skaleConfig.contractSettings.IMA.LockAndData"
-    //             );
-    //     }
-    //     return lockAndDataAddress_;
-    // }
-
-    function setOwner(address newAddressOwner) public onlySchainOwner {
-        ownerAddress = newAddressOwner;
     }
 
     function isAuthorizedCaller(bytes32 , address a) public view returns (bool) {

@@ -336,7 +336,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
-    function registerExtraContract(string calldata schainName, address contractOnMainnet) external {
+    function registerExtraContract(string calldata schainName, address contractOnMainnet) external virtual {
         // check schain owner
         bytes32 schainNameHash = keccak256(abi.encodePacked(schainName));
         require(contractOnMainnet.isContract(), "Given address is not a contract");

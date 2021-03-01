@@ -21,13 +21,13 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
+import "./PermissionsForSchain.sol";
+
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 
-import "./OwnableForSchain.sol";
 
-
-contract EthERC20 is OwnableForSchain, IERC20 {
+contract EthERC20 is PermissionsForSchain, IERC20 {
 
     using SafeMath for uint256;
 
@@ -43,11 +43,11 @@ contract EthERC20 is OwnableForSchain, IERC20 {
 
     bool private _initialized = false;
 
-    constructor() public {
+    constructor(address newLockAndDataAddress) public PermissionsForSchain(newLockAndDataAddress) {
         _delayedInit();
     }
 
-    function mint(address account, uint256 amount) external onlyLockAndData returns (bool) {
+    function mint(address account, uint256 amount) external allow("LockAndData") returns (bool) {
         _delayedInit();
         _mint(account, amount);
         return true;
@@ -58,7 +58,7 @@ contract EthERC20 is OwnableForSchain, IERC20 {
         _burn(msg.sender, amount);
     }
 
-    function burnFrom(address account, uint256 amount) external onlyLockAndData {
+    function burnFrom(address account, uint256 amount) external allow("LockAndData") {
         _delayedInit();
         _burn(account, amount);
     }

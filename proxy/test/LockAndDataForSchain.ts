@@ -31,6 +31,10 @@ import { EthERC20Contract,
   EthERC20Instance,
   LockAndDataForSchainContract,
   LockAndDataForSchainInstance,
+  MessageProxyForSchainContract,
+  MessageProxyForSchainInstance,
+  TokenManagerContract,
+  TokenManagerInstance,
   } from "../types/truffle-contracts";
 import { gasMultiplier } from "./utils/command_line";
 import { randomString } from "./utils/helper";
@@ -40,31 +44,28 @@ chai.use((chaiAsPromised as any));
 
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
+const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
+const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 
 contract("LockAndDataForSchain", ([user, deployer]) => {
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let ethERC20: EthERC20Instance;
+  let messageProxyForSchain: MessageProxyForSchainInstance;
+  let tokenManager: TokenManagerInstance;
 
   beforeEach(async () => {
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
-    ethERC20 = await EthERC20.new({from: deployer, gas: 8000000 * gasMultiplier});
-  });
-
-  it("should set EthERC20 address", async () => {
-
-    // only owner can set EthERC20 address:
-    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: user}).should.be.rejected;
-    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
-
-    // address which has been set should be equal to deployed contract address;
-    const address = await lockAndDataForSchain.getEthErc20Address();
-    expect(address).to.equal(ethERC20.address);
+    ethERC20 = await EthERC20.new(lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+    messageProxyForSchain = await MessageProxyForSchain.new("NewSchain", lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+    tokenManager = await TokenManager.new("NewSchain", lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+    await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address, {from: deployer});
+    await lockAndDataForSchain.setContract("LockAndData", lockAndDataForSchain.address, {from: deployer});
+    await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
   });
 
   it("should set contract", async () => {
-    const nullAddress = await lockAndDataForSchain.getEthErc20Address();
-    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
-    const address = await lockAndDataForSchain.getEthErc20Address();
+    const nullAddress = "0x0000000000000000000000000000000000000000";
+    const address = ethERC20.address;
 
     // only owner can set contract:
     await lockAndDataForSchain.setContract("EthERC20", address, {from: user})
@@ -101,6 +102,8 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await lockAndDataForSchain.addSchain(schainID, nullAddress, {from: deployer}).
     should.be.rejectedWith("Incorrect Token Manager address");
 
+    await lockAndDataForSchain.setContract("EthERC20", ethERC20.address, {from: deployer});
+
     // add schain:
     await lockAndDataForSchain.addSchain(schainID, tokenManagerAddress, {from: deployer});
 
@@ -122,6 +125,8 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     // deposit box address shouldn't be equal zero:
     await lockAndDataForSchain.addDepositBox(nullAddress, {from: deployer})
       .should.be.rejectedWith("Incorrect Deposit Box address");
+
+    await lockAndDataForSchain.setContract("EthERC20", ethERC20.address, {from: deployer});
 
     // add deposit box:
     await lockAndDataForSchain.addDepositBox(depositBoxAddress, {from: deployer});
@@ -185,9 +190,6 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     const amountZero = 0;
     const amountMoreThenCap = 1210000000000000000;
 
-    // set EthERC20 address:
-    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
-
     // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
     await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
 
@@ -202,6 +204,11 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     balanceBefore.should.be.deep.equal(amountZero);
 
     // send Eth:
+    await lockAndDataForSchain.sendEth(address, amount, {from: deployer})
+      .should.be.eventually.rejectedWith("Contract has not been found");
+
+    await lockAndDataForSchain.setContract("EthERC20", ethERC20.address, {from: deployer});
+
     await lockAndDataForSchain.sendEth(address, amount, {from: deployer});
 
     // balance of account equal to amount which has been sent:
@@ -214,11 +221,10 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     const amount = new BigNumber(200);
     const amountZero = new BigNumber(0);
 
-    // set EthERC20 address:
-    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
-
     // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
     await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
+
+    await lockAndDataForSchain.setContract("EthERC20", ethERC20.address, {from: deployer});
 
     //  send Eth to account:
     await lockAndDataForSchain.sendEth(address, amount, {from: deployer});
@@ -238,6 +244,8 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
   it("should return true when invoke `hasSchain`", async () => {
     // preparation
     const schainID = randomString(10);
+
+    await lockAndDataForSchain.setContract("EthERC20", ethERC20.address, {from: deployer});
     // add schain for return `true` after `hasSchain` invoke
     await lockAndDataForSchain
       .addSchain(schainID, deployer, {from: deployer});
@@ -261,6 +269,8 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
   it("should return true when invoke `hasDepositBox`", async () => {
     // preparation
     const depositBoxAddress = user;
+
+    await lockAndDataForSchain.setContract("EthERC20", ethERC20.address, {from: deployer});
     // add schain for return `true` after `hasDepositBox` invoke
     await lockAndDataForSchain.addDepositBox(depositBoxAddress, {from: deployer});
     // execution
@@ -282,6 +292,9 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
 
   it("should invoke `removeSchain` without mistakes", async () => {
     const schainID = randomString(10);
+
+    await lockAndDataForSchain.setContract("EthERC20", ethERC20.address, {from: deployer});
+
     await lockAndDataForSchain
       .addSchain(schainID, deployer, {from: deployer});
     // execution
@@ -296,6 +309,9 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     const error = "SKALE chain is not set";
     const schainID = randomString(10);
     const anotherSchainID = randomString(10);
+
+    await lockAndDataForSchain.setContract("EthERC20", ethERC20.address, {from: deployer});
+
     await lockAndDataForSchain
       .addSchain(schainID, deployer, {from: deployer});
     // execution/expectation
@@ -332,6 +348,8 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     // preparation
     const depositBoxAddress = user;
     const nullAddress = "0x0000000000000000000000000000000000000000";
+
+    await lockAndDataForSchain.setContract("EthERC20", ethERC20.address, {from: deployer});
     // add deposit box:
     await lockAndDataForSchain.addDepositBox(depositBoxAddress, {from: deployer});
     // execution
