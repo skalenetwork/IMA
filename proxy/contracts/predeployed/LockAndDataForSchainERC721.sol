@@ -120,21 +120,18 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
         address erc721OnSchain
     )
         external
+        onlySchainOwner
     {
-        require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
         require(erc721OnSchain.isContract(), "Given address is not a contract");
-        // require(!automaticDeploy[keccak256(abi.encodePacked(schainName))], "Custom deploy is enabled");
         schainToERC721OnSchain[keccak256(abi.encodePacked(schainName))][erc721OnMainnet] = erc721OnSchain;
         emit ERC721TokenAdded(schainName, erc721OnMainnet, erc721OnSchain);
     }
 
-    function enableAutomaticDeploy(string calldata schainName) external {
-        require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
+    function enableAutomaticDeploy(string calldata schainName) external onlySchainOwner {
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = true;
     }
 
-    function disableAutomaticDeploy(string calldata schainName) external {
-        require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
+    function disableAutomaticDeploy(string calldata schainName) external onlySchainOwner {
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
     }
 

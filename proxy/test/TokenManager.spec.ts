@@ -261,8 +261,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         const error = "Not allowed ERC20 Token";
         const amount = new BigNumber(200);
         const amountTo = new BigNumber(20);
-        
-        
+
         // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
         const minterRole = await eRC20OnChain.MINTER_ROLE();
         await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address, {from: deployer});
@@ -280,7 +279,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         const error = "Not enough gas sent";
         const amount = new BigNumber(200);
         const amountTo = new BigNumber(20);
-        
+
         // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
         await lockAndDataForSchainERC20.addERC20ForSchain("Mainnet", eRC20.address, eRC20OnChain.address, {from: deployer});
         const minterRole = await eRC20OnChain.MINTER_ROLE();
@@ -309,11 +308,6 @@ contract("TokenManager", ([deployer, user, client]) => {
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
         await eRC20OnChain.approve(tokenManager.address, amountMint, {from: deployer});
 
-        
-
-        // add schain:
-        // await lockAndDataForSchain.addSchain(chainID, tokenManager.address, {from: deployer});
-
         // execution:
         const res = await tokenManager
             .exitToMainERC20(eRC20.address, client, amountReduceCoast, {from: deployer});
@@ -330,14 +324,6 @@ contract("TokenManager", ([deployer, user, client]) => {
         await web3.eth.sendTransaction({from: deployer, to: tokenManager.address, value: "1000000000000000000"})
             .should.be.eventually.rejectedWith(error);
     });
-
-    // it("should return money if it has it", async () => {
-    //     const tokenManagerBalance = Number.parseInt(await web3.eth.getBalance(tokenManager.address), 10);
-    //     const ownerBalance = Number.parseInt(await web3.eth.getBalance(deployer), 10);
-    //     tokenManager.withdraw({from: deployer, gasPrice: 0});
-    //     Number.parseInt(await web3.eth.getBalance(tokenManager.address), 10).should.be.equal(0);
-    //     Number.parseInt(await web3.eth.getBalance(deployer), 10).should.be.equal(ownerBalance + tokenManagerBalance);
-    // });
 
     it("should rejected with `Not allowed ERC20 Token` when invoke `transferToSchainERC20`", async () => {
         const error = "Not allowed ERC20 Token";
@@ -396,12 +382,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         const error = "Not allowed ERC721 Token";
         const amountToCost = "9000000000000000";
         const tokenId = 10;
-        // set contract TokenManager to avoid `Not allowed` exception on `exitToMainERC20` function:
-        
-        
-        // set contract lockAndDataForSchainERC20 to avoid
-        
-        
+
         // add connected chain:
         await lockAndDataForSchainERC721.addERC721ForSchain("Mainnet", eRC20.address,eRC20OnChain.address, {from: deployer});
         // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
@@ -425,12 +406,7 @@ contract("TokenManager", ([deployer, user, client]) => {
     it("should rejected with `Not enough gas sent` when invoke `exitToMainERC721`", async () => {
         const error = "Not enough gas sent";
         const tokenId = 10;
-        // set contract TokenManager to avoid `Not allowed` exception on `exitToMainERC20` function:
-        
-        
-        // set contract lockAndDataForSchainERC20 to avoid
-        
-        
+
         // add connected chain:
         await lockAndDataForSchainERC721
             .addERC721ForSchain("Mainnet", eRC20.address,eRC20OnChain.address, {from: deployer});
@@ -456,7 +432,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         const contractHere = eRC721OnChain.address;
         const contractThere = eRC721.address;
         const to = user;
-        
+
         await lockAndDataForSchainERC721.addERC721ForSchain("Mainnet", contractThere, contractHere, {from: deployer});
         // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
         const minterRole = await eRC721OnChain.MINTER_ROLE();
@@ -482,7 +458,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         const contractThere = eRC721.address;
         const to = user;
         const schainID = randomString(10);
-        
+
         // add schain:
         await lockAndDataForSchain.addSchain(schainID, deployer, {from: deployer});
         await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
@@ -514,12 +490,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         const contractThere = eRC721.address;
         const to = user;
         const schainID = randomString(10);
-        // set contract TokenManager to avoid `Not allowed` exception on `exitToMainERC20` function:
-        
-        
-        // set contract lockAndDataForSchainERC20 to avoid
-        
-        
+
         await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
         await lockAndDataForSchainERC721
             .addERC721ForSchain(schainID, contractThere, contractHere, {from: deployer});
@@ -548,7 +519,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         it("should rejected with `Not a sender`", async () => {
           //  preparation
           const error = "Not a sender";
-          
+
           const amount = 10;
           const bytesData = "0x0";
           const sender = deployer;
@@ -587,7 +558,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
             tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
-            
+
             // add schain to avoid the `Receiver chain is incorrect` error
             await lockAndDataForSchain
                 .addSchain(schainID, deployer, {from: deployer});
@@ -609,7 +580,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
             // set new token manager
             await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
-            
+
             // add schain to avoid the `Receiver chain is incorrect` error
             await lockAndDataForSchain
                 .addSchain(schainID, deployer, {from: deployer});
@@ -639,7 +610,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
             // set new token manager
             await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
-            
+
             // add schain to avoid the `Receiver chain is incorrect` error
             await lockAndDataForSchain
                 .addSchain(schainID, deployer, {from: deployer});

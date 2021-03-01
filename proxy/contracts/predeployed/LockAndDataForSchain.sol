@@ -72,7 +72,10 @@ contract LockAndDataForSchain is Ownable {
      * @dev Throws if called by any account other than the schain owner.
      */
     modifier onlySchainOwner() {
-        require(_msgSender() == getSchainOwner() || _msgSender() == getAdmin(), "Only schain owner can execute this method");
+        require(
+            _msgSender() == getSchainOwner() || _msgSender() == getAdmin(),
+            "Only schain owner can execute this method"
+        );
         _;
     }
 

@@ -60,6 +60,15 @@ contract PermissionsForMainnet is AccessControlUpgradeSafe {
     }
 
     /**
+     * @dev onlySchainOwner - throws if called by any account and contract other than
+     * the schain owner or owner
+     */
+    modifier onlySchainOwner(bytes32 schainId) {
+        require(_isOwner() || isSchainOwner(msg.sender, schainId), "Caller is not the schain owner");
+        _;
+    }
+
+    /**
      * @dev initialize - sets current address of ContractManager
      * @param newContractsAddress - current address of ContractManager
      */

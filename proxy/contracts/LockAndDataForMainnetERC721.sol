@@ -69,22 +69,27 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
         emit ERC721TokenAdded(erc721OnMainnet, schainName);
     }
 
-    function addERC721TokenByOwner(string calldata schainName, address erc721OnMainnet) external {
+    function addERC721TokenByOwner(string calldata schainName, address erc721OnMainnet)
+        external
+        onlySchainOwner(keccak256(abi.encodePacked(schainName)))
+    {
         bytes32 schainId = keccak256(abi.encodePacked(schainName));
-        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
-        // require(withoutWhitelist[schainId], "Whitelist is disabled");
         schainToERC721[schainId][erc721OnMainnet] = true;
         emit ERC721TokenAdded(erc721OnMainnet, schainName);
     }
 
-    function enableWhitelist(string memory schainName) external {
-        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not a Schain owner");
+    function enableWhitelist(string memory schainName)
+        external
+        onlySchainOwner(keccak256(abi.encodePacked(schainName)))
+    {
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = false;
     }
 
-    function disableWhitelist(string memory schainName) external {
-        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not a Schain owner");
+    function disableWhitelist(string memory schainName)
+        external
+        onlySchainOwner(keccak256(abi.encodePacked(schainName)))
+    {
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
     }
 
