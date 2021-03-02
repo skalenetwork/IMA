@@ -54,10 +54,10 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
   let tokenManager: TokenManagerInstance;
 
   beforeEach(async () => {
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
-    ethERC20 = await EthERC20.new(lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
-    messageProxyForSchain = await MessageProxyForSchain.new("NewSchain", lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
-    tokenManager = await TokenManager.new("NewSchain", lockAndDataForSchain.address, {from: deployer, gas: 8000000 * gasMultiplier});
+    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
+    ethERC20 = await EthERC20.new(lockAndDataForSchain.address, {from: deployer});
+    messageProxyForSchain = await MessageProxyForSchain.new("NewSchain", lockAndDataForSchain.address, {from: deployer});
+    tokenManager = await TokenManager.new("NewSchain", lockAndDataForSchain.address, {from: deployer});
     await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address, {from: deployer});
     await lockAndDataForSchain.setContract("LockAndData", lockAndDataForSchain.address, {from: deployer});
     await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
