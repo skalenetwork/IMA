@@ -48,10 +48,10 @@ const gasLimit = 8000000;
 
 async function deploy( deployer, network ) {
 
-    if( network == "test" || network == "coverage" ) {
-        // skip this part of deployment if we run tests
-        return;
-    }
+    // if( network == "test" || network == "coverage" ) {
+    //     // skip this part of deployment if we run tests
+    //     return;
+    // }
 
     if( process.env.CHAIN_NAME_SCHAIN == undefined || process.env.CHAIN_NAME_SCHAIN == "" ) {
         console.log( network );
@@ -60,95 +60,96 @@ async function deploy( deployer, network ) {
         process.exit( 126 );
     }
     const schainName = process.env.CHAIN_NAME_SCHAIN;
-    const lockAndDataForSchainContract = await deployer.deploy( LockAndDataForSchain, { gas: gasLimit } );
-    const messageProxyForSchainContract = await deployer.deploy( MessageProxyForSchain, schainName, { gas: gasLimit } ); //then( async function() {
-    await lockAndDataForSchainContract.setContract( "MessageProxy", MessageProxyForSchain.address );
-    await deployer.deploy( TokenManager, schainName, lockAndDataForSchainContract.address, { gas: gasLimit * gasMultiplier } );
-    await lockAndDataForSchainContract.setContract( "TokenManager", TokenManager.address );
-    await deployer.deploy( EthERC20, lockAndDataForSchainContract.address, { gas: gasLimit * gasMultiplier } ).then( 
-        async function( EthERC20Inst ) {
-            await EthERC20Inst.transferOwnership( lockAndDataForSchainContract.address, { gas: gasLimit } );
-        }
-    );
-    await lockAndDataForSchainContract.setContract( "EthERC20", EthERC20.address );
-    await deployer.deploy( ERC20ModuleForSchain, lockAndDataForSchainContract.address, { gas: gasLimit * gasMultiplier } );
-    await lockAndDataForSchainContract.setContract( "ERC20Module", ERC20ModuleForSchain.address );
-    await deployer.deploy( LockAndDataForSchainERC20, lockAndDataForSchainContract.address, { gas: gasLimit * gasMultiplier } );
-    await lockAndDataForSchainContract.setContract( "LockAndDataERC20", LockAndDataForSchainERC20.address );
-    await deployer.deploy( ERC721ModuleForSchain, lockAndDataForSchainContract.address, { gas: gasLimit * gasMultiplier } );
-    await lockAndDataForSchainContract.setContract( "ERC721Module", ERC721ModuleForSchain.address );
-    await deployer.deploy( LockAndDataForSchainERC721, lockAndDataForSchainContract.address, { gas: gasLimit * gasMultiplier } );
-    await lockAndDataForSchainContract.setContract( "LockAndDataERC721", LockAndDataForSchainERC721.address );
-    await deployer.deploy( TokenFactory, lockAndDataForSchainContract.address, { gas: gasLimit * gasMultiplier } );
-    await lockAndDataForSchainContract.setContract( "TokenFactory", TokenFactory.address );
+    const lockAndDataForSchainContract = await deployer.deploy( LockAndDataForSchain, { gas: gasLimit } ).then(async function (lockAndData) {
+        await lockAndData.setContract( "LockAndData", lockAndData.address );
+        const messageProxyForSchainContract = await deployer.deploy( MessageProxyForSchain, schainName, lockAndData.address, { gas: gasLimit } ); //then( async function() {
+        await lockAndData.setContract( "MessageProxy", messageProxyForSchainContract.address );
+        const tokenManager = await deployer.deploy( TokenManager, schainName, lockAndData.address, { gas: gasLimit * gasMultiplier } );
+        await lockAndData.setContract( "TokenManager", tokenManager.address );
+        const ethERC20 = await deployer.deploy( EthERC20, lockAndData.address, { gas: gasLimit * gasMultiplier } ).then( 
+            async function( EthERC20Inst ) {
+                await EthERC20Inst.transferOwnership( lockAndData.address, { gas: gasLimit } );
+                await lockAndData.setContract( "EthERC20", EthERC20Inst.address );
+            }
+        );
+        const erc20Module = await deployer.deploy( ERC20ModuleForSchain, lockAndData.address, { gas: gasLimit * gasMultiplier } );
+        await lockAndData.setContract( "ERC20Module", erc20Module.address );
+        const lockAndDataERC20 = await deployer.deploy( LockAndDataForSchainERC20, lockAndData.address, { gas: gasLimit * gasMultiplier } );
+        await lockAndData.setContract( "LockAndDataERC20", lockAndDataERC20.address );
+        const erc721Module = await deployer.deploy( ERC721ModuleForSchain, lockAndData.address, { gas: gasLimit * gasMultiplier } );
+        await lockAndData.setContract( "ERC721Module", erc721Module.address );
+        const lockAndDataERC721 = await deployer.deploy( LockAndDataForSchainERC721, lockAndData.address, { gas: gasLimit * gasMultiplier } );
+        await lockAndData.setContract( "LockAndDataERC721", lockAndDataERC721.address );
+        const tokenFactory = await deployer.deploy( TokenFactory, lockAndData.address, { gas: gasLimit * gasMultiplier } );
+        await lockAndData.setContract( "TokenFactory", tokenFactory.address );
+    });
 
-        const strPathToBuildDir = path.join( __dirname, "../build/contracts" );
-        const strPathToERC20OnChainJSON = path.join( strPathToBuildDir, "ERC20OnChain.json" );
-        const strPathToERC721OnChainJSON = path.join( strPathToBuildDir, "ERC721OnChain.json" );
-        console.log( "Loading auto-instantiated token ERC20OnChain..." );
-        const joBuiltERC20OnChain = JSON.parse( fs.readFileSync( strPathToERC20OnChainJSON, "utf8" ) );
-        console.log( "Loading auto-instantiated token ERC20OnChain..." );
-        const joBuiltERC721OnChain = JSON.parse( fs.readFileSync( strPathToERC721OnChainJSON, "utf8" ) );
-        console.log( "Done loading auto-instantiated tokens." );
-        if( ! ( "abi" in joBuiltERC20OnChain ) || ( ! ( joBuiltERC20OnChain.abi ) ) || typeof joBuiltERC20OnChain.abi != "object" )
-            throw new Error( "ABI is not found in \"" + strPathToERC20OnChainJSON + "\"" );
-        if( ! ( "abi" in joBuiltERC721OnChain ) || ( ! ( joBuiltERC721OnChain.abi ) ) || typeof joBuiltERC721OnChain.abi != "object" )
-            throw new Error( "ABI is not found in \"" + strPathToERC721OnChainJSON + "\"" );
+    const strPathToBuildDir = path.join( __dirname, "../build/contracts" );
+    const strPathToERC20OnChainJSON = path.join( strPathToBuildDir, "ERC20OnChain.json" );
+    const strPathToERC721OnChainJSON = path.join( strPathToBuildDir, "ERC721OnChain.json" );
+    console.log( "Loading auto-instantiated token ERC20OnChain..." );
+    const joBuiltERC20OnChain = JSON.parse( fs.readFileSync( strPathToERC20OnChainJSON, "utf8" ) );
+    console.log( "Loading auto-instantiated token ERC20OnChain..." );
+    const joBuiltERC721OnChain = JSON.parse( fs.readFileSync( strPathToERC721OnChainJSON, "utf8" ) );
+    console.log( "Done loading auto-instantiated tokens." );
+    if( ! ( "abi" in joBuiltERC20OnChain ) || ( ! ( joBuiltERC20OnChain.abi ) ) || typeof joBuiltERC20OnChain.abi != "object" )
+        throw new Error( "ABI is not found in \"" + strPathToERC20OnChainJSON + "\"" );
+    if( ! ( "abi" in joBuiltERC721OnChain ) || ( ! ( joBuiltERC721OnChain.abi ) ) || typeof joBuiltERC721OnChain.abi != "object" )
+        throw new Error( "ABI is not found in \"" + strPathToERC721OnChainJSON + "\"" );
 
-        const jsonObject = {
-            lock_and_data_for_schain_address: LockAndDataForSchain.address,
-            lock_and_data_for_schain_abi: LockAndDataForSchain.abi,
-            eth_erc20_address: EthERC20.address,
-            eth_erc20_abi: EthERC20.abi,
-            token_manager_address: TokenManager.address,
-            token_manager_abi: TokenManager.abi,
-            lock_and_data_for_schain_erc20_address: LockAndDataForSchainERC20.address,
-            lock_and_data_for_schain_erc20_abi: LockAndDataForSchainERC20.abi,
-            erc20_module_for_schain_address: ERC20ModuleForSchain.address,
-            erc20_module_for_schain_abi: ERC20ModuleForSchain.abi,
-            lock_and_data_for_schain_erc721_address: LockAndDataForSchainERC721.address,
-            lock_and_data_for_schain_erc721_abi: LockAndDataForSchainERC721.abi,
-            erc721_module_for_schain_address: ERC721ModuleForSchain.address,
-            erc721_module_for_schain_abi: ERC721ModuleForSchain.abi,
-            token_factory_address: TokenFactory.address,
-            token_factory_abi: TokenFactory.abi,
-            // erc721_on_chain_address: ERC721OnChain.address,
-            // erc721_on_chain_abi: ERC721OnChain.abi,
-            message_proxy_chain_address: MessageProxyForSchain.address,
-            message_proxy_chain_abi: MessageProxyForSchain.abi,
-            //
-            ERC20OnChain_abi: joBuiltERC20OnChain.abi,
-            ERC721OnChain_abi: joBuiltERC721OnChain.abi
-        };
+    const jsonObject = {
+        lock_and_data_for_schain_address: LockAndDataForSchain.address,
+        lock_and_data_for_schain_abi: LockAndDataForSchain.abi,
+        eth_erc20_address: EthERC20.address,
+        eth_erc20_abi: EthERC20.abi,
+        token_manager_address: TokenManager.address,
+        token_manager_abi: TokenManager.abi,
+        lock_and_data_for_schain_erc20_address: LockAndDataForSchainERC20.address,
+        lock_and_data_for_schain_erc20_abi: LockAndDataForSchainERC20.abi,
+        erc20_module_for_schain_address: ERC20ModuleForSchain.address,
+        erc20_module_for_schain_abi: ERC20ModuleForSchain.abi,
+        lock_and_data_for_schain_erc721_address: LockAndDataForSchainERC721.address,
+        lock_and_data_for_schain_erc721_abi: LockAndDataForSchainERC721.abi,
+        erc721_module_for_schain_address: ERC721ModuleForSchain.address,
+        erc721_module_for_schain_abi: ERC721ModuleForSchain.abi,
+        token_factory_address: TokenFactory.address,
+        token_factory_abi: TokenFactory.abi,
+        // erc721_on_chain_address: ERC721OnChain.address,
+        // erc721_on_chain_abi: ERC721OnChain.abi,
+        message_proxy_chain_address: MessageProxyForSchain.address,
+        message_proxy_chain_abi: MessageProxyForSchain.abi,
+        //
+        ERC20OnChain_abi: joBuiltERC20OnChain.abi,
+        ERC721OnChain_abi: joBuiltERC721OnChain.abi
+    };
 
-        const jsonObject2 = {
-            lock_and_data_for_schain_address: LockAndDataForSchain.address,
-            lock_and_data_for_schain_bytecode: LockAndDataForSchain.bytecode,
-            eth_erc20_address: EthERC20.address,
-            eth_erc20_bytecode: EthERC20.bytecode,
-            token_manager_address: TokenManager.address,
-            token_manager_bytecode: TokenManager.bytecode,
-            lock_and_data_for_schain_erc20_address: LockAndDataForSchainERC20.address,
-            lock_and_data_for_schain_erc20_bytecode: LockAndDataForSchainERC20.bytecode,
-            erc20_module_for_schain_address: ERC20ModuleForSchain.address,
-            erc20_module_for_schain_bytecode: ERC20ModuleForSchain.bytecode,
-            lock_and_data_for_schain_erc721_address: LockAndDataForSchainERC721.address,
-            lock_and_data_for_schain_erc721_bytecode: LockAndDataForSchainERC721.bytecode,
-            erc721_module_for_schain_address: ERC721ModuleForSchain.address,
-            erc721_module_for_schain_bytecode: ERC721ModuleForSchain.bytecode,
-            token_factory_address: TokenFactory.address,
-            token_factory_bytecode: TokenFactory.bytecode,
-            // erc721_on_chain_address: ERC721OnChain.address,
-            // erc721_on_chain_bytecode: ERC721OnChain.bytecode,
-            message_proxy_chain_address: MessageProxyForSchain.address,
-            message_proxy_chain_bytecode: MessageProxyForSchain.bytecode
-        };
+    const jsonObject2 = {
+        lock_and_data_for_schain_address: LockAndDataForSchain.address,
+        lock_and_data_for_schain_bytecode: LockAndDataForSchain.bytecode,
+        eth_erc20_address: EthERC20.address,
+        eth_erc20_bytecode: EthERC20.bytecode,
+        token_manager_address: TokenManager.address,
+        token_manager_bytecode: TokenManager.bytecode,
+        lock_and_data_for_schain_erc20_address: LockAndDataForSchainERC20.address,
+        lock_and_data_for_schain_erc20_bytecode: LockAndDataForSchainERC20.bytecode,
+        erc20_module_for_schain_address: ERC20ModuleForSchain.address,
+        erc20_module_for_schain_bytecode: ERC20ModuleForSchain.bytecode,
+        lock_and_data_for_schain_erc721_address: LockAndDataForSchainERC721.address,
+        lock_and_data_for_schain_erc721_bytecode: LockAndDataForSchainERC721.bytecode,
+        erc721_module_for_schain_address: ERC721ModuleForSchain.address,
+        erc721_module_for_schain_bytecode: ERC721ModuleForSchain.bytecode,
+        token_factory_address: TokenFactory.address,
+        token_factory_bytecode: TokenFactory.bytecode,
+        // erc721_on_chain_address: ERC721OnChain.address,
+        // erc721_on_chain_bytecode: ERC721OnChain.bytecode,
+        message_proxy_chain_address: MessageProxyForSchain.address,
+        message_proxy_chain_bytecode: MessageProxyForSchain.bytecode
+    };
 
-        await fsPromises.writeFile( `data/proxySchain_${schainName}.json`, JSON.stringify( jsonObject ) );
-        await fsPromises.writeFile( `data/proxySchain_${schainName}_bytecode.json`, JSON.stringify( jsonObject2 ) );
-        await sleep( 10000 );
-        console.log( `Done, check proxySchain_${schainName}.json file in data folder.` );
-    } );
+    await fsPromises.writeFile( `data/proxySchain_${schainName}.json`, JSON.stringify( jsonObject ) );
+    await fsPromises.writeFile( `data/proxySchain_${schainName}_bytecode.json`, JSON.stringify( jsonObject2 ) );
+    await sleep( 10000 );
+    console.log( `Done, check proxySchain_${schainName}.json file in data folder.` );
 }
 
 function sleep( ms ) {
