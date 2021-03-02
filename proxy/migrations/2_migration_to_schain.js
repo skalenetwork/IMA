@@ -60,13 +60,13 @@ async function deploy( deployer, network ) {
         process.exit( 126 );
     }
     const schainName = process.env.CHAIN_NAME_SCHAIN;
-    const lockAndDataForSchainContract = await deployer.deploy( LockAndDataForSchain, { gas: gasLimit } ).then(async function (lockAndData) {
+    await deployer.deploy( LockAndDataForSchain, { gas: gasLimit } ).then( async function( lockAndData ) {
         await lockAndData.setContract( "LockAndData", lockAndData.address );
         const messageProxyForSchainContract = await deployer.deploy( MessageProxyForSchain, schainName, lockAndData.address, { gas: gasLimit } ); //then( async function() {
         await lockAndData.setContract( "MessageProxy", messageProxyForSchainContract.address );
         const tokenManager = await deployer.deploy( TokenManager, schainName, lockAndData.address, { gas: gasLimit * gasMultiplier } );
         await lockAndData.setContract( "TokenManager", tokenManager.address );
-        const ethERC20 = await deployer.deploy( EthERC20, lockAndData.address, { gas: gasLimit * gasMultiplier } ).then( 
+        await deployer.deploy( EthERC20, lockAndData.address, { gas: gasLimit * gasMultiplier } ).then(
             async function( EthERC20Inst ) {
                 await EthERC20Inst.transferOwnership( lockAndData.address, { gas: gasLimit } );
                 await lockAndData.setContract( "EthERC20", EthERC20Inst.address );
@@ -82,7 +82,7 @@ async function deploy( deployer, network ) {
         await lockAndData.setContract( "LockAndDataERC721", lockAndDataERC721.address );
         const tokenFactory = await deployer.deploy( TokenFactory, lockAndData.address, { gas: gasLimit * gasMultiplier } );
         await lockAndData.setContract( "TokenFactory", tokenFactory.address );
-    });
+    } );
 
     const strPathToBuildDir = path.join( __dirname, "../build/contracts" );
     const strPathToERC20OnChainJSON = path.join( strPathToBuildDir, "ERC20OnChain.json" );

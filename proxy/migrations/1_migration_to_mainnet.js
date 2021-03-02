@@ -26,9 +26,9 @@
 const fs = require( "fs" );
 const fsPromises = fs.promises;
 
-let Web3 = require('web3');
+const Web3 = require( "web3" );
 
-let configFile = require('../truffle-config.js');
+const configFile = require( "../truffle-config.js" );
 const jsonData = require( "../data/skaleManagerComponents.json" );
 
 const { scripts, ConfigManager } = require( "@openzeppelin/cli" );
@@ -84,20 +84,19 @@ async function deploy( deployer, networkName, accounts ) {
         } );
     }
     let web3 = null;
-    if( jsonData.contract_manager_address !== null && jsonData.contract_manager_address !== "" && jsonData.contract_manager_address !== "0x0000000000000000000000000000000000000000") {
-        if (configFile.networks[networkName].host !== "" && configFile.networks[networkName].host !== undefined && configFile.networks[networkName].port !== "" && configFile.networks[networkName].port !== undefined) {
-            web3 = new Web3(new Web3.providers.HttpProvider("http://" + configFile.networks[networkName].host + ":" + configFile.networks[networkName].port));
-        } else if (configFile.networks[networkName].provider !== "" && configFile.networks[networkName].provider !== undefined) {
-            web3 = new Web3(configFile.networks[networkName].provider());    
-        }
+    if( jsonData.contract_manager_address !== null && jsonData.contract_manager_address !== "" && jsonData.contract_manager_address !== "0x0000000000000000000000000000000000000000" ) {
+        if( configFile.networks[networkName].host !== "" && configFile.networks[networkName].host !== undefined && configFile.networks[networkName].port !== "" && configFile.networks[networkName].port !== undefined )
+            web3 = new Web3( new Web3.providers.HttpProvider( "http://" + configFile.networks[networkName].host + ":" + configFile.networks[networkName].port ) );
+        else if( configFile.networks[networkName].provider !== "" && configFile.networks[networkName].provider !== undefined )
+            web3 = new Web3( configFile.networks[networkName].provider() );
     }
-    if (web3 && await web3.eth.getCode(jsonData.contract_manager_address) !== "0x") {
+    if( web3 && await web3.eth.getCode( jsonData.contract_manager_address ) !== "0x" ) {
         await lockAndDataForMainnet.methods.setContract( "ContractManagerForSkaleManager", jsonData.contract_manager_address ).send( { from: deployAccount } ).then( function( res ) {
             console.log( "Contract ContractManagerForSkaleManager with address", jsonData.contract_manager_address, "is registered in Contract Manager" );
         } );
     } else {
-        console.log("\nCheck ../data/skaleManagerComponents.json - unknown Contract Manager from SkaleManager");
-        console.log("ContractManager from SkaleManager was not registered in IMA!!!\n");
+        console.log( "\nCheck ../data/skaleManagerComponents.json - unknown Contract Manager from SkaleManager" );
+        console.log( "ContractManager from SkaleManager was not registered in IMA!!!\n" );
     }
     console.log( "Deploy done, writing results..." );
 
