@@ -37,8 +37,6 @@ import "./SkaleFeatures.sol";
 contract LockAndDataForSchain is Ownable {
     using SafeMath for uint256;
 
-    address private _ethErc20Address;
-
     mapping(bytes32 => address) public permitted;
 
     mapping(bytes32 => address) public tokenManagerAddresses;
