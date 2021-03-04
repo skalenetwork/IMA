@@ -10,39 +10,39 @@ CONTRACTS_METADATA = {
         'filename': 'SkaleFeatures'
     },
     'lock_and_data_for_schain': {
-        'address': '0x47cf4c2d6891377952a7e0e08a6f17180a91a0f9',
+        'address': '0x33FD737F306C2BD2eE6019279FbA0e1ffED76486',
         'filename': 'LockAndDataForSchain'
     },
     'message_proxy_chain': {
-        'address': '0x427c74e358eb1f620e71f64afc9b1b5d2309dd01',
+        'address': '0xe0051Ae016D3A704131926E9B969dfCabca12Cc4',
         'filename': 'MessageProxyForSchain'
     },
     'token_manager': {
-        'address': '0x57ad607c6e90df7d7f158985c3e436007a15d744',
+        'address': '0xAFB14696B408eb01ca1471bA8a72b9Df2dB66feC',
         'filename': 'TokenManager'
     },
     'eth_erc20': {
-        'address': '0xd3cdbc1b727b2ed91b8ad21333841d2e96f255af',
+        'address': '0x0FEae1EAA782CD53435306f2aeDb754ca665Ff8f',
         'filename': 'EthERC20'
     },
     'erc20_module_for_schain': {
-        'address': '0xc30516c1dedfa91a948349209da6d6b1c8868ed7',
+        'address': '0x28d5fe6002342E6DEc3D8409d4b5418BaFac8096',
         'filename': 'ERC20ModuleForSchain'
     },
     'erc721_module_for_schain': {
-        'address': '0xc1b336da9058efd1e9f5636a70bfe2ec17e15abb',
+        'address': '0x2c17e8E555131Dc13C884CD1FFFD0a8957C28b85',
         'filename': 'ERC721ModuleForSchain'
     },
     'lock_and_data_for_schain_erc20': {
-        'address': '0xc7085eb0ba5c2d449e80c22d6da8f0edbb86dd82',
+        'address': '0x6D089DdDb21Fd06fce339e9B1a1216560977d489',
         'filename': 'LockAndDataForSchainERC20'
     },
     'lock_and_data_for_schain_erc721': {
-        'address': '0x97438fdfbdcc4ccc533ea874bfeb71f4098585ab',
+        'address': '0x0C5a2642b605D546aC7FDC47c95ED5363307254d',
         'filename': 'LockAndDataForSchainERC721'
     },
     'token_factory': {
-        'address': '0xe9e8e031685137c3014793bef2875419c304aa72',
+        'address': '0x421166B33d977c934f04f3FB1BfF106f0a13C5E0',
         'filename': 'TokenFactory'
     }
 }
