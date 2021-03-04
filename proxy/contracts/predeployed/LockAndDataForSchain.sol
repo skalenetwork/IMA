@@ -261,15 +261,6 @@ contract LockAndDataForSchain is Ownable {
     }
 
     /**
-     * @dev Transfer schain owner role to new address
-     */
-    function transferSchainOwnership(address newSchainOwner) external onlySchainOwner {
-        require(newSchainOwner != address(0), "New schain owner is zero address");
-        require(newSchainOwner != getSchainOwner(), "New schain owner is the same");
-        schainOwner = newSchainOwner;
-    }
-
-    /**
      * @dev Returns admin address.
      */
     function getAdmin() public view returns (address) {
