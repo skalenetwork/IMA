@@ -202,7 +202,7 @@ contract DepositBox is PermissionsForMainnet {
             "Not enough money to finish this transaction"
         );
         require(
-            ILockAndDataDB(lockAndDataAddress_).sendEth(getOwner(), GAS_CONSUMPTION),
+            ILockAndDataDB(lockAndDataAddress_).sendEth(tx.origin, GAS_CONSUMPTION),
             "Could not send money to owner"
         );
         _executePerOperation(to, amount, data);
