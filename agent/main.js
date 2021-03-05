@@ -173,7 +173,7 @@ global.imaState = {
     "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
 
     optsPendingTxAnalysis: {
-        isEnabled: true,
+        isEnabled: false, // disable bv default
         nTimeoutSecondsBeforeSecondAttempt: 30, // 0 - disable 2nd attempt
         isIgnore: false, // ignore PTX result
         isIgnore2: true // ignore secondary PTX result
