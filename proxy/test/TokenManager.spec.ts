@@ -137,6 +137,8 @@ contract("TokenManager", ([deployer, user, client]) => {
         // send Eth:
         await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
 
+        await lockAndDataForSchain.addExit(user, 1, {from: deployer});
+
         // send Eth to a client on Mainnet:
         await tokenManager.exitToMainWithoutData(to, amountTo, {from: user});
         const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
@@ -175,80 +177,6 @@ contract("TokenManager", ([deployer, user, client]) => {
         balanceAfter.should.be.deep.equal(amountAfter);
     });
 
-    it("should add Eth cost", async () => {
-        const amount = new BigNumber("200000000000000000");
-        const amountTo = new BigNumber("20000000000000000");
-        const amountAfter = new BigNumber("180000000000000000");
-
-        // set EthERC20 address:
-        await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
-
-        // set contract TokenManager:
-        await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
-
-        // add connected chain:
-        await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
-
-        // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
-        await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
-
-        // send Eth:
-        await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
-
-        // // add schain:
-        await lockAndDataForSchain.addSchain(chainID, user, {from: deployer});
-
-        // add Eth cost:
-        await tokenManager.addEthCostWithoutAddress(amountTo, {from: user});
-
-        const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
-        balanceAfter.should.be.deep.equal(amountAfter);
-
-        const ethCosts = new BigNumber(await lockAndDataForSchain.ethCosts(user));
-        ethCosts.should.be.deep.equal(amountTo);
-    });
-
-    it("should remove Eth cost", async () => {
-        const amount = new BigNumber("200000000000000000");
-        const amountTo = new BigNumber("20000000000000000");
-        const amountAfter = new BigNumber("180000000000000000");
-
-        // set EthERC20 address:
-        await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
-
-        // set contract TokenManager:
-        await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
-
-        // add connected chain:
-        await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
-
-        // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
-        await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
-
-        // send Eth:
-        await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
-
-        // // add schain:
-        await lockAndDataForSchain.addSchain(chainID, user, {from: deployer});
-
-        // add Eth cost:
-        await tokenManager.addEthCostWithoutAddress(amountTo, {from: user});
-
-        const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
-        balanceAfter.should.be.deep.equal(amountAfter);
-
-        const ethCosts = new BigNumber(await lockAndDataForSchain.ethCosts(user));
-        ethCosts.should.be.deep.equal(amountTo);
-
-        await tokenManager.removeEthCost({from: user});
-
-        const balanceAfterY = new BigNumber(await ethERC20.balanceOf(user));
-        balanceAfterY.should.be.deep.equal(amount);
-
-        const ethCostsY = new BigNumber(await lockAndDataForSchain.ethCosts(user));
-        ethCostsY.should.be.deep.equal(new BigNumber(0));
-    });
-
     it("should rejected with `Not allowed ERC20 Token` when invoke `exitToMainERC20`", async () => {
         const error = "Not allowed ERC20 Token";
         const amount = new BigNumber(200);
@@ -272,8 +200,8 @@ contract("TokenManager", ([deployer, user, client]) => {
             .should.be.eventually.rejectedWith(error);
     });
 
-    it("should rejected with `Not enough gas sent` when invoke `exitToMainERC20`", async () => {
-        const error = "Not enough gas sent";
+    it("should rejected with `Does not allow to exit` when invoke `exitToMainERC20`", async () => {
+        const error = "Does not allow to exit";
         const amount = new BigNumber(200);
         const amountTo = new BigNumber(20);
         // set contract TokenManager:
@@ -329,8 +257,8 @@ contract("TokenManager", ([deployer, user, client]) => {
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC20OnChain.mint(deployer, amountMint, {from: deployer});
 
-        // invoke `addGasCosts` to avoid `Not enough gas sent` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.addGasCosts(deployer, amountToCost, {from: deployer});
+        // invoke `addExit` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
+        await lockAndDataForSchain.addExit(deployer, 1, {from: deployer});
 
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
        await lockAndDataForSchainERC20.addERC20ForSchain("Mainnet", eRC20.address, eRC20OnChain.address, {from: deployer});
@@ -387,8 +315,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         // await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC20OnChain.mint(deployer, amountMint, {from: deployer});
-        // invoke `addGasCosts` to avoid `Not enough gas sent` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.addGasCosts(deployer, amountToCost, {from: deployer});
+
         await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
 
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
@@ -422,8 +349,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         // await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC20OnChain.mint(deployer, amountMint, {from: deployer});
-        // invoke `addGasCosts` to avoid `Not enough gas sent` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.addGasCosts(deployer, amountToCost, {from: deployer});
+
         await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
         await lockAndDataForSchainERC20.addERC20ForSchain(schainID, eRC20.address, eRC20OnChain.address, {from: deployer});
@@ -461,8 +387,8 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-        // invoke `addGasCosts` to avoid `Not enough gas sent` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.addGasCosts(deployer, amountToCost, {from: deployer});
+        // invoke `addExit` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
+        await lockAndDataForSchain.addExit(deployer, 1, {from: deployer});
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
         await lockAndDataForSchainERC721.addERC721ForSchain("Mainnet", eRC721.address, eRC721OnChain.address, {from: deployer});
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
@@ -474,8 +400,8 @@ contract("TokenManager", ([deployer, user, client]) => {
             .should.be.eventually.rejectedWith(error);
     });
 
-    it("should rejected with `Not enough gas sent` when invoke `exitToMainERC721`", async () => {
-        const error = "Not enough gas sent";
+    it("should rejected with `Does not allow to exit` when invoke `exitToMainERC721`", async () => {
+        const error = "Does not allow to exit";
         const tokenId = 10;
         // set contract TokenManager to avoid `Not allowed` exception on `exitToMainERC20` function:
         await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
@@ -529,8 +455,8 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-        // invoke `addGasCosts` to avoid `Not enough gas sent` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.addGasCosts(deployer, amountToCost, {from: deployer});
+        // invoke `addExit` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
+        await lockAndDataForSchain.addExit(deployer, 1, {from: deployer});
         await eRC721OnChain.transferFrom(deployer, tokenManager.address, tokenId, {from: deployer});
 
         // execution:
@@ -568,8 +494,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-        // invoke `addGasCosts` to avoid `Not enough gas sent` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.addGasCosts(deployer, amountToCost, {from: deployer});
+
         await eRC721OnChain.transferFrom(deployer, tokenManager.address, tokenId, {from: deployer});
 
         // execution:
@@ -608,8 +533,8 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-        // invoke `addGasCosts` to avoid `Not enough gas sent` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.addGasCosts(deployer, amountToCost, {from: deployer});
+        // invoke `addExit` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
+        await lockAndDataForSchain.addExit(deployer, 1, {from: deployer});
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
         await lockAndDataForSchainERC721.addERC721ForSchain(schainID, eRC721.address, eRC721OnChain.address, {from: deployer});
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:

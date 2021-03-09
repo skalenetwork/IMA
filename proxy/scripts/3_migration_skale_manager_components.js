@@ -29,6 +29,7 @@ const fsPromises = fs.promises;
 const ContractManager = artifacts.require( "./ContractManager" );
 const Schains = artifacts.require( "./Schains" );
 const SchainsInternal = artifacts.require( "./SchainsInternal" );
+const Wallets = artifacts.require("./Wallets");
 
 const gasLimit = 8000000;
 
@@ -39,6 +40,8 @@ async function deploy( deployer, network ) {
         instCM.setContractsAddress( "Schains", Schains.address );
         await deployer.deploy( SchainsInternal, { gas: gasLimit } );
         instCM.setContractsAddress( "SchainsInternal", SchainsInternal.address );
+        await deployer.deploy( Wallets, { gas: gasLimit } );
+        instCM.setContractsAddress( "Wallets", Wallets.address );
 
         const jsonObject = {
             contract_manager_address: ContractManager.address
