@@ -6,11 +6,11 @@ const schainName = process.env.CHAIN_NAME_SCHAIN;
 const schainRpcUrl = process.env.URL_W3_S_CHAIN;
 const mainnetRpcUrl = process.env.URL_W3_ETHEREUM;
 
-// const privateKeyForMainnet = process.env.PRIVATE_KEY_FOR_ETHEREUM;
-// const privateKeyForSchain = process.env.PRIVATE_KEY_FOR_SCHAIN;
+const privateKeyForMainnet = process.env.PRIVATE_KEY_FOR_ETHEREUM;
+const privateKeyForSchain = process.env.PRIVATE_KEY_FOR_SCHAIN;
 
-const mnemonicForMainnet = process.env.PRIVATE_KEY_FOR_ETHEREUM;
-const mnemonicForSchain = process.env.PRIVATE_KEY_FOR_SCHAIN;
+// const mnemonicForMainnet = process.env.PRIVATE_KEY_FOR_ETHEREUM;
+// const mnemonicForSchain = process.env.PRIVATE_KEY_FOR_SCHAIN;
 
 // const accountForMainnet = process.env.ACCOUNT_FOR_ETHEREUM;
 // const accountForSchain = process.env.ACCOUNT_FOR_SCHAIN;
@@ -57,10 +57,14 @@ module.exports = {
       */
         schain: {
             gasPrice: 0,
-            provider: () => {
-                return new hdwalletProvider( mnemonicForSchain, schainRpcUrl );
-            },
+            provider: () => new hdwalletProvider( {
+              privateKeys: [privateKeyForSchain],
+              providerOrUrl: schainRpcUrl,
+              pollingInterval: 8000
+            } ),
             gas: 8000000,
+            networkCheckTimeout: 10000000,
+            timeoutBlocks: 50000,
             network_id: "*",
             name: schainName,
             skipDryRun: true
@@ -81,11 +85,15 @@ module.exports = {
             network_id: "*"
         },
         mainnet: {
-            provider: () => {
-                return new hdwalletProvider( mnemonicForMainnet, mainnetRpcUrl );
-            },
+            provider: () => new hdwalletProvider( {
+              privateKeys: [privateKeyForMainnet],
+              providerOrUrl: mainnetRpcUrl,
+              pollingInterval: 8000
+            } ),
             gasPrice: 10000000000,
             gas: 8000000,
+            networkCheckTimeout: 10000000,
+            timeoutBlocks: 50000,
             network_id: "*",
             skipDryRun: true // added experimentally
         }
