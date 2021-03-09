@@ -6,7 +6,7 @@
     "scripts": {
         "lint-check": "eslint ./*.js",
         "lint-fix": "eslint ./*.js --fix",
-        "test": "mocha ./agent-test.js"
+        "test": "npx mocha ./agent-test.js"
     },
     "dependencies": {},
     "devDependencies": {
