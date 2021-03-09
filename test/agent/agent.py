@@ -228,6 +228,10 @@ class Agent:
         #     debug('Wait for erc721 payment')
         #     sleep(1)
 
+    def add_exit(self, numberOfExits):
+        self._execute_command('add-exit', {'value': numberOfExits})
+
+
     # private
 
     def _execute_command(self, command, flags=None):

@@ -31,6 +31,7 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
         super().__init__('load_send_ether_from_mainnet_to_schain_and_back', config)
 
     def _execute(self):
+        self.agent.add_exit(1)
         #
         range_int = 5
         # ETH

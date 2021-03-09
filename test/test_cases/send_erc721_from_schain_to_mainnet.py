@@ -34,6 +34,7 @@ class Senderc721ToMainnet(TestCase):
         super().__init__('Send ERC721 from schain to mainnet', config)
 
     def _prepare(self):
+        self.agent.add_exit(1)
         # deploy token
         self.erc721 = self.blockchain.deploy_erc721_on_mainnet(self.config.mainnet_key, 'elv721', 'ELV')
         # mint
@@ -71,8 +72,7 @@ class Senderc721ToMainnet(TestCase):
 
         #
         sleep(5)
-        self.blockchain.add_eth_cost(self.config.schain_key,
-                                     amount_eth)
+
         #
         sleep(5)
         self.erc721_clone = self.blockchain.get_erc721_on_schain("Mainnet", self.erc721.address)
