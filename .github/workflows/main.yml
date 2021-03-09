@@ -308,4 +308,5 @@ jobs:
     - name: Run test (JS part)
       working-directory: ${{env.working-directory}}
       run: |
+        yarn install
         npx mocha ./agent-test.js
