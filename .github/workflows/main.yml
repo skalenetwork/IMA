@@ -309,8 +309,9 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         yarn install
+        apt install mocha
 
     - name: Run test (JS part)
       working-directory: ${{env.working-directory}}
       run: |
-        npx mocha ./agent-test.js
+        mocha ./agent-test.js
