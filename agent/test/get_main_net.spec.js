@@ -578,7 +578,8 @@ describe('tests for `npms/skale-ima`', function () {
                 nBlockAwaitDepth,
                 nBlockAge,
                 null, // fn_sign_messages or null
-                tc_main_net // or tc_s_chain
+                tc_main_net, // or tc_s_chain
+                null // optsPendingTxAnalysis
             )
         ).to.be.false;
     });
@@ -613,7 +614,8 @@ describe('tests for `npms/skale-ima`', function () {
                 nBlockAwaitDepth,
                 nBlockAge,
                 null, // fn_sign_messages or null
-                tc_main_net // or tc_s_chain
+                tc_main_net, // or tc_s_chain
+                null // optsPendingTxAnalysis
             )
         ).to.be.true;
     });

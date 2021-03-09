@@ -121,10 +121,7 @@ global.imaState = {
     "nNextFrameGap": 10,
 
     //
-    "w3http_main_net": null,
     "w3_main_net": null,
-
-    "w3http_s_chain": null,
     "w3_s_chain": null,
 
     "jo_deposit_box": null, // only main net
@@ -168,12 +165,19 @@ global.imaState = {
     },
 
     //
-    "tc_main_net": IMA.tc_main_net, // new IMA.TransactionCustomizer( 1.25 ),
-    "tc_s_chain": IMA.tc_s_chain, // new IMA.TransactionCustomizer( null ),
+    "tc_main_net": IMA.tc_main_net,
+    "tc_s_chain": IMA.tc_s_chain,
     //
 
     "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
     "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
+
+    optsPendingTxAnalysis: {
+        isEnabled: false, // disable bv default
+        nTimeoutSecondsBeforeSecondAttempt: 30, // 0 - disable 2nd attempt
+        isIgnore: false, // ignore PTX result
+        isIgnore2: true // ignore secondary PTX result
+    },
 
     "arrActions": [] // array of actions to run
 };
@@ -454,7 +458,8 @@ imaCLI.parse( {
                     imaState.nBlockAwaitDepthM2S,
                     imaState.nBlockAgeM2S,
                     imaBLS.do_sign_messages_m2s, // fn_sign_messages
-                    imaState.tc_s_chain
+                    imaState.tc_s_chain,
+                    imaState.optsPendingTxAnalysis
                 );
             }
         } );
@@ -485,7 +490,8 @@ imaCLI.parse( {
                     imaState.nBlockAwaitDepthS2M,
                     imaState.nBlockAgeS2M,
                     imaBLS.do_sign_messages_s2m, // fn_sign_messages
-                    imaState.tc_main_net
+                    imaState.tc_main_net,
+                    imaState.optsPendingTxAnalysis
                 );
             }
         } );
@@ -616,86 +622,212 @@ async function discover_s_chain_network( fnAfter, isSilent ) {
     fnAfter = fnAfter || function() {};
     let joSChainNetworkInfo = null;
     const rpcCallOpts = null;
-    await rpcCall.create( imaState.strURL_s_chain, rpcCallOpts, async function( joCall, err ) {
-        if( err ) {
-            if( ! isSilent )
-                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed: " ) + cc.warning( err ) + "\n" );
-            fnAfter( err, null );
-            return;
-        }
-        await joCall.call( {
-            "method": "skale_nodesRpcInfo",
-            "params": { }
-        }, async function( joIn, joOut, err ) {
+    try {
+        await rpcCall.create( imaState.strURL_s_chain, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
-                if( ! isSilent )
-                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
+                if( ! isSilent ) {
+                    log.write(
+                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " JSON RPC call to S-Chain " ) + cc.u( imaState.strURL_s_chain ) + cc.error( " failed: " ) +
+                        cc.warning( err ) + "\n"
+                    );
+                }
                 fnAfter( err, null );
                 return;
             }
-            if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                log.write( strLogPrefix + cc.normal( "OK, got S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
-            else if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.success( "OK, got S-Chain network information." ) + "\n" );
+            await joCall.call( {
+                "method": "skale_nodesRpcInfo",
+                "params": { }
+            }, async function( joIn, joOut, err ) {
+                if( err ) {
+                    if( ! isSilent ) {
+                        log.write(
+                            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                            cc.error( " JSON RPC call to S-Chain " ) + cc.u( imaState.strURL_s_chain ) + cc.error( " failed, error: " ) +
+                            cc.warning( err ) + "\n"
+                        );
+                    }
+                    fnAfter( err, null );
+                    return;
+                }
+                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                    log.write( strLogPrefix + cc.normal( "OK, got S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
+                else if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                    log.write( strLogPrefix + cc.success( "OK, got S-Chain " ) + cc.u( imaState.strURL_s_chain ) + cc.success( " network information." ) + "\n" );
 
-            let nCountReceivedImaDescriptions = 0;
-            joSChainNetworkInfo = joOut.result;
-            if( ! joSChainNetworkInfo ) {
-                const err2 = new Error( "Got wrong response, network information description was not detected" );
-                if( ! isSilent )
-                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Network was not detected " ) + cc.warning( err2 ) + "\n" );
-                fnAfter( err2, null );
-                return;
-            }
-            const jarrNodes = joSChainNetworkInfo.network;
-            for( let i = 0; i < jarrNodes.length; ++ i ) {
-                const joNode = jarrNodes[i];
-                const strNodeURL = imaUtils.compose_schain_node_url( joNode );
-                const rpcCallOpts = null;
-                await rpcCall.create( strNodeURL, rpcCallOpts, function( joCall, err ) {
-                    if( err ) {
-                        if( ! isSilent )
-                            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                let nCountReceivedImaDescriptions = 0;
+                joSChainNetworkInfo = joOut.result;
+                if( ! joSChainNetworkInfo ) {
+                    const err2 = new Error( "Got wrong response, network information description was not detected" );
+                    if( ! isSilent ) {
+                        log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " Network was not detected via call to " ) + cc.u( imaState.strURL_s_chain ) + cc.error( ": " ) +
+                        cc.warning( err2 ) + "\n"
+                        );
+                    }
+                    fnAfter( err2, null );
+                    return;
+                }
+                const jarrNodes = joSChainNetworkInfo.network;
+                const cntNodes = jarrNodes.length;
+                let cntFailed = 0;
+                for( let i = 0; i < cntNodes; ++ i ) {
+                    const joNode = jarrNodes[i];
+                    const strNodeURL = imaUtils.compose_schain_node_url( joNode );
+                    const rpcCallOpts = null;
+                    try {
+                        await rpcCall.create( strNodeURL, rpcCallOpts, function( joCall, err ) {
+                            if( err ) {
+                                if( ! isSilent ) {
+                                    log.write(
+                                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                                        cc.error( " JSON RPC call to S-Chain node " ) + cc.u( strNodeURL ) + cc.error( " failed" ) +
+                                        "\n"
+                                    );
+                                }
+                                // fnAfter( err, null );
+                                ++ cntFailed;
+                                return;
+                            }
+                            joCall.call( {
+                                "method": "skale_imaInfo",
+                                "params": { }
+                            }, function( joIn, joOut, err ) {
+                                ++ nCountReceivedImaDescriptions;
+                                if( err ) {
+                                    if( ! isSilent ) {
+                                        log.write(
+                                            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                                            cc.error( " JSON RPC call to S-Chain node " ) + cc.u( strNodeURL ) + cc.error( " failed, error: " ) +
+                                            cc.warning( err ) + "\n"
+                                        );
+                                    }
+                                    // fnAfter( err, null );
+                                    ++ cntFailed;
+                                    return;
+                                }
+                                //if( (!isSilent) && IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                                //    log.write( strLogPrefix + cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " ) + cc.j( joOut.result ) + "\n" );
+                                joNode.imaInfo = joOut.result;
+                                //joNode.joCall = joCall;
+                                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+                                    log.write(
+                                        strLogPrefix + cc.success( "OK, got  " ) + cc.u( strNodeURL ) +
+                                        cc.success( " node " ) + cc.info( joNode.nodeID ) +
+                                        cc.success( " IMA information(" ) + cc.info( nCountReceivedImaDescriptions ) + cc.success( " of " ) +
+                                        cc.info( cntNodes ) + cc.success( ")." ) + "\n"
+                                    );
+                                }
+                            } );
+                        } );
+                    } catch ( err ) {
+                        if( ! isSilent ) {
+                            log.write(
+                                strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                                cc.error( " JSON RPC call to S-Chain node " ) + cc.u( strNodeURL ) + cc.error( " was not created: " ) +
+                                cc.warning( err ) + "\n"
+                            );
+                        }
+                        // fnAfter( err, null );
+                        ++ cntFailed;
+                        // return;
+                    }
+                }
+                let nCountAvailable = cntNodes - cntFailed;
+                let nCountToWait = 0 + cntNodes;
+                if( nCountToWait > 2 )
+                    nCountToWait = Math.ceil( nCountToWait * 2 / 3 );
+                if( ! isSilent ) {
+                    log.write(
+                        cc.debug( "Waiting for S-Chain nodes, total " ) + cc.warning( cntNodes ) +
+                        cc.debug( ", available " ) + cc.warning( nCountAvailable ) +
+                        cc.debug( ", expected at least " ) + cc.warning( nCountToWait ) +
+                        "\n"
+                    );
+                }
+                if( nCountAvailable < nCountToWait ) {
+                    if( ! isSilent ) {
+                        log.write(
+                            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                            cc.error( " Not enough nodes available on S-Chain, total " ) + cc.warning( cntNodes ) +
+                            cc.error( ", available " ) + cc.warning( nCountAvailable ) +
+                            cc.error( ", expected at least " ) + cc.warning( nCountToWait ) +
+                            "\n"
+                        );
+                    }
+                    const err = new Error(
+                        "Not enough nodes available on S-Chain, total " + cntNodes +
+                        ", available " + nCountAvailable + ", expected at least " + nCountToWait
+                    );
+                    fnAfter( err, null );
+                    return;
+                }
+                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+                    log.write(
+                        strLogPrefix + cc.debug( "Waiting for response from at least " ) + cc.info( nCountToWait ) +
+                        cc.debug( " node(s)..." ) + "\n"
+                    );
+                }
+                let nWaitAttempt = 0;
+                const cntWaitAttempts = 300;
+                const iv = setInterval( function() {
+                    nCountAvailable = cntNodes - cntFailed;
+                    if( ! isSilent ) {
+                        log.write(
+                            cc.debug( "Waiting for S-Chain nodes, total " ) + cc.warning( cntNodes ) +
+                            cc.debug( ", available " ) + cc.warning( nCountAvailable ) +
+                            cc.debug( ", expected at least " ) + cc.warning( nCountToWait ) +
+                            "\n"
+                        );
+                    }
+                    if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+                        log.write(
+                            strLogPrefix + cc.debug( "Have S-Chain description response about " ) +
+                            cc.info( nCountReceivedImaDescriptions ) + cc.debug( " node(s)." ) + "\n"
+                        );
+                    }
+                    if( nCountReceivedImaDescriptions >= nCountToWait ) {
+                        clearInterval( iv );
+                        fnAfter( null, joSChainNetworkInfo );
+                        return;
+                    }
+                    ++ nWaitAttempt;
+                    if( nWaitAttempt > cntWaitAttempts ) {
+                        if( ! isSilent ) {
+                            log.write(
+                                strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                                cc.error( " S-Chain network discovery wait timeout" ) +
+                                "\n"
+                            );
+                        }
+                        const err = new Error(
+                            "S-Chain network discovery wait timeout"
+                        );
                         fnAfter( err, null );
                         return;
                     }
-                    joCall.call( {
-                        "method": "skale_imaInfo",
-                        "params": { }
-                    }, function( joIn, joOut, err ) {
-                        ++ nCountReceivedImaDescriptions;
-                        if( err ) {
-                            if( ! isSilent )
-                                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
-                            fnAfter( err, null );
-                            return;
-                        }
-                        //if( (!isSilent) && IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                        //    log.write( strLogPrefix + cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " ) + cc.j( joOut.result ) + "\n" );
-                        joNode.imaInfo = joOut.result;
-                        //joNode.joCall = joCall;
-                        if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                            log.write( strLogPrefix + cc.success( "OK, got node " ) + cc.info( joNode.nodeID ) + cc.success( " IMA information(" ) + cc.info( nCountReceivedImaDescriptions ) + cc.success( " of " ) + cc.info( jarrNodes.length ) + cc.success( ")." ) + "\n" );
-                    } );
-                } );
-            }
-            // process.exit( 0 );
-            let nCountToWait = 0 + jarrNodes.length;
-            if( nCountToWait > 2 )
-                nCountToWait = Math.ceil( nCountToWait * 2 / 3 );
-
-            if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Waiting for response from at least " ) + cc.info( nCountToWait ) + cc.debug( " node(s)..." ) + "\n" );
-            const iv = setInterval( function() {
-                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                    log.write( strLogPrefix + cc.debug( "Have response from " ) + cc.info( nCountReceivedImaDescriptions ) + cc.debug( " node(s)." ) + "\n" );
-                if( nCountReceivedImaDescriptions >= nCountToWait ) {
-                    clearInterval( iv );
-                    fnAfter( null, joSChainNetworkInfo );
-                }
-            }, 100 );
+                    if( ! isSilent ) {
+                        log.write(
+                            strLogPrefix + cc.debug( " Waiting for " ) +
+                            cc.notice( nCountToWait - nCountReceivedImaDescriptions ) +
+                            cc.debug( " node answer(s)" ) +
+                            "\n"
+                        );
+                    }
+                }, 1000 );
+            } );
         } );
-    } );
+    } catch ( err ) {
+        if( ! isSilent ) {
+            log.write(
+                strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " JSON RPC call to S-Chain was not created: " ) +
+                cc.warning( err ) + "\n"
+            );
+        }
+        joSChainNetworkInfo = null;
+        fnAfter( err, null );
+    }
     return joSChainNetworkInfo;
 }
 
@@ -928,7 +1060,7 @@ function print_summary_registration_costs() {
 // Run transfer loop
 //
 
-function check_time_framing( d ) {
+global.check_time_framing = function( d ) {
     try {
         if( imaState.nTimeFrameSeconds <= 0 || imaState.nNodesCount <= 1 )
             return true; // time framing is disabled
@@ -976,14 +1108,14 @@ function check_time_framing( d ) {
             log.write( cc.fatal( "Exception in check_time_framing():" ) + cc.error( e ) + "\n" );
     }
     return true;
-}
+};
 
 async function single_transfer_loop() {
     const strLogPrefix = cc.attention( "Single Loop:" ) + " ";
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
 
-    if( !check_time_framing() ) {
+    if( ! global.check_time_framing() ) {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.warning( "Skipped due to time framing" ) + "\n" );
 
@@ -1012,7 +1144,8 @@ async function single_transfer_loop() {
         imaState.nBlockAwaitDepthM2S,
         imaState.nBlockAgeM2S,
         imaBLS.do_sign_messages_m2s, // fn_sign_messages
-        imaState.tc_s_chain
+        imaState.tc_s_chain,
+        imaState.optsPendingTxAnalysis
     );
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
@@ -1040,7 +1173,8 @@ async function single_transfer_loop() {
         imaState.nBlockAwaitDepthS2M,
         imaState.nBlockAgeS2M,
         imaBLS.do_sign_messages_s2m, // fn_sign_messages
-        imaState.tc_main_net
+        imaState.tc_main_net,
+        imaState.optsPendingTxAnalysis
     );
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
@@ -1077,10 +1211,16 @@ async function wait_until_s_chain_started() {
     let bSuccess = false;
     let idxWaitAttempt = 0;
     for( ; !bSuccess; ) {
-        await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
-            if( ! err )
-                bSuccess = true;
-        }, true );
+        try {
+            const joSChainNetworkInfo = await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
+                if( ! err )
+                    bSuccess = true;
+            }, true );
+            if( ! joSChainNetworkInfo )
+                bSuccess = false;
+        } catch ( err ) {
+            bSuccess = false;
+        }
         if( !bSuccess )
             ++ idxWaitAttempt;
         if( idxWaitAttempt >= imaState.nMaxWaitSChainAttempts ) {

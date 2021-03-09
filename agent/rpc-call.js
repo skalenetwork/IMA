@@ -26,6 +26,18 @@
 const ws = require( "ws" ); // https://www.npmjs.com/package/ws
 const request = require( "request" ); // https://www.npmjs.com/package/request
 
+function is_http_url( strURL ) {
+    try {
+        if( !owaspUtils.validateURL( strURL ) )
+            return false;
+        const u = new URL( strURL );
+        if( u.protocol == "http:" || u.protocol == "https:" )
+            return true;
+    } catch ( err ) {
+    }
+    return false;
+}
+
 function is_ws_url( strURL ) {
     try {
         if( !owaspUtils.validateURL( strURL ) )
@@ -204,6 +216,8 @@ function enrich_top_level_json_fields( jo ) {
 
 module.exports = {
     rpcCallAddUsageRef: function() { },
+    is_http_url: is_http_url,
+    is_ws_url: is_ws_url,
     init: rpc_call_init,
     create: rpc_call_create,
     generate_random_integer_in_range: generate_random_integer_in_range,

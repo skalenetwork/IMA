@@ -631,5 +631,6 @@ module.exports = {
     },
     u: function( x ) {
         return url_colorized( x );
-    }
+    },
+    safeURL: safeURL
 }; // module.exports

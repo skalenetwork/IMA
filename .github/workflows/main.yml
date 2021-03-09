@@ -292,7 +292,7 @@ jobs:
     - name: Start background ganache
       run: |
         cd proxy
-        npx ganache-cli --gasLimit 12000000 --quiet --acctKeys ../test/accounts.json &
+        NODE_OPTIONS="--max_old_space_size=2048" npx ganache-cli --gasLimit 12000000 --quiet --acctKeys ../test/accounts.json &
 
     - name: Prepare test
       working-directory: ${{env.working-directory}}

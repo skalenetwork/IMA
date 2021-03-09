@@ -51,6 +51,7 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let lockAndDataForMainnetERC721: LockAndDataForMainnetERC721Instance;
   let eRC721OnChain: ERC721OnChainInstance;
+  let erc721OnChain2: ERC721OnChainInstance;
 
   beforeEach(async () => {
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
@@ -116,11 +117,20 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
     // whitelist == true - disabled whitelist = false - enabled
     if (whitelist) {
       await lockAndDataForMainnetERC721.enableWhitelist(schainID);
-      await lockAndDataForMainnetERC721.addERC721TokenByOwner(schainID, contractHere);
     } else {
       await lockAndDataForMainnetERC721.disableWhitelist(schainID);
-      await lockAndDataForMainnetERC721.addERC721TokenByOwner(schainID, contractHere);
     }
+
+    await lockAndDataForMainnetERC721.addERC721TokenByOwner(schainID, contractHere);
+
+    erc721OnChain2 = await ERC721OnChain.new("NewToken", "NTN");
+
+    if (whitelist) {
+      await lockAndDataForMainnetERC721.disableWhitelist(schainID);
+    } else {
+      await lockAndDataForMainnetERC721.enableWhitelist(schainID);
+    }
+    await lockAndDataForMainnetERC721.addERC721TokenByOwner(schainID, erc721OnChain2.address);
   });
 
 });
