@@ -139,8 +139,8 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     const amount = new BigNumber(500);
 
     // only schain owner can add exits:
-    await lockAndDataForSchain.addExits(address, amount, {from: user}).should.be.rejected;
-    await lockAndDataForSchain.addExits(address, amount, {from: deployer});
+    await lockAndDataForSchain.addExit(address, amount, {from: user}).should.be.rejected;
+    await lockAndDataForSchain.addExit(address, amount, {from: deployer});
 
     const numberOfExits = new BigNumber(await lockAndDataForSchain.numberOfExits(user));
     numberOfExits.should.be.deep.equal(amount);
@@ -154,7 +154,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     const nullAddress = "0x0000000000000000000000000000000000000000";
 
     // only owner can add exits:
-    await lockAndDataForSchain.addExits(address, amount, {from: user}).should.be.rejected;
+    await lockAndDataForSchain.addExit(address, amount, {from: user}).should.be.rejected;
 
     // if address don't have exits reduceExits function don't change situation any way:
     const numberOfExitsBefore = new BigNumber(await lockAndDataForSchain.numberOfExits(user));
@@ -164,7 +164,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     numberOfExitsAfter.should.be.deep.equal(amountZero);
 
     // we can add gas costs to null address and it uses when on address no gas costs:
-    await lockAndDataForSchain.addExits(nullAddress, amount, {from: deployer});
+    await lockAndDataForSchain.addExit(nullAddress, amount, {from: deployer});
     await lockAndDataForSchain.reduceExits(address, {from: deployer});
     const numberOfExitsNullAddress = new BigNumber(await lockAndDataForSchain.numberOfExits(nullAddress));
     numberOfExitsNullAddress.should.be.deep.equal(amountFinal);
@@ -172,7 +172,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     numberOfExitsAddress.should.be.deep.equal(amountZero);
 
     // reduce gas cost after adding it:
-    await lockAndDataForSchain.addExits(address, amount, {from: deployer});
+    await lockAndDataForSchain.addExit(address, amount, {from: deployer});
     await lockAndDataForSchain.reduceExits(address, {from: deployer});
     const numberOfExits = new BigNumber(await lockAndDataForSchain.numberOfExits(nullAddress));
     numberOfExits.should.be.deep.equal(amountFinal);

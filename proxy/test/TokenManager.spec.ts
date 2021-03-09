@@ -137,7 +137,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         // send Eth:
         await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
 
-        await lockAndDataForSchain.addExits(user, 1, {from: deployer});
+        await lockAndDataForSchain.addExit(user, 1, {from: deployer});
 
         // send Eth to a client on Mainnet:
         await tokenManager.exitToMainWithoutData(to, amountTo, {from: user});
@@ -257,8 +257,8 @@ contract("TokenManager", ([deployer, user, client]) => {
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC20OnChain.mint(deployer, amountMint, {from: deployer});
 
-        // invoke `addExits` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.addExits(deployer, 1, {from: deployer});
+        // invoke `addExit` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
+        await lockAndDataForSchain.addExit(deployer, 1, {from: deployer});
 
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
        await lockAndDataForSchainERC20.addERC20ForSchain("Mainnet", eRC20.address, eRC20OnChain.address, {from: deployer});
@@ -387,8 +387,8 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-        // invoke `addExits` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.addExits(deployer, 1, {from: deployer});
+        // invoke `addExit` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
+        await lockAndDataForSchain.addExit(deployer, 1, {from: deployer});
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
         await lockAndDataForSchainERC721.addERC721ForSchain("Mainnet", eRC721.address, eRC721OnChain.address, {from: deployer});
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
@@ -455,8 +455,8 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-        // invoke `addExits` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.addExits(deployer, 1, {from: deployer});
+        // invoke `addExit` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
+        await lockAndDataForSchain.addExit(deployer, 1, {from: deployer});
         await eRC721OnChain.transferFrom(deployer, tokenManager.address, tokenId, {from: deployer});
 
         // execution:
@@ -533,8 +533,8 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-        // invoke `addExits` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.addExits(deployer, 1, {from: deployer});
+        // invoke `addExit` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
+        await lockAndDataForSchain.addExit(deployer, 1, {from: deployer});
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
         await lockAndDataForSchainERC721.addERC721ForSchain(schainID, eRC721.address, eRC721OnChain.address, {from: deployer});
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
