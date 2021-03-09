@@ -27,6 +27,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./PermissionsForMainnet.sol";
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
+import "./interfaces/IWallets.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
@@ -153,6 +154,12 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         string message
     );
 
+    modifier refundBySchain(bytes32 schainId) {
+        uint gasTotal = gasleft();
+        _;
+        _refundGasBySchain(schainId, gasTotal);
+    }
+
     /**
      * @dev Allows LockAndData to add a `newChainID`.
      * 
@@ -250,6 +257,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         uint256 idxLastToPopNotIncluding
     )
         external
+        refundBySchain(keccak256(abi.encodePacked(srcChainID)))
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller");
@@ -258,30 +266,9 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not equal to incoming message counter");
 
-        if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
-            _convertAndVerifyMessages(srcChainID, messages, sign);
-        }
+        _convertAndVerifyMessages(srcChainID, messages, sign);
         for (uint256 i = 0; i < messages.length; i++) {
-            try ContractReceiverForMainnet(messages[i].destinationContract).postMessage(
-                messages[i].sender,
-                srcChainID,
-                messages[i].to,
-                messages[i].amount,
-                messages[i].data
-            ) {
-                ++startingCounter;
-            } catch Error(string memory reason) {
-                emit PostMessageError(
-                    ++startingCounter,
-                    srcChainHash,
-                    messages[i].sender,
-                    srcChainID,
-                    messages[i].to,
-                    messages[i].amount,
-                    messages[i].data,
-                    reason
-                );
-            }
+            _callReceiverContract(srcChainID, messages[i], startingCounter + i);
         }
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
@@ -420,7 +407,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      */
     function isAuthorizedCaller(bytes32 chainId, address sender) public view returns (bool) {
         address skaleSchainsInternal = IContractManager(
-            IContractManager(lockAndDataAddress_).getContract(
+            IContractManager(getLockAndDataAddress()).getContract(
                 "ContractManagerForSkaleManager"
             )
         ).getContract(
@@ -479,7 +466,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         returns (bool)
     {
         address skaleSchains = IContractManager(
-            IContractManager(lockAndDataAddress_).getContract(
+            IContractManager(getLockAndDataAddress()).getContract(
                 "ContractManagerForSkaleManager"
             )
         ).getContract(
@@ -547,7 +534,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     {
         cntDeleted = 0;
         uint idxTail = _idxTail[chainId];
-        for ( uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++ i ) {
+        for ( uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++i ) {
             if ( i >= idxTail )
                 break;
             delete _outgoingMessageData[chainId][i];
@@ -555,5 +542,36 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         }
         if (cntDeleted > 0)
             _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
+    }
+
+    function _callReceiverContract(string memory srcChainID, Message calldata message, uint counter) private {
+        try ContractReceiverForMainnet(message.destinationContract).postMessage(
+            message.sender,
+            srcChainID,
+            message.to,
+            message.amount,
+            message.data
+        ) {
+            // solhint-disable-previous-line no-empty-blocks
+        } catch Error(string memory reason) {
+            emit PostMessageError(
+                counter,
+                keccak256(abi.encodePacked(srcChainID)),
+                message.sender,
+                srcChainID,
+                message.to,
+                message.amount,
+                message.data,
+                reason
+            );
+        }
+    }
+
+    function _refundGasBySchain(bytes32 schainId, uint gasTotal) private {
+        address contractManagerAddress = IContractManager(getLockAndDataAddress()).getContract(
+            "ContractManagerForSkaleManager"
+        );
+        address walletsAddress = IContractManager(contractManagerAddress).getContract("Wallets");
+        IWallets(walletsAddress).refundBySchain(schainId, msg.sender, gasTotal.sub(gasleft()), false);
     }
 }
