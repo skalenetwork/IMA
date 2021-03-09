@@ -28,7 +28,6 @@ class ALotOfTransactionsSendEtherToSchain(TestCase):
         super().__init__('Send ether a lot of times to schain', config)
 
     def _execute(self):
-        self.agent.add_exit(1)
         #
         range_int = 5
         #

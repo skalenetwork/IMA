@@ -45,7 +45,6 @@ class SendEtherToMainnet(TestCase):
             self.blockchain.send_ether_on_mainnet(self.config.mainnet_key, self.config.user_key, min_transaction_fee)
 
     def _execute(self):
-        self.agent.add_exit(1)
         source_address = self.blockchain.key_to_address(self.config.schain_key)
         if self.blockchain.get_balance_on_schain(source_address) < self.amount:
             return

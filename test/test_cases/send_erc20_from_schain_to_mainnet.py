@@ -36,7 +36,6 @@ class SendERC20ToMainnet(TestCase):
         super().__init__('Send ERC20 from schain to mainnet', config)
 
     def _prepare(self):
-        self.agent.add_exit(1)
 
         # deploy token
 

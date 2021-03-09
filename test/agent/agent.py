@@ -228,9 +228,6 @@ class Agent:
         #     debug('Wait for erc721 payment')
         #     sleep(1)
 
-    def add_exit(self, numberOfExits):
-        self._execute_command('add-exit', {'value': numberOfExits})
-
 
     # private
 
@@ -264,7 +261,8 @@ class Agent:
             'abi-s-chain': self.config.abi_schain,
             'key-main-net': self.config.mainnet_key,
             'key-s-chain': self.config.schain_key,
-            'no-ptx': None
+            'no-ptx': None,
+            'add-exit': 1
         }
 
     def _wei_to_bigger(self, amount):
