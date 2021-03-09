@@ -317,5 +317,7 @@ jobs:
         echo node is $NODE_JS
         $NODE_JS --version
         cat node_modules/mocha/bin/mocha
-        ls -1
+        ls -1la
+        $NODE_JS node_modules/mocha/bin/mocha --help
+        $NODE_JS node_modules/mocha/bin/mocha --version
         $NODE_JS node_modules/mocha/bin/mocha ./agent-test.js
