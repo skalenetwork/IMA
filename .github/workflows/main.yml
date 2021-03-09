@@ -300,7 +300,12 @@ jobs:
         python3 ../scripts/config_from_accounts.py accounts.json config.json
         pip3 install -r requirements.txt
 
-    - name: Run test
+    - name: Run test (PY part)
       working-directory: ${{env.working-directory}}
       run: |
         python3 test.py
+
+    - name: Run test (JS part)
+      working-directory: ${{env.working-directory}}
+      run: |
+        npx mocha ./agent-test.js
