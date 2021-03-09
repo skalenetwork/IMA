@@ -316,4 +316,6 @@ jobs:
         export NODE_JS=$(which node)
         echo node is $NODE_JS
         $NODE_JS --version
+        cat node_modules/mocha/bin/mocha
+        ls -1
         $NODE_JS node_modules/mocha/bin/mocha ./agent-test.js
