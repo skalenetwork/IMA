@@ -1973,6 +1973,7 @@ async function do_erc20_payment_from_s_chain(
             //
             const isIgnore_addExit = false;
             const methodWithArguments_addExit = jo_lock_and_data_s_chain.methods.addExit(
+                joAccountSrc.address( w3_s_chain ),
                 "0x" + w3_main_net.utils.toBN( g_amountToAddExit ).toString( 16 )
             );
             //
@@ -2210,6 +2211,7 @@ async function do_erc721_payment_from_s_chain(
                 log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
             //
             const methodWithArguments_addExit = jo_lock_and_data_s_chain.methods.addExit(
+                joAccountSrc.address( w3_s_chain ),
                 "0x" + w3_main_net.utils.toBN( g_amountToAddExit ).toString( 16 )
             );
             dataAddExit = methodWithArguments_addExit.encodeABI();
@@ -3133,6 +3135,7 @@ async function do_transfer(
                 const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( w3_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
                 let joReceipt = null;
                 if( joPostIncomingMessagesSR.joACI.isAutoSend ) {
+                    console.log(optsPendingTxAnalysis);
                     if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
                         await async_pending_tx_start( w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joPostIncomingMessagesSR.txHashSent );
                     joReceipt = await w3_dst.eth.getTransactionReceipt( joPostIncomingMessagesSR.txHashSent );
