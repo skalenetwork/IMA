@@ -55,6 +55,8 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     bool private _isCustomDeploymentMode = false;
 
+    mapping(address => uint) public numberOfExits;
+
     modifier allow(string memory contractName) {
         require(
             _checkPermitted(contractName,msg.sender) ||
@@ -208,19 +210,33 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Allows TokenManager to add gas costs to LockAndDataForSchain.
      */
-    function addGasCosts(address to, uint256 amount) external allow("TokenManager") {
-        ethCosts[to] = ethCosts[to].add(amount);
+    function addGasCosts(address , uint256) external allow("TokenManager") {
+        revert("Temporarily unimplemented");
+    }
+
+    /**
+     * @dev Allows SchainOwner to add some amount of exits to some address.
+     */
+    function addExit(address to, uint256 amount) external onlySchainOwner {
+        numberOfExits[to] = numberOfExits[to].add(amount);
     }
 
     /**
      * @dev Allows TokenManager to reduce gas costs from LockAndDataForSchain.
      */
-    function reduceGasCosts(address to, uint256 amount) external allow("TokenManager") returns (bool) {
-        if (ethCosts[to] >= amount) {
-            ethCosts[to] -= amount;
+    function reduceGasCosts(address , uint256) external allow("TokenManager") returns (bool) {
+        revert("Temporarily unimplemented");
+    }
+
+    /**
+     * @dev Allows TokenManager to reduce exit from some address.
+     */
+    function reduceExit(address to) external allow("TokenManager") returns (bool) {
+        if (numberOfExits[to] >= 1) {
+            numberOfExits[to] -= 1;
             return true;
-        } else if (ethCosts[address(0)] >= amount) {
-            ethCosts[address(0)] -= amount;
+        } else if (numberOfExits[address(0)] >= 1) {
+            numberOfExits[address(0)] -= 1;
             return true;
         }
         return false;
@@ -229,9 +245,15 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Allows TokenManager to remove gas costs from LockAndDataForSchain.
      */
-    function removeGasCosts(address to) external allow("TokenManager") returns (uint256 balance) {
-        balance = ethCosts[to];
-        delete ethCosts[to];
+    function removeGasCosts(address) external allow("TokenManager") returns (uint256 balance) {
+        revert("Temporarily unimplemented");
+    }
+
+    /**
+     * @dev Allows SchainOwner to remove exits from address to.
+     */
+    function removeExit(address to) external onlySchainOwner {
+        delete numberOfExits[to];
     }
 
     /**
