@@ -2922,7 +2922,9 @@ async function do_transfer(
                                 cc.j( joFountPendingTX ) +
                                 "\n" );
                         }
-                        if( "nTimeoutSecondsBeforeSecondAttempt" in optsPendingTxAnalysis && optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt > 0 ) {
+                        if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled &&
+                            "nTimeoutSecondsBeforeSecondAttempt" in optsPendingTxAnalysis && optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt > 0
+                        ) {
                             if( verbose_get() >= RV_VERBOSE.trace )
                                 log.write( cc.debug( "Sleeping " ) + cc.info( optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt ) + cc.debug( " seconds before secondary pending transactions analysis..." ) + "\n" );
                             await sleep( optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt * 1000 );
@@ -3131,7 +3133,8 @@ async function do_transfer(
                 const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( w3_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
                 let joReceipt = null;
                 if( joPostIncomingMessagesSR.joACI.isAutoSend ) {
-                    await async_pending_tx_start( w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joPostIncomingMessagesSR.txHashSent );
+                    if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                        await async_pending_tx_start( w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joPostIncomingMessagesSR.txHashSent );
                     joReceipt = await w3_dst.eth.getTransactionReceipt( joPostIncomingMessagesSR.txHashSent );
                 } else {
                     const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
@@ -3147,7 +3150,8 @@ async function do_transfer(
                         "receipt": joReceipt
                     } );
                     print_gas_usage_report_from_array( "(intermediate result) TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
-                    await async_pending_tx_complete( w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joReceipt.transactionHash );
+                    if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                        await async_pending_tx_complete( w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joReceipt.transactionHash );
                 }
                 cntProcessed += cntAccumulatedForBlock;
                 //
