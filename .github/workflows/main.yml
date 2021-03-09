@@ -313,5 +313,4 @@ jobs:
     - name: Run test (JS part)
       working-directory: ${{env.working-directory}}
       run: |
-        chmod +x node_modules/mocha/bin/mocha
-        node_modules/mocha/bin/mocha ./agent-test.js
+        node node_modules/mocha/bin/mocha ./agent-test.js
