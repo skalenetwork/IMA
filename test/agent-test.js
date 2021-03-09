@@ -46,8 +46,8 @@ global.imaBLS = require( "../agent/bls.js" );
 global.rpcCall = require( "../agent/rpc-call.js" );
 global.rpcCall.init();
 
-log.removeAll();
-// log.addStdout();
+// log.removeAll();
+log.addStdout();
 // log.addMemory(); // console.log( log.getStreamWithFilePath( "memory" ).strAccumulatedLogText );
 
 global.imaState = {
@@ -171,7 +171,6 @@ global.imaState = {
 
 imaCLI.ima_common_init();
 
-/*
 describe( "OWASP", function() {
 
     describe( "Parsing utilities", function() {
@@ -845,4 +844,3 @@ describe( "Agent Utils Module", function() {
     } );
 
 } );
-*/
