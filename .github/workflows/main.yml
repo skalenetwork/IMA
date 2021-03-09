@@ -294,7 +294,7 @@ jobs:
         cd proxy
         NODE_OPTIONS="--max_old_space_size=2048" npx ganache-cli --gasLimit 12000000 --quiet --acctKeys ../test/accounts.json &
 
-    - name: Prepare test
+    - name: Prepare test (PY part)
       working-directory: ${{env.working-directory}}
       run: |
         python3 ../scripts/config_from_accounts.py accounts.json config.json
@@ -305,8 +305,12 @@ jobs:
       run: |
         python3 test.py
 
-    - name: Run test (JS part)
+    - name: Prepare test (JS part)
       working-directory: ${{env.working-directory}}
       run: |
         yarn install
+
+    - name: Run test (JS part)
+      working-directory: ${{env.working-directory}}
+      run: |
         npx mocha ./agent-test.js
