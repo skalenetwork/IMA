@@ -313,6 +313,7 @@ jobs:
     - name: Run test (JS part)
       working-directory: ${{env.working-directory}}
       run: |
-        which node
-        node --version
-        node node_modules/mocha/bin/mocha ./agent-test.js
+        export NODE_JS=$(which node)
+        echo node is $NODE_JS
+        $NODE_JS --version
+        $NODE_JS node_modules/mocha/bin/mocha ./agent-test.js
