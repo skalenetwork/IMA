@@ -156,16 +156,16 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     // only owner can add exits:
     await lockAndDataForSchain.addExit(address, amount, {from: user}).should.be.rejected;
 
-    // if address don't have exits reduceExits function don't change situation any way:
+    // if address don't have exits reduceExit function don't change situation any way:
     const numberOfExitsBefore = new BigNumber(await lockAndDataForSchain.numberOfExits(user));
     numberOfExitsBefore.should.be.deep.equal(amountZero);
-    await lockAndDataForSchain.reduceExits(address, {from: deployer});
+    await lockAndDataForSchain.reduceExit(address, {from: deployer});
     const numberOfExitsAfter = new BigNumber(await lockAndDataForSchain.numberOfExits(user));
     numberOfExitsAfter.should.be.deep.equal(amountZero);
 
     // we can add gas costs to null address and it uses when on address no gas costs:
     await lockAndDataForSchain.addExit(nullAddress, amount, {from: deployer});
-    await lockAndDataForSchain.reduceExits(address, {from: deployer});
+    await lockAndDataForSchain.reduceExit(address, {from: deployer});
     const numberOfExitsNullAddress = new BigNumber(await lockAndDataForSchain.numberOfExits(nullAddress));
     numberOfExitsNullAddress.should.be.deep.equal(amountFinal);
     const numberOfExitsAddress = new BigNumber(await lockAndDataForSchain.numberOfExits(address));
@@ -173,7 +173,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
 
     // reduce gas cost after adding it:
     await lockAndDataForSchain.addExit(address, amount, {from: deployer});
-    await lockAndDataForSchain.reduceExits(address, {from: deployer});
+    await lockAndDataForSchain.reduceExit(address, {from: deployer});
     const numberOfExits = new BigNumber(await lockAndDataForSchain.numberOfExits(nullAddress));
     numberOfExits.should.be.deep.equal(amountFinal);
   });
