@@ -309,10 +309,10 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         yarn install
-        # npm install -g  mocha
+        npm install -g  mocha
 
     - name: Run test (JS part)
       working-directory: ${{env.working-directory}}
       run: |
-        # mocha ./agent-test.js
-        npm test
+        chown -R $(whoami) 
+        mocha ./agent-test.js
