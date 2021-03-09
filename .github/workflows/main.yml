@@ -320,5 +320,4 @@ jobs:
         # ls -1la
         # $NODE_JS node_modules/mocha/bin/mocha --help
         # $NODE_JS node_modules/mocha/bin/mocha --version
-        cat ./agent-test.js
         $NODE_JS node_modules/mocha/bin/mocha ./agent-test.js

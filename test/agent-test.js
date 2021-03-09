@@ -171,6 +171,7 @@ global.imaState = {
 
 imaCLI.ima_common_init();
 
+/*
 describe( "OWASP", function() {
 
     describe( "Parsing utilities", function() {
@@ -844,3 +845,4 @@ describe( "Agent Utils Module", function() {
     } );
 
 } );
+*/
