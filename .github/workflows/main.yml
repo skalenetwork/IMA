@@ -314,5 +314,5 @@ jobs:
     - name: Run test (JS part)
       working-directory: ${{env.working-directory}}
       run: |
-        chown -R $(whoami) 
+        chown -R $(whoami) .
         mocha ./agent-test.js
