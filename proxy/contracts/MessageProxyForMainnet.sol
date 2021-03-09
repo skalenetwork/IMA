@@ -154,12 +154,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         string message
     );
 
-    modifier refundBySchain(bytes32 schainId) {
-        uint gasTotal = gasleft();
-        _;
-        _refundGasBySchain(schainId, gasTotal);
-    }
-
     /**
      * @dev Allows LockAndData to add a `newChainID`.
      * 
@@ -257,8 +251,8 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         uint256 idxLastToPopNotIncluding
     )
         external
-        refundBySchain(keccak256(abi.encodePacked(srcChainID)))
     {
+        uint gasTotal = gasleft();
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
@@ -273,6 +267,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
+        _refundGasBySchain(schainId, gasTotal);
     }
 
     /**
