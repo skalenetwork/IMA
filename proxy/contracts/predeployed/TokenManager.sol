@@ -34,7 +34,7 @@ interface ILockAndDataTM {
     function sendEth(address to, uint256 amount) external returns (bool);
     function receiveEth(address sender, uint256 amount) external returns (bool);
     function approveTransfer(address to, uint256 amount) external;
-    function reduceExit(address to) external returns (bool);
+    function reduceExits(address to) external returns (bool);
 }
 
 interface ILockAndDataERCOnSchain {
@@ -147,7 +147,7 @@ contract TokenManager is PermissionsForSchain {
             ),
             "Could not transfer ERC20 Token"
         );
-        require(ILockAndDataTM(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
+        require(ILockAndDataTM(getLockAndDataAddress()).reduceExits(msg.sender), "Does not allow to exit");
         bytes memory data = IERC20ModuleForSchain(erc20Module).receiveERC20(
             "Mainnet",
             contractOnMainnet,
@@ -211,7 +211,7 @@ contract TokenManager is PermissionsForSchain {
         require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractOnSchain).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-        require(ILockAndDataTM(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
+        require(ILockAndDataTM(getLockAndDataAddress()).reduceExits(msg.sender), "Does not allow to exit");
         bytes memory data = IERC721ModuleForSchain(erc721Module).receiveERC721(
             "Mainnet",
             contractOnMainnet,
@@ -317,7 +317,7 @@ contract TokenManager is PermissionsForSchain {
      */
     function exitToMain(address to, uint256 amount, bytes memory data) public receivedEth(amount) {
         require(to != address(0), "Incorrect contractThere address");
-        require(ILockAndDataTM(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
+        require(ILockAndDataTM(getLockAndDataAddress()).reduceExits(msg.sender), "Does not allow to exit");
         bytes memory newData;
         newData = abi.encodePacked(bytes1(uint8(1)), data);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(

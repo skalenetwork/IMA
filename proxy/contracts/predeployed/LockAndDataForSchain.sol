@@ -217,7 +217,7 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Allows SchainOwner to add some amount of exits to some address.
      */
-    function addExit(address to, uint256 amount) external onlySchainOwner {
+    function addExits(address to, uint256 amount) external onlySchainOwner {
         numberOfExits[to] = numberOfExits[to].add(amount);
     }
 
@@ -231,7 +231,7 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Allows TokenManager to reduce exit from some address.
      */
-    function reduceExit(address to) external allow("TokenManager") returns (bool) {
+    function reduceExits(address to) external allow("TokenManager") returns (bool) {
         if (numberOfExits[to] >= 1) {
             numberOfExits[to] -= 1;
             return true;
@@ -252,7 +252,7 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Allows SchainOwner to remove exits from address to.
      */
-    function removeExit(address to) external onlySchainOwner {
+    function removeExits(address to) external onlySchainOwner {
         delete numberOfExits[to];
     }
 
