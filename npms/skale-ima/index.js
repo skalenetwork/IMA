@@ -3364,8 +3364,8 @@ module.exports.getSleepBetweenTransactionsOnSChainMilliseconds = getSleepBetween
 module.exports.setSleepBetweenTransactionsOnSChainMilliseconds = setSleepBetweenTransactionsOnSChainMilliseconds;
 module.exports.getWaitForNextBlockOnSChain = getWaitForNextBlockOnSChain;
 module.exports.setWaitForNextBlockOnSChain = setWaitForNextBlockOnSChain;
-module.exports.getAmountToAddCost = getAmountToAddCost;
-module.exports.setAmountToAddCost = setAmountToAddCost;
+module.exports.getAmountToAddExit = getAmountToAddExit;
+module.exports.setAmountToAddExit = setAmountToAddExit;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

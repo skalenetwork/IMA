@@ -393,7 +393,7 @@ imaCLI.parse( {
                     imaState.joAccount_s_chain,
                     imaState.joAccount_main_net,
                     imaState.jo_token_manager, // only s-chain
-                    imaState.jo_lock_and_data_s_chain
+                    imaState.jo_lock_and_data_s_chain,
                     imaState.jo_message_proxy_s_chain, // for checking logs
                     imaState.nAmountOfWei, // how much WEI money to send
                     imaState.tc_s_chain
