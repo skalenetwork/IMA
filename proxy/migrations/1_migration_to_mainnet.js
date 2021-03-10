@@ -96,14 +96,13 @@ async function deploy( deployer, networkName, accounts ) {
                     const ownerAddress = await contractManager.methods.owner().call();
                     if( await web3.utils.toChecksumAddress( ownerAddress ) !== await web3.utils.toChecksumAddress( deployAccount ) )
                         console.log( "Owner of ContractManager is not the same of the deployer" );
-                    else {
+                    else
                         try {
                             await web3.eth.sendTransaction( { from: deployAccount, to: jsonData.contract_manager_address, data: methodRegister } );
                             console.log( "Successfully registered MessageProxy in ContractManager" );
                         } catch ( error ) {
                             console.log( "Registration of MessageProxy is failed on ContractManager. Please redo it by yourself!\nError:", error );
                         }
-                    }
                 } else
                     console.log( "Contract Manager address is not a contract" );
 
@@ -115,7 +114,7 @@ async function deploy( deployer, networkName, accounts ) {
                     const ownerAddress = await contractManager.methods.owner().call();
                     if( await web3.utils.toChecksumAddress( ownerAddress ) !== await web3.utils.toChecksumAddress( deployAccount ) )
                         console.log( "Owner of ContractManager is not the same of the deployer" );
-                    else {
+                    else
                         try {
                             const nonceNumber = await web3.eth.getTransactionCount( deployAccount );
                             const tx = {
@@ -132,7 +131,6 @@ async function deploy( deployer, networkName, accounts ) {
                         } catch ( error ) {
                             console.log( "Registration of MessageProxy is failed on ContractManager. Please redo it by yourself!\nError:", error );
                         }
-                    }
                 } else
                     console.log( "Contract Manager address is not a contract" );
 
