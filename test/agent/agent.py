@@ -72,7 +72,6 @@ class Agent:
                     sleep(1)
 
     def transfer_eth_from_schain_to_mainnet(self, from_key, to_key, amount_wei, timeout=0):
-        transaction_fee = 2 * 10 ** 15
         destination_address = self.blockchain.key_to_address(to_key)
         initial_approved, approved, balance, initial_balance = None, None, None, None
         start = time()
@@ -85,7 +84,7 @@ class Agent:
                                               'key-main-net': to_key})
 
         if timeout > 0:
-            while not approved == initial_approved + amount_wei - transaction_fee:
+            while not approved == initial_approved + amount_wei:
                 approved = self.blockchain.get_approved_amount(destination_address)
                 debug(f'Approved: {approved}')
 
@@ -228,6 +227,7 @@ class Agent:
         #     debug('Wait for erc721 payment')
         #     sleep(1)
 
+
     # private
 
     def _execute_command(self, command, flags=None):
@@ -260,7 +260,8 @@ class Agent:
             'abi-s-chain': self.config.abi_schain,
             'key-main-net': self.config.mainnet_key,
             'key-s-chain': self.config.schain_key,
-            'no-ptx': None
+            'no-ptx': None,
+            'add-exit': 1
         }
 
     def _wei_to_bigger(self, amount):
