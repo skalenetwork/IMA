@@ -276,11 +276,11 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             if (!registryContracts[srcChainHash][messages[i].destinationContract]) {
                 revertReason = "Destination contract is not registered";
             } else {
-                revertReason = _callReceiverContract(srcChainID, messages[i], startingCounter + i);
+                revertReason = _callReceiverContract(srcChainID, messages[i]);
             }
             if (keccak256(abi.encodePacked(revertReason)) != keccak256(abi.encodePacked(""))) {
                 emit PostMessageError(
-                    ++startingCounter,
+                    startingCounter + i,
                     srcChainHash,
                     messages[i].sender,
                     srcChainID,
@@ -591,8 +591,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
 
     function _callReceiverContract(
         string memory srcChainID,
-        Message calldata message,
-        uint counter
+        Message calldata message
     )
         private
         returns (string memory)
