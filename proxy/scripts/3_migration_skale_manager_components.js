@@ -29,7 +29,7 @@ const fsPromises = fs.promises;
 const ContractManager = artifacts.require( "./ContractManager" );
 const Schains = artifacts.require( "./Schains" );
 const SchainsInternal = artifacts.require( "./SchainsInternal" );
-const Wallets = artifacts.require("./Wallets");
+const Wallets = artifacts.require( "./Wallets" );
 
 const gasLimit = 8000000;
 

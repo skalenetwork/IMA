@@ -415,13 +415,17 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
         const joMessage = jarrMessages[i]; const idxMessage = nIdxCurrentMsgBlockStart + i;
         try {
             const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
+            const outgoingMessageData = {
+                dstChain: joChainName,
+                msgCounter: idxMessage,
+                srcContract: joMessage.sender,
+                dstContract: joMessage.destinationContract,
+                to: joMessage.to,
+                amount: strHexAmount,
+                data: joMessage.data
+            }
             const m = joMessageProxy.methods.verifyOutgoingMessageData(
-                joChainName,
-                idxMessage,
-                joMessage.sender,
-                joMessage.destinationContract,
-                joMessage.to,
-                strHexAmount
+                outgoingMessageData
             );
             // console.log( "Will do call", m );
             const isValidMessage = await m.call( { from: strCallerAccountAddress } );
