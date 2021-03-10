@@ -423,7 +423,7 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
                 to: joMessage.to,
                 amount: strHexAmount,
                 data: joMessage.data
-            }
+            };
             const m = joMessageProxy.methods.verifyOutgoingMessageData(
                 outgoingMessageData
             );
