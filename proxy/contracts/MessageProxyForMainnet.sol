@@ -27,6 +27,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./PermissionsForMainnet.sol";
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
+import "./interfaces/IWallets.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
@@ -262,31 +263,20 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     )
         external
     {
+        uint gasTotal = gasleft();
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not equal to incoming message counter");
-        if (keccak256(abi.encodePacked(chainID)) == keccak256(abi.encodePacked("Mainnet"))) {
-            _convertAndVerifyMessages(srcChainID, messages, sign);
-        }
+        _convertAndVerifyMessages(srcChainID, messages, sign);
         for (uint256 i = 0; i < messages.length; i++) {
             string memory revertReason = "";
             if (!registryContracts[srcChainHash][messages[i].destinationContract]) {
                 revertReason = "Destination contract is not registered";
             } else {
-                try ContractReceiverForMainnet(messages[i].destinationContract).postMessage(
-                    messages[i].sender,
-                    srcChainID,
-                    messages[i].to,
-                    messages[i].amount,
-                    messages[i].data
-                ) {
-                    ++startingCounter;
-                } catch Error(string memory reason) {
-                    revertReason = revertReason;
-                }
+                revertReason = _callReceiverContract(srcChainID, messages[i], startingCounter + i);
             }
             if (keccak256(abi.encodePacked(revertReason)) != keccak256(abi.encodePacked(""))) {
                 emit PostMessageError(
@@ -304,6 +294,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
+        _refundGasBySchain(srcChainHash, gasTotal);
     }
 
     /**
@@ -461,7 +452,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      */
     function isAuthorizedCaller(bytes32 chainId, address sender) public view returns (bool) {
         address skaleSchainsInternal = IContractManager(
-            IContractManager(lockAndDataAddress_).getContract(
+            IContractManager(getLockAndDataAddress()).getContract(
                 "ContractManagerForSkaleManager"
             )
         ).getContract(
@@ -520,7 +511,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         returns (bool)
     {
         address skaleSchains = IContractManager(
-            IContractManager(lockAndDataAddress_).getContract(
+            IContractManager(getLockAndDataAddress()).getContract(
                 "ContractManagerForSkaleManager"
             )
         ).getContract(
@@ -588,7 +579,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     {
         cntDeleted = 0;
         uint idxTail = _idxTail[chainId];
-        for ( uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++ i ) {
+        for ( uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++i ) {
             if ( i >= idxTail )
                 break;
             delete _outgoingMessageData[chainId][i];
@@ -596,5 +587,44 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         }
         if (cntDeleted > 0)
             _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
+    }
+
+    function _callReceiverContract(
+        string memory srcChainID,
+        Message calldata message,
+        uint counter
+    )
+        private
+        returns (string memory)
+    {
+        try ContractReceiverForMainnet(message.destinationContract).postMessage(
+            message.sender,
+            srcChainID,
+            message.to,
+            message.amount,
+            message.data
+        ) {
+            return "";
+        } catch Error(string memory reason) {
+            return reason;
+            // emit PostMessageError(
+            //     counter,
+            //     keccak256(abi.encodePacked(srcChainID)),
+            //     message.sender,
+            //     srcChainID,
+            //     message.to,
+            //     message.amount,
+            //     message.data,
+            //     reason
+            // );
+        }
+    }
+
+    function _refundGasBySchain(bytes32 schainId, uint gasTotal) private {
+        address contractManagerAddress = IContractManager(getLockAndDataAddress()).getContract(
+            "ContractManagerForSkaleManager"
+        );
+        address walletsAddress = IContractManager(contractManagerAddress).getContract("Wallets");
+        IWallets(walletsAddress).refundBySchain(schainId, msg.sender, gasTotal.sub(gasleft()), false);
     }
 }

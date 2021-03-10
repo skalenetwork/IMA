@@ -107,7 +107,7 @@ contract("TokenFactory", ([user, deployer]) => {
     await lockAndDataForSchain
       .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
     // execution
-    const res = await tokenFactory.createERC20.call("elvis", "ELV", "0x3b9ac9f6", {from: deployer});
+    const res = await tokenFactory.createERC20.call("elvis", "ELV", {from: deployer});
     // expectation
     expect(res).to.include("0x");
   });

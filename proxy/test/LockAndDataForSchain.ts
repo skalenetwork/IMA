@@ -139,49 +139,48 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     expect(getMapping).to.equal(depositBoxAddress);
   });
 
-  it("should add gas costs", async () => {
+  it("should add exits", async () => {
     const address = user;
     const amount = new BigNumber(500);
 
-    // only owner can add gas costs:
-    await lockAndDataForSchain.addGasCosts(address, amount, {from: user}).should.be.rejected;
-    await lockAndDataForSchain.addGasCosts(address, amount, {from: deployer});
+    // only schain owner can add exits:
+    await lockAndDataForSchain.addExit(address, amount, {from: user}).should.be.rejected;
+    await lockAndDataForSchain.addExit(address, amount, {from: deployer});
 
-    const ethCosts = new BigNumber(await lockAndDataForSchain.ethCosts(user));
-    ethCosts.should.be.deep.equal(amount);
+    const numberOfExits = new BigNumber(await lockAndDataForSchain.numberOfExits(user));
+    numberOfExits.should.be.deep.equal(amount);
   });
 
-  it("should reduce gas costs", async () => {
+  it("should reduce exits", async () => {
     const address = user;
     const amount = new BigNumber(500);
-    const amountReduce = new BigNumber(20);
-    const amountFinal = new BigNumber(480);
+    const amountFinal = new BigNumber(499);
     const amountZero = new BigNumber(0);
     const nullAddress = "0x0000000000000000000000000000000000000000";
 
-    // only owner can add gas costs:
-    await lockAndDataForSchain.addGasCosts(address, amount, {from: user}).should.be.rejected;
+    // only owner can add exits:
+    await lockAndDataForSchain.addExit(address, amount, {from: user}).should.be.rejected;
 
-    // if address don't have gas costs reduceGasCosts function don't change situation any way:
-    const ethCostsBefore = new BigNumber(await lockAndDataForSchain.ethCosts(user));
-    ethCostsBefore.should.be.deep.equal(amountZero);
-    await lockAndDataForSchain.reduceGasCosts(address, amountReduce, {from: deployer});
-    const ethCostsAfter = new BigNumber(await lockAndDataForSchain.ethCosts(user));
-    ethCostsAfter.should.be.deep.equal(amountZero);
+    // if address don't have exits reduceExit function don't change situation any way:
+    const numberOfExitsBefore = new BigNumber(await lockAndDataForSchain.numberOfExits(user));
+    numberOfExitsBefore.should.be.deep.equal(amountZero);
+    await lockAndDataForSchain.reduceExit(address, {from: deployer});
+    const numberOfExitsAfter = new BigNumber(await lockAndDataForSchain.numberOfExits(user));
+    numberOfExitsAfter.should.be.deep.equal(amountZero);
 
     // we can add gas costs to null address and it uses when on address no gas costs:
-    await lockAndDataForSchain.addGasCosts(nullAddress, amount, {from: deployer});
-    await lockAndDataForSchain.reduceGasCosts(address, amountReduce, {from: deployer});
-    const ethCostsNullAddress = new BigNumber(await lockAndDataForSchain.ethCosts(nullAddress));
-    ethCostsNullAddress.should.be.deep.equal(amountFinal);
-    const ethCostsAddress = new BigNumber(await lockAndDataForSchain.ethCosts(address));
-    ethCostsAddress.should.be.deep.equal(amountZero);
+    await lockAndDataForSchain.addExit(nullAddress, amount, {from: deployer});
+    await lockAndDataForSchain.reduceExit(address, {from: deployer});
+    const numberOfExitsNullAddress = new BigNumber(await lockAndDataForSchain.numberOfExits(nullAddress));
+    numberOfExitsNullAddress.should.be.deep.equal(amountFinal);
+    const numberOfExitsAddress = new BigNumber(await lockAndDataForSchain.numberOfExits(address));
+    numberOfExitsAddress.should.be.deep.equal(amountZero);
 
     // reduce gas cost after adding it:
-    await lockAndDataForSchain.addGasCosts(address, amount, {from: deployer});
-    await lockAndDataForSchain.reduceGasCosts(address, amountReduce, {from: deployer});
-    const ethCosts = new BigNumber(await lockAndDataForSchain.ethCosts(nullAddress));
-    ethCosts.should.be.deep.equal(amountFinal);
+    await lockAndDataForSchain.addExit(address, amount, {from: deployer});
+    await lockAndDataForSchain.reduceExit(address, {from: deployer});
+    const numberOfExits = new BigNumber(await lockAndDataForSchain.numberOfExits(nullAddress));
+    numberOfExits.should.be.deep.equal(amountFinal);
   });
 
   it("should send Eth", async () => {

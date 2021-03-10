@@ -259,7 +259,7 @@ contract MessageProxyForSchain is PermissionsForSchain {
         string calldata srcChainID,
         uint256 startingCounter,
         Message[] calldata messages,
-        Signature calldata sign,
+        Signature calldata ,
         uint256 idxLastToPopNotIncluding
     )
         external

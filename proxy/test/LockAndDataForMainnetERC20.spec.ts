@@ -111,8 +111,8 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
     const supply = 1000000 * 10 ** 18;
     // create ERC20 token
     // const erc20TokenAddress = await tokenFactory.createERC20(data, {from: deployer});
-    const contractHere = await tokenFactory.createERC20.call(name, tokenName, "0x" + supply.toString(16), {from: deployer});
-    await tokenFactory.createERC20(name, tokenName, "0x" + supply.toString(16), {from: deployer});
+    const contractHere = await tokenFactory.createERC20.call(name, tokenName, {from: deployer});
+    await tokenFactory.createERC20(name, tokenName, {from: deployer});
     // for execution#2
     const contractHer = ethERC20.address;
     await lockAndDataForMainnetERC20
@@ -140,14 +140,14 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
     const supply = 1000000 * 10 ** 18;
     // create ERC20 token
     // const erc20TokenAddress = await tokenFactory.createERC20(data, {from: deployer});
-    const contractHere = await tokenFactory.createERC20.call(name, tokenName, "0x" + supply.toString(16), {from: deployer});
-    await tokenFactory.createERC20(name, tokenName, "0x" + supply.toString(16), {from: deployer});
+    const contractHere = await tokenFactory.createERC20.call(name, tokenName, {from: deployer});
+    await tokenFactory.createERC20(name, tokenName, {from: deployer});
     // for execution#2
     const contractHer = ethERC20.address;
 
-    const contractHere2 = await tokenFactory.createERC20.call(name, tokenName, "0x" + supply.toString(16), {from: deployer});
-    const contractHere3 = await tokenFactory.createERC20.call(name, tokenName, "0x" + supply.toString(16), {from: deployer});
-    await tokenFactory.createERC20(name, tokenName, "0x" + supply.toString(16), {from: deployer});
+    const contractHere2 = await tokenFactory.createERC20.call(name, tokenName, {from: deployer});
+    const contractHere3 = await tokenFactory.createERC20.call(name, tokenName, {from: deployer});
+    await tokenFactory.createERC20(name, tokenName, {from: deployer});
     const whitelist = await lockAndDataForMainnetERC20.withoutWhitelist(web3.utils.soliditySha3(schainID));
     await lockAndDataForMainnetERC20.addERC20TokenByOwner(schainID, contractHere);
     // whitelist == true - disabled whitelist = false - enabled
