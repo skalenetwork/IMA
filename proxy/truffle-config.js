@@ -58,9 +58,9 @@ module.exports = {
         schain: {
             gasPrice: 0,
             provider: () => new hdwalletProvider( {
-              privateKeys: [privateKeyForSchain],
-              providerOrUrl: schainRpcUrl,
-              pollingInterval: 8000
+                privateKeys: [ privateKeyForSchain ],
+                providerOrUrl: schainRpcUrl,
+                pollingInterval: 8000
             } ),
             gas: 8000000,
             networkCheckTimeout: 10000000,
@@ -86,9 +86,9 @@ module.exports = {
         },
         mainnet: {
             provider: () => new hdwalletProvider( {
-              privateKeys: [privateKeyForMainnet],
-              providerOrUrl: mainnetRpcUrl,
-              pollingInterval: 8000
+                privateKeys: [ privateKeyForMainnet ],
+                providerOrUrl: mainnetRpcUrl,
+                pollingInterval: 8000
             } ),
             gasPrice: 10000000000,
             gas: 8000000,
