@@ -63,7 +63,7 @@ module.exports = {
                 pollingInterval: 8000
             } ),
             gas: 8000000,
-            networkCheckTimeout: 10000000,
+            networkCheckTimeout: "10000000",
             timeoutBlocks: 50000,
             network_id: "*",
             name: schainName,
@@ -92,7 +92,7 @@ module.exports = {
             } ),
             gasPrice: 10000000000,
             gas: 8000000,
-            networkCheckTimeout: 10000000,
+            networkCheckTimeout: "10000000",
             timeoutBlocks: 50000,
             network_id: "*",
             skipDryRun: true // added experimentally
