@@ -26,6 +26,9 @@
 const fs = require( "fs" );
 const fsPromises = fs.promises;
 
+const Web3 = require('web3');
+const Tx = require('ethereumjs-tx');
+
 const jsonData = require( "../data/skaleManagerComponents.json" );
 
 const { scripts, ConfigManager } = require( "@openzeppelin/cli" );
@@ -84,7 +87,65 @@ async function deploy( deployer, networkName, accounts ) {
         await lockAndDataForMainnet.methods.setContract( "ContractManagerForSkaleManager", jsonData.contract_manager_address ).send( { from: deployAccount } ).then( function( res ) {
             console.log( "Contract ContractManagerForSkaleManager with address", jsonData.contract_manager_address, "is registered in Contract Manager" );
         } );
-    }
+        // register MessageProxy in ContractManager
+        if (jsonData.contract_manager_abi !== "" && jsonData.contract_manager_abi !== undefined) {
+            if (configFile.networks[networkName].host !== "" && configFile.networks[networkName].host !== undefined && configFile.networks[networkName].port !== "" && configFile.networks[networkName].port !== undefined) {
+                let web3 = new Web3(new Web3.providers.HttpProvider("http://" + configFile.networks[networkName].host + ":" + configFile.networks[networkName].port));
+                if (await web3.eth.getCode(jsonData.contract_manager_address) !== "0x") {
+                    const contractManager = await web3.eth.Contract(jsonData.contract_manager_abi, jsonData.contract_manager_address);
+                    const methodRegister = await contractManager.methods.setContractsAddress("MessageProxyForMainnet", deployed.get( "MessageProxyForMainnet" ).address).encodeABI();
+                    const ownerAddress = await contractManager.methods.owner().call();
+                    if (await web3.utils.toChecksumAddress(ownerAddress) !== await web3.utils.toChecksumAddress(deployAccount)) {
+                        console.log("Owner of ContractManager is not the same of the deployer");
+                    } else {
+                        try {
+                            await web3.eth.sendTransaction({from: deployAccount, to: jsonData.contract_manager_address, data: methodRegister});
+                            console.log("Successfully registered MessageProxy in ContractManager");
+                        } catch (error) {
+                            console.log("Registration of MessageProxy is failed on ContractManager. Please redo it by yourself!\nError:", error);
+                        }
+                    }
+                } else {
+                    console.log("Contract Manager address is not a contract");
+                }
+            } else if (configFile.networks[networkName].provider !== "" && configFile.networks[networkName].provider !== undefined) {
+                let web3 = new Web3(configFile.networks[networkName].provider());
+                if (await web3.eth.getCode(jsonData.contract_manager_address) !== "0x") {
+                    const contractManager = await web3.eth.Contract(jsonData.contract_manager_abi, jsonData.contract_manager_address);
+                    const methodRegister = await contractManager.methods.setContractsAddress("MessageProxyForMainnet", deployed.get( "MessageProxyForMainnet" ).address).encodeABI();
+                    const ownerAddress = await contractManager.methods.owner().call();
+                    if (await web3.utils.toChecksumAddress(ownerAddress) !== await web3.utils.toChecksumAddress(deployAccount)) {
+                        console.log("Owner of ContractManager is not the same of the deployer");
+                    } else {
+                        try {
+                            const nonceNumber = await web3.eth.getTransactionCount(deployAccount);
+                            const tx = {
+                                nonce: nonceNumber,
+                                from: deployAccount,
+                                to: jsonData.contract_manager_address,
+                                gas: "150000",
+                                data: methodRegister
+                            };
+                            const privateKey = process.env.PRIVATE_KEY_FOR_ETHEREUM;
+                            const signedTx = await web3.eth.signTransaction(tx, "0x" + privateKey);
+                            await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
+                            console.log("Successfully registered MessageProxy in ContractManager");
+                        } catch (error) {
+                            console.log("Registration of MessageProxy is failed on ContractManager. Please redo it by yourself!\nError:", error);
+                        }
+                    }
+                } else {
+                    console.log("Contract Manager address is not a contract");
+                }
+            } else {
+                console.log("Unknown type of network");
+            }
+        } else {
+            console.log("Please provide an abi of ContractManager");
+        }
+    } 
+
+
     console.log( "Deploy done, writing results..." );
 
     const jsonObject = { };
