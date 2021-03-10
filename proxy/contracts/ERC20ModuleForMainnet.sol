@@ -20,9 +20,13 @@
  */
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
+import "./thirdparty/openzeppelin/IERC20Metadata.sol";
+
+import "./Messages.sol";
 import "./PermissionsForMainnet.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
+
 
 interface ILockAndDataERC20M {
     function sendERC20(address contractOnMainnet, address to, uint256 amount) external returns (bool);
@@ -71,17 +75,14 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         address lockAndDataERC20 = IContractManager(lockAndDataAddress_).getContract(
             "LockAndDataERC20"
         );
-        uint256 totalSupply = ERC20UpgradeSafe(contractOnMainnet).totalSupply();
+        uint256 totalSupply = IERC20(contractOnMainnet).totalSupply();
         require(amount <= totalSupply, "Amount is incorrect");
         bool isERC20AddedToSchain = ILockAndDataERC20M(lockAndDataERC20).getSchainToERC20(schainID, contractOnMainnet);
         if (!isERC20AddedToSchain) {
             ILockAndDataERC20M(lockAndDataERC20).addERC20ForSchain(schainID, contractOnMainnet);
             emit ERC20TokenAdded(schainID, contractOnMainnet);
         } 
-        data = _encodeData(contractOnMainnet, to, amount);
-        // else {
-        //     data = _encodeRegularData(contractOnMainnet, to, amount);
-        // }
+        data = Messages.encodeTransferErc20AndTokenInfoMessage(contractOnMainnet, to, amount, _getErc20TokenInfo(IERC20Metadata(contractOnMainnet)));
         emit ERC20TokenReady(contractOnMainnet, amount);
     }
 
@@ -92,74 +93,27 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         address lockAndDataERC20 = IContractManager(lockAndDataAddress_).getContract(
             "LockAndDataERC20"
         );
-        address contractOnMainnet;
-        address receiver;
-        uint256 amount;
-        (contractOnMainnet, receiver, amount) = _fallbackDataParser(data);
-        return ILockAndDataERC20M(lockAndDataERC20).sendERC20(contractOnMainnet, receiver, amount);
+        Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
+        return ILockAndDataERC20M(lockAndDataERC20).sendERC20(message.token, message.receiver, message.amount);
     }
 
     /**
      * @dev Returns the receiver address of the ERC20 token.
      */
     function getReceiver(bytes calldata data) external view returns (address receiver) {
-        (, receiver, ) = _fallbackDataParser(data);
+        return Messages.decodeTransferErc20Message(data).receiver;
     }
 
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
-    /**
-     * @dev Returns encoded creation data for ERC20 token.
-     */
-    function _encodeData(
-        address contractOnMainnet,
-        address to,
-        uint256 amount
-    )
-        private
-        view
-        returns (bytes memory data)
-    {
-        string memory name = ERC20UpgradeSafe(contractOnMainnet).name();
-        uint8 decimals = ERC20UpgradeSafe(contractOnMainnet).decimals();
-        string memory symbol = ERC20UpgradeSafe(contractOnMainnet).symbol();
-        uint256 totalSupply = ERC20UpgradeSafe(contractOnMainnet).totalSupply();
-        data = abi.encodePacked(
-            bytes1(uint8(3)),
-            bytes32(bytes20(contractOnMainnet)),
-            bytes32(bytes20(to)),
-            bytes32(amount),
-            bytes(name).length,
-            name,
-            bytes(symbol).length,
-            symbol,
-            decimals,
-            totalSupply
-        );
+    function _getErc20TokenInfo(IERC20Metadata erc20Token) private view returns (Messages.Erc20TokenInfo memory) {
+        return Messages.Erc20TokenInfo({
+            name: erc20Token.name(),
+            decimals: erc20Token.decimals(),
+            symbol: erc20Token.symbol(),
+            totalSupply: erc20Token.totalSupply()
+        });
     }
-
-    /**
-     * @dev Returns fallback data.
-     */
-    function _fallbackDataParser(bytes memory data)
-        private
-        pure
-        returns (address, address payable, uint256)
-    {
-        bytes32 contractOnMainnet;
-        bytes32 to;
-        bytes32 tokenAmount;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            contractOnMainnet := mload(add(data, 33))
-            to := mload(add(data, 65))
-            tokenAmount := mload(add(data, 97))
-        }
-        return (
-            address(bytes20(contractOnMainnet)), address(bytes20(to)), uint256(tokenAmount)
-        );
-    }
-
 }

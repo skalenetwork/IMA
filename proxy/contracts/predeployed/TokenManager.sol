@@ -21,12 +21,16 @@
 
 pragma solidity 0.6.12;
 
-import "./PermissionsForSchain.sol";
-import "./../interfaces/IMessageProxy.sol";
-import "./../interfaces/IERC20ModuleForSchain.sol";
-import "./../interfaces/IERC721ModuleForSchain.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
+
+import "../interfaces/IMessageProxy.sol";
+import "../interfaces/IERC20ModuleForSchain.sol";
+import "../interfaces/IERC721ModuleForSchain.sol";
+import "../Messages.sol";
+
+import "./PermissionsForSchain.sol";
+
 
 interface ILockAndDataTM {
     function setContract(string calldata contractName, address newContract) external;
@@ -58,13 +62,6 @@ interface ILockAndDataERCOnSchain {
  * burns tokens.
  */
 contract TokenManager is PermissionsForSchain {
-
-
-    enum TransactionOperation {
-        transferETH,
-        transferERC20,
-        transferERC721
-    }
 
     // ID of this schain,
     string private _chainID;
@@ -292,24 +289,26 @@ contract TokenManager is PermissionsForSchain {
             sender == ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash),
             "Receiver chain is incorrect"
         );
-        TransactionOperation operation = _fallbackOperationTypeConvert(data);
-        if (operation == TransactionOperation.transferETH) {
+        Messages.MessageType operation = Messages.getMessageType(data);
+        if (operation == Messages.MessageType.TRANSFER_ETH) {
             require(to != address(0), "Incorrect receiver");
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
-        } else if (operation == TransactionOperation.transferERC20) {
+        } else if (operation == Messages.MessageType.TRANSFER_ERC20_AND_TOKEN_INFO) {
             address erc20Module = LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getErc20Module();
             require(IERC20ModuleForSchain(erc20Module).sendERC20(fromSchainID, data), "Failed to send ERC20");
             address receiver = IERC20ModuleForSchain(erc20Module).getReceiver(data);
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
-        } else if (operation == TransactionOperation.transferERC721) {
+        } else if (operation == Messages.MessageType.TRANSFER_ERC721) {
             address erc721Module = LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getErc721Module();
             require(IERC721ModuleForSchain(erc721Module).sendERC721(fromSchainID, data), "Failed to send ERC721");
             address receiver = IERC721ModuleForSchain(erc721Module).getReceiver(data);
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
+        } else {
+            revert("MessageType is unknown");
         }
     }
 
@@ -404,43 +403,4 @@ contract TokenManager is PermissionsForSchain {
             "skaleConfig.contractSettings.IMA.MessageProxy"
         );
     }
-
-    /**
-     * @dev Converts the first byte of data to an operation.
-     * 
-     * 0x01 - transfer ETH
-     * 0x03 - transfer ERC20 token
-     * 0x05 - transfer ERC721 token
-     * 
-     * Requirements:
-     * 
-     * - Operation must be one of the possible types.
-     */
-    function _fallbackOperationTypeConvert(bytes memory data)
-        private
-        pure
-        returns (TransactionOperation)
-    {
-        bytes1 operationType;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            operationType := mload(add(data, 0x20))
-        }
-        require(
-            operationType == 0x01 ||
-            operationType == 0x03 ||
-            operationType == 0x05 ||
-            operationType == 0x13 ||
-            operationType == 0x15,
-            "Operation type is not identified"
-        );
-        if (operationType == 0x01) {
-            return TransactionOperation.transferETH;
-        } else if (operationType == 0x03) {
-            return TransactionOperation.transferERC20;
-        } else if (operationType == 0x05) {
-            return TransactionOperation.transferERC721;
-        }
-    }
-
 }

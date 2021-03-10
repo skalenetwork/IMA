@@ -21,12 +21,16 @@
 
 pragma solidity 0.6.12;
 
-import "./PermissionsForMainnet.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
+
 import "./interfaces/IMessageProxy.sol";
 import "./interfaces/IERC20ModuleForMainnet.sol";
 import "./interfaces/IERC721ModuleForMainnet.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
+
+import "./PermissionsForMainnet.sol";
+import "./Messages.sol";
+
 
 interface ILockAndDataDB {
     function setContract(string calldata contractName, address newContract) external;
@@ -41,12 +45,6 @@ interface ILockAndDataDB {
 
 
 contract DepositBox is PermissionsForMainnet {
-
-    enum TransactionOperation {
-        transferETH,
-        transferERC20,
-        transferERC721
-    }
 
     uint256 public constant GAS_CONSUMPTION = 2000000000000000;
 
@@ -247,15 +245,15 @@ contract DepositBox is PermissionsForMainnet {
     )
         internal
     {
-        TransactionOperation operation = _fallbackOperationTypeConvert(data);
-        if (operation == TransactionOperation.transferETH) {
+        Messages.MessageType operation = Messages.getMessageType(data);
+        if (operation == Messages.MessageType.TRANSFER_ETH) {
             if (amount > GAS_CONSUMPTION) {
                 ILockAndDataDB(lockAndDataAddress_).approveTransfer(
                     to,
                     amount - GAS_CONSUMPTION
                 );
             }
-        } else if (operation == TransactionOperation.transferERC20) {
+        } else if (operation == Messages.MessageType.TRANSFER_ERC20) {
             address erc20Module = IContractManager(lockAndDataAddress_).getContract(
                 "ERC20Module"
             );
@@ -267,7 +265,7 @@ contract DepositBox is PermissionsForMainnet {
                     amount - GAS_CONSUMPTION
                 );
             }
-        } else if (operation == TransactionOperation.transferERC721) {
+        } else if (operation == Messages.MessageType.TRANSFER_ERC721) {
             address erc721Module = IContractManager(lockAndDataAddress_).getContract(
                 "ERC721Module"
             );
@@ -279,41 +277,8 @@ contract DepositBox is PermissionsForMainnet {
                     amount - GAS_CONSUMPTION
                 );
             }
+        } else {
+            revert("MessageType is unknown");
         }
-    }
-
-    /**
-     * @dev Convert first byte of data to Operation
-     * 0x01 - transfer eth
-     * 0x03 - transfer ERC20 token
-     * 0x05 - transfer ERC721 token
-     * @param data - received data
-     * @return operation
-     */
-    function _fallbackOperationTypeConvert(bytes memory data)
-        private
-        pure
-        returns (TransactionOperation)
-    {
-        bytes1 operationType;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            operationType := mload(add(data, 0x20))
-        }
-        require(
-            operationType == 0x01 ||
-            operationType == 0x03 ||
-            operationType == 0x05 ||
-            operationType == 0x13 ||
-            operationType == 0x15,
-            "Operation type is not identified"
-        );
-        if (operationType == 0x01) {
-            return TransactionOperation.transferETH;
-        } else if (operationType == 0x03) {
-            return TransactionOperation.transferERC20;
-        } else if (operationType == 0x05) {
-            return TransactionOperation.transferERC721;
-        } 
     }
 }

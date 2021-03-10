@@ -23,6 +23,7 @@ pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/utils/Address.sol";
 
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
@@ -35,6 +36,7 @@ import "./interfaces/IMessageProxy.sol";
  * balances of ETH tokens received through DepositBox.
  */
 contract LockAndDataForMainnet is OwnableUpgradeSafe {
+    using Address for address;
     using SafeMath for uint;
 
     mapping(bytes32 => address) public permitted;
@@ -88,12 +90,7 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
         require(newContract != address(0), "New address is equal zero");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(permitted[contractId] != newContract, "Contract is already added");
-        uint256 length;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            length := extcodesize(newContract)
-        }
-        require(length > 0, "Given contract address does not contain code");
+        require(newContract.isContract(), "Given contract address does not contain code");
         permitted[contractId] = newContract;
     }
 

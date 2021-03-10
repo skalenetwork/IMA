@@ -20,9 +20,14 @@
  */
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
+
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Metadata.sol";
+
+import "../Messages.sol";
 
 import "./PermissionsForSchain.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Metadata.sol";
+
 
 interface ITokenFactoryForERC721 {
     function createERC721(string memory name, string memory symbol)
@@ -72,7 +77,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
             ILockAndDataERC721S(lockAndDataERC721).receiveERC721(contractOnSchain, tokenId),
             "Could not receive ERC721 Token"
         );
-        data = _encodeData(contractOnMainnet, contractOnSchain, receiver, tokenId);
+        data = Messages.encodeTransferErc721Message(contractOnMainnet, receiver, tokenId);
     }
 
     /**
@@ -82,113 +87,31 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
      */
     function sendERC721(string calldata schainID, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
-        address contractOnMainnet;
-        address receiver;
-        uint256 tokenId;
-        (contractOnMainnet, receiver, tokenId) = _fallbackDataParser(data);
+        Messages.TransferErc721AndTokenInfoMessage memory message = Messages.decodeTransferErc721AndTokenInfoMessage(data);
         address contractOnSchain = ILockAndDataERC721S(lockAndDataERC721)
-            .getERC721OnSchain(schainID, contractOnMainnet);
+            .getERC721OnSchain(schainID, message.baseErc721transfer.token);
         if (contractOnSchain == address(0)) {
-            contractOnSchain = _sendCreateERC721Request(data);
-            ILockAndDataERC721S(lockAndDataERC721).addERC721ForSchain(schainID, contractOnMainnet, contractOnSchain);
-            emit ERC721TokenCreated(schainID, contractOnMainnet, contractOnSchain);
+            contractOnSchain = _sendCreateERC721Request(message.tokenInfo);
+            ILockAndDataERC721S(lockAndDataERC721).addERC721ForSchain(schainID, message.baseErc721transfer.token, contractOnSchain);
+            emit ERC721TokenCreated(schainID, message.baseErc721transfer.token, contractOnSchain);
         }
-        return ILockAndDataERC721S(lockAndDataERC721).sendERC721(contractOnSchain, receiver, tokenId);
+        return ILockAndDataERC721S(lockAndDataERC721).sendERC721(
+            message.baseErc721transfer.token,
+            message.baseErc721transfer.receiver,
+            message.baseErc721transfer.tokenId
+        );
     }
 
     /**
      * @dev Returns the receiver address.
      */
     function getReceiver(bytes calldata data) external pure returns (address receiver) {
-        (, receiver, ) = _fallbackDataParser(data);
+        return Messages.decodeTransferErc721Message(data).receiver;
     }
 
-    function _sendCreateERC721Request(bytes calldata data) internal returns (address) {
-        string memory name;
-        string memory symbol;
-        (name, symbol) = _fallbackDataCreateERC721Parser(data);
-        address tokenFactoryAddress = LockAndDataForSchain(
-            getLockAndDataAddress()
-        ).getTokenFactory();
-        return ITokenFactoryForERC721(tokenFactoryAddress).createERC721(name, symbol);
-    }
-
-    /**
-     * @dev Returns encoded creation data.
-     */
-    function _encodeData(
-        address contractOnMainnet,
-        address contractOnSchain,
-        address to,
-        uint256 tokenId
-    )
-        private
-        view
-        returns (bytes memory data)
-    {
-        string memory name = IERC721Metadata(contractOnSchain).name();
-        string memory symbol = IERC721Metadata(contractOnSchain).symbol();
-        data = abi.encodePacked(
-            bytes1(uint8(5)),
-            bytes32(bytes20(contractOnMainnet)),
-            bytes32(bytes20(to)),
-            bytes32(tokenId),
-            bytes(name).length,
-            name,
-            bytes(symbol).length,
-            symbol
-        );
-    }
-
-    /**
-     * @dev Returns fallback data.
-     */
-    function _fallbackDataParser(bytes memory data)
-        private
-        pure
-        returns (address, address payable, uint256)
-    {
-        bytes32 contractOnMainnet;
-        bytes32 to;
-        bytes32 token;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            contractOnMainnet := mload(add(data, 33))
-            to := mload(add(data, 65))
-            token := mload(add(data, 97))
-        }
-        return (
-            address(bytes20(contractOnMainnet)), address(bytes20(to)), uint256(token)
-        );
-    }
-
-    function _fallbackDataCreateERC721Parser(bytes memory data)
-        private
-        pure
-        returns (
-            string memory name,
-            string memory symbol
-        )
-    {
-        bytes32 nameLength;
-        bytes32 symbolLength;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            nameLength := mload(add(data, 129))
-        }
-        name = new string(uint256(nameLength));
-        for (uint256 i = 0; i < uint256(nameLength); i++) {
-            bytes(name)[i] = data[129 + i];
-        }
-        uint256 lengthOfName = uint256(nameLength);
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            symbolLength := mload(add(data, add(161, lengthOfName)))
-        }
-        symbol = new string(uint256(symbolLength));
-        for (uint256 i = 0; i < uint256(symbolLength); i++) {
-            bytes(symbol)[i] = data[161 + lengthOfName + i];
-        }
+    function _sendCreateERC721Request(Messages.Erc721TokenInfo memory tokenInfo) internal returns (address) {
+        address tokenFactoryAddress = LockAndDataForSchain(getLockAndDataAddress()).getTokenFactory();
+        return ITokenFactoryForERC721(tokenFactoryAddress).createERC721(tokenInfo.name, tokenInfo.symbol);
     }
 }
 

@@ -20,9 +20,13 @@
  */
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
-import "./PermissionsForMainnet.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Metadata.sol";
+
+import "./Messages.sol";
+import "./PermissionsForMainnet.sol";
+
 
 interface ILockAndDataERC721M {
     function sendERC721(address contractOnMainnet, address to, uint256 token) external returns (bool);
@@ -67,7 +71,12 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
             ILockAndDataERC721M(lockAndDataERC721).addERC721ForSchain(schainID, contractOnMainnet);
             emit ERC721TokenAdded(schainID, contractOnMainnet);
         }
-        data = _encodeData(contractOnMainnet, to, tokenId);
+        data = Messages.encodeTransferErc721AndTokenInfoMessage(
+            contractOnMainnet,
+            to,
+            tokenId,
+            _getTokenInfo(IERC721Metadata(contractOnMainnet))
+        );
         emit ERC721TokenReady(contractOnMainnet, tokenId);
     }
 
@@ -78,70 +87,25 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract(
             "LockAndDataERC721"
         );
-        address contractOnMainnet;
-        address receiver;
-        uint256 tokenId;
-        (contractOnMainnet, receiver, tokenId) = _fallbackDataParser(data);
-        return ILockAndDataERC721M(lockAndDataERC721).sendERC721(contractOnMainnet, receiver, tokenId);
+        Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
+        return ILockAndDataERC721M(lockAndDataERC721).sendERC721(message.token, message.receiver, message.tokenId);
     }
 
     /**
      * @dev Returns the receiver address of the ERC721 token.
      */
-    function getReceiver(bytes calldata data) external pure returns (address receiver) {
-        (, receiver, ) = _fallbackDataParser(data);
+    function getReceiver(bytes calldata data) external pure returns (address) {
+        Messages.decodeTransferErc721Message(data).receiver;
     }
 
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
-    /**
-     * @dev Returns encoded creation data for ERC721 token.
-     */
-    function _encodeData(
-        address contractOnMainnet,
-        address to,
-        uint256 tokenId
-    )
-        private
-        view
-        returns (bytes memory data)
-    {
-        string memory name = IERC721Metadata(contractOnMainnet).name();
-        string memory symbol = IERC721Metadata(contractOnMainnet).symbol();
-        data = abi.encodePacked(
-            bytes1(uint8(5)),
-            bytes32(bytes20(contractOnMainnet)),
-            bytes32(bytes20(to)),
-            bytes32(tokenId),
-            bytes(name).length,
-            name,
-            bytes(symbol).length,
-            symbol
-        );
+    function _getTokenInfo(IERC721Metadata erc721) internal view returns (Messages.Erc721TokenInfo memory) {
+        return Messages.Erc721TokenInfo({
+            name: erc721.name(),
+            symbol: erc721.symbol()
+        });
     }
-
-    /**
-     * @dev Returns fallback data.
-     */
-    function _fallbackDataParser(bytes memory data)
-        private
-        pure
-        returns (address, address payable, uint256)
-    {
-        bytes32 contractOnMainnet;
-        bytes32 to;
-        bytes32 token;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            contractOnMainnet := mload(add(data, 33))
-            to := mload(add(data, 65))
-            token := mload(add(data, 97))
-        }
-        return (
-            address(bytes20(contractOnMainnet)), address(bytes20(to)), uint256(token)
-        );
-    }
-
 }
