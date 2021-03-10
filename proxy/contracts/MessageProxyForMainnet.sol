@@ -565,6 +565,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             "ContractManagerForSkaleManager"
         );
         address walletsAddress = IContractManager(contractManagerAddress).getContract("Wallets");
-        IWallets(payable(walletsAddress)).refundBySchain(schainId, msg.sender, gasTotal.sub(gasleft()), false);
+        IWallets(payable(walletsAddress)).refundGasBySchain(schainId, msg.sender, gasTotal.sub(gasleft()), false);
     }
 }
