@@ -173,7 +173,7 @@ global.imaState = {
     "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
 
     optsPendingTxAnalysis: {
-        isEnabled: true,
+        isEnabled: false, // disable bv default
         nTimeoutSecondsBeforeSecondAttempt: 30, // 0 - disable 2nd attempt
         isIgnore: false, // ignore PTX result
         isIgnore2: true // ignore secondary PTX result
@@ -352,6 +352,7 @@ imaCLI.parse( {
                         imaState.joAccount_s_chain,
                         imaState.joAccount_main_net,
                         imaState.jo_token_manager, // only s-chain
+                        imaState.jo_lock_and_data_s_chain,
                         imaState.jo_message_proxy_s_chain, // for checking logs
                         imaState.jo_deposit_box, // only main net
                         imaState.idToken, // which ERC721 token id to send
@@ -373,6 +374,7 @@ imaCLI.parse( {
                         imaState.joAccount_s_chain,
                         imaState.joAccount_main_net,
                         imaState.jo_token_manager, // only s-chain
+                        imaState.jo_lock_and_data_s_chain,
                         imaState.jo_message_proxy_s_chain, // for checking logs
                         imaState.jo_deposit_box, // only main net
                         imaState.nAmountOfToken, // how ERC20 tokens money to send
@@ -391,6 +393,7 @@ imaCLI.parse( {
                     imaState.joAccount_s_chain,
                     imaState.joAccount_main_net,
                     imaState.jo_token_manager, // only s-chain
+                    imaState.jo_lock_and_data_s_chain,
                     imaState.jo_message_proxy_s_chain, // for checking logs
                     imaState.nAmountOfWei, // how much WEI money to send
                     imaState.tc_s_chain
