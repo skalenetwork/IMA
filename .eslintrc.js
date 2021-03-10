@@ -13,7 +13,7 @@ module.exports = {
         "sourceType": "module"
     },
     "rules": {
-        "indent": ["error", 4],
+        "indent": [ "error", 4 ],
         "linebreak-style": [ "error", "unix" ],
         "quotes": [ "error", "double" ],
         "semi": [ "error", "always" ],
@@ -27,10 +27,10 @@ module.exports = {
         "space-in-parens": [ "error", "always" ],
         "keyword-spacing": [ "error", {
             "overrides": {
-                "if": { "before": false, "after": false }
-                , "else": { "before": true, "after": true }
-                , "for": { "before": false, "after": false }
-                , "while": { "before": false, "after": false }
+                "if": { "before": false, "after": false },
+                "else": { "before": true, "after": true },
+                "for": { "before": false, "after": false },
+                "while": { "before": false, "after": false }
             }
         } ],
         "space-before-blocks": [ "error", "always" ],
@@ -61,5 +61,5 @@ module.exports = {
         "lines-between-class-members": [ "error", "never" ],
         "no-var": "error",
         "no-unused-vars": "error"
-}
+    }
 };
