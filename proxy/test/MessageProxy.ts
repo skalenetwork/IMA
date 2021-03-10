@@ -43,6 +43,8 @@ import {
     SchainsInternalInstance,
     TokenManagerContract,
     TokenManagerInstance,
+    WalletsContract,
+    WalletsInstance,
 } from "../types/truffle-contracts";
 
 import { randomString } from "./utils/helper";
@@ -60,6 +62,7 @@ const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./
 const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
 const Schains: SchainsContract = artifacts.require("./Schains");
 const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
+const Wallets: WalletsContract = artifacts.require("./Wallets");
 
 contract("MessageProxy", ([deployer, user, client, customer]) => {
     let messageProxyForMainnet: MessageProxyForMainnetInstance;
@@ -72,6 +75,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     let schains: SchainsInstance;
     let schainsInternal: SchainsInternalInstance;
     let depositBox: DepositBoxInstance;
+    let wallets: WalletsInstance;
 
     const publicKeyArray = [
         "1122334455667788990011223344556677889900112233445566778899001122",
@@ -94,8 +98,10 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             contractManager = await ContractManager.new({from: deployer});
             schains = await Schains.new({from: deployer});
             schainsInternal = await SchainsInternal.new({from: deployer});
+            wallets = await Wallets.new({from: deployer});
             await contractManager.setContractsAddress("Schains", schains.address, {from: deployer});
             await contractManager.setContractsAddress("SchainsInternal", schainsInternal.address, {from: deployer});
+            await contractManager.setContractsAddress("Wallets", wallets.address, {from: deployer});
             lockAndDataForMainnet = await deployLockAndDataForMainnet();
             messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
             depositBox = await deployDepositBox(lockAndDataForMainnet);
