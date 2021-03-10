@@ -507,7 +507,7 @@ function parse( joExternalHandlers, argv ) {
         //
         //
         if( joArg.name == "add-exit" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            owaspUtils.verifyArgumentIsInteger( joArg );
             IMA.setAmountToAddExit( joArg.value );
             continue;
         }
