@@ -27,7 +27,7 @@ import "./PermissionsForSchain.sol";
 
 
 interface ITokenFactoryForERC20 {
-    function createERC20(string memory name, string memory symbol, uint256 totalSupply)
+    function createERC20(string memory name, string memory symbol)
         external
         returns (address payable);
 }
@@ -121,12 +121,11 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
     function _sendCreateERC20Request(bytes calldata data) internal returns (address newToken) {
         string memory name;
         string memory symbol;
-        uint256 totalSupply;
-        (name, symbol, , totalSupply) = _fallbackDataCreateERC20Parser(data);
+        (name, symbol, , ) = _fallbackDataCreateERC20Parser(data);
         address tokenFactoryAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getTokenFactory();
-        newToken = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(name, symbol, totalSupply);
+        newToken = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(name, symbol);
     }
 
     /**

@@ -427,6 +427,7 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccountSrc,
                 joAccountDst,
                 jo_token_manager,
+                jo_lock_and_data_s_chain,
                 wei_how_much, // how much WEI money to send
                 tc_s_chain
             )
@@ -442,6 +443,7 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccountSrc,
                 joAccountDst,
                 jo_token_manager,
+                jo_lock_and_data_s_chain,
                 wei_how_much, // how much WEI money to send
                 tc_s_chain
             )
@@ -536,6 +538,7 @@ describe('tests for `npms/skale-ima`', function () {
                 joAccountSrc,
                 joAccountDst,
                 jo_token_manager, // only s-chain
+                jo_lock_and_data_s_chain,
                 jo_deposit_box, // only main net
                 token_amount, // how much ERC20 tokens to send
                 strCoinNameErc20_main_net,

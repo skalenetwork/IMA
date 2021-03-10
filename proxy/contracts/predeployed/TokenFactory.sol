@@ -91,7 +91,7 @@ contract TokenFactory is PermissionsForSchain {
         // solhint-disable-previous-line no-empty-blocks
     }
 
-    function createERC20(string memory name, string memory symbol, uint256 totalSupply)
+    function createERC20(string memory name, string memory symbol)
         external
         allow("ERC20Module")
         returns (address)

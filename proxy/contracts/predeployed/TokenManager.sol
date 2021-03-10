@@ -34,10 +34,7 @@ interface ILockAndDataTM {
     function sendEth(address to, uint256 amount) external returns (bool);
     function receiveEth(address sender, uint256 amount) external returns (bool);
     function approveTransfer(address to, uint256 amount) external;
-    function ethCosts(address to) external returns (uint256);
-    function addGasCosts(address to, uint256 amount) external;
-    function reduceGasCosts(address to, uint256 amount) external returns (bool);
-    function removeGasCosts(address to) external returns (uint256);
+    function reduceExit(address to) external returns (bool);
 }
 
 interface ILockAndDataERCOnSchain {
@@ -83,7 +80,6 @@ contract TokenManager is PermissionsForSchain {
     }
 
     modifier receivedEth(uint256 amount) {
-        require(amount >= GAS_CONSUMPTION, "Null Amount");
         require(ILockAndDataTM(getLockAndDataAddress()).receiveEth(msg.sender, amount), "Could not receive ETH Clone");
         _;
     }
@@ -124,8 +120,7 @@ contract TokenManager is PermissionsForSchain {
      * @dev Deducts ETH cost to perform exit transaction.
      */
     function removeEthCost() external {
-        uint256 returnBalance = ILockAndDataTM(getLockAndDataAddress()).removeGasCosts(msg.sender);
-        require(ILockAndDataTM(getLockAndDataAddress()).sendEth(msg.sender, returnBalance), "Not sent");
+        revert("Temporarily unimplemented");
     }
 
     function exitToMainERC20(address contractOnMainnet, address to, uint256 amount) external {
@@ -152,11 +147,7 @@ contract TokenManager is PermissionsForSchain {
             ),
             "Could not transfer ERC20 Token"
         );
-        require(
-            ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
-                msg.sender,
-                GAS_CONSUMPTION),
-            "Not enough gas sent");
+        require(ILockAndDataTM(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
         bytes memory data = IERC20ModuleForSchain(erc20Module).receiveERC20(
             "Mainnet",
             contractOnMainnet,
@@ -165,7 +156,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_CONSUMPTION,
+            0,
             address(0),
             data
         );
@@ -220,11 +211,7 @@ contract TokenManager is PermissionsForSchain {
         require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractOnSchain).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-        require(
-            ILockAndDataTM(getLockAndDataAddress()).reduceGasCosts(
-                msg.sender,
-                GAS_CONSUMPTION),
-            "Not enough gas sent");
+        require(ILockAndDataTM(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
         bytes memory data = IERC721ModuleForSchain(erc721Module).receiveERC721(
             "Mainnet",
             contractOnMainnet,
@@ -233,7 +220,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            GAS_CONSUMPTION,
+            0,
             address(0),
             data
         );
@@ -330,6 +317,7 @@ contract TokenManager is PermissionsForSchain {
      */
     function exitToMain(address to, uint256 amount, bytes memory data) public receivedEth(amount) {
         require(to != address(0), "Incorrect contractThere address");
+        require(ILockAndDataTM(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
         bytes memory newData;
         newData = abi.encodePacked(bytes1(uint8(1)), data);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
@@ -380,8 +368,8 @@ contract TokenManager is PermissionsForSchain {
     /**
      * @dev Adds ETH cost for user's exit transaction.
      */
-    function addEthCost(address sender, uint256 amount) public receivedEth(amount) {
-        ILockAndDataTM(getLockAndDataAddress()).addGasCosts(sender, amount);
+    function addEthCost(address , uint256 amount) public receivedEth(amount) {
+        revert("Temporarily unimplemented");
     }
 
     /**

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   TestSkaleVerifier.sol - SKALE Interchain Messaging Agent
- *   Copyright (C) 2019-Present SKALE Labs
+ *   IWallets.sol - Interface of ContractManager Contract
+ *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
@@ -19,25 +19,8 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 pragma solidity 0.6.12;
 
-
-contract Schains {
-
-    function verifySchainSignature(
-        uint256 ,
-        uint256 ,
-        bytes32 ,
-        uint256 ,
-        uint256 ,
-        uint256 ,
-        string calldata 
-    )
-        external
-        view
-        returns (bool)
-    {
-        return true;
-    }
+interface IWallets {
+    function refundBySchain(bytes32 schainId, address payable spender, uint spentGas, bool isDebt) external virtual;
 }
