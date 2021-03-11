@@ -209,9 +209,9 @@ contract("DepositBox", ([deployer, user]) => {
     });
 
     describe("tests for `depositERC721` function", async () => {
-      it("should rejected with `Not allowed ERC721 Token`", async () => {
+      it("should rejected with `ERC721: transfer caller is not owner nor approved`", async () => {
         // preparation
-        const error = "Not allowed ERC721 Token";
+        const error = "ERC721: transfer caller is not owner nor approved";
         const schainID = randomString(10);
         const contractHere = eRC721OnChain.address;
         const to = user;
