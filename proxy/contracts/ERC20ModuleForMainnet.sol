@@ -76,12 +76,11 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         bool isERC20AddedToSchain = ILockAndDataERC20M(lockAndDataERC20).getSchainToERC20(schainID, contractOnMainnet);
         if (!isERC20AddedToSchain) {
             ILockAndDataERC20M(lockAndDataERC20).addERC20ForSchain(schainID, contractOnMainnet);
+            data = _encodeCreateData(contractOnMainnet, to, amount);
             emit ERC20TokenAdded(schainID, contractOnMainnet);
-        } 
-        data = _encodeData(contractOnMainnet, to, amount);
-        // else {
-        //     data = _encodeRegularData(contractOnMainnet, to, amount);
-        // }
+        } else {
+            data = _encodeRegularData(contractOnMainnet, to, amount);
+        }
         emit ERC20TokenReady(contractOnMainnet, amount);
     }
 
@@ -113,7 +112,29 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
     /**
      * @dev Returns encoded creation data for ERC20 token.
      */
-    function _encodeData(
+    function _encodeRegularData(
+        address contractOnMainnet,
+        address to,
+        uint256 amount
+    )
+        private
+        view
+        returns (bytes memory data)
+    {
+        uint256 totalSupply = ERC20UpgradeSafe(contractOnMainnet).totalSupply();
+        data = abi.encodePacked(
+            bytes1(uint8(3)),
+            bytes32(bytes20(contractOnMainnet)),
+            bytes32(bytes20(to)),
+            bytes32(amount),
+            totalSupply
+        );
+    }    
+
+    /**
+     * @dev Returns encoded creation data for ERC20 token.
+     */
+    function _encodeCreateData(
         address contractOnMainnet,
         address to,
         uint256 amount

@@ -98,40 +98,25 @@ contract DepositBox is PermissionsForMainnet {
         rightTransaction(schainID)
         receivedEth
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
-        address lockAndDataERC20 = IContractManager(lockAndDataAddress_).getContract(
-            "LockAndDataERC20"
-        );
-        address erc20Module = IContractManager(lockAndDataAddress_).getContract(
-            "ERC20Module"
-        );
-        address proxyAddress = IContractManager(lockAndDataAddress_).getContract(
-            "MessageProxy"
-        );
-        require(
-            IERC20(contractOnMainnet).allowance(
-                msg.sender,
-                address(this)
-            ) >= amount,
-            "Not allowed ERC20 Token"
-        );
         require(
             IERC20(contractOnMainnet).transferFrom(
                 msg.sender,
-                lockAndDataERC20,
+                IContractManager(lockAndDataAddress_).getContract("LockAndDataERC20"),
                 amount
             ),
             "Could not transfer ERC20 Token"
         );
-        bytes memory data = IERC20ModuleForMainnet(erc20Module).receiveERC20(
+        bytes memory data = IERC20ModuleForMainnet(
+            IContractManager(lockAndDataAddress_).getContract("ERC20Module")
+        ).receiveERC20(
             schainID,
             contractOnMainnet,
             to,
-            amount);
-        IMessageProxy(proxyAddress).postOutgoingMessage(
+            amount
+        );
+        IMessageProxy(IContractManager(lockAndDataAddress_).getContract("MessageProxy")).postOutgoingMessage(
             schainID,
-            tokenManagerAddress,
+            ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))),
             msg.value,
             address(0),
             data
