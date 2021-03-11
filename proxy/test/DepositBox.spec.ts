@@ -110,6 +110,7 @@ contract("DepositBox", ([deployer, user]) => {
       // execution
       const tx = await depositBox
         .depositWithoutData(schainID, deployer, {value: wei, from: deployer});
+      // console.log("Gas for deposit:", tx.receipt.gasUsed);
 
       const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
       // expectation
@@ -137,9 +138,9 @@ contract("DepositBox", ([deployer, user]) => {
     });
 
     describe("tests for `depositERC20` function", async () => {
-      it("should rejected with `Not allowed ERC20 Token`", async () => {
+      it("should rejected with `ERC20: transfer amount exceeds balance`", async () => {
         // preparation
-        const error = "Not allowed ERC20 Token";
+        const error = "ERC20: transfer amount exceeds balance";
         const schainID = randomString(10);
         // add schain to avoid the `Unconnected chain` error
         const chain = await lockAndDataForMainnet
@@ -165,8 +166,9 @@ contract("DepositBox", ([deployer, user]) => {
         await depositBox
           .depositERC20(schainID, ethERC20.address, deployer, 1, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
         await lockAndDataForMainnetERC20.disableWhitelist(schainID);
-        await depositBox
+        const res = await depositBox
           .depositERC20(schainID, ethERC20.address, deployer, 1, {from: deployer});
+        // console.log("Gas for depoositERC20:", res.receipt.gasUsed);
       });
 
       it("should invoke `depositERC20` with some ETH without mistakes", async () => {
@@ -183,8 +185,9 @@ contract("DepositBox", ([deployer, user]) => {
         await depositBox
           .depositERC20(schainID, ethERC20.address, deployer, 1, {value: "1000000000000", from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
         await lockAndDataForMainnetERC20.disableWhitelist(schainID);
-        await depositBox
+        const res = await depositBox
           .depositERC20(schainID, ethERC20.address, deployer, 1, {value: "1000000000000", from: deployer});
+        // console.log("Gas for depoositERC20 with eth:", res.receipt.gasUsed);
       });
     });
   });
@@ -245,8 +248,9 @@ contract("DepositBox", ([deployer, user]) => {
         await depositBox
           .depositERC721(schainID, contractHere, to, tokenId, {value: wei, from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
         await lockAndDataForMainnetERC721.disableWhitelist(schainID);
-        await depositBox
+        const res = await depositBox
           .depositERC721(schainID, contractHere, to, tokenId, {value: wei, from: deployer});
+        // console.log("Gas for depoositERC721:", res.receipt.gasUsed);
         const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
         // expectation
         expect(lockAndDataBalance).to.equal(wei);
