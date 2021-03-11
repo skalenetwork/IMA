@@ -71,8 +71,7 @@ class Senderc721ToMainnet(TestCase):
 
         #
         sleep(5)
-        self.blockchain.add_eth_cost(self.config.schain_key,
-                                     amount_eth)
+
         #
         sleep(5)
         self.erc721_clone = self.blockchain.get_erc721_on_schain("Mainnet", self.erc721.address)

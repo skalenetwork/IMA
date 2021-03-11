@@ -70,10 +70,11 @@ contract DepositBox is PermissionsForMainnet {
         _;
     }
 
-    modifier requireGasPayment() {
-        require(msg.value >= GAS_CONSUMPTION, "Gas was not paid");
+    modifier receivedEth() {
         _;
-        ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
+        if (msg.value > 0) {
+            ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
+        }
     }
 
     fallback() external payable {
@@ -93,6 +94,7 @@ contract DepositBox is PermissionsForMainnet {
         external
         payable
         rightTransaction(schainID)
+        receivedEth
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
@@ -132,9 +134,6 @@ contract DepositBox is PermissionsForMainnet {
             address(0),
             data
         );
-        if (msg.value > 0) {
-            ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
-        }
     }
 
     function depositERC721(
@@ -146,6 +145,7 @@ contract DepositBox is PermissionsForMainnet {
         external
         payable
         rightTransaction(schainID)
+        receivedEth
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract(
@@ -172,9 +172,6 @@ contract DepositBox is PermissionsForMainnet {
             address(0),
             data
         );
-        if (msg.value > 0) {
-            ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
-        }
     }
 
     function postMessage(
@@ -195,13 +192,8 @@ contract DepositBox is PermissionsForMainnet {
             "Receiver chain is incorrect"
         );
         require(
-            amount <= address(lockAndDataAddress_).balance ||
-            amount >= GAS_CONSUMPTION,
+            amount <= address(lockAndDataAddress_).balance,
             "Not enough money to finish this transaction"
-        );
-        require(
-            ILockAndDataDB(lockAndDataAddress_).sendEth(getOwner(), GAS_CONSUMPTION),
-            "Could not send money to owner"
         );
         _executePerOperation(to, amount, data);
     }
@@ -220,7 +212,7 @@ contract DepositBox is PermissionsForMainnet {
         public
         payable
         rightTransaction(schainID)
-        requireGasPayment
+        receivedEth
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
@@ -247,10 +239,10 @@ contract DepositBox is PermissionsForMainnet {
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         if (operation == Messages.MessageType.TRANSFER_ETH) {
-            if (amount > GAS_CONSUMPTION) {
+            if (amount > 0) {
                 ILockAndDataDB(lockAndDataAddress_).approveTransfer(
                     to,
-                    amount - GAS_CONSUMPTION
+                    amount
                 );
             }
         } else if (operation == Messages.MessageType.TRANSFER_ERC20) {
@@ -259,24 +251,22 @@ contract DepositBox is PermissionsForMainnet {
             );
             require(IERC20ModuleForMainnet(erc20Module).sendERC20(data), "Sending of ERC20 was failed");
             address receiver = IERC20ModuleForMainnet(erc20Module).getReceiver(data);
-            if (amount > GAS_CONSUMPTION) {
+            if (amount > 0)
                 ILockAndDataDB(lockAndDataAddress_).approveTransfer(
                     receiver,
-                    amount - GAS_CONSUMPTION
+                    amount
                 );
-            }
         } else if (operation == Messages.MessageType.TRANSFER_ERC721) {
             address erc721Module = IContractManager(lockAndDataAddress_).getContract(
                 "ERC721Module"
             );
             require(IERC721ModuleForMainnet(erc721Module).sendERC721(data), "Sending of ERC721 was failed");
             address receiver = IERC721ModuleForMainnet(erc721Module).getReceiver(data);
-            if (amount > GAS_CONSUMPTION) {
+            if (amount > 0)
                 ILockAndDataDB(lockAndDataAddress_).approveTransfer(
                     receiver,
-                    amount - GAS_CONSUMPTION
+                    amount
                 );
-            }
         } else {
             revert("MessageType is unknown");
         }
