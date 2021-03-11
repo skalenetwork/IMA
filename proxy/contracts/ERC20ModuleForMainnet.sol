@@ -82,7 +82,12 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
             ILockAndDataERC20M(lockAndDataERC20).addERC20ForSchain(schainID, contractOnMainnet);
             emit ERC20TokenAdded(schainID, contractOnMainnet);
         } 
-        data = Messages.encodeTransferErc20AndTokenInfoMessage(contractOnMainnet, to, amount, _getErc20TokenInfo(IERC20Metadata(contractOnMainnet)));
+        data = Messages.encodeTransferErc20AndTokenInfoMessage(
+            contractOnMainnet,
+            to,
+            amount,
+            _getErc20TokenInfo(IERC20Metadata(contractOnMainnet))
+        );
         emit ERC20TokenReady(contractOnMainnet, amount);
     }
 

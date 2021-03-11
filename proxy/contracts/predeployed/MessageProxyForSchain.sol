@@ -307,12 +307,13 @@ contract MessageProxyForSchain {
         string calldata srcChainID,
         uint256 startingCounter,
         Message[] calldata messages,
-        Signature calldata sign,
+        Signature calldata /* sign */,
         uint256 idxLastToPopNotIncluding
     )
         external
         connectMainnet
     {
+        // TODO: check signature
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");

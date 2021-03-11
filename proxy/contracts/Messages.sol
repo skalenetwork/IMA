@@ -124,7 +124,10 @@ library Messages {
         bytes memory data
     ) internal pure returns (TransferErc20AndTokenInfoMessage memory) {
         TransferErc20AndTokenInfoMessage memory message = abi.decode(data, (TransferErc20AndTokenInfoMessage));
-        require(message.baseErc20transfer.message.messageType == MessageType.TRANSFER_ERC20_AND_TOKEN_INFO, "Message type is not ERC20 transfer with token info");
+        require(
+            message.baseErc20transfer.message.messageType == MessageType.TRANSFER_ERC20_AND_TOKEN_INFO,
+            "Message type is not ERC20 transfer with token info"
+        );
         return message;
     }
 

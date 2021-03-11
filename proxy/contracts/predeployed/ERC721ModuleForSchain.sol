@@ -87,12 +87,17 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
      */
     function sendERC721(string calldata schainID, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
-        Messages.TransferErc721AndTokenInfoMessage memory message = Messages.decodeTransferErc721AndTokenInfoMessage(data);
+        Messages.TransferErc721AndTokenInfoMessage memory message =
+            Messages.decodeTransferErc721AndTokenInfoMessage(data);
         address contractOnSchain = ILockAndDataERC721S(lockAndDataERC721)
             .getERC721OnSchain(schainID, message.baseErc721transfer.token);
         if (contractOnSchain == address(0)) {
             contractOnSchain = _sendCreateERC721Request(message.tokenInfo);
-            ILockAndDataERC721S(lockAndDataERC721).addERC721ForSchain(schainID, message.baseErc721transfer.token, contractOnSchain);
+            ILockAndDataERC721S(lockAndDataERC721).addERC721ForSchain(
+                schainID,
+                message.baseErc721transfer.token,
+                contractOnSchain
+            );
             emit ERC721TokenCreated(schainID, message.baseErc721transfer.token, contractOnSchain);
         }
         return ILockAndDataERC721S(lockAndDataERC721).sendERC721(

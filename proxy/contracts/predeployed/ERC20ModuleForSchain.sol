@@ -95,15 +95,23 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
      */
     function sendERC20(string calldata schainID, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC20 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc20();
-        Messages.TransferErc20AndTokenInfoMessage memory message = Messages.decodeTransferErc20AndTokenInfoMessage(data);
-        address contractOnSchain = ILockAndDataERC20S(lockAndDataERC20).getERC20OnSchain(schainID, message.baseErc20transfer.token);
+        Messages.TransferErc20AndTokenInfoMessage memory message =
+            Messages.decodeTransferErc20AndTokenInfoMessage(data);
+        address contractOnSchain = ILockAndDataERC20S(lockAndDataERC20)
+            .getERC20OnSchain(schainID, message.baseErc20transfer.token);
         if (contractOnSchain == address(0)) {
             contractOnSchain = _sendCreateERC20Request(message.tokenInfo);
-            ILockAndDataERC20S(lockAndDataERC20).addERC20ForSchain(schainID, message.baseErc20transfer.token, contractOnSchain);
+            ILockAndDataERC20S(lockAndDataERC20)
+                .addERC20ForSchain(schainID, message.baseErc20transfer.token, contractOnSchain);
             emit ERC20TokenCreated(schainID, message.baseErc20transfer.token, contractOnSchain);
         }
-        if (message.tokenInfo.totalSupply != ILockAndDataERC20S(lockAndDataERC20).totalSupplyOnMainnet(contractOnSchain)) {
-            ILockAndDataERC20S(lockAndDataERC20).setTotalSupplyOnMainnet(contractOnSchain, message.tokenInfo.totalSupply);
+        if (message.tokenInfo.totalSupply != ILockAndDataERC20S(lockAndDataERC20)
+            .totalSupplyOnMainnet(contractOnSchain))
+        {
+            ILockAndDataERC20S(lockAndDataERC20).setTotalSupplyOnMainnet(
+                contractOnSchain,
+                message.tokenInfo.totalSupply
+            );
         }
         emit ERC20TokenReceived(message.baseErc20transfer.token, contractOnSchain, message.baseErc20transfer.amount);
         return ILockAndDataERC20S(lockAndDataERC20).sendERC20(
@@ -120,8 +128,17 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         return Messages.decodeTransferErc20AndTokenInfoMessage(data).baseErc20transfer.receiver;
     }
 
-    function _sendCreateERC20Request(Messages.Erc20TokenInfo memory Erc20TokenInfo) internal returns (address newToken) {
+    function _sendCreateERC20Request(
+        Messages.Erc20TokenInfo memory Erc20TokenInfo
+    )
+        internal
+        returns (address newToken)
+    {
         address tokenFactoryAddress = LockAndDataForSchain(getLockAndDataAddress()).getTokenFactory();
-        newToken = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(Erc20TokenInfo.name, Erc20TokenInfo.symbol, Erc20TokenInfo.totalSupply);
+        newToken = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(
+            Erc20TokenInfo.name,
+            Erc20TokenInfo.symbol,
+            Erc20TokenInfo.totalSupply
+        );
     }
 }
