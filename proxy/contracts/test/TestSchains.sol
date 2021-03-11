@@ -26,13 +26,13 @@ pragma solidity 0.6.12;
 contract Schains {
 
     function verifySchainSignature(
-        uint256 signA,
-        uint256 signB,
-        bytes32 hash,
-        uint256 counter,
-        uint256 hashA,
-        uint256 hashB,
-        string calldata schainName
+        uint256,
+        uint256,
+        bytes32,
+        uint256,
+        uint256,
+        uint256,
+        string calldata
     )
         external
         view

@@ -29,7 +29,7 @@ import "./PermissionsForSchain.sol";
 
 
 interface ITokenFactoryForERC20 {
-    function createERC20(string memory name, string memory symbol, uint256 totalSupply)
+    function createERC20(string memory name, string memory symbol)
         external
         returns (address payable);
 }
@@ -137,8 +137,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         address tokenFactoryAddress = LockAndDataForSchain(getLockAndDataAddress()).getTokenFactory();
         newToken = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(
             Erc20TokenInfo.name,
-            Erc20TokenInfo.symbol,
-            Erc20TokenInfo.totalSupply
+            Erc20TokenInfo.symbol
         );
     }
 }

@@ -25,11 +25,11 @@ pragma solidity 0.6.12;
 
 contract SchainsInternal {
 
-    function isNodeAddressesInGroup(bytes32 schainId, address sender) external view returns (bool) {
+    function isNodeAddressesInGroup(bytes32, address) external view returns (bool) {
         return true;
     }
 
-    function isOwnerAddress(address sender, bytes32 schainId) external view returns (bool) {
+    function isOwnerAddress(address, bytes32) external view returns (bool) {
         return true;
     }
 }
