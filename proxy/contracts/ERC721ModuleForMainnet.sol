@@ -61,13 +61,15 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract(
             "LockAndDataERC721"
         );
-        bool isERC721AddedToSchain= ILockAndDataERC721M(lockAndDataERC721)
+        bool isERC721AddedToSchain = ILockAndDataERC721M(lockAndDataERC721)
             .getSchainToERC721(schainID, contractOnMainnet);
         if (!isERC721AddedToSchain) {
             ILockAndDataERC721M(lockAndDataERC721).addERC721ForSchain(schainID, contractOnMainnet);
             emit ERC721TokenAdded(schainID, contractOnMainnet);
+            data = _encodeCreateData(contractOnMainnet, to, tokenId);
+        } else {
+            data = _encodeRegularData(contractOnMainnet, to, tokenId);
         }
-        data = _encodeData(contractOnMainnet, to, tokenId);
         emit ERC721TokenReady(contractOnMainnet, tokenId);
     }
 
@@ -99,7 +101,7 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
     /**
      * @dev Returns encoded creation data for ERC721 token.
      */
-    function _encodeData(
+    function _encodeCreateData(
         address contractOnMainnet,
         address to,
         uint256 tokenId
@@ -119,6 +121,26 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
             name,
             bytes(symbol).length,
             symbol
+        );
+    }
+
+    /**
+     * @dev Returns encoded regular data for ERC721 token.
+     */
+    function _encodeRegularData(
+        address contractOnMainnet,
+        address to,
+        uint256 tokenId
+    )
+        private
+        pure
+        returns (bytes memory data)
+    {
+        data = abi.encodePacked(
+            bytes1(uint8(5)),
+            bytes32(bytes20(contractOnMainnet)),
+            bytes32(bytes20(to)),
+            bytes32(tokenId)
         );
     }
 

@@ -65,10 +65,10 @@ contract DepositBox is PermissionsForMainnet {
     );
 
     modifier rightTransaction(string memory schainID) {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
-        require(schainHash != keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect");
-        require(tokenManagerAddress != address(0), "Unconnected chain");
+        require(
+            keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")),
+            "SKALE chain name is incorrect"
+        );
         _;
     }
 
@@ -100,36 +100,24 @@ contract DepositBox is PermissionsForMainnet {
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
-        address lockAndDataERC20 = IContractManager(lockAndDataAddress_).getContract(
-            "LockAndDataERC20"
-        );
-        address erc20Module = IContractManager(lockAndDataAddress_).getContract(
-            "ERC20Module"
-        );
-        address proxyAddress = IContractManager(lockAndDataAddress_).getContract(
-            "MessageProxy"
-        );
-        require(
-            IERC20(contractOnMainnet).allowance(
-                msg.sender,
-                address(this)
-            ) >= amount,
-            "Not allowed ERC20 Token"
-        );
+        require(tokenManagerAddress != address(0), "Unconnected chain");
         require(
             IERC20(contractOnMainnet).transferFrom(
                 msg.sender,
-                lockAndDataERC20,
+                IContractManager(lockAndDataAddress_).getContract("LockAndDataERC20"),
                 amount
             ),
             "Could not transfer ERC20 Token"
         );
-        bytes memory data = IERC20ModuleForMainnet(erc20Module).receiveERC20(
+        bytes memory data = IERC20ModuleForMainnet(
+            IContractManager(lockAndDataAddress_).getContract("ERC20Module")
+        ).receiveERC20(
             schainID,
             contractOnMainnet,
             to,
-            amount);
-        IMessageProxy(proxyAddress).postOutgoingMessage(
+            amount
+        );
+        IMessageProxy(IContractManager(lockAndDataAddress_).getContract("MessageProxy")).postOutgoingMessage(
             schainID,
             tokenManagerAddress,
             msg.value,
@@ -150,26 +138,22 @@ contract DepositBox is PermissionsForMainnet {
         receivedEth
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract(
-            "LockAndDataERC721"
-        );
-        address erc721Module = IContractManager(lockAndDataAddress_).getContract(
-            "ERC721Module"
-        );
-        address proxyAddress = IContractManager(lockAndDataAddress_).getContract(
-            "MessageProxy"
-        );
-        require(IERC721(contractOnMainnet).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
+        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
+        require(tokenManagerAddress != address(0), "Unconnected chain");
+        address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract("LockAndDataERC721");
         IERC721(contractOnMainnet).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractOnMainnet).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-        bytes memory data =IERC721ModuleForMainnet(erc721Module).receiveERC721(
+        bytes memory data =IERC721ModuleForMainnet(
+            IContractManager(lockAndDataAddress_).getContract("ERC721Module")
+        ).receiveERC721(
             schainID,
             contractOnMainnet,
             to,
-            tokenId);
-        IMessageProxy(proxyAddress).postOutgoingMessage(
+            tokenId
+        );
+        IMessageProxy(IContractManager(lockAndDataAddress_).getContract("MessageProxy")).postOutgoingMessage(
             schainID,
-            ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash),
+            tokenManagerAddress,
             msg.value,
             address(0),
             data
@@ -218,17 +202,13 @@ contract DepositBox is PermissionsForMainnet {
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
-        address proxyAddress = IContractManager(lockAndDataAddress_).getContract(
-            "MessageProxy"
-        );
-        bytes memory newData;
-        newData = abi.encodePacked(bytes1(uint8(1)), data);
-        IMessageProxy(proxyAddress).postOutgoingMessage(
+        require(tokenManagerAddress != address(0), "Unconnected chain");
+        IMessageProxy(IContractManager(lockAndDataAddress_).getContract("MessageProxy")).postOutgoingMessage(
             schainID,
             tokenManagerAddress,
             msg.value,
             to,
-            newData
+            abi.encodePacked(bytes1(uint8(1)), data)
         );
     }
 
