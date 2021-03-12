@@ -263,7 +263,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
-        _refundGasBySchain(srcChainHash, gasTotal);
+        _refundGasBySchain(srcChainHash, gasTotal - gasleft());
     }
 
     /**

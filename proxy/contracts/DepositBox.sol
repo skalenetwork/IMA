@@ -48,8 +48,6 @@ contract DepositBox is PermissionsForMainnet {
         transferERC721
     }
 
-    uint256 public constant GAS_CONSUMPTION = 2000000000000000;
-
     event MoneyReceivedMessage(
         address sender,
         string fromSchainID,
@@ -81,10 +79,6 @@ contract DepositBox is PermissionsForMainnet {
 
     fallback() external payable {
         revert("Not allowed. in DepositBox");
-    }
-
-    function depositWithoutData(string calldata schainID, address to) external payable {
-        deposit(schainID, to);
     }
 
     function depositERC20(
@@ -189,12 +183,7 @@ contract DepositBox is PermissionsForMainnet {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
-    function deposit(string memory schainID, address to) public payable {
-        bytes memory empty = "";
-        deposit(schainID, to, empty);
-    }
-
-    function deposit(string memory schainID, address to, bytes memory data)
+    function deposit(string memory schainID, address to)
         public
         payable
         rightTransaction(schainID)
@@ -208,7 +197,7 @@ contract DepositBox is PermissionsForMainnet {
             tokenManagerAddress,
             msg.value,
             to,
-            abi.encodePacked(bytes1(uint8(1)), data)
+            abi.encodePacked(bytes1(uint8(1)))
         );
     }
 
