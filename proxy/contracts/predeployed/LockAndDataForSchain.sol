@@ -242,7 +242,7 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Allows TokenManager to remove gas costs from LockAndDataForSchain.
      */
-    function removeGasCosts(address) external allow("TokenManager") returns (uint256 balance) {
+    function removeGasCosts(address) external allow("TokenManager") returns (uint256) {
         revert("Temporarily unimplemented");
     }
 

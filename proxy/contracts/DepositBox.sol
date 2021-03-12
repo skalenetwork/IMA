@@ -73,7 +73,7 @@ contract DepositBox is PermissionsForMainnet {
     modifier receivedEth() {
         _;
         if (msg.value > 0) {
-            ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
+            ILockAndDataDB(lockAndDataAddress_).receiveEth{value: msg.value}(msg.sender);
         }
     }
 
