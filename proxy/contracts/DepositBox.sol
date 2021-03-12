@@ -272,9 +272,7 @@ contract DepositBox is PermissionsForMainnet {
         require(
             operationType == 0x01 ||
             operationType == 0x03 ||
-            operationType == 0x05 ||
-            operationType == 0x13 ||
-            operationType == 0x15,
+            operationType == 0x05,
             "Operation type is not identified"
         );
         if (operationType == 0x01) {
