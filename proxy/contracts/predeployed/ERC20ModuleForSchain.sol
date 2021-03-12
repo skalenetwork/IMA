@@ -96,14 +96,14 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         address contractOnMainnet;
         address receiver;
         uint256 amount;
-        (contractOnMainnet, receiver, amount) = _fallbackDataParser(data);
+        uint256 totalSupply;
+        (contractOnMainnet, receiver, amount, totalSupply) = _fallbackDataParser(data);
         address contractOnSchain = ILockAndDataERC20S(lockAndDataERC20).getERC20OnSchain(schainID, contractOnMainnet);
         if (contractOnSchain == address(0)) {
             contractOnSchain = _sendCreateERC20Request(data);
             ILockAndDataERC20S(lockAndDataERC20).addERC20ForSchain(schainID, contractOnMainnet, contractOnSchain);
             emit ERC20TokenCreated(schainID, contractOnMainnet, contractOnSchain);
         }
-        uint256 totalSupply = _fallbackTotalSupplyParser(data);
         if (totalSupply != ILockAndDataERC20S(lockAndDataERC20).totalSupplyOnMainnet(contractOnSchain)) {
             ILockAndDataERC20S(lockAndDataERC20).setTotalSupplyOnMainnet(contractOnSchain, totalSupply);
         }
@@ -115,13 +115,13 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
      * @dev Returns the receiver address.
      */
     function getReceiver(bytes calldata data) external view returns (address receiver) {
-        (, receiver, ) = _fallbackDataParser(data);
+        (, receiver, ,) = _fallbackDataParser(data);
     }
 
     function _sendCreateERC20Request(bytes calldata data) internal returns (address newToken) {
         string memory name;
         string memory symbol;
-        (name, symbol, , ) = _fallbackDataCreateERC20Parser(data);
+        (name, symbol, ) = _fallbackDataCreateERC20Parser(data);
         address tokenFactoryAddress = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getTokenFactory();
@@ -180,53 +180,30 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
     // }
 
     /**
-     * @dev Returns fallback total supply data.
-     */
-    function _fallbackTotalSupplyParser(bytes memory data)
-        private
-        pure
-        returns (uint256)
-    {
-        bytes32 totalSupply;
-        bytes32 nameLength;
-        bytes32 symbolLength;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            nameLength := mload(add(data, 129))
-        }
-        uint256 lengthOfName = uint256(nameLength);
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            symbolLength := mload(add(data, add(161, lengthOfName)))
-        }
-        uint256 lengthOfSymbol = uint256(symbolLength);
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            totalSupply := mload(add(data,
-                add(194, add(lengthOfName, lengthOfSymbol))))
-        }
-        return uint256(totalSupply);
-    }
-
-    /**
      * @dev Returns fallback data.
      */
     function _fallbackDataParser(bytes memory data)
         private
         pure
-        returns (address, address payable, uint256)
+        returns (address, address payable, uint256, uint256)
     {
         bytes32 contractOnMainnet;
         bytes32 to;
         bytes32 tokenAmount;
+        bytes32 totalSupply;
         // solhint-disable-next-line no-inline-assembly
         assembly {
             contractOnMainnet := mload(add(data, 33))
             to := mload(add(data, 65))
             tokenAmount := mload(add(data, 97))
+            totalSupply := mload(add(data, 129)) 
+
         }
         return (
-            address(bytes20(contractOnMainnet)), address(bytes20(to)), uint256(tokenAmount)
+            address(bytes20(contractOnMainnet)),
+            address(bytes20(to)),
+            uint256(tokenAmount),
+            uint256(totalSupply)
         );
     }
 
@@ -236,44 +213,35 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         returns (
             string memory name,
             string memory symbol,
-            uint8,
-            uint256
+            uint8
         )
     {
         bytes1 decimals;
-        bytes32 totalSupply;
         bytes32 nameLength;
         bytes32 symbolLength;
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            nameLength := mload(add(data, 129))
+            nameLength := mload(add(data, 161))
         }
         name = new string(uint256(nameLength));
         for (uint256 i = 0; i < uint256(nameLength); i++) {
-            bytes(name)[i] = data[129 + i];
+            bytes(name)[i] = data[161 + i];
         }
         uint256 lengthOfName = uint256(nameLength);
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            symbolLength := mload(add(data, add(161, lengthOfName)))
+            symbolLength := mload(add(data, add(193, lengthOfName)))
         }
         symbol = new string(uint256(symbolLength));
         for (uint256 i = 0; i < uint256(symbolLength); i++) {
-            bytes(symbol)[i] = data[161 + lengthOfName + i];
+            bytes(symbol)[i] = data[193 + lengthOfName + i];
         }
         uint256 lengthOfSymbol = uint256(symbolLength);
         // solhint-disable-next-line no-inline-assembly
         assembly {
             decimals := mload(add(data,
-                add(193, add(lengthOfName, lengthOfSymbol))))
-            totalSupply := mload(add(data,
-                add(194, add(lengthOfName, lengthOfSymbol))))
+                add(225, add(lengthOfName, lengthOfSymbol))))
         }
-        return (
-            name,
-            symbol,
-            uint8(decimals),
-            uint256(totalSupply)
-            );
+        return (name, symbol, uint8(decimals));
     }
 }

@@ -134,8 +134,9 @@ contract("LockAndDataForMainnet", ([deployer, invoker]) => {
     await lockAndDataForMainnet
       .approveTransfer(deployer, setWeiToApproveTransfers, {from: deployer});
     // execution
-    await lockAndDataForMainnet
+    const res = await lockAndDataForMainnet
       .getMyEth({from: deployer});
+    // console.log("Gas for getMyEth:", res.receipt.gasUsed);
     const contractBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);
     // expectation
     expect(parseInt(contractBalance, 10))

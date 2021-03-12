@@ -152,12 +152,12 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
             bytes32(bytes20(contractOnMainnet)),
             bytes32(bytes20(to)),
             bytes32(amount),
+            totalSupply,
             bytes(name).length,
             name,
             bytes(symbol).length,
             symbol,
-            decimals,
-            totalSupply
+            decimals
         );
     }
 
