@@ -55,7 +55,7 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     bool private _isCustomDeploymentMode = false;
 
-    uint public communityPool;
+    // uint public communityPool;
 
     modifier allow(string memory contractName) {
         require(
@@ -210,12 +210,13 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Allows TokenManager to reduce exit from some address.
      */
-    function reduceCommunityPool(uint256 amountOfEth) external allow("TokenManager") returns (bool) {
-        if (communityPool >= amountOfEth) {
-            communityPool = communityPool.sub(amountOfEth);
-            return true;
-        }
-        return false;
+    function reduceCommunityPool(uint256) external allow("TokenManager") returns (bool) {
+        revert("Community Pool is not available");
+        // if (communityPool >= amountOfEth) {
+        //     communityPool = communityPool.sub(amountOfEth);
+        //     return true;
+        // }
+        // return false;
     }
 
     /**
@@ -223,7 +224,8 @@ contract LockAndDataForSchain is OwnableForSchain {
      */
     function sendEth(address to, uint256 amount) external allow("TokenManager") returns (bool) {
         if (to == address(0)) {
-            communityPool = communityPool.add(amount);
+            revert("Community Pool is not available");
+            // communityPool = communityPool.add(amount);
         } else {
             require(EthERC20(getEthErc20Address()).mint(to, amount), "Mint error");
         }

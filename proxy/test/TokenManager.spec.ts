@@ -713,15 +713,15 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         it("should add funds to communityPool when `eth` transfer", async () => {
             //  preparation
-            const error = "Incorrect receiver";
+            const error = "Community Pool is not available";
             const schainID = randomString(10);
             const amount = "30000000000000000";
             // for transfer `eth` bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
             const bytesData = "0x01";
             const sender = deployer;
             const to = "0x0000000000000000000000000000000000000000";
-            const communityPoolBefore = new BigNumber(await lockAndDataForSchain.communityPool());
-            communityPoolBefore.should.be.deep.equal(new BigNumber(0));
+            // const communityPoolBefore = new BigNumber(await lockAndDataForSchain.communityPool());
+            // communityPoolBefore.should.be.deep.equal(new BigNumber(0));
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
             tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
@@ -738,9 +738,10 @@ contract("TokenManager", ([deployer, user, client]) => {
             await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
             // execution
             await tokenManager
-                .postMessage(sender, schainID, to, amount, bytesData, {from: deployer});
-            const communityPoolAfter = new BigNumber(await lockAndDataForSchain.communityPool());
-            communityPoolAfter.should.be.deep.equal(new BigNumber(amount));
+                .postMessage(sender, schainID, to, amount, bytesData, {from: deployer})
+                .should.be.eventually.rejectedWith(error);
+            // const communityPoolAfter = new BigNumber(await lockAndDataForSchain.communityPool());
+            // communityPoolAfter.should.be.deep.equal(new BigNumber(amount));
         });
 
         it("should transfer ERC20 token", async () => {

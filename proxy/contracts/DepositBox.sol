@@ -195,6 +195,7 @@ contract DepositBox is PermissionsForMainnet {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
         require(tokenManagerAddress != address(0), "Unconnected chain");
+        require(to != address(0), "Community Pool is not available");
         IMessageProxy(IContractManager(lockAndDataAddress_).getContract("MessageProxy")).postOutgoingMessage(
             schainID,
             tokenManagerAddress,

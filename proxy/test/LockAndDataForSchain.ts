@@ -141,10 +141,11 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
 
     // only schain owner can add exits:
     await lockAndDataForSchain.sendEth(nullAddress, amount, {from: user}).should.be.rejected;
-    await lockAndDataForSchain.sendEth(nullAddress, amount, {from: deployer});
+    await lockAndDataForSchain.sendEth(nullAddress, amount, {from: deployer})
+      .should.be.eventually.rejectedWith("Community Pool is not available");
 
-    const communityPool = new BigNumber(await lockAndDataForSchain.communityPool());
-    communityPool.should.be.deep.equal(amount);
+    // const communityPool = new BigNumber(await lockAndDataForSchain.communityPool());
+    // communityPool.should.be.deep.equal(amount);
   });
 
   it("should reduce communityPool", async () => {
@@ -156,18 +157,18 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     const nullAddress = "0x0000000000000000000000000000000000000000";
 
     // if community pool is empty reduceCommunityPool function don't change situation any way:
-    const communityPoolBefore = new BigNumber(await lockAndDataForSchain.communityPool());
-    communityPoolBefore.should.be.deep.equal(amountZero);
-    await lockAndDataForSchain.reduceCommunityPool(amountZero, {from: deployer});
-    await lockAndDataForSchain.reduceCommunityPool(amount, {from: deployer});
-    const communityPoolAfter = new BigNumber(await lockAndDataForSchain.communityPool());
-    communityPoolAfter.should.be.deep.equal(amountZero);
+    // const communityPoolBefore = new BigNumber(await lockAndDataForSchain.communityPool());
+    // communityPoolBefore.should.be.deep.equal(amountZero);
+    await lockAndDataForSchain.reduceCommunityPool(amountZero, {from: deployer}).should.be.eventually.rejectedWith("Community Pool is not available");
+    // await lockAndDataForSchain.reduceCommunityPool(amount, {from: deployer});
+    // const communityPoolAfter = new BigNumber(await lockAndDataForSchain.communityPool());
+    // communityPoolAfter.should.be.deep.equal(amountZero);
 
-    // we can add eth to community pool and it uses
-    await lockAndDataForSchain.sendEth(nullAddress, amount, {from: deployer});
-    await lockAndDataForSchain.reduceCommunityPool(amountToReduce, {from: deployer});
-    const communityPool = new BigNumber(await lockAndDataForSchain.communityPool());
-    communityPool.should.be.deep.equal(amountFinal);
+    // // we can add eth to community pool and it uses
+    // await lockAndDataForSchain.sendEth(nullAddress, amount, {from: deployer});
+    // await lockAndDataForSchain.reduceCommunityPool(amountToReduce, {from: deployer});
+    // const communityPool = new BigNumber(await lockAndDataForSchain.communityPool());
+    // communityPool.should.be.deep.equal(amountFinal);
 
   });
 

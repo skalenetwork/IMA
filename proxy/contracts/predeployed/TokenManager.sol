@@ -66,7 +66,7 @@ contract TokenManager is PermissionsForSchain {
     string private _chainID;
 
     /**
-     * txFee - equals "Eth exit" operation gas consumption (300 000 gas) multiplied by
+     * TX_FEE - equals "Eth exit" operation gas consumption (300 000 gas) multiplied by
      * max gas price of "Eth exit" (200 Gwei) = 60 000 000 Gwei = 0.06 Eth
      *
      * !!! IMPORTANT !!!
@@ -75,7 +75,7 @@ contract TokenManager is PermissionsForSchain {
      * And you could take it back or send back to SKALE-chain.
      * !!! IMPORTANT !!!
      */
-    uint256 public txFee = 60000000000000000;
+    uint256 public constant TX_FEE = 60000000000000000;
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -145,11 +145,11 @@ contract TokenManager is PermissionsForSchain {
             ),
             "Could not transfer ERC20 Token"
         );
-        require(amountOfEth >= txFee || amountOfEth == 0, "Not enough funds to exit");
-        uint amountOfEthToSend = amountOfEth >= txFee ?
-            amountOfEth :
-            ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(txFee) ? txFee : 0;
-        require(amountOfEthToSend != 0, "Community pool is empty");
+        require(amountOfEth >= TX_FEE, "Not enough funds to exit");
+        // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
+        //     amountOfEth :
+        //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
+        // require(amountOfEthToSend != 0, "Community pool is empty");
         bytes memory data = IERC20ModuleForSchain(erc20Module).receiveERC20(
             "Mainnet",
             contractOnMainnet,
@@ -158,7 +158,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            amountOfEthToSend,
+            amountOfEth,
             address(0),
             data
         );
@@ -223,11 +223,11 @@ contract TokenManager is PermissionsForSchain {
         require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractOnSchain).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-        require(amountOfEth >= txFee || amountOfEth == 0, "Not enough funds to exit");
-        uint amountOfEthToSend = amountOfEth >= txFee ?
-            amountOfEth :
-            ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(txFee) ? txFee : 0;
-        require(amountOfEthToSend != 0, "Community pool is empty");
+        require(amountOfEth >= TX_FEE, "Not enough funds to exit");
+        // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
+        //     amountOfEth :
+        //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
+        // require(amountOfEthToSend != 0, "Community pool is empty");
         bytes memory data = IERC721ModuleForSchain(erc721Module).receiveERC721(
             "Mainnet",
             contractOnMainnet,
@@ -236,7 +236,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            amountOfEthToSend,
+            amountOfEth,
             address(0),
             data
         );
@@ -326,15 +326,15 @@ contract TokenManager is PermissionsForSchain {
      */
     function exitToMain(address to, uint256 amountOfEth) public receivedEth(amountOfEth) {
         require(to != address(0), "Incorrect contractThere address");
-        require(amountOfEth >= txFee || amountOfEth == 0, "Not enough funds to exit");
-        uint amountOfEthToSend = amountOfEth >= txFee ?
-            amountOfEth :
-            ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(txFee) ? txFee : 0;
-        require(amountOfEthToSend != 0, "Community pool is empty");
+        require(amountOfEth >= TX_FEE, "Not enough funds to exit");
+        // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
+        //     amountOfEth :
+        //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
+        // require(amountOfEthToSend != 0, "Community pool is empty");
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            amountOfEthToSend,
+            amountOfEth,
             to,
             abi.encodePacked(bytes1(uint8(1)))
         );
