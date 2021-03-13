@@ -83,7 +83,7 @@ contract("DepositBox", ([deployer, user]) => {
       const schainID = randomString(10);
       // execution/expectation
       await depositBox
-        .depositWithoutData(schainID, user, {from: deployer})
+        .deposit(schainID, user, {from: deployer})
         .should.be.eventually.rejectedWith(error);
     });
 
@@ -93,7 +93,7 @@ contract("DepositBox", ([deployer, user]) => {
       const schainID = "Mainnet";
       // execution/expectation
       await depositBox
-        .depositWithoutData(schainID, user, {from: deployer})
+        .deposit(schainID, user, {from: deployer})
         .should.be.eventually.rejectedWith(error);
     });
 
@@ -109,7 +109,7 @@ contract("DepositBox", ([deployer, user]) => {
         .addSchain(schainID, deployer, {from: deployer});
       // execution
       const tx = await depositBox
-        .depositWithoutData(schainID, deployer, {value: wei, from: deployer});
+        .deposit(schainID, deployer, {value: wei, from: deployer});
       // console.log("Gas for deposit:", tx.receipt.gasUsed);
 
       const lockAndDataBalance = await web3.eth.getBalance(lockAndDataForMainnet.address);

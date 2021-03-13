@@ -134,48 +134,41 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     expect(getMapping).to.equal(depositBoxAddress);
   });
 
-  it("should add exits", async () => {
+  it("should add communityPool", async () => {
     const address = user;
+    const nullAddress = "0x0000000000000000000000000000000000000000";
     const amount = new BigNumber(500);
 
     // only schain owner can add exits:
-    await lockAndDataForSchain.addExit(address, amount, {from: user}).should.be.rejected;
-    await lockAndDataForSchain.addExit(address, amount, {from: deployer});
+    await lockAndDataForSchain.sendEth(nullAddress, amount, {from: user}).should.be.rejected;
+    await lockAndDataForSchain.sendEth(nullAddress, amount, {from: deployer});
 
-    const numberOfExits = new BigNumber(await lockAndDataForSchain.numberOfExits(user));
-    numberOfExits.should.be.deep.equal(amount);
+    const communityPool = new BigNumber(await lockAndDataForSchain.communityPool());
+    communityPool.should.be.deep.equal(amount);
   });
 
-  it("should reduce exits", async () => {
+  it("should reduce communityPool", async () => {
     const address = user;
     const amount = new BigNumber(500);
+    const amountToReduce = new BigNumber(1);
     const amountFinal = new BigNumber(499);
     const amountZero = new BigNumber(0);
     const nullAddress = "0x0000000000000000000000000000000000000000";
 
-    // only owner can add exits:
-    await lockAndDataForSchain.addExit(address, amount, {from: user}).should.be.rejected;
+    // if community pool is empty reduceCommunityPool function don't change situation any way:
+    const communityPoolBefore = new BigNumber(await lockAndDataForSchain.communityPool());
+    communityPoolBefore.should.be.deep.equal(amountZero);
+    await lockAndDataForSchain.reduceCommunityPool(amountZero, {from: deployer});
+    await lockAndDataForSchain.reduceCommunityPool(amount, {from: deployer});
+    const communityPoolAfter = new BigNumber(await lockAndDataForSchain.communityPool());
+    communityPoolAfter.should.be.deep.equal(amountZero);
 
-    // if address don't have exits reduceExit function don't change situation any way:
-    const numberOfExitsBefore = new BigNumber(await lockAndDataForSchain.numberOfExits(user));
-    numberOfExitsBefore.should.be.deep.equal(amountZero);
-    await lockAndDataForSchain.reduceExit(address, {from: deployer});
-    const numberOfExitsAfter = new BigNumber(await lockAndDataForSchain.numberOfExits(user));
-    numberOfExitsAfter.should.be.deep.equal(amountZero);
+    // we can add eth to community pool and it uses
+    await lockAndDataForSchain.sendEth(nullAddress, amount, {from: deployer});
+    await lockAndDataForSchain.reduceCommunityPool(amountToReduce, {from: deployer});
+    const communityPool = new BigNumber(await lockAndDataForSchain.communityPool());
+    communityPool.should.be.deep.equal(amountFinal);
 
-    // we can add gas costs to null address and it uses when on address no gas costs:
-    await lockAndDataForSchain.addExit(nullAddress, amount, {from: deployer});
-    await lockAndDataForSchain.reduceExit(address, {from: deployer});
-    const numberOfExitsNullAddress = new BigNumber(await lockAndDataForSchain.numberOfExits(nullAddress));
-    numberOfExitsNullAddress.should.be.deep.equal(amountFinal);
-    const numberOfExitsAddress = new BigNumber(await lockAndDataForSchain.numberOfExits(address));
-    numberOfExitsAddress.should.be.deep.equal(amountZero);
-
-    // reduce gas cost after adding it:
-    await lockAndDataForSchain.addExit(address, amount, {from: deployer});
-    await lockAndDataForSchain.reduceExit(address, {from: deployer});
-    const numberOfExits = new BigNumber(await lockAndDataForSchain.numberOfExits(nullAddress));
-    numberOfExits.should.be.deep.equal(amountFinal);
   });
 
   it("should send Eth", async () => {
