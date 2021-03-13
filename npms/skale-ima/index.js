@@ -739,7 +739,7 @@ async function register_s_chain_in_deposit_box( // step 1
             );
             const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
             //
-            const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+            const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
             const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ) );
@@ -861,7 +861,7 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
-        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
+        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas = await tc_s_chain.computeGas( methodWithArguments, w3_s_chain, 3000000, gasPrice, joAccount.address( w3_s_chain ) );
@@ -980,7 +980,7 @@ async function register_main_net_on_s_chain( // step 2B
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
-        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
+        const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas = await tc_s_chain.computeGas( methodWithArguments, w3_s_chain, 3000000, gasPrice, joAccount_s_chain.address( w3_s_chain ) );
@@ -1071,7 +1071,7 @@ async function do_eth_payment_from_main_net(
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
-        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccountSrc.address( w3_main_net ) );
@@ -1202,7 +1202,7 @@ async function do_eth_payment_from_s_chain(
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         const lockAndDataForSchainAddress = jo_lock_and_data_s_chain.options.address;
         //
-        let gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
+        let gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
         //
@@ -1275,7 +1275,7 @@ async function do_eth_payment_from_s_chain(
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
-        gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 10000000000 );
+        gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
         //
@@ -1365,7 +1365,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
-        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ) );
@@ -1504,7 +1504,7 @@ async function do_erc721_payment_from_main_net(
         //
         //
         strActionName = "compute gas price for ERC721 transactions M->S";
-        let gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+        let gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
@@ -1553,7 +1553,7 @@ async function do_erc721_payment_from_main_net(
         strActionName = "create ERC721/deposit transaction M->S";
         tcnt += 1;
         //
-        gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+        gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
@@ -1709,7 +1709,7 @@ async function do_erc20_payment_from_main_net(
         //
         //
         strActionName = "compute gas price for ERC20 transactions M->S";
-        let gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+        let gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
@@ -1757,7 +1757,7 @@ async function do_erc20_payment_from_main_net(
         //
         strActionName = "create ERC20/deposit transaction M->S";
         //
-        gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 10000000000 );
+        gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
@@ -1911,7 +1911,7 @@ async function do_erc20_payment_from_s_chain(
         // prepare for transactions
         //
         strActionName = "compute gas price for ERC20 transactions S->M";
-        let gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
+        let gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
@@ -1979,7 +1979,7 @@ async function do_erc20_payment_from_s_chain(
             //
             dataAddExit = methodWithArguments_addExit.encodeABI();
             //
-            gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
+            gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
             //
@@ -2035,7 +2035,7 @@ async function do_erc20_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
-        gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
+        gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
@@ -2149,7 +2149,7 @@ async function do_erc721_payment_from_s_chain(
         //
         //
         strActionName = "compute gas price for ERC721 transactions S->M";
-        let gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
+        let gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
@@ -2220,7 +2220,7 @@ async function do_erc721_payment_from_s_chain(
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Using estimated(cost) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_addExit ) + "\n" );
             //
-            gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
+            gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
             //
@@ -2270,7 +2270,7 @@ async function do_erc721_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
-        gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 100000000000 );
+        gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
@@ -3110,7 +3110,7 @@ async function do_transfer(
                         cc.j( joDebugArgs ) + "\n" );
                 }
                 //
-                const gasPrice = await tc_dst.computeGasPrice( w3_dst, 10000000000 );
+                const gasPrice = await tc_dst.computeGasPrice( w3_dst, 200000000000 );
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
                 const estimatedGas_postIncomingMessages = await tc_dst.computeGas( methodWithArguments_postIncomingMessages, w3_dst, 10000000, gasPrice, joAccountDst.address( w3_dst ) );
@@ -3271,14 +3271,23 @@ class TransactionCustomizer {
         this.gasPriceMultiplier = gasPriceMultiplier ? ( 0.0 + gasPriceMultiplier ) : null; // null means use current gasPrice or recommendedGasPrice
         this.gasMultiplier = gasMultiplier ? ( 0.0 + gasMultiplier ) : 1.25;
     }
-    async computeGasPrice( w3, recommendedGasPrice ) {
-        if( this.gasPriceMultiplier != null && this.gasPriceMultiplier != undefined && this.gasPriceMultiplier >= 0 && recommendedGasPrice != null && recommendedGasPrice != undefined )
-            return parseInt( recommendedGasPrice );
-        if( this.gasPriceMultiplier <= 0 )
-            return 0;
+    async computeGasPrice( w3, maxGasPrice ) {
         let gasPrice = parseInt( await w3.eth.getGasPrice() );
-        gasPrice *= this.gasPriceMultiplier;
-        return gasPrice;
+        if( gasPrice == 0 || gasPrice == null || gasPrice == undefined || gasPrice <= 1000000000 )
+            return parseInt( "1000000000" );
+        else if(
+            this.gasPriceMultiplier != null &&
+            this.gasPriceMultiplier != undefined &&
+            this.gasPriceMultiplier >= 0 &&
+            maxGasPrice != null &&
+            maxGasPrice != undefined
+        )
+            if( gasPrice * this.gasPriceMultiplier > maxGasPrice ) 
+                return parseInt( maxGasPrice );
+            else
+                return gasPrice * this.gasPriceMultiplier;
+        else
+            return gasPrice
     }
     async computeGas( methodWithArguments, w3, recommendedGas, gasPrice, addressFrom ) {
         let estimatedGas = 0;
