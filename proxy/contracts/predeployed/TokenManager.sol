@@ -90,7 +90,10 @@ contract TokenManager is PermissionsForSchain {
 
     modifier receivedEth(uint256 amount) {
         if (amount > 0)
-            require(ILockAndDataTM(getLockAndDataAddress()).receiveEth(msg.sender, amount), "Could not receive ETH Clone");
+            require(
+                ILockAndDataTM(getLockAndDataAddress()).receiveEth(msg.sender, amount),
+                "Could not receive ETH Clone"
+            );
         _;
     }
 

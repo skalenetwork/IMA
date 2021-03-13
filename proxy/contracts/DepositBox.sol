@@ -29,12 +29,10 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.so
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
 
 interface ILockAndDataDB {
-    function setContract(string calldata contractName, address newContract) external;
     function tokenManagerAddresses(bytes32 schainHash) external returns (address);
-    function sendEth(address to, uint256 amount) external returns (bool);
     function approveTransfer(address to, uint256 amount) external;
-    function addSchain(string calldata schainID, address tokenManagerAddress) external;
     function receiveEth(address from) external payable;
+    function rechargeSchainWallet(bytes32 schainId, uint256 amount) external;
 }
 
 // This contract runs on the main net and accepts deposits
@@ -47,6 +45,8 @@ contract DepositBox is PermissionsForMainnet {
         transferERC20,
         transferERC721
     }
+
+    mapping (TransactionOperation => uint256) public gasConsumptions;
 
     event MoneyReceivedMessage(
         address sender,
@@ -175,12 +175,15 @@ contract DepositBox is PermissionsForMainnet {
             amount <= address(lockAndDataAddress_).balance,
             "Not enough money to finish this transaction"
         );
-        _executePerOperation(to, amount, data);
+        _executePerOperation(schainHash, to, amount, data);
     }
 
     /// Create a new deposit box
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
+        gasConsumptions[TransactionOperation.transferETH] = 300000;
+        gasConsumptions[TransactionOperation.transferERC20] = 350000;
+        gasConsumptions[TransactionOperation.transferERC721] = 350000;
     }
 
     function deposit(string memory schainID, address to)
@@ -202,6 +205,7 @@ contract DepositBox is PermissionsForMainnet {
     }
 
     function _executePerOperation(
+        bytes32 schainId,
         address payable to,
         uint256 amount,
         bytes calldata data    
@@ -209,11 +213,13 @@ contract DepositBox is PermissionsForMainnet {
         internal
     {
         TransactionOperation operation = _fallbackOperationTypeConvert(data);
+        uint256 txFee = gasConsumptions[operation] * tx.gasprice;
+        require(amount >= txFee, "Not enough funds to recover gas");
         if (operation == TransactionOperation.transferETH) {
-            if (amount > 0)
+            if (amount > txFee)
                 ILockAndDataDB(lockAndDataAddress_).approveTransfer(
                     to,
-                    amount
+                    amount - txFee
                 );
         } else if (operation == TransactionOperation.transferERC20) {
             address erc20Module = IContractManager(lockAndDataAddress_).getContract(
@@ -221,10 +227,10 @@ contract DepositBox is PermissionsForMainnet {
             );
             require(IERC20ModuleForMainnet(erc20Module).sendERC20(data), "Sending of ERC20 was failed");
             address receiver = IERC20ModuleForMainnet(erc20Module).getReceiver(data);
-            if (amount > 0)
+            if (amount > txFee)
                 ILockAndDataDB(lockAndDataAddress_).approveTransfer(
                     receiver,
-                    amount
+                    amount - txFee
                 );
         } else if (operation == TransactionOperation.transferERC721) {
             address erc721Module = IContractManager(lockAndDataAddress_).getContract(
@@ -232,12 +238,13 @@ contract DepositBox is PermissionsForMainnet {
             );
             require(IERC721ModuleForMainnet(erc721Module).sendERC721(data), "Sending of ERC721 was failed");
             address receiver = IERC721ModuleForMainnet(erc721Module).getReceiver(data);
-            if (amount > 0)
+            if (amount > txFee)
                 ILockAndDataDB(lockAndDataAddress_).approveTransfer(
                     receiver,
-                    amount
+                    amount - txFee
                 );
         }
+        ILockAndDataDB(lockAndDataAddress_).rechargeSchainWallet(schainId, txFee);
     }
 
     /**

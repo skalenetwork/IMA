@@ -40,6 +40,8 @@ import {
   LockAndDataForMainnetInstance,
   SchainsInternalContract,
   SchainsInternalInstance,
+  WalletsContract,
+  WalletsInstance,
   } from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
 
@@ -59,17 +61,21 @@ const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
 const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
+const Wallets: WalletsContract = artifacts.require("./Wallets");
 
 contract("DepositBox", ([deployer, user]) => {
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let depositBox: DepositBoxInstance;
   let contractManager: ContractManagerInstance;
   let schainsInternal: SchainsInternalInstance;
+  let wallets: WalletsInstance;
 
   beforeEach(async () => {
     contractManager = await ContractManager.new({from: deployer});
     schainsInternal = await SchainsInternal.new({from: deployer});
+    wallets = await Wallets.new({from: deployer});
     await contractManager.setContractsAddress("SchainsInternal", schainsInternal.address, {from: deployer});
+    await contractManager.setContractsAddress("Wallets", wallets.address, {from: deployer});
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
     depositBox = await deployDepositBox(lockAndDataForMainnet);
     await lockAndDataForMainnet.setContract("ContractManagerForSkaleManager", contractManager.address, {from: deployer});
@@ -411,7 +417,7 @@ contract("DepositBox", ([deployer, user]) => {
     it("should transfer eth", async () => {
       //  preparation
       const schainID = randomString(10);
-      const amount = "30000000000000000";
+      const amount = "27600000000000000";
       // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
       const bytesData = "0x01";
       const sender = deployer;
@@ -427,7 +433,7 @@ contract("DepositBox", ([deployer, user]) => {
         .receiveEth(deployer, {value: wei, from: deployer});
       // execution
       const res = await depositBox
-        .postMessage(sender, schainID, user, amount, bytesData, {from: deployer});
+        .postMessage(sender, schainID, user, wei, bytesData, {from: deployer});
       // console.log("Gas for postMessage Eth:", res.receipt.gasUsed);
       // expectation
       const bn = new BigNumber(await lockAndDataForMainnet.approveTransfers(user));
@@ -440,7 +446,7 @@ contract("DepositBox", ([deployer, user]) => {
       const contractHere = ethERC20.address;
       const schainID = randomString(10);
       const amount = 10;
-      const amount0 = "30000000000000000";
+      const amount0 = "27200000000000000";
       const to = user;
       const to0 = "0x0000000000000000000000000000000000000000"; // ERC20 address
       const sender = deployer;
@@ -468,7 +474,7 @@ contract("DepositBox", ([deployer, user]) => {
       // to avoid `Incorrect sender` error
       await lockAndDataForMainnet.setContract("MessageProxy", deployer);
       const res = await depositBox
-        .postMessage(sender, schainID, to0, amount0, data, {from: deployer});
+        .postMessage(sender, schainID, to0, wei, data, {from: deployer});
       // console.log("Gas for postMessage ERC20:", res.receipt.gasUsed);
       // expectation
       const bn = new BigNumber(await lockAndDataForMainnet.approveTransfers(user));
@@ -481,7 +487,7 @@ contract("DepositBox", ([deployer, user]) => {
       const contractHere = eRC721OnChain.address;
       const schainID = randomString(10);
       const tokenId = 10;
-      const amount0 = "30000000000000000";
+      const amount0 = "27200000000000000";
       const to = user;
       const to0 = "0x0000000000000000000000000000000000000000"; // ERC721 address
       const sender = deployer;
@@ -507,7 +513,7 @@ contract("DepositBox", ([deployer, user]) => {
       // to avoid `Incorrect sender` error
       await lockAndDataForMainnet.setContract("MessageProxy", deployer);
       const res = await depositBox
-        .postMessage(sender, schainID, to0, amount0, data, {from: deployer});
+        .postMessage(sender, schainID, to0, wei, data, {from: deployer});
       // console.log("Gas for postMessage ERC721:", res.receipt.gasUsed);
       // expectation
       const bn = new BigNumber(await lockAndDataForMainnet.approveTransfers(user));
