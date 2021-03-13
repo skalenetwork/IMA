@@ -1192,7 +1192,6 @@ async function do_eth_payment_from_s_chain(
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_eth_payment_from_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        const lockAndDataForSchainAddress = jo_lock_and_data_s_chain.options.address;
         //
         let gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
@@ -1830,7 +1829,6 @@ async function do_erc20_payment_from_s_chain(
         const erc20ABI = joErc20_s_chain[strCoinNameErc20_s_chain + "_abi"];
         const erc20Address_s_chain = joErc20_s_chain[strCoinNameErc20_s_chain + "_address"];
         const tokenManagerAddress = jo_token_manager.options.address;
-        const lockAndDataForSchainAddress = jo_lock_and_data_s_chain.options.address;
         const contractERC20 = new w3_s_chain.eth.Contract( erc20ABI, erc20Address_s_chain );
         //
         // prepare the smart contract function deposit(string schainID, address to)
@@ -1846,7 +1844,7 @@ async function do_erc20_payment_from_s_chain(
             erc20Address_main_net,
             accountForMainnet,
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 ),
-            "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 ),
+            "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
         );
         dataExitToMainERC20 = methodWithArguments_rawExitToMainERC20.encodeABI();
         //
@@ -2013,7 +2011,6 @@ async function do_erc721_payment_from_s_chain(
         const erc721ABI = joErc721_s_chain[strCoinNameErc721_s_chain + "_abi"];
         const erc721Address_s_chain = joErc721_s_chain[strCoinNameErc721_s_chain + "_address"];
         const tokenManagerAddress = jo_token_manager.options.address;
-        const lockAndDataForSchainAddress = jo_lock_and_data_s_chain.options.address;
         const contractERC721 = new w3_s_chain.eth.Contract( erc721ABI, erc721Address_s_chain );
         // prepare the smart contract function deposit(string schainID, address to)
         // const depositBoxAddress = jo_deposit_box.options.address;
@@ -2027,7 +2024,7 @@ async function do_erc721_payment_from_s_chain(
             erc721Address_main_net,
             accountForMainnet,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
-            "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 ),
+            "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
         );
         dataTxExitToMainERC721 = methodWithArguments_rawExitToMainERC721.encodeABI();
         //
@@ -3097,7 +3094,7 @@ class TransactionCustomizer {
         this.gasMultiplier = gasMultiplier ? ( 0.0 + gasMultiplier ) : 1.25;
     }
     async computeGasPrice( w3, maxGasPrice ) {
-        let gasPrice = parseInt( await w3.eth.getGasPrice() );
+        const gasPrice = parseInt( await w3.eth.getGasPrice() );
         if( gasPrice == 0 || gasPrice == null || gasPrice == undefined || gasPrice <= 1000000000 )
             return parseInt( "1000000000" );
         else if(
@@ -3106,13 +3103,13 @@ class TransactionCustomizer {
             this.gasPriceMultiplier >= 0 &&
             maxGasPrice != null &&
             maxGasPrice != undefined
-        )
-            if( gasPrice * this.gasPriceMultiplier > maxGasPrice ) 
+        ) {
+            if( gasPrice * this.gasPriceMultiplier > maxGasPrice )
                 return parseInt( maxGasPrice );
             else
                 return gasPrice * this.gasPriceMultiplier;
-        else
-            return gasPrice
+        } else
+            return gasPrice;
     }
     async computeGas( methodWithArguments, w3, recommendedGas, gasPrice, addressFrom ) {
         let estimatedGas = 0;
