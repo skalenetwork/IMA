@@ -25,7 +25,7 @@ from tools.test_pool import test_pool
 
 
 class SendEtherToMainnet(TestCase):
-    amount = 3 * 10 ** 15  # 3 finney
+    amount = 7 * 10 ** 16  # 60 finney
     from_key = None
     to_key = None
 
@@ -62,8 +62,11 @@ class SendEtherToMainnet(TestCase):
                                                        self.amount,
                                                        self.timeout)
 
-        transaction_fee = 2 * 10 ** 15
-        approximate_gas_spends = 25 * 10 ** 13
+        transaction_fee = 6 * 10 ** 16
+        approximate_gas_spends = 3 * 10 ** 15
+        print(self.blockchain.get_balance_on_mainnet(destination_address))
+        print(balance + self.amount)
+        print(balance + self.amount - transaction_fee - approximate_gas_spends)
         if self.blockchain.get_balance_on_mainnet(destination_address) > (
                 balance + self.amount - transaction_fee - approximate_gas_spends):
             self._mark_passed()

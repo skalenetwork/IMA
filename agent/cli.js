@@ -252,7 +252,6 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "ether" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( ".................." ) + cc.notice( "Amount of " ) + cc.attention( "ether" ) + cc.info( "(wei*1000*1000*1000*1000*1000*1000)" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "amount" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "................." ) + cc.notice( "Amount of " ) + cc.attention( "tokens" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "tid" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "...................." ) + cc.attention( "ERC721" ) + cc.notice( " token id to transfer." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "add-exit" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "......." ) + cc.notice( "Amount of exits for transferring" ) + cc.attention( "ETH" ) + cc.notice( "/" ) + cc.attention( "ERC20" ) + cc.notice( "/" ) + cc.attention( "ERC721" ) + cc.notice( " from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "Main-net" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sleep-between-tx" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "......." ) + cc.notice( "Number of of " ) + cc.attention( "milliseconds" ) + cc.notice( " to sleep between transactions during complex operations." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "wait-next-block" ) + cc.debug( "..............." ) + cc.notice( "Wait for next block between transactions during complex operations." ) );
             //
@@ -506,11 +505,6 @@ function parse( joExternalHandlers, argv ) {
         }
         //
         //
-        if( joArg.name == "add-exit" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            IMA.setAmountToAddExit( joArg.value );
-            continue;
-        }
         if( joArg.name == "sleep-between-tx" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
             IMA.setSleepBetweenTransactionsOnSChainMilliseconds( joArg.value );
