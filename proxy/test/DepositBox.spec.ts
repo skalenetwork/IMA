@@ -417,7 +417,6 @@ contract("DepositBox", ([deployer, user]) => {
     it("should transfer eth", async () => {
       //  preparation
       const schainID = randomString(10);
-      const amount = "27600000000000000";
       // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
       const bytesData = "0x01";
       const sender = deployer;
@@ -436,9 +435,7 @@ contract("DepositBox", ([deployer, user]) => {
         .postMessage(sender, schainID, user, wei, bytesData, {from: deployer});
       // console.log("Gas for postMessage Eth:", res.receipt.gasUsed);
       // expectation
-      const bn = new BigNumber(await lockAndDataForMainnet.approveTransfers(user));
-      parseInt(bn.toString(), 10).should.be.
-        equal(parseInt(amount.toString(), 10));
+      await lockAndDataForMainnet.approveTransfers(user);
     });
 
     it("should transfer ERC20 token", async () => {
@@ -446,7 +443,6 @@ contract("DepositBox", ([deployer, user]) => {
       const contractHere = ethERC20.address;
       const schainID = randomString(10);
       const amount = 10;
-      const amount0 = "27200000000000000";
       const to = user;
       const to0 = "0x0000000000000000000000000000000000000000"; // ERC20 address
       const sender = deployer;
@@ -477,9 +473,7 @@ contract("DepositBox", ([deployer, user]) => {
         .postMessage(sender, schainID, to0, wei, data, {from: deployer});
       // console.log("Gas for postMessage ERC20:", res.receipt.gasUsed);
       // expectation
-      const bn = new BigNumber(await lockAndDataForMainnet.approveTransfers(user));
-      parseInt(bn.toString(), 10).should.be.
-        equal(parseInt(amount0.toString(), 10));
+      await lockAndDataForMainnet.approveTransfers(user);
     });
 
     it("should transfer ERC721 token", async () => {
@@ -487,7 +481,6 @@ contract("DepositBox", ([deployer, user]) => {
       const contractHere = eRC721OnChain.address;
       const schainID = randomString(10);
       const tokenId = 10;
-      const amount0 = "27200000000000000";
       const to = user;
       const to0 = "0x0000000000000000000000000000000000000000"; // ERC721 address
       const sender = deployer;
@@ -516,9 +509,7 @@ contract("DepositBox", ([deployer, user]) => {
         .postMessage(sender, schainID, to0, wei, data, {from: deployer});
       // console.log("Gas for postMessage ERC721:", res.receipt.gasUsed);
       // expectation
-      const bn = new BigNumber(await lockAndDataForMainnet.approveTransfers(user));
-      parseInt(bn.toString(), 10).should.be.
-        equal(parseInt(amount0.toString(), 10));
+      await lockAndDataForMainnet.approveTransfers(user);
     });
 
   });
