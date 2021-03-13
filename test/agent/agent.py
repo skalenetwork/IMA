@@ -94,20 +94,8 @@ class Agent:
             }
         )
 
-        print(initial_approved)
-        print(amount_wei)
-        print(approved)
-        print(initial_approved + amount_wei)
         if timeout > 0:
-            print(initial_approved)
-            print(amount_wei)
-            print(approved)
-            print(initial_approved + amount_wei)
             while not approved >= initial_approved + amount_wei - 6 * 10 ** 16:
-                print(initial_approved)
-                print(amount_wei)
-                print(approved)
-                print(initial_approved + amount_wei)
                 approved = self.blockchain.get_approved_amount(destination_address)
                 debug(f'Approved: {approved}')
 

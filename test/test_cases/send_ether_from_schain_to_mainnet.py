@@ -64,9 +64,6 @@ class SendEtherToMainnet(TestCase):
 
         transaction_fee = 6 * 10 ** 16
         approximate_gas_spends = 3 * 10 ** 15
-        print(self.blockchain.get_balance_on_mainnet(destination_address))
-        print(balance + self.amount)
-        print(balance + self.amount - transaction_fee - approximate_gas_spends)
         if self.blockchain.get_balance_on_mainnet(destination_address) > (
                 balance + self.amount - transaction_fee - approximate_gas_spends):
             self._mark_passed()
