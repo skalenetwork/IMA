@@ -352,7 +352,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 await messageProxyForMainnet.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
-            await messageProxyForMainnet
+            const res = await messageProxyForMainnet
             .postIncomingMessages(
                 chainID,
                 startingCounter,
@@ -361,6 +361,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 0,
                 {from: deployer},
             );
+            // console.log("Gas for postIncomingMessages Eth:", res.receipt.gasUsed);
             const incomingMessagesCounter = new BigNumber(
                 await messageProxyForMainnet.getIncomingMessagesCounter(chainID));
             incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));

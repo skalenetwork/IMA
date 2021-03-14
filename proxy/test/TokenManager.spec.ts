@@ -669,11 +669,11 @@ contract("TokenManager", ([deployer, user, client]) => {
             (eRC20.address).substr(2) + "000000000000000000000000" + // contractPosition
             to.substr(2) + "000000000000000000000000" + // receiver
             "000000000000000000000000000000000000000000000000000000000000000a" + // tokenId
+            "000000000000000000000000000000000000000000000000000000003b9ac9f6" + // total supply
             "000000000000000000000000000000000000000000000000000000000000000c" + // token name
             "45524332304f6e436861696e" + // token name
             "0000000000000000000000000000000000000000000000000000000000000005" + // token symbol
-            "455243323012" + // token symbol
-            "000000000000000000000000000000000000000000000000000000003b9ac9f6"; // total supply
+            "455243323012"; // token symbol
 
             // add schain to avoid the `Unconnected chain` error
             await lockAndDataForSchain

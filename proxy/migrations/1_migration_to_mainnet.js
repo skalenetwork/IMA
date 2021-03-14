@@ -29,6 +29,7 @@ const fsPromises = fs.promises;
 const Web3 = require( "web3" );
 
 const jsonData = require( "../data/skaleManagerComponents.json" );
+const configFile = require( "../truffle-config.js" );
 
 const { scripts, ConfigManager } = require( "@openzeppelin/cli" );
 const { add, push, create } = scripts;
@@ -110,7 +111,7 @@ async function deploy( deployer, networkName, accounts ) {
             if( configFile.networks[networkName].host !== "" && configFile.networks[networkName].host !== undefined && configFile.networks[networkName].port !== "" && configFile.networks[networkName].port !== undefined ) {
                 const web3 = new Web3( new Web3.providers.HttpProvider( "http://" + configFile.networks[networkName].host + ":" + configFile.networks[networkName].port ) );
                 if( await web3.eth.getCode( jsonData.contract_manager_address ) !== "0x" ) {
-                    const contractManager = await web3.eth.Contract( jsonData.contract_manager_abi, jsonData.contract_manager_address );
+                    const contractManager = new web3.eth.Contract( jsonData.contract_manager_abi, jsonData.contract_manager_address );
                     const methodRegister = await contractManager.methods.setContractsAddress( "MessageProxyForMainnet", deployed.get( "MessageProxyForMainnet" ).address ).encodeABI();
                     const ownerAddress = await contractManager.methods.owner().call();
                     if( await web3.utils.toChecksumAddress( ownerAddress ) !== await web3.utils.toChecksumAddress( deployAccount ) )
@@ -129,7 +130,7 @@ async function deploy( deployer, networkName, accounts ) {
             } else if( configFile.networks[networkName].provider !== "" && configFile.networks[networkName].provider !== undefined ) {
                 const web3 = new Web3( configFile.networks[networkName].provider() );
                 if( await web3.eth.getCode( jsonData.contract_manager_address ) !== "0x" ) {
-                    const contractManager = await web3.eth.Contract( jsonData.contract_manager_abi, jsonData.contract_manager_address );
+                    const contractManager = new web3.eth.Contract( jsonData.contract_manager_abi, jsonData.contract_manager_address );
                     const methodRegister = await contractManager.methods.setContractsAddress( "MessageProxyForMainnet", deployed.get( "MessageProxyForMainnet" ).address ).encodeABI();
                     const ownerAddress = await contractManager.methods.owner().call();
                     if( await web3.utils.toChecksumAddress( ownerAddress ) !== await web3.utils.toChecksumAddress( deployAccount ) )

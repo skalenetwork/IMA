@@ -65,7 +65,7 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract(
             "LockAndDataERC721"
         );
-        bool isERC721AddedToSchain= LockAndDataForMainnetERC721(lockAndDataERC721)
+        bool isERC721AddedToSchain = LockAndDataForMainnetERC721(lockAndDataERC721)
             .getSchainToERC721(schainID, contractOnMainnet);
         if (!isERC721AddedToSchain) {
             LockAndDataForMainnetERC721(lockAndDataERC721).addERC721ForSchain(schainID, contractOnMainnet);

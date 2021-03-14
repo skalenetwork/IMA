@@ -116,5 +116,9 @@ module.exports = {
                 evmVersion: "petersburg"
             }
         }
+    },
+    plugins: [ "truffle-plugin-verify" ],
+    api_keys: {
+        etherscan: "QSW5NZN9RCYXSZWVB32DMUN83UZ5EJUREI"
     }
 };
