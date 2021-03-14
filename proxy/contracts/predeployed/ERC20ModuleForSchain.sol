@@ -26,22 +26,8 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol
 
 import "../Messages.sol";
 import "./PermissionsForSchain.sol";
-
-
-interface ITokenFactoryForERC20 {
-    function createERC20(string memory name, string memory symbol)
-        external
-        returns (address payable);
-}
-
-interface ILockAndDataERC20S {
-    function addERC20ForSchain(string calldata schainID, address erc20OnMainnet, address erc20OnSchain) external;
-    function sendERC20(address contractOnSchain, address to, uint256 amount) external returns (bool);
-    function receiveERC20(address contractOnSchain, uint256 amount) external returns (bool);
-    function setTotalSupplyOnMainnet(address contractOnSchain, uint256 newTotalSupplyOnMainnet) external;
-    function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address);
-    function totalSupplyOnMainnet(address contractOnSchain) external view returns (uint256);
-}
+import "./TokenFactory.sol";
+import "./LockAndDataForSchainERC20.sol";
 
 /**
  * @title ERC20 Module For SKALE Chain
@@ -78,10 +64,10 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         address lockAndDataERC20 = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getLockAndDataErc20();
-        address contractOnSchain = ILockAndDataERC20S(lockAndDataERC20).getERC20OnSchain(schainID, contractOnMainnet);
+        address contractOnSchain = LockAndDataForSchainERC20(lockAndDataERC20).getERC20OnSchain(schainID, contractOnMainnet);
         require(contractOnSchain != address(0), "ERC20 contract does not exist on SKALE chain.");
         require(
-            ILockAndDataERC20S(lockAndDataERC20).receiveERC20(contractOnSchain, amount),
+            LockAndDataForSchainERC20(lockAndDataERC20).receiveERC20(contractOnSchain, amount),
             "Could not receive ERC20 Token"
         );
         data = Messages.encodeTransferErc20Message(contractOnMainnet, receiver, amount);
@@ -97,24 +83,24 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         address lockAndDataERC20 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc20();
         Messages.TransferErc20AndTokenInfoMessage memory message =
             Messages.decodeTransferErc20AndTokenInfoMessage(data);
-        address contractOnSchain = ILockAndDataERC20S(lockAndDataERC20)
+        address contractOnSchain = LockAndDataForSchainERC20(lockAndDataERC20)
             .getERC20OnSchain(schainID, message.baseErc20transfer.token);
         if (contractOnSchain == address(0)) {
             contractOnSchain = _sendCreateERC20Request(message.tokenInfo);
-            ILockAndDataERC20S(lockAndDataERC20)
+            LockAndDataForSchainERC20(lockAndDataERC20)
                 .addERC20ForSchain(schainID, message.baseErc20transfer.token, contractOnSchain);
             emit ERC20TokenCreated(schainID, message.baseErc20transfer.token, contractOnSchain);
         }
-        if (message.tokenInfo.totalSupply != ILockAndDataERC20S(lockAndDataERC20)
+        if (message.tokenInfo.totalSupply != LockAndDataForSchainERC20(lockAndDataERC20)
             .totalSupplyOnMainnet(contractOnSchain))
         {
-            ILockAndDataERC20S(lockAndDataERC20).setTotalSupplyOnMainnet(
+            LockAndDataForSchainERC20(lockAndDataERC20).setTotalSupplyOnMainnet(
                 contractOnSchain,
                 message.tokenInfo.totalSupply
             );
         }
         emit ERC20TokenReceived(message.baseErc20transfer.token, contractOnSchain, message.baseErc20transfer.amount);
-        return ILockAndDataERC20S(lockAndDataERC20).sendERC20(
+        return LockAndDataForSchainERC20(lockAndDataERC20).sendERC20(
             message.baseErc20transfer.token,
             message.baseErc20transfer.receiver,
             message.baseErc20transfer.amount
@@ -129,15 +115,15 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
     }
 
     function _sendCreateERC20Request(
-        Messages.Erc20TokenInfo memory Erc20TokenInfo
+        Messages.Erc20TokenInfo memory erc20TokenInfo
     )
         internal
         returns (address newToken)
     {
         address tokenFactoryAddress = LockAndDataForSchain(getLockAndDataAddress()).getTokenFactory();
-        newToken = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(
-            Erc20TokenInfo.name,
-            Erc20TokenInfo.symbol
+        newToken = TokenFactory(tokenFactoryAddress).createERC20(
+            erc20TokenInfo.name,
+            erc20TokenInfo.symbol
         );
     }
 }

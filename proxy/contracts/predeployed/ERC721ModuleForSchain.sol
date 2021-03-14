@@ -25,23 +25,9 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Metadata.sol";
 
 import "../Messages.sol";
-
 import "./PermissionsForSchain.sol";
-
-
-interface ITokenFactoryForERC721 {
-    function createERC721(string memory name, string memory symbol)
-        external
-        returns (address payable);
-}
-
-interface ILockAndDataERC721S {
-    function addERC721ForSchain(string calldata schainID, address erc721OnMainnet, address erc721OnSchain) external;
-    function sendERC721(address contractOnSchain, address to, uint256 tokenId) external returns (bool);
-    function receiveERC721(address contractOnSchain, uint256 tokenId) external returns (bool);
-    function getERC721OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address);
-}
-
+import "./LockAndDataForSchainERC721.sol";
+import "./TokenFactory.sol";
 
 contract ERC721ModuleForSchain is PermissionsForSchain {
 
@@ -70,11 +56,11 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         returns (bytes memory data)
     {
         address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
-        address contractOnSchain = ILockAndDataERC721S(lockAndDataERC721)
+        address contractOnSchain = LockAndDataForSchainERC721(lockAndDataERC721)
             .getERC721OnSchain(schainID, contractOnMainnet);
         require(contractOnSchain != address(0), "ERC721 contract does not exist on SKALE chain");
         require(
-            ILockAndDataERC721S(lockAndDataERC721).receiveERC721(contractOnSchain, tokenId),
+            LockAndDataForSchainERC721(lockAndDataERC721).receiveERC721(contractOnSchain, tokenId),
             "Could not receive ERC721 Token"
         );
         data = Messages.encodeTransferErc721Message(contractOnMainnet, receiver, tokenId);
@@ -89,18 +75,18 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
         address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
         Messages.TransferErc721AndTokenInfoMessage memory message =
             Messages.decodeTransferErc721AndTokenInfoMessage(data);
-        address contractOnSchain = ILockAndDataERC721S(lockAndDataERC721)
+        address contractOnSchain = LockAndDataForSchainERC721(lockAndDataERC721)
             .getERC721OnSchain(schainID, message.baseErc721transfer.token);
         if (contractOnSchain == address(0)) {
             contractOnSchain = _sendCreateERC721Request(message.tokenInfo);
-            ILockAndDataERC721S(lockAndDataERC721).addERC721ForSchain(
+            LockAndDataForSchainERC721(lockAndDataERC721).addERC721ForSchain(
                 schainID,
                 message.baseErc721transfer.token,
                 contractOnSchain
             );
             emit ERC721TokenCreated(schainID, message.baseErc721transfer.token, contractOnSchain);
         }
-        return ILockAndDataERC721S(lockAndDataERC721).sendERC721(
+        return LockAndDataForSchainERC721(lockAndDataERC721).sendERC721(
             message.baseErc721transfer.token,
             message.baseErc721transfer.receiver,
             message.baseErc721transfer.tokenId
@@ -116,7 +102,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
 
     function _sendCreateERC721Request(Messages.Erc721TokenInfo memory tokenInfo) internal returns (address) {
         address tokenFactoryAddress = LockAndDataForSchain(getLockAndDataAddress()).getTokenFactory();
-        return ITokenFactoryForERC721(tokenFactoryAddress).createERC721(tokenInfo.name, tokenInfo.symbol);
+        return TokenFactory(tokenFactoryAddress).createERC721(tokenInfo.name, tokenInfo.symbol);
     }
 }
 

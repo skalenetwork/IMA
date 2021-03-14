@@ -28,7 +28,7 @@ import "./Messages.sol";
 import "./PermissionsForMainnet.sol";
 
 
-interface ILockAndDataERC721M {
+interface LockAndDataForMainnetERC721 {
     function sendERC721(address contractOnMainnet, address to, uint256 token) external returns (bool);
     function addERC721ForSchain(string calldata schainID, address erc721OnMainnet) external;
     function getSchainToERC721(string calldata schainID, address erc721OnMainnet) external view returns (bool);
@@ -65,10 +65,10 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract(
             "LockAndDataERC721"
         );
-        bool isERC721AddedToSchain= ILockAndDataERC721M(lockAndDataERC721)
+        bool isERC721AddedToSchain= LockAndDataForMainnetERC721(lockAndDataERC721)
             .getSchainToERC721(schainID, contractOnMainnet);
         if (!isERC721AddedToSchain) {
-            ILockAndDataERC721M(lockAndDataERC721).addERC721ForSchain(schainID, contractOnMainnet);
+            LockAndDataForMainnetERC721(lockAndDataERC721).addERC721ForSchain(schainID, contractOnMainnet);
             emit ERC721TokenAdded(schainID, contractOnMainnet);
         }
         data = Messages.encodeTransferErc721AndTokenInfoMessage(
@@ -88,7 +88,7 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
             "LockAndDataERC721"
         );
         Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
-        return ILockAndDataERC721M(lockAndDataERC721).sendERC721(message.token, message.receiver, message.tokenId);
+        return LockAndDataForMainnetERC721(lockAndDataERC721).sendERC721(message.token, message.receiver, message.tokenId);
     }
 
     /**

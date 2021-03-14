@@ -26,13 +26,9 @@ import "./thirdparty/openzeppelin/IERC20Metadata.sol";
 
 import "./Messages.sol";
 import "./PermissionsForMainnet.sol";
+import "./LockAndDataForMainnet.sol";
+import "./LockAndDataForMainnetERC20.sol";
 
-
-interface ILockAndDataERC20M {
-    function sendERC20(address contractOnMainnet, address to, uint256 amount) external returns (bool);
-    function addERC20ForSchain(string calldata schainID, address erc20OnMainnet) external;
-    function getSchainToERC20(string calldata schainID, address erc20OnMainnet) external view returns (bool);
-}
 
 /**
  * @title ERC20 Module For Mainnet
@@ -77,9 +73,9 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         );
         uint256 totalSupply = IERC20(contractOnMainnet).totalSupply();
         require(amount <= totalSupply, "Amount is incorrect");
-        bool isERC20AddedToSchain = ILockAndDataERC20M(lockAndDataERC20).getSchainToERC20(schainID, contractOnMainnet);
+        bool isERC20AddedToSchain = LockAndDataForMainnetERC20(lockAndDataERC20).getSchainToERC20(schainID, contractOnMainnet);
         if (!isERC20AddedToSchain) {
-            ILockAndDataERC20M(lockAndDataERC20).addERC20ForSchain(schainID, contractOnMainnet);
+            LockAndDataForMainnetERC20(lockAndDataERC20).addERC20ForSchain(schainID, contractOnMainnet);
             emit ERC20TokenAdded(schainID, contractOnMainnet);
         } 
         data = Messages.encodeTransferErc20AndTokenInfoMessage(
@@ -99,7 +95,7 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
             "LockAndDataERC20"
         );
         Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
-        return ILockAndDataERC20M(lockAndDataERC20).sendERC20(message.token, message.receiver, message.amount);
+        return LockAndDataForMainnetERC20(lockAndDataERC20).sendERC20(message.token, message.receiver, message.amount);
     }
 
     /**

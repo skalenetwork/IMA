@@ -24,7 +24,7 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts-ethereum-package/contracts/access/AccessControl.sol";
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
-import "./interfaces/ILockAndDataForMainnet.sol";
+import "./LockAndDataForMainnet.sol";
 
 
 /**
@@ -87,7 +87,7 @@ contract PermissionsForMainnet is AccessControlUpgradeSafe {
      * @dev Checks whether sender is owner of SKALE chain
      */
     function isSchainOwner(address sender, bytes32 schainId) public virtual view returns (bool) {
-        return ILockAndDataForMainnet(lockAndDataAddress_).isSchainOwner(sender, schainId);
+        return LockAndDataForMainnet(lockAndDataAddress_).isSchainOwner(sender, schainId);
     }
 
     /**

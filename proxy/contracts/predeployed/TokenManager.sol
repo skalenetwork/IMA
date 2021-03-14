@@ -25,21 +25,12 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.so
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
 
 import "../interfaces/IMessageProxy.sol";
-import "../interfaces/IERC20ModuleForSchain.sol";
-import "../interfaces/IERC721ModuleForSchain.sol";
+import "./ERC20ModuleForSchain.sol";
+import "./ERC721ModuleForSchain.sol";
 import "../Messages.sol";
-
 import "./PermissionsForSchain.sol";
 
 
-interface ILockAndDataTM {
-    function setContract(string calldata contractName, address newContract) external;
-    function tokenManagerAddresses(bytes32 schainHash) external returns (address);
-    function sendEth(address to, uint256 amount) external returns (bool);
-    function receiveEth(address sender, uint256 amount) external returns (bool);
-    function approveTransfer(address to, uint256 amount) external;
-    function reduceExit(address to) external returns (bool);
-}
 
 interface ILockAndDataERCOnSchain {
     function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address);
@@ -67,7 +58,7 @@ contract TokenManager is PermissionsForSchain {
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address schainTokenManagerAddress = ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash);
+        address schainTokenManagerAddress = LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(schainHash);
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")),
             "This function is not for transferring to Mainnet"
@@ -77,7 +68,7 @@ contract TokenManager is PermissionsForSchain {
     }
 
     modifier receivedEth(uint256 amount) {
-        require(ILockAndDataTM(getLockAndDataAddress()).receiveEth(msg.sender, amount), "Could not receive ETH Clone");
+        require(LockAndDataForSchain(getLockAndDataAddress()).receiveEth(msg.sender, amount), "Could not receive ETH Clone");
         _;
     }
 
@@ -140,15 +131,15 @@ contract TokenManager is PermissionsForSchain {
             ),
             "Could not transfer ERC20 Token"
         );
-        require(ILockAndDataTM(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
-        bytes memory data = IERC20ModuleForSchain(erc20Module).receiveERC20(
+        require(LockAndDataForSchain(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
+        bytes memory data = ERC20ModuleForSchain(erc20Module).receiveERC20(
             "Mainnet",
             contractOnMainnet,
             to,
             amount);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
-            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             0,
             address(0),
             data
@@ -182,14 +173,14 @@ contract TokenManager is PermissionsForSchain {
             ),
             "Could not transfer ERC20 Token"
         );
-        bytes memory data = IERC20ModuleForSchain(erc20Module).receiveERC20(
+        bytes memory data = ERC20ModuleForSchain(erc20Module).receiveERC20(
             schainID,
             contractOnMainnet,
             to,
             amount);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
-            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             0,
             address(0),
             data
@@ -204,15 +195,15 @@ contract TokenManager is PermissionsForSchain {
         require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractOnSchain).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-        require(ILockAndDataTM(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
-        bytes memory data = IERC721ModuleForSchain(erc721Module).receiveERC721(
+        require(LockAndDataForSchain(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
+        bytes memory data = ERC721ModuleForSchain(erc721Module).receiveERC721(
             "Mainnet",
             contractOnMainnet,
             to,
             tokenId);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
-            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             0,
             address(0),
             data
@@ -234,14 +225,14 @@ contract TokenManager is PermissionsForSchain {
         require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractOnSchain).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-        bytes memory data = IERC721ModuleForSchain(erc721Module).receiveERC721(
+        bytes memory data = ERC721ModuleForSchain(erc721Module).receiveERC721(
             schainID,
             contractOnMainnet,
             to,
             tokenId);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
-            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             0,
             address(0),
             data
@@ -273,27 +264,27 @@ contract TokenManager is PermissionsForSchain {
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
             schainHash != keccak256(abi.encodePacked(getChainID())) && 
-            sender == ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(schainHash),
+            sender == LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(schainHash),
             "Receiver chain is incorrect"
         );
         Messages.MessageType operation = Messages.getMessageType(data);
         if (operation == Messages.MessageType.TRANSFER_ETH) {
             require(to != address(0), "Incorrect receiver");
-            require(ILockAndDataTM(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
+            require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
         } else if (operation == Messages.MessageType.TRANSFER_ERC20_AND_TOKEN_INFO) {
             address erc20Module = LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getErc20Module();
-            require(IERC20ModuleForSchain(erc20Module).sendERC20(fromSchainID, data), "Failed to send ERC20");
-            address receiver = IERC20ModuleForSchain(erc20Module).getReceiver(data);
-            require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
+            require(ERC20ModuleForSchain(erc20Module).sendERC20(fromSchainID, data), "Failed to send ERC20");
+            address receiver = ERC20ModuleForSchain(erc20Module).getReceiver(data);
+            require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else if (operation == Messages.MessageType.TRANSFER_ERC721) {
             address erc721Module = LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getErc721Module();
-            require(IERC721ModuleForSchain(erc721Module).sendERC721(fromSchainID, data), "Failed to send ERC721");
-            address receiver = IERC721ModuleForSchain(erc721Module).getReceiver(data);
-            require(ILockAndDataTM(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
+            require(ERC721ModuleForSchain(erc721Module).sendERC721(fromSchainID, data), "Failed to send ERC721");
+            address receiver = ERC721ModuleForSchain(erc721Module).getReceiver(data);
+            require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else {
             revert("MessageType is unknown");
         }
@@ -312,12 +303,12 @@ contract TokenManager is PermissionsForSchain {
      */
     function exitToMain(address to, uint256 amount, bytes memory data) public receivedEth(amount) {
         require(to != address(0), "Incorrect contractThere address");
-        require(ILockAndDataTM(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
+        require(LockAndDataForSchain(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
         bytes memory newData;
         newData = abi.encodePacked(bytes1(uint8(1)), data);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
-            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             amount,
             to,
             newData
@@ -346,7 +337,7 @@ contract TokenManager is PermissionsForSchain {
         require(to != address(0), "Incorrect contractThere address");
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
-            ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))),
+            LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))),
             amount,
             to,
             data
