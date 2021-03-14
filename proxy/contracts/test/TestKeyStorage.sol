@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   WalletsMock.sol - SKALE Interchain Messaging Agent
+ *   TestKeyStorage.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -19,18 +19,22 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
-import "../interfaces/IWallets.sol";
+import "./TestFieldOperations.sol";
 
 
-contract Wallets is IWallets {
+contract KeyStorage {
 
-    function refundGasBySchain(bytes32, address payable, uint, bool) external override {
-        // solhint-disable-previous-line no-empty-blocks
+    mapping(bytes32 => G2Operations.G2Point) private _schainsPublicKeys;
+
+    function setCommonPublicKey(bytes32 schainId, G2Operations.G2Point memory value) external {
+        _schainsPublicKeys[schainId] = value;
     }
 
-    function rechargeSchainWallet(bytes32) external override payable {
-        // solhint-disable-previous-line no-empty-blocks
+    function getCommonPublicKey(bytes32 schainId) external view returns (G2Operations.G2Point memory) {
+        return _schainsPublicKeys[schainId];
     }
 }

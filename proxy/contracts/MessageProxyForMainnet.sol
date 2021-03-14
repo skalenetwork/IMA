@@ -31,13 +31,15 @@ import "./interfaces/IWallets.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
-        address sender,
         string calldata schainID,
+        address agent,
+        address sender,
         address to,
         uint256 amount,
         bytes calldata data
     )
-        external;
+        external
+        returns (uint256);
 }
 
 interface ISchains {
@@ -143,13 +145,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
 
     event PostMessageError(
         uint256 indexed msgCounter,
-        bytes32 indexed srcChainHash,
-        address sender,
-        string fromSchainID,
-        address to,
-        uint256 amount,
-        bytes data,
-        string message
+        bytes message
     );
 
     /**
@@ -248,9 +244,9 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     )
         external
     {
-        uint gasTotal = gasleft();
+        uint256 gasTotal = gasleft();
+        uint256 gasReimbursed = 0;
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
@@ -258,12 +254,13 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
 
         _convertAndVerifyMessages(srcChainID, messages, sign);
         for (uint256 i = 0; i < messages.length; i++) {
-            _callReceiverContract(srcChainID, messages[i], startingCounter + i);
+            gasReimbursed = gasReimbursed.add(_callReceiverContract(srcChainID, messages[i], startingCounter + i));
         }
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
-        _refundGasBySchain(srcChainHash, gasTotal);
+        if (gasReimbursed <= gasTotal - gasleft())
+            _refundGasBySchain(srcChainHash, gasTotal - gasReimbursed);
     }
 
     /**
@@ -420,7 +417,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         require(
             _verifyMessageSignature(
                 sign.blsSignature,
-                _hashedArray(input),
+                _hashedArray(messages),
                 sign.counter,
                 sign.hashA,
                 sign.hashB,
@@ -465,7 +462,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     /**
      * @dev Returns hash of message array.
      */
-    function _hashedArray(Message[] memory messages) private pure returns (bytes32) {
+    function _hashedArray(Message[] calldata messages) private pure returns (bytes32) {
         bytes memory data;
         for (uint256 i = 0; i < messages.length; i++) {
             data = abi.encodePacked(
@@ -537,26 +534,28 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
     }
 
-    function _callReceiverContract(string memory srcChainID, Message calldata message, uint counter) private {
+    function _callReceiverContract(string memory srcChainID, Message calldata message, uint counter) private returns (uint256) {
         try ContractReceiverForMainnet(message.destinationContract).postMessage(
-            message.sender,
             srcChainID,
+            msg.sender,
+            message.sender,
             message.to,
             message.amount,
             message.data
-        ) {
-            // solhint-disable-previous-line no-empty-blocks
+        ) returns (uint256 gas) {
+            return gas;
         } catch Error(string memory reason) {
             emit PostMessageError(
                 counter,
-                keccak256(abi.encodePacked(srcChainID)),
-                message.sender,
-                srcChainID,
-                message.to,
-                message.amount,
-                message.data,
-                reason
+                bytes(reason)
             );
+            return 0;
+        } catch (bytes memory revertData) {
+            emit PostMessageError(
+                counter,
+                revertData
+            );
+            return 0;
         }
     }
 

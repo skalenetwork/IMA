@@ -27,10 +27,12 @@ import "./interfaces/IERC20ModuleForMainnet.sol";
 import "./interfaces/IERC721ModuleForMainnet.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
+import "@nomiclabs/buidler/console.sol";
 
 interface ILockAndDataDB {
     function tokenManagerAddresses(bytes32 schainHash) external returns (address);
     function approveTransfer(address to, uint256 amount) external;
+    function sendEth(address to, uint256 amount) external;
     function receiveEth(address from) external payable;
     function rechargeSchainWallet(bytes32 schainId, uint256 amount) external;
 }
@@ -155,14 +157,16 @@ contract DepositBox is PermissionsForMainnet {
     }
 
     function postMessage(
-        address sender,
         string calldata fromSchainID,
-        address payable to,
+        address payable agent,
+        address sender,
+        address to,
         uint256 amount,
         bytes calldata data
     )
         external
         allow("MessageProxy")
+        returns (uint256)
     {
         require(data.length != 0, "Invalid data");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
@@ -175,7 +179,7 @@ contract DepositBox is PermissionsForMainnet {
             amount <= address(lockAndDataAddress_).balance,
             "Not enough money to finish this transaction"
         );
-        _executePerOperation(schainHash, to, amount, data);
+        return _executePerOperation(schainHash, agent, to, amount, data);
     }
 
     /// Create a new deposit box
@@ -183,7 +187,7 @@ contract DepositBox is PermissionsForMainnet {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
         gasConsumptions[TransactionOperation.transferETH] = 300000;
         gasConsumptions[TransactionOperation.transferERC20] = 350000;
-        gasConsumptions[TransactionOperation.transferERC721] = 350000;
+        gasConsumptions[TransactionOperation.transferERC721] = 500000;
     }
 
     function deposit(string memory schainID, address to)
@@ -207,11 +211,13 @@ contract DepositBox is PermissionsForMainnet {
 
     function _executePerOperation(
         bytes32 schainId,
-        address payable to,
+        address payable agent,
+        address to,
         uint256 amount,
         bytes calldata data    
     )
-        internal
+        private
+        returns (uint256)
     {
         TransactionOperation operation = _fallbackOperationTypeConvert(data);
         uint256 txFee = gasConsumptions[operation] * tx.gasprice;
@@ -245,7 +251,8 @@ contract DepositBox is PermissionsForMainnet {
                     amount - txFee
                 );
         }
-        ILockAndDataDB(lockAndDataAddress_).rechargeSchainWallet(schainId, txFee);
+        ILockAndDataDB(lockAndDataAddress_).sendEth(agent, txFee);
+        return gasConsumptions[operation];
     }
 
     /**

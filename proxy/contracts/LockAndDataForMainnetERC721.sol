@@ -50,10 +50,8 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
         returns (bool)
     {
         require(contractOnMainnet.isContract(), "Given address is not a contract");
-        if (IERC721(contractOnMainnet).ownerOf(tokenId) == address(this)) {
-            IERC721(contractOnMainnet).transferFrom(address(this), to, tokenId);
-            require(IERC721(contractOnMainnet).ownerOf(tokenId) == to, "Did not transfer");
-        }
+        require(IERC721(contractOnMainnet).ownerOf(tokenId) == address(this), "Incorrect tokenId");
+        IERC721(contractOnMainnet).transferFrom(address(this), to, tokenId);
         return true;
     }
 
