@@ -187,6 +187,8 @@ function parse( joExternalHandlers, argv ) {
             console.log( cc.sunny( "GENERAL" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "help" ) + cc.debug( ".........................." ) + cc.notice( "Show this " ) + cc.note( "help info" ) + cc.notice( " and exit." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "version" ) + cc.debug( "......................." ) + cc.notice( "Show " ) + cc.note( "version info" ) + cc.notice( " and exit." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "colors" ) + cc.debug( "........................" ) + cc.notice( "Use ANSI colorized logging." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-colors" ) + cc.debug( "....................." ) + cc.notice( "Use monochrome logging." ) );
             //
             console.log( cc.sunny( "BLOCKCHAIN NETWORK" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( ".............." ) + cc.note( "Main-net URL" ) + cc.notice( " for Web3. Value is automatically loaded from the " ) + cc.warning( "URL_W3_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
@@ -339,6 +341,14 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "version" ) {
             print_about();
             return 0;
+        }
+        if( joArg.name == "colors" ) {
+            cc.enable( true );
+            continue;
+        }
+        if( joArg.name == "no-colors" ) {
+            cc.enable( false );
+            continue;
         }
         if( joArg.name == "verbose" ) {
             IMA.verbose_set( IMA.verbose_parse( joArg.value ) );

@@ -35,7 +35,7 @@ const ethereumjs_util = require( "ethereumjs-util" );
 
 const log = require( "../skale-log/log.js" );
 const cc = log.cc;
-cc.enable( true );
+cc.enable( false );
 log.addStdout();
 // log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ); // example: log output to file
 
