@@ -55,7 +55,7 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     bool private _isCustomDeploymentMode = false;
 
-    mapping(address => uint) public numberOfExits;
+    // uint public communityPool;
 
     modifier allow(string memory contractName) {
         require(
@@ -208,59 +208,27 @@ contract LockAndDataForSchain is OwnableForSchain {
     }
 
     /**
-     * @dev Allows TokenManager to add gas costs to LockAndDataForSchain.
-     */
-    function addGasCosts(address , uint256) external allow("TokenManager") {
-        revert("Temporarily unimplemented");
-    }
-
-    /**
-     * @dev Allows SchainOwner to add some amount of exits to some address.
-     */
-    function addExit(address to, uint256 amount) external onlySchainOwner {
-        numberOfExits[to] = numberOfExits[to].add(amount);
-    }
-
-    /**
-     * @dev Allows TokenManager to reduce gas costs from LockAndDataForSchain.
-     */
-    function reduceGasCosts(address , uint256) external allow("TokenManager") returns (bool) {
-        revert("Temporarily unimplemented");
-    }
-
-    /**
      * @dev Allows TokenManager to reduce exit from some address.
      */
-    function reduceExit(address to) external allow("TokenManager") returns (bool) {
-        if (numberOfExits[to] >= 1) {
-            numberOfExits[to] -= 1;
-            return true;
-        } else if (numberOfExits[address(0)] >= 1) {
-            numberOfExits[address(0)] -= 1;
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @dev Allows TokenManager to remove gas costs from LockAndDataForSchain.
-     */
-    function removeGasCosts(address) external allow("TokenManager") returns (uint256 balance) {
-        revert("Temporarily unimplemented");
-    }
-
-    /**
-     * @dev Allows SchainOwner to remove exits from address to.
-     */
-    function removeExit(address to) external onlySchainOwner {
-        delete numberOfExits[to];
+    function reduceCommunityPool(uint256) external allow("TokenManager") returns (bool) {
+        revert("Community Pool is not available");
+        // if (communityPool >= amountOfEth) {
+        //     communityPool = communityPool.sub(amountOfEth);
+        //     return true;
+        // }
+        // return false;
     }
 
     /**
      * @dev Allows TokenManager to send (mint) ETH from LockAndDataForSchain.
      */
     function sendEth(address to, uint256 amount) external allow("TokenManager") returns (bool) {
-        require(EthERC20(getEthErc20Address()).mint(to, amount), "Mint error");
+        if (to == address(0)) {
+            revert("Community Pool is not available");
+            // communityPool = communityPool.add(amount);
+        } else {
+            require(EthERC20(getEthErc20Address()).mint(to, amount), "Mint error");
+        }
         return true;
     }
 

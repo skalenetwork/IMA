@@ -26,7 +26,11 @@ import "../interfaces/IWallets.sol";
 
 contract Wallets is IWallets {
 
-    function refundGasBySchain(bytes32 , address payable , uint , bool) external override {
+    function refundGasBySchain(bytes32, address payable, uint, bool) external override {
+        // solhint-disable-previous-line no-empty-blocks
+    }
+
+    function rechargeSchainWallet(bytes32) external override payable {
         // solhint-disable-previous-line no-empty-blocks
     }
 }

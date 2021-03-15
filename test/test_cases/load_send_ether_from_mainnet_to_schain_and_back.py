@@ -47,8 +47,8 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
         initial_balance = balance
         # 2 ether (2 000 000 000 000 000 000 wei)
         amount = 2 * 10 ** 18
-        # 4 finney back because when we send on mainnet we should pay 2 finney for each transaction to validator
-        amount_from_schain = 4 * 10 ** 15
+        # 60 finney back because when we send on mainnet we should be able to cover gas fee on gasPrice 200 Gwei
+        amount_from_schain = 7 * 10 ** 16
         #
         for x in range(range_int):
             #  transfer to schain

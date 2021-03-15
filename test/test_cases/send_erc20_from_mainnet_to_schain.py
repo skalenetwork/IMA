@@ -48,11 +48,14 @@ class SendERC20ToSchain(TestCase):
 
     def _execute(self):
         amount = 1
-        self.agent.transfer_erc20_from_mainnet_to_schain(self.erc20,
-                                                         self.config.mainnet_key,
-                                                         self.config.schain_key,
-                                                         amount,
-                                                         self.timeout)
+        self.agent.transfer_erc20_from_mainnet_to_schain(
+            self.erc20,
+            self.config.mainnet_key,
+            self.config.schain_key,
+            amount,
+            0,
+            self.timeout
+        )
 
         erc20 = self.blockchain.get_erc20_on_schain("Mainnet", self.erc20.address)
         destination_address = self.blockchain.key_to_address(self.config.schain_key)

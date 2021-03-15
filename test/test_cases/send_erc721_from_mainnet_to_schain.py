@@ -53,11 +53,14 @@ class SendERC721ToSchain(TestCase):
 
         sleep(5)
 
-        self.agent.transfer_erc721_from_mainnet_to_schain(self.erc721,
-                                                         self.config.mainnet_key,
-                                                         self.config.schain_key,
-                                                         self.tokenId,
-                                                         self.timeout)
+        self.agent.transfer_erc721_from_mainnet_to_schain(
+            self.erc721,
+            self.config.mainnet_key,
+            self.config.schain_key,
+            self.tokenId,
+            0,
+            self.timeout
+        )
 
         erc721 = self.blockchain.get_erc721_on_schain("Mainnet", self.erc721.address)
         destination_address = self.blockchain.key_to_address(self.config.schain_key)
