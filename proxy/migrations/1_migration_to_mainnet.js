@@ -44,10 +44,8 @@ async function deploy( deployer, networkName, accounts ) {
 
         "MessageProxyForMainnet", // must be above MessageProxy
         "DepositBox", // must be below DepositBox
-        "ERC20ModuleForMainnet",
-        "LockAndDataForMainnetERC20",
-        "ERC721ModuleForMainnet",
-        "LockAndDataForMainnetERC721"
+        "DepositBoxERC20",
+        "DepositBoxERC721"
     ];
 
     contractsData = [];

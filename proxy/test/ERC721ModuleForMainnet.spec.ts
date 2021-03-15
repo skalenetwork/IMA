@@ -19,15 +19,15 @@
  */
 
 /**
- * @file ERC721ModuleForMainnet.spec.ts
+ * @file DepositBoxERC721.spec.ts
  * @copyright SKALE Labs 2019-Present
  */
 import * as chaiAsPromised from "chai-as-promised";
 import {
-    ERC721ModuleForMainnetInstance,
+    DepositBoxERC721Instance,
     ERC721OnChainContract,
     ERC721OnChainInstance,
-    LockAndDataForMainnetERC721Instance,
+    DepositBoxERC721Instance,
     LockAndDataForMainnetInstance,
     } from "../types/truffle-contracts";
 
@@ -37,23 +37,23 @@ chai.should();
 chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
-import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
-import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMainnet";
+import { deployDepositBoxERC721 } from "./utils/deploy/DepositBoxERC721";
+import { deployDepositBoxERC721 } from "./utils/deploy/DepositBoxERC721";
 import { randomString } from "./utils/helper";
 
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 
-contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
+contract("DepositBoxERC721", ([deployer, user, invoker]) => {
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
-  let lockAndDataForMainnetERC721: LockAndDataForMainnetERC721Instance;
+  let DepositBoxERC721: DepositBoxERC721Instance;
   let eRC721OnChain: ERC721OnChainInstance;
-  let eRC721ModuleForMainnet: ERC721ModuleForMainnetInstance;
+  let DepositBoxERC721: DepositBoxERC721Instance;
 
   beforeEach(async () => {
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    lockAndDataForMainnetERC721 = await deployLockAndDataForMainnetERC721(lockAndDataForMainnet);
+    DepositBoxERC721 = await deployDepositBoxERC721(lockAndDataForMainnet);
     eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
-    eRC721ModuleForMainnet = await deployERC721ModuleForMainnet(lockAndDataForMainnet);
+    DepositBoxERC721 = await deployDepositBoxERC721(lockAndDataForMainnet);
   });
 
   it("should invoke `receiveERC721`", async () => {
@@ -63,9 +63,9 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     const to = user;
     const tokenId = 1;
     // execution
-    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-    await lockAndDataForMainnetERC721.disableWhitelist(schainID);
-    const res = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
+    await DepositBoxERC721.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await DepositBoxERC721.disableWhitelist(schainID);
+    const res = await DepositBoxERC721.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
     // expectation
     (res).should.include("0x");
   });
@@ -79,16 +79,16 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     const tokenId = 10;
     // mint some ERC721 of  for `deployer` address
     await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-    // transfer tokenId from `deployer` to `lockAndDataForMainnetERC721`
+    // transfer tokenId from `deployer` to `DepositBoxERC721`
     await eRC721OnChain.transferFrom(deployer,
-      lockAndDataForMainnetERC721.address, tokenId, {from: deployer});
+      DepositBoxERC721.address, tokenId, {from: deployer});
     // get data from `receiveERC721`
-    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-    await lockAndDataForMainnetERC721.disableWhitelist(schainID);
-    const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
-    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
+    await DepositBoxERC721.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await DepositBoxERC721.disableWhitelist(schainID);
+    const data = await DepositBoxERC721.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
+    await DepositBoxERC721.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
     // execution
-    await eRC721ModuleForMainnet.sendERC721(data, {from: deployer});
+    await DepositBoxERC721.sendERC721(data, {from: deployer});
     // expectation
     expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(user);
   });
@@ -102,16 +102,16 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     const tokenId = 10;
     // mint some ERC721 of  for `deployer` address
     await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-    // transfer tokenId from `deployer` to `lockAndDataForMainnetERC721`
+    // transfer tokenId from `deployer` to `DepositBoxERC721`
     await eRC721OnChain.transferFrom(deployer,
-      lockAndDataForMainnetERC721.address, tokenId, {from: deployer});
+      DepositBoxERC721.address, tokenId, {from: deployer});
     // get data from `receiveERC721`
-    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-    await lockAndDataForMainnetERC721.disableWhitelist(schainID);
-    const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
-    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
+    await DepositBoxERC721.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await DepositBoxERC721.disableWhitelist(schainID);
+    const data = await DepositBoxERC721.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
+    await DepositBoxERC721.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
     // execution
-    await eRC721ModuleForMainnet.sendERC721(data, {from: deployer});
+    await DepositBoxERC721.sendERC721(data, {from: deployer});
     // expectation
     expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(user);
   });
@@ -124,12 +124,12 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     const to0 = invoker; // bytes20
     const tokenId = 10;
     // get data from `receiveERC721`
-    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-    await lockAndDataForMainnetERC721.disableWhitelist(schainID);
-    const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
-    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
+    await DepositBoxERC721.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await DepositBoxERC721.disableWhitelist(schainID);
+    const data = await DepositBoxERC721.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
+    await DepositBoxERC721.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
     // execution
-    const res = await eRC721ModuleForMainnet.getReceiver(data, {from: deployer});
+    const res = await DepositBoxERC721.getReceiver(data, {from: deployer});
     // expectation
     res.should.be.equal(user);
   });
@@ -142,12 +142,12 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const tokenId = 10;
     // get data from `receiveERC721`
-    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-    await lockAndDataForMainnetERC721.disableWhitelist(schainID);
-    const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
-    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
+    await DepositBoxERC721.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await DepositBoxERC721.disableWhitelist(schainID);
+    const data = await DepositBoxERC721.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
+    await DepositBoxERC721.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
     // execution
-    const res = await eRC721ModuleForMainnet.getReceiver(data, {from: deployer});
+    const res = await DepositBoxERC721.getReceiver(data, {from: deployer});
     // expectation
     res.should.be.equal(user);
   });

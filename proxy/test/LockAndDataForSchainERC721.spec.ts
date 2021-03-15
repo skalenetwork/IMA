@@ -98,7 +98,7 @@ contract("LockAndDataForSchainERC721", ([deployer, user]) => {
     const tokenId = 10;
     // mint ERC721 token for `deployer` address
     await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-    // transfer ERC721 token to `lockAndDataForMainnetERC721` address
+    // transfer ERC721 token to `DepositBoxERC721` address
     await eRC721OnChain.transferFrom(deployer, lockAndDataForSchainERC721.address, tokenId, {from: deployer});
     // execution
     const res = await lockAndDataForSchainERC721

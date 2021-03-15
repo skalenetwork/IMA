@@ -106,7 +106,7 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address);
     // mint some quantity of ERC20 tokens for `deployer` address
     await eRC20OnChain.mint(deployer, "1000000000", {from: deployer});
-    // transfer some quantity of ERC20 tokens for `lockAndDataForMainnetERC20` address
+    // transfer some quantity of ERC20 tokens for `DepositBoxERC20` address
     await eRC20OnChain.transfer(lockAndDataForSchainERC20.address, "1000000", {from: deployer});
     // execution
     const res = await lockAndDataForSchainERC20

@@ -536,7 +536,6 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC721OnChain.mint(user, tokenId, {from: deployer});
-        // invoke `addExit` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
         await lockAndDataForSchain.sendEth(user, amountEth, {from: deployer});
         await eRC721OnChain.transferFrom(user, tokenManager.address, tokenId, {from: user});
 

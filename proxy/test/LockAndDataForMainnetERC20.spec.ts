@@ -19,7 +19,7 @@
  */
 
 /**
- * @file LockAndDataForMainnetERC20.spec.ts
+ * @file DepositBoxERC20.spec.ts
  * @copyright SKALE Labs 2019-Present
  */
 
@@ -32,7 +32,7 @@ import {
     ERC20OnChainInstance,
     EthERC20Contract,
     EthERC20Instance,
-    LockAndDataForMainnetERC20Instance,
+    DepositBoxERC20Instance,
     LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainInstance,
@@ -46,7 +46,7 @@ chai.should();
 chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
-import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
+import { deployDepositBoxERC20 } from "./utils/deploy/DepositBoxERC20";
 import { randomString } from "./utils/helper";
 
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
@@ -55,10 +55,10 @@ const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 
-contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
+contract("DepositBoxERC20", ([deployer, user]) => {
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let lockAndDataForSchain: LockAndDataForSchainInstance;
-  let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
+  let DepositBoxERC20: DepositBoxERC20Instance;
   let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
   let ethERC20: EthERC20Instance;
   let tokenFactory: TokenFactoryInstance;
@@ -66,10 +66,10 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
 
   beforeEach(async () => {
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
+    DepositBoxERC20 = await deployDepositBoxERC20(lockAndDataForMainnet);
 
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
-    await lockAndDataForSchain.setContract("LockAndDataERC20", lockAndDataForMainnetERC20.address);
+    await lockAndDataForSchain.setContract("LockAndDataERC20", DepositBoxERC20.address);
     eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
         {from: deployer});
     await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address);
@@ -82,7 +82,7 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
     // preparation
     const error = "Not enough money";
     // execution/expectation
-    await lockAndDataForMainnetERC20
+    await DepositBoxERC20
         .sendERC20(ethERC20.address, user, 10, {from: deployer})
         .should.be.eventually.rejectedWith(error);
   });
@@ -94,10 +94,10 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
     const amount = 10;
     // mint some quantity of ERC20 tokens for `deployer` address
     await ethERC20.mint(deployer, "1000000000", {from: deployer});
-    // transfer some quantity of ERC20 tokens for `lockAndDataForMainnetERC20` address
-    await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
+    // transfer some quantity of ERC20 tokens for `DepositBoxERC20` address
+    await ethERC20.transfer(DepositBoxERC20.address, "1000000", {from: deployer});
     // execution
-    const res = await lockAndDataForMainnetERC20
+    const res = await DepositBoxERC20
         .sendERC20.call(contractHere, to, amount, {from: deployer});
     // expectation
     expect(res).to.be.true;
@@ -115,19 +115,19 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
     await tokenFactory.createERC20(name, tokenName, {from: deployer});
     // for execution#2
     const contractHer = ethERC20.address;
-    await lockAndDataForMainnetERC20
+    await DepositBoxERC20
         .addERC20ForSchain(schainID, contractHere, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-    await lockAndDataForMainnetERC20.disableWhitelist(schainID);
+    await DepositBoxERC20.disableWhitelist(schainID);
     // execution#1
-    await lockAndDataForMainnetERC20
+    await DepositBoxERC20
         .addERC20ForSchain(schainID, contractHere, {from: deployer});
     // expectation#1
-    const res = await lockAndDataForMainnetERC20.getSchainToERC20(schainID, contractHere);
+    const res = await DepositBoxERC20.getSchainToERC20(schainID, contractHere);
     res.should.be.equal(true);
     // execution#2
-    await lockAndDataForMainnetERC20
+    await DepositBoxERC20
         .addERC20ForSchain(schainID, contractHer, {from: deployer});
-    const res1 = await lockAndDataForMainnetERC20.getSchainToERC20(schainID, contractHer);
+    const res1 = await DepositBoxERC20.getSchainToERC20(schainID, contractHer);
     // expectation#2
     res1.should.be.equal(true);
   });
@@ -148,26 +148,26 @@ contract("LockAndDataForMainnetERC20", ([deployer, user]) => {
     const contractHere2 = await tokenFactory.createERC20.call(name, tokenName, {from: deployer});
     const contractHere3 = await tokenFactory.createERC20.call(name, tokenName, {from: deployer});
     await tokenFactory.createERC20(name, tokenName, {from: deployer});
-    const whitelist = await lockAndDataForMainnetERC20.withoutWhitelist(web3.utils.soliditySha3(schainID));
-    await lockAndDataForMainnetERC20.addERC20TokenByOwner(schainID, contractHere);
+    const whitelist = await DepositBoxERC20.withoutWhitelist(web3.utils.soliditySha3(schainID));
+    await DepositBoxERC20.addERC20TokenByOwner(schainID, contractHere);
     // whitelist == true - disabled whitelist = false - enabled
     if (whitelist) {
-      await lockAndDataForMainnetERC20.enableWhitelist(schainID);
+      await DepositBoxERC20.enableWhitelist(schainID);
     } else {
-      await lockAndDataForMainnetERC20.disableWhitelist(schainID);
+      await DepositBoxERC20.disableWhitelist(schainID);
     }
 
-    await lockAndDataForMainnetERC20.addERC20TokenByOwner(schainID, contractHere2);
+    await DepositBoxERC20.addERC20TokenByOwner(schainID, contractHere2);
 
     erc20OnChain = await ERC20OnChain.new("NewToken", "NTN");
 
     if (whitelist) {
-      await lockAndDataForMainnetERC20.disableWhitelist(schainID);
+      await DepositBoxERC20.disableWhitelist(schainID);
     } else {
-      await lockAndDataForMainnetERC20.enableWhitelist(schainID);
+      await DepositBoxERC20.enableWhitelist(schainID);
     }
 
-    await lockAndDataForMainnetERC20.addERC20TokenByOwner(schainID, erc20OnChain.address);
+    await DepositBoxERC20.addERC20TokenByOwner(schainID, erc20OnChain.address);
   });
 
 });

@@ -29,14 +29,14 @@ import {
   ContractManagerContract,
   ContractManagerInstance,
   DepositBoxInstance,
-  ERC20ModuleForMainnetInstance,
-  ERC721ModuleForMainnetInstance,
+  DepositBoxERC20Instance,
+  DepositBoxERC721Instance,
   ERC721OnChainContract,
   ERC721OnChainInstance,
   EthERC20Contract,
   EthERC20Instance,
-  LockAndDataForMainnetERC20Instance,
-  LockAndDataForMainnetERC721Instance,
+  DepositBoxERC20Instance,
+  DepositBoxERC721Instance,
   LockAndDataForMainnetInstance,
   SchainsInternalContract,
   SchainsInternalInstance,
@@ -51,11 +51,11 @@ chai.should();
 chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
-import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
-import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
+import { deployDepositBoxERC20 } from "./utils/deploy/DepositBoxERC20";
+import { deployDepositBoxERC721 } from "./utils/deploy/DepositBoxERC721";
 import { deployDepositBox } from "./utils/deploy/depositBox";
-import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
-import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMainnet";
+import { deployDepositBoxERC20 } from "./utils/deploy/DepositBoxERC20";
+import { deployDepositBoxERC721 } from "./utils/deploy/DepositBoxERC721";
 
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
@@ -133,13 +133,13 @@ contract("DepositBox", ([deployer, user]) => {
   });
 
   describe("tests with `ERC20`", async () => {
-    let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
-    let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
+    let DepositBoxERC20: DepositBoxERC20Instance;
+    let DepositBoxERC20: DepositBoxERC20Instance;
     let ethERC20: EthERC20Instance;
 
     beforeEach(async () => {
-      eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
-      lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
+      DepositBoxERC20 = await deployDepositBoxERC20(lockAndDataForMainnet);
+      DepositBoxERC20 = await deployDepositBoxERC20(lockAndDataForMainnet);
       ethERC20 = await EthERC20.new({from: deployer});
     });
 
@@ -171,7 +171,7 @@ contract("DepositBox", ([deployer, user]) => {
         // execution
         await depositBox
           .depositERC20(schainID, ethERC20.address, deployer, 1, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-        await lockAndDataForMainnetERC20.disableWhitelist(schainID);
+        await DepositBoxERC20.disableWhitelist(schainID);
         await depositBox
           .depositERC20(schainID, ethERC20.address, deployer, 1, {from: deployer});
         const res = await depositBox
@@ -192,7 +192,7 @@ contract("DepositBox", ([deployer, user]) => {
         // execution
         await depositBox
           .depositERC20(schainID, ethERC20.address, deployer, 1, {value: "1000000000000", from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-        await lockAndDataForMainnetERC20.disableWhitelist(schainID);
+        await DepositBoxERC20.disableWhitelist(schainID);
         await depositBox
           .depositERC20(schainID, ethERC20.address, deployer, 1, {value: "1000000000000", from: deployer});
         const res = await depositBox
@@ -203,13 +203,13 @@ contract("DepositBox", ([deployer, user]) => {
   });
 
   describe("tests with `ERC721`", async () => {
-    let eRC721ModuleForMainnet: ERC721ModuleForMainnetInstance;
-    let lockAndDataForMainnetERC721: LockAndDataForMainnetERC721Instance;
+    let DepositBoxERC721: DepositBoxERC721Instance;
+    let DepositBoxERC721: DepositBoxERC721Instance;
     let eRC721OnChain: ERC721OnChainInstance;
 
     beforeEach(async () => {
-      eRC721ModuleForMainnet = await deployERC721ModuleForMainnet(lockAndDataForMainnet);
-      lockAndDataForMainnetERC721 = await deployLockAndDataForMainnetERC721(lockAndDataForMainnet);
+      DepositBoxERC721 = await deployDepositBoxERC721(lockAndDataForMainnet);
+      DepositBoxERC721 = await deployDepositBoxERC721(lockAndDataForMainnet);
       eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
 
       // mint some ERC721 of  for `deployer` address
@@ -262,7 +262,7 @@ contract("DepositBox", ([deployer, user]) => {
         // execution
         await depositBox
           .depositERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-        await lockAndDataForMainnetERC721.disableWhitelist(schainID);
+        await DepositBoxERC721.disableWhitelist(schainID);
         await depositBox
           .depositERC721(schainID, contractHere, to, tokenId, {from: deployer});
         const res = await depositBox
@@ -294,7 +294,7 @@ contract("DepositBox", ([deployer, user]) => {
         // execution
         await depositBox
           .depositERC721(schainID, contractHere, to, tokenId, {value: wei, from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-        await lockAndDataForMainnetERC721.disableWhitelist(schainID);
+        await DepositBoxERC721.disableWhitelist(schainID);
         await depositBox
           .depositERC721(schainID, contractHere, to, tokenId, {value: wei, from: deployer});
         const res = await depositBox
@@ -308,19 +308,19 @@ contract("DepositBox", ([deployer, user]) => {
   });
 
   describe("tests for `postMessage` function", async () => {
-    let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
-    let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
+    let DepositBoxERC20: DepositBoxERC20Instance;
+    let DepositBoxERC20: DepositBoxERC20Instance;
     let ethERC20: EthERC20Instance;
-    let eRC721ModuleForMainnet: ERC721ModuleForMainnetInstance;
-    let lockAndDataForMainnetERC721: LockAndDataForMainnetERC721Instance;
+    let DepositBoxERC721: DepositBoxERC721Instance;
+    let DepositBoxERC721: DepositBoxERC721Instance;
     let eRC721OnChain: ERC721OnChainInstance;
 
     beforeEach(async () => {
-      eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
-      lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
+      DepositBoxERC20 = await deployDepositBoxERC20(lockAndDataForMainnet);
+      DepositBoxERC20 = await deployDepositBoxERC20(lockAndDataForMainnet);
       ethERC20 = await EthERC20.new({from: deployer});
-      eRC721ModuleForMainnet = await deployERC721ModuleForMainnet(lockAndDataForMainnet);
-      lockAndDataForMainnetERC721 = await deployLockAndDataForMainnetERC721(lockAndDataForMainnet);
+      DepositBoxERC721 = await deployDepositBoxERC721(lockAndDataForMainnet);
+      DepositBoxERC721 = await deployDepositBoxERC721(lockAndDataForMainnet);
       eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
     });
 
@@ -454,14 +454,14 @@ contract("DepositBox", ([deployer, user]) => {
       await ethERC20.mint(deployer, "1000000000", {from: deployer});
       /**
        * transfer more than `amount` quantity of ERC20 tokens
-       * for `lockAndDataForMainnetERC20` to avoid `Not enough money`
+       * for `DepositBoxERC20` to avoid `Not enough money`
        */
-      await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
+      await ethERC20.transfer(DepositBoxERC20.address, "1000000", {from: deployer});
       // get data from `receiveERC20`
-      await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-      await lockAndDataForMainnetERC20.disableWhitelist(schainID);
-      const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
-      await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
+      await DepositBoxERC20.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+      await DepositBoxERC20.disableWhitelist(schainID);
+      const data = await DepositBoxERC20.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
+      await DepositBoxERC20.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
       // execution
       // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
@@ -490,14 +490,14 @@ contract("DepositBox", ([deployer, user]) => {
         .addSchain(schainID, deployer, {from: deployer});
       // mint some ERC721 of  for `deployer` address
       await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-      // transfer tokenId from `deployer` to `lockAndDataForMainnetERC721`
+      // transfer tokenId from `deployer` to `DepositBoxERC721`
       await eRC721OnChain.transferFrom(deployer,
-        lockAndDataForMainnetERC721.address, tokenId, {from: deployer});
+        DepositBoxERC721.address, tokenId, {from: deployer});
       // get data from `receiveERC721`
-      eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-      await lockAndDataForMainnetERC721.disableWhitelist(schainID);
-      const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
-      eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
+      DepositBoxERC721.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+      await DepositBoxERC721.disableWhitelist(schainID);
+      const data = await DepositBoxERC721.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
+      DepositBoxERC721.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
       // execution
       // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet

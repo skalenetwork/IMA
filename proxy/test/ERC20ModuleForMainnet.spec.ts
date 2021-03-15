@@ -19,16 +19,16 @@
  */
 
 /**
- * @file ERC20ModuleForMainnet.spec.ts
+ * @file DepositBoxERC20.spec.ts
  * @copyright SKALE Labs 2019-Present
  */
 
 import * as chaiAsPromised from "chai-as-promised";
 import {
-    ERC20ModuleForMainnetInstance,
+    DepositBoxERC20Instance,
     EthERC20Contract,
     EthERC20Instance,
-    LockAndDataForMainnetERC20Instance,
+    DepositBoxERC20Instance,
     LockAndDataForMainnetInstance,
     } from "../types/truffle-contracts";
 
@@ -39,23 +39,23 @@ chai.should();
 chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
-import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
-import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
+import { deployDepositBoxERC20 } from "./utils/deploy/DepositBoxERC20";
+import { deployDepositBoxERC20 } from "./utils/deploy/DepositBoxERC20";
 
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 
-contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
+contract("DepositBoxERC20", ([deployer, user, invoker]) => {
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
-  let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
+  let DepositBoxERC20: DepositBoxERC20Instance;
   let ethERC20: EthERC20Instance;
-  let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
+  let DepositBoxERC20: DepositBoxERC20Instance;
 
   beforeEach(async () => {
 
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
+    DepositBoxERC20 = await deployDepositBoxERC20(lockAndDataForMainnet);
     ethERC20 = await EthERC20.new({from: deployer});
-    eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
+    DepositBoxERC20 = await deployDepositBoxERC20(lockAndDataForMainnet);
   });
 
   it("should invoke `receiveERC20`", async () => {
@@ -66,9 +66,9 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const amount = 6;
     await ethERC20.mint(deployer, 10, {from: deployer});
     // execution
-    await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-    await lockAndDataForMainnetERC20.disableWhitelist(schainID);
-    const res = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
+    await DepositBoxERC20.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await DepositBoxERC20.disableWhitelist(schainID);
+    const res = await DepositBoxERC20.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
     // expectation
     res.should.include("0x");
 
@@ -83,15 +83,15 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const amount = 10;
     // mint some quantity of ERC20 tokens for `deployer` address
     await ethERC20.mint(deployer, "1000000000", {from: deployer});
-    // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
-    await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
+    // transfer more than `amount` quantity of ERC20 tokens for `DepositBoxERC20` to avoid `Not enough money`
+    await ethERC20.transfer(DepositBoxERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
-    await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-    await lockAndDataForMainnetERC20.disableWhitelist(schainID);
-    const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
-    await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
+    await DepositBoxERC20.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await DepositBoxERC20.disableWhitelist(schainID);
+    const data = await DepositBoxERC20.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
+    await DepositBoxERC20.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
     // execution
-    const res = await eRC20ModuleForMainnet.sendERC20.call(data, {from: deployer});
+    const res = await DepositBoxERC20.sendERC20.call(data, {from: deployer});
     // expectation
     expect(res).to.be.true;
   });
@@ -104,13 +104,13 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
   //   const amount = 10;
   //   // mint some quantity of ERC20 tokens for `deployer` address
   //   await ethERC20.mint(deployer, "1000000000", {from: deployer});
-  //   // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
-  //   await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
+  //   // transfer more than `amount` quantity of ERC20 tokens for `DepositBoxERC20` to avoid `Not enough money`
+  //   await ethERC20.transfer(DepositBoxERC20.address, "1000000", {from: deployer});
   //   // get data from `receiveERC20`
-  //   const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
-  //   await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
+  //   const data = await DepositBoxERC20.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
+  //   await DepositBoxERC20.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
   //   // execution
-  //   const res = await eRC20ModuleForMainnet.sendERC20.call(to0, data, {from: deployer});
+  //   const res = await DepositBoxERC20.sendERC20.call(to0, data, {from: deployer});
   //   // expectation
   //   expect(res).to.be.true;
   // });
@@ -123,13 +123,13 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
   //   const amount = 10;
   //   // mint some quantity of ERC20 tokens for `deployer` address
   //   await ethERC20.mint(deployer, "1000000000", {from: deployer});
-  //   // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
-  //   await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
+  //   // transfer more than `amount` quantity of ERC20 tokens for `DepositBoxERC20` to avoid `Not enough money`
+  //   await ethERC20.transfer(DepositBoxERC20.address, "1000000", {from: deployer});
   //   // get data from `receiveERC20`
-  //   const data = await eRC20ModuleForMainnet.receiveERC20.call(contractHere, to, amount, {from: deployer});
-  //   await eRC20ModuleForMainnet.receiveERC20(contractHere, to, amount, {from: deployer});
+  //   const data = await DepositBoxERC20.receiveERC20.call(contractHere, to, amount, {from: deployer});
+  //   await DepositBoxERC20.receiveERC20(contractHere, to, amount, {from: deployer});
   //   // execution
-  //   const res = await eRC20ModuleForMainnet.getReceiver(data, {from: deployer});
+  //   const res = await DepositBoxERC20.getReceiver(data, {from: deployer});
   //   // expectation
   //   res.should.be.equal(user);
   // });
@@ -143,15 +143,15 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     const amount = 10;
     // mint some quantity of ERC20 tokens for `deployer` address
     await ethERC20.mint(deployer, "1000000000", {from: deployer});
-    // transfer more than `amount` quantity of ERC20 tokens for `lockAndDataForMainnetERC20` to avoid `Not enough money`
-    await ethERC20.transfer(lockAndDataForMainnetERC20.address, "1000000", {from: deployer});
+    // transfer more than `amount` quantity of ERC20 tokens for `DepositBoxERC20` to avoid `Not enough money`
+    await ethERC20.transfer(DepositBoxERC20.address, "1000000", {from: deployer});
     // get data from `receiveERC20`
-    await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-    await lockAndDataForMainnetERC20.disableWhitelist(schainID);
-    const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
-    await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
+    await DepositBoxERC20.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await DepositBoxERC20.disableWhitelist(schainID);
+    const data = await DepositBoxERC20.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
+    await DepositBoxERC20.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
     // execution
-    const res = await eRC20ModuleForMainnet.getReceiver(data, {from: deployer});
+    const res = await DepositBoxERC20.getReceiver(data, {from: deployer});
     // expectation
     res.should.be.equal(user);
   });

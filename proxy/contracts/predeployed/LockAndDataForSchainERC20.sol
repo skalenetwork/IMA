@@ -47,7 +47,7 @@ contract LockAndDataForSchainERC20 is PermissionsForSchain {
     mapping(address => uint) public totalSupplyOnMainnet;
 
     /**
-     * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
+     * @dev Emitted when token is mapped in LockAndDataForSchainERC20.
      */
     event ERC20TokenAdded(string schainID, address indexed erc20OnMainnet, address erc20OnSchain);
 

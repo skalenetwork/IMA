@@ -44,7 +44,7 @@ contract LockAndDataForSchainERC721 is PermissionsForSchain {
     mapping(bytes32 => bool) public automaticDeploy;
 
     /**
-     * @dev Emitted when token is mapped in LockAndDataForMainnetERC721.
+     * @dev Emitted when token is mapped in DepositBoxERC721.
      */
     event ERC721TokenAdded(string schainID, address indexed erc721OnMainnet, address erc721OnSchain);
 

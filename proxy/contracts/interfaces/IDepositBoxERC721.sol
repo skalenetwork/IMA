@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   IERC721ModuleForMainnet.sol - SKALE Interchain Messaging Agent
+ *   IDepositBoxERC721.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -22,7 +22,7 @@
 pragma solidity 0.6.12;
 
 
-interface IERC721ModuleForMainnet {
+interface IDepositBoxERC721 {
     function receiveERC721(
         string calldata schainID,
         address contractOnMainnet,

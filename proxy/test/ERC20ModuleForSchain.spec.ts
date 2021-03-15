@@ -26,14 +26,14 @@
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
-  ERC20ModuleForMainnetInstance,
+  DepositBoxERC20Instance,
     ERC20ModuleForSchainContract,
     ERC20ModuleForSchainInstance,
     ERC20OnChainContract,
     ERC20OnChainInstance,
     EthERC20Contract,
     EthERC20Instance,
-    LockAndDataForMainnetERC20Instance,
+    DepositBoxERC20Instance,
     LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainERC20Contract,
@@ -46,8 +46,8 @@ import {
 import chai = require("chai");
 import { randomString } from "./utils/helper";
 import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
-import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
-import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
+import { deployDepositBoxERC20 } from "./utils/deploy/DepositBoxERC20";
+import { deployDepositBoxERC20 } from "./utils/deploy/DepositBoxERC20";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -72,13 +72,13 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
   let eRC20OnChain: ERC20OnChainInstance;
   let erc20OnMainnet: ERC20OnChainInstance;
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
-  let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
-  let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
+  let DepositBoxERC20: DepositBoxERC20Instance;
+  let DepositBoxERC20: DepositBoxERC20Instance;
 
   beforeEach(async () => {
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
-    eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
+    DepositBoxERC20 = await deployDepositBoxERC20(lockAndDataForMainnet);
+    DepositBoxERC20 = await deployDepositBoxERC20(lockAndDataForMainnet);
 
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     lockAndDataForSchainERC20 =
@@ -125,7 +125,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address);
     // mint some quantity of ERC20 tokens for `deployer` address
     await eRC20OnChain.mint(deployer, "1000000000", {from: deployer});
-    // transfer some quantity of ERC20 tokens for `lockAndDataForMainnetERC20` address
+    // transfer some quantity of ERC20 tokens for `DepositBoxERC20` address
     await eRC20OnChain.transfer(lockAndDataForSchainERC20.address, "1000000", {from: deployer});
     // set `ERC20Module` contract before invoke `receiveERC20`
     await lockAndDataForSchain
@@ -162,10 +162,10 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await erc20OnMainnet.mint(deployer, "1000000000", {from: deployer});
     await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
     // get data from `receiveERC20`
-    await eRC20ModuleForMainnet.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-    await lockAndDataForMainnetERC20.disableWhitelist(schainID);
-    const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, ERC20OnMainnet, to, amount, {from: deployer});
-    // await eRC20ModuleForMainnet.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer});
+    await DepositBoxERC20.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+    await DepositBoxERC20.disableWhitelist(schainID);
+    const data = await DepositBoxERC20.receiveERC20.call(schainID, ERC20OnMainnet, to, amount, {from: deployer});
+    // await DepositBoxERC20.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer});
     // execution
     const {logs} = await eRC20ModuleForSchain.sendERC20(schainID, data, {from: deployer});
     const contractOnSchain  = logs[0].args.contractOnSchain;

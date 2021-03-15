@@ -23,8 +23,8 @@ pragma solidity 0.6.12;
 
 import "./PermissionsForMainnet.sol";
 import "./interfaces/IMessageProxy.sol";
-import "./interfaces/IERC20ModuleForMainnet.sol";
-import "./interfaces/IERC721ModuleForMainnet.sol";
+import "./interfaces/IDepositBoxERC20.sol";
+import "./interfaces/IDepositBoxERC721.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
 
@@ -103,7 +103,7 @@ contract DepositBox is PermissionsForMainnet {
             ),
             "Could not transfer ERC20 Token"
         );
-        bytes memory data = IERC20ModuleForMainnet(
+        bytes memory data = IDepositBoxERC20(
             IContractManager(lockAndDataAddress_).getContract("ERC20Module")
         ).receiveERC20(
             schainID,
@@ -137,7 +137,7 @@ contract DepositBox is PermissionsForMainnet {
         address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract("LockAndDataERC721");
         IERC721(contractOnMainnet).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractOnMainnet).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-        bytes memory data =IERC721ModuleForMainnet(
+        bytes memory data =IDepositBoxERC721(
             IContractManager(lockAndDataAddress_).getContract("ERC721Module")
         ).receiveERC721(
             schainID,
@@ -226,8 +226,8 @@ contract DepositBox is PermissionsForMainnet {
             address erc20Module = IContractManager(lockAndDataAddress_).getContract(
                 "ERC20Module"
             );
-            require(IERC20ModuleForMainnet(erc20Module).sendERC20(data), "Sending of ERC20 was failed");
-            address receiver = IERC20ModuleForMainnet(erc20Module).getReceiver(data);
+            require(IDepositBoxERC20(erc20Module).sendERC20(data), "Sending of ERC20 was failed");
+            address receiver = IDepositBoxERC20(erc20Module).getReceiver(data);
             if (amount > txFee)
                 ILockAndDataDB(lockAndDataAddress_).approveTransfer(
                     receiver,
@@ -237,8 +237,8 @@ contract DepositBox is PermissionsForMainnet {
             address erc721Module = IContractManager(lockAndDataAddress_).getContract(
                 "ERC721Module"
             );
-            require(IERC721ModuleForMainnet(erc721Module).sendERC721(data), "Sending of ERC721 was failed");
-            address receiver = IERC721ModuleForMainnet(erc721Module).getReceiver(data);
+            require(IDepositBoxERC721(erc721Module).sendERC721(data), "Sending of ERC721 was failed");
+            address receiver = IDepositBoxERC721(erc721Module).getReceiver(data);
             if (amount > txFee)
                 ILockAndDataDB(lockAndDataAddress_).approveTransfer(
                     receiver,
