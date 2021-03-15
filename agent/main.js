@@ -287,6 +287,7 @@ imaCLI.parse( {
                         imaState.jo_lock_and_data_main_net, // for checking logs
                         imaState.strChainID_s_chain,
                         imaState.idToken, // which ERC721 token id to send
+                        imaState.nAmountOfWei, // how much WEI money to send
                         imaState.jo_token_manager, // only s-chain
                         imaState.strCoinNameErc721_main_net,
                         imaState.joErc721_main_net,
@@ -312,6 +313,7 @@ imaCLI.parse( {
                         imaState.jo_lock_and_data_main_net, // for checking logs
                         imaState.strChainID_s_chain,
                         imaState.nAmountOfToken, // how much ERC20 tokens to send
+                        imaState.nAmountOfWei, // how much WEI money to send
                         imaState.jo_token_manager, // only s-chain
                         imaState.strCoinNameErc20_main_net,
                         imaState.joErc20_main_net,
@@ -356,6 +358,7 @@ imaCLI.parse( {
                         imaState.jo_message_proxy_s_chain, // for checking logs
                         imaState.jo_deposit_box, // only main net
                         imaState.idToken, // which ERC721 token id to send
+                        imaState.nAmountOfWei, // how much WEI money to send
                         imaState.strCoinNameErc721_main_net,
                         imaState.joErc721_main_net,
                         imaState.strCoinNameErc721_s_chain,
@@ -378,6 +381,7 @@ imaCLI.parse( {
                         imaState.jo_message_proxy_s_chain, // for checking logs
                         imaState.jo_deposit_box, // only main net
                         imaState.nAmountOfToken, // how ERC20 tokens money to send
+                        imaState.nAmountOfWei, // how much WEI money to send
                         imaState.strCoinNameErc20_main_net,
                         imaState.joErc20_main_net,
                         imaState.strCoinNameErc20_s_chain,

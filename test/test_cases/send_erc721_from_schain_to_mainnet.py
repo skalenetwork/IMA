@@ -85,12 +85,15 @@ class Senderc721ToMainnet(TestCase):
             return
         #
         sleep(5)
-        self.agent.transfer_erc721_from_schain_to_mainnet(self.erc721_clone,
-                                                          self.erc721,
-                                                          self.config.schain_key,
-                                                          self.config.mainnet_key,
-                                                          self.token_id,
-                                                          self.timeout)
+        self.agent.transfer_erc721_from_schain_to_mainnet(
+            self.erc721_clone,
+            self.erc721,
+            self.config.schain_key,
+            self.config.mainnet_key,
+            self.token_id,
+            6 * 10 ** 16,
+            self.timeout
+        )
         #
         # erc721 = self.blockchain.get_erc721_on_mainnet(self.token_id)
         # new_owner_address = erc721.functions.ownerOf(self.token_id).call()

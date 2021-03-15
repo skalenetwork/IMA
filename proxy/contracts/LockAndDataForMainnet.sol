@@ -27,7 +27,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
 import "./interfaces/IMessageProxy.sol";
-
+import "./interfaces/IWallets.sol";
 
 /**
  * @title Lock and Data For Mainnet
@@ -143,6 +143,13 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
      */
     function approveTransfer(address to, uint256 amount) external allow("DepositBox") {
         approveTransfers[to] = approveTransfers[to].add(amount);
+    }
+
+    function rechargeSchainWallet(bytes32 schainId, uint256 amount) external allow("DepositBox") {
+        require(address(this).balance >= amount, "Not enough ETH to rechargeSchainWallet");
+        address contractManagerAddress = permitted[keccak256(abi.encodePacked("ContractManagerForSkaleManager"))];
+        address walletsAddress = IContractManager(contractManagerAddress).getContract("Wallets");
+        IWallets(payable(walletsAddress)).rechargeSchainWallet.value(amount)(schainId);
     }
 
     /**

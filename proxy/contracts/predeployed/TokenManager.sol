@@ -33,8 +33,7 @@ interface ILockAndDataTM {
     function tokenManagerAddresses(bytes32 schainHash) external returns (address);
     function sendEth(address to, uint256 amount) external returns (bool);
     function receiveEth(address sender, uint256 amount) external returns (bool);
-    function approveTransfer(address to, uint256 amount) external;
-    function reduceExit(address to) external returns (bool);
+    function reduceCommunityPool(uint256 amountOfEth) external returns (bool);
 }
 
 interface ILockAndDataERCOnSchain {
@@ -66,7 +65,17 @@ contract TokenManager is PermissionsForSchain {
     // ID of this schain,
     string private _chainID;
 
-    uint256 public constant GAS_CONSUMPTION = 2000000000000000;
+    /**
+     * TX_FEE - equals "Eth exit" operation gas consumption (300 000 gas) multiplied by
+     * max gas price of "Eth exit" (200 Gwei) = 60 000 000 Gwei = 0.06 Eth
+     *
+     * !!! IMPORTANT !!!
+     * It is a max estimation, of "Eth exit" operation.
+     * If it would take less eth - it would be returned to the mainnet DepositBox.
+     * And you could take it back or send back to SKALE-chain.
+     * !!! IMPORTANT !!!
+     */
+    uint256 public constant TX_FEE = 60000000000000000;
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -80,10 +89,13 @@ contract TokenManager is PermissionsForSchain {
     }
 
     modifier receivedEth(uint256 amount) {
-        require(ILockAndDataTM(getLockAndDataAddress()).receiveEth(msg.sender, amount), "Could not receive ETH Clone");
+        if (amount > 0)
+            require(
+                ILockAndDataTM(getLockAndDataAddress()).receiveEth(msg.sender, amount),
+                "Could not receive ETH Clone"
+            );
         _;
     }
-
 
     /// Create a new token manager
 
@@ -101,29 +113,15 @@ contract TokenManager is PermissionsForSchain {
         revert("Not allowed. in TokenManager");
     }
 
-    function exitToMainWithoutData(address to, uint256 amount) external {
-        exitToMain(to, amount);
-    }
-
-    function transferToSchainWithoutData(string calldata schainID, address to, uint256 amount) external {
-        transferToSchain(schainID, to, amount);
-    }
-
-    /**
-     * @dev Adds ETH cost to perform exit transaction.
-     */
-    function addEthCostWithoutAddress(uint256 amount) external {
-        addEthCost(amount);
-    }
-
-    /**
-     * @dev Deducts ETH cost to perform exit transaction.
-     */
-    function removeEthCost() external {
-        revert("Temporarily unimplemented");
-    }
-
-    function exitToMainERC20(address contractOnMainnet, address to, uint256 amount) external {
+    function exitToMainERC20(
+        address contractOnMainnet,
+        address to,
+        uint256 amount,
+        uint256 amountOfEth
+    )
+        external
+        receivedEth(amountOfEth)
+    {
         address lockAndDataERC20 = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getLockAndDataErc20();
@@ -147,7 +145,11 @@ contract TokenManager is PermissionsForSchain {
             ),
             "Could not transfer ERC20 Token"
         );
-        require(ILockAndDataTM(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
+        require(amountOfEth >= TX_FEE, "Not enough funds to exit");
+        // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
+        //     amountOfEth :
+        //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
+        // require(amountOfEthToSend != 0, "Community pool is empty");
         bytes memory data = IERC20ModuleForSchain(erc20Module).receiveERC20(
             "Mainnet",
             contractOnMainnet,
@@ -156,7 +158,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            0,
+            amountOfEth,
             address(0),
             data
         );
@@ -166,9 +168,11 @@ contract TokenManager is PermissionsForSchain {
         string calldata schainID,
         address contractOnMainnet,
         address to,
-        uint256 amount
+        uint256 amount,
+        uint256 amountOfEth
     )
         external
+        receivedEth(amountOfEth)
     {
         address lockAndDataERC20 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc20();
         address erc20Module = LockAndDataForSchain(getLockAndDataAddress()).getErc20Module();
@@ -197,13 +201,21 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            0,
+            amountOfEth,
             address(0),
             data
         );
     }
 
-    function exitToMainERC721(address contractOnMainnet, address to, uint256 tokenId) external {
+    function exitToMainERC721(
+        address contractOnMainnet,
+        address to,
+        uint256 tokenId,
+        uint256 amountOfEth
+    )
+        external
+        receivedEth(amountOfEth)
+    {
         address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
         address erc721Module = LockAndDataForSchain(getLockAndDataAddress()).getErc721Module();
         address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC721)
@@ -211,7 +223,11 @@ contract TokenManager is PermissionsForSchain {
         require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractOnSchain).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-        require(ILockAndDataTM(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
+        require(amountOfEth >= TX_FEE, "Not enough funds to exit");
+        // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
+        //     amountOfEth :
+        //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
+        // require(amountOfEthToSend != 0, "Community pool is empty");
         bytes memory data = IERC721ModuleForSchain(erc721Module).receiveERC721(
             "Mainnet",
             contractOnMainnet,
@@ -220,7 +236,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            0,
+            amountOfEth,
             address(0),
             data
         );
@@ -230,9 +246,11 @@ contract TokenManager is PermissionsForSchain {
         string calldata schainID,
         address contractOnMainnet,
         address to,
-        uint256 tokenId
+        uint256 tokenId,
+        uint256 amountOfEth
     ) 
         external
+        receivedEth(amountOfEth)
     {
         address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
         address erc721Module = LockAndDataForSchain(getLockAndDataAddress()).getErc721Module();
@@ -249,7 +267,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            0,
+            amountOfEth,
             address(0),
             data
         );
@@ -285,7 +303,6 @@ contract TokenManager is PermissionsForSchain {
         );
         TransactionOperation operation = _fallbackOperationTypeConvert(data);
         if (operation == TransactionOperation.transferETH) {
-            require(to != address(0), "Incorrect receiver");
             require(ILockAndDataTM(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
         } else if (operation == TransactionOperation.transferERC20) {
             address erc20Module = LockAndDataForSchain(
@@ -307,42 +324,26 @@ contract TokenManager is PermissionsForSchain {
     /**
      * @dev Performs an exit (post outgoing message) to Mainnet.
      */
-    function exitToMain(address to, uint256 amount) public {
-        bytes memory empty = "";
-        exitToMain(to, amount, empty);
-    }
-
-    /**
-     * @dev Performs an exit (post outgoing message) to Mainnet.
-     */
-    function exitToMain(address to, uint256 amount, bytes memory data) public receivedEth(amount) {
+    function exitToMain(address to, uint256 amountOfEth) public receivedEth(amountOfEth) {
         require(to != address(0), "Incorrect contractThere address");
-        require(ILockAndDataTM(getLockAndDataAddress()).reduceExit(msg.sender), "Does not allow to exit");
-        bytes memory newData;
-        newData = abi.encodePacked(bytes1(uint8(1)), data);
+        require(amountOfEth >= TX_FEE, "Not enough funds to exit");
+        // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
+        //     amountOfEth :
+        //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
+        // require(amountOfEthToSend != 0, "Community pool is empty");
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            amount,
+            amountOfEth,
             to,
-            newData
+            abi.encodePacked(bytes1(uint8(1)))
         );
-    }
-
-    function transferToSchain(string memory schainID, address to, uint256 amount) public {
-        bytes memory data = "";
-        transferToSchain(
-            schainID,
-            to,
-            amount,
-            data);
     }
 
     function transferToSchain(
         string memory schainID,
         address to,
-        uint256 amount,
-        bytes memory data
+        uint256 amount
     )
         public
         rightTransaction(schainID)
@@ -354,22 +355,8 @@ contract TokenManager is PermissionsForSchain {
             ILockAndDataTM(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))),
             amount,
             to,
-            data
+            ""
         );
-    }
-
-    /**
-     * @dev Adds ETH cost for `msg.sender` exit transaction.
-     */
-    function addEthCost(uint256 amount) public {
-        addEthCost(msg.sender, amount);
-    }
-
-    /**
-     * @dev Adds ETH cost for user's exit transaction.
-     */
-    function addEthCost(address , uint256 amount) public receivedEth(amount) {
-        revert("Temporarily unimplemented");
     }
 
     /**
@@ -421,9 +408,7 @@ contract TokenManager is PermissionsForSchain {
         require(
             operationType == 0x01 ||
             operationType == 0x03 ||
-            operationType == 0x05 ||
-            operationType == 0x13 ||
-            operationType == 0x15,
+            operationType == 0x05,
             "Operation type is not identified"
         );
         if (operationType == 0x01) {
