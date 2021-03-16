@@ -445,7 +445,6 @@ Performed with the **--s2m-payment** command line option:
     node ./main.js --verbose=9 \
         --s2m-payment \
         --amount=1 \
-        --add-cost=3finney \
         --sleep-between-tx=5000 \
         --url-main-net=$URL_W3_ETHEREUM \
         --url-s-chain=$URL_W3_S_CHAIN \

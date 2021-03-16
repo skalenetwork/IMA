@@ -613,7 +613,6 @@ describe( "CLI", function() {
                 "--abi-s-chain=" + imaState.strPathAbiJson_s_chain,
                 // --erc721-main-net --erc721-s-chain --addr-erc721-s-chain
                 // --erc20-main-net --erc20-s-chain --addr-erc20-s-chain
-                "--add-cost=3finney",
                 "--sleep-between-tx=5000",
                 "--wait-next-block=true",
                 // --value...
