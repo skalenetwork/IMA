@@ -207,8 +207,9 @@ contract DepositBox is PermissionsForMainnet {
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         uint256 txFee = gasConsumptions[operation] * tx.gasprice;
+        require(amount >= txFee, "Not enough funds to recover gas");
         if (operation == Messages.MessageType.TRANSFER_ETH) {
-            if (amount > 0) {
+            if (amount > txFee) {
                 LockAndDataForMainnet(lockAndDataAddress_).approveTransfer(
                     to,
                     amount - txFee
