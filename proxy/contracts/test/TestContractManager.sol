@@ -25,6 +25,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/utils/Address.sol";
 
 
 contract ContractManager {
+    using Address for address;
 
     // mapping of actual smart contracts addresses
     mapping (bytes32 => address) public contracts;
