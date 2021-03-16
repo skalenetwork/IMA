@@ -240,6 +240,6 @@ contract DepositBox is PermissionsForMainnet {
         } else {
             revert("MessageType is unknown");
         }
-        ILockAndDataDB(lockAndDataAddress_).rechargeSchainWallet(schainId, txFee);
+        LockAndDataForMainnet(lockAndDataAddress_).rechargeSchainWallet(schainId, txFee);
     }
 }
