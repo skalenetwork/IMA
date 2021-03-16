@@ -73,7 +73,8 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         );
         uint256 totalSupply = IERC20(contractOnMainnet).totalSupply();
         require(amount <= totalSupply, "Amount is incorrect");
-        bool isERC20AddedToSchain = LockAndDataForMainnetERC20(lockAndDataERC20).getSchainToERC20(schainID, contractOnMainnet);
+        bool isERC20AddedToSchain = LockAndDataForMainnetERC20(
+            lockAndDataERC20).getSchainToERC20(schainID, contractOnMainnet);
         if (!isERC20AddedToSchain) {
             LockAndDataForMainnetERC20(lockAndDataERC20).addERC20ForSchain(schainID, contractOnMainnet);
             emit ERC20TokenAdded(schainID, contractOnMainnet);

@@ -58,7 +58,8 @@ contract TokenManager is PermissionsForSchain {
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address schainTokenManagerAddress = LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(schainHash);
+        address schainTokenManagerAddress = LockAndDataForSchain(getLockAndDataAddress())
+            .tokenManagerAddresses(schainHash);
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")),
             "This function is not for transferring to Mainnet"
@@ -68,7 +69,8 @@ contract TokenManager is PermissionsForSchain {
     }
 
     modifier receivedEth(uint256 amount) {
-        require(LockAndDataForSchain(getLockAndDataAddress()).receiveEth(msg.sender, amount), "Could not receive ETH Clone");
+        require(LockAndDataForSchain(getLockAndDataAddress())
+            .receiveEth(msg.sender, amount), "Could not receive ETH Clone");
         _;
     }
 

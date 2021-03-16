@@ -88,7 +88,8 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
             "LockAndDataERC721"
         );
         Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
-        return LockAndDataForMainnetERC721(lockAndDataERC721).sendERC721(message.token, message.receiver, message.tokenId);
+        return LockAndDataForMainnetERC721(lockAndDataERC721)
+            .sendERC721(message.token, message.receiver, message.tokenId);
     }
 
     /**
