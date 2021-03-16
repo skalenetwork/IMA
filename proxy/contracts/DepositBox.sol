@@ -38,7 +38,7 @@ import "@nomiclabs/buidler/console.sol";
 
 contract DepositBox is PermissionsForMainnet {
 
-    uint256 public constant GAS_CONSUMPTION = 2000000000000000;
+    mapping (Messages.MessageType => uint256) public gasConsumptions;
 
     event MoneyReceivedMessage(
         address sender,
@@ -71,10 +71,6 @@ contract DepositBox is PermissionsForMainnet {
 
     fallback() external payable {
         revert("Not allowed. in DepositBox");
-    }
-
-    function depositWithoutData(string calldata schainID, address to) external payable {
-        deposit(schainID, to);
     }
 
     function depositERC20(
@@ -171,20 +167,18 @@ contract DepositBox is PermissionsForMainnet {
             amount <= address(lockAndDataAddress_).balance,
             "Not enough money to finish this transaction"
         );
-        _executePerOperation(to, amount, data);
+        _executePerOperation(schainHash, to, amount, data);
     }
 
     /// Create a new deposit box
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
+        gasConsumptions[Messages.MessageType.TRANSFER_ETH] = 300000;
+        gasConsumptions[Messages.MessageType.TRANSFER_ERC20] = 350000;
+        gasConsumptions[Messages.MessageType.TRANSFER_ERC721] = 350000;
     }
 
-    function deposit(string memory schainID, address to) public payable {
-        bytes memory empty = "";
-        deposit(schainID, to, empty);
-    }
-
-    function deposit(string memory schainID, address to, bytes memory data)
+    function deposit(string memory schainID, address to)
         public
         payable
         rightTransaction(schainID)
@@ -193,16 +187,18 @@ contract DepositBox is PermissionsForMainnet {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = LockAndDataForMainnet(lockAndDataAddress_).tokenManagerAddresses(schainHash);
         require(tokenManagerAddress != address(0), "Unconnected chain");
+        require(to != address(0), "Community Pool is not available");
         IMessageProxy(IContractManager(lockAndDataAddress_).getContract("MessageProxy")).postOutgoingMessage(
             schainID,
             tokenManagerAddress,
             msg.value,
             to,
-            abi.encodePacked(bytes1(uint8(1)), data)
+            abi.encodePacked(bytes1(uint8(1)))
         );
     }
 
     function _executePerOperation(
+        bytes32 schainId,
         address payable to,
         uint256 amount,
         bytes calldata data    
@@ -210,11 +206,12 @@ contract DepositBox is PermissionsForMainnet {
         internal
     {
         Messages.MessageType operation = Messages.getMessageType(data);
+        uint256 txFee = gasConsumptions[operation] * tx.gasprice;
         if (operation == Messages.MessageType.TRANSFER_ETH) {
             if (amount > 0) {
                 LockAndDataForMainnet(lockAndDataAddress_).approveTransfer(
                     to,
-                    amount
+                    amount - txFee
                 );
             }
         } else if (operation == Messages.MessageType.TRANSFER_ERC20) {
@@ -223,10 +220,10 @@ contract DepositBox is PermissionsForMainnet {
             );
             require(ERC20ModuleForMainnet(erc20Module).sendERC20(data), "Sending of ERC20 was failed");
             address receiver = ERC20ModuleForMainnet(erc20Module).getReceiver(data);
-            if (amount > 0)
+            if (amount > txFee)
                 LockAndDataForMainnet(lockAndDataAddress_).approveTransfer(
                     receiver,
-                    amount
+                    amount - txFee
                 );
         } else if (operation == Messages.MessageType.TRANSFER_ERC721) {
             address erc721Module = IContractManager(lockAndDataAddress_).getContract(
@@ -234,10 +231,10 @@ contract DepositBox is PermissionsForMainnet {
             );
             require(ERC721ModuleForMainnet(erc721Module).sendERC721(data), "Sending of ERC721 was failed");
             address receiver = ERC721ModuleForMainnet(erc721Module).getReceiver(data);
-            if (amount > 0)
+            if (amount > txFee)
                 LockAndDataForMainnet(lockAndDataAddress_).approveTransfer(
                     receiver,
-                    amount
+                    amount - txFee
                 );
         } else {
             revert("MessageType is unknown");
