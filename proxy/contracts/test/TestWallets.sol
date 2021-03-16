@@ -24,7 +24,6 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "./TestSchainsInternal.sol";
-import "@nomiclabs/buidler/console.sol";
 
 
 contract Wallets {

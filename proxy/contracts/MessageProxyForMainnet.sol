@@ -32,14 +32,13 @@ import "./interfaces/IWallets.sol";
 interface ContractReceiverForMainnet {
     function postMessage(
         string calldata schainID,
-        address agent,
         address sender,
         address to,
         uint256 amount,
         bytes calldata data
     )
         external
-        returns (uint256);
+        returns (bool);
 }
 
 interface ISchains {
@@ -119,6 +118,8 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     string public chainID;
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public owner;
+
+    uint256 public BASIC_POST_INCOMING_MESSAGES_TX = 50000;
 
     mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
     //      chainID  =>      message_id  => MessageData
@@ -245,7 +246,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         external
     {
         uint256 gasTotal = gasleft();
-        uint256 gasReimbursed = 0;
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
@@ -254,13 +254,12 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
 
         _convertAndVerifyMessages(srcChainID, messages, sign);
         for (uint256 i = 0; i < messages.length; i++) {
-            gasReimbursed = gasReimbursed.add(_callReceiverContract(srcChainID, messages[i], startingCounter + i));
+            _callReceiverContract(srcChainID, messages[i], startingCounter + i);
         }
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
-        if (gasReimbursed <= gasTotal - gasleft())
-            _refundGasBySchain(srcChainHash, gasTotal - gasReimbursed);
+        _refundGasBySchain(srcChainHash, gasTotal + BASIC_POST_INCOMING_MESSAGES_TX);
     }
 
     /**
@@ -534,28 +533,27 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
     }
 
-    function _callReceiverContract(string memory srcChainID, Message calldata message, uint counter) private returns (uint256) {
+    function _callReceiverContract(string memory srcChainID, Message calldata message, uint counter) private returns (bool) {
         try ContractReceiverForMainnet(message.destinationContract).postMessage(
             srcChainID,
-            msg.sender,
             message.sender,
             message.to,
             message.amount,
             message.data
-        ) returns (uint256 gas) {
-            return gas;
+        ) returns (bool success) {
+            return success;
         } catch Error(string memory reason) {
             emit PostMessageError(
                 counter,
                 bytes(reason)
             );
-            return 0;
+            return false;
         } catch (bytes memory revertData) {
             emit PostMessageError(
                 counter,
                 revertData
             );
-            return 0;
+            return false;
         }
     }
 
