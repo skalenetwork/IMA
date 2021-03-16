@@ -24,15 +24,10 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Metadata.sol";
 
+import "./LockAndDataForMainnetERC721.sol";
 import "./Messages.sol";
 import "./PermissionsForMainnet.sol";
 
-
-interface LockAndDataForMainnetERC721 {
-    function sendERC721(address contractOnMainnet, address to, uint256 token) external returns (bool);
-    function addERC721ForSchain(string calldata schainID, address erc721OnMainnet) external;
-    function getSchainToERC721(string calldata schainID, address erc721OnMainnet) external view returns (bool);
-}
 
 /**
  * @title ERC721 Module For Mainnet
