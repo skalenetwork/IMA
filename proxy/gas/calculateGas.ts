@@ -2232,7 +2232,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         };
 
         // send exit message to mainnet
-        let res = await messageProxyForMainnet.postIncomingMessages(
+        const res = await messageProxyForMainnet.postIncomingMessages(
             schainName,
             0,
             [message, message, message, message, message],

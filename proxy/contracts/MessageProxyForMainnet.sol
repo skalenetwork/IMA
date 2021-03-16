@@ -119,7 +119,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public owner;
 
-    uint256 public BASIC_POST_INCOMING_MESSAGES_TX = 50000;
+    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 50000;
 
     mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
     //      chainID  =>      message_id  => MessageData
@@ -533,7 +533,14 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
     }
 
-    function _callReceiverContract(string memory srcChainID, Message calldata message, uint counter) private returns (bool) {
+    function _callReceiverContract(
+        string memory srcChainID,
+        Message calldata message,
+        uint counter
+    )
+        private
+        returns (bool)
+    {
         try ContractReceiverForMainnet(message.destinationContract).postMessage(
             srcChainID,
             message.sender,
