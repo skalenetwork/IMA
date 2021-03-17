@@ -32,6 +32,10 @@ contract ContractManager {
 
     event ContractUpgraded(string contractsName, address contractsAddress);
 
+    constructor() public {
+        owner = msg.sender;
+    }
+
     /**
      * Adds actual contract to mapping of actual contract addresses
      * @param contractsName - contracts name in skale manager system
@@ -61,9 +65,5 @@ contract ContractManager {
      */
     function getContract(string memory contractName) external view returns (address) {
         return contracts[keccak256(abi.encodePacked(contractName))];
-    }
-
-    constructor() public {
-        owner = msg.sender;
     }
 }
