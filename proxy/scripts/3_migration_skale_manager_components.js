@@ -39,13 +39,13 @@ const gasLimit = 8000000;
 const BLSPublicKey = {
     x: {
         a: "8276253263131369565695687329790911140957927205765534740198480597854608202714",
-        b: "12500085126843048684532885473768850586094133366876833840698567603558300429943",
+        b: "12500085126843048684532885473768850586094133366876833840698567603558300429943"
     },
     y: {
         a: "7025653765868604607777943964159633546920168690664518432704587317074821855333",
-        b: "14411459380456065006136894392078433460802915485975038137226267466736619639091",
+        b: "14411459380456065006136894392078433460802915485975038137226267466736619639091"
     }
-}
+};
 
 async function deploy( deployer, network ) {
 
@@ -58,17 +58,16 @@ async function deploy( deployer, network ) {
 
     const schainName = process.env.CHAIN_NAME_SCHAIN;
 
-
     await deployer.deploy( ContractManager, { gas: gasLimit } ).then( async function( instCM ) {
-        await deployer.deploy( Schains, { gas: gasLimit } ).then( async function ( instSchains ) {
-            await instSchains.addContractManager(ContractManager.address);
-        });
+        await deployer.deploy( Schains, { gas: gasLimit } ).then( async function( instSchains ) {
+            await instSchains.addContractManager( ContractManager.address );
+        } );
         instCM.setContractsAddress( "Schains", Schains.address );
         const schainsInternal = await deployer.deploy( SchainsInternal, { gas: gasLimit } );
         instCM.setContractsAddress( "SchainsInternal", SchainsInternal.address );
-        await deployer.deploy( Wallets, { gas: gasLimit } ).then( async function ( instWallets ) {
-            await instWallets.addContractManager(ContractManager.address);
-        });;
+        await deployer.deploy( Wallets, { gas: gasLimit } ).then( async function( instWallets ) {
+            await instWallets.addContractManager( ContractManager.address );
+        } ); ;
         instCM.setContractsAddress( "Wallets", Wallets.address );
         await deployer.deploy( SkaleVerifier, { gas: gasLimit } );
         const keyStorage = await deployer.deploy( KeyStorage, { gas: gasLimit } );
@@ -76,8 +75,8 @@ async function deploy( deployer, network ) {
 
         // register test schain
         const deployerAddress = deployer.provider.addresses[0];
-        await schainsInternal.initializeSchain(schainName, deployerAddress, 1, 1);
-        await keyStorage.setCommonPublicKey(web3.utils.soliditySha3(schainName), BLSPublicKey);
+        await schainsInternal.initializeSchain( schainName, deployerAddress, 1, 1 );
+        await keyStorage.setCommonPublicKey( web3.utils.soliditySha3( schainName ), BLSPublicKey );
 
         const jsonObject = {
             contract_manager_address: ContractManager.address,
