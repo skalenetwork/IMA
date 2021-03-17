@@ -28,6 +28,8 @@ contract ContractManager {
     // mapping of actual smart contracts addresses
     mapping (bytes32 => address) public contracts;
 
+    address public owner;
+
     event ContractUpgraded(string contractsName, address contractsAddress);
 
     /**
@@ -59,5 +61,9 @@ contract ContractManager {
      */
     function getContract(string memory contractName) external view returns (address) {
         return contracts[keccak256(abi.encodePacked(contractName))];
+    }
+
+    constructor() public {
+        owner = msg.sender;
     }
 }
