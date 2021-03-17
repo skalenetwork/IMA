@@ -65,8 +65,9 @@ async function deploy( deployer, network ) {
         instCM.setContractsAddress( "Schains", Schains.address );
         const schainsInternal = await deployer.deploy( SchainsInternal, { gas: gasLimit } );
         instCM.setContractsAddress( "SchainsInternal", SchainsInternal.address );
-        await deployer.deploy( Wallets, { gas: gasLimit } ).then( async function( instWallets ) {
+        const wallets = await deployer.deploy( Wallets, { gas: gasLimit } ).then( async function( instWallets ) {
             await instWallets.addContractManager( ContractManager.address );
+            return instWallets;
         } ); ;
         instCM.setContractsAddress( "Wallets", Wallets.address );
         await deployer.deploy( SkaleVerifier, { gas: gasLimit } );
@@ -77,6 +78,7 @@ async function deploy( deployer, network ) {
         const deployerAddress = deployer.provider.addresses[0];
         await schainsInternal.initializeSchain( schainName, deployerAddress, 1, 1 );
         await keyStorage.setCommonPublicKey( web3.utils.soliditySha3( schainName ), BLSPublicKey );
+        await wallets.rechargeSchainWallet( web3.utils.soliditySha3( schainName ), { value: "1000000000000000000" } );
 
         const jsonObject = {
             contract_manager_address: ContractManager.address,
