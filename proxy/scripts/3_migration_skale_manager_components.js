@@ -71,8 +71,11 @@ async function deploy( deployer, network ) {
         } ); ;
         instCM.setContractsAddress( "Wallets", Wallets.address );
         await deployer.deploy( SkaleVerifier, { gas: gasLimit } );
+        instCM.setContractsAddress( "SkaleVerifier", SkaleVerifier.address );
         const keyStorage = await deployer.deploy( KeyStorage, { gas: gasLimit } );
+        instCM.setContractsAddress( "KeyStorage", KeyStorage.address );
         await deployer.deploy( Nodes, { gas: gasLimit } );
+        instCM.setContractsAddress( "Nodes", Nodes.address );
 
         // register test schain
         const deployerAddress = deployer.provider.addresses[0];
