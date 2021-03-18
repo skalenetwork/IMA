@@ -35,6 +35,15 @@ contract MessagesTester {
         return Messages.encodeTransferErc20Message(token, receiver, amount);
     }
 
+    function encodeTransferErc20AndTokenInfoMessage(
+        address token,
+        address receiver,
+        uint256 amount,
+        Messages.Erc20TokenInfo memory tokenInfo
+    ) external pure returns (bytes memory) {
+        return Messages.encodeTransferErc20AndTokenInfoMessage(token, receiver, amount, tokenInfo);
+    }
+
     function encodeTransferErc721Message(
         address token,
         address receiver,

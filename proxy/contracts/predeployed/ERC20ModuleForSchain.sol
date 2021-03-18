@@ -102,7 +102,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         }
         emit ERC20TokenReceived(message.baseErc20transfer.token, contractOnSchain, message.baseErc20transfer.amount);
         return LockAndDataForSchainERC20(lockAndDataERC20).sendERC20(
-            message.baseErc20transfer.token,
+            contractOnSchain,
             message.baseErc20transfer.receiver,
             message.baseErc20transfer.amount
         );
