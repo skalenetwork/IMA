@@ -30,6 +30,8 @@ import {
     EthERC20Instance,
     LockAndDataForMainnetERC20Instance,
     LockAndDataForMainnetInstance,
+    MessagesTesterContract,
+    MessagesTesterInstance,
     } from "../types/truffle-contracts";
 
 import { randomString } from "./utils/helper";
@@ -43,19 +45,21 @@ import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForM
 import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
 
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
+const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 
 contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
   let ethERC20: EthERC20Instance;
   let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
+  let messages: MessagesTesterInstance;
 
   beforeEach(async () => {
-
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
     lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
     ethERC20 = await EthERC20.new({from: deployer});
     eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
+    messages = await MessagesTester.new();
   });
 
   it("should invoke `receiveERC20`", async () => {
@@ -88,9 +92,9 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     // get data from `receiveERC20`
     await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
     await lockAndDataForMainnetERC20.disableWhitelist(schainID);
-    const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
     await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
     // execution
+    const data = await messages.encodeTransferErc20Message(contractHere, to, amount);
     const res = await eRC20ModuleForMainnet.sendERC20.call(data, {from: deployer});
     // expectation
     expect(res).to.be.true;
@@ -148,9 +152,9 @@ contract("ERC20ModuleForMainnet", ([deployer, user, invoker]) => {
     // get data from `receiveERC20`
     await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
     await lockAndDataForMainnetERC20.disableWhitelist(schainID);
-    const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, contractHere, to, amount, {from: deployer});
     await eRC20ModuleForMainnet.receiveERC20(schainID, contractHere, to, amount, {from: deployer});
     // execution
+    const data = await messages.encodeTransferErc20Message(contractHere, to, amount);
     const res = await eRC20ModuleForMainnet.getReceiver(data, {from: deployer});
     // expectation
     res.should.be.equal(user);
