@@ -96,7 +96,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
     /**
      * @dev Returns the receiver address.
      */
-    function getReceiver(bytes calldata data) external pure returns (address receiver) {
+    function getReceiver(bytes calldata data) external view returns (address receiver) {
         return Messages.decodeTransferErc721Message(data).receiver;
     }
 

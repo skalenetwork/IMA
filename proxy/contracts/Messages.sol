@@ -25,6 +25,7 @@ pragma experimental ABIEncoderV2;
 
 library Messages {
     enum MessageType {
+        EMPTY,
         TRANSFER_ETH,
         TRANSFER_ERC20,
         TRANSFER_ERC20_AND_TOKEN_INFO,
@@ -76,8 +77,15 @@ library Messages {
         Erc721TokenInfo tokenInfo;
     }
 
-    function getMessageType(bytes memory data) internal pure returns (MessageType) {
-        return abi.decode(data, (Messages.MessageType));
+    function getMessageType(bytes memory data) internal view returns (MessageType) {
+        uint256 firstWord = abi.decode(data, (uint256));
+        if (firstWord == 32) {
+            Messages.MessageType messageType;
+            (, messageType) = abi.decode(data, (uint256, Messages.MessageType));
+            return messageType;
+        } else {
+            return abi.decode(data, (Messages.MessageType));
+        }
     }
 
     function encodeTransferErc20Message(
@@ -96,10 +104,9 @@ library Messages {
 
     function decodeTransferErc20Message(
         bytes memory data
-    ) internal pure returns (TransferErc20Message memory) {
-        TransferErc20Message memory message = abi.decode(data, (TransferErc20Message));
-        require(message.message.messageType == MessageType.TRANSFER_ERC20, "Message type is not ERC20 transfer");
-        return message;
+    ) internal view returns (TransferErc20Message memory) {
+        require(getMessageType(data) == MessageType.TRANSFER_ERC20, "Message type is not ERC20 transfer");
+        return abi.decode(data, (TransferErc20Message));
     }
 
     function encodeTransferErc20AndTokenInfoMessage(
@@ -122,41 +129,39 @@ library Messages {
 
     function decodeTransferErc20AndTokenInfoMessage(
         bytes memory data
-    ) internal pure returns (TransferErc20AndTokenInfoMessage memory) {
-        TransferErc20AndTokenInfoMessage memory message = abi.decode(data, (TransferErc20AndTokenInfoMessage));
+    ) internal view returns (TransferErc20AndTokenInfoMessage memory) {
         require(
-            message.baseErc20transfer.message.messageType == MessageType.TRANSFER_ERC20_AND_TOKEN_INFO,
+            getMessageType(data) == MessageType.TRANSFER_ERC20_AND_TOKEN_INFO,
             "Message type is not ERC20 transfer with token info"
         );
-        return message;
+        return abi.decode(data, (TransferErc20AndTokenInfoMessage));
     }
 
     function encodeTransferErc721Message(
         address token,
         address receiver,
-        uint256 amount
+        uint256 tokenId
     ) internal pure returns (bytes memory) {
         TransferErc721Message memory message = TransferErc721Message(
             BaseMessage(MessageType.TRANSFER_ERC721),
             token,
             receiver,
-            amount
+            tokenId
         );
         return abi.encode(message);
     }
 
     function decodeTransferErc721Message(
         bytes memory data
-    ) internal pure returns (TransferErc721Message memory) {
-        TransferErc721Message memory message = abi.decode(data, (TransferErc721Message));
-        require(message.message.messageType == MessageType.TRANSFER_ERC721, "Message type is not ERC721 transfer");
-        return message;
+    ) internal view returns (TransferErc721Message memory) {
+        require(getMessageType(data) == MessageType.TRANSFER_ERC721, "Message type is not ERC721 transfer");
+        return abi.decode(data, (TransferErc721Message));
     }
 
     function encodeTransferErc721AndTokenInfoMessage(
         address token,
         address receiver,
-        uint256 amount,
+        uint256 tokenId,
         Erc721TokenInfo memory tokenInfo
     ) internal pure returns (bytes memory) {
         TransferErc721AndTokenInfoMessage memory message = TransferErc721AndTokenInfoMessage(
@@ -164,7 +169,7 @@ library Messages {
                 BaseMessage(MessageType.TRANSFER_ERC721_AND_TOKEN_INFO),
                 token,
                 receiver,
-                amount
+                tokenId
             ),
             tokenInfo
         );
@@ -173,12 +178,11 @@ library Messages {
 
     function decodeTransferErc721AndTokenInfoMessage(
         bytes memory data
-    ) internal pure returns (TransferErc721AndTokenInfoMessage memory) {
-        TransferErc721AndTokenInfoMessage memory message = abi.decode(data, (TransferErc721AndTokenInfoMessage));
+    ) internal view returns (TransferErc721AndTokenInfoMessage memory) {
         require(
-            message.baseErc721transfer.message.messageType == MessageType.TRANSFER_ERC721_AND_TOKEN_INFO,
+            getMessageType(data) == MessageType.TRANSFER_ERC721_AND_TOKEN_INFO,
             "Message type is not ERC721 transfer with token info"
         );
-        return message;
+        return abi.decode(data, (TransferErc721AndTokenInfoMessage));
     }
 }
