@@ -31,6 +31,8 @@ import {
     DepositBoxInstance,
     ContractManagerContract,
     ContractManagerInstance,
+    KeyStorageContract,
+    KeyStorageInstance,
     LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainInstance,
@@ -45,6 +47,8 @@ import {
     TokenManagerInstance,
     WalletsContract,
     WalletsInstance,
+    SkaleVerifierInstance,
+    SkaleVerifierContract,
 } from "../types/truffle-contracts";
 
 import { randomString } from "./utils/helper";
@@ -61,6 +65,8 @@ const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
 const Schains: SchainsContract = artifacts.require("./Schains");
+const KeyStorage: KeyStorageContract = artifacts.require("./KeyStorage");
+const SkaleVerifier: SkaleVerifierContract = artifacts.require("./SkaleVerifier");
 const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
 const Wallets: WalletsContract = artifacts.require("./Wallets");
 
@@ -73,8 +79,10 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     let lockAndDataForSchain: LockAndDataForSchainInstance;
     let contractManager: ContractManagerInstance;
     let schains: SchainsInstance;
+    let skaleVerifier: SkaleVerifierInstance;
     let schainsInternal: SchainsInternalInstance;
     let depositBox: DepositBoxInstance;
+    let keyStorage: KeyStorageInstance;
     let wallets: WalletsInstance;
 
     const publicKeyArray = [
@@ -84,13 +92,23 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
         "1122334455667788990011223344556677889900112233445566778899001122",
     ];
 
-    const BlsSignature = [
-        "1122334455667788990011223344556677889900112233445566778899001122",
-        "1122334455667788990011223344556677889900112233445566778899001122",
-    ];
+    const BLSPublicKey = {
+        x: {
+            a: "8276253263131369565695687329790911140957927205765534740198480597854608202714",
+            b: "12500085126843048684532885473768850586094133366876833840698567603558300429943",
+        },
+        y: {
+            a: "7025653765868604607777943964159633546920168690664518432704587317074821855333",
+            b: "14411459380456065006136894392078433460802915485975038137226267466736619639091",
+        }
+    }
 
-    const HashA = "1122334455667788990011223344556677889900112233445566778899001122";
-    const HashB = "1122334455667788990011223344556677889900112233445566778899001122";
+    const BlsSignature = [
+        "178325537405109593276798394634841698946852714038246117383766698579865918287",
+        "493565443574555904019191451171395204672818649274520396086461475162723833781",
+    ];
+    const HashA = "3080491942974172654518861600747466851589809241462384879086673256057179400078";
+    const HashB = "15163860114293529009901628456926790077787470245128337652112878212941459329347";
     const Counter = 0;
 
     describe("MessageProxyForMainnet for mainnet", async () => {
@@ -98,10 +116,16 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             contractManager = await ContractManager.new({from: deployer});
             schains = await Schains.new({from: deployer});
             schainsInternal = await SchainsInternal.new({from: deployer});
+            skaleVerifier = await SkaleVerifier.new({from: deployer});
+            keyStorage = await KeyStorage.new({from: deployer});
             wallets = await Wallets.new({from: deployer});
             await contractManager.setContractsAddress("Schains", schains.address, {from: deployer});
             await contractManager.setContractsAddress("SchainsInternal", schainsInternal.address, {from: deployer});
             await contractManager.setContractsAddress("Wallets", wallets.address, {from: deployer});
+            await contractManager.setContractsAddress("SkaleVerifier", skaleVerifier.address, {from: deployer});
+            await contractManager.setContractsAddress("KeyStorage", keyStorage.address, {from: deployer});
+            await schains.addContractManager(contractManager.address);
+            await wallets.addContractManager(contractManager.address);
             lockAndDataForMainnet = await deployLockAndDataForMainnet();
             messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
             depositBox = await deployDepositBox(lockAndDataForMainnet);
@@ -175,6 +199,9 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             // tokenManager1 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
             // tokenManager2 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
             const startingCounter = 0;
+            await schainsInternal.initializeSchain(chainID, deployer, 1, 1);
+            await keyStorage.setCommonPublicKey(web3.utils.soliditySha3(chainID), BLSPublicKey, {from: deployer});
+            await wallets.rechargeSchainWallet(web3.utils.soliditySha3(chainID), {from: deployer, value: "1000000000000000000"});
 
             const message1 = {
                 amount: 3,
@@ -253,6 +280,9 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const chainID = randomString(10);
             tokenManager1 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
             tokenManager2 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
+            await schainsInternal.initializeSchain(chainID, deployer, 1, 1);
+            await keyStorage.setCommonPublicKey(web3.utils.soliditySha3(chainID), BLSPublicKey, {from: deployer});
+            await wallets.rechargeSchainWallet(web3.utils.soliditySha3(chainID), {from: deployer, value: "1000000000000000000"});
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
@@ -322,6 +352,9 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const chainID = randomString(10);
             tokenManager1 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
             tokenManager2 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
+            await schainsInternal.initializeSchain(chainID, deployer, 1, 1);
+            await keyStorage.setCommonPublicKey(web3.utils.soliditySha3(chainID), BLSPublicKey, {from: deployer});
+            await wallets.rechargeSchainWallet(web3.utils.soliditySha3(chainID), {from: deployer, value: "1000000000000000000"});
             const startingCounter = 0;
             const message1 = {
                 amount: 3,

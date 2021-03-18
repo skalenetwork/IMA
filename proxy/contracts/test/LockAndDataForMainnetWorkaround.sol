@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   LockAndDataForMainnet.sol - SKALE Interchain Messaging Agent
+ *   LockAndDataForMainnetWorkaround.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *

@@ -31,6 +31,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.
 interface ILockAndDataDB {
     function tokenManagerAddresses(bytes32 schainHash) external returns (address);
     function approveTransfer(address to, uint256 amount) external;
+    function sendEth(address to, uint256 amount) external;
     function receiveEth(address from) external payable;
     function rechargeSchainWallet(bytes32 schainId, uint256 amount) external;
 }
@@ -155,14 +156,15 @@ contract DepositBox is PermissionsForMainnet {
     }
 
     function postMessage(
-        address sender,
         string calldata fromSchainID,
-        address payable to,
+        address sender,
+        address to,
         uint256 amount,
         bytes calldata data
     )
         external
         allow("MessageProxy")
+        returns (bool)
     {
         require(data.length != 0, "Invalid data");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
@@ -176,14 +178,15 @@ contract DepositBox is PermissionsForMainnet {
             "Not enough money to finish this transaction"
         );
         _executePerOperation(schainHash, to, amount, data);
+        return true;
     }
 
     /// Create a new deposit box
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
-        gasConsumptions[TransactionOperation.transferETH] = 300000;
-        gasConsumptions[TransactionOperation.transferERC20] = 350000;
-        gasConsumptions[TransactionOperation.transferERC721] = 350000;
+        gasConsumptions[TransactionOperation.transferETH] = 390000;
+        gasConsumptions[TransactionOperation.transferERC20] = 430000;
+        gasConsumptions[TransactionOperation.transferERC721] = 550000;
     }
 
     function deposit(string memory schainID, address to)
@@ -207,11 +210,11 @@ contract DepositBox is PermissionsForMainnet {
 
     function _executePerOperation(
         bytes32 schainId,
-        address payable to,
+        address to,
         uint256 amount,
         bytes calldata data    
     )
-        internal
+        private
     {
         TransactionOperation operation = _fallbackOperationTypeConvert(data);
         uint256 txFee = gasConsumptions[operation] * tx.gasprice;

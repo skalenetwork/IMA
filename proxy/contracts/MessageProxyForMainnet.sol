@@ -31,13 +31,14 @@ import "./interfaces/IWallets.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
-        address sender,
         string calldata schainID,
+        address sender,
         address to,
         uint256 amount,
         bytes calldata data
     )
-        external;
+        external
+        returns (bool);
 }
 
 interface ISchains {
@@ -118,6 +119,8 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public owner;
 
+    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 50000;
+
     mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
     //      chainID  =>      message_id  => MessageData
     mapping( bytes32 => mapping( uint256 => bytes32 )) private _outgoingMessageDataHash;
@@ -143,13 +146,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
 
     event PostMessageError(
         uint256 indexed msgCounter,
-        bytes32 indexed srcChainHash,
-        address sender,
-        string fromSchainID,
-        address to,
-        uint256 amount,
-        bytes data,
-        string message
+        bytes message
     );
 
     /**
@@ -248,9 +245,8 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     )
         external
     {
-        uint gasTotal = gasleft();
+        uint256 gasTotal = gasleft();
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
@@ -263,7 +259,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
-        _refundGasBySchain(srcChainHash, gasTotal);
+        _refundGasBySchain(srcChainHash, gasTotal + BASIC_POST_INCOMING_MESSAGES_TX);
     }
 
     /**
@@ -420,7 +416,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         require(
             _verifyMessageSignature(
                 sign.blsSignature,
-                _hashedArray(input),
+                _hashedArray(messages),
                 sign.counter,
                 sign.hashA,
                 sign.hashB,
@@ -465,7 +461,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     /**
      * @dev Returns hash of message array.
      */
-    function _hashedArray(Message[] memory messages) private pure returns (bytes32) {
+    function _hashedArray(Message[] calldata messages) private pure returns (bytes32) {
         bytes memory data;
         for (uint256 i = 0; i < messages.length; i++) {
             data = abi.encodePacked(
@@ -537,26 +533,34 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
     }
 
-    function _callReceiverContract(string memory srcChainID, Message calldata message, uint counter) private {
+    function _callReceiverContract(
+        string memory srcChainID,
+        Message calldata message,
+        uint counter
+    )
+        private
+        returns (bool)
+    {
         try ContractReceiverForMainnet(message.destinationContract).postMessage(
-            message.sender,
             srcChainID,
+            message.sender,
             message.to,
             message.amount,
             message.data
-        ) {
-            // solhint-disable-previous-line no-empty-blocks
+        ) returns (bool success) {
+            return success;
         } catch Error(string memory reason) {
             emit PostMessageError(
                 counter,
-                keccak256(abi.encodePacked(srcChainID)),
-                message.sender,
-                srcChainID,
-                message.to,
-                message.amount,
-                message.data,
-                reason
+                bytes(reason)
             );
+            return false;
+        } catch (bytes memory revertData) {
+            emit PostMessageError(
+                counter,
+                revertData
+            );
+            return false;
         }
     }
 
