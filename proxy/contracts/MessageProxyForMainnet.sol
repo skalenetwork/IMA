@@ -112,12 +112,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 50000;
 
     mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
-    //      chainID  =>      message_id  => MessageData
-    mapping( bytes32 => mapping( uint256 => bytes32 )) private _outgoingMessageDataHash;
-    //      chainID  => head of unprocessed messages
-    mapping( bytes32 => uint ) private _idxHead;
-    //      chainID  => tail of unprocessed messages
-    mapping( bytes32 => uint ) private _idxTail;
 
     /**
      * @dev Emitted for every outgoing message to `dstChain`.
