@@ -185,7 +185,6 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     const minterRole = await eRC721OnChain.MINTER_ROLE();
     await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
     // get data from `receiveERC721`
-    // const data = await eRC721ModuleForSchain.receiveERC721.call(schainID, contractThere , to, tokenId, {from: deployer});
     await eRC721ModuleForSchain.receiveERC721(schainID, contractThere , to, tokenId, {from: deployer});
     // execution
     const data = await messages.encodeTransferErc721AndTokenInfoMessage(
