@@ -87,7 +87,7 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
             emit ERC721TokenCreated(schainID, message.baseErc721transfer.token, contractOnSchain);
         }
         return LockAndDataForSchainERC721(lockAndDataERC721).sendERC721(
-            message.baseErc721transfer.token,
+            contractOnSchain,
             message.baseErc721transfer.receiver,
             message.baseErc721transfer.tokenId
         );

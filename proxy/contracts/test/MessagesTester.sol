@@ -51,4 +51,13 @@ contract MessagesTester {
     ) external pure returns (bytes memory) {
         return Messages.encodeTransferErc721Message(token, receiver, tokenId);
     }
+
+    function encodeTransferErc721AndTokenInfoMessage(
+        address token,
+        address receiver,
+        uint256 tokenId,
+        Messages.Erc721TokenInfo memory tokenInfo
+    ) external pure returns (bytes memory) {
+        return Messages.encodeTransferErc721AndTokenInfoMessage(token, receiver, tokenId, tokenInfo);
+    }
 }
