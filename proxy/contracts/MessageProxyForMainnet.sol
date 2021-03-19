@@ -83,16 +83,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      * ID of this schain, Chain 0 represents ETH mainnet,
     */
 
-    struct OutgoingMessageData {
-        string dstChain;
-        uint256 msgCounter;
-        address srcContract;
-        address dstContract;
-        address to;
-        uint256 amount;
-        bytes data;
-    }
-
     struct ConnectedChainInfo {
         // message counters start with 0
         uint256 incomingMessageCounter;
@@ -133,15 +123,13 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      * @dev Emitted for every outgoing message to `dstChain`.
      */
     event OutgoingMessage(
-        string dstChain,
         bytes32 indexed dstChainHash,
         uint256 indexed msgCounter,
         address indexed srcContract,
         address dstContract,
         address to,
         uint256 amount,
-        bytes data,
-        uint256 length
+        bytes data
     );
 
     event PostMessageError(
@@ -211,19 +199,17 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
-        connectedChains[dstChainHash].outgoingMessageCounter = 
-            connectedChains[dstChainHash].outgoingMessageCounter.add(1);
-        _pushOutgoingMessageData(
-            OutgoingMessageData(
-                dstChainID,
-                connectedChains[dstChainHash].outgoingMessageCounter - 1,
-                msg.sender,
-                dstContract,
-                to,
-                amount,
-                data
-            )
+        uint msgCounter = connectedChains[dstChainHash].outgoingMessageCounter;
+        emit OutgoingMessage(
+            dstChainHash,
+            msgCounter,
+            msg.sender,
+            dstContract,
+            to,
+            amount,
+            data
         );
+        connectedChains[dstChainHash].outgoingMessageCounter = msgCounter.add(1);
     }
 
     /**
@@ -252,13 +238,12 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not equal to incoming message counter");
 
-        _convertAndVerifyMessages(srcChainID, messages, sign);
+        require(_verifyMessages(srcChainID, messages, sign), "Signature is not verified");
         for (uint256 i = 0; i < messages.length; i++) {
             _callReceiverContract(srcChainID, messages[i], startingCounter + i);
         }
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
-        _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
         _refundGasBySchain(srcChainHash, gasTotal + BASIC_POST_INCOMING_MESSAGES_TX);
     }
 
@@ -362,22 +347,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     }
 
     /**
-     * @dev Checks whether outgoing message is valid.
-     */
-    function verifyOutgoingMessageData(
-        OutgoingMessageData memory message
-    )
-        public
-        view
-        returns (bool isValidMessage)
-    {
-        bytes32 chainId = keccak256(abi.encodePacked(message.dstChain));
-        bytes32 messageDataHash = _outgoingMessageDataHash[chainId][message.msgCounter];
-        if (messageDataHash == _hashOfMessage(message))
-            isValidMessage = true;
-    }
-
-    /**
      * @dev Checks whether sender is node address from the SKALE chain
      */
     function isAuthorizedCaller(bytes32 chainId, address sender) public view returns (bool) {
@@ -398,46 +367,12 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      * @dev Converts calldata structure to memory structure and checks
      * whether message BLS signature is valid.
      */
-    function _convertAndVerifyMessages(
+    function _verifyMessages(
         string calldata srcChainID,
         Message[] calldata messages,
         Signature calldata sign
     )
-        internal
-    {
-        Message[] memory input = new Message[](messages.length);
-        for (uint256 i = 0; i < messages.length; i++) {
-            input[i].sender = messages[i].sender;
-            input[i].destinationContract = messages[i].destinationContract;
-            input[i].to = messages[i].to;
-            input[i].amount = messages[i].amount;
-            input[i].data = messages[i].data;
-        }
-        require(
-            _verifyMessageSignature(
-                sign.blsSignature,
-                _hashedArray(messages),
-                sign.counter,
-                sign.hashA,
-                sign.hashB,
-                srcChainID
-            ), "Signature is not verified"
-        );
-    }
-
-    /**
-     * @dev Checks whether message BLS signature is valid.
-     */
-    function _verifyMessageSignature(
-        uint256[2] memory blsSignature,
-        bytes32 hash,
-        uint256 counter,
-        uint256 hashA,
-        uint256 hashB,
-        string memory srcChainID
-    )
         private
-        view
         returns (bool)
     {
         address skaleSchains = IContractManager(
@@ -448,12 +383,12 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             "Schains"
         );
         return ISchains(skaleSchains).verifySchainSignature(
-            blsSignature[0],
-            blsSignature[1],
-            hash,
-            counter,
-            hashA,
-            hashB,
+            sign.blsSignature[0],
+            sign.blsSignature[1],
+            _hashedArray(messages),
+            sign.counter,
+            sign.hashA,
+            sign.hashB,
             srcChainID
         );
     }
@@ -474,63 +409,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             );
         }
         return keccak256(data);
-    }
-
-    function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
-        bytes memory data = abi.encodePacked(
-            bytes32(keccak256(abi.encodePacked(message.dstChain))),
-            bytes32(message.msgCounter),
-            bytes32(bytes20(message.srcContract)),
-            bytes32(bytes20(message.dstContract)),
-            bytes32(bytes20(message.to)),
-            message.amount,
-            message.data
-        );
-        return keccak256(data);
-    }
-
-    /**
-     * @dev Push outgoing message into outgoingMessageData array.
-     * 
-     * Emits an {OutgoingMessage} event.
-     */
-    function _pushOutgoingMessageData(OutgoingMessageData memory d) private {
-        bytes32 dstChainHash = keccak256(abi.encodePacked(d.dstChain));
-        emit OutgoingMessage(
-            d.dstChain,
-            dstChainHash,
-            d.msgCounter,
-            d.srcContract,
-            d.dstContract,
-            d.to,
-            d.amount,
-            d.data,
-            d.data.length
-        );
-        _outgoingMessageDataHash[dstChainHash][_idxTail[dstChainHash]] = _hashOfMessage(d);
-        _idxTail[dstChainHash] = _idxTail[dstChainHash].add(1);
-    }
-
-    /**
-     * @dev Pop outgoing message from outgoingMessageData array.
-     */
-    function _popOutgoingMessageData(
-        bytes32 chainId,
-        uint256 idxLastToPopNotIncluding
-    )
-        private
-        returns ( uint256 cntDeleted )
-    {
-        cntDeleted = 0;
-        uint idxTail = _idxTail[chainId];
-        for ( uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++i ) {
-            if ( i >= idxTail )
-                break;
-            delete _outgoingMessageDataHash[chainId][i];
-            ++ cntDeleted;
-        }
-        if (cntDeleted > 0)
-            _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
     }
 
     function _callReceiverContract(
