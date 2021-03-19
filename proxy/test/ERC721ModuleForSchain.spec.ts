@@ -224,9 +224,17 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // transfer ERC721 token to `lockAndDataForMainnetERC721` to avoid "Token not transferred" error
     await eRC721OnChain.transferFrom(deployer, lockAndDataForSchainERC721.address, tokenId, {from: deployer});
     // get data from `receiveERC721`
-    const data = await eRC721ModuleForSchain.receiveERC721.call(schainID, contractThere , to, tokenId, {from: deployer});
     await eRC721ModuleForSchain.receiveERC721(schainID, contractThere , to, tokenId, {from: deployer});
     // execution
+    const data = await messages.encodeTransferErc721AndTokenInfoMessage(
+      contractThere,
+      to,
+      tokenId,
+      {
+        name: await eRC721OnMainnet.name(),
+        symbol: await eRC721OnMainnet.symbol()
+      }
+    )
     const res = await eRC721ModuleForSchain.getReceiver(data, {from: deployer});
     // expectation
     res.should.be.equal(user);
