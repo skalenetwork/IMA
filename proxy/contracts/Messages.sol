@@ -88,6 +88,20 @@ library Messages {
         }
     }
 
+    function encodeTransferEthMessage() internal pure returns (bytes memory) {
+        TransferEthMessage memory message = TransferEthMessage(
+            BaseMessage(MessageType.TRANSFER_ETH)
+        );
+        return abi.encode(message);
+    }
+
+    function decodeTransferEthMessage(
+        bytes memory data
+    ) internal view returns (TransferEthMessage memory) {
+        require(getMessageType(data) == MessageType.TRANSFER_ETH, "Message type is not ETH transfer");
+        return abi.decode(data, (TransferEthMessage));
+    }
+
     function encodeTransferErc20Message(
         address token,
         address receiver,

@@ -20,6 +20,7 @@
  */
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
@@ -29,7 +30,6 @@ import "./ERC20ModuleForSchain.sol";
 import "./ERC721ModuleForSchain.sol";
 import "../Messages.sol";
 import "./PermissionsForSchain.sol";
-
 
 
 interface ILockAndDataERCOnSchain {
@@ -297,7 +297,7 @@ contract TokenManager is PermissionsForSchain {
             require(ERC20ModuleForSchain(erc20Module).sendERC20(fromSchainID, data), "Failed to send ERC20");
             address receiver = ERC20ModuleForSchain(erc20Module).getReceiver(data);
             require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
-        } else if (operation == Messages.MessageType.TRANSFER_ERC721) {
+        } else if (operation == Messages.MessageType.TRANSFER_ERC721_AND_TOKEN_INFO) {
             address erc721Module = LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getErc721Module();

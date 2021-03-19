@@ -27,6 +27,11 @@ import "../Messages.sol";
 
 
 contract MessagesTester {
+
+    function encodeTransferEthMessage() external pure returns (bytes memory) {
+        return Messages.encodeTransferEthMessage();
+    }
+
     function encodeTransferErc20Message(
         address token,
         address receiver,
