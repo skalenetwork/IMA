@@ -21,9 +21,9 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/utils/Address.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
@@ -35,7 +35,7 @@ import "./interfaces/IWallets.sol";
  * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
  * balances of ETH tokens received through DepositBox.
  */
-contract LockAndDataForMainnet is OwnableUpgradeSafe {
+contract LockAndDataForMainnet is OwnableUpgradeable {
     using Address for address;
     using SafeMath for uint;
 
@@ -199,7 +199,7 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
     }
 
     function initialize() public initializer {
-        OwnableUpgradeSafe.__Ownable_init();
+        OwnableUpgradeable.__Ownable_init();
     }
 
     /**

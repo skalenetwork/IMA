@@ -21,8 +21,8 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 import "./EthERC20.sol";
 import "./OwnableForSchain.sol";

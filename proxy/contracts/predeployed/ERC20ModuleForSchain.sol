@@ -22,8 +22,6 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
-
 import "../Messages.sol";
 import "./PermissionsForSchain.sol";
 import "./TokenFactory.sol";

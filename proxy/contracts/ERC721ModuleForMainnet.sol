@@ -22,7 +22,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Metadata.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol";
 
 import "./LockAndDataForMainnetERC721.sol";
 import "./Messages.sol";

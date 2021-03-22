@@ -22,8 +22,9 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+
 import "./PermissionsForMainnet.sol";
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";

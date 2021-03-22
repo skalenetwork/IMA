@@ -21,7 +21,8 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
 import "./LockAndDataForMainnet.sol";
@@ -31,7 +32,7 @@ import "./LockAndDataForMainnet.sol";
  * @title PermissionsForMainnet - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-contract PermissionsForMainnet is AccessControlUpgradeSafe {
+contract PermissionsForMainnet is AccessControlUpgradeable {
 
     // address of ContractManager
     address public lockAndDataAddress_;
@@ -64,7 +65,7 @@ contract PermissionsForMainnet is AccessControlUpgradeSafe {
      * @param newContractsAddress - current address of ContractManager
      */
     function initialize(address newContractsAddress) public virtual initializer {
-        AccessControlUpgradeSafe.__AccessControl_init();
+        AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         lockAndDataAddress_ = newContractsAddress;
     }
