@@ -27,13 +27,14 @@ import "./SkaleFeatures.sol";
 
 interface ContractReceiverForSchain {
     function postMessage(
-        address sender,
         string calldata schainID,
+        address sender,
         address to,
         uint256 amount,
         bytes calldata data
     )
-        external;
+        external
+        returns (bool);
 }
 
 
@@ -105,26 +106,18 @@ contract MessageProxyForSchain {
     mapping( bytes32 => uint ) private _idxTail;
 
     event OutgoingMessage(
-        string dstChain,
         bytes32 indexed dstChainHash,
         uint256 indexed msgCounter,
         address indexed srcContract,
         address dstContract,
         address to,
         uint256 amount,
-        bytes data,
-        uint256 length
+        bytes data
     );
 
     event PostMessageError(
         uint256 indexed msgCounter,
-        bytes32 indexed srcChainHash,
-        address sender,
-        string fromSchainID,
-        address to,
-        uint256 amount,
-        bytes data,
-        string message
+        bytes message
     );
 
     modifier connectMainnet() {
@@ -316,26 +309,7 @@ contract MessageProxyForSchain {
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
         for (uint256 i = 0; i < messages.length; i++) {
-            try ContractReceiverForSchain(messages[i].destinationContract).postMessage(
-                messages[i].sender,
-                srcChainID,
-                messages[i].to,
-                messages[i].amount,
-                messages[i].data
-            ) {
-                ++startingCounter;
-            } catch Error(string memory reason) {
-                emit PostMessageError(
-                    ++startingCounter,
-                    srcChainHash,
-                    messages[i].sender,
-                    srcChainID,
-                    messages[i].to,
-                    messages[i].amount,
-                    messages[i].data,
-                    reason
-                );
-            }
+            _callReceiverContract(srcChainID, messages[i], startingCounter + 1);
         }
         connectedChains[srcChainHash].incomingMessageCounter 
             = connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
@@ -406,6 +380,37 @@ contract MessageProxyForSchain {
         return 0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2;
     }
 
+    function _callReceiverContract(
+        string memory srcChainID,
+        Message calldata message,
+        uint counter
+    )
+        private
+        returns (bool)
+    {
+        try ContractReceiverForSchain(message.destinationContract).postMessage(
+            srcChainID,
+            message.sender,
+            message.to,
+            message.amount,
+            message.data
+        ) returns (bool success) {
+            return success;
+        } catch Error(string memory reason) {
+            emit PostMessageError(
+                counter,
+                bytes(reason)
+            );
+            return false;
+        } catch (bytes memory revertData) {
+            emit PostMessageError(
+                counter,
+                revertData
+            );
+            return false;
+        }
+    }
+
     function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
         bytes memory data = abi.encodePacked(
             bytes32(keccak256(abi.encodePacked(message.dstChain))),
@@ -422,15 +427,13 @@ contract MessageProxyForSchain {
     function _pushOutgoingMessageData( OutgoingMessageData memory d ) private {
         bytes32 dstChainHash = keccak256(abi.encodePacked(d.dstChain));
         emit OutgoingMessage(
-            d.dstChain,
             dstChainHash,
             d.msgCounter,
             d.srcContract,
             d.dstContract,
             d.to,
             d.amount,
-            d.data,
-            d.data.length
+            d.data
         );
         _outgoingMessageDataHash[dstChainHash][_idxTail[dstChainHash]] = _hashOfMessage(d);
         _idxTail[dstChainHash] = _idxTail[dstChainHash].add(1);

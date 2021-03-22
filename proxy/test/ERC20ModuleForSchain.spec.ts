@@ -218,7 +218,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const newERC20Contract = new web3.eth.Contract(ABIERC20OnChain.abi, newAddress);
     await eRC20ModuleForSchain.sendERC20(schainID, data2, {from: deployer});
     const balance = await newERC20Contract.methods.balanceOf(to).call();
-    // parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount * 2);
+    parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount * 2);
   });
 
   it("should return `true` for `sendERC20` with `to0==address(0)` and `contractAddreess==address(0)`", async () => {
