@@ -326,7 +326,7 @@ contract TokenManager is PermissionsForSchain {
             LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
             amountOfEth,
             to,
-            abi.encodePacked(bytes1(uint8(1)))
+            Messages.encodeTransferEthMessage()
         );
     }
 
