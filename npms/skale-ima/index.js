@@ -2968,7 +2968,7 @@ async function do_transfer(
                     joReceipt = await safe_send_signed_transaction( w3_dst, serializedTx_postIncomingMessages, strActionName, strLogPrefix );
                 }
                 if( verbose_get() >= RV_VERBOSE.information ) {
-                    console.log(joReceipt);
+                    console.log( joReceipt );
                     log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
                 }
                 if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
