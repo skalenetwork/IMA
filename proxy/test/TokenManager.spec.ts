@@ -636,7 +636,7 @@ contract("TokenManager", ([deployer, user, client]) => {
           const sender = deployer;
           // execution/expectation
           await tokenManager
-            .postMessage(sender, chainID, user, amount, bytesData, {from: deployer})
+            .postMessage(chainID, sender, user, amount, bytesData, {from: deployer})
             .should.be.eventually.rejectedWith(error);
         });
 
@@ -654,7 +654,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
             // execution
             await tokenManager
-                .postMessage(sender, chainID, user, amount, bytesData, {from: deployer})
+                .postMessage(chainID, sender, user, amount, bytesData, {from: deployer})
                 .should.be.eventually.rejectedWith(error);
         });
 
@@ -677,7 +677,7 @@ contract("TokenManager", ([deployer, user, client]) => {
                 .addSchain(schainID, deployer, {from: deployer});
             // execution
             await tokenManager
-                .postMessage(sender, schainID, user, amount, bytesData, {from: deployer})
+                .postMessage(schainID, sender, user, amount, bytesData, {from: deployer})
                 .should.be.eventually.rejectedWith(error);
         });
 
@@ -705,7 +705,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
             // execution
             await tokenManager
-                .postMessage(sender, schainID, to, amount, bytesData, {from: deployer});
+                .postMessage(schainID, sender, to, amount, bytesData, {from: deployer});
             // expectation
             expect(parseInt((new BigNumber(await ethERC20.balanceOf(to))).toString(), 10))
                 .to.be.equal(parseInt(amount, 10));
@@ -738,7 +738,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
             // execution
             await tokenManager
-                .postMessage(sender, schainID, to, amount, bytesData, {from: deployer})
+                .postMessage(schainID, sender, to, amount, bytesData, {from: deployer})
                 .should.be.eventually.rejectedWith(error);
             // const communityPoolAfter = new BigNumber(await lockAndDataForSchain.communityPool());
             // communityPoolAfter.should.be.deep.equal(new BigNumber(amount));
@@ -791,7 +791,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
             // execution
             await tokenManager
-              .postMessage(sender, schainID, to0, amount, data, {from: deployer});
+              .postMessage(schainID, sender, to0, amount, data, {from: deployer});
             // expectation
             expect(parseInt((new BigNumber(await ethERC20.balanceOf(to))).toString(), 10))
                 .to.be.equal(amount);
@@ -841,7 +841,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
             // execution
             await tokenManager
-              .postMessage(sender, schainID, to0, amount, data, {from: deployer});
+              .postMessage(schainID, sender, to0, amount, data, {from: deployer});
             // expectation
             expect(parseInt((new BigNumber(await ethERC20.balanceOf(to))).toString(), 10))
                 .to.be.equal(amount);
