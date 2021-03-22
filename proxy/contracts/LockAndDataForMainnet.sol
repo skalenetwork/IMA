@@ -146,7 +146,7 @@ contract LockAndDataForMainnet is OwnableUpgradeable {
         require(address(this).balance >= amount, "Not enough ETH to rechargeSchainWallet");
         address contractManagerAddress = permitted[keccak256(abi.encodePacked("ContractManagerForSkaleManager"))];
         address walletsAddress = IContractManager(contractManagerAddress).getContract("Wallets");
-        IWallets(payable(walletsAddress)).rechargeSchainWallet.value(amount)(schainId);
+        IWallets(payable(walletsAddress)).rechargeSchainWallet{value: amount}(schainId);
     }
 
     /**
