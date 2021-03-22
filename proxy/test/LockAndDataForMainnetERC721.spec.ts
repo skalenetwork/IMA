@@ -62,20 +62,6 @@ contract("LockAndDataForMainnetERC721", ([deployer, user, invoker]) => {
 
   });
 
-  it("should NOT to send ERC721 to `to` when invoke `sendERC721`", async () => {
-    // preparation
-    const contractHere = eRC721OnChain.address;
-    const to = user;
-    const tokenId = 1;
-    // mint some ERC721 of  for `deployer` address
-    await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-    // execution/expectation
-    const res = await lockAndDataForMainnetERC721
-        .sendERC721(contractHere, to, tokenId, {from: deployer});
-    // expectation
-    expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(deployer);
-  });
-
   it("should to send ERC721 to `to` when invoke `sendERC721`", async () => {
     // preparation
     const contractHere = eRC721OnChain.address;

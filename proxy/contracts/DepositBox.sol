@@ -148,14 +148,15 @@ contract DepositBox is PermissionsForMainnet {
     }
 
     function postMessage(
-        address sender,
         string calldata fromSchainID,
-        address payable to,
+        address sender,
+        address to,
         uint256 amount,
         bytes calldata data
     )
         external
         allow("MessageProxy")
+        returns (bool)
     {
         require(data.length != 0, "Invalid data");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
@@ -169,14 +170,15 @@ contract DepositBox is PermissionsForMainnet {
             "Not enough money to finish this transaction"
         );
         _executePerOperation(schainHash, to, amount, data);
+        return true;
     }
 
     /// Create a new deposit box
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
-        gasConsumptions[Messages.MessageType.TRANSFER_ETH] = 300000;
-        gasConsumptions[Messages.MessageType.TRANSFER_ERC20] = 350000;
-        gasConsumptions[Messages.MessageType.TRANSFER_ERC721] = 350000;
+        gasConsumptions[TransactionOperation.transferETH] = 390000;
+        gasConsumptions[TransactionOperation.transferERC20] = 430000;
+        gasConsumptions[TransactionOperation.transferERC721] = 550000;
     }
 
     function deposit(string memory schainID, address to)
@@ -200,11 +202,11 @@ contract DepositBox is PermissionsForMainnet {
 
     function _executePerOperation(
         bytes32 schainId,
-        address payable to,
+        address to,
         uint256 amount,
         bytes calldata data    
     )
-        internal
+        private
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         uint256 txFee = gasConsumptions[operation] * tx.gasprice;

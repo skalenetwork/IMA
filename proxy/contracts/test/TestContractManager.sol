@@ -20,6 +20,7 @@
  */
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/Address.sol";
 
@@ -30,7 +31,13 @@ contract ContractManager {
     // mapping of actual smart contracts addresses
     mapping (bytes32 => address) public contracts;
 
+    address public owner;
+
     event ContractUpgraded(string contractsName, address contractsAddress);
+
+    constructor() public {
+        owner = msg.sender;
+    }
 
     /**
      * Adds actual contract to mapping of actual contract addresses
