@@ -31,7 +31,6 @@ import "./PermissionsForMainnet.sol";
 import "./ERC20ModuleForMainnet.sol";
 import "./ERC721ModuleForMainnet.sol";
 import "./Messages.sol";
-import "@nomiclabs/buidler/console.sol";
 
 
 // This contract runs on the main net and accepts deposits
@@ -179,9 +178,9 @@ contract DepositBox is PermissionsForMainnet {
     /// Create a new deposit box
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
-        gasConsumptions[Messages.MessageType.TRANSFER_ETH] = 390000;
-        gasConsumptions[Messages.MessageType.TRANSFER_ERC20] = 430000;
-        gasConsumptions[Messages.MessageType.TRANSFER_ERC721] = 550000;
+        gasConsumptions[Messages.MessageType.TRANSFER_ETH] = 500000;
+        gasConsumptions[Messages.MessageType.TRANSFER_ERC20] = 600000;
+        gasConsumptions[Messages.MessageType.TRANSFER_ERC721] = 700000;
     }
 
     function deposit(string memory schainID, address to)
