@@ -129,7 +129,10 @@ contract DepositBox is PermissionsForMainnet {
         require(tokenManagerAddress != address(0), "Unconnected chain");
         address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract("LockAndDataERC721");
         IERC721Upgradeable(contractOnMainnet).transferFrom(address(this), lockAndDataERC721, tokenId);
-        require(IERC721Upgradeable(contractOnMainnet).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
+        require(
+            IERC721Upgradeable(contractOnMainnet).ownerOf(tokenId) == lockAndDataERC721,
+            "Did not transfer ERC721 token"
+        );
         bytes memory data = ERC721ModuleForMainnet(
             IContractManager(lockAndDataAddress_).getContract("ERC721Module")
         ).receiveERC721(

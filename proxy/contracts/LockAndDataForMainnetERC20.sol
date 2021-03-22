@@ -63,7 +63,10 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
     {
         require(contractOnMainnet.isContract(), "Given address is not a contract");
         require(IERC20Upgradeable(contractOnMainnet).balanceOf(address(this)) >= amount, "Not enough money");
-        require(IERC20Upgradeable(contractOnMainnet).transfer(to, amount), "Something went wrong with `transfer` in ERC20");
+        require(
+            IERC20Upgradeable(contractOnMainnet).transfer(to, amount),
+            "Something went wrong with `transfer` in ERC20"
+        );
         return true;
     }
 
