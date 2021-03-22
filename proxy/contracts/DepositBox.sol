@@ -176,9 +176,9 @@ contract DepositBox is PermissionsForMainnet {
     /// Create a new deposit box
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
-        gasConsumptions[TransactionOperation.transferETH] = 390000;
-        gasConsumptions[TransactionOperation.transferERC20] = 430000;
-        gasConsumptions[TransactionOperation.transferERC721] = 550000;
+        gasConsumptions[Messages.MessageType.TRANSFER_ETH] = 390000;
+        gasConsumptions[Messages.MessageType.TRANSFER_ERC20] = 430000;
+        gasConsumptions[Messages.MessageType.TRANSFER_ERC721] = 550000;
     }
 
     function deposit(string memory schainID, address to)
