@@ -411,7 +411,7 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
         cc.debug( ", message(s) to process:" ) + cc.j( jarrMessages ) +
         "\n" );
     let cntBadMessages = 0; let i = 0; const cnt = jarrMessages.length;
-    if ( strDirection == "S2M" )
+    if( strDirection == "S2M" ) {
         for( i = 0; i < cnt; ++i ) {
             const joMessage = jarrMessages[i]; const idxMessage = nIdxCurrentMsgBlockStart + i;
             try {
@@ -442,7 +442,8 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
                     cc.error( ", error information: " ) + cc.warning( err.toString() ) +
                     "\n" );
             }
-        } // for( let i = 0; i < jarrMessages.length; ++ i )
+        }
+    } // for( let i = 0; i < jarrMessages.length; ++ i )
     // TODO: M2S - check events
     if( cntBadMessages > 0 ) {
         log.write( strLogPrefix + cc.fatal( "BAD ERROR:" ) +

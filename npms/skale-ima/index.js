@@ -2591,7 +2591,9 @@ async function do_transfer(
                 } );
                 let joValues = "";
                 for( let i = r.length - 1; i >= 0; i-- ) {
-                    if( r[i].returnValues.dstChain == chain_id_dst ) {
+                    log.write( strLogPrefix + cc.info( "Event:" ) + r[i].returnValues + "\n" );
+                    if( r[i].returnValues.dstChainHash == w3_src.utils.soliditySha3( chain_id_dst ) ) {
+                        log.write( strLogPrefix + cc.info( "Added" ) + "\n" );
                         joValues = r[i].returnValues;
                         break;
                     }
