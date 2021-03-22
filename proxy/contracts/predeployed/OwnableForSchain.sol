@@ -83,7 +83,7 @@ contract OwnableForSchain is Ownable {
         return owner();
     }
 
-    function getSkaleFeaturesAddress() public view returns (address) {
+    function getSkaleFeaturesAddress() public pure returns (address) {
         return 0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2;
     }
 }

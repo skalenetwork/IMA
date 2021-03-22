@@ -102,7 +102,7 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
     /**
      * @dev Returns the receiver address of the ERC20 token.
      */
-    function getReceiver(bytes calldata data) external view returns (address receiver) {
+    function getReceiver(bytes calldata data) external pure returns (address receiver) {
         return Messages.decodeTransferErc20Message(data).receiver;
     }
 

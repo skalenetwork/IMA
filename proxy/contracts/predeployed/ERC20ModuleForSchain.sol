@@ -109,7 +109,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
     /**
      * @dev Returns the receiver address.
      */
-    function getReceiver(bytes calldata data) external view returns (address receiver) {
+    function getReceiver(bytes calldata data) external pure returns (address receiver) {
         return Messages.decodeTransferErc20AndTokenInfoMessage(data).baseErc20transfer.receiver;
     }
 

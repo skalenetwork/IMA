@@ -90,7 +90,7 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
     /**
      * @dev Returns the receiver address of the ERC721 token.
      */
-    function getReceiver(bytes calldata data) external view returns (address) {
+    function getReceiver(bytes calldata data) external pure returns (address) {
         return Messages.decodeTransferErc721Message(data).receiver;
     }
 

@@ -207,7 +207,7 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Allows TokenManager to reduce exit from some address.
      */
-    function reduceCommunityPool(uint256) external allow("TokenManager") returns (bool) {
+    function reduceCommunityPool(uint256) external view allow("TokenManager") returns (bool) {
         revert("Community Pool is not available");
         // if (communityPool >= amountOfEth) {
         //     communityPool = communityPool.sub(amountOfEth);

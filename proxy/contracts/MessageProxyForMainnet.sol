@@ -405,6 +405,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         Signature calldata sign
     )
         internal
+        view
     {
         Message[] memory input = new Message[](messages.length);
         for (uint256 i = 0; i < messages.length; i++) {

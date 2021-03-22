@@ -77,7 +77,7 @@ library Messages {
         Erc721TokenInfo tokenInfo;
     }
 
-    function getMessageType(bytes memory data) internal view returns (MessageType) {
+    function getMessageType(bytes memory data) internal pure returns (MessageType) {
         uint256 firstWord = abi.decode(data, (uint256));
         if (firstWord == 32) {
             Messages.MessageType messageType;
@@ -97,7 +97,7 @@ library Messages {
 
     function decodeTransferEthMessage(
         bytes memory data
-    ) internal view returns (TransferEthMessage memory) {
+    ) internal pure returns (TransferEthMessage memory) {
         require(getMessageType(data) == MessageType.TRANSFER_ETH, "Message type is not ETH transfer");
         return abi.decode(data, (TransferEthMessage));
     }
@@ -118,7 +118,7 @@ library Messages {
 
     function decodeTransferErc20Message(
         bytes memory data
-    ) internal view returns (TransferErc20Message memory) {
+    ) internal pure returns (TransferErc20Message memory) {
         require(getMessageType(data) == MessageType.TRANSFER_ERC20, "Message type is not ERC20 transfer");
         return abi.decode(data, (TransferErc20Message));
     }
@@ -143,7 +143,7 @@ library Messages {
 
     function decodeTransferErc20AndTokenInfoMessage(
         bytes memory data
-    ) internal view returns (TransferErc20AndTokenInfoMessage memory) {
+    ) internal pure returns (TransferErc20AndTokenInfoMessage memory) {
         require(
             getMessageType(data) == MessageType.TRANSFER_ERC20_AND_TOKEN_INFO,
             "Message type is not ERC20 transfer with token info"
@@ -167,7 +167,7 @@ library Messages {
 
     function decodeTransferErc721Message(
         bytes memory data
-    ) internal view returns (TransferErc721Message memory) {
+    ) internal pure returns (TransferErc721Message memory) {
         require(getMessageType(data) == MessageType.TRANSFER_ERC721, "Message type is not ERC721 transfer");
         return abi.decode(data, (TransferErc721Message));
     }
@@ -192,7 +192,7 @@ library Messages {
 
     function decodeTransferErc721AndTokenInfoMessage(
         bytes memory data
-    ) internal view returns (TransferErc721AndTokenInfoMessage memory) {
+    ) internal pure returns (TransferErc721AndTokenInfoMessage memory) {
         require(
             getMessageType(data) == MessageType.TRANSFER_ERC721_AND_TOKEN_INFO,
             "Message type is not ERC721 transfer with token info"
