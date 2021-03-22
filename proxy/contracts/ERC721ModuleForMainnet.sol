@@ -22,7 +22,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721MetadataUpgradeable.sol";
 
 import "./LockAndDataForMainnetERC721.sol";
 import "./Messages.sol";
@@ -70,7 +70,7 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
             contractOnMainnet,
             to,
             tokenId,
-            _getTokenInfo(IERC721Metadata(contractOnMainnet))
+            _getTokenInfo(IERC721MetadataUpgradeable(contractOnMainnet))
         );
         emit ERC721TokenReady(contractOnMainnet, tokenId);
     }
@@ -98,7 +98,7 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
-    function _getTokenInfo(IERC721Metadata erc721) internal view returns (Messages.Erc721TokenInfo memory) {
+    function _getTokenInfo(IERC721MetadataUpgradeable erc721) internal view returns (Messages.Erc721TokenInfo memory) {
         return Messages.Erc721TokenInfo({
             name: erc721.name(),
             symbol: erc721.symbol()

@@ -2,12 +2,12 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 /**
  * @dev Interface for the optional metadata functions from the ERC20 standard.
  */
-interface IERC20Metadata is IERC20 {
+interface IERC20Metadata is IERC20Upgradeable {
     /**
      * @dev Returns the name of the token.
      */

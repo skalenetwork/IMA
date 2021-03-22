@@ -22,8 +22,8 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
@@ -36,8 +36,8 @@ import "./interfaces/IWallets.sol";
  * balances of ETH tokens received through DepositBox.
  */
 contract LockAndDataForMainnet is OwnableUpgradeable {
-    using Address for address;
-    using SafeMath for uint;
+    using AddressUpgradeable for address;
+    using SafeMathUpgradeable for uint;
 
     mapping(bytes32 => address) public permitted;
 

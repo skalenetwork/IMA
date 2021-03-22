@@ -22,8 +22,8 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 
 import "./interfaces/IMessageProxy.sol";
 
@@ -89,7 +89,7 @@ contract DepositBox is PermissionsForMainnet {
         address tokenManagerAddress = LockAndDataForMainnet(lockAndDataAddress_).tokenManagerAddresses(schainHash);
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(
-            IERC20(contractOnMainnet).transferFrom(
+            IERC20Upgradeable(contractOnMainnet).transferFrom(
                 msg.sender,
                 IContractManager(lockAndDataAddress_).getContract("LockAndDataERC20"),
                 amount
@@ -128,8 +128,8 @@ contract DepositBox is PermissionsForMainnet {
         address tokenManagerAddress = LockAndDataForMainnet(lockAndDataAddress_).tokenManagerAddresses(schainHash);
         require(tokenManagerAddress != address(0), "Unconnected chain");
         address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract("LockAndDataERC721");
-        IERC721(contractOnMainnet).transferFrom(address(this), lockAndDataERC721, tokenId);
-        require(IERC721(contractOnMainnet).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
+        IERC721Upgradeable(contractOnMainnet).transferFrom(address(this), lockAndDataERC721, tokenId);
+        require(IERC721Upgradeable(contractOnMainnet).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         bytes memory data = ERC721ModuleForMainnet(
             IContractManager(lockAndDataAddress_).getContract("ERC721Module")
         ).receiveERC721(
