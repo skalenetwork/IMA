@@ -270,13 +270,14 @@ contract TokenManager is PermissionsForSchain {
      * - `fromSchainID` must exist in TokenManager addresses.
      */
     function postMessage(
-        address sender,
         string calldata fromSchainID,
+        address sender,
         address to,
         uint256 amount,
         bytes calldata data
     )
         external
+        returns (bool)
     {
         require(data.length != 0, "Invalid data");
         require(msg.sender == getProxyForSchainAddress(), "Not a sender");
@@ -307,6 +308,7 @@ contract TokenManager is PermissionsForSchain {
         } else {
             revert("MessageType is unknown");
         }
+        return true;
     }
 
     /**

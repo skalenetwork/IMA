@@ -411,37 +411,40 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
         cc.debug( ", message(s) to process:" ) + cc.j( jarrMessages ) +
         "\n" );
     let cntBadMessages = 0; let i = 0; const cnt = jarrMessages.length;
-    for( i = 0; i < cnt; ++i ) {
-        const joMessage = jarrMessages[i]; const idxMessage = nIdxCurrentMsgBlockStart + i;
-        try {
-            const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
-            const outgoingMessageData = {
-                dstChain: joChainName,
-                msgCounter: idxMessage,
-                srcContract: joMessage.sender,
-                dstContract: joMessage.destinationContract,
-                to: joMessage.to,
-                amount: strHexAmount,
-                data: joMessage.data
-            };
-            const m = joMessageProxy.methods.verifyOutgoingMessageData(
-                outgoingMessageData
-            );
-            // console.log( "Will do call", m );
-            const isValidMessage = await m.call( { from: strCallerAccountAddress } );
-            // console.log( "Got call result", isValidMessage );
-            if( !isValidMessage )
-                throw new Error( "Bad message detected, message is: " + JSON.stringify( joMessage ) );
-        } catch ( err ) {
-            ++cntBadMessages;
-            log.write( strLogPrefix + cc.fatal( "BAD ERROR:" ) +
-                cc.error( " Correctness validation failed for message " ) + cc.info( idxMessage ) +
-                cc.error( " sent to " ) + cc.info( joChainName ) +
-                cc.error( ", message is: " ) + cc.j( joMessage ) +
-                cc.error( ", error information: " ) + cc.warning( err.toString() ) +
-                "\n" );
+    if( strDirection == "S2M" ) {
+        for( i = 0; i < cnt; ++i ) {
+            const joMessage = jarrMessages[i]; const idxMessage = nIdxCurrentMsgBlockStart + i;
+            try {
+                const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
+                const outgoingMessageData = {
+                    dstChain: joChainName,
+                    msgCounter: idxMessage,
+                    srcContract: joMessage.sender,
+                    dstContract: joMessage.destinationContract,
+                    to: joMessage.to,
+                    amount: strHexAmount,
+                    data: joMessage.data
+                };
+                const m = joMessageProxy.methods.verifyOutgoingMessageData(
+                    outgoingMessageData
+                );
+                // console.log( "Will do call", m );
+                const isValidMessage = await m.call( { from: strCallerAccountAddress } );
+                // console.log( "Got call result", isValidMessage );
+                if( !isValidMessage )
+                    throw new Error( "Bad message detected, message is: " + JSON.stringify( joMessage ) );
+            } catch ( err ) {
+                ++cntBadMessages;
+                log.write( strLogPrefix + cc.fatal( "BAD ERROR:" ) +
+                    cc.error( " Correctness validation failed for message " ) + cc.info( idxMessage ) +
+                    cc.error( " sent to " ) + cc.info( joChainName ) +
+                    cc.error( ", message is: " ) + cc.j( joMessage ) +
+                    cc.error( ", error information: " ) + cc.warning( err.toString() ) +
+                    "\n" );
+            }
         }
     } // for( let i = 0; i < jarrMessages.length; ++ i )
+    // TODO: M2S - check events
     if( cntBadMessages > 0 ) {
         log.write( strLogPrefix + cc.fatal( "BAD ERROR:" ) +
             cc.error( " Correctness validation failed for " ) + cc.info( cntBadMessages ) +
