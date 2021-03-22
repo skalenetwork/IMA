@@ -285,8 +285,8 @@ contract TokenManager is PermissionsForSchain {
      * - `fromSchainID` must exist in TokenManager addresses.
      */
     function postMessage(
-        address sender,
         string calldata fromSchainID,
+        address sender,
         address to,
         uint256 amount,
         bytes calldata data

@@ -275,7 +275,7 @@ function extract_dry_run_method_name( methodWithArguments ) {
     return "N/A-method-name";
 }
 
-async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnore, gasPrice, gasValue ) {
+async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnore, gasPrice, gasValue, ethValue ) {
     if( verbose_get() >= RV_VERBOSE.information )
         log.write( cc.attention( "DRY RUN" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version ) + "\n" );
     isIgnore = ( isIgnore != null && isIgnore != undefined ) ? ( isIgnore ? true : false ) : false;
@@ -302,7 +302,8 @@ async function dry_run_call( w3, methodWithArguments, joAccount, strDRC, isIgnor
         const joResult = await methodWithArguments.call( {
             from: addressFrom,
             gasPrice: gasPrice,
-            gas: gasValue // 10000000
+            gas: gasValue, // 10000000
+            value: "0x" + w3.utils.toBN( ethValue ).toString( 16 )
         } );
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "got result " ) + cc.normal( cc.safeStringifyJSON( joResult ) ) + "\n" );
@@ -734,13 +735,13 @@ async function register_s_chain_in_deposit_box( // step 1
             const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-            const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ) );
+            const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ), "0" );
             if( verbose_get() >= RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
             //
             const isIgnore = false;
             const strDRC = "register_s_chain_in_deposit_box, step 1, addSchain";
-            await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas );
+            await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
             //
             const rawTx = {
                 chainId: cid_main_net,
@@ -856,13 +857,13 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
         const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-        const estimatedGas = await tc_s_chain.computeGas( methodWithArguments, w3_s_chain, 3000000, gasPrice, joAccount.address( w3_s_chain ) );
+        const estimatedGas = await tc_s_chain.computeGas( methodWithArguments, w3_s_chain, 3000000, gasPrice, joAccount.address( w3_s_chain ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
         //
         const isIgnore = false;
         const strDRC = "register_main_net_depositBox_on_s_chain, step 2A, addDepositBox";
-        await dry_run_call( w3_s_chain, methodWithArguments, joAccount, strDRC, isIgnore, gasPrice, estimatedGas );
+        await dry_run_call( w3_s_chain, methodWithArguments, joAccount, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
         //
         const rawTx = {
             chainId: cid_s_chain,
@@ -975,13 +976,13 @@ async function register_main_net_on_s_chain( // step 2B
         const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-        const estimatedGas = await tc_s_chain.computeGas( methodWithArguments, w3_s_chain, 3000000, gasPrice, joAccount_s_chain.address( w3_s_chain ) );
+        const estimatedGas = await tc_s_chain.computeGas( methodWithArguments, w3_s_chain, 3000000, gasPrice, joAccount_s_chain.address( w3_s_chain ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
         //
         const isIgnore = false;
         const strDRC = "register_main_net_on_s_chain, step 2B, addConnectedChain";
-        await dry_run_call( w3_s_chain, methodWithArguments, joAccount_s_chain, strDRC, isIgnore, gasPrice, estimatedGas );
+        await dry_run_call( w3_s_chain, methodWithArguments, joAccount_s_chain, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
         //
         const rawTx = {
             chainId: cid_s_chain,
@@ -1066,13 +1067,13 @@ async function do_eth_payment_from_main_net(
         const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-        const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccountSrc.address( w3_main_net ) );
+        const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccountSrc.address( w3_main_net ), wei_how_much );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
         //
-        const isIgnore = true;
+        const isIgnore = false;
         const strDRC = "do_eth_payment_from_main_net, deposit";
-        await dry_run_call( w3_main_net, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas );
+        await dry_run_call( w3_main_net, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1214,13 +1215,13 @@ async function do_eth_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
         //
-        const estimatedGas = await tc_s_chain.computeGas( methodWithArguments, w3_s_chain, 6000000, gasPrice, joAccountSrc.address( w3_s_chain ) );
+        const estimatedGas = await tc_s_chain.computeGas( methodWithArguments, w3_s_chain, 6000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
         //
         const isIgnore = true;
         const strDRC = "do_eth_payment_from_s_chain, exitToMain";
-        await dry_run_call( w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas );
+        await dry_run_call( w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
         //
         const rawTx = {
             chainId: cid_s_chain,
@@ -1303,13 +1304,13 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-        const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ) );
+        const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
         //
         const isIgnore = false;
         const strDRC = "receive_eth_payment_from_s_chain_on_main_net, getMyEth";
-        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas );
+        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1446,13 +1447,13 @@ async function do_erc721_payment_from_main_net(
         //
         //
         strActionName = "create ERC721/approve transaction M->S";
-        const estimatedGas_approve = await tc_main_net.computeGas( methodWithArguments_approve, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ) );
+        const estimatedGas_approve = await tc_main_net.computeGas( methodWithArguments_approve, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc721_payment_from_main_net, approve";
-        await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve );
+        await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
         //
         const rawTxApprove = {
             chainId: cid_main_net,
@@ -1493,13 +1494,13 @@ async function do_erc721_payment_from_main_net(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const estimatedGas_deposit = await tc_main_net.computeGas( methodWithArguments_rawDepositERC721, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ) );
+        const estimatedGas_deposit = await tc_main_net.computeGas( methodWithArguments_rawDepositERC721, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ), wei_how_much );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_deposit ) + "\n" );
         //
         const isIgnore_rawDepositERC721 = true;
         const strDRC_rawDepositERC721 = "do_erc721_payment_from_main_net, rawDepositERC721";
-        await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721, gasPrice, estimatedGas_deposit );
+        await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721, gasPrice, estimatedGas_deposit, wei_how_much );
         //
         const rawTxDeposit = {
             chainId: cid_main_net,
@@ -1653,13 +1654,13 @@ async function do_erc20_payment_from_main_net(
         //
         //
         strActionName = "create ERC20/approve transaction M->S";
-        const estimatedGas_approve = await tc_main_net.computeGas( methodWithArguments_approve, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ) );
+        const estimatedGas_approve = await tc_main_net.computeGas( methodWithArguments_approve, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc20_payment_from_main_net, approve";
-        await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve );
+        await dry_run_call( w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
         //
         const rawTxApprove = {
             chainId: cid_main_net,
@@ -1699,13 +1700,13 @@ async function do_erc20_payment_from_main_net(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const estimatedGas_deposit = await tc_main_net.computeGas( methodWithArguments_rawDepositERC20, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ) );
+        const estimatedGas_deposit = await tc_main_net.computeGas( methodWithArguments_rawDepositERC20, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ), wei_how_much );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_deposit ) + "\n" );
         //
         const isIgnore_rawDepositERC20 = true;
         const strDRC_rawDepositERC20 = "do_erc20_payment_from_main_net, rawDepositERC20";
-        await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20, gasPrice, estimatedGas_deposit );
+        await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20, gasPrice, estimatedGas_deposit, wei_how_much );
         //
         tcnt += 1;
         const rawTxDeposit = {
@@ -1857,13 +1858,13 @@ async function do_erc20_payment_from_s_chain(
         //
         //
         strActionName = "create ERC20/approve transaction S->M";
-        const estimatedGas_approve = await tc_s_chain.computeGas( methodWithArguments_approve, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ) );
+        const estimatedGas_approve = await tc_s_chain.computeGas( methodWithArguments_approve, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc20_payment_from_s_chain, approve";
-        await dry_run_call( w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve );
+        await dry_run_call( w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
         //
         let tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
         if( verbose_get() >= RV_VERBOSE.debug )
@@ -1908,7 +1909,7 @@ async function do_erc20_payment_from_s_chain(
         //
         //
         strActionName = "create ERC20/exitToMain transaction S->M";
-        const estimatedGas_rawExitToMainERC20 = await tc_s_chain.computeGas( methodWithArguments_rawExitToMainERC20, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ) );
+        const estimatedGas_rawExitToMainERC20 = await tc_s_chain.computeGas( methodWithArguments_rawExitToMainERC20, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_rawExitToMainERC20 ) + "\n" );
         tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
@@ -1921,7 +1922,7 @@ async function do_erc20_payment_from_s_chain(
         //
         const isIgnore_rawExitToMainERC20 = true;
         const strDRC_rawExitToMainERC20 = "do_erc20_payment_from_s_chain, rawExitToMainERC20";
-        await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20, gasPrice, estimatedGas_rawExitToMainERC20 );
+        await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20, gasPrice, estimatedGas_rawExitToMainERC20, "0" );
         //
         const rawTxExitToMainERC20 = {
             chainId: cid_s_chain,
@@ -2040,13 +2041,13 @@ async function do_erc721_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
-        const estimatedGas_transferFrom = await tc_s_chain.computeGas( methodWithArguments_transferFrom, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ) );
+        const estimatedGas_transferFrom = await tc_s_chain.computeGas( methodWithArguments_transferFrom, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transferFrom ) + "\n" );
         //
         const isIgnore_transferFrom = false;
         const strDRC_transferFrom = "erc721_payment_from_s_chain, transferFrom";
-        await dry_run_call( w3_s_chain, methodWithArguments_transferFrom, joAccountSrc, strDRC_transferFrom,isIgnore_transferFrom, gasPrice, estimatedGas_transferFrom );
+        await dry_run_call( w3_s_chain, methodWithArguments_transferFrom, joAccountSrc, strDRC_transferFrom,isIgnore_transferFrom, gasPrice, estimatedGas_transferFrom, "0" );
         //
         const rawTxTransferFrom = {
             chainId: cid_s_chain,
@@ -2096,13 +2097,13 @@ async function do_erc721_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const estimatedGas_exitToMainERC721 = await tc_s_chain.computeGas( methodWithArguments_rawExitToMainERC721, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ) );
+        const estimatedGas_exitToMainERC721 = await tc_s_chain.computeGas( methodWithArguments_rawExitToMainERC721, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(exit to main) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_exitToMainERC721 ) + "\n" );
         //
         const isIgnore_rawExitToMainERC721 = true;
         const strDRC_rawExitToMainERC721 = "erc721_payment_from_s_chain, rawExitToMainERC721";
-        await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721, gasPrice, estimatedGas_exitToMainERC721 );
+        await dry_run_call( w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721, gasPrice, estimatedGas_exitToMainERC721, "0" );
         //
         const rawTxExitToMainERC721 = compose_tx_instance( strLogPrefix, {
             chainId: cid_s_chain,
@@ -2591,9 +2592,7 @@ async function do_transfer(
                 } );
                 let joValues = "";
                 for( let i = r.length - 1; i >= 0; i-- ) {
-                    log.write( strLogPrefix + cc.info( "Event:" ) + r[i].returnValues + "\n" );
                     if( r[i].returnValues.dstChainHash == w3_src.utils.soliditySha3( chain_id_dst ) ) {
-                        log.write( strLogPrefix + cc.info( "Added" ) + "\n" );
                         joValues = r[i].returnValues;
                         break;
                     }
@@ -2937,13 +2936,13 @@ async function do_transfer(
                 const gasPrice = await tc_dst.computeGasPrice( w3_dst, 200000000000 );
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-                const estimatedGas_postIncomingMessages = await tc_dst.computeGas( methodWithArguments_postIncomingMessages, w3_dst, 10000000, gasPrice, joAccountDst.address( w3_dst ) );
+                const estimatedGas_postIncomingMessages = await tc_dst.computeGas( methodWithArguments_postIncomingMessages, w3_dst, 10000000, gasPrice, joAccountDst.address( w3_dst ), "0" );
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_postIncomingMessages ) + "\n" );
                 //
                 const isIgnore_postIncomingMessages = false;
                 const strDRC_postIncomingMessages = "postIncomingMessages in message signer";
-                await dry_run_call( w3_dst, methodWithArguments_postIncomingMessages, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages, gasPrice, estimatedGas_postIncomingMessages );
+                await dry_run_call( w3_dst, methodWithArguments_postIncomingMessages, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages, gasPrice, estimatedGas_postIncomingMessages, "0" );
                 //
                 const raw_tx_postIncomingMessages = {
                     chainId: cid_dst,
@@ -2968,8 +2967,10 @@ async function do_transfer(
                     // let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx_postIncomingMessages.toString( "hex" ) );
                     joReceipt = await safe_send_signed_transaction( w3_dst, serializedTx_postIncomingMessages, strActionName, strLogPrefix );
                 }
-                if( verbose_get() >= RV_VERBOSE.information )
+                if( verbose_get() >= RV_VERBOSE.information ) {
+                    console.log(joReceipt);
                     log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+                }
                 if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
                     jarrReceipts.push( {
                         "description": "do_transfer/postIncomingMessages",
@@ -3113,12 +3114,13 @@ class TransactionCustomizer {
         } else
             return gasPrice;
     }
-    async computeGas( methodWithArguments, w3, recommendedGas, gasPrice, addressFrom ) {
+    async computeGas( methodWithArguments, w3, recommendedGas, gasPrice, addressFrom, ethValue ) {
         let estimatedGas = 0;
         try {
             await methodWithArguments.estimateGas( {
                 from: addressFrom,
-                gasPrice: gasPrice
+                gasPrice: gasPrice,
+                value: "0x" + w3.utils.toBN( ethValue ).toString( 16 )
             }, function( err, estimatedGasValue ) {
                 if( err ) {
                     estimatedGas = 0;
