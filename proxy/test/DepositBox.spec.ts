@@ -129,7 +129,7 @@ contract("DepositBox", ([deployer, user]) => {
 
     it("should revert `Not allowed. in DepositBox`", async () => {
       // preparation
-      const error = "Not allowed. in DepositBox";
+      const error = "Use deposit function";
       // execution/expectation
       await web3.eth.sendTransaction({from: deployer, to: depositBox.address, value: "1000000000000000000"})
       .should.be.eventually.rejectedWith(error);

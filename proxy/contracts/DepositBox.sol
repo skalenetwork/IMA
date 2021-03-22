@@ -70,8 +70,8 @@ contract DepositBox is PermissionsForMainnet {
         }
     }
 
-    fallback() external payable {
-        revert("Not allowed. in DepositBox");
+    receive() external payable {
+        revert("Use deposit function");
     }
 
     function depositERC20(
