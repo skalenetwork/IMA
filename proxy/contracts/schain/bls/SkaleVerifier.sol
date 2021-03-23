@@ -29,7 +29,7 @@ import "./FieldOperations.sol";
  * @title SkaleVerifier
  * @dev Contains verify function to perform BLS signature verification.
  */
-contract SkaleVerifier {
+library SkaleVerifier {
     using Fp2Operations for Fp2Operations.Fp2Point;
     using SafeMath for uint;
 

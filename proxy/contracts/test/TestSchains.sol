@@ -25,7 +25,7 @@ pragma experimental ABIEncoderV2;
 
 import "./TestContractManager.sol";
 import "./TestKeyStorage.sol";
-import "./TestSkaleVerifier.sol";
+import "./SkaleVerifierMock.sol";
 
 
 contract Schains {
@@ -49,7 +49,7 @@ contract Schains {
         view
         returns (bool)
     {
-        SkaleVerifier skaleVerifier = SkaleVerifier(contractManager.getContract("SkaleVerifier"));
+        SkaleVerifierMock skaleVerifier = SkaleVerifierMock(contractManager.getContract("SkaleVerifier"));
         G2Operations.G2Point memory publicKey = KeyStorage(
             contractManager.getContract("KeyStorage")
         ).getCommonPublicKey(

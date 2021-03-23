@@ -23,7 +23,7 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 
-library Precompiled {
+library PrecompiledMock {
 
     function bigModExp(uint base, uint power, uint modulus) internal view returns (uint) {
         uint[6] memory inputToBigModExp;

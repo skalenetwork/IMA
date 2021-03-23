@@ -47,8 +47,8 @@ import {
     TokenManagerInstance,
     WalletsContract,
     WalletsInstance,
-    SkaleVerifierInstance,
-    SkaleVerifierContract,
+    SkaleVerifierMockInstance,
+    SkaleVerifierMockContract,
 } from "../types/truffle-contracts";
 
 import { randomString } from "./utils/helper";
@@ -66,7 +66,7 @@ const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./
 const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
 const Schains: SchainsContract = artifacts.require("./Schains");
 const KeyStorage: KeyStorageContract = artifacts.require("./KeyStorage");
-const SkaleVerifier: SkaleVerifierContract = artifacts.require("./SkaleVerifier");
+const SkaleVerifierMock: SkaleVerifierMockContract = artifacts.require("./SkaleVerifierMock");
 const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
 const Wallets: WalletsContract = artifacts.require("./Wallets");
 
@@ -79,7 +79,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     let lockAndDataForSchain: LockAndDataForSchainInstance;
     let contractManager: ContractManagerInstance;
     let schains: SchainsInstance;
-    let skaleVerifier: SkaleVerifierInstance;
+    let skaleVerifier: SkaleVerifierMockInstance;
     let schainsInternal: SchainsInternalInstance;
     let depositBox: DepositBoxInstance;
     let keyStorage: KeyStorageInstance;

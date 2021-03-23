@@ -63,8 +63,8 @@ import {
     SchainsInstance,
     SchainsInternalContract,
     SchainsInternalInstance,
-    SkaleVerifierContract,
-    SkaleVerifierInstance,
+    SkaleVerifierMockContract,
+    SkaleVerifierMockInstance,
     TokenFactoryContract,
     TokenFactoryInstance,
     TokenManagerContract,
@@ -96,7 +96,7 @@ const KeyStorage: KeyStorageContract = artifacts.require("./KeyStorage");
 const Nodes: NodesContract = artifacts.require("./Nodes");
 const Schains: SchainsContract = artifacts.require("./Schains");
 const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
-const SkaleVerifier: SkaleVerifierContract = artifacts.require("./SkaleVerifier");
+const SkaleVerifierMock: SkaleVerifierMockContract = artifacts.require("./SkaleVerifierMock");
 const Wallets: WalletsContract = artifacts.require("./Wallets");
 
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
@@ -123,7 +123,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     let nodes: NodesInstance;
     let schains: SchainsInstance;
     let schainsInternal: SchainsInternalInstance;
-    let skaleVerifier: SkaleVerifierInstance;
+    let skaleVerifier: SkaleVerifierMockInstance;
     let wallets: WalletsInstance;
 
     let lockAndDataForSchain: LockAndDataForSchainInstance;

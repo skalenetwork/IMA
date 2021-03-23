@@ -23,11 +23,12 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "../schain/bls/FieldOperations.sol";
 
-import "./TestFieldOperations.sol";
+import "./PrecompiledMock.sol";
 
 
-contract SkaleVerifier {
+contract SkaleVerifierMock {
     using SafeMath for uint256;
 
     /**
@@ -74,7 +75,7 @@ contract SkaleVerifier {
             "Public Key not in G2"
         );
 
-        return Precompiled.bn256Pairing(
+        return PrecompiledMock.bn256Pairing(
             signature.a, newSignB,
             g2.x.b, g2.x.a, g2.y.b, g2.y.a,
             hashA, hashB,

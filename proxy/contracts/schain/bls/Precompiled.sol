@@ -2,7 +2,7 @@
 
 /*
     Precompiled.sol - SKALE Manager
-    Copyright (C) 2018-Present SKALE Labs
+    Copyright (C) 2021-Present SKALE Labs
     @author Dmytro Stebaiev
 
     SKALE Manager is free software: you can redistribute it and/or modify

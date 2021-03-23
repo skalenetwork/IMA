@@ -24,6 +24,7 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+import "./bls/SkaleVerifier.sol";
 import "./SkaleFeatures.sol";
 
 
@@ -298,15 +299,14 @@ contract MessageProxyForSchain {
         string calldata srcChainID,
         uint256 startingCounter,
         Message[] calldata messages,
-        Signature calldata /* sign */,
+        Signature calldata signature,
         uint256 idxLastToPopNotIncluding
     )
         external
         connectMainnet
     {
-        // TODO: check signature
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller");
+        require(_verifyMessages(messages, signature), "Signature is not valid");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
@@ -462,5 +462,68 @@ contract MessageProxyForSchain {
         }
         if (cntDeleted > 0)
             _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
+    }
+
+    /**
+     * @dev Converts calldata structure to memory structure and checks
+     * whether message BLS signature is valid.
+     * Returns true if signature is valid
+     */
+    function _verifyMessages(
+        Message[] calldata messages,
+        Signature calldata signature
+    )
+        private
+        view
+        returns (bool)
+    {
+        return SkaleVerifier.verify(
+            Fp2Operations.Fp2Point({
+                a: signature.blsSignature[0],
+                b: signature.blsSignature[1]
+            }),
+            _hashedArray(messages),
+            signature.counter,
+            signature.hashA,
+            signature.hashB,
+            _getBlsCommonPublicKey()
+        );
+    }
+
+    /**
+     * @dev Returns hash of message array.
+     */
+    function _hashedArray(Message[] calldata messages) private pure returns (bytes32) {
+        bytes memory data;
+        for (uint256 i = 0; i < messages.length; i++) {
+            data = abi.encodePacked(
+                data,
+                bytes32(bytes20(messages[i].sender)),
+                bytes32(bytes20(messages[i].destinationContract)),
+                bytes32(bytes20(messages[i].to)),
+                messages[i].amount,
+                messages[i].data
+            );
+        }
+        return keccak256(data);
+    }
+
+    function _getBlsCommonPublicKey() private pure returns (G2Operations.G2Point memory) {
+        return G2Operations.G2Point(
+            {
+                x: Fp2Operations.Fp2Point(
+                    {
+                        a: 6574317478546798964664164350752946243348919763684682093516923041405312832985,
+                        b: 11116555536305258170517922792822672536222278417618671975976634041946643998172
+                    }
+                ),
+                y: Fp2Operations.Fp2Point(
+                    {
+                        a: 8056702423408917511260742857060174820418461026632041605142341436731050023462,
+                        b: 5344030771021995904830681953225626290686427293520089270928050172438993323498
+                    }
+                )
+            }
+        );
     }
 }
