@@ -291,7 +291,10 @@ contract TokenManager is PermissionsForSchain {
         if (operation == Messages.MessageType.TRANSFER_ETH) {
             require(to != address(0), "Incorrect receiver");
             require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
-        } else if (operation == Messages.MessageType.TRANSFER_ERC20_AND_TOKEN_INFO) {
+        } else if (
+            operation == Messages.MessageType.TRANSFER_ERC20_AND_TOKEN_INFO ||
+            operation == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY
+        ) {
             address erc20Module = LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getErc20Module();

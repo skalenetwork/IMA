@@ -40,13 +40,23 @@ contract MessagesTester {
         return Messages.encodeTransferErc20Message(token, receiver, amount);
     }
 
+    function encodeTransferErc20AndTotalSupplyMessage(
+        address token,
+        address receiver,
+        uint256 amount,
+        Messages.Erc20TokenSupply memory supply
+    ) external pure returns (bytes memory) {
+        return Messages.encodeTransferErc20AndTotalSupplyMessage(token, receiver, amount, supply);
+    }
+
     function encodeTransferErc20AndTokenInfoMessage(
         address token,
         address receiver,
         uint256 amount,
+        Messages.Erc20TokenSupply memory supply,
         Messages.Erc20TokenInfo memory tokenInfo
     ) external pure returns (bytes memory) {
-        return Messages.encodeTransferErc20AndTokenInfoMessage(token, receiver, amount, tokenInfo);
+        return Messages.encodeTransferErc20AndTokenInfoMessage(token, receiver, amount, supply, tokenInfo);
     }
 
     function encodeTransferErc721Message(

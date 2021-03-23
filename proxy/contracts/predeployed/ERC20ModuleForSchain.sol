@@ -90,12 +90,12 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
                 .addERC20ForSchain(schainID, message.baseErc20transfer.token, contractOnSchain);
             emit ERC20TokenCreated(schainID, message.baseErc20transfer.token, contractOnSchain);
         }
-        if (message.tokenInfo.totalSupply != LockAndDataForSchainERC20(lockAndDataERC20)
+        if (message.supply.totalSupply != LockAndDataForSchainERC20(lockAndDataERC20)
             .totalSupplyOnMainnet(contractOnSchain))
         {
             LockAndDataForSchainERC20(lockAndDataERC20).setTotalSupplyOnMainnet(
                 contractOnSchain,
-                message.tokenInfo.totalSupply
+                message.supply.totalSupply
             );
         }
         emit ERC20TokenReceived(message.baseErc20transfer.token, contractOnSchain, message.baseErc20transfer.amount);
