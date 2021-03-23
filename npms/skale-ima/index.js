@@ -170,16 +170,48 @@ async function wait_for_next_block_to_appear( w3 ) {
 async function get_contract_call_events( w3, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
     joFilter = joFilter || {};
     let nBlockFrom = nBlockNumber - 10, nBlockTo = nBlockNumber + 10;
-    const nLatestBlockNumber = await w3.eth.getBlockNumber();
+    let nLatestBlockNumber = "";
+    try {
+        nLatestBlockNumber = await w3.eth.blockNumber;
+    } catch ( e ) {}
+    let attempts = 10;
+    while( nLatestBlockNumber === "" && attempts > 0 ) {
+        log.write( cc.fatal( "Repeat getBlockNumber attempt number " ) + cc.info( 12 - attempts ) + cc.info( " Previous result " ) + cc.info( nLatestBlockNumber ) + "\n" );
+        await sleep( 10000 );
+        try {
+            nLatestBlockNumber = await w3.eth.blockNumber;
+        } catch ( e ) {}
+        attempts--;
+    }
+    if( attempts === 0 && nLatestBlockNumber === "" )
+        throw new Error( "Cound not get blockNumber" );
     if( nBlockFrom < 0 )
         nBlockFrom = 0;
     if( nBlockTo > nLatestBlockNumber )
         nBlockTo = nLatestBlockNumber;
-    const joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
-        filter: joFilter,
-        fromBlock: nBlockFrom,
-        toBlock: nBlockTo
-    } );
+    let joAllEventsInBlock = "";
+    try {
+        joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
+            filter: joFilter,
+            fromBlock: nBlockFrom,
+            toBlock: nBlockTo
+        } );
+    } catch ( e ) {}
+    attempts = 10;
+    while( joAllEventsInBlock === "" && attempts > 0 ) {
+        log.write( cc.fatal( "Repeat getPastEvents" ) + cc.info( strEventName ) + cc.info( "attempt number " ) + cc.info( 12 - attempts ) + cc.info( " Previous result " ) + cc.info( joAllEventsInBlock ) + "\n" );
+        await sleep( 10000 );
+        try {
+            joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
+                filter: joFilter,
+                fromBlock: nBlockFrom,
+                toBlock: nBlockTo
+            } );
+        } catch ( e ) {}
+        attempts--;
+    }
+    if( attempts === 0 && nLatestBlockNumber === "" )
+        throw new Error( "Cound not get Event" + strEventName );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
         const joEvent = joAllEventsInBlock[i];
