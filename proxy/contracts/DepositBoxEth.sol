@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   DepositBox.sol - SKALE Interchain Messaging Agent
+ *   DepositBoxEth.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -36,7 +36,7 @@ import "./Messages.sol";
 // This contract runs on the main net and accepts deposits
 
 
-contract DepositBox is PermissionsForMainnet {
+contract DepositBoxEth is PermissionsForMainnet {
 
     mapping (Messages.MessageType => uint256) public gasConsumptions;
 

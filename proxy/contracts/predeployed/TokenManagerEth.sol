@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   TokenManager.sol - SKALE Interchain Messaging Agent
+ *   TokenManagerEth.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -49,7 +49,7 @@ interface ILockAndDataERCOnSchain {
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-contract TokenManager is PermissionsForSchain {
+contract TokenManagerEth is PermissionsForSchain {
 
     // ID of this schain,
     string private _chainID;
