@@ -150,17 +150,149 @@ function parseIntSafer( s ) {
 }
 
 async function wait_for_next_block_to_appear( w3 ) {
-    const nBlockNumber = await w3.eth.getBlockNumber();
+    const nBlockNumber = await get_web3_blockNumber( 10, w3 );
     log.write( cc.debug( "Waiting for next block to appear..." ) + "\n" );
     log.write( cc.debug( "    ...have block " ) + cc.info( parseIntSafer( nBlockNumber ) ) + "\n" );
     for( ; true; ) {
         await sleep( 1000 );
-        const nBlockNumber2 = await w3.eth.getBlockNumber();
+        const nBlockNumber2 = await get_web3_blockNumber( 10, w3 );
         log.write( cc.debug( "    ...have block " ) + cc.info( parseIntSafer( nBlockNumber2 ) ) + "\n" );
         if( nBlockNumber2 > nBlockNumber )
             break;
     }
 }
+
+async function get_web3_blockNumber( attempts, w3 ) {
+    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    let nLatestBlockNumber = "";
+    try {
+        nLatestBlockNumber = await w3.eth.blockNumber;
+    } catch ( e ) {}
+    let attemptIndex = 2;
+    while( nLatestBlockNumber === "" && attemptIndex <= allAttempts ) {
+        log.write( cc.fatal( "Repeat getBlockNumber attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( nLatestBlockNumber ) + "\n" );
+        await sleep( 10000 );
+        try {
+            nLatestBlockNumber = await w3.eth.blockNumber;
+        } catch ( e ) {}
+        attemptIndex++;
+    }
+    if( attemptIndex + 1 > allAttempts && nLatestBlockNumber === "" )
+        throw new Error( "Cound not get blockNumber" );
+    return nLatestBlockNumber;
+}
+
+async function get_web3_pastEvents( attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+
+    let joAllEventsInBlock = "";
+    try {
+        joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
+            filter: joFilter,
+            fromBlock: nBlockFrom,
+            toBlock: nBlockTo
+        } );
+    } catch ( e ) {}
+    let attemptIndex = 2;
+    while( joAllEventsInBlock === "" && attemptIndex <= allAttempts ) {
+        log.write( cc.fatal( "Repeat getPastEvents" ) + cc.info( strEventName ) + cc.info( "attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( joAllEventsInBlock ) + "\n" );
+        await sleep( 10000 );
+        try {
+            joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
+                filter: joFilter,
+                fromBlock: nBlockFrom,
+                toBlock: nBlockTo
+            } );
+        } catch ( e ) {}
+        attemptIndex++;
+    }
+    if( attemptIndex + 1 === allAttempts && joAllEventsInBlock === "" )
+        throw new Error( "Cound not get Event" + strEventName );
+    return joAllEventsInBlock;
+}
+
+async function get_web3_transactionCount( attempts, w3, address, param ) {
+    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    let txc = "";
+    try {
+        txc = await w3.eth.getTransactionCount( address, param );
+    } catch ( e ) {}
+    let attemptIndex = 2;
+    while( txc === "" && attemptIndex <= allAttempts ) {
+        log.write( cc.fatal( "Repeat getTransactionCount attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( txc ) + "\n" );
+        await sleep( 10000 );
+        try {
+            txc = await w3.eth.blockNumber;
+        } catch ( e ) {}
+        attemptIndex++;
+    }
+    if( attemptIndex + 1 > allAttempts && txc === "" )
+        throw new Error( "Cound not get Transaction Count" );
+    return txc;
+}
+
+async function get_web3_transactionReceipt( attempts, w3, txHash ) {
+    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    let txReceipt = "";
+    try {
+        txReceipt = await w3.eth.getTransactionReceipt( txHash );
+    } catch ( e ) {}
+    let attemptIndex = 2;
+    while( txReceipt === "" && attemptIndex <= allAttempts ) {
+        log.write( cc.fatal( "Repeat getTransactionReceipt attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( txReceipt ) + "\n" );
+        await sleep( 10000 );
+        try {
+            txReceipt = await w3.eth.getTransactionReceipt( txHash );
+        } catch ( e ) {}
+        attemptIndex++;
+    }
+    if( attemptIndex + 1 > allAttempts && txReceipt === "" )
+        throw new Error( "Cound not get Transaction Count" );
+    return txReceipt;
+}
+
+// async function get_web3_universal_call(attempts, strAction, web3Obj, eth_call, ...params) {
+//     const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+
+//     console.log("\n" + params + "\n" + allAttempts + "\n");
+
+//     let result = "";
+//     try {
+//         if( strAction === "BlockNumber" ) {
+//             console.log("\n First type of call\n");
+//             result = await web3Obj.eth.blockNumber;
+//         } else if( params.length == 1 && ( params[0] === undefined || params[0] === null ) ) {
+//             console.log("\n Secnd type of call\n");
+//             result = await eth_call();
+//         } else {
+//             console.log("\n Third type of call\n");
+//             result = await eth_call(params);
+//         }
+//     } catch ( e ) {}
+//     let attemptIndex = 2;
+//     while( ( result === "" || result === undefined ) && attemptIndex <= allAttempts ) {
+//         console.log("\n" + result + "\n");
+//         log.write( cc.fatal( "Repeat " ) + cc.info( strAction ) + cc.info( " attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( result ) + "\n" );
+//         await sleep( 10000 );
+//         try {
+//             if( strAction === "BlockNumber" ) {
+//                 console.log("\n First type of call\n");
+//                 result = await web3Obj.eth.blockNumber;
+//             } else if( params.length == 1 && ( params[0] === undefined || params[0] === null ) ) {
+//                 console.log("\n Secnd type of call\n");
+//                 result = await eth_call();
+//             } else {
+//                 console.log("\n Third type of call\n");
+//                 result = await eth_call(params);
+//             }
+//         } catch ( e ) {}
+//         attemptIndex++;
+//     }
+//     console.log("\n\n\n" + result + "\n\n\n");
+//     if( attemptIndex + 1 === allAttempts && ( result === "" || result === undefined ) )
+//         throw new Error( "Cound not get " + strAction );
+//     return result;
+// }
 
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -170,16 +302,24 @@ async function wait_for_next_block_to_appear( w3 ) {
 async function get_contract_call_events( w3, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
     joFilter = joFilter || {};
     let nBlockFrom = nBlockNumber - 10, nBlockTo = nBlockNumber + 10;
-    const nLatestBlockNumber = await w3.eth.getBlockNumber();
+    const nLatestBlockNumber = await get_web3_blockNumber( 10, w3 ); // await get_web3_universal_call( 10, "BlockNumber", w3, null, null );
     if( nBlockFrom < 0 )
         nBlockFrom = 0;
     if( nBlockTo > nLatestBlockNumber )
         nBlockTo = nLatestBlockNumber;
-    const joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
-        filter: joFilter,
-        fromBlock: nBlockFrom,
-        toBlock: nBlockTo
-    } );
+    const joAllEventsInBlock = await get_web3_pastEvents( 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    // const joAllEventsInBlock = await get_web3_universal_call(
+    //     10,
+    //     "PastEvent " + strEventName,
+    //     w3,
+    //     joContract.getPastEvents,
+    //     "" + strEventName,
+    //     {
+    //         filter: joFilter,
+    //         fromBlock: nBlockFrom,
+    //         toBlock: nBlockTo
+    //     }
+    // );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
         const joEvent = joAllEventsInBlock[i];
@@ -357,7 +497,7 @@ async function wait_for_transaction_receipt( w3, txHash, nMaxWaitAttempts, nSlee
     let idxAttempt;
     for( idxAttempt = 0; idxAttempt < nMaxWaitAttempts; ++ idxAttempt ) {
         try {
-            const joReceipt = await w3.eth.getTransactionReceipt( txHash );
+            const joReceipt = await get_web3_transactionReceipt( 10, w3, txHash );
             if( joReceipt != null ) {
                 log.write(
                     cc.debug( "Got " ) + cc.notice( txHash ) +
@@ -710,7 +850,7 @@ async function register_s_chain_in_deposit_box( // step 1
         strActionName = "reg-step1:w3_main_net.eth.getTransactionCount()";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        const tcnt = await w3_main_net.eth.getTransactionCount( joAccount_main_net.address( w3_main_net ), null );
+        const tcnt = await get_web3_transactionCount( 10, w3_main_net, joAccount_main_net.address( w3_main_net ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -756,7 +896,7 @@ async function register_s_chain_in_deposit_box( // step 1
             const joSR = await safe_sign_transaction_with_account( w3_main_net, tx, rawTx, joAccount_main_net );
             let joReceipt = null;
             if( joSR.joACI.isAutoSend )
-                joReceipt = await w3_main_net.eth.getTransactionReceipt( joSR.txHashSent );
+                joReceipt = await get_web3_transactionReceipt( 10, w3_main_net, joSR.txHashSent );
             else {
                 const serializedTx = tx.serialize();
                 strActionName = "reg-step1:w3_main_net.eth.sendSignedTransaction()";
@@ -844,7 +984,7 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
         strActionName = "reg-step2A:w3_s_chain.eth.getTransactionCount()/register_main_net_depositBox_on_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        const tcnt = await w3_s_chain.eth.getTransactionCount( joAccount.address( w3_s_chain ), null );
+        const tcnt = await get_web3_transactionCount( 10, w3_s_chain, joAccount.address( w3_s_chain ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -878,7 +1018,7 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
         const joSR = await safe_sign_transaction_with_account( w3_s_chain, tx, rawTx, joAccount );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
-            joReceipt = await w3_s_chain.eth.getTransactionReceipt( joSR.txHashSent );
+            joReceipt = await get_web3_transactionReceipt( 10, w3_s_chain, joSR.txHashSent );
         else {
             const serializedTx = tx.serialize();
             strActionName = "reg-step2A:w3_s_chain.eth.sendSignedTransaction()";
@@ -959,7 +1099,7 @@ async function register_main_net_on_s_chain( // step 2B
         strActionName = "reg-step2B:w3_s_chain.eth.getTransactionCount()";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        const tcnt = await w3_s_chain.eth.getTransactionCount( joAccount_s_chain.address( w3_s_chain ), null );
+        const tcnt = await get_web3_transactionCount( 10, w3_s_chain, joAccount_s_chain.address( w3_s_chain ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -997,7 +1137,7 @@ async function register_main_net_on_s_chain( // step 2B
         const joSR = await safe_sign_transaction_with_account( w3_s_chain, tx, rawTx, joAccount_s_chain );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
-            joReceipt = await w3_s_chain.eth.getTransactionReceipt( joSR.txHashSent );
+            joReceipt = await get_web3_transactionReceipt( 10, w3_s_chain, joSR.txHashSent );
         else {
             const serializedTx = tx.serialize();
             strActionName = "reg-step2B:w3_s_chain.eth.sendSignedTransaction()";
@@ -1053,7 +1193,7 @@ async function do_eth_payment_from_main_net(
         strActionName = "w3_main_net.eth.getTransactionCount()";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        const tcnt = await w3_main_net.eth.getTransactionCount( joAccountSrc.address( w3_main_net ), null );
+        const tcnt = await get_web3_transactionCount( 10, w3_main_net, joAccountSrc.address( w3_main_net ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -1089,7 +1229,7 @@ async function do_eth_payment_from_main_net(
         const joSR = await safe_sign_transaction_with_account( w3_main_net, tx, rawTx, joAccountSrc );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
-            joReceipt = await w3_main_net.eth.getTransactionReceipt( joSR.txHashSent );
+            joReceipt = await get_web3_transactionReceipt( 10, w3_main_net, joSR.txHashSent );
         else {
             const serializedTx = tx.serialize();
             strActionName = "w3_main_net.eth.sendSignedTransaction()";
@@ -1198,7 +1338,7 @@ async function do_eth_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
         //
-        const tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null );
+        const tcnt = await get_web3_transactionCount( 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -1237,7 +1377,7 @@ async function do_eth_payment_from_s_chain(
         const joSR = await safe_sign_transaction_with_account( w3_s_chain, tx, rawTx, joAccountSrc );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
-            joReceipt = await w3_s_chain.eth.getTransactionReceipt( joSR.txHashSent );
+            joReceipt = await get_web3_transactionReceipt( 10, w3_s_chain, joSR.txHashSent );
         else {
             const serializedTx = tx.serialize();
             strActionName = "w3_s_chain.eth.sendSignedTransaction()";
@@ -1291,7 +1431,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         strActionName = "w3_main_net.eth.getTransactionCount()/receive_eth_payment_from_s_chain_on_main_net";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        const tcnt = await w3_main_net.eth.getTransactionCount( joAccount_main_net.address( w3_main_net ), null );
+        const tcnt = await get_web3_transactionCount( 10, w3_main_net, joAccount_main_net.address( w3_main_net ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -1326,7 +1466,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         const joSR = await safe_sign_transaction_with_account( w3_main_net, tx, rawTx, joAccount_main_net );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
-            joReceipt = await w3_main_net.eth.getTransactionReceipt( joSR.txHashSent );
+            joReceipt = await get_web3_transactionReceipt( 10, w3_main_net, joSR.txHashSent );
         else {
             const serializedTx = tx.serialize();
             strActionName = "w3_main_net.eth.sendSignedTransaction()";
@@ -1363,7 +1503,7 @@ async function view_eth_payment_from_s_chain_on_main_net(
         strActionName = "w3_main_net.eth.getTransactionCount()/view_eth_payment_from_s_chain_on_main_net";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        const tcnt = await w3_main_net.eth.getTransactionCount( joAccount_main_net.address( w3_main_net ), null );
+        const tcnt = await get_web3_transactionCount( 10, w3_main_net, joAccount_main_net.address( w3_main_net ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -1414,7 +1554,7 @@ async function do_erc721_payment_from_main_net(
         strActionName = "w3_main_net.eth.getTransactionCount()/do_erc721_payment_from_main_net";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        let tcnt = await w3_main_net.eth.getTransactionCount( joAccountSrc.address( w3_main_net ), null );
+        let tcnt = await get_web3_transactionCount( 10, w3_main_net, joAccountSrc.address( w3_main_net ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -1469,7 +1609,7 @@ async function do_erc721_payment_from_main_net(
         const joApproveSR = await safe_sign_transaction_with_account( w3_main_net, txApprove, rawTxApprove, joAccountSrc );
         let joReceiptApprove = null;
         if( joApproveSR.joACI.isAutoSend )
-            joReceiptApprove = await w3_main_net.eth.getTransactionReceipt( joApproveSR.txHashSent );
+            joReceiptApprove = await get_web3_transactionReceipt( 10, w3_main_net, joApproveSR.txHashSent );
         else {
             const serializedTxApprove = txApprove.serialize();
             log.write( cc.normal( "Will send ERC721/approve signed transaction from " ) + cc.warning( joAccountSrc.address( w3_main_net ) ) + "\n" );
@@ -1518,7 +1658,7 @@ async function do_erc721_payment_from_main_net(
         const joDepositSR = await safe_sign_transaction_with_account( w3_main_net, txDeposit, rawTxDeposit, joAccountSrc );
         let joReceiptDeposit = null;
         if( joDepositSR.joACI.isAutoSend )
-            joReceiptDeposit = await w3_main_net.eth.getTransactionReceipt( joDepositSR.txHashSent );
+            joReceiptDeposit = await get_web3_transactionReceipt( 10, w3_main_net, joDepositSR.txHashSent );
         else {
             const serializedTxDeposit = txDeposit.serialize();
             // send transactions
@@ -1618,7 +1758,7 @@ async function do_erc20_payment_from_main_net(
         strActionName = "w3_main_net.eth.getTransactionCount()/do_erc20_payment_from_main_net";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        let tcnt = await w3_main_net.eth.getTransactionCount( joAccountSrc.address( w3_main_net ), null );
+        let tcnt = await get_web3_transactionCount( 10, w3_main_net, joAccountSrc.address( w3_main_net ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -1676,7 +1816,7 @@ async function do_erc20_payment_from_main_net(
         const joApproveSR = await safe_sign_transaction_with_account( w3_main_net, txApprove, rawTxApprove, joAccountSrc );
         let joReceiptApprove = null;
         if( joApproveSR.joACI.isAutoSend )
-            joReceiptApprove = await w3_main_net.eth.getTransactionReceipt( joApproveSR.txHashSent );
+            joReceiptApprove = await get_web3_transactionReceipt( 10, w3_main_net, joApproveSR.txHashSent );
         else {
             const serializedTxApprove = txApprove.serialize();
             strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
@@ -1724,7 +1864,7 @@ async function do_erc20_payment_from_main_net(
         const joDepositSR = await safe_sign_transaction_with_account( w3_main_net, txDeposit, rawTxDeposit, joAccountSrc );
         let joReceiptDeposit = null;
         if( joDepositSR.joACI.isAutoSend )
-            joReceiptDeposit = await w3_main_net.eth.getTransactionReceipt( joDepositSR.txHashSent );
+            joReceiptDeposit = await get_web3_transactionReceipt( 10, w3_main_net, joDepositSR.txHashSent );
         else {
             const serializedTxDeposit = txDeposit.serialize();
             // send transactions
@@ -1866,7 +2006,7 @@ async function do_erc20_payment_from_s_chain(
         const strDRC_approve = "do_erc20_payment_from_s_chain, approve";
         await dry_run_call( w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
         //
-        let tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
+        let tcnt = parseInt( await get_web3_transactionCount( 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         const rawTxApprove = {
@@ -1883,7 +2023,7 @@ async function do_erc20_payment_from_s_chain(
         const joApproveSR = await safe_sign_transaction_with_account( w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
         let joReceiptApprove = null;
         if( joApproveSR.joACI.isAutoSend && joDepositSR.joACI.isAutoSend )
-            joReceiptApprove = await w3_s_chain.eth.getTransactionReceipt( joApproveSR.txHashSent );
+            joReceiptApprove = await get_web3_transactionReceipt( 10, w3_s_chain, joApproveSR.txHashSent );
         else {
             const serializedTxApprove = txApprove.serialize();
             // let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
@@ -1912,7 +2052,7 @@ async function do_erc20_payment_from_s_chain(
         const estimatedGas_rawExitToMainERC20 = await tc_s_chain.computeGas( methodWithArguments_rawExitToMainERC20, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_rawExitToMainERC20 ) + "\n" );
-        tcnt = parseInt( await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null ) );
+        tcnt = parseInt( await get_web3_transactionCount( 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -1938,7 +2078,7 @@ async function do_erc20_payment_from_s_chain(
         const joExitToMainERC20SR = await safe_sign_transaction_with_account( w3_s_chain, txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc );
         let joReceiptExitToMainERC20 = null;
         if( joExitToMainERC20SR.joACI.isAutoSend )
-            joReceiptExitToMainERC20 = await w3_s_chain.eth.getTransactionReceipt( joExitToMainERC20SR.txHashSent );
+            joReceiptExitToMainERC20 = await get_web3_transactionReceipt( 10, w3_s_chain, joExitToMainERC20SR.txHashSent );
         else {
             const serializedTxExitToMainERC20 = txExitToMainERC20.serialize();
             // let joReceiptExitToMainERC20 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC20.toString( "hex" ) );
@@ -2037,7 +2177,7 @@ async function do_erc721_payment_from_s_chain(
         //
         //
         strActionName = "create ERC721/transferFrom transaction S->M";
-        let tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null );
+        let tcnt = parseInt( await get_web3_transactionCount( 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -2063,7 +2203,7 @@ async function do_erc721_payment_from_s_chain(
         const joTransferFromSR = await safe_sign_transaction_with_account( w3_s_chain, txTransferFrom, rawTxTransferFrom, joAccountSrc );
         let joReceiptTransferFrom = null;
         if( joTransferFromSR.joACI.isAutoSend )
-            joReceiptTransferFrom = await w3_s_chain.eth.getTransactionReceipt( joTransferFromSR.txHashSent );
+            joReceiptTransferFrom = await get_web3_transactionReceipt( 10, w3_s_chain, joTransferFromSR.txHashSent );
         else {
             const serializedTxTransferFrom = txTransferFrom.serialize();
             // let joReceiptTransferFrom = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxTransferFrom.toString( "hex" ) );
@@ -2089,7 +2229,7 @@ async function do_erc721_payment_from_s_chain(
         //
         //
         strActionName = "create ERC721/rawExitToMain transaction S->M";
-        tcnt = await w3_s_chain.eth.getTransactionCount( joAccountSrc.address( w3_s_chain ), null );
+        tcnt = parseInt( await get_web3_transactionCount( 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -2119,7 +2259,7 @@ async function do_erc721_payment_from_s_chain(
         const joExitToMainErc721SR = await safe_sign_transaction_with_account( w3_s_chain, txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc );
         let joReceiptExitToMainERC721 = null;
         if( joExitToMainErc721SR.joACI.isAutoSend )
-            joReceiptExitToMainERC721 = await w3_s_chain.eth.getTransactionReceipt( joExitToMainErc721SR.txHashSent );
+            joReceiptExitToMainERC721 = await get_web3_transactionReceipt( 10, w3_s_chain, joExitToMainErc721SR.txHashSent );
         else {
             const serializedTxExitToMainERC721 = txExitToMainERC721.serialize();
             // let joReceiptExitToMainERC721 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC721.toString( "hex" ) );
@@ -2582,14 +2722,25 @@ async function do_transfer(
                 strActionName = "src-chain.MessageProxy.getPastEvents()";
                 if( verbose_get() >= RV_VERBOSE.trace )
                     log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event now..." ) + "\n" );
-                r = await jo_message_proxy_src.getPastEvents( "OutgoingMessage", {
-                    filter: {
+                r = await get_web3_pastEvents(
+                    10,
+                    jo_message_proxy_src,
+                    "OutgoingMessage",
+                    0,
+                    "latest",
+                    {
                         dstChainHash: [ w3_src.utils.soliditySha3( chain_id_dst ) ],
                         msgCounter: [ nIdxCurrentMsg ]
-                    },
-                    fromBlock: 0,
-                    toBlock: "latest"
-                } );
+                    }
+                );
+                // r = await jo_message_proxy_src.getPastEvents( "OutgoingMessage", {
+                //     filter: {
+                //         dstChainHash: [ w3_src.utils.soliditySha3( chain_id_dst ) ],
+                //         msgCounter: [ nIdxCurrentMsg ]
+                //     },
+                //     fromBlock: 0,
+                //     toBlock: "latest"
+                // } );
                 let joValues = "";
                 for( let i = r.length - 1; i >= 0; i-- ) {
                     if( r[i].returnValues.dstChainHash == w3_src.utils.soliditySha3( chain_id_dst ) ) {
@@ -2615,7 +2766,7 @@ async function do_transfer(
                         const blockNumber = r[0].blockNumber;
                         if( verbose_get() >= RV_VERBOSE.trace )
                             log.write( strLogPrefix + cc.debug( "Event blockNumber is " ) + cc.info( blockNumber ) + "\n" );
-                        const nLatestBlockNumber = await w3_src.eth.getBlockNumber();
+                        const nLatestBlockNumber = await get_web3_blockNumber( 10, w3_src );
                         if( verbose_get() >= RV_VERBOSE.trace )
                             log.write( strLogPrefix + cc.debug( "Latest blockNumber is " ) + cc.info( nLatestBlockNumber ) + "\n" );
                         const nDist = nLatestBlockNumber - blockNumber;
@@ -2843,7 +2994,7 @@ async function do_transfer(
                     return;
                 }
                 strActionName = "dst-chain.getTransactionCount()";
-                const tcnt = await w3_dst.eth.getTransactionCount( joAccountDst.address( w3_dst ), null );
+                const tcnt = await get_web3_transactionCount( 10, w3_dst, joAccountDst.address( w3_dst ), null );
                 if( verbose_get() >= RV_VERBOSE.debug )
                     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
                 //
@@ -2960,7 +3111,7 @@ async function do_transfer(
                 if( joPostIncomingMessagesSR.joACI.isAutoSend ) {
                     if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
                         await async_pending_tx_start( w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joPostIncomingMessagesSR.txHashSent );
-                    joReceipt = await w3_dst.eth.getTransactionReceipt( joPostIncomingMessagesSR.txHashSent );
+                    joReceipt = await get_web3_transactionReceipt( 10, w3_dst, joPostIncomingMessagesSR.txHashSent );
                 } else {
                     const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
                     strActionName = "w3_dst.eth.sendSignedTransaction()";
@@ -3204,6 +3355,8 @@ module.exports.getSleepBetweenTransactionsOnSChainMilliseconds = getSleepBetween
 module.exports.setSleepBetweenTransactionsOnSChainMilliseconds = setSleepBetweenTransactionsOnSChainMilliseconds;
 module.exports.getWaitForNextBlockOnSChain = getWaitForNextBlockOnSChain;
 module.exports.setWaitForNextBlockOnSChain = setWaitForNextBlockOnSChain;
+module.exports.get_web3_blockNumber = get_web3_blockNumber;
+module.exports.get_web3_pastEvents = get_web3_pastEvents;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

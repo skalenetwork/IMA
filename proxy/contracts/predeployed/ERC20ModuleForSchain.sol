@@ -80,29 +80,51 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
      */
     function sendERC20(string calldata schainID, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC20 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc20();
-        Messages.TransferErc20AndTokenInfoMessage memory message =
-            Messages.decodeTransferErc20AndTokenInfoMessage(data);
-        address contractOnSchain = LockAndDataForSchainERC20(lockAndDataERC20)
-            .getERC20OnSchain(schainID, message.baseErc20transfer.token);
-        if (contractOnSchain == address(0)) {
-            contractOnSchain = _sendCreateERC20Request(message.tokenInfo);
-            LockAndDataForSchainERC20(lockAndDataERC20)
-                .addERC20ForSchain(schainID, message.baseErc20transfer.token, contractOnSchain);
-            emit ERC20TokenCreated(schainID, message.baseErc20transfer.token, contractOnSchain);
+        Messages.MessageType messageType = Messages.getMessageType(data);
+        address receiver;
+        address token;
+        uint256 amount;
+        uint256 totalSupply;
+        if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY) {
+            Messages.TransferErc20AndTotalSupplyMessage memory message =
+                Messages.decodeTransferErc20AndTotalSupplyMessage(data);
+            receiver = message.baseErc20transfer.receiver;
+            token = message.baseErc20transfer.token;
+            amount = message.baseErc20transfer.amount;
+            totalSupply = message.totalSupply;
+        } else {
+            Messages.TransferErc20AndTokenInfoMessage memory message =
+                Messages.decodeTransferErc20AndTokenInfoMessage(data);
+            receiver = message.baseErc20transfer.receiver;
+            token = message.baseErc20transfer.token;
+            amount = message.baseErc20transfer.amount;
+            totalSupply = message.totalSupply;
+            address contractOnSchainTmp = LockAndDataForSchainERC20(lockAndDataERC20)
+                .getERC20OnSchain(schainID, token);
+            if (contractOnSchainTmp == address(0)) {
+                contractOnSchainTmp = _sendCreateERC20Request(
+                    Messages.decodeTransferErc20AndTokenInfoMessage(data).tokenInfo
+                );
+                LockAndDataForSchainERC20(lockAndDataERC20)
+                    .addERC20ForSchain(schainID, token, contractOnSchainTmp);
+                emit ERC20TokenCreated(schainID, token, contractOnSchainTmp);
+            }
         }
-        if (message.tokenInfo.totalSupply != LockAndDataForSchainERC20(lockAndDataERC20)
+        address contractOnSchain = LockAndDataForSchainERC20(lockAndDataERC20)
+            .getERC20OnSchain(schainID, token);
+        if (totalSupply != LockAndDataForSchainERC20(lockAndDataERC20)
             .totalSupplyOnMainnet(contractOnSchain))
         {
             LockAndDataForSchainERC20(lockAndDataERC20).setTotalSupplyOnMainnet(
                 contractOnSchain,
-                message.tokenInfo.totalSupply
+                totalSupply
             );
         }
-        emit ERC20TokenReceived(message.baseErc20transfer.token, contractOnSchain, message.baseErc20transfer.amount);
+        emit ERC20TokenReceived(token, contractOnSchain, amount);
         return LockAndDataForSchainERC20(lockAndDataERC20).sendERC20(
             contractOnSchain,
-            message.baseErc20transfer.receiver,
-            message.baseErc20transfer.amount
+            receiver,
+            amount
         );
     }
 
@@ -110,7 +132,11 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
      * @dev Returns the receiver address.
      */
     function getReceiver(bytes calldata data) external pure returns (address receiver) {
-        return Messages.decodeTransferErc20AndTokenInfoMessage(data).baseErc20transfer.receiver;
+        Messages.MessageType messageType = Messages.getMessageType(data);
+        if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY)
+            return Messages.decodeTransferErc20AndTotalSupplyMessage(data).baseErc20transfer.receiver;
+        else
+            return Messages.decodeTransferErc20AndTokenInfoMessage(data).baseErc20transfer.receiver;
     }
 
     function _sendCreateERC20Request(

@@ -43,7 +43,7 @@ class SendERC20ToSchain(TestCase):
         signed_txn = self.blockchain.web3_mainnet.eth.account.signTransaction(mint_txn,
                                                                               private_key=self.config.mainnet_key)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
-        self.blockchain.addERC20TokenByOwner(self.config.mainnet_key, self.config.schain_name, self.erc20.address)
+        self.blockchain.disableWhitelistERC20(self.config.mainnet_key, self.config.schain_name)
         self.blockchain.enableAutomaticDeployERC20(self.config.schain_key, "Mainnet")
 
     def _execute(self):

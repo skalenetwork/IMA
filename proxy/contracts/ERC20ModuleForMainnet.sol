@@ -78,13 +78,21 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         if (!isERC20AddedToSchain) {
             LockAndDataForMainnetERC20(lockAndDataERC20).addERC20ForSchain(schainID, contractOnMainnet);
             emit ERC20TokenAdded(schainID, contractOnMainnet);
-        } 
-        data = Messages.encodeTransferErc20AndTokenInfoMessage(
-            contractOnMainnet,
-            to,
-            amount,
-            _getErc20TokenInfo(IERC20Metadata(contractOnMainnet))
-        );
+            data = Messages.encodeTransferErc20AndTokenInfoMessage(
+                contractOnMainnet,
+                to,
+                amount,
+                _getErc20TotalSupply(IERC20Metadata(contractOnMainnet)),
+                _getErc20TokenInfo(IERC20Metadata(contractOnMainnet))
+            );
+        } else {
+            data = Messages.encodeTransferErc20AndTotalSupplyMessage(
+                contractOnMainnet,
+                to,
+                amount,
+                _getErc20TotalSupply(IERC20Metadata(contractOnMainnet))
+            );
+        }
         emit ERC20TokenReady(contractOnMainnet, amount);
     }
 
@@ -110,12 +118,15 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
+    function _getErc20TotalSupply(IERC20Metadata erc20Token) private view returns (uint256) {
+        return erc20Token.totalSupply();
+    }
+
     function _getErc20TokenInfo(IERC20Metadata erc20Token) private view returns (Messages.Erc20TokenInfo memory) {
         return Messages.Erc20TokenInfo({
             name: erc20Token.name(),
             decimals: erc20Token.decimals(),
-            symbol: erc20Token.symbol(),
-            totalSupply: erc20Token.totalSupply()
+            symbol: erc20Token.symbol()
         });
     }
 }

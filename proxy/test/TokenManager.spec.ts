@@ -759,11 +759,11 @@ contract("TokenManager", ([deployer, user, client]) => {
                 eRC20.address,
                 to,
                 amount,
+                (await eRC20.totalSupply()).toNumber(),
                 {
                     name: await eRC20.name(),
                     symbol: await eRC20.symbol(),
-                    decimals: (await eRC20.decimals()).toNumber(),
-                    totalSupply: (await eRC20.totalSupply()).toNumber()
+                    decimals: (await eRC20.decimals()).toNumber()
                 }
             );
             // add schain to avoid the `Unconnected chain` error

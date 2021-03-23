@@ -51,7 +51,7 @@ class Senderc721ToMainnet(TestCase):
         sleep(5)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
-        self.blockchain.addERC721TokenByOwner(self.config.mainnet_key, self.config.schain_name, self.erc721.address)
+        self.blockchain.disableWhitelistERC721(self.config.mainnet_key, self.config.schain_name)
         self.blockchain.enableAutomaticDeployERC721(self.config.schain_key, "Mainnet")
         sleep(5)
         # send to schain
