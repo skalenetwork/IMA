@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   PermissionsForMainnet.sol - SKALE Interchain Messaging Agent
- *   Copyright (C) 2019-Present SKALE Labs
+ *   IMAConnected.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
@@ -25,17 +25,17 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
-import "./LockAndDataForMainnet.sol";
+import "./IMALinker.sol";
 
 
 /**
- * @title PermissionsForMainnet - connected module for Upgradeable approach, knows ContractManager
+ * @title IMAConnected - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-contract PermissionsForMainnet is AccessControlUpgradeable {
+contract IMAConnected is AccessControlUpgradeable {
 
-    // address of ContractManager
-    address public lockAndDataAddress_;
+    IMALinker public imaLinker
+    address public contractManagerOfSkaleManager;
 
     /**
      * @dev allow - throws if called by any account and contract other than the owner
@@ -62,12 +62,13 @@ contract PermissionsForMainnet is AccessControlUpgradeable {
 
     /**
      * @dev initialize - sets current address of ContractManager
-     * @param newContractsAddress - current address of ContractManager
+     * @param newIMALinkerAddress - current address of ContractManager
      */
-    function initialize(address newContractsAddress) public virtual initializer {
+    function initialize(address newIMALinkerAddress, address newContractManagerOfSkaleManager) public virtual initializer {
         AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        lockAndDataAddress_ = newContractsAddress;
+        imsLinker = IMALinker(newIMALinkerAddress);
+        contractManagerOfSkaleManager = newContractManagerOfSkaleManager;
     }
 
     /**

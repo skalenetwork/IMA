@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   LockAndDataForMainnet.sol - SKALE Interchain Messaging Agent
+ *   IMALinker.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -35,7 +35,7 @@ import "./interfaces/IWallets.sol";
  * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
  * balances of ETH tokens received through DepositBox.
  */
-contract LockAndDataForMainnet is OwnableUpgradeable {
+contract IMALinker is OwnableUpgradeable {
     using AddressUpgradeable for address;
     using SafeMathUpgradeable for uint;
 

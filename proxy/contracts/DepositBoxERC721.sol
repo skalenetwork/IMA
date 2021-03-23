@@ -27,7 +27,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol"
 
 import "./interfaces/IMessageProxy.sol";
 
-import "./PermissionsForMainnet.sol";
+import "./IMAConnected.sol";
 import "./ERC20ModuleForMainnet.sol";
 import "./ERC721ModuleForMainnet.sol";
 import "./Messages.sol";
@@ -36,7 +36,7 @@ import "./Messages.sol";
 // This contract runs on the main net and accepts deposits
 
 
-contract DepositBoxERC721 is PermissionsForMainnet {
+contract DepositBoxERC721 is IMAConnected {
 
     mapping (Messages.MessageType => uint256) public gasConsumptions;
 
