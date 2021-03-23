@@ -21,7 +21,7 @@
 
 pragma solidity 0.6.12;
 
-import "../LockAndDataForMainnet.sol";
+import "../mainnet/LockAndDataForMainnet.sol";
 
 
 contract LockAndDataForMainnetWorkaround is LockAndDataForMainnet {
