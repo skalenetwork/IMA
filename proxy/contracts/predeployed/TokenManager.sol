@@ -301,7 +301,10 @@ contract TokenManager is PermissionsForSchain {
             require(ERC20ModuleForSchain(erc20Module).sendERC20(fromSchainID, data), "Failed to send ERC20");
             address receiver = ERC20ModuleForSchain(erc20Module).getReceiver(data);
             require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
-        } else if (operation == Messages.MessageType.TRANSFER_ERC721_AND_TOKEN_INFO) {
+        } else if (
+            operation == Messages.MessageType.TRANSFER_ERC721_AND_TOKEN_INFO ||
+            operation == Messages.MessageType.TRANSFER_ERC721
+        ) {
             address erc721Module = LockAndDataForSchain(
                 getLockAndDataAddress()
             ).getErc721Module();
