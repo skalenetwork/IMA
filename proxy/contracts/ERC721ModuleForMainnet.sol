@@ -65,13 +65,15 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
         if (!isERC721AddedToSchain) {
             LockAndDataForMainnetERC721(lockAndDataERC721).addERC721ForSchain(schainID, contractOnMainnet);
             emit ERC721TokenAdded(schainID, contractOnMainnet);
+            data = Messages.encodeTransferErc721AndTokenInfoMessage(
+                contractOnMainnet,
+                to,
+                tokenId,
+                _getTokenInfo(IERC721MetadataUpgradeable(contractOnMainnet))
+            );
+        } else {
+            data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);
         }
-        data = Messages.encodeTransferErc721AndTokenInfoMessage(
-            contractOnMainnet,
-            to,
-            tokenId,
-            _getTokenInfo(IERC721MetadataUpgradeable(contractOnMainnet))
-        );
         emit ERC721TokenReady(contractOnMainnet, tokenId);
     }
 

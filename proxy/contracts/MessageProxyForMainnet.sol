@@ -368,6 +368,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         Signature calldata sign
     )
         private
+        view
         returns (bool)
     {
         address skaleSchains = IContractManager(
