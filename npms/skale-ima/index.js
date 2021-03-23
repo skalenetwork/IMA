@@ -150,16 +150,64 @@ function parseIntSafer( s ) {
 }
 
 async function wait_for_next_block_to_appear( w3 ) {
-    const nBlockNumber = await w3.eth.getBlockNumber();
+    const nBlockNumber = await get_web3_blockNumber( 10, w3 );
     log.write( cc.debug( "Waiting for next block to appear..." ) + "\n" );
     log.write( cc.debug( "    ...have block " ) + cc.info( parseIntSafer( nBlockNumber ) ) + "\n" );
     for( ; true; ) {
         await sleep( 1000 );
-        const nBlockNumber2 = await w3.eth.getBlockNumber();
+        const nBlockNumber2 = await get_web3_blockNumber( 10, w3 );
         log.write( cc.debug( "    ...have block " ) + cc.info( parseIntSafer( nBlockNumber2 ) ) + "\n" );
         if( nBlockNumber2 > nBlockNumber )
             break;
     }
+}
+
+async function get_web3_blockNumber( attempts, w3 ) {
+    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    let nLatestBlockNumber = "";
+    try {
+        nLatestBlockNumber = await w3.eth.blockNumber;
+    } catch ( e ) {}
+    let attemptIndex = 2;
+    while( nLatestBlockNumber === "" && attemptIndex <= allAttempts ) {
+        log.write( cc.fatal( "Repeat getBlockNumber attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( nLatestBlockNumber ) + "\n" );
+        await sleep( 10000 );
+        try {
+            nLatestBlockNumber = await w3.eth.blockNumber;
+        } catch ( e ) {}
+        attemptIndex++;
+    }
+    if( attemptIndex + 1 > allAttempts && nLatestBlockNumber === "" )
+        throw new Error( "Cound not get blockNumber" );
+    return nLatestBlockNumber;
+}
+
+async function get_web3_pastEvents( attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+
+    let joAllEventsInBlock = "";
+    try {
+        joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
+            filter: joFilter,
+            fromBlock: nBlockFrom,
+            toBlock: nBlockTo
+        } );
+    } catch ( e ) {}
+    let attemptIndex = 2;
+    while( joAllEventsInBlock === "" && attemptIndex <= allAttempts ) {
+        log.write( cc.fatal( "Repeat getPastEvents" ) + cc.info( strEventName ) + cc.info( "attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( joAllEventsInBlock ) + "\n" );
+        await sleep( 10000 );
+        try {
+            joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
+                filter: joFilter,
+                fromBlock: nBlockFrom,
+                toBlock: nBlockTo
+            } );
+        } catch ( e ) {}
+        attemptIndex++;
+    }
+    if( attemptIndex + 1 === allAttempts && joAllEventsInBlock === "" )
+        throw new Error( "Cound not get Event" + strEventName );
 }
 
 //
@@ -170,48 +218,12 @@ async function wait_for_next_block_to_appear( w3 ) {
 async function get_contract_call_events( w3, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
     joFilter = joFilter || {};
     let nBlockFrom = nBlockNumber - 10, nBlockTo = nBlockNumber + 10;
-    let nLatestBlockNumber = "";
-    try {
-        nLatestBlockNumber = await w3.eth.blockNumber;
-    } catch ( e ) {}
-    let attempts = 10;
-    while( nLatestBlockNumber === "" && attempts > 0 ) {
-        log.write( cc.fatal( "Repeat getBlockNumber attempt number " ) + cc.info( 12 - attempts ) + cc.info( " Previous result " ) + cc.info( nLatestBlockNumber ) + "\n" );
-        await sleep( 10000 );
-        try {
-            nLatestBlockNumber = await w3.eth.blockNumber;
-        } catch ( e ) {}
-        attempts--;
-    }
-    if( attempts === 0 && nLatestBlockNumber === "" )
-        throw new Error( "Cound not get blockNumber" );
+    const nLatestBlockNumber = await get_web3_blockNumber( 10, w3 );
     if( nBlockFrom < 0 )
         nBlockFrom = 0;
     if( nBlockTo > nLatestBlockNumber )
         nBlockTo = nLatestBlockNumber;
-    let joAllEventsInBlock = "";
-    try {
-        joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
-            filter: joFilter,
-            fromBlock: nBlockFrom,
-            toBlock: nBlockTo
-        } );
-    } catch ( e ) {}
-    attempts = 10;
-    while( joAllEventsInBlock === "" && attempts > 0 ) {
-        log.write( cc.fatal( "Repeat getPastEvents" ) + cc.info( strEventName ) + cc.info( "attempt number " ) + cc.info( 12 - attempts ) + cc.info( " Previous result " ) + cc.info( joAllEventsInBlock ) + "\n" );
-        await sleep( 10000 );
-        try {
-            joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
-                filter: joFilter,
-                fromBlock: nBlockFrom,
-                toBlock: nBlockTo
-            } );
-        } catch ( e ) {}
-        attempts--;
-    }
-    if( attempts === 0 && nLatestBlockNumber === "" )
-        throw new Error( "Cound not get Event" + strEventName );
+    const joAllEventsInBlock = await get_web3_pastEvents( 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
         const joEvent = joAllEventsInBlock[i];
@@ -2614,14 +2626,25 @@ async function do_transfer(
                 strActionName = "src-chain.MessageProxy.getPastEvents()";
                 if( verbose_get() >= RV_VERBOSE.trace )
                     log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event now..." ) + "\n" );
-                r = await jo_message_proxy_src.getPastEvents( "OutgoingMessage", {
-                    filter: {
+                r = await get_web3_pastEvents(
+                    10,
+                    jo_message_proxy_src,
+                    "OutgoingMessage",
+                    0,
+                    "latest",
+                    {
                         dstChainHash: [ w3_src.utils.soliditySha3( chain_id_dst ) ],
                         msgCounter: [ nIdxCurrentMsg ]
-                    },
-                    fromBlock: 0,
-                    toBlock: "latest"
-                } );
+                    }
+                );
+                // r = await jo_message_proxy_src.getPastEvents( "OutgoingMessage", {
+                //     filter: {
+                //         dstChainHash: [ w3_src.utils.soliditySha3( chain_id_dst ) ],
+                //         msgCounter: [ nIdxCurrentMsg ]
+                //     },
+                //     fromBlock: 0,
+                //     toBlock: "latest"
+                // } );
                 let joValues = "";
                 for( let i = r.length - 1; i >= 0; i-- ) {
                     if( r[i].returnValues.dstChainHash == w3_src.utils.soliditySha3( chain_id_dst ) ) {
@@ -2647,7 +2670,7 @@ async function do_transfer(
                         const blockNumber = r[0].blockNumber;
                         if( verbose_get() >= RV_VERBOSE.trace )
                             log.write( strLogPrefix + cc.debug( "Event blockNumber is " ) + cc.info( blockNumber ) + "\n" );
-                        const nLatestBlockNumber = await w3_src.eth.getBlockNumber();
+                        const nLatestBlockNumber = await get_web3_blockNumber( 10, w3_src );
                         if( verbose_get() >= RV_VERBOSE.trace )
                             log.write( strLogPrefix + cc.debug( "Latest blockNumber is " ) + cc.info( nLatestBlockNumber ) + "\n" );
                         const nDist = nLatestBlockNumber - blockNumber;
@@ -3236,6 +3259,8 @@ module.exports.getSleepBetweenTransactionsOnSChainMilliseconds = getSleepBetween
 module.exports.setSleepBetweenTransactionsOnSChainMilliseconds = setSleepBetweenTransactionsOnSChainMilliseconds;
 module.exports.getWaitForNextBlockOnSChain = getWaitForNextBlockOnSChain;
 module.exports.setWaitForNextBlockOnSChain = setWaitForNextBlockOnSChain;
+module.exports.get_web3_blockNumber = get_web3_blockNumber;
+module.exports.get_web3_pastEvents = get_web3_pastEvents;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
