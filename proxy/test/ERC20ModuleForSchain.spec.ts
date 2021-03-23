@@ -190,8 +190,8 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const symbol = "D2";
     const totalSupply = 1e9;
 
-    const data = await messages.encodeTransferErc20AndTokenInfoMessage(erc20OnMainnet.address, to, amount, {totalSupply}, {name, symbol, decimals: 18});
-    const data2 = await messages.encodeTransferErc20AndTokenInfoMessage(erc20OnMainnet.address, to, amount, {totalSupply}, {name, symbol, decimals: 18});
+    const data = await messages.encodeTransferErc20AndTokenInfoMessage(erc20OnMainnet.address, to, amount, totalSupply, {name, symbol, decimals: 18});
+    const data2 = await messages.encodeTransferErc20AndTokenInfoMessage(erc20OnMainnet.address, to, amount, totalSupply, {name, symbol, decimals: 18});
 
     // set `ERC20Module` contract before invoke `receiveERC20`
     await lockAndDataForSchain
@@ -223,7 +223,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const symbol = "D2";
     const totalSupply = 999999990;
 
-    const data = await messages.encodeTransferErc20AndTokenInfoMessage(erc20OnMainnet.address, to, amount, {totalSupply}, {name, symbol, decimals: 18})
+    const data = await messages.encodeTransferErc20AndTokenInfoMessage(erc20OnMainnet.address, to, amount, totalSupply, {name, symbol, decimals: 18})
 
     // set `ERC20Module` contract before invoke `receiveERC20`
     await lockAndDataForSchain
@@ -274,9 +274,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
       ERC20OnMainnet,
       to,
       amount,
-      {
-        totalSupply: amount
-      },
+      amount,
       {
         name: await erc20OnMainnet.name(),
         decimals: "0x" + await erc20OnMainnet.decimals(),

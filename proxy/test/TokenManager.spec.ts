@@ -759,9 +759,7 @@ contract("TokenManager", ([deployer, user, client]) => {
                 eRC20.address,
                 to,
                 amount,
-                {
-                    totalSupply: (await eRC20.totalSupply()).toNumber()
-                },
+                (await eRC20.totalSupply()).toNumber(),
                 {
                     name: await eRC20.name(),
                     symbol: await eRC20.symbol(),

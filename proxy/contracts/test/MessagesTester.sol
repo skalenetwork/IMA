@@ -44,19 +44,19 @@ contract MessagesTester {
         address token,
         address receiver,
         uint256 amount,
-        Messages.Erc20TokenSupply memory supply
+        uint256 totalSupply
     ) external pure returns (bytes memory) {
-        return Messages.encodeTransferErc20AndTotalSupplyMessage(token, receiver, amount, supply);
+        return Messages.encodeTransferErc20AndTotalSupplyMessage(token, receiver, amount, totalSupply);
     }
 
     function encodeTransferErc20AndTokenInfoMessage(
         address token,
         address receiver,
         uint256 amount,
-        Messages.Erc20TokenSupply memory supply,
+        uint256 totalSupply,
         Messages.Erc20TokenInfo memory tokenInfo
     ) external pure returns (bytes memory) {
-        return Messages.encodeTransferErc20AndTokenInfoMessage(token, receiver, amount, supply, tokenInfo);
+        return Messages.encodeTransferErc20AndTokenInfoMessage(token, receiver, amount, totalSupply, tokenInfo);
     }
 
     function encodeTransferErc721Message(

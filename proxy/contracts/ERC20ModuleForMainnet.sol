@@ -118,10 +118,8 @@ contract ERC20ModuleForMainnet is PermissionsForMainnet {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
     }
 
-    function _getErc20TotalSupply(IERC20Metadata erc20Token) private view returns (Messages.Erc20TokenSupply memory) {
-        return Messages.Erc20TokenSupply({
-            totalSupply: erc20Token.totalSupply()
-        });
+    function _getErc20TotalSupply(IERC20Metadata erc20Token) private view returns (uint256) {
+        return erc20Token.totalSupply();
     }
 
     function _getErc20TokenInfo(IERC20Metadata erc20Token) private view returns (Messages.Erc20TokenInfo memory) {

@@ -49,10 +49,6 @@ library Messages {
         uint256 amount;
     }
 
-    struct Erc20TokenSupply {
-        uint256 totalSupply;
-    }
-
     struct Erc20TokenInfo {
         string name;
         uint8 decimals;
@@ -61,12 +57,12 @@ library Messages {
 
     struct TransferErc20AndTotalSupplyMessage {
         TransferErc20Message baseErc20transfer;
-        Erc20TokenSupply supply;
+        uint256 totalSupply;
     }
 
     struct TransferErc20AndTokenInfoMessage {
         TransferErc20Message baseErc20transfer;
-        Erc20TokenSupply supply;
+        uint256 totalSupply;
         Erc20TokenInfo tokenInfo;
     }
 
@@ -130,7 +126,7 @@ library Messages {
         address token,
         address receiver,
         uint256 amount,
-        Erc20TokenSupply memory supply
+        uint256 totalSupply
     ) internal pure returns (bytes memory) {
         TransferErc20AndTotalSupplyMessage memory message = TransferErc20AndTotalSupplyMessage(
             TransferErc20Message(
@@ -139,7 +135,7 @@ library Messages {
                 receiver,
                 amount
             ),
-            supply
+            totalSupply
         );
         return abi.encode(message);
     }
@@ -165,7 +161,7 @@ library Messages {
         address token,
         address receiver,
         uint256 amount,
-        Erc20TokenSupply memory supply,
+        uint256 totalSupply,
         Erc20TokenInfo memory tokenInfo
     ) internal pure returns (bytes memory) {
         TransferErc20AndTokenInfoMessage memory message = TransferErc20AndTokenInfoMessage(
@@ -175,7 +171,7 @@ library Messages {
                 receiver,
                 amount
             ),
-            supply,
+            totalSupply,
             tokenInfo
         );
         return abi.encode(message);
