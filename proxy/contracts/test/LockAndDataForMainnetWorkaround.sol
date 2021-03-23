@@ -33,7 +33,7 @@ contract LockAndDataForMainnetWorkaround is LockAndDataForMainnet {
         permitted[contractId] = newContract;
     }
 
-    function isSchainOwner(address , bytes32 ) public override view returns (bool) {
+    function isSchainOwner(address, bytes32) public override view returns (bool) {
         return true;
     }
 

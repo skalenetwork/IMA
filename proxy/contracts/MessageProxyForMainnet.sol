@@ -22,8 +22,9 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+
 import "./PermissionsForMainnet.sol";
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
@@ -67,7 +68,7 @@ interface ISchains {
  * messages do not need to be signed.
  */
 contract MessageProxyForMainnet is PermissionsForMainnet {
-    using SafeMath for uint256;
+    using SafeMathUpgradeable for uint256;
 
     /**
      * 16 Agents
@@ -221,7 +222,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         uint256 startingCounter,
         Message[] calldata messages,
         Signature calldata sign,
-        uint256 idxLastToPopNotIncluding
+        uint256
     )
         external
     {

@@ -33,6 +33,8 @@ import {
     LockAndDataForSchainERC721Contract,
     LockAndDataForSchainERC721Instance,
     LockAndDataForSchainInstance,
+    MessagesTesterContract,
+    MessagesTesterInstance,
     TokenFactoryContract,
     TokenFactoryInstance,
     } from "../types/truffle-contracts";
@@ -53,6 +55,7 @@ const TokenFactory: TokenFactoryContract =
     artifacts.require("./TokenFactory");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 const ERC721ModuleForSchain: ERC721ModuleForSchainContract = artifacts.require("./ERC721ModuleForSchain");
+const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 
 contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
   let lockAndDataForSchain: LockAndDataForSchainInstance;
@@ -61,6 +64,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
   let eRC721OnChain: ERC721OnChainInstance;
   let eRC721ModuleForSchain: ERC721ModuleForSchainInstance;
   let eRC721OnMainnet: ERC721OnChainInstance;
+  let messages: MessagesTesterInstance;
 
   beforeEach(async () => {
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
@@ -74,6 +78,7 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     eRC721OnMainnet = await ERC721OnChain.new("SKALE", "SKL");
     eRC721ModuleForSchain = await ERC721ModuleForSchain.new(lockAndDataForSchain.address,
         {from: deployer});
+    messages = await MessagesTester.new();
   });
 
   it("should rejected with `ERC721 contract does not exist on SKALE chain`", async () => {
@@ -134,14 +139,14 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
         .setContract("TokenFactory", tokenFactory.address, {from: deployer});
     // mint ERC721 to avoid "ERC721: owner query for nonexistent token" error
     await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-    const data = "0x05" +
-    (eRC721OnMainnet.address).substr(2) + "000000000000000000000000" + // contractPosition
-    to.substr(2) + "000000000000000000000000" + // receiver
-    "0000000000000000000000000000000000000000000000000000000000000002" + // tokenId
-    "000000000000000000000000000000000000000000000000000000000000000d" + // token name
-    "4552433732314f6e436861696e" + // token name
-    "0000000000000000000000000000000000000000000000000000000000000006" + // token symbol
-    "455243373231"; // token symbol
+    const data = await messages.encodeTransferErc721AndTokenInfoMessage(
+      eRC721OnMainnet.address,
+      to,
+      tokenId,
+      {
+        name: await eRC721OnMainnet.name(),
+        symbol: await eRC721OnMainnet.symbol()
+      });
     await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
     // execution
     const res = await eRC721ModuleForSchain.sendERC721(schainID, data, {from: deployer});
@@ -180,9 +185,17 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     const minterRole = await eRC721OnChain.MINTER_ROLE();
     await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
     // get data from `receiveERC721`
-    const data = await eRC721ModuleForSchain.receiveERC721.call(schainID, contractThere , to, tokenId, {from: deployer});
     await eRC721ModuleForSchain.receiveERC721(schainID, contractThere , to, tokenId, {from: deployer});
     // execution
+    const data = await messages.encodeTransferErc721AndTokenInfoMessage(
+      contractThere,
+      to,
+      tokenId,
+      {
+        name: await eRC721OnMainnet.name(),
+        symbol: await eRC721OnMainnet.symbol()
+      }
+    );
     await eRC721ModuleForSchain.sendERC721(schainID, data, {from: deployer});
     // expectation
     expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(user);
@@ -211,9 +224,17 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     // transfer ERC721 token to `lockAndDataForMainnetERC721` to avoid "Token not transferred" error
     await eRC721OnChain.transferFrom(deployer, lockAndDataForSchainERC721.address, tokenId, {from: deployer});
     // get data from `receiveERC721`
-    const data = await eRC721ModuleForSchain.receiveERC721.call(schainID, contractThere , to, tokenId, {from: deployer});
     await eRC721ModuleForSchain.receiveERC721(schainID, contractThere , to, tokenId, {from: deployer});
     // execution
+    const data = await messages.encodeTransferErc721AndTokenInfoMessage(
+      contractThere,
+      to,
+      tokenId,
+      {
+        name: await eRC721OnMainnet.name(),
+        symbol: await eRC721OnMainnet.symbol()
+      }
+    )
     const res = await eRC721ModuleForSchain.getReceiver(data, {from: deployer});
     // expectation
     res.should.be.equal(user);

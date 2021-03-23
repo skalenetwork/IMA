@@ -21,9 +21,10 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 import "./PermissionsForMainnet.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
+
 
 /**
  * @title Lock and Data For Mainnet ERC20
@@ -61,8 +62,11 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
         returns (bool)
     {
         require(contractOnMainnet.isContract(), "Given address is not a contract");
-        require(IERC20(contractOnMainnet).balanceOf(address(this)) >= amount, "Not enough money");
-        require(IERC20(contractOnMainnet).transfer(to, amount), "Something went wrong with `transfer` in ERC20");
+        require(IERC20Upgradeable(contractOnMainnet).balanceOf(address(this)) >= amount, "Not enough money");
+        require(
+            IERC20Upgradeable(contractOnMainnet).transfer(to, amount),
+            "Something went wrong with `transfer` in ERC20"
+        );
         return true;
     }
 

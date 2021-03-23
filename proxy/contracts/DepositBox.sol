@@ -20,34 +20,25 @@
  */
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
+
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+
+import "./interfaces/IMessageProxy.sol";
 
 import "./PermissionsForMainnet.sol";
-import "./interfaces/IMessageProxy.sol";
-import "./interfaces/IERC20ModuleForMainnet.sol";
-import "./interfaces/IERC721ModuleForMainnet.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
+import "./ERC20ModuleForMainnet.sol";
+import "./ERC721ModuleForMainnet.sol";
+import "./Messages.sol";
 
-interface ILockAndDataDB {
-    function tokenManagerAddresses(bytes32 schainHash) external returns (address);
-    function approveTransfer(address to, uint256 amount) external;
-    function sendEth(address to, uint256 amount) external;
-    function receiveEth(address from) external payable;
-    function rechargeSchainWallet(bytes32 schainId, uint256 amount) external;
-}
 
 // This contract runs on the main net and accepts deposits
 
 
 contract DepositBox is PermissionsForMainnet {
 
-    enum TransactionOperation {
-        transferETH,
-        transferERC20,
-        transferERC721
-    }
-
-    mapping (TransactionOperation => uint256) public gasConsumptions;
+    mapping (Messages.MessageType => uint256) public gasConsumptions;
 
     event MoneyReceivedMessage(
         address sender,
@@ -74,12 +65,12 @@ contract DepositBox is PermissionsForMainnet {
     modifier receivedEth() {
         _;
         if (msg.value > 0) {
-            ILockAndDataDB(lockAndDataAddress_).receiveEth.value(msg.value)(msg.sender);
+            LockAndDataForMainnet(lockAndDataAddress_).receiveEth{value: msg.value}(msg.sender);
         }
     }
 
-    fallback() external payable {
-        revert("Not allowed. in DepositBox");
+    receive() external payable {
+        revert("Use deposit function");
     }
 
     function depositERC20(
@@ -94,17 +85,17 @@ contract DepositBox is PermissionsForMainnet {
         receivedEth
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
+        address tokenManagerAddress = LockAndDataForMainnet(lockAndDataAddress_).tokenManagerAddresses(schainHash);
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(
-            IERC20(contractOnMainnet).transferFrom(
+            IERC20Upgradeable(contractOnMainnet).transferFrom(
                 msg.sender,
                 IContractManager(lockAndDataAddress_).getContract("LockAndDataERC20"),
                 amount
             ),
             "Could not transfer ERC20 Token"
         );
-        bytes memory data = IERC20ModuleForMainnet(
+        bytes memory data = ERC20ModuleForMainnet(
             IContractManager(lockAndDataAddress_).getContract("ERC20Module")
         ).receiveERC20(
             schainID,
@@ -133,12 +124,15 @@ contract DepositBox is PermissionsForMainnet {
         receivedEth
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
+        address tokenManagerAddress = LockAndDataForMainnet(lockAndDataAddress_).tokenManagerAddresses(schainHash);
         require(tokenManagerAddress != address(0), "Unconnected chain");
         address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract("LockAndDataERC721");
-        IERC721(contractOnMainnet).transferFrom(address(this), lockAndDataERC721, tokenId);
-        require(IERC721(contractOnMainnet).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-        bytes memory data =IERC721ModuleForMainnet(
+        IERC721Upgradeable(contractOnMainnet).transferFrom(address(this), lockAndDataERC721, tokenId);
+        require(
+            IERC721Upgradeable(contractOnMainnet).ownerOf(tokenId) == lockAndDataERC721,
+            "Did not transfer ERC721 token"
+        );
+        bytes memory data = ERC721ModuleForMainnet(
             IContractManager(lockAndDataAddress_).getContract("ERC721Module")
         ).receiveERC721(
             schainID,
@@ -170,7 +164,7 @@ contract DepositBox is PermissionsForMainnet {
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&
-            sender == ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash),
+            sender == LockAndDataForMainnet(lockAndDataAddress_).tokenManagerAddresses(schainHash),
             "Receiver chain is incorrect"
         );
         require(
@@ -184,9 +178,9 @@ contract DepositBox is PermissionsForMainnet {
     /// Create a new deposit box
     function initialize(address newLockAndDataAddress) public override initializer {
         PermissionsForMainnet.initialize(newLockAndDataAddress);
-        gasConsumptions[TransactionOperation.transferETH] = 390000;
-        gasConsumptions[TransactionOperation.transferERC20] = 430000;
-        gasConsumptions[TransactionOperation.transferERC721] = 550000;
+        gasConsumptions[Messages.MessageType.TRANSFER_ETH] = 500000;
+        gasConsumptions[Messages.MessageType.TRANSFER_ERC20] = 600000;
+        gasConsumptions[Messages.MessageType.TRANSFER_ERC721] = 700000;
     }
 
     function deposit(string memory schainID, address to)
@@ -196,7 +190,7 @@ contract DepositBox is PermissionsForMainnet {
         receivedEth
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = ILockAndDataDB(lockAndDataAddress_).tokenManagerAddresses(schainHash);
+        address tokenManagerAddress = LockAndDataForMainnet(lockAndDataAddress_).tokenManagerAddresses(schainHash);
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(to != address(0), "Community Pool is not available");
         IMessageProxy(IContractManager(lockAndDataAddress_).getContract("MessageProxy")).postOutgoingMessage(
@@ -204,7 +198,7 @@ contract DepositBox is PermissionsForMainnet {
             tokenManagerAddress,
             msg.value,
             to,
-            abi.encodePacked(bytes1(uint8(1)))
+            Messages.encodeTransferEthMessage()
         );
     }
 
@@ -216,71 +210,41 @@ contract DepositBox is PermissionsForMainnet {
     )
         private
     {
-        TransactionOperation operation = _fallbackOperationTypeConvert(data);
+        Messages.MessageType operation = Messages.getMessageType(data);
         uint256 txFee = gasConsumptions[operation] * tx.gasprice;
         require(amount >= txFee, "Not enough funds to recover gas");
-        if (operation == TransactionOperation.transferETH) {
-            if (amount > txFee)
-                ILockAndDataDB(lockAndDataAddress_).approveTransfer(
+        if (operation == Messages.MessageType.TRANSFER_ETH) {
+            if (amount > txFee) {
+                LockAndDataForMainnet(lockAndDataAddress_).approveTransfer(
                     to,
                     amount - txFee
                 );
-        } else if (operation == TransactionOperation.transferERC20) {
+            }
+        } else if (operation == Messages.MessageType.TRANSFER_ERC20) {
             address erc20Module = IContractManager(lockAndDataAddress_).getContract(
                 "ERC20Module"
             );
-            require(IERC20ModuleForMainnet(erc20Module).sendERC20(data), "Sending of ERC20 was failed");
-            address receiver = IERC20ModuleForMainnet(erc20Module).getReceiver(data);
+            require(ERC20ModuleForMainnet(erc20Module).sendERC20(data), "Sending of ERC20 was failed");
+            address receiver = ERC20ModuleForMainnet(erc20Module).getReceiver(data);
             if (amount > txFee)
-                ILockAndDataDB(lockAndDataAddress_).approveTransfer(
+                LockAndDataForMainnet(lockAndDataAddress_).approveTransfer(
                     receiver,
                     amount - txFee
                 );
-        } else if (operation == TransactionOperation.transferERC721) {
+        } else if (operation == Messages.MessageType.TRANSFER_ERC721) {
             address erc721Module = IContractManager(lockAndDataAddress_).getContract(
                 "ERC721Module"
             );
-            require(IERC721ModuleForMainnet(erc721Module).sendERC721(data), "Sending of ERC721 was failed");
-            address receiver = IERC721ModuleForMainnet(erc721Module).getReceiver(data);
+            require(ERC721ModuleForMainnet(erc721Module).sendERC721(data), "Sending of ERC721 was failed");
+            address receiver = ERC721ModuleForMainnet(erc721Module).getReceiver(data);
             if (amount > txFee)
-                ILockAndDataDB(lockAndDataAddress_).approveTransfer(
+                LockAndDataForMainnet(lockAndDataAddress_).approveTransfer(
                     receiver,
                     amount - txFee
                 );
+        } else {
+            revert("MessageType is unknown");
         }
-        ILockAndDataDB(lockAndDataAddress_).rechargeSchainWallet(schainId, txFee);
-    }
-
-    /**
-     * @dev Convert first byte of data to Operation
-     * 0x01 - transfer eth
-     * 0x03 - transfer ERC20 token
-     * 0x05 - transfer ERC721 token
-     * @param data - received data
-     * @return operation
-     */
-    function _fallbackOperationTypeConvert(bytes memory data)
-        private
-        pure
-        returns (TransactionOperation)
-    {
-        bytes1 operationType;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            operationType := mload(add(data, 0x20))
-        }
-        require(
-            operationType == 0x01 ||
-            operationType == 0x03 ||
-            operationType == 0x05,
-            "Operation type is not identified"
-        );
-        if (operationType == 0x01) {
-            return TransactionOperation.transferETH;
-        } else if (operationType == 0x03) {
-            return TransactionOperation.transferERC20;
-        } else if (operationType == 0x05) {
-            return TransactionOperation.transferERC721;
-        } 
+        LockAndDataForMainnet(lockAndDataAddress_).rechargeSchainWallet(schainId, txFee);
     }
 }

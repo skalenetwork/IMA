@@ -21,8 +21,9 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
@@ -34,8 +35,9 @@ import "./interfaces/IWallets.sol";
  * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
  * balances of ETH tokens received through DepositBox.
  */
-contract LockAndDataForMainnet is OwnableUpgradeSafe {
-    using SafeMath for uint;
+contract LockAndDataForMainnet is OwnableUpgradeable {
+    using AddressUpgradeable for address;
+    using SafeMathUpgradeable for uint;
 
     mapping(bytes32 => address) public permitted;
 
@@ -88,12 +90,7 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
         require(newContract != address(0), "New address is equal zero");
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(permitted[contractId] != newContract, "Contract is already added");
-        uint256 length;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            length := extcodesize(newContract)
-        }
-        require(length > 0, "Given contract address does not contain code");
+        require(newContract.isContract(), "Given contract address does not contain code");
         permitted[contractId] = newContract;
     }
 
@@ -149,7 +146,7 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
         require(address(this).balance >= amount, "Not enough ETH to rechargeSchainWallet");
         address contractManagerAddress = permitted[keccak256(abi.encodePacked("ContractManagerForSkaleManager"))];
         address walletsAddress = IContractManager(contractManagerAddress).getContract("Wallets");
-        IWallets(payable(walletsAddress)).rechargeSchainWallet.value(amount)(schainId);
+        IWallets(payable(walletsAddress)).rechargeSchainWallet{value: amount}(schainId);
     }
 
     /**
@@ -202,7 +199,7 @@ contract LockAndDataForMainnet is OwnableUpgradeSafe {
     }
 
     function initialize() public initializer {
-        OwnableUpgradeSafe.__Ownable_init();
+        OwnableUpgradeable.__Ownable_init();
     }
 
     /**

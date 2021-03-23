@@ -22,8 +22,10 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+
 import "./SkaleFeatures.sol";
+
 
 interface ContractReceiverForSchain {
     function postMessage(
@@ -296,12 +298,13 @@ contract MessageProxyForSchain {
         string calldata srcChainID,
         uint256 startingCounter,
         Message[] calldata messages,
-        Signature calldata ,
+        Signature calldata /* sign */,
         uint256 idxLastToPopNotIncluding
     )
         external
         connectMainnet
     {
+        // TODO: check signature
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
@@ -376,7 +379,7 @@ contract MessageProxyForSchain {
             isValidMessage = true;
     }
 
-    function getSkaleFeaturesAddress() public view returns (address) {
+    function getSkaleFeaturesAddress() public pure returns (address) {
         return 0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2;
     }
 

@@ -21,8 +21,10 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+
 import "./PermissionsForMainnet.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
+
 
 /**
  * @title Lock And Data For Mainnet ERC721
@@ -50,8 +52,8 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
         returns (bool)
     {
         require(contractOnMainnet.isContract(), "Given address is not a contract");
-        require(IERC721(contractOnMainnet).ownerOf(tokenId) == address(this), "Incorrect tokenId");
-        IERC721(contractOnMainnet).transferFrom(address(this), to, tokenId);
+        require(IERC721Upgradeable(contractOnMainnet).ownerOf(tokenId) == address(this), "Incorrect tokenId");
+        IERC721Upgradeable(contractOnMainnet).transferFrom(address(this), to, tokenId);
         return true;
     }
 

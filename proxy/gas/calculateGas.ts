@@ -55,6 +55,8 @@ import {
     MessageProxyForMainnetInstance,
     MessageProxyForSchainContract,
     MessageProxyForSchainInstance,
+    MessagesTesterContract,
+    MessagesTesterInstance,
     NodesContract,
     NodesInstance,
     SchainsContract,
@@ -105,6 +107,7 @@ const ERC20ModuleForSchain: ERC20ModuleForSchainContract = artifacts.require("./
 const ERC721ModuleForSchain: ERC721ModuleForSchainContract = artifacts.require("./ERC721ModuleForSchain");
 const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract = artifacts.require("./LockAndDataForSchainERC721");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
+const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 
 contract("Gas calculation", ([deployer, schainOwner, user]) => {
     let lockAndDataForMainnet: LockAndDataForMainnetInstance;
@@ -132,6 +135,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     let tokenFactory: TokenFactoryInstance;
     let ethERC20: EthERC20Instance;
     let messageProxyForSchain: MessageProxyForSchainInstance;
+    let messages: MessagesTesterInstance;
 
     let ERC20TokenOnMainnet: ERC20OnChainInstance;
     let ERC20TokenOnSchain: ERC20OnChainInstance;
@@ -219,6 +223,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         erc721ModuleForMainnet = await deployERC721ModuleForMainnet(lockAndDataForMainnet);
         depositBox = await deployDepositBox(lockAndDataForMainnet);
         messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
+        messages = await MessagesTester.new();
 
         // register contract manager for skale manager in lock and data
         await lockAndDataForMainnet.setContract("ContractManagerForSkaleManager", contractManager.address, {from: deployer});
@@ -568,7 +573,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -652,7 +657,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -748,7 +753,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -824,7 +829,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -912,7 +917,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -974,7 +979,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -1048,7 +1053,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -1106,7 +1111,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -1176,7 +1181,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -1227,7 +1232,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -1290,7 +1295,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -1339,7 +1344,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -1400,7 +1405,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -1451,7 +1456,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -1514,7 +1519,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -1563,7 +1568,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -1624,7 +1629,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
-            data: "0x01",
+            data: await messages.encodeTransferEthMessage(),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
             to: user
@@ -1682,7 +1687,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 5, {value: "5000000000000000000", from: user});
 
         // prepare exit message of 1 erc20 - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC20 = "0x03" + zeroAfterAddress(ERC20TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC20 = await messages.encodeTransferErc20Message(ERC20TokenOnMainnet.address, user, 1);
         const message = {
             amount: "1000000000000000000",
             data: dataOfERC20,
@@ -1762,7 +1767,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await ERC20TokenOnMainnet.approve(depositBox.address, 5, {from: user});
 
         // prepare exit message of 1 erc20 - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC20 = "0x03" + zeroAfterAddress(ERC20TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC20 = await messages.encodeTransferErc20Message(ERC20TokenOnMainnet.address, user, 1);
         const message = {
             amount: "1000000000000000000",
             data: dataOfERC20,
@@ -1849,7 +1854,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 5, {value: "5000000000000000000", from: user});
 
         // prepare exit message of 1 erc20 - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC20 = "0x03" + zeroAfterAddress(ERC20TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC20 = await messages.encodeTransferErc20Message(ERC20TokenOnMainnet.address, user, 1);
         const message = {
             amount: "1000000000000000000",
             data: dataOfERC20,
@@ -1911,7 +1916,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await ERC20TokenOnMainnet.approve(depositBox.address, 5, {from: user});
 
         // prepare exit message of 1 erc20 - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC20 = "0x03" + zeroAfterAddress(ERC20TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC20 = await messages.encodeTransferErc20Message(ERC20TokenOnMainnet.address, user, 1);
         const message = {
             amount: "1000000000000000000",
             data: dataOfERC20,
@@ -1980,7 +1985,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 5, {value: "5000000000000000000", from: user});
 
         // prepare exit message of 1 erc20 - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC20 = "0x03" + zeroAfterAddress(ERC20TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC20 = await messages.encodeTransferErc20Message(ERC20TokenOnMainnet.address, user, 1);
         const message = {
             amount: "1000000000000000000",
             data: dataOfERC20,
@@ -2033,7 +2038,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await ERC20TokenOnMainnet.approve(depositBox.address, 5, {from: user});
 
         // prepare exit message of 1 erc20 - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC20 = "0x03" + zeroAfterAddress(ERC20TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC20 = await messages.encodeTransferErc20Message(ERC20TokenOnMainnet.address, user, 1);
         const message = {
             amount: "1000000000000000000",
             data: dataOfERC20,
@@ -2093,7 +2098,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 5, {value: "5000000000000000000", from: user});
 
         // prepare exit message of 1 erc20 - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC20 = "0x03" + zeroAfterAddress(ERC20TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC20 = await messages.encodeTransferErc20Message(ERC20TokenOnMainnet.address, user, 1);
         const message = {
             amount: "1000000000000000000",
             data: dataOfERC20,
@@ -2146,7 +2151,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await ERC20TokenOnMainnet.approve(depositBox.address, 5, {from: user});
 
         // prepare exit message of 1 erc20 - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC20 = "0x03" + zeroAfterAddress(ERC20TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC20 = await messages.encodeTransferErc20Message(ERC20TokenOnMainnet.address, user, 1);
         const message = {
             amount: "1000000000000000000",
             data: dataOfERC20,
@@ -2206,7 +2211,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 5, {value: "5000000000000000000", from: user});
 
         // prepare exit message of 1 erc20 - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC20 = "0x03" + zeroAfterAddress(ERC20TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC20 = await messages.encodeTransferErc20Message(ERC20TokenOnMainnet.address, user, 1);
         const message = {
             amount: "1000000000000000000",
             data: dataOfERC20,
@@ -2262,7 +2267,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 5, {value: "1000000000000000000", from: user});
 
         // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
@@ -2271,7 +2276,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 2, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken2 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000002";
+        const dataOfERC721OfToken2 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 2);
         const message2 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
@@ -2280,7 +2285,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 3, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken3 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000003";
+        const dataOfERC721OfToken3 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 3);
         const message3 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
@@ -2289,7 +2294,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 4, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken4 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000004";
+        const dataOfERC721OfToken4 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 4);
         const message4 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
@@ -2298,7 +2303,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 5, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken5 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000005";
+        const dataOfERC721OfToken5 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 5);
         const message5 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
@@ -2382,7 +2387,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await ERC721TokenOnMainnet.transferFrom(user, depositBox.address, 5, {from: user});
 
         // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
@@ -2391,7 +2396,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 2, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken2 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000002";
+        const dataOfERC721OfToken2 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 2);
         const message2 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
@@ -2400,7 +2405,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 3, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken3 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000003";
+        const dataOfERC721OfToken3 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 3);
         const message3 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
@@ -2409,7 +2414,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 4, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken4 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000004";
+        const dataOfERC721OfToken4 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 4);
         const message4 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
@@ -2418,7 +2423,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 5, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken5 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000005";
+        const dataOfERC721OfToken5 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 5);
         const message5 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
@@ -2513,7 +2518,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 5, {value: "1000000000000000000", from: user});
 
         // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
@@ -2522,7 +2527,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 2, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken2 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000002";
+        const dataOfERC721OfToken2 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 2);
         const message2 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
@@ -2531,7 +2536,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 3, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken3 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000003";
+        const dataOfERC721OfToken3 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 3);
         const message3 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
@@ -2540,7 +2545,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 4, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken4 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000004";
+        const dataOfERC721OfToken4 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 4);
         const message4 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
@@ -2549,7 +2554,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 5, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken5 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000005";
+        const dataOfERC721OfToken5 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 5);
         const message5 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
@@ -2615,7 +2620,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await ERC721TokenOnMainnet.transferFrom(user, depositBox.address, 5, {from: user});
 
         // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
@@ -2624,7 +2629,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 2, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken2 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000002";
+        const dataOfERC721OfToken2 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 2);
         const message2 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
@@ -2633,7 +2638,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 3, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken3 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000003";
+        const dataOfERC721OfToken3 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 3);
         const message3 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
@@ -2642,7 +2647,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 4, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken4 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000004";
+        const dataOfERC721OfToken4 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 4);
         const message4 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
@@ -2651,7 +2656,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 5, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken5 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000005";
+        const dataOfERC721OfToken5 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 5);
         const message5 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
@@ -2728,7 +2733,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 5, {value: "1000000000000000000", from: user});
 
         // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
@@ -2737,7 +2742,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 2, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken2 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000002";
+        const dataOfERC721OfToken2 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 2);
         const message2 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
@@ -2746,7 +2751,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 3, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken3 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000003";
+        const dataOfERC721OfToken3 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 3);
         const message3 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
@@ -2755,7 +2760,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 4, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken4 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000004";
+        const dataOfERC721OfToken4 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 4);
         const message4 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
@@ -2764,7 +2769,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 5, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken5 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000005";
+        const dataOfERC721OfToken5 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 5);
         const message5 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
@@ -2821,7 +2826,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await ERC721TokenOnMainnet.transferFrom(user, depositBox.address, 5, {from: user});
 
         // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
@@ -2830,7 +2835,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 2, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken2 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000002";
+        const dataOfERC721OfToken2 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 2);
         const message2 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
@@ -2839,7 +2844,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 3, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken3 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000003";
+        const dataOfERC721OfToken3 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 3);
         const message3 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
@@ -2848,7 +2853,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 4, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken4 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000004";
+        const dataOfERC721OfToken4 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 4);
         const message4 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
@@ -2857,7 +2862,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 5, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken5 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000005";
+        const dataOfERC721OfToken5 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 5);
         const message5 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
@@ -2925,7 +2930,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 5, {value: "1000000000000000000", from: user});
 
         // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
@@ -2934,7 +2939,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 2, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken2 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000002";
+        const dataOfERC721OfToken2 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 2);
         const message2 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
@@ -2943,7 +2948,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 3, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken3 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000003";
+        const dataOfERC721OfToken3 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 3);
         const message3 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
@@ -2952,7 +2957,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 4, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken4 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000004";
+        const dataOfERC721OfToken4 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 4);
         const message4 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
@@ -2961,7 +2966,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 5, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken5 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000005";
+        const dataOfERC721OfToken5 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 5);
         const message5 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
@@ -3018,7 +3023,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await ERC721TokenOnMainnet.transferFrom(user, depositBox.address, 5, {from: user});
 
         // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
@@ -3027,7 +3032,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 2, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken2 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000002";
+        const dataOfERC721OfToken2 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 2);
         const message2 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
@@ -3036,7 +3041,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 3, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken3 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000003";
+        const dataOfERC721OfToken3 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 3);
         const message3 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
@@ -3045,7 +3050,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 4, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken4 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000004";
+        const dataOfERC721OfToken4 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 4);
         const message4 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
@@ -3054,7 +3059,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 5, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken5 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000005";
+        const dataOfERC721OfToken5 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 5);
         const message5 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
@@ -3122,7 +3127,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 5, {value: "1000000000000000000", from: user});
 
         // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000001";
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
@@ -3131,7 +3136,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 2, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken2 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000002";
+        const dataOfERC721OfToken2 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 2);
         const message2 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
@@ -3140,7 +3145,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 3, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken3 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000003";
+        const dataOfERC721OfToken3 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 3);
         const message3 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
@@ -3149,7 +3154,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 4, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken4 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000004";
+        const dataOfERC721OfToken4 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 4);
         const message4 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
@@ -3158,7 +3163,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 5, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken5 = "0x05" + zeroAfterAddress(ERC721TokenOnMainnet.address) + zeroAfterAddress(user) + "0000000000000000000000000000000000000000000000000000000000000005";
+        const dataOfERC721OfToken5 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 5);
         const message5 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,

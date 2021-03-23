@@ -49,7 +49,9 @@ import { ERC20ModuleForSchainContract,
     TokenFactoryContract,
     TokenFactoryInstance,
     TokenManagerContract,
-    TokenManagerInstance} from "../types/truffle-contracts";
+    TokenManagerInstance,
+    MessagesTesterContract,
+    MessagesTesterInstance} from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
 
 chai.should();
@@ -67,6 +69,7 @@ const ERC721ModuleForSchain: ERC721ModuleForSchainContract = artifacts.require("
 const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract = artifacts
     .require("./LockAndDataForSchainERC721");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
+const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 
 contract("TokenManager", ([deployer, user, client]) => {
     let tokenManager: TokenManagerInstance;
@@ -82,6 +85,7 @@ contract("TokenManager", ([deployer, user, client]) => {
     let eRC721ModuleForSchain: ERC721ModuleForSchainInstance;
     let lockAndDataForSchainERC721: LockAndDataForSchainERC721Instance;
     let tokenFactory: TokenFactoryInstance;
+    let messages: MessagesTesterInstance;
 
     const publicKeyArray = [
         "1122334455667788990011223344556677889900112233445566778899001122",
@@ -115,6 +119,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             {from: deployer});
         tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
             {from: deployer});
+        messages = await MessagesTester.new();
         await lockAndDataForSchainERC20.enableAutomaticDeploy("Mainnet", {from: deployer});
         await lockAndDataForSchainERC721.enableAutomaticDeploy("Mainnet", {from: deployer});
     });
@@ -313,12 +318,9 @@ contract("TokenManager", ([deployer, user, client]) => {
         outgoingMessagesCounterMainnet.should.be.deep.equal(new BigNumber(1));
     });
 
-    it("should revert `Not allowed. in TokenManager`", async () => {
-        // preparation
-        const error = "Not allowed. in TokenManager";
-        // execution/expectation
+    it("should not receive ETH", async () => {
         await web3.eth.sendTransaction({from: deployer, to: tokenManager.address, value: "1000000000000000000"})
-            .should.be.eventually.rejectedWith(error);
+            .should.be.eventually.rejected;
     });
 
     // it("should return money if it has it", async () => {
@@ -686,7 +688,7 @@ contract("TokenManager", ([deployer, user, client]) => {
             const schainID = randomString(10);
             const amount = "30000000000000000";
             // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
-            const bytesData = "0x01";
+            const bytesData = await messages.encodeTransferEthMessage();
             const sender = deployer;
             const to = user;
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
@@ -712,12 +714,13 @@ contract("TokenManager", ([deployer, user, client]) => {
         });
 
         it("should add funds to communityPool when `eth` transfer", async () => {
+            // TODO: Remove if this test is not actual
             //  preparation
-            const error = "Community Pool is not available";
+            const error = "Incorrect receiver";
             const schainID = randomString(10);
             const amount = "30000000000000000";
             // for transfer `eth` bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
-            const bytesData = "0x01";
+            const bytesData = await messages.encodeTransferEthMessage();;
             const sender = deployer;
             const to = "0x0000000000000000000000000000000000000000";
             // const communityPoolBefore = new BigNumber(await lockAndDataForSchain.communityPool());
@@ -751,16 +754,18 @@ contract("TokenManager", ([deployer, user, client]) => {
             const to = user;
             const to0 = "0x0000000000000000000000000000000000000000"; // ERC20 address
             const sender = deployer;
-            const data = "0x03" +
-            (eRC20.address).substr(2) + "000000000000000000000000" + // contractPosition
-            to.substr(2) + "000000000000000000000000" + // receiver
-            "000000000000000000000000000000000000000000000000000000000000000a" + // tokenId
-            "000000000000000000000000000000000000000000000000000000003b9ac9f6" + // total supply
-            "000000000000000000000000000000000000000000000000000000000000000c" + // token name
-            "45524332304f6e436861696e" + // token name
-            "0000000000000000000000000000000000000000000000000000000000000005" + // token symbol
-            "455243323012"; // token symbol
-
+            await eRC20.mint(deployer, amount);
+            const data = await messages.encodeTransferErc20AndTokenInfoMessage(
+                eRC20.address,
+                to,
+                amount,
+                {
+                    name: await eRC20.name(),
+                    symbol: await eRC20.symbol(),
+                    decimals: (await eRC20.decimals()).toNumber(),
+                    totalSupply: (await eRC20.totalSupply()).toNumber()
+                }
+            );
             // add schain to avoid the `Unconnected chain` error
             await lockAndDataForSchain
                 .addSchain(schainID, deployer, {from: deployer});
@@ -804,14 +809,16 @@ contract("TokenManager", ([deployer, user, client]) => {
             const to = user;
             const to0 = "0x0000000000000000000000000000000000000000"; // ERC20 address
             const sender = deployer;
-            const data = "0x05" +
-            (eRC721.address).substr(2) + "000000000000000000000000" + // contractPosition
-            to.substr(2) + "000000000000000000000000" + // receiver
-            "0000000000000000000000000000000000000000000000000000000000000002" + // tokenId
-            "000000000000000000000000000000000000000000000000000000000000000d" + // token name
-            "4552433732314f6e436861696e" + // token name
-            "0000000000000000000000000000000000000000000000000000000000000006" + // token symbol
-            "455243373231"; // token symbol
+            const tokenId = 2;
+            const data = await messages.encodeTransferErc721AndTokenInfoMessage(
+                eRC721.address,
+                to,
+                tokenId,
+                {
+                    name: await eRC721.name(),
+                    symbol: await eRC721.symbol()
+                }
+            );
             // add schain to avoid the `Unconnected chain` error
             await lockAndDataForSchain
                 .addSchain(schainID, deployer, {from: deployer});

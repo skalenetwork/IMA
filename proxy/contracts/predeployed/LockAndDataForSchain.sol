@@ -21,7 +21,8 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 import "./EthERC20.sol";
 import "./OwnableForSchain.sol";
@@ -33,6 +34,7 @@ import "./OwnableForSchain.sol";
  * balances of ETH tokens received through DepositBox.
  */
 contract LockAndDataForSchain is OwnableForSchain {
+    using Address for address;
     using SafeMath for uint256;
 
     address private _ethErc20Address;
@@ -90,13 +92,8 @@ contract LockAndDataForSchain is OwnableForSchain {
 
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(!_checkPermitted(contractName, newContract), "Contract is already added");
-
-        uint256 length;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            length := extcodesize(newContract)
-        }
-        require(length > 0, "Given contract address does not contain code");
+        
+        require(newContract.isContract(), "Given contract address does not contain code");
         permitted[contractId] = newContract;
     }
 
@@ -210,7 +207,7 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Allows TokenManager to reduce exit from some address.
      */
-    function reduceCommunityPool(uint256) external allow("TokenManager") returns (bool) {
+    function reduceCommunityPool(uint256) external view allow("TokenManager") returns (bool) {
         revert("Community Pool is not available");
         // if (communityPool >= amountOfEth) {
         //     communityPool = communityPool.sub(amountOfEth);
