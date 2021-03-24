@@ -35,9 +35,14 @@ import "./MessageProxyForMainnet.sol";
  */
 contract IMAConnected is AccessControlUpgradeable {
 
-    IMALinker public imaLinker
+    IMALinker public imaLinker;
     MessageProxy public messageProxy;
     address public contractManagerOfSkaleManager;
+
+    modifier onlyMessageProxy() {
+        require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
+        _;
+    }
 
     /**
      * @dev initialize - sets current address of ContractManager

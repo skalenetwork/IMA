@@ -23,7 +23,6 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 
 import "./IMAConnected.sol";
 import "./Messages.sol";
@@ -42,19 +41,16 @@ contract DepositBoxERC20 is IMAConnected {
     mapping(bytes32 => mapping(address => bool)) public schainToERC20;
     mapping(bytes32 => bool) public withoutWhitelist;
 
-    event MoneyReceivedMessage(
-        address sender,
-        string fromSchainID,
-        address to,
-        uint256 amount,
-        bytes data
-    );
-
-    event Error(
-        address to,
-        uint256 amount,
-        string message
-    );
+    /**
+     * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
+     */
+    event ERC20TokenAdded(string schainID, address indexed contractOnMainnet);
+    
+    /**
+     * @dev Emitted when token is received by DepositBox and is ready to be cloned
+     * or transferred on SKALE chain.
+     */
+    event ERC20TokenReady(address indexed contractOnMainnet, uint256 amount);
 
     modifier rightTransaction(string memory schainID) {
         require(
@@ -84,7 +80,6 @@ contract DepositBoxERC20 is IMAConnected {
         external
         payable
         rightTransaction(schainID)
-        receivedEth
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = tokenManagerERC20Addresses[schainHash];
@@ -230,7 +225,7 @@ contract DepositBoxERC20 is IMAConnected {
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
         // require(!withoutWhitelist[schainId], "Whitelist is enabled");
         schainToERC20[schainId][erc20OnMainnet] = true;
-        emit ERC20TokenAdded(erc20OnMainnet, schainName);
+        emit ERC20TokenAdded(schainName, erc20OnMainnet);
     }
 
     /**
@@ -361,7 +356,7 @@ contract DepositBoxERC20 is IMAConnected {
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
         require(withoutWhitelist[schainId], "Whitelist is enabled");
         schainToERC20[schainId][erc20OnMainnet] = true;
-        emit ERC20TokenAdded(erc20OnMainnet, schainName);
+        emit ERC20TokenAdded(schainName, erc20OnMainnet);
     }
 
     function _getErc20TotalSupply(IERC20Metadata erc20Token) private view returns (uint256) {
