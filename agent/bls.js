@@ -156,9 +156,6 @@ function compose_summary_message_to_sign( jarrMessages, isHash ) {
     return strSummaryMessage;
 }
 
-console.log("Start");
-// console.log(compose_summary_message_to_sign([], true));
-
 function split_signature_share( signatureShare ) {
     const jarr = signatureShare.split( ":" );
     return {
@@ -658,7 +655,6 @@ async function do_sign_messages_s2m( jarrMessages, nIdxCurrentMsgBlockStart, fn 
 
 module.exports = {
     init: init,
-    compose_summary_message_to_sign: compose_summary_message_to_sign,
     do_sign_messages_m2s: do_sign_messages_m2s,
     do_sign_messages_s2m: do_sign_messages_s2m
 }; // module.exports
