@@ -510,8 +510,17 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
         });
 
-        it("should post incoming messages", async () => {
+        it("should post incoming messages and increase incoming message counter", async () => {
             const chainID = randomString(10);            
+
+            // We have hardcoded signature in the test
+            // To be correct it requires the same message
+            // Message contains destination contract address
+            // We deploy a mock to emulate this contract with a new address with 0 nonce
+            // The mock will have the same address
+            // IMPORTANT: if this address does not have 0 nonce the mock address is changed
+            // and signature becomes incorrect
+
             const testPrivateKey = "0x27e29ffbb26fb7e77da65afc0cea8918655bad55f4d6f8e4b6daaddcf622781a";
             const testAddress = "0xd2000c8962Ba034be9eAe372B177D405D5bd4970";
 
@@ -585,6 +594,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
+            (await messageProxyForSchain.getIncomingMessagesCounter(chainID)).toNumber().should.be.equal(0);
+
             await messageProxyForSchain.postIncomingMessages(
                 chainID,
                 startingCounter,
@@ -593,9 +604,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 0,
                 {from: deployer},
             );
-            const incomingMessagesCounter = new BigNumber(
-                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
-            incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
+
+            (await messageProxyForSchain.getIncomingMessagesCounter(chainID)).toNumber().should.be.equal(2);
         });
 
         it("should get outgoing messages counter", async () => {
@@ -621,52 +631,6 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
         });
-
-        it("should get incoming messages counter", async () => {
-            const chainID = randomString(10);
-            tokenManager1 = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
-            tokenManager2 = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
-            const startingCounter = 0;
-            const message1 = {
-                amount: 3,
-                data: "0x11",
-                destinationContract: tokenManager1.address,
-                sender: deployer,
-                to: client};
-            const message2 = {
-                amount: 7,
-                data: "0x22",
-                destinationContract: tokenManager2.address,
-                sender: user,
-                to: customer};
-            const messages = [message1, message2];
-            const sign = {
-                blsSignature: BlsSignature,
-                counter: Counter,
-                hashA: HashA,
-                hashB: HashB,
-            };
-
-            // chain should be inited:
-            new BigNumber(await messageProxyForSchain.getIncomingMessagesCounter(chainID)).should.be.deep.equal(new BigNumber(0));
-
-            await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
-
-            const incomingMessagesCounter0 = new BigNumber(
-                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
-            incomingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
-
-            await messageProxyForSchain.postIncomingMessages(
-                chainID,
-                startingCounter,
-                messages,
-                sign,
-                0,
-                {from: deployer},
-            );
-            const incomingMessagesCounter = new BigNumber(
-                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
-            incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
-        });
+        
     });
 });
