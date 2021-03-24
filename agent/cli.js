@@ -857,8 +857,8 @@ function ima_common_init() {
     imaState.joTrufflePublishResult_main_net = imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net, null, true );
     imaState.joTrufflePublishResult_s_chain = imaUtils.jsonFileLoad( imaState.strPathAbiJson_s_chain, null, true );
 
-    imaUtils.check_keys_exist_in_abi( "main-net", imaState.strPathAbiJson_main_net, imaState.joTrufflePublishResult_main_net, [ "deposit_box_abi", "deposit_box_address", "message_proxy_mainnet_abi", "message_proxy_mainnet_address" ] );
-    imaUtils.check_keys_exist_in_abi( "S-Chain", imaState.strPathAbiJson_s_chain, imaState.joTrufflePublishResult_s_chain, [ "token_manager_abi", "token_manager_address", "message_proxy_chain_abi", "message_proxy_chain_address" ] );
+    // imaUtils.check_keys_exist_in_abi( "main-net", imaState.strPathAbiJson_main_net, imaState.joTrufflePublishResult_main_net, [ "deposit_box_abi", "deposit_box_address", "message_proxy_mainnet_abi", "message_proxy_mainnet_address" ] );
+    // imaUtils.check_keys_exist_in_abi( "S-Chain", imaState.strPathAbiJson_s_chain, imaState.joTrufflePublishResult_s_chain, [ "token_manager_abi", "token_manager_address", "message_proxy_chain_abi", "message_proxy_chain_address" ] );
 
     // deposit_box_address           --> deposit_box_abi
     // token_manager_address         --> token_manager_abi
@@ -877,22 +877,22 @@ function ima_common_init() {
     imaState.w3_main_net = getWeb3FromURL( imaState.strURL_main_net );
     imaState.w3_s_chain = getWeb3FromURL( imaState.strURL_s_chain );
 
-    imaState.jo_deposit_box = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.deposit_box_abi, imaState.joTrufflePublishResult_main_net.deposit_box_address ); // only main net
-    imaState.jo_token_manager = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.token_manager_abi, imaState.joTrufflePublishResult_s_chain.token_manager_address ); // only s-chain
-    imaState.jo_message_proxy_main_net = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.message_proxy_mainnet_abi, imaState.joTrufflePublishResult_main_net.message_proxy_mainnet_address );
-    imaState.jo_message_proxy_s_chain = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.message_proxy_chain_abi, imaState.joTrufflePublishResult_s_chain.message_proxy_chain_address );
-    imaState.jo_lock_and_data_main_net = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.lock_and_data_for_mainnet_abi, imaState.joTrufflePublishResult_main_net.lock_and_data_for_mainnet_address );
-    imaState.jo_lock_and_data_s_chain = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.lock_and_data_for_schain_abi, imaState.joTrufflePublishResult_s_chain.lock_and_data_for_schain_address );
-    // imaState.eth_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.eth_erc721_abi, imaState.joTrufflePublishResult_s_chain.eth_erc721_address ); // only s-chain
-    imaState.eth_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.eth_erc20_abi, imaState.joTrufflePublishResult_s_chain.eth_erc20_address ); // only s-chain
+    // imaState.jo_deposit_box = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.deposit_box_abi, imaState.joTrufflePublishResult_main_net.deposit_box_address ); // only main net
+    // imaState.jo_token_manager = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.token_manager_abi, imaState.joTrufflePublishResult_s_chain.token_manager_address ); // only s-chain
+    // imaState.jo_message_proxy_main_net = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.message_proxy_mainnet_abi, imaState.joTrufflePublishResult_main_net.message_proxy_mainnet_address );
+    // imaState.jo_message_proxy_s_chain = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.message_proxy_chain_abi, imaState.joTrufflePublishResult_s_chain.message_proxy_chain_address );
+    // imaState.jo_lock_and_data_main_net = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.lock_and_data_for_mainnet_abi, imaState.joTrufflePublishResult_main_net.lock_and_data_for_mainnet_address );
+    // imaState.jo_lock_and_data_s_chain = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.lock_and_data_for_schain_abi, imaState.joTrufflePublishResult_s_chain.lock_and_data_for_schain_address );
+    // // imaState.eth_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.eth_erc721_abi, imaState.joTrufflePublishResult_s_chain.eth_erc721_address ); // only s-chain
+    // imaState.eth_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.eth_erc20_abi, imaState.joTrufflePublishResult_s_chain.eth_erc20_address ); // only s-chain
 
-    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBox" ) + cc.info( "   address is....." ) + cc.bright( imaState.jo_deposit_box.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManager" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_token_manager.options.address ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_message_proxy_main_net.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_message_proxy_s_chain.options.address ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( imaState.jo_lock_and_data_main_net.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( imaState.jo_lock_and_data_s_chain.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "ERC20" ) + cc.info( "        address is....." ) + cc.bright( imaState.eth_erc20.options.address ) + "\n" );
+    // log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBox" ) + cc.info( "   address is....." ) + cc.bright( imaState.jo_deposit_box.options.address ) + "\n" );
+    // log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManager" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_token_manager.options.address ) + "\n" );
+    // log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_message_proxy_main_net.options.address ) + "\n" );
+    // log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_message_proxy_s_chain.options.address ) + "\n" );
+    // log.write( cc.info( "Main-net " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( imaState.jo_lock_and_data_main_net.options.address ) + "\n" );
+    // log.write( cc.info( "S-Chain  " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( imaState.jo_lock_and_data_s_chain.options.address ) + "\n" );
+    // log.write( cc.info( "S-Chain  " ) + cc.sunny( "ERC20" ) + cc.info( "        address is....." ) + cc.bright( imaState.eth_erc20.options.address ) + "\n" );
 
     //
     //
@@ -1080,144 +1080,144 @@ function ima_common_init() {
     //
     //
 
-    if( IMA.verbose_get() > IMA.RV_VERBOSE.information || imaState.bShowConfigMode ) {
-        print_about( true );
-        log.write( cc.attention( "IMA AGENT" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( IMA.w3mod.version ) + "\n" );
-        ensure_have_value( "App path", __filename, false, true, null, ( x ) => {
-            return cc.normal( x );
-        } );
-        ensure_have_value( "Verbose level", IMA.VERBOSE[IMA.verbose_get()], false, true, null, ( x ) => {
-            return cc.sunny( x );
-        } );
-        ensure_have_value( "Main-net URL", imaState.strURL_main_net, false, true, null, ( x ) => {
-            return cc.u( x );
-        } );
-        ensure_have_value( "S-chain URL", imaState.strURL_s_chain, false, true, null, ( x ) => {
-            return cc.u( x );
-        } );
-        ensure_have_value( "Main-net Ethereum network name", imaState.strChainID_main_net, false, true, null, ( x ) => {
-            return cc.note( x );
-        } );
-        ensure_have_value( "S-Chain Ethereum network name", imaState.strChainID_s_chain, false, true, null, ( x ) => {
-            return cc.note( x );
-        } );
-        ensure_have_value( "Main-net Ethereum chain ID", imaState.cid_main_net, false, true, null, ( x ) => {
-            return cc.note( x );
-        } );
-        ensure_have_value( "S-Chain Ethereum chain ID", imaState.cid_s_chain, false, true, null, ( x ) => {
-            return cc.note( x );
-        } );
-        ensure_have_value( "Main-net ABI JSON file path", imaState.strPathAbiJson_main_net, false, true, null, ( x ) => {
-            return cc.warning( x );
-        } );
-        ensure_have_value( "S-Chain ABI JSON file path", imaState.strPathAbiJson_s_chain, false, true, null, ( x ) => {
-            return cc.warning( x );
-        } );
-        //
-        //
-        try {
-            ensure_have_value( "Main-net user account address", imaState.joAccount_main_net.address( imaState.w3_main_net ), false, true );
-        } catch ( err ) {}
-        try {
-            ensure_have_value( "S-chain user account address", imaState.joAccount_s_chain.address( imaState.w3_s_chain ), false, true );
-        } catch ( err ) {}
-        //
-        //
-        // ensure_have_value( "Private key for main-net user account address", imaState.joAccount_main_net.privateKey, false, true, null, ( x ) => {
-        //     return cc.attention( x );
-        // } );
-        // ensure_have_value( "Private key for S-Chain user account address", imaState.joAccount_s_chain.privateKey, false, true, null, ( x ) => {
-        //     return cc.attention( x );
-        // } );
-        ensure_have_chain_credentials( "Main Net", imaState.joAccount_main_net, false, true );
-        ensure_have_chain_credentials( "S-Chain", imaState.joAccount_s_chain, false, true );
-        //
-        //
-        ensure_have_value( "Amount of wei to transfer", imaState.nAmountOfWei, false, true, null, ( x ) => {
-            return cc.info( x );
-        } );
-        ensure_have_value( "M->S transfer block size", imaState.nTransferBlockSizeM2S, false, true, null, ( x ) => {
-            return cc.note( x );
-        } );
-        ensure_have_value( "S->M transfer block size", imaState.nTransferBlockSizeS2M, false, true, null, ( x ) => {
-            return cc.note( x );
-        } );
-        ensure_have_value( "M->S transactions limit", imaState.nMaxTransactionsM2S, false, true, null, ( x ) => {
-            return cc.note( x );
-        } );
-        ensure_have_value( "S->M transactions limit", imaState.nMaxTransactionsS2M, false, true, null, ( x ) => {
-            return cc.note( x );
-        } );
-        ensure_have_value( "M->S await blocks", imaState.nBlockAwaitDepthM2S, false, true, null, ( x ) => {
-            return cc.note( x );
-        } );
-        ensure_have_value( "S->M await blocks", imaState.nBlockAwaitDepthS2M, false, true, null, ( x ) => {
-            return cc.note( x );
-        } );
-        ensure_have_value( "M->S minimal block age", imaState.nBlockAgeM2S, false, true, null, ( x ) => {
-            return cc.note( x );
-        } );
-        ensure_have_value( "S->M minimal block age", imaState.nBlockAgeS2M, false, true, null, ( x ) => {
-            return cc.note( x );
-        } );
-        ensure_have_value( "Transfer loop period(seconds)", imaState.nLoopPeriodSeconds, false, true, null, ( x ) => {
-            return cc.success( x );
-        } );
-        if( imaState.nTimeFrameSeconds > 0 ) {
-            ensure_have_value( "Time framing(seconds)", imaState.nTimeFrameSeconds, false, true );
-            ensure_have_value( "Next frame gap(seconds)", imaState.nNextFrameGap, false, true );
-        } else
-            ensure_have_value( "Time framing", cc.error( "disabled" ), false, true );
-        ensure_have_value( "S-Chain node number(zero based)", imaState.nNodeNumber, false, true, null, ( x ) => {
-            return cc.info( x );
-        } );
-        ensure_have_value( "S-Chain nodes count", imaState.nNodesCount, false, true, null, ( x ) => {
-            return cc.info( x );
-        } );
-        if( imaState.strLogFilePath.length > 0 ) {
-            ensure_have_value( "Log file path", imaState.strLogFilePath, false, true, null, ( x ) => {
-                return cc.info( x );
-            } );
-            ensure_have_value( "Max size of log file path", imaState.nLogMaxSizeBeforeRotation, false, true, null, ( x ) => {
-                return ( x <= 0 ) ? cc.warning( "unlimited" ) : cc.note( x );
-            } );
-            ensure_have_value( "Max rotated count of log files", imaState.nLogMaxFilesCount, false, true, null, ( x ) => {
-                return ( x <= 1 ) ? cc.warning( "not set" ) : cc.note( x );
-            } );
-        }
-        if( imaState.strCoinNameErc721_main_net.length > 0 /* && imaState.strCoinNameErc721_s_chain.length > 0 */ ) {
-            ensure_have_value( "Loaded Main-net ERC721 ABI ", imaState.strCoinNameErc721_main_net, false, true, null, ( x ) => {
-                return cc.attention( x );
-            } );
-            ensure_have_value( "Loaded S-Chain  ERC721 ABI ", imaState.strCoinNameErc721_s_chain, false, true, null, ( x ) => {
-                return cc.attention( x );
-            } );
-            ensure_have_value( "ERC721 token id ", imaState.idToken, false, true, null, ( x ) => {
-                return cc.info( x );
-            } );
-            log.write( cc.info( "ERC721 explicit S-Chain address is " ) + cc.attention( imaState.strAddrErc721_explicit ) + "\n" );
-        }
-        if( imaState.strCoinNameErc20_main_net.length > 0 /* && imaState.strCoinNameErc20_s_chain.length > 0 */ ) {
-            ensure_have_value( "Loaded Main-net ERC20 ABI ", imaState.strCoinNameErc20_main_net, false, true, null, ( x ) => {
-                return cc.attention( x );
-            } );
-            ensure_have_value( "Loaded S-Chain  ERC20 ABI ", imaState.strCoinNameErc20_s_chain, false, true, null, ( x ) => {
-                return cc.attention( x );
-            } );
-            ensure_have_value( "Amount of tokens to transfer", imaState.nAmountOfToken, false, true, null, ( x ) => {
-                return cc.info( x );
-            } );
-            log.write( cc.info( "ERC20 explicit S-Chain address is " ) + cc.attention( imaState.strAddrErc20_explicit ) + "\n" );
-        }
-        log.write( cc.info( "Main Net Gas Price Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasPriceMultiplier ? cc.info( imaState.tc_main_net.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
-        log.write( cc.info( "S-Chain Gas Price Multiplier is" ) + cc.debug( "......................" ) + ( imaState.tc_s_chain.gasPriceMultiplier ? cc.info( imaState.tc_s_chain.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
-        log.write( cc.info( "Main Net Gas Value Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasMultiplier ? cc.info( imaState.tc_main_net.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
-        log.write( cc.info( "S-Chain Gas Value Multiplier is" ) + cc.debug( "......................" ) + ( imaState.tc_s_chain.gasMultiplier ? cc.info( imaState.tc_s_chain.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
-        log.write( cc.info( "Pending transaction analysis(PTX) is" ) + cc.debug( "................." ) + ( imaState.optsPendingTxAnalysis.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
-        log.write( cc.info( "Pending transaction analysis 2nd attempt after" ) + cc.debug( "......." ) + cc.bright( imaState.optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt ) + "\n" );
-        log.write( cc.info( "Ignore result of PTX is" ) + cc.debug( ".............................." ) + ( imaState.optsPendingTxAnalysis.isIgnore ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
-        log.write( cc.info( "Ignore secondary result of PTX is" ) + cc.debug( "...................." ) + ( imaState.optsPendingTxAnalysis.isIgnore2 ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
-    }
+    // if( IMA.verbose_get() > IMA.RV_VERBOSE.information || imaState.bShowConfigMode ) {
+    //     print_about( true );
+    //     log.write( cc.attention( "IMA AGENT" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( IMA.w3mod.version ) + "\n" );
+    //     ensure_have_value( "App path", __filename, false, true, null, ( x ) => {
+    //         return cc.normal( x );
+    //     } );
+    //     ensure_have_value( "Verbose level", IMA.VERBOSE[IMA.verbose_get()], false, true, null, ( x ) => {
+    //         return cc.sunny( x );
+    //     } );
+    //     ensure_have_value( "Main-net URL", imaState.strURL_main_net, false, true, null, ( x ) => {
+    //         return cc.u( x );
+    //     } );
+    //     ensure_have_value( "S-chain URL", imaState.strURL_s_chain, false, true, null, ( x ) => {
+    //         return cc.u( x );
+    //     } );
+    //     ensure_have_value( "Main-net Ethereum network name", imaState.strChainID_main_net, false, true, null, ( x ) => {
+    //         return cc.note( x );
+    //     } );
+    //     ensure_have_value( "S-Chain Ethereum network name", imaState.strChainID_s_chain, false, true, null, ( x ) => {
+    //         return cc.note( x );
+    //     } );
+    //     ensure_have_value( "Main-net Ethereum chain ID", imaState.cid_main_net, false, true, null, ( x ) => {
+    //         return cc.note( x );
+    //     } );
+    //     ensure_have_value( "S-Chain Ethereum chain ID", imaState.cid_s_chain, false, true, null, ( x ) => {
+    //         return cc.note( x );
+    //     } );
+    //     ensure_have_value( "Main-net ABI JSON file path", imaState.strPathAbiJson_main_net, false, true, null, ( x ) => {
+    //         return cc.warning( x );
+    //     } );
+    //     ensure_have_value( "S-Chain ABI JSON file path", imaState.strPathAbiJson_s_chain, false, true, null, ( x ) => {
+    //         return cc.warning( x );
+    //     } );
+    //     //
+    //     //
+    //     try {
+    //         ensure_have_value( "Main-net user account address", imaState.joAccount_main_net.address( imaState.w3_main_net ), false, true );
+    //     } catch ( err ) {}
+    //     try {
+    //         ensure_have_value( "S-chain user account address", imaState.joAccount_s_chain.address( imaState.w3_s_chain ), false, true );
+    //     } catch ( err ) {}
+    //     //
+    //     //
+    //     // ensure_have_value( "Private key for main-net user account address", imaState.joAccount_main_net.privateKey, false, true, null, ( x ) => {
+    //     //     return cc.attention( x );
+    //     // } );
+    //     // ensure_have_value( "Private key for S-Chain user account address", imaState.joAccount_s_chain.privateKey, false, true, null, ( x ) => {
+    //     //     return cc.attention( x );
+    //     // } );
+    //     ensure_have_chain_credentials( "Main Net", imaState.joAccount_main_net, false, true );
+    //     ensure_have_chain_credentials( "S-Chain", imaState.joAccount_s_chain, false, true );
+    //     //
+    //     //
+    //     ensure_have_value( "Amount of wei to transfer", imaState.nAmountOfWei, false, true, null, ( x ) => {
+    //         return cc.info( x );
+    //     } );
+    //     ensure_have_value( "M->S transfer block size", imaState.nTransferBlockSizeM2S, false, true, null, ( x ) => {
+    //         return cc.note( x );
+    //     } );
+    //     ensure_have_value( "S->M transfer block size", imaState.nTransferBlockSizeS2M, false, true, null, ( x ) => {
+    //         return cc.note( x );
+    //     } );
+    //     ensure_have_value( "M->S transactions limit", imaState.nMaxTransactionsM2S, false, true, null, ( x ) => {
+    //         return cc.note( x );
+    //     } );
+    //     ensure_have_value( "S->M transactions limit", imaState.nMaxTransactionsS2M, false, true, null, ( x ) => {
+    //         return cc.note( x );
+    //     } );
+    //     ensure_have_value( "M->S await blocks", imaState.nBlockAwaitDepthM2S, false, true, null, ( x ) => {
+    //         return cc.note( x );
+    //     } );
+    //     ensure_have_value( "S->M await blocks", imaState.nBlockAwaitDepthS2M, false, true, null, ( x ) => {
+    //         return cc.note( x );
+    //     } );
+    //     ensure_have_value( "M->S minimal block age", imaState.nBlockAgeM2S, false, true, null, ( x ) => {
+    //         return cc.note( x );
+    //     } );
+    //     ensure_have_value( "S->M minimal block age", imaState.nBlockAgeS2M, false, true, null, ( x ) => {
+    //         return cc.note( x );
+    //     } );
+    //     ensure_have_value( "Transfer loop period(seconds)", imaState.nLoopPeriodSeconds, false, true, null, ( x ) => {
+    //         return cc.success( x );
+    //     } );
+    //     if( imaState.nTimeFrameSeconds > 0 ) {
+    //         ensure_have_value( "Time framing(seconds)", imaState.nTimeFrameSeconds, false, true );
+    //         ensure_have_value( "Next frame gap(seconds)", imaState.nNextFrameGap, false, true );
+    //     } else
+    //         ensure_have_value( "Time framing", cc.error( "disabled" ), false, true );
+    //     ensure_have_value( "S-Chain node number(zero based)", imaState.nNodeNumber, false, true, null, ( x ) => {
+    //         return cc.info( x );
+    //     } );
+    //     ensure_have_value( "S-Chain nodes count", imaState.nNodesCount, false, true, null, ( x ) => {
+    //         return cc.info( x );
+    //     } );
+    //     if( imaState.strLogFilePath.length > 0 ) {
+    //         ensure_have_value( "Log file path", imaState.strLogFilePath, false, true, null, ( x ) => {
+    //             return cc.info( x );
+    //         } );
+    //         ensure_have_value( "Max size of log file path", imaState.nLogMaxSizeBeforeRotation, false, true, null, ( x ) => {
+    //             return ( x <= 0 ) ? cc.warning( "unlimited" ) : cc.note( x );
+    //         } );
+    //         ensure_have_value( "Max rotated count of log files", imaState.nLogMaxFilesCount, false, true, null, ( x ) => {
+    //             return ( x <= 1 ) ? cc.warning( "not set" ) : cc.note( x );
+    //         } );
+    //     }
+    //     if( imaState.strCoinNameErc721_main_net.length > 0 /* && imaState.strCoinNameErc721_s_chain.length > 0 */ ) {
+    //         ensure_have_value( "Loaded Main-net ERC721 ABI ", imaState.strCoinNameErc721_main_net, false, true, null, ( x ) => {
+    //             return cc.attention( x );
+    //         } );
+    //         ensure_have_value( "Loaded S-Chain  ERC721 ABI ", imaState.strCoinNameErc721_s_chain, false, true, null, ( x ) => {
+    //             return cc.attention( x );
+    //         } );
+    //         ensure_have_value( "ERC721 token id ", imaState.idToken, false, true, null, ( x ) => {
+    //             return cc.info( x );
+    //         } );
+    //         log.write( cc.info( "ERC721 explicit S-Chain address is " ) + cc.attention( imaState.strAddrErc721_explicit ) + "\n" );
+    //     }
+    //     if( imaState.strCoinNameErc20_main_net.length > 0 /* && imaState.strCoinNameErc20_s_chain.length > 0 */ ) {
+    //         ensure_have_value( "Loaded Main-net ERC20 ABI ", imaState.strCoinNameErc20_main_net, false, true, null, ( x ) => {
+    //             return cc.attention( x );
+    //         } );
+    //         ensure_have_value( "Loaded S-Chain  ERC20 ABI ", imaState.strCoinNameErc20_s_chain, false, true, null, ( x ) => {
+    //             return cc.attention( x );
+    //         } );
+    //         ensure_have_value( "Amount of tokens to transfer", imaState.nAmountOfToken, false, true, null, ( x ) => {
+    //             return cc.info( x );
+    //         } );
+    //         log.write( cc.info( "ERC20 explicit S-Chain address is " ) + cc.attention( imaState.strAddrErc20_explicit ) + "\n" );
+    //     }
+    //     log.write( cc.info( "Main Net Gas Price Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasPriceMultiplier ? cc.info( imaState.tc_main_net.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
+    //     log.write( cc.info( "S-Chain Gas Price Multiplier is" ) + cc.debug( "......................" ) + ( imaState.tc_s_chain.gasPriceMultiplier ? cc.info( imaState.tc_s_chain.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
+    //     log.write( cc.info( "Main Net Gas Value Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasMultiplier ? cc.info( imaState.tc_main_net.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
+    //     log.write( cc.info( "S-Chain Gas Value Multiplier is" ) + cc.debug( "......................" ) + ( imaState.tc_s_chain.gasMultiplier ? cc.info( imaState.tc_s_chain.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
+    //     log.write( cc.info( "Pending transaction analysis(PTX) is" ) + cc.debug( "................." ) + ( imaState.optsPendingTxAnalysis.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
+    //     log.write( cc.info( "Pending transaction analysis 2nd attempt after" ) + cc.debug( "......." ) + cc.bright( imaState.optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt ) + "\n" );
+    //     log.write( cc.info( "Ignore result of PTX is" ) + cc.debug( ".............................." ) + ( imaState.optsPendingTxAnalysis.isIgnore ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
+    //     log.write( cc.info( "Ignore secondary result of PTX is" ) + cc.debug( "...................." ) + ( imaState.optsPendingTxAnalysis.isIgnore2 ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
+    // }
     //
     //
     //

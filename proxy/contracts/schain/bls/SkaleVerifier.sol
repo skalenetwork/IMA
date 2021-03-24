@@ -45,14 +45,14 @@ library SkaleVerifier {
     * - Public Key in G2.
     */
     function verify(
-        Fp2Operations.Fp2Point calldata signature,
+        Fp2Operations.Fp2Point memory signature,
         bytes32 hash,
         uint counter,
         uint hashA,
         uint hashB,
-        G2Operations.G2Point calldata publicKey
+        G2Operations.G2Point memory publicKey
     )
-        external
+        internal
         view
         returns (bool)
     {

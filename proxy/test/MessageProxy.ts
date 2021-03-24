@@ -49,6 +49,10 @@ import {
     WalletsInstance,
     SkaleVerifierMockInstance,
     SkaleVerifierMockContract,
+    SkaleFeaturesMockContract,
+    SkaleFeaturesMockInstance,
+    ReceiverMockDeployerContract,
+    ReceiverMockContract,
 } from "../types/truffle-contracts";
 
 import { randomString } from "./utils/helper";
@@ -69,6 +73,7 @@ const KeyStorage: KeyStorageContract = artifacts.require("./KeyStorage");
 const SkaleVerifierMock: SkaleVerifierMockContract = artifacts.require("./SkaleVerifierMock");
 const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
 const Wallets: WalletsContract = artifacts.require("./Wallets");
+const SkaleFeaturesMock: SkaleFeaturesMockContract = artifacts.require("./SkaleFeaturesMock");
 
 contract("MessageProxy", ([deployer, user, client, customer]) => {
     let messageProxyForMainnet: MessageProxyForMainnetInstance;
@@ -116,7 +121,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             contractManager = await ContractManager.new({from: deployer});
             schains = await Schains.new({from: deployer});
             schainsInternal = await SchainsInternal.new({from: deployer});
-            skaleVerifier = await SkaleVerifier.new({from: deployer});
+            skaleVerifier = await SkaleVerifierMock.new({from: deployer});
             keyStorage = await KeyStorage.new({from: deployer});
             wallets = await Wallets.new({from: deployer});
             await contractManager.setContractsAddress("Schains", schains.address, {from: deployer});
@@ -434,10 +439,15 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     });
 
     describe("MessageProxyForSchain for schain", async () => {
+        let skaleFeatures: SkaleFeaturesMockInstance;
+
         beforeEach(async () => {
             messageProxyForSchain = await MessageProxyForSchain.new("MyChain", {from: deployer});
             lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
             await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address, {from: deployer});
+            skaleFeatures = await SkaleFeaturesMock.new();
+            await skaleFeatures.setBlsCommonPublicKey(BLSPublicKey);
+            messageProxyForSchain.setSkaleFeaturesAddress(skaleFeatures.address);
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -501,28 +511,66 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
         });
 
         it("should post incoming messages", async () => {
-            const chainID = randomString(10);
-            tokenManager1 = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
-            tokenManager2 = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
+            const chainID = randomString(10);            
+            const testPrivateKey = "0x27e29ffbb26fb7e77da65afc0cea8918655bad55f4d6f8e4b6daaddcf622781a";
+            const testAddress = "0xd2000c8962Ba034be9eAe372B177D405D5bd4970";
+
+            await web3.eth.sendTransaction({
+                from: deployer,
+                value: "500000",
+                to: testAddress
+            });
+
+            const bytecode = artifacts.require("./ReceiverMock").bytecode;
+            const deployTx = {
+                gas: 500000,
+                gasPrice: 1,
+                data: bytecode
+            }
+            const signedDeployTx = await web3.eth.accounts.signTransaction(deployTx, testPrivateKey);
+            const receipt = await web3.eth.sendSignedTransaction(signedDeployTx.rawTransaction);
+            const receiverMockAddress = receipt.contractAddress;
+            assert(
+                receiverMockAddress === "0xb2DD6f3FE1487daF2aC8196Ae8639DDC2763b871",
+                "ReceiverMock address was changed. BLS signature has to be regenerated"
+            );
+            
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
                 data: "0x11",
-                destinationContract: tokenManager1.address,
-                sender: deployer,
-                to: client};
+                // destinationContract: tokenManager1.address,
+                destinationContract: receiverMockAddress,
+                sender: receiverMockAddress,
+                to: receiverMockAddress};
             const message2 = {
                 amount: 7,
                 data: "0x22",
-                destinationContract: tokenManager2.address,
-                sender: user,
-                to: customer};
+                // destinationContract: tokenManager2.address,
+                destinationContract: receiverMockAddress,
+                sender: receiverMockAddress,
+                to: receiverMockAddress};
             const messages = [message1, message2];
+
+            const blsCommonPublicKey = {
+                x: {
+                    a: "0x223d2b836b902069c9cd1e0a80616cd4c132870c3617341dcff10df034d57390",
+                    b: "0x0b7f115d0dbfe4afe63b1d4ad3c8f41c6dea357733e49d61db0ca7a00f6f68a9"
+                },
+                y: {
+                    a: "0x0b195236fffcd189e4f63b4bc95aa095f515576f274192e7b317e86dd6771b62",
+                    b: "0x138ee463e71b40eae73b30631bccac8a4dae85cf8335e6deebc4b99f346f0f95"
+                }
+            }
+            await skaleFeatures.setBlsCommonPublicKey(blsCommonPublicKey);
             const sign = {
-                blsSignature: BlsSignature,
-                counter: Counter,
-                hashA: HashA,
-                hashB: HashB,
+                blsSignature: [
+                    "0x298bfd29b293be2709d6097143d643751359d9c7ed2011c8f1225c3e28e897b3",
+                    "0x15d5f1824739d2a6ac930834234cc010b5d88436d28f4f6da014223e97bf9e25"
+                ],
+                counter: 5,
+                hashA: "0x21deafc32cc506a2a8e1aed3c1a204c0cf6acd787080fd1c84dd820d620f48b9",
+                hashB: "0x287f866512be542d32e4cee320076446aef124a78bb49d1f8632e2391747f6fe",
             };
 
             // chain should be inited:

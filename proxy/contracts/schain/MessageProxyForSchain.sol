@@ -23,6 +23,7 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@nomiclabs/buidler/console.sol";
 
 import "./bls/SkaleVerifier.sol";
 import "./SkaleFeatures.sol";
@@ -43,7 +44,6 @@ interface ContractReceiverForSchain {
 
 contract MessageProxyForSchain {
     using SafeMath for uint256;
-
 
     /**
      * 16 Agents
@@ -98,6 +98,7 @@ contract MessageProxyForSchain {
     address public ownerAddress;
     string private _chainID;
     bool private _isCustomDeploymentMode;
+    address skaleFeaturesAddress;
 
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     mapping(address => bool) private _authorizedCaller;
@@ -353,6 +354,10 @@ contract MessageProxyForSchain {
         ownerAddress = newAddressOwner;
     }
 
+    function setSkaleFeaturesAddress(address newSkaleFeaturesAddress) external onlyOwner {
+        skaleFeaturesAddress = newSkaleFeaturesAddress;
+    }
+
     function isAuthorizedCaller(bytes32 , address a) public view returns (bool) {
         if (_authorizedCaller[a] )
             return true;
@@ -379,8 +384,12 @@ contract MessageProxyForSchain {
             isValidMessage = true;
     }
 
-    function getSkaleFeaturesAddress() public pure returns (address) {
-        return 0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2;
+    function getSkaleFeaturesAddress() public view returns (address) {
+        if (skaleFeaturesAddress != address(0)) {
+            return skaleFeaturesAddress;
+        } else {
+            return 0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2;
+        }
     }
 
     function _callReceiverContract(
@@ -508,19 +517,20 @@ contract MessageProxyForSchain {
         return keccak256(data);
     }
 
-    function _getBlsCommonPublicKey() private pure returns (G2Operations.G2Point memory) {
+    function _getBlsCommonPublicKey() private view returns (G2Operations.G2Point memory) {
+        SkaleFeatures skaleFeature = SkaleFeatures(getSkaleFeaturesAddress());
         return G2Operations.G2Point(
             {
                 x: Fp2Operations.Fp2Point(
                     {
-                        a: 6574317478546798964664164350752946243348919763684682093516923041405312832985,
-                        b: 11116555536305258170517922792822672536222278417618671975976634041946643998172
+                        a: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey0"),
+                        b: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey1")
                     }
                 ),
                 y: Fp2Operations.Fp2Point(
                     {
-                        a: 8056702423408917511260742857060174820418461026632041605142341436731050023462,
-                        b: 5344030771021995904830681953225626290686427293520089270928050172438993323498
+                        a: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey2"),
+                        b: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey3")
                     }
                 )
             }
