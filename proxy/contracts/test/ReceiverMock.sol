@@ -41,10 +41,3 @@ contract ReceiverMock is ContractReceiverForSchain {
         return true;
     }
 }
-
-contract ReceiverMockDeployer {
-    address public lastDeployed;
-    function deploy() public returns (address) {
-        lastDeployed = address(new ReceiverMock{salt: bytes32(uint(0xd2))}());
-    }
-}
