@@ -27,7 +27,7 @@ import "../schain/bls/FieldOperations.sol";
 
 contract SkaleFeaturesMock {
 
-    G2Operations.G2Point blsCommonPublicKey;
+    G2Operations.G2Point public blsCommonPublicKey;
 
     function setBlsCommonPublicKey(G2Operations.G2Point calldata key) external {
         G2Operations.G2Point memory _key = key;
