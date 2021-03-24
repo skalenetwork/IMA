@@ -51,7 +51,6 @@ import {
     SkaleVerifierMockContract,
     SkaleFeaturesMockContract,
     SkaleFeaturesMockInstance,
-    ReceiverMockDeployerContract,
     ReceiverMockContract,
 } from "../types/truffle-contracts";
 
