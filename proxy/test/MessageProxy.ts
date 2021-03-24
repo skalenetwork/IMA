@@ -511,7 +511,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
         });
 
         it("should post incoming messages and increase incoming message counter", async () => {
-            const chainID = randomString(10);            
+            const chainID = randomString(10);
 
             // We have hardcoded signature in the test
             // To be correct it requires the same message
@@ -543,7 +543,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 receiverMockAddress === "0xb2DD6f3FE1487daF2aC8196Ae8639DDC2763b871",
                 "ReceiverMock address was changed. BLS signature has to be regenerated"
             );
-            
+
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
@@ -631,6 +631,6 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
         });
-        
+
     });
 });
