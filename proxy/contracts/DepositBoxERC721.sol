@@ -22,7 +22,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721MetadataUpgradeable.sol";
 
 import "./IMAConnected.sol";
 import "./Messages.sol";
@@ -113,10 +113,9 @@ contract DepositBoxERC721 is IMAConnected {
         external
         payable
         rightTransaction(schainID)
-        receivedEth
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = tokenManagerAddresses[schainHash];
+        address tokenManagerAddress = tokenManagerERC721Addresses[schainHash];
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(
             IERC721Upgradeable(contractOnMainnet).ownerOf(tokenId) == address(this),
@@ -150,7 +149,7 @@ contract DepositBoxERC721 is IMAConnected {
     function addTokenManagerERC721(string calldata schainID, address newTokenManagerERC721Address) external {
         require(
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            msg.sender == owner(), "Not authorized caller"
+            _isOwner(), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerERC721Addresses[schainHash] == address(0), "SKALE chain is already set");
@@ -170,7 +169,7 @@ contract DepositBoxERC721 is IMAConnected {
     function removeTokenManagerERC721(string calldata schainID) external {
         require(
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            msg.sender == owner(), "Not authorized caller"
+            _isOwner(), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerERC721Addresses[schainHash] != address(0), "SKALE chain is not set");
@@ -192,7 +191,7 @@ contract DepositBoxERC721 is IMAConnected {
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&
-            sender == LockAndDataForMainnet(lockAndDataAddress_).tokenManagerAddresses(schainHash),
+            sender == tokenManagerERC721Addresses[schainHash],
             "Receiver chain is incorrect"
         );
         Messages.MessageType operation = Messages.getMessageType(data);
@@ -217,7 +216,7 @@ contract DepositBoxERC721 is IMAConnected {
         require(isSchainOwner(msg.sender, schainId) || msg.sender == getOwner(), "Sender is not a Schain owner");
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
         // require(!withoutWhitelist[schainId], "Whitelist is enabled");
-        schainToERC721[schainId][erc20OnMainnet] = true;
+        schainToERC721[schainId][erc721OnMainnet] = true;
         emit ERC721TokenAdded(schainName, erc721OnMainnet);
     }
 
@@ -295,10 +294,10 @@ contract DepositBoxERC721 is IMAConnected {
         address to,
         uint256 tokenId
     )
-        external
+        private
         returns (bytes memory data)
     {
-        bool isERC721AddedToSchain = schainToERC721[keccak256(abi.encodePacked(schainName))][erc721OnMainnet];
+        bool isERC721AddedToSchain = schainToERC721[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
         if (!isERC721AddedToSchain) {
             _addERC721ForSchain(schainID, contractOnMainnet);
             emit ERC721TokenAdded(schainID, contractOnMainnet);
@@ -317,7 +316,7 @@ contract DepositBoxERC721 is IMAConnected {
     /**
      * @dev Allows DepositBox to send ERC721 tokens.
      */
-    function _sendERC721(bytes calldata data) external allow("DepositBox") returns (bool) {
+    function _sendERC721(bytes calldata data) private returns (bool) {
         Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
         require(message.token.isContract(), "Given address is not a contract");
         require(IERC721Upgradeable(message.token).ownerOf(message.tokenId) == address(this), "Incorrect tokenId");
@@ -329,7 +328,7 @@ contract DepositBoxERC721 is IMAConnected {
      * @dev Allows ERC721ModuleForMainnet to add an ERC721 token to
      * LockAndDataForMainnetERC721.
      */
-    function _addERC721ForSchain(string calldata schainName, address erc721OnMainnet) external allow("ERC721Module") {
+    function _addERC721ForSchain(string calldata schainName, address erc721OnMainnet) private {
         bytes32 schainId = keccak256(abi.encodePacked(schainName));
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
         require(withoutWhitelist[schainId], "Whitelist is enabled");
@@ -337,7 +336,7 @@ contract DepositBoxERC721 is IMAConnected {
         emit ERC721TokenAdded(schainName, erc721OnMainnet);
     }
 
-    function _getTokenInfo(IERC721MetadataUpgradeable erc721) internal view returns (Messages.Erc721TokenInfo memory) {
+    function _getTokenInfo(IERC721MetadataUpgradeable erc721) private view returns (Messages.Erc721TokenInfo memory) {
         return Messages.Erc721TokenInfo({
             name: erc721.name(),
             symbol: erc721.symbol()

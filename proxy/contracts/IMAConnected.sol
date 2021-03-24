@@ -21,23 +21,19 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-
-import "./interfaces/IContractManager.sol";
-import "./interfaces/ISchainsInternal.sol";
 import "./IMALinker.sol";
 import "./MessageProxyForMainnet.sol";
+import "./connectors/SchainOwnerConnector.sol";
 
 
 /**
  * @title IMAConnected - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-contract IMAConnected is AccessControlUpgradeable {
+contract IMAConnected is SchainOwnerConnector {
 
     IMALinker public imaLinker;
-    MessageProxy public messageProxy;
-    address public contractManagerOfSkaleManager;
+    MessageProxyForMainnet public messageProxy;
 
     modifier onlyMessageProxy() {
         require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
@@ -57,32 +53,8 @@ contract IMAConnected is AccessControlUpgradeable {
         virtual
         initializer
     {
-        AccessControlUpgradeable.__AccessControl_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        imsLinker = IMALinker(newIMALinkerAddress);
-        messageProxy = MessageProxy(newMessageProxyAddress);
-        contractManagerOfSkaleManager = newContractManagerOfSkaleManager;
-    }
-
-    /**
-     * @dev Returns owner address.
-     */
-    function getOwner() public view returns ( address ow ) {
-        return getRoleMember(DEFAULT_ADMIN_ROLE, 0);
-    }
-
-    /**
-     * @dev Checks whether sender is owner of SKALE chain
-     */
-    function isSchainOwner(address sender, bytes32 schainId) public virtual view returns (bool) {
-        address skaleChainsInternal = IContractManager(contractManagerOfSkaleManager).getContract("SchainsInternal");
-        return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainId);
-    }
-
-    /**
-     * @dev Checks whether sender is owner of SKALE chain
-     */
-    function _isOwner() internal view returns (bool) {
-        return hasRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        SchainOwnerConnector.initialize(newContractManagerOfSkaleManager);
+        imaLinker = IMALinker(newIMALinkerAddress);
+        messageProxy = MessageProxyForMainnet(newMessageProxyAddress);
     }
 }

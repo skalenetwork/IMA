@@ -22,7 +22,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "./thirdparty/openzeppelin/IERC20Metadata.sol";
 
 import "./IMAConnected.sol";
 import "./Messages.sol";
@@ -85,7 +85,7 @@ contract DepositBoxERC20 is IMAConnected {
         address tokenManagerAddress = tokenManagerERC20Addresses[schainHash];
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(
-            IERC20Upgradeable(contractOnMainnet).transferFrom(
+            IERC20Metadata(contractOnMainnet).transferFrom(
                 msg.sender,
                 address(this),
                 amount
@@ -120,7 +120,7 @@ contract DepositBoxERC20 is IMAConnected {
     function addTokenManagerERC20(string calldata schainID, address newTokenManagerERC20Address) external {
         require(
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            msg.sender == owner(), "Not authorized caller"
+            _isOwner(), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerERC20Addresses[schainHash] == address(0), "SKALE chain is already set");
@@ -140,7 +140,7 @@ contract DepositBoxERC20 is IMAConnected {
     function removeTokenManagerERC20(string calldata schainID) external {
         require(
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            msg.sender == owner(), "Not authorized caller"
+            _isOwner(), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerERC20Addresses[schainHash] != address(0), "SKALE chain is not set");
@@ -310,9 +310,9 @@ contract DepositBoxERC20 is IMAConnected {
         private
         returns (bytes memory data)
     {
-        uint256 totalSupply = IERC20Upgradeable(contractOnMainnet).totalSupply();
+        uint256 totalSupply = IERC20Metadata(contractOnMainnet).totalSupply();
         require(amount <= totalSupply, "Amount is incorrect");
-        bool isERC20AddedToSchain = schainToERC20[keccak256(abi.encodePacked(schainID))][erc20OnMainnet];
+        bool isERC20AddedToSchain = schainToERC20[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
         if (!isERC20AddedToSchain) {
             _addERC20ForSchain(schainID, contractOnMainnet);
             emit ERC20TokenAdded(schainID, contractOnMainnet);
@@ -340,9 +340,9 @@ contract DepositBoxERC20 is IMAConnected {
     function _sendERC20(bytes calldata data) private returns (bool) {
         Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
         require(message.token.isContract(), "Given address is not a contract");
-        require(IERC20Upgradeable(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
+        require(IERC20Metadata(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
         require(
-            IERC20Upgradeable(message.token).transfer(message.receiver, message.amount),
+            IERC20Metadata(message.token).transfer(message.receiver, message.amount),
             "Something went wrong with `transfer` in ERC20"
         );
         return true;
@@ -351,7 +351,7 @@ contract DepositBoxERC20 is IMAConnected {
     /**
      * @dev Allows ERC20Module to add an ERC20 token to LockAndDataForMainnetERC20.
      */
-    function _addERC20ForSchain(string calldata schainName, address erc20OnMainnet) private allow("ERC20Module") {
+    function _addERC20ForSchain(string calldata schainName, address erc20OnMainnet) private {
         bytes32 schainId = keccak256(abi.encodePacked(schainName));
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
         require(withoutWhitelist[schainId], "Whitelist is enabled");

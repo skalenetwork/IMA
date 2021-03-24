@@ -25,9 +25,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
-import "./interfaces/IContractManager.sol";
-import "./interfaces/ISchainsInternal.sol";
-import "./interfaces/IMessageProxy.sol";
+import "./connectors/BasicConnector.sol";
 import "./interfaces/IWallets.sol";
 
 /**
@@ -35,18 +33,17 @@ import "./interfaces/IWallets.sol";
  * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
  * balances of ETH tokens received through DepositBox.
  */
-contract IMALinker is OwnableUpgradeable {
+contract IMALinker is BasicConnector {
     using AddressUpgradeable for address;
     using SafeMathUpgradeable for uint;
 
     function rechargeSchainWallet(bytes32 schainId, uint256 amount) external {
         require(address(this).balance >= amount, "Not enough ETH to rechargeSchainWallet");
-        address contractManagerAddress = permitted[keccak256(abi.encodePacked("ContractManagerForSkaleManager"))];
-        address walletsAddress = IContractManager(contractManagerAddress).getContract("Wallets");
+        address walletsAddress = IContractManager(contractManagerOfSkaleManager).getContract("Wallets");
         IWallets(payable(walletsAddress)).rechargeSchainWallet{value: amount}(schainId);
     }
 
-    function initialize() public initializer {
-        OwnableUpgradeable.__Ownable_init();
+    function initialize(address newContractManagerOfSkaleManager) public override initializer {
+        BasicConnector.initialize(newContractManagerOfSkaleManager);
     }
 }

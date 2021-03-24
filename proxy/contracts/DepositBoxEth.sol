@@ -147,7 +147,7 @@ contract DepositBoxEth is IMAConnected {
     function addTokenManagerEth(string calldata schainID, address newTokenManagerEthAddress) external {
         require(
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            msg.sender == owner(), "Not authorized caller"
+            _isOwner(), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerEthAddresses[schainHash] == address(0), "SKALE chain is already set");
@@ -167,7 +167,7 @@ contract DepositBoxEth is IMAConnected {
     function removeTokenManagerEth(string calldata schainID) external {
         require(
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            msg.sender == owner(), "Not authorized caller"
+            _isOwner(), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerEthAddresses[schainHash] != address(0), "SKALE chain is not set");
@@ -233,7 +233,7 @@ contract DepositBoxEth is IMAConnected {
      * @dev Checks whether depositBoxEth is connected to a SKALE chain TokenManagerEth.
      */
     function hasTokenManagerEth(string calldata schainID) external view returns (bool) {
-        return tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0);
+        return tokenManagerEthAddresses[keccak256(abi.encodePacked(schainID))] != address(0);
     }
 
     /// Create a new deposit box

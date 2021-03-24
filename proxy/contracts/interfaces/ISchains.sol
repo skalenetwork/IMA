@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   LockAndDataForMainnetWorkaround.sol - SKALE Interchain Messaging Agent
- *   Copyright (C) 2019-Present SKALE Labs
+ *   ISchains.sol - Interface of SchainsInternal from SKALE-manager
+ *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
@@ -21,20 +21,17 @@
 
 pragma solidity 0.6.12;
 
-// import "../LockAndDataForMainnet.sol";
-
-
-contract LockAndDataForMainnetWorkaround {
-
-    function setContract(string calldata contractName, address newContract) external {
-        require(newContract != address(0), "New address is equal zero");
-        // bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        // require(permitted[contractId] != newContract, "Contract is already added");
-        // permitted[contractId] = newContract;
-    }
-
-    function isSchainOwner(address, bytes32) public view returns (bool) {
-        return true;
-    }
-
+interface ISchains {
+    function verifySchainSignature(
+        uint256 signA,
+        uint256 signB,
+        bytes32 hash,
+        uint256 counter,
+        uint256 hashA,
+        uint256 hashB,
+        string calldata schainName
+    )
+        external
+        view
+        returns (bool);
 }
