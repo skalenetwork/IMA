@@ -22,14 +22,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-
-import "./interfaces/IMessageProxy.sol";
-
 import "./IMAConnected.sol";
-import "./ERC20ModuleForMainnet.sol";
-import "./ERC721ModuleForMainnet.sol";
 import "./Messages.sol";
 
 
@@ -38,21 +31,13 @@ import "./Messages.sol";
 
 contract DepositBoxEth is IMAConnected {
 
-    mapping (Messages.MessageType => uint256) public gasConsumptions;
+    using SafeMathUpgradeable for uint;
 
-    event MoneyReceivedMessage(
-        address sender,
-        string fromSchainID,
-        address to,
-        uint256 amount,
-        bytes data
-    );
+    // uint256 public gasConsumption;
 
-    event Error(
-        address to,
-        uint256 amount,
-        string message
-    );
+    mapping(bytes32 => address) public tokenManagerEthAddresses;
+
+    mapping(address => uint256) public approveTransfers;
 
     modifier rightTransaction(string memory schainID) {
         require(
@@ -62,91 +47,131 @@ contract DepositBoxEth is IMAConnected {
         _;
     }
 
-    modifier receivedEth() {
-        _;
-        if (msg.value > 0) {
-            LockAndDataForMainnet(lockAndDataAddress_).receiveEth{value: msg.value}(msg.sender);
-        }
-    }
+    // modifier receivedEth() {
+    //     _;
+    //     if (msg.value > 0) {
+    //         LockAndDataForMainnet(lockAndDataAddress_).receiveEth{value: msg.value}(msg.sender);
+    //     }
+    // }
 
     receive() external payable {
         revert("Use deposit function");
     }
 
-    function depositERC20(
-        string calldata schainID,
-        address contractOnMainnet,
-        address to,
-        uint256 amount
-    )
-        external
-        payable
-        rightTransaction(schainID)
-        receivedEth
-    {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = LockAndDataForMainnet(lockAndDataAddress_).tokenManagerAddresses(schainHash);
-        require(tokenManagerAddress != address(0), "Unconnected chain");
+    // function depositERC20(
+    //     string calldata schainID,
+    //     address contractOnMainnet,
+    //     address to,
+    //     uint256 amount
+    // )
+    //     external
+    //     payable
+    //     rightTransaction(schainID)
+    //     receivedEth
+    // {
+    //     bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+    //     address tokenManagerAddress = LockAndDataForMainnet(lockAndDataAddress_).tokenManagerAddresses(schainHash);
+    //     require(tokenManagerAddress != address(0), "Unconnected chain");
+    //     require(
+    //         IERC20Upgradeable(contractOnMainnet).transferFrom(
+    //             msg.sender,
+    //             IContractManager(lockAndDataAddress_).getContract("LockAndDataERC20"),
+    //             amount
+    //         ),
+    //         "Could not transfer ERC20 Token"
+    //     );
+    //     bytes memory data = ERC20ModuleForMainnet(
+    //         IContractManager(lockAndDataAddress_).getContract("ERC20Module")
+    //     ).receiveERC20(
+    //         schainID,
+    //         contractOnMainnet,
+    //         to,
+    //         amount
+    //     );
+    //     IMessageProxy(IContractManager(lockAndDataAddress_).getContract("MessageProxy")).postOutgoingMessage(
+    //         schainID,
+    //         tokenManagerAddress,
+    //         msg.value,
+    //         address(0),
+    //         data
+    //     );
+    // }
+
+    // function depositERC721(
+    //     string calldata schainID,
+    //     address contractOnMainnet,
+    //     address to,
+    //     uint256 tokenId
+    // )
+    //     external
+    //     payable
+    //     rightTransaction(schainID)
+    //     receivedEth
+    // {
+    //     bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+    //     address tokenManagerAddress = LockAndDataForMainnet(lockAndDataAddress_).tokenManagerAddresses(schainHash);
+    //     require(tokenManagerAddress != address(0), "Unconnected chain");
+    //     address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract("LockAndDataERC721");
+    //     IERC721Upgradeable(contractOnMainnet).transferFrom(address(this), lockAndDataERC721, tokenId);
+    //     require(
+    //         IERC721Upgradeable(contractOnMainnet).ownerOf(tokenId) == lockAndDataERC721,
+    //         "Did not transfer ERC721 token"
+    //     );
+    //     bytes memory data = ERC721ModuleForMainnet(
+    //         IContractManager(lockAndDataAddress_).getContract("ERC721Module")
+    //     ).receiveERC721(
+    //         schainID,
+    //         contractOnMainnet,
+    //         to,
+    //         tokenId
+    //     );
+    //     IMessageProxy(IContractManager(lockAndDataAddress_).getContract("MessageProxy")).postOutgoingMessage(
+    //         schainID,
+    //         tokenManagerAddress,
+    //         msg.value,
+    //         address(0),
+    //         data
+    //     );
+    // }
+
+    /**
+     * @dev Adds a TokenManagerEth address to
+     * DepositBoxEth.
+     *
+     * Requirements:
+     *
+     * - `msg.sender` must be schain owner or contract owner.
+     * - SKALE chain must not already be added.
+     * - TokenManager address must be non-zero.
+     */
+    function addTokenManagerEth(string calldata schainID, address newTokenManagerEthAddress) external {
         require(
-            IERC20Upgradeable(contractOnMainnet).transferFrom(
-                msg.sender,
-                IContractManager(lockAndDataAddress_).getContract("LockAndDataERC20"),
-                amount
-            ),
-            "Could not transfer ERC20 Token"
+            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
+            msg.sender == owner(), "Not authorized caller"
         );
-        bytes memory data = ERC20ModuleForMainnet(
-            IContractManager(lockAndDataAddress_).getContract("ERC20Module")
-        ).receiveERC20(
-            schainID,
-            contractOnMainnet,
-            to,
-            amount
-        );
-        IMessageProxy(IContractManager(lockAndDataAddress_).getContract("MessageProxy")).postOutgoingMessage(
-            schainID,
-            tokenManagerAddress,
-            msg.value,
-            address(0),
-            data
-        );
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        require(tokenManagerEthAddresses[schainHash] == address(0), "SKALE chain is already set");
+        require(newTokenManagerEthAddress != address(0), "Incorrect Token Manager address");
+        tokenManagerEthAddresses[schainHash] = newTokenManagerEthAddress;
     }
 
-    function depositERC721(
-        string calldata schainID,
-        address contractOnMainnet,
-        address to,
-        uint256 tokenId
-    )
-        external
-        payable
-        rightTransaction(schainID)
-        receivedEth
-    {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = LockAndDataForMainnet(lockAndDataAddress_).tokenManagerAddresses(schainHash);
-        require(tokenManagerAddress != address(0), "Unconnected chain");
-        address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract("LockAndDataERC721");
-        IERC721Upgradeable(contractOnMainnet).transferFrom(address(this), lockAndDataERC721, tokenId);
+    /**
+     * @dev Allows Owner to remove a TokenManagerEth on SKALE chain
+     * from DepositBoxEth.
+     *
+     * Requirements:
+     *
+     * - `msg.sender` must be schain owner or contract owner
+     * - SKALE chain must already be set.
+     */
+    function removeTokenManagerEth(string calldata schainID) external {
         require(
-            IERC721Upgradeable(contractOnMainnet).ownerOf(tokenId) == lockAndDataERC721,
-            "Did not transfer ERC721 token"
+            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
+            msg.sender == owner(), "Not authorized caller"
         );
-        bytes memory data = ERC721ModuleForMainnet(
-            IContractManager(lockAndDataAddress_).getContract("ERC721Module")
-        ).receiveERC721(
-            schainID,
-            contractOnMainnet,
-            to,
-            tokenId
-        );
-        IMessageProxy(IContractManager(lockAndDataAddress_).getContract("MessageProxy")).postOutgoingMessage(
-            schainID,
-            tokenManagerAddress,
-            msg.value,
-            address(0),
-            data
-        );
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        require(tokenManagerEthAddresses[schainHash] != address(0), "SKALE chain is not set");
+        delete tokenManagerEthAddresses[schainHash];
     }
 
     function postMessage(
@@ -157,43 +182,85 @@ contract DepositBoxEth is IMAConnected {
         bytes calldata data
     )
         external
-        allow("MessageProxy")
+        onlyMessageProxy
         returns (bool)
     {
         require(data.length != 0, "Invalid data");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&
-            sender == LockAndDataForMainnet(lockAndDataAddress_).tokenManagerAddresses(schainHash),
+            sender == tokenManagerEthAddresses[schainHash],
             "Receiver chain is incorrect"
         );
         require(
-            amount <= address(lockAndDataAddress_).balance,
+            amount <= address(this).balance,
             "Not enough money to finish this transaction"
         );
-        _executePerOperation(schainHash, to, amount, data);
+        Messages.MessageType operation = Messages.getMessageType(data);
+        // TODO add gas reimbusement
+        // uint256 txFee = gasConsumption * tx.gasprice;
+        // require(amount >= txFee, "Not enough funds to recover gas");
+        if (operation == Messages.MessageType.TRANSFER_ETH) {
+            approveTransfers[to] = approveTransfers[to].add(amount);
+        } else {
+            revert("MessageType is unknown");
+        }
+        // TODO add gas reimbusement
+        // imaLinker.rechargeSchainWallet(schainId, txFee);
         return true;
     }
 
+    /**
+     * @dev Transfers a user's ETH.
+     *
+     * Requirements:
+     *
+     * - LockAndDataForMainnet must have sufficient ETH.
+     * - User must be approved for ETH transfer.
+     */
+    function getMyEth() external {
+        require(
+            address(this).balance >= approveTransfers[msg.sender],
+            "Not enough ETH. in `DepositBox.getMyEth`"
+        );
+        require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
+        uint256 amount = approveTransfers[msg.sender];
+        approveTransfers[msg.sender] = 0;
+        msg.sender.transfer(amount);
+    }
+
+    /**
+     * @dev Checks whether depositBoxEth is connected to a SKALE chain TokenManagerEth.
+     */
+    function hasTokenManagerEth(string calldata schainID) external view returns (bool) {
+        return tokenManagerAddresses[keccak256(abi.encodePacked(schainID))] != address(0);
+    }
+
     /// Create a new deposit box
-    function initialize(address newLockAndDataAddress) public override initializer {
-        PermissionsForMainnet.initialize(newLockAndDataAddress);
-        gasConsumptions[Messages.MessageType.TRANSFER_ETH] = 500000;
-        gasConsumptions[Messages.MessageType.TRANSFER_ERC20] = 600000;
-        gasConsumptions[Messages.MessageType.TRANSFER_ERC721] = 700000;
+    function initialize(
+        address newIMALinkerAddress,
+        address newContractManagerOfSkaleManager,
+        address newMessageProxyAddress
+    )
+        public
+        override
+        initializer
+    {
+        IMAConnected.initialize(newIMALinkerAddress, newContractManagerOfSkaleManager, newMessageProxyAddress);
+        // gasConsumption = 500000;
     }
 
     function deposit(string memory schainID, address to)
         public
         payable
         rightTransaction(schainID)
-        receivedEth
+        // receivedEth
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = LockAndDataForMainnet(lockAndDataAddress_).tokenManagerAddresses(schainHash);
+        address tokenManagerAddress = tokenManagerEthAddresses[schainHash];
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(to != address(0), "Community Pool is not available");
-        IMessageProxy(IContractManager(lockAndDataAddress_).getContract("MessageProxy")).postOutgoingMessage(
+        messageProxy.postOutgoingMessage(
             schainID,
             tokenManagerAddress,
             msg.value,
@@ -202,49 +269,46 @@ contract DepositBoxEth is IMAConnected {
         );
     }
 
-    function _executePerOperation(
-        bytes32 schainId,
-        address to,
-        uint256 amount,
-        bytes calldata data    
-    )
-        private
-    {
-        Messages.MessageType operation = Messages.getMessageType(data);
-        uint256 txFee = gasConsumptions[operation] * tx.gasprice;
-        require(amount >= txFee, "Not enough funds to recover gas");
-        if (operation == Messages.MessageType.TRANSFER_ETH) {
-            if (amount > txFee) {
-                LockAndDataForMainnet(lockAndDataAddress_).approveTransfer(
-                    to,
-                    amount - txFee
-                );
-            }
-        } else if (operation == Messages.MessageType.TRANSFER_ERC20) {
-            address erc20Module = IContractManager(lockAndDataAddress_).getContract(
-                "ERC20Module"
-            );
-            require(ERC20ModuleForMainnet(erc20Module).sendERC20(data), "Sending of ERC20 was failed");
-            address receiver = ERC20ModuleForMainnet(erc20Module).getReceiver(data);
-            if (amount > txFee)
-                LockAndDataForMainnet(lockAndDataAddress_).approveTransfer(
-                    receiver,
-                    amount - txFee
-                );
-        } else if (operation == Messages.MessageType.TRANSFER_ERC721) {
-            address erc721Module = IContractManager(lockAndDataAddress_).getContract(
-                "ERC721Module"
-            );
-            require(ERC721ModuleForMainnet(erc721Module).sendERC721(data), "Sending of ERC721 was failed");
-            address receiver = ERC721ModuleForMainnet(erc721Module).getReceiver(data);
-            if (amount > txFee)
-                LockAndDataForMainnet(lockAndDataAddress_).approveTransfer(
-                    receiver,
-                    amount - txFee
-                );
-        } else {
-            revert("MessageType is unknown");
-        }
-        LockAndDataForMainnet(lockAndDataAddress_).rechargeSchainWallet(schainId, txFee);
-    }
+    // function _executePerOperation(
+    //     bytes32 schainId,
+    //     address to,
+    //     uint256 amount,
+    //     bytes calldata data    
+    // )
+    //     private
+    // {
+    //     Messages.MessageType operation = Messages.getMessageType(data);
+    //     uint256 txFee = gasConsumptions[operation] * tx.gasprice;
+    //     require(amount >= txFee, "Not enough funds to recover gas");
+    //     if (operation == Messages.MessageType.TRANSFER_ETH) {
+    //         if (amount > txFee) {
+    //             approveTransfers[to] = approveTransfers[to].add(amount - txFee)
+    //         }
+    //     } else if (operation == Messages.MessageType.TRANSFER_ERC20) {
+    //         address erc20Module = IContractManager(lockAndDataAddress_).getContract(
+    //             "ERC20Module"
+    //         );
+    //         require(ERC20ModuleForMainnet(erc20Module).sendERC20(data), "Sending of ERC20 was failed");
+    //         address receiver = ERC20ModuleForMainnet(erc20Module).getReceiver(data);
+    //         if (amount > txFee)
+    //             LockAndDataForMainnet(lockAndDataAddress_).approveTransfer(
+    //                 receiver,
+    //                 amount - txFee
+    //             );
+    //     } else if (operation == Messages.MessageType.TRANSFER_ERC721) {
+    //         address erc721Module = IContractManager(lockAndDataAddress_).getContract(
+    //             "ERC721Module"
+    //         );
+    //         require(ERC721ModuleForMainnet(erc721Module).sendERC721(data), "Sending of ERC721 was failed");
+    //         address receiver = ERC721ModuleForMainnet(erc721Module).getReceiver(data);
+    //         if (amount > txFee)
+    //             LockAndDataForMainnet(lockAndDataAddress_).approveTransfer(
+    //                 receiver,
+    //                 amount - txFee
+    //             );
+    //     } else {
+    //         revert("MessageType is unknown");
+    //     }
+    //     LockAndDataForMainnet(lockAndDataAddress_).rechargeSchainWallet(schainId, txFee);
+    // }
 }

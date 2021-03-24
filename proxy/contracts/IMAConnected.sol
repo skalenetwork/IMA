@@ -26,6 +26,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
 import "./IMALinker.sol";
+import "./MessageProxyForMainnet.sol";
 
 
 /**
@@ -35,47 +36,27 @@ import "./IMALinker.sol";
 contract IMAConnected is AccessControlUpgradeable {
 
     IMALinker public imaLinker
+    MessageProxy public messageProxy;
     address public contractManagerOfSkaleManager;
-
-    /**
-     * @dev allow - throws if called by any account and contract other than the owner
-     * or `contractName` contract
-     * @param contractName - human readable name of contract
-     */
-    modifier allow(string memory contractName) {
-        require(
-            IContractManager(
-                lockAndDataAddress_
-            ).getContract(contractName) == msg.sender ||
-            getOwner() == msg.sender, "Message sender is invalid"
-        );
-        _;
-    }
-
-    /**
-     * @dev onlyOwner - throws if called by any account and contract other than the owner
-     */
-    modifier onlyOwner() {
-        require(_isOwner(), "Caller is not the owner");
-        _;
-    }
 
     /**
      * @dev initialize - sets current address of ContractManager
      * @param newIMALinkerAddress - current address of ContractManager
      */
-    function initialize(address newIMALinkerAddress, address newContractManagerOfSkaleManager) public virtual initializer {
+    function initialize(
+        address newIMALinkerAddress,
+        address newContractManagerOfSkaleManager,
+        address newMessageProxyAddress
+    )
+        public
+        virtual
+        initializer
+    {
         AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         imsLinker = IMALinker(newIMALinkerAddress);
+        messageProxy = MessageProxy(newMessageProxyAddress);
         contractManagerOfSkaleManager = newContractManagerOfSkaleManager;
-    }
-
-    /**
-     * @dev Returns LockAndDataForMainnet address
-     */
-    function getLockAndDataAddress() public view returns ( address a ) {
-        return lockAndDataAddress_;
     }
 
     /**
@@ -89,7 +70,8 @@ contract IMAConnected is AccessControlUpgradeable {
      * @dev Checks whether sender is owner of SKALE chain
      */
     function isSchainOwner(address sender, bytes32 schainId) public virtual view returns (bool) {
-        return LockAndDataForMainnet(lockAndDataAddress_).isSchainOwner(sender, schainId);
+        address skaleChainsInternal = IContractManager(contractManagerOfSkaleManager).getContract("SchainsInternal");
+        return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainId);
     }
 
     /**
