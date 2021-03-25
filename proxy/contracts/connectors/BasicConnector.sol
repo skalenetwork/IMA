@@ -36,6 +36,11 @@ contract BasicConnector is AccessControlUpgradeable {
 
     address public contractManagerOfSkaleManager;
 
+    modifier onlyOwner() {
+        require(_isOwner(), "Sender is not the owner");
+        _;
+    }
+
     /**
      * @dev initialize - sets current address of ContractManager of SkaleManager
      * @param newContractManagerOfSkaleManager - current address of ContractManager of SkaleManager

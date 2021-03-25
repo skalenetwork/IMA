@@ -27,6 +27,8 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "./connectors/BasicConnector.sol";
 import "./interfaces/IWallets.sol";
+import "./interfaces/IDepositBox.sol";
+import "./MessageProxyForMainnet.sol";
 
 /**
  * @title IMALinker For Mainnet
@@ -37,13 +39,56 @@ contract IMALinker is BasicConnector {
     using AddressUpgradeable for address;
     using SafeMathUpgradeable for uint;
 
+    address[] private _depositBoxes;
+    MessageProxyForMainnet public messageProxy;
+
+    function registerDepositBox(address newDepositBoxAddress) external onlyOwner {
+        _depositBoxes.push(newDepositBoxAddress);
+    }
+
+    function removeDepositBox(address depositBoxAddress) external onlyOwner {
+        uint index;
+        uint length = _depositBoxes.length;
+        for (index = 0; index < length; index++) {
+            if (_depositBoxes[index] == depositBoxAddress) {
+                break;
+            }
+        }
+        if (index < length) {
+            if (index < length.sub(1)) {
+                _depositBoxes[index] = _depositBoxes[length.sub(1)];
+            }
+            _depositBoxes.pop();
+        }
+    }
+
     function rechargeSchainWallet(bytes32 schainId, uint256 amount) external {
         require(address(this).balance >= amount, "Not enough ETH to rechargeSchainWallet");
         address walletsAddress = IContractManager(contractManagerOfSkaleManager).getContract("Wallets");
         IWallets(payable(walletsAddress)).rechargeSchainWallet{value: amount}(schainId);
     }
 
-    function initialize(address newContractManagerOfSkaleManager) public override initializer {
+    function hasDepositBox(address depositBoxAddress) external view returns (bool) {
+        uint index;
+        uint length = _depositBoxes.length;
+        for (index = 0; index < length; index++) {
+            if (_depositBoxes[index] == depositBoxAddress) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function connectSchain(string calldata schainName, address[] calldata tokenManagerAddresses) external onlyOwner {
+        require(tokenManagerAddresses.length == _depositBoxes.length, "Incorrect number of addresses");
+        for (uint i = 0; i < tokenManagerAddresses.length; i++) {
+            IDepositBox(_depositBoxes[i]).addTokenManager(schainName, tokenManagerAddresses[i]);
+        }
+        messageProxy.addConnectedChain(schainName);
+    }
+
+    function initialize(address newContractManagerOfSkaleManager, address newMessageProxyAddress) public initializer {
         BasicConnector.initialize(newContractManagerOfSkaleManager);
+        messageProxy = MessageProxyForMainnet(newMessageProxyAddress);
     }
 }
