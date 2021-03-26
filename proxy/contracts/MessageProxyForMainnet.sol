@@ -34,8 +34,6 @@ interface ContractReceiverForMainnet {
     function postMessage(
         string calldata schainID,
         address sender,
-        address to,
-        uint256 amount,
         bytes calldata data
     )
         external
@@ -122,8 +120,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         uint256 indexed msgCounter,
         address indexed srcContract,
         address dstContract,
-        address to,
-        uint256 amount,
         bytes data
     );
 
@@ -186,8 +182,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     function postOutgoingMessage(
         string calldata dstChainID,
         address dstContract,
-        uint256 amount,
-        address to,
         bytes calldata data
     )
         external
@@ -200,8 +194,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             msgCounter,
             msg.sender,
             dstContract,
-            to,
-            amount,
             data
         );
         connectedChains[dstChainHash].outgoingMessageCounter = msgCounter.add(1);
@@ -418,8 +410,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         try ContractReceiverForMainnet(message.destinationContract).postMessage(
             srcChainID,
             message.sender,
-            message.to,
-            message.amount,
             message.data
         ) returns (bool success) {
             return success;

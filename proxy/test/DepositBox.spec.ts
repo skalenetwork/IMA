@@ -335,11 +335,11 @@ contract("DepositBox", ([deployer, user]) => {
       const error = "Message sender is invalid";
       const schainID = randomString(10);
       const amount = "10";
-      const bytesData = "0x0";
+      const bytesData = await messages.encodeTransferEthMessage(user, amount);
       const sender = deployer;
       // execution/expectation
       await depositBox
-        .postMessage(schainID, sender, user, amount, bytesData, {from: user})
+        .postMessage(schainID, sender, bytesData, {from: user})
         .should.be.eventually.rejectedWith(error);
     });
 
@@ -349,14 +349,14 @@ contract("DepositBox", ([deployer, user]) => {
       // for `Receiver chain is incorrect` message schainID should be `Mainnet`
       const schainID = "Mainnet";
       const amount = "10";
-      const bytesData = "0x0";
+      const bytesData = await messages.encodeTransferEthMessage(user, amount);
       const sender = deployer;
       // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
       await lockAndDataForMainnet.setContract("MessageProxy", deployer);
       // execution
       await depositBox
-        .postMessage(schainID, sender, user, amount, bytesData, {from: deployer})
+        .postMessage(schainID, sender, bytesData, {from: deployer})
         .should.be.eventually.rejectedWith(error);
     });
 
@@ -366,35 +366,35 @@ contract("DepositBox", ([deployer, user]) => {
       const error = "Receiver chain is incorrect";
       const schainID = randomString(10);
       const amount = "10";
-      const bytesData = "0x0";
+      const bytesData = await messages.encodeTransferEthMessage(user, amount);
       const sender = deployer;
       // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
       await lockAndDataForMainnet.setContract("MessageProxy", deployer);
       // execution
       await depositBox
-        .postMessage(schainID, sender, user, amount, bytesData, {from: deployer})
+        .postMessage(schainID, sender, bytesData, {from: deployer})
         .should.be.eventually.rejectedWith(error);
     });
 
-    it("should rejected with message `Not enough money to finish this transaction`", async () => {
-      //  preparation
-      const error = "Not enough money to finish this transaction";
-      const schainID = randomString(10);
-      const amount = "10";
-      const bytesData = "0x0";
-      const sender = deployer;
-      // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address`
-      // to avoid `Incorrect sender` error
-      // await lockAndDataForMainnet.setContract("MessageProxy", deployer);
-      // add schain to avoid the `Receiver chain is incorrect` error
-      await lockAndDataForMainnet
-        .addSchain(schainID, deployer, {from: deployer});
-      // execution
-      await depositBox
-        .postMessage(schainID, sender, user, amount, bytesData, {from: deployer})
-        .should.be.eventually.rejectedWith(error);
-    });
+    // it("should rejected with message `Not enough money to finish this transaction`", async () => {
+    //   //  preparation
+    //   const error = "Not enough money to finish this transaction";
+    //   const schainID = randomString(10);
+    //   const amount = "10";
+    //   const bytesData = await messages.encodeTransferEthMessage(user, amount);
+    //   const sender = deployer;
+    //   // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address`
+    //   // to avoid `Incorrect sender` error
+    //   // await lockAndDataForMainnet.setContract("MessageProxy", deployer);
+    //   // add schain to avoid the `Receiver chain is incorrect` error
+    //   await lockAndDataForMainnet
+    //     .addSchain(schainID, deployer, {from: deployer});
+    //   // execution
+    //   await depositBox
+    //     .postMessage(schainID, sender, bytesData, {from: deployer})
+    //     .should.be.eventually.rejectedWith(error);
+    // });
 
     it("should rejected with message `Invalid data`", async () => {
       //  preparation
@@ -416,7 +416,7 @@ contract("DepositBox", ([deployer, user]) => {
         .receiveEth(deployer, {value: wei, from: deployer});
       // execution
       await depositBox
-        .postMessage(schainID, sender, user, amount, bytesData, {from: deployer})
+        .postMessage(schainID, sender, bytesData, {from: deployer})
         .should.be.eventually.rejectedWith(error);
     });
 
@@ -424,9 +424,9 @@ contract("DepositBox", ([deployer, user]) => {
       //  preparation
       const schainID = randomString(10);
       // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
-      const bytesData = web3.eth.abi.encodeParameters(['uint8'], [1]);
+      const amount = "30000000000000000";
+      const bytesData = await messages.encodeTransferEthMessage(user, amount);
       const sender = deployer;
-      const wei = "30000000000000000";
       // redeploy depositBox with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
       // await lockAndDataForMainnet.setContract("MessageProxy", deployer);
@@ -437,10 +437,10 @@ contract("DepositBox", ([deployer, user]) => {
         .addSchain(schainID, deployer, {from: deployer});
       // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await lockAndDataForMainnet
-        .receiveEth(deployer, {value: wei, from: deployer});
+        .receiveEth(deployer, {value: amount, from: deployer});
       // execution
       const res = await depositBox
-        .postMessage(schainID, sender, user, wei, bytesData, {from: deployer});
+        .postMessage(schainID, sender, bytesData, {from: deployer});
       // console.log("Gas for postMessage Eth:", res.receipt.gasUsed);
       // expectation
       await lockAndDataForMainnet.approveTransfers(user);
@@ -480,7 +480,7 @@ contract("DepositBox", ([deployer, user]) => {
       await lockAndDataForMainnet.setContract("MessageProxy", deployer);
       const data = await messages.encodeTransferErc20Message(contractHere, to, amount);
       const res = await depositBox
-        .postMessage(schainID, sender, to0, wei, data, {from: deployer});
+        .postMessage(schainID, sender, data, {from: deployer});
       // console.log("Gas for postMessage ERC20:", res.receipt.gasUsed);
       // expectation
       await lockAndDataForMainnet.approveTransfers(user);
@@ -518,7 +518,7 @@ contract("DepositBox", ([deployer, user]) => {
       await lockAndDataForMainnet.setContract("MessageProxy", deployer);
       const data = await messages.encodeTransferErc721Message(contractHere, to, tokenId);
       const res = await depositBox
-        .postMessage(schainID, sender, to0, wei, data, {from: deployer});
+        .postMessage(schainID, sender, data, {from: deployer});
       // console.log("Gas for postMessage ERC721:", res.receipt.gasUsed);
       // expectation
       await lockAndDataForMainnet.approveTransfers(user);

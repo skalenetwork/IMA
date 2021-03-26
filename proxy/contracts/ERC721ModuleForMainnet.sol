@@ -81,9 +81,7 @@ contract ERC721ModuleForMainnet is PermissionsForMainnet {
      * @dev Allows DepositBox to send ERC721 tokens.
      */
     function sendERC721(bytes calldata data) external allow("DepositBox") returns (bool) {
-        address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract(
-            "LockAndDataERC721"
-        );
+        address lockAndDataERC721 = IContractManager(lockAndDataAddress_).getContract("LockAndDataERC721");
         Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
         return LockAndDataForMainnetERC721(lockAndDataERC721)
             .sendERC721(message.token, message.receiver, message.tokenId);

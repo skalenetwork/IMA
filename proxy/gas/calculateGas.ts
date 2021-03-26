@@ -570,7 +570,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
 
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -654,7 +654,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     });
 
     it("calculate 1 exit eth cost per one message deposit each time", async () => {
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -750,7 +750,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
 
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -826,7 +826,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     });
 
     it("calculate 1 exit eth cost per one message deposit each time getMyEth by the end", async () => {
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -914,7 +914,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
 
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -976,7 +976,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     });
 
     it("calculate 2 exit eth cost per one message deposit each time", async () => {
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -1050,7 +1050,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
 
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -1108,7 +1108,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     });
 
     it("calculate 2 exit eth cost per one message deposit each time getMyEth by the end", async () => {
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -1178,7 +1178,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
 
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -1229,7 +1229,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     });
 
     it("calculate 3 exit eth cost per one message deposit each time", async () => {
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -1292,7 +1292,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
 
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -1341,7 +1341,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     });
 
     it("calculate 3 exit eth cost per one message deposit each time getMyEth by the end", async () => {
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -1402,7 +1402,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
 
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -1453,7 +1453,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     });
 
     it("calculate 4 exit eth cost per one message deposit each time", async () => {
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -1516,7 +1516,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
 
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -1565,7 +1565,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     });
 
     it("calculate 4 exit eth cost per one message deposit each time getMyEth by the end", async () => {
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
@@ -1626,7 +1626,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
         await depositBox.deposit(schainName, user, {value: "1000000000000000000", from: user});
 
-        // prepare exit message of 1 eth - await TokenManager.exitToMain(user, {value: "1000000000000000000", from: user});
+        // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
             amount: "1000000000000000000",
             data: await messages.encodeTransferEthMessage(),
