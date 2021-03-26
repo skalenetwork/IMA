@@ -62,6 +62,22 @@ contract IMALinker is BasicConnector {
         }
     }
 
+    function connectSchain(string calldata schainName, address[] calldata tokenManagerAddresses) external onlyOwner {
+        require(tokenManagerAddresses.length == _depositBoxes.length, "Incorrect number of addresses");
+        for (uint i = 0; i < tokenManagerAddresses.length; i++) {
+            IDepositBox(_depositBoxes[i]).addTokenManager(schainName, tokenManagerAddresses[i]);
+        }
+        messageProxy.addConnectedChain(schainName);
+    }
+
+    function unconnectSchain(string calldata schainName) external onlyOwner {
+        uint length = _depositBoxes.length;
+        for (uint i = 0; i < length; i++) {
+            IDepositBox(_depositBoxes[i]).removeTokenManager(schainName);
+        }
+        messageProxy.removeConnectedChain(schainName);
+    }
+
     function rechargeSchainWallet(bytes32 schainId, uint256 amount) external {
         require(address(this).balance >= amount, "Not enough ETH to rechargeSchainWallet");
         address walletsAddress = IContractManager(contractManagerOfSkaleManager).getContract("Wallets");
@@ -79,12 +95,12 @@ contract IMALinker is BasicConnector {
         return false;
     }
 
-    function connectSchain(string calldata schainName, address[] calldata tokenManagerAddresses) external onlyOwner {
-        require(tokenManagerAddresses.length == _depositBoxes.length, "Incorrect number of addresses");
-        for (uint i = 0; i < tokenManagerAddresses.length; i++) {
-            IDepositBox(_depositBoxes[i]).addTokenManager(schainName, tokenManagerAddresses[i]);
+    function hasSchain(string calldata schainName) external view returns (bool connected) {
+        uint length = _depositBoxes.length;
+        for (uint i = 0; i < length; i++) {
+            connected = connected && IDepositBox(_depositBoxes[i]).hasTokenManager(schainName);
         }
-        messageProxy.addConnectedChain(schainName);
+        connected = connected && messageProxy.isConnectedChain(schainName);
     }
 
     function initialize(address newContractManagerOfSkaleManager, address newMessageProxyAddress) public initializer {
