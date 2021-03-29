@@ -25,25 +25,32 @@ export async function deployContractManager(contractManagerAddress: string) {
     if (contractManagerAddress === "0x0000000000000000000000000000000000000000") {
         instance = await contractManager.new();
     } else {
-        instance = contractManager.at(contractManagerAddress);
+        instance = await contractManager.at(contractManagerAddress);
     }
     if (await instance.getContract(nameKeyStorage) === "0x0000000000000000000000000000000000000000") {
         const keyStorageInstance = await keyStorage.new();
         await instance.setContractsAddress(nameKeyStorage, keyStorageInstance.address);
-    } else if (await instance.getContract(nameNodes) === "0x0000000000000000000000000000000000000000") {
+    }
+    if (await instance.getContract(nameNodes) === "0x0000000000000000000000000000000000000000") {
         const nodesInstance = await nodes.new();
         await instance.setContractsAddress(nameNodes, nodesInstance.address);
-    } else if (await instance.getContract(nameSchains) === "0x0000000000000000000000000000000000000000") {
+    }
+    if (await instance.getContract(nameSchains) === "0x0000000000000000000000000000000000000000") {
         const schainsInstance = await schains.new();
+        await schainsInstance.addContractManager(instance.address);
         await instance.setContractsAddress(nameSchains, schainsInstance.address);
-    } else if (await instance.getContract(nameSchainsInternal) === "0x0000000000000000000000000000000000000000") {
+    }
+    if (await instance.getContract(nameSchainsInternal) === "0x0000000000000000000000000000000000000000") {
         const schainsInternalInstance = await schainsInternal.new();
         await instance.setContractsAddress(nameSchainsInternal, schainsInternalInstance.address);
-    } else if (await instance.getContract(nameSkaleVerifier) === "0x0000000000000000000000000000000000000000") {
+    }
+    if (await instance.getContract(nameSkaleVerifier) === "0x0000000000000000000000000000000000000000") {
         const skaleVerifierInstance = await skaleVerifier.new();
         await instance.setContractsAddress(nameSkaleVerifier, skaleVerifierInstance.address);
-    } else if (await instance.getContract(nameWallets) === "0x0000000000000000000000000000000000000000") {
+    }
+    if (await instance.getContract(nameWallets) === "0x0000000000000000000000000000000000000000") {
         const walletsInstance = await wallets.new();
+        await walletsInstance.addContractManager(instance.address);
         await instance.setContractsAddress(nameWallets, walletsInstance.address);
     }
     return instance;
