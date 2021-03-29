@@ -130,8 +130,8 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
     function postMessage(
         string calldata fromSchainID,
         address sender,
-        address to,
-        uint256 amount,
+        address,
+        uint256,
         bytes calldata data
     )
         external
