@@ -746,11 +746,11 @@ async function safe_send_signed_transaction( w3, serializedTx, strActionName, st
 //
 async function check_is_registered_s_chain_in_deposit_boxes( // step 1
     w3_main_net,
-    jo_ima_linker,
+    jo_imalinker,
     joAccount_main_net,
     chain_id_s_chain
 ) {
-    log.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "  address is....." ) + cc.bright( jo_ima_linker.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "  address is....." ) + cc.bright( jo_imalinker.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
     const strLogPrefix = cc.note( "RegChk S in depositBox:" ) + " ";
     if( verbose_get() >= RV_VERBOSE.debug ) {
@@ -762,7 +762,7 @@ async function check_is_registered_s_chain_in_deposit_boxes( // step 1
     try {
         strActionName = "check_is_registered_s_chain_in_deposit_boxes(reg-step1)";
         const addressFrom = joAccount_main_net.address( w3_main_net );
-        const bIsRegistered = await jo_ima_linker.methods.hasSchain( chain_id_s_chain ).call( {
+        const bIsRegistered = await jo_imalinker.methods.hasSchain( chain_id_s_chain ).call( {
             from: addressFrom
         } );
         if( verbose_get() >= RV_VERBOSE.information )
@@ -827,7 +827,7 @@ async function wait_for_has_chain(
 async function register_s_chain_in_deposit_boxes( // step 1
     w3_main_net,
     // jo_deposit_box, // only main net
-    jo_ima_linker,
+    jo_imalinker,
     joAccount_main_net,
     jo_token_manager, // only s-chain
     chain_id_s_chain,
@@ -837,7 +837,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
     nSleepMilliseconds
 ) {
     const jarrReceipts = []; // register_s_chain_in_deposit_boxes
-    log.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "  address is....." ) + cc.bright( jo_ima_linker.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "  address is......." ) + cc.bright( jo_imalinker.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
     const strLogPrefix = cc.sunny( "Reg S in depositBoxes:" ) + " ";
     if( verbose_get() >= RV_VERBOSE.debug ) {
@@ -866,8 +866,8 @@ async function register_s_chain_in_deposit_boxes( // step 1
         // ).call( { from: joAccount_main_net.address( w3_main_net ) } );
         // if( verbose_get() >= RV_VERBOSE.trace )
         //     log.write( strLogPrefix + cc.debug( "Account " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + cc.debug( " has S-Chain owner permission " ) + cc.info( isSchainOwner ) + "\n" );
-        if( isSchainOwner ) {
-            const methodWithArguments = jo_ima_linker.methods.connectSchain(
+        // if( isSchainOwner ) {
+            const methodWithArguments = jo_imalinker.methods.connectSchain(
                 chain_id_s_chain,
                 [
                     jo_token_manager.options.address, // call params
@@ -894,7 +894,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
                 gasPrice: gasPrice,
                 // gasLimit: estimatedGas,
                 gas: estimatedGas, // gas is optional here
-                to: jo_ima_linker.options.address, // contract address
+                to: jo_imalinker.options.address, // contract address
                 data: dataTx
             };
             const tx = compose_tx_instance( strLogPrefix, rawTx );
@@ -908,20 +908,22 @@ async function register_s_chain_in_deposit_boxes( // step 1
                 // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
                 joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
             }
-            if( verbose_get() >= RV_VERBOSE.information )
+            if( verbose_get() >= RV_VERBOSE.information ) {
+                console.log(joReceipt);
                 log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+            }
             if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
                 jarrReceipts.push( {
                     "description": "register_s_chain_in_deposit_boxes",
                     "receipt": joReceipt
                 } );
             }
-        } else
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "Will wait until S-Chain owner will register S-Chain in ima-linker on Main-net" ) + "\n" );
+        // } else
+        // if( verbose_get() >= RV_VERBOSE.trace )
+        //     log.write( strLogPrefix + cc.debug( "Will wait until S-Chain owner will register S-Chain in ima-linker on Main-net" ) + "\n" );
         const isSChainStatusOKay = await wait_for_has_chain(
             w3_main_net,
-            jo_ima_linker,
+            jo_imalinker,
             joAccount_main_net,
             chain_id_s_chain,
             cntWaitAttempts,
@@ -934,6 +936,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_s_chain_in_deposit_boxes() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return null;
     }
+    console.log("!!!!!!!!!!!!!!!!!!!!!!!!!! PASSED !!!!!!!!!!!!!!!!!!!!!!!!!!");
     return jarrReceipts;
 } // async function register_deposit_box_on_s_chain(...
 
@@ -1004,7 +1007,7 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
         strActionName = "reg-step2A:w3_s_chain.eth.getTransactionCount()/register_main_net_depositBox_on_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        const tcnt = await get_web3_transactionCount( 10, w3_s_chain, joAccount.address( w3_s_chain ), null );
+        let tcnt = await get_web3_transactionCount( 10, w3_s_chain, joAccount.address( w3_s_chain ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -1072,6 +1075,7 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
             } );
         }
         //
+        tcnt = await get_web3_transactionCount( 10, w3_s_chain, joAccount.address( w3_s_chain ), null );
         const rawTxERC20 = {
             chainId: cid_s_chain,
             nonce: tcnt,
@@ -1101,6 +1105,7 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
             } );
         }
         //
+        tcnt = await get_web3_transactionCount( 10, w3_s_chain, joAccount.address( w3_s_chain ), null );
         const rawTxERC721 = {
             chainId: cid_s_chain,
             nonce: tcnt,
@@ -1276,7 +1281,6 @@ async function do_eth_payment_from_main_net(
     joAccountDst,
     jo_deposit_box,
     jo_message_proxy_main_net, // for checking logs
-    jo_lock_and_data_main_net, // for checking logs
     chain_id_s_chain,
     wei_how_much, // how much WEI money to send
     tc_main_net
@@ -1354,31 +1358,31 @@ async function do_eth_payment_from_main_net(
             } else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
-        if( jo_lock_and_data_main_net ) {
-            if( verbose_get() >= RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "ETHReceived" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-            const joEvents = await get_contract_call_events( w3_main_net, jo_lock_and_data_main_net, "ETHReceived", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-            if( joEvents.length > 0 ) {
-                if( verbose_get() >= RV_VERBOSE.information )
-                    log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "ETHReceived" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-            } else
-                throw new Error( "Verification failed for the \"ETHReceived\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-        } // if( jo_lock_and_data_main_net )
+        // if( jo_lock_and_data_main_net ) {
+        //     if( verbose_get() >= RV_VERBOSE.information )
+        //         log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "ETHReceived" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
+        //     const joEvents = await get_contract_call_events( w3_main_net, jo_lock_and_data_main_net, "ETHReceived", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length > 0 ) {
+        //         if( verbose_get() >= RV_VERBOSE.information )
+        //             log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "ETHReceived" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+        //     } else
+        //         throw new Error( "Verification failed for the \"ETHReceived\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
+        // } // if( jo_lock_and_data_main_net )
         //
         // Must-absent event(s) analysis as indicator(s) of success
         //
-        if( jo_lock_and_data_main_net ) {
-            if( verbose_get() >= RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-            const joEvents = await get_contract_call_events( w3_main_net, jo_lock_and_data_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-            if( joEvents.length == 0 ) {
-                if( verbose_get() >= RV_VERBOSE.information )
-                    log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, no event found" ) + "\n" );
-            } else {
-                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error verification fail" ) + cc.error( " for the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-                throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-            }
-        } // if( jo_lock_and_data_main_net )
+        // if( jo_lock_and_data_main_net ) {
+        //     if( verbose_get() >= RV_VERBOSE.information )
+        //         log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
+        //     const joEvents = await get_contract_call_events( w3_main_net, jo_lock_and_data_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length == 0 ) {
+        //         if( verbose_get() >= RV_VERBOSE.information )
+        //             log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, no event found" ) + "\n" );
+        //     } else {
+        //         log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error verification fail" ) + cc.error( " for the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+        //         throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
+        //     }
+        // } // if( jo_lock_and_data_main_net )
         if( jo_deposit_box ) {
             if( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.debug( " contract..." ) + "\n" );
@@ -1518,7 +1522,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
     w3_main_net,
     cid_main_net,
     joAccount_main_net,
-    jo_ima_linker,
+    jo_imalinker,
     tc_main_net
 ) {
     const jarrReceipts = []; // receive_eth_payment_from_s_chain_on_main_net
@@ -1532,7 +1536,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
-        const methodWithArguments = jo_ima_linker.methods.getMyEth(
+        const methodWithArguments = jo_imalinker.methods.getMyEth(
             // call params(empty)
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
@@ -1554,7 +1558,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             gas: estimatedGas, // 2100000
             gasPrice: gasPrice,
             // gasLimit: estimatedGas, // 3000000
-            to: jo_ima_linker.options.address, // contract address
+            to: jo_imalinker.options.address, // contract address
             data: dataTx,
             value: 0 // how much money to send
         };
@@ -1592,7 +1596,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
 async function view_eth_payment_from_s_chain_on_main_net(
     w3_main_net,
     joAccount_main_net,
-    jo_ima_linker
+    jo_imalinker
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "S ETH View:" ) + " ";
     try {
@@ -1605,7 +1609,7 @@ async function view_eth_payment_from_s_chain_on_main_net(
         //
         //
         const addressFrom = joAccount_main_net.address( w3_main_net );
-        const xWei = await jo_ima_linker.methods.approveTransfers( addressFrom ).call( {
+        const xWei = await jo_imalinker.methods.approveTransfers( addressFrom ).call( {
             from: addressFrom
         } );
         if( verbose_get() >= RV_VERBOSE.information )

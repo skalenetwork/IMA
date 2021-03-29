@@ -97,6 +97,7 @@ contract IMALinker is BasicConnector {
 
     function hasSchain(string calldata schainName) external view returns (bool connected) {
         uint length = _depositBoxes.length;
+        connected = true;
         for (uint i = 0; i < length; i++) {
             connected = connected && IDepositBox(_depositBoxes[i]).hasTokenManager(schainName);
         }

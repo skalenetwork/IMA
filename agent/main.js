@@ -127,7 +127,7 @@ global.imaState = {
     "jo_deposit_box_eth": null, // only main net
     "jo_deposit_box_erc20": null, // only main net
     "jo_deposit_box_erc721": null, // only main net
-    "jo_ima_linker": null, // only main net
+    "jo_imalinker": null, // only main net
     "jo_token_manager": null, // only s-chain
     "jo_message_proxy_main_net": null,
     "jo_message_proxy_s_chain": null,
@@ -925,7 +925,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
     let jarrReceipts = "true";
     const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_boxes( // step 1
         imaState.w3_main_net,
-        imaState.jo_ima_linker,
+        imaState.jo_imalinker,
         imaState.joAccount_main_net,
         imaState.strChainID_s_chain
     );
@@ -933,7 +933,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
         jarrReceipts = await IMA.register_s_chain_in_deposit_boxes( // step 1
             imaState.w3_main_net,
             // imaState.jo_deposit_box - only main net
-            imaState.jo_ima_linker,
+            imaState.jo_imalinker,
             imaState.joAccount_main_net,
             imaState.jo_token_manager, // only s-chain
             imaState.strChainID_s_chain,
@@ -960,6 +960,9 @@ async function register_step2( isPrintSummaryRegistrationCosts ) {
     let jarrReceipts2A = "true";
     const bRetVal2A = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 2A
         imaState.w3_s_chain,
+        imaState.jo_deposit_box_eth, // only main net
+        imaState.jo_deposit_box_erc20, // only main net
+        imaState.jo_deposit_box_erc721, // only main net
         imaState.jo_lock_and_data_s_chain,
         imaState.joAccount_s_chain
     );
@@ -1034,9 +1037,9 @@ async function check_registration_all() {
     return true;
 }
 async function check_registration_step1() {
-    const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_box( // step 1
+    const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_boxes( // step 1
         imaState.w3_main_net,
-        imaState.jo_ima_linker,
+        imaState.jo_imalinker,
         imaState.joAccount_main_net,
         imaState.strChainID_s_chain
     );
@@ -1045,6 +1048,9 @@ async function check_registration_step1() {
 async function check_registration_step2() {
     const bRetVal2A = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 2A
         imaState.w3_s_chain,
+        imaState.jo_deposit_box_eth, // only main net
+        imaState.jo_deposit_box_erc20, // only main net
+        imaState.jo_deposit_box_erc721, // only main net
         imaState.jo_lock_and_data_s_chain,
         imaState.joAccount_s_chain
     );
