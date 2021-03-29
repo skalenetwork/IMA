@@ -144,8 +144,8 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
 
         // send Eth to a client on Mainnet:
-        await tokenManager.exitToMainEth(to, amountTo, {from: user}).should.be.eventually.rejectedWith("Not enough funds to exit");
-        await tokenManager.exitToMainEth(to, amountTo2, {from: user});
+        await tokenManager.exitToMain(to, amountTo, {from: user}).should.be.eventually.rejectedWith("Not enough funds to exit");
+        await tokenManager.exitToMain(to, amountTo2, {from: user});
         const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
         balanceAfter.should.be.deep.equal(amountAfter);
     });
@@ -176,7 +176,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchain.addSchain(chainID, user, {from: deployer});
 
         // send Eth and data to a client on schain:
-        await tokenManager.transferToSchainEth(chainID, to, amountTo, {from: user});
+        await tokenManager.transferToSchain(chainID, to, amountTo, {from: user});
 
         const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
         balanceAfter.should.be.deep.equal(amountAfter);

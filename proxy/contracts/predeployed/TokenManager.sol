@@ -101,7 +101,7 @@ contract TokenManager is PermissionsForSchain {
     /**
      * @dev Performs an exit (post outgoing message) to Mainnet.
      */
-    function exitToMainEth(address to, uint256 amount) external receivedEth(amount) {
+    function exitToMain(address to, uint256 amount) external receivedEth(amount) {
         require(to != address(0), "Incorrect contractThere address");
         require(amount >= TX_FEE, "Not enough funds to exit");
         // uint amountOfEthToSend = amount >= TX_FEE ?
@@ -115,7 +115,7 @@ contract TokenManager is PermissionsForSchain {
         );
     }
 
-    function transferToSchainEth(
+    function transferToSchain(
         string memory schainID,
         address to,
         uint256 amount
