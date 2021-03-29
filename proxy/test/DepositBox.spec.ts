@@ -55,7 +55,7 @@ chai.use((chaiAsPromised as any));
 // import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
 // import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
 // import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
-import { deployDepositBox } from "./utils/deploy/depositBoxEth";
+import { deployDepositBoxEth } from "./utils/deploy/depositBoxEth";
 // import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
 // import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMainnet";
 
