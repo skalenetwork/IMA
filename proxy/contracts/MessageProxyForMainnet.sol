@@ -92,8 +92,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     struct Message {
         address sender;
         address destinationContract;
-        address to;
-        uint256 amount;
         bytes data;
     }
 
@@ -391,8 +389,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
                 data,
                 bytes32(bytes20(messages[i].sender)),
                 bytes32(bytes20(messages[i].destinationContract)),
-                bytes32(bytes20(messages[i].to)),
-                messages[i].amount,
                 messages[i].data
             );
         }

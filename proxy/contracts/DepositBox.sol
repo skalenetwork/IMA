@@ -207,7 +207,7 @@ contract DepositBox is PermissionsForMainnet {
             address receiver =  Messages.decodeTransferEthMessage(data).receiver;
             uint amount =  Messages.decodeTransferEthMessage(data).amount;
             // if (amount > txFee)
-            LockAndDataForMainnet(lockAndDataAddress_).approveTransfer(receiver, amount);
+            LockAndDataForMainnet(lockAndDataAddress_).approveTransfer(receiver, amount - txFee);
         } else if (operation == Messages.MessageType.TRANSFER_ERC20) {
             address erc20Module = IContractManager(lockAndDataAddress_).getContract("ERC20Module");
             require(ERC20ModuleForMainnet(erc20Module).sendERC20(data), "Sending of ERC20 was failed");

@@ -572,11 +572,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -656,11 +654,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     it("calculate 1 exit eth cost per one message deposit each time", async () => {
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -752,11 +748,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -828,11 +822,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     it("calculate 1 exit eth cost per one message deposit each time getMyEth by the end", async () => {
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -916,11 +908,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -978,11 +968,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     it("calculate 2 exit eth cost per one message deposit each time", async () => {
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -1052,11 +1040,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -1110,11 +1096,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     it("calculate 2 exit eth cost per one message deposit each time getMyEth by the end", async () => {
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -1180,11 +1164,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -1231,11 +1213,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     it("calculate 3 exit eth cost per one message deposit each time", async () => {
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -1294,11 +1274,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -1343,11 +1321,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     it("calculate 3 exit eth cost per one message deposit each time getMyEth by the end", async () => {
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -1404,11 +1380,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -1455,12 +1429,10 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     it("calculate 4 exit eth cost per one message deposit each time", async () => {
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
-        };
+        };;
 
         // prepare BLS signature
         // P.s. this is test signature from test of SkaleManager.SkaleVerifier - please do not use it!!!
@@ -1518,11 +1490,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -1567,11 +1537,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     it("calculate 4 exit eth cost per one message deposit each time getMyEth by the end", async () => {
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
@@ -1628,11 +1596,9 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
         // prepare exit message of 1 eth - await tokenManager.exitToMainEth(user, {value: "1000000000000000000", from: user});
         const message = {
-            amount: "1000000000000000000",
-            data: await messages.encodeTransferEthMessage(),
+            data: await messages.encodeTransferEthMessage(user, "1000000000000000000"),
             destinationContract: depositBox.address,
             sender: tokenManager.address,
-            to: user
         };
 
         // prepare BLS signature
