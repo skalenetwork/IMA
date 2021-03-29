@@ -202,7 +202,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         //
         await eRC20OnChain.approve(tokenManager.address, amountTo, {from: user});
         // // execution/expectation
-        await tokenManager.exitToMainERC20(eRC20.address, client, amountTo, {from: deployer})
+        await tokenManager.exitToMainERC20(eRC20.address, client, amountTo, amountEth, {from: deployer})
             .should.be.eventually.rejectedWith(error);
     });
 
@@ -311,7 +311,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // execution:
         const res = await tokenManager
-            .exitToMainERC20(eRC20.address, client, amountReduceCost, {from: user});
+            .exitToMainERC20(eRC20.address, client, amountReduceCost, amountEth, {from: user});
 
         // // expectation:
         const outgoingMessagesCounterMainnet = new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter("Mainnet"));
@@ -361,7 +361,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // execution:
         await tokenManager
-            .transferToSchainERC20(schainID, eRC20.address, client, amountReduceCost, {from: deployer})
+            .transferToSchainERC20(schainID, eRC20.address, client, amountReduceCost, 0, {from: deployer})
             .should.be.eventually.rejectedWith(error);
     });
 
@@ -395,7 +395,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // execution:
         await tokenManager
-            .transferToSchainERC20(schainID, eRC20.address, client, amountReduceCost, {from: deployer});
+            .transferToSchainERC20(schainID, eRC20.address, client, amountReduceCost, 0, {from: deployer});
         // expectation:
         const outgoingMessagesCounterMainnet = new BigNumber(
             await messageProxyForSchain.getOutgoingMessagesCounter(schainID));
@@ -431,7 +431,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // execution:
         await tokenManager
-            .exitToMainERC721(eRC721.address, client, tokenId, {from: deployer})
+            .exitToMainERC721(eRC721.address, client, tokenId, 0, {from: deployer})
             .should.be.eventually.rejectedWith(error);
     });
 
@@ -545,7 +545,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC721OnChain.transferFrom(user, tokenManager.address, tokenId, {from: user});
 
         // execution:
-        await tokenManager.exitToMainERC721(contractThere, to, tokenId, {from: user});
+        await tokenManager.exitToMainERC721(contractThere, to, tokenId, amountEth, {from: user});
         // expectation:
         const outgoingMessagesCounterMainnet = new BigNumber(await messageProxyForSchain
             .getOutgoingMessagesCounter("Mainnet"));
@@ -585,7 +585,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // execution:
         const res = await tokenManager
-            .transferToSchainERC721(schainID, contractThere, to, tokenId, {from: deployer});
+            .transferToSchainERC721(schainID, contractThere, to, tokenId, 0, {from: deployer});
         // expectation:
         const outgoingMessagesCounter = new BigNumber(await messageProxyForSchain
             .getOutgoingMessagesCounter(schainID));
@@ -627,7 +627,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // execution:
         await tokenManager
-            .transferToSchainERC721(schainID, contractThere, to, tokenId, {from: deployer})
+            .transferToSchainERC721(schainID, contractThere, to, tokenId, 0, {from: deployer})
             .should.be.eventually.rejectedWith(error);
     });
 

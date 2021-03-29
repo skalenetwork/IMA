@@ -135,7 +135,8 @@ contract TokenManager is PermissionsForSchain {
     function exitToMainERC20(
         address contractOnMainnet,
         address to,
-        uint256 amount
+        uint256 amount,
+        uint256 amountOfEth
     )
         external
     {
@@ -162,7 +163,7 @@ contract TokenManager is PermissionsForSchain {
             ),
             "Could not transfer ERC20 Token"
         );
-        // require(amountOfEth >= TX_FEE, "Not enough funds to exit");
+        require(amountOfEth >= TX_FEE, "Not enough funds to exit");
         // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
         //     amountOfEth :
         //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
@@ -184,7 +185,8 @@ contract TokenManager is PermissionsForSchain {
         string calldata schainID,
         address contractOnMainnet,
         address to,
-        uint256 amount
+        uint256 amount,
+        uint256 amountOfEth
     )
         external
         rightTransaction(schainID)
@@ -224,7 +226,8 @@ contract TokenManager is PermissionsForSchain {
     function exitToMainERC721(
         address contractOnMainnet,
         address to,
-        uint256 tokenId
+        uint256 tokenId,
+        uint256 amountOfEth
     )
         external
     {
@@ -235,7 +238,7 @@ contract TokenManager is PermissionsForSchain {
         require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractOnSchain).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-        // require(amountOfEth >= TX_FEE, "Not enough funds to exit");
+        require(amountOfEth >= TX_FEE, "Not enough funds to exit");
         // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
         //     amountOfEth :
         //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
@@ -257,7 +260,8 @@ contract TokenManager is PermissionsForSchain {
         string calldata schainID,
         address contractOnMainnet,
         address to,
-        uint256 tokenId
+        uint256 tokenId,
+        uint256 amountOfEth
     ) 
         external
         rightTransaction(schainID)
