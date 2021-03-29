@@ -47,6 +47,8 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     mapping(address => bool) public authorizedCaller;
 
+    address[] private _depositBoxes;
+
     string public constant ERC20_MODULE = "ERC20Module";
     string public constant ERC721_MODULE = "ERC721Module";
     string public constant LOCK_AND_DATA_ERC20 = "LockAndDataERC20";
@@ -142,12 +144,25 @@ contract LockAndDataForSchain is OwnableForSchain {
     /**
      * @dev Checks whether LockAndDataForSchain is connected to a DepositBox.
      */
-    function hasDepositBox() external view returns(bool) {
-        bytes32 depositBoxHash = keccak256(abi.encodePacked("Mainnet"));
-        if ( tokenManagerAddresses[depositBoxHash] == address(0) ) {
-            return false;
+    function hasDepositBox(address depositBoxAddress) public view returns (bool) {
+        uint index;
+        uint length = _depositBoxes.length;
+        for (index = 0; index < length; index++) {
+            if (_depositBoxes[index] == depositBoxAddress) {
+                return true;
+            }
         }
-        return true;
+        return false;
+    }
+
+    /**
+     * @dev Returns a DepositBox by index.
+     */
+    function getDepositBox(uint index) external view returns (address) {
+        if (index < _depositBoxes.length) {
+            return _depositBoxes[index];
+        }
+        return address(0);
     }
 
     /**
@@ -159,18 +174,11 @@ contract LockAndDataForSchain is OwnableForSchain {
      * - DepositBox must not already be added.
      * - DepositBox address must be non-zero.
      */
-    function addDepositBox(address depositBoxAddress) external {
+    function addDepositBox(address newDepositBoxAddress) external {
         require(isAuthorizedCaller(msg.sender) || getSchainOwner() == msg.sender, "Not authorized caller");
-        require(depositBoxAddress != address(0), "Incorrect Deposit Box address");
-        require(
-            tokenManagerAddresses[
-                keccak256(abi.encodePacked("Mainnet"))
-            ] != depositBoxAddress,
-            "Deposit Box is already set"
-        );
-        tokenManagerAddresses[
-            keccak256(abi.encodePacked("Mainnet"))
-        ] = depositBoxAddress;
+        require(newDepositBoxAddress != address(0), "Incorrect Deposit Box address");
+        require(!hasDepositBox(newDepositBoxAddress), "Deposit Box is already set");
+        _depositBoxes.push(newDepositBoxAddress);
     }
 
     /**
@@ -180,14 +188,21 @@ contract LockAndDataForSchain is OwnableForSchain {
      *
      * - DepositBox must already be set.
      */
-    function removeDepositBox() external onlySchainOwner {
-        require(
-            tokenManagerAddresses[
-                keccak256(abi.encodePacked("Mainnet"))
-            ] != address(0),
-            "Deposit Box is not set"
-        );
-        delete tokenManagerAddresses[keccak256(abi.encodePacked("Mainnet"))];
+    function removeDepositBox(address depositBoxAddress) external {
+        require(isAuthorizedCaller(msg.sender) || getSchainOwner() == msg.sender, "Not authorized caller");
+        uint index;
+        uint length = _depositBoxes.length;
+        for (index = 0; index < length; index++) {
+            if (_depositBoxes[index] == depositBoxAddress) {
+                break;
+            }
+        }
+        if (index < length) {
+            if (index < length.sub(1)) {
+                _depositBoxes[index] = _depositBoxes[length.sub(1)];
+            }
+            _depositBoxes.pop();
+        }
     }
 
     /**

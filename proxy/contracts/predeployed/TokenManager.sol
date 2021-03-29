@@ -138,7 +138,7 @@ contract TokenManager is PermissionsForSchain {
             amount);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
-            LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            LockAndDataForSchain(getLockAndDataAddress()).getDepositBox(1),
             amountOfEth,
             address(0),
             data
@@ -216,7 +216,7 @@ contract TokenManager is PermissionsForSchain {
             tokenId);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
-            LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            LockAndDataForSchain(getLockAndDataAddress()).getDepositBox(2),
             amountOfEth,
             address(0),
             data
@@ -325,7 +325,7 @@ contract TokenManager is PermissionsForSchain {
         // require(amountOfEthToSend != 0, "Community pool is empty");
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
-            LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            LockAndDataForSchain(getLockAndDataAddress()).getDepositBox(0),
             amountOfEth,
             to,
             Messages.encodeTransferEthMessage()

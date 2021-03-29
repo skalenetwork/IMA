@@ -124,11 +124,13 @@ global.imaState = {
     "w3_main_net": null,
     "w3_s_chain": null,
 
-    "jo_deposit_box": null, // only main net
+    "jo_deposit_box_eth": null, // only main net
+    "jo_deposit_box_erc20": null, // only main net
+    "jo_deposit_box_erc721": null, // only main net
+    "jo_ima_linker": null, // only main net
     "jo_token_manager": null, // only s-chain
     "jo_message_proxy_main_net": null,
     "jo_message_proxy_s_chain": null,
-    "jo_lock_and_data_main_net": null,
     "jo_lock_and_data_s_chain": null,
     "eth_erc20": null, // only s-chain
     // "eth_erc721": null, // only s-chain
@@ -282,9 +284,8 @@ imaCLI.parse( {
                         imaState.cid_s_chain,
                         imaState.joAccount_main_net,
                         imaState.joAccount_s_chain,
-                        imaState.jo_deposit_box, // only main net
+                        imaState.jo_deposit_box_erc721, // only main net
                         imaState.jo_message_proxy_main_net, // for checking logs
-                        imaState.jo_lock_and_data_main_net, // for checking logs
                         imaState.strChainID_s_chain,
                         imaState.idToken, // which ERC721 token id to send
                         imaState.nAmountOfWei, // how much WEI money to send
@@ -308,9 +309,8 @@ imaCLI.parse( {
                         imaState.cid_s_chain,
                         imaState.joAccount_main_net,
                         imaState.joAccount_s_chain,
-                        imaState.jo_deposit_box, // only main net
+                        imaState.jo_deposit_box_erc20, // only main net
                         imaState.jo_message_proxy_main_net, // for checking logs
-                        imaState.jo_lock_and_data_main_net, // for checking logs
                         imaState.strChainID_s_chain,
                         imaState.nAmountOfToken, // how much ERC20 tokens to send
                         imaState.nAmountOfWei, // how much WEI money to send
@@ -329,9 +329,8 @@ imaCLI.parse( {
                     imaState.cid_main_net,
                     imaState.joAccount_main_net,
                     imaState.joAccount_s_chain,
-                    imaState.jo_deposit_box, // only main net
+                    imaState.jo_deposit_box_eth, // only main net
                     imaState.jo_message_proxy_main_net, // for checking logs
-                    imaState.jo_lock_and_data_main_net, // for checking logs
                     imaState.strChainID_s_chain,
                     imaState.nAmountOfWei, // how much WEI money to send
                     imaState.tc_main_net
@@ -356,7 +355,7 @@ imaCLI.parse( {
                         imaState.jo_token_manager, // only s-chain
                         imaState.jo_lock_and_data_s_chain,
                         imaState.jo_message_proxy_s_chain, // for checking logs
-                        imaState.jo_deposit_box, // only main net
+                        imaState.jo_deposit_box_erc721, // only main net
                         imaState.idToken, // which ERC721 token id to send
                         imaState.nAmountOfWei, // how much WEI money to send
                         imaState.strCoinNameErc721_main_net,
@@ -379,7 +378,7 @@ imaCLI.parse( {
                         imaState.jo_token_manager, // only s-chain
                         imaState.jo_lock_and_data_s_chain,
                         imaState.jo_message_proxy_s_chain, // for checking logs
-                        imaState.jo_deposit_box, // only main net
+                        imaState.jo_deposit_box_erc20, // only main net
                         imaState.nAmountOfToken, // how ERC20 tokens money to send
                         imaState.nAmountOfWei, // how much WEI money to send
                         imaState.strCoinNameErc20_main_net,
@@ -399,6 +398,7 @@ imaCLI.parse( {
                     imaState.jo_token_manager, // only s-chain
                     imaState.jo_lock_and_data_s_chain,
                     imaState.jo_message_proxy_s_chain, // for checking logs
+                    imaState.jo_deposit_box_eth, // for checking logs
                     imaState.nAmountOfWei, // how much WEI money to send
                     imaState.tc_s_chain
                 );
@@ -414,7 +414,7 @@ imaCLI.parse( {
                     imaState.w3_main_net,
                     imaState.cid_main_net,
                     imaState.joAccount_main_net,
-                    imaState.jo_lock_and_data_main_net,
+                    imaState.jo_deposit_box_eth,
                     imaState.tc_main_net
                 );
             }
@@ -428,7 +428,7 @@ imaCLI.parse( {
                 const xWei = await IMA.view_eth_payment_from_s_chain_on_main_net(
                     imaState.w3_main_net,
                     imaState.joAccount_main_net,
-                    imaState.jo_lock_and_data_main_net
+                    imaState.jo_deposit_box_eth
                 );
                 if( xWei === null || xWei === undefined )
                     return false;
@@ -490,7 +490,7 @@ imaCLI.parse( {
                     imaState.strChainID_main_net,
                     imaState.cid_s_chain,
                     imaState.cid_main_net,
-                    imaState.jo_deposit_box, // for logs validation on mainnet
+                    imaState.jo_deposit_box_eth, // for logs validation on mainnet
                     null, // imaState.jo_token_manager - for logs validation on s-chain
                     imaState.nTransferBlockSizeS2M,
                     imaState.nMaxTransactionsS2M,
@@ -923,17 +923,17 @@ const g_registrationCostInfo = {
 async function register_step1( isPrintSummaryRegistrationCosts ) {
     const strLogPrefix = cc.info( "Reg 1:" ) + " ";
     let jarrReceipts = "true";
-    const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_box( // step 1
+    const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_boxes( // step 1
         imaState.w3_main_net,
-        imaState.jo_lock_and_data_main_net,
+        imaState.jo_ima_linker,
         imaState.joAccount_main_net,
         imaState.strChainID_s_chain
     );
     if( !bRetVal ) {
-        jarrReceipts = await IMA.register_s_chain_in_deposit_box( // step 1
+        jarrReceipts = await IMA.register_s_chain_in_deposit_boxes( // step 1
             imaState.w3_main_net,
             // imaState.jo_deposit_box - only main net
-            imaState.jo_lock_and_data_main_net,
+            imaState.jo_ima_linker,
             imaState.joAccount_main_net,
             imaState.jo_token_manager, // only s-chain
             imaState.strChainID_s_chain,
@@ -968,7 +968,9 @@ async function register_step2( isPrintSummaryRegistrationCosts ) {
         jarrReceipts2A = await IMA.register_main_net_depositBox_on_s_chain( // step 2A
             imaState.w3_s_chain,
             // imaState.jo_token_manager - only s-chain
-            imaState.jo_deposit_box, // only main net
+            imaState.jo_deposit_box_eth, // only main net
+            imaState.jo_deposit_box_erc20, // only main net
+            imaState.jo_deposit_box_erc721, // only main net
             imaState.jo_lock_and_data_s_chain,
             imaState.joAccount_s_chain,
             imaState.cid_s_chain,
@@ -1034,7 +1036,7 @@ async function check_registration_all() {
 async function check_registration_step1() {
     const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_box( // step 1
         imaState.w3_main_net,
-        imaState.jo_lock_and_data_main_net,
+        imaState.jo_ima_linker,
         imaState.joAccount_main_net,
         imaState.strChainID_s_chain
     );
