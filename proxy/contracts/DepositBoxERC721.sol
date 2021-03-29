@@ -203,9 +203,9 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
 
     /// Create a new deposit box
     function initialize(
-        address newIMALinkerAddress,
         address newContractManagerOfSkaleManager,
-        address newMessageProxyAddress
+        address newMessageProxyAddress,
+        address newIMALinkerAddress
     )
         public
         override

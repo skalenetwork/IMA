@@ -12,7 +12,7 @@ export async function deployDepositBoxEth(
 
 ) {
     const instance = await DepositBoxEth.new();
-    await instance.initialize(imaLinker.address, contractManager.address, messageProxy.address);
+    await instance.initialize(contractManager.address, messageProxy.address, imaLinker.address);
     await imaLinker.registerDepositBox(instance.address);
     return instance;
 }
