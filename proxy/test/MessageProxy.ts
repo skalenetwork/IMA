@@ -222,7 +222,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 sender: user,
                 to: customer};
 
-            const messages = [message1, message2];
+            const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
                 counter: Counter,
@@ -235,7 +235,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 .postIncomingMessages(
                     chainID,
                     startingCounter,
-                    messages,
+                    outgoingMessages,
                     sign,
                     0,
                     {from: deployer},
@@ -247,7 +247,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             .postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
@@ -263,7 +263,6 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const amount = 5;
             const addressTo = client;
             const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
-            
 
             // chain should be inited:
             await messageProxyForMainnet.getOutgoingMessagesCounter(chainID).should.be.rejected;
@@ -302,7 +301,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 destinationContract: depositBox.address,
                 sender: user,
                 to: customer};
-            const messages = [message1, message2];
+            const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
                 counter: Counter,
@@ -323,7 +322,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             .postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
@@ -522,7 +521,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 destinationContract: tokenManager2.address,
                 sender: user,
                 to: customer};
-            const messages = [message1, message2];
+            const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
                 counter: Counter,
@@ -534,7 +533,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             await messageProxyForSchain.postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
@@ -545,7 +544,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             await messageProxyForSchain.postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
@@ -597,7 +596,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 destinationContract: tokenManager2.address,
                 sender: user,
                 to: customer};
-            const messages = [message1, message2];
+            const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
                 counter: Counter,
@@ -617,7 +616,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             await messageProxyForSchain.postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
