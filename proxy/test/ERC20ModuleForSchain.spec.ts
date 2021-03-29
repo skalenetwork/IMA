@@ -49,7 +49,7 @@ import chai = require("chai");
 import { randomString } from "./utils/helper";
 import { deployLockAndDataForMainnet } from "./utils/deploy/imaLinker";
 import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
-import { deployERC20ModuleForMainnet } from "./utils/deploy/depoositBoxERC20";
+import { deployERC20ModuleForMainnet } from "./utils/deploy/depositBoxERC20";
 
 chai.should();
 chai.use((chaiAsPromised as any));

@@ -83,7 +83,7 @@ import { deployLockAndDataForMainnet } from "../test/utils/deploy/imaLinker";
 import { deployLockAndDataForMainnetERC20 } from "../test/utils/deploy/lockAndDataForMainnetERC20";
 import { deployLockAndDataForMainnetERC721 } from "../test/utils/deploy/contractManager";
 import { deployDepositBox } from "../test/utils/deploy/depositBoxEth";
-import { deployERC20ModuleForMainnet } from "../test/utils/deploy/depoositBoxERC20";
+import { deployERC20ModuleForMainnet } from "../test/utils/deploy/depositBoxERC20";
 import { deployERC721ModuleForMainnet } from "../test/utils/deploy/depositBoxERC721";
 import { deployMessageProxyForMainnet } from "../test/utils/deploy/messageProxyForMainnet";
 

@@ -31,8 +31,7 @@ import {
   IMALinkerInstance,
   MessageProxyForMainnetInstance,
   MessagesTesterContract,
-  MessagesTesterInstance,
-  MessageProxyForMainnetContract
+  MessagesTesterInstance
   } from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
 
@@ -41,9 +40,6 @@ import chai = require("chai");
 chai.should();
 chai.use((chaiAsPromised as any));
 
-// import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
-// import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
-// import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
 import { deployDepositBoxEth } from "./utils/deploy/depositBoxEth";
 import { deployIMALinker } from "./utils/deploy/imaLinker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
@@ -51,30 +47,7 @@ import { deployContractManager } from "./utils/deploy/contractManager";
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
-// import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
-// import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMainnet";
-
-// const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
-// const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
-
-const publicKeyArray = [
-  "1122334455667788990011223344556677889900112233445566778899001122",
-  "1122334455667788990011223344556677889900112233445566778899001122",
-  "1122334455667788990011223344556677889900112233445566778899001122",
-  "1122334455667788990011223344556677889900112233445566778899001122",
-];
-
-const BLSPublicKey = {
-  x: {
-      a: "8276253263131369565695687329790911140957927205765534740198480597854608202714",
-      b: "12500085126843048684532885473768850586094133366876833840698567603558300429943",
-  },
-  y: {
-      a: "7025653765868604607777943964159633546920168690664518432704587317074821855333",
-      b: "14411459380456065006136894392078433460802915485975038137226267466736619639091",
-  }
-}
 
 const BlsSignature = [
   "178325537405109593276798394634841698946852714038246117383766698579865918287",
@@ -85,14 +58,11 @@ const HashB = "15163860114293529009901628456926790077787470245128337652112878212
 const Counter = 0;
 
 contract("DepositBox", ([deployer, user, user2]) => {
-  // let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let depositBox: DepositBoxEthInstance;
   let contractManager: ContractManagerInstance;
   let messageProxy: MessageProxyForMainnetInstance;
   let imaLinker: IMALinkerInstance;
   let contractManagerAddress = "0x0000000000000000000000000000000000000000";
-  // let schainsInternal: SchainsInternalInstance;
-  // let wallets: WalletsInstance;
 
   beforeEach(async () => {
     contractManager = await deployContractManager(contractManagerAddress);
@@ -100,13 +70,6 @@ contract("DepositBox", ([deployer, user, user2]) => {
     messageProxy = await deployMessageProxyForMainnet(contractManager);
     imaLinker = await deployIMALinker(contractManager, messageProxy);
     depositBox = await deployDepositBoxEth(imaLinker, contractManager, messageProxy);
-    // schainsInternal = await SchainsInternal.new({from: deployer});
-    // wallets = await Wallets.new({from: deployer});
-    // await contractManager.setContractsAddress("SchainsInternal", schainsInternal.address, {from: deployer});
-    // await contractManager.setContractsAddress("Wallets", wallets.address, {from: deployer});
-    // await wallets.addContractManager(contractManager.address);
-    // lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    // await lockAndDataForMainnet.setContract("ContractManagerForSkaleManager", contractManager.address, {from: deployer});
   });
 
   describe("tests for `deposit` function", async () => {
