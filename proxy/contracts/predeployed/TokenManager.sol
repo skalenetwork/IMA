@@ -139,6 +139,7 @@ contract TokenManager is PermissionsForSchain {
         uint256 amountOfEth
     )
         external
+        receivedEth(amountOfEth)
     {
         address lockAndDataERC20 = LockAndDataForSchain(
             getLockAndDataAddress()
@@ -190,6 +191,7 @@ contract TokenManager is PermissionsForSchain {
     )
         external
         rightTransaction(schainID)
+        receivedEth(amountOfEth)
     {
         address lockAndDataERC20 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc20();
         address erc20Module = LockAndDataForSchain(getLockAndDataAddress()).getErc20Module();
@@ -230,6 +232,7 @@ contract TokenManager is PermissionsForSchain {
         uint256 amountOfEth
     )
         external
+        receivedEth(amountOfEth)
     {
         address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
         address erc721Module = LockAndDataForSchain(getLockAndDataAddress()).getErc721Module();
@@ -265,6 +268,7 @@ contract TokenManager is PermissionsForSchain {
     ) 
         external
         rightTransaction(schainID)
+        receivedEth(amountOfEth)
     {
         address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
         address erc721Module = LockAndDataForSchain(getLockAndDataAddress()).getErc721Module();

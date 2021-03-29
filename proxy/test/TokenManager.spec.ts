@@ -202,7 +202,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         //
         await eRC20OnChain.approve(tokenManager.address, amountTo, {from: user});
         // // execution/expectation
-        await tokenManager.exitToMainERC20(eRC20.address, client, amountTo, amountEth, {from: deployer})
+        await tokenManager.exitToMainERC20(eRC20.address, client, amountTo, 0, {from: deployer})
             .should.be.eventually.rejectedWith(error);
     });
 
