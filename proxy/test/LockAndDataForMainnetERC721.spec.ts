@@ -39,8 +39,8 @@ import chai = require("chai");
 chai.should();
 chai.use((chaiAsPromised as any));
 
-import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
-import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
+import { deployLockAndDataForMainnet } from "./utils/deploy/imaLinker";
+import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/contractManager";
 import { randomString } from "./utils/helper";
 
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");

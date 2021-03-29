@@ -32,8 +32,8 @@ import "./connectors/SchainOwnerConnector.sol";
  */
 contract IMAConnected is SchainOwnerConnector {
 
-    IMALinker public imaLinker;
     MessageProxyForMainnet public messageProxy;
+    address public imaLinker;
 
     modifier onlyMessageProxy() {
         require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
@@ -54,7 +54,7 @@ contract IMAConnected is SchainOwnerConnector {
         initializer
     {
         SchainOwnerConnector.initialize(newContractManagerOfSkaleManager);
-        imaLinker = IMALinker(newIMALinkerAddress);
+        imaLinker = newIMALinkerAddress;
         messageProxy = MessageProxyForMainnet(newMessageProxyAddress);
     }
 }

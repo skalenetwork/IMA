@@ -56,9 +56,9 @@ import { randomString } from "./utils/helper";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
+import { deployLockAndDataForMainnet } from "./utils/deploy/imaLinker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
-import { deployDepositBox } from "./utils/deploy/depositBox";
+import { deployDepositBox } from "./utils/deploy/depositBoxEth";
 
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");

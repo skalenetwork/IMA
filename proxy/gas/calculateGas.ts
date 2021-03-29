@@ -79,12 +79,12 @@ import chai = require("chai");
 chai.should();
 chai.use((chaiAsPromised as any));
 
-import { deployLockAndDataForMainnet } from "../test/utils/deploy/lockAndDataForMainnet";
+import { deployLockAndDataForMainnet } from "../test/utils/deploy/imaLinker";
 import { deployLockAndDataForMainnetERC20 } from "../test/utils/deploy/lockAndDataForMainnetERC20";
-import { deployLockAndDataForMainnetERC721 } from "../test/utils/deploy/lockAndDataForMainnetERC721";
-import { deployDepositBox } from "../test/utils/deploy/depositBox";
-import { deployERC20ModuleForMainnet } from "../test/utils/deploy/erc20ModuleForMainnet";
-import { deployERC721ModuleForMainnet } from "../test/utils/deploy/erc721ModuleForMainnet";
+import { deployLockAndDataForMainnetERC721 } from "../test/utils/deploy/contractManager";
+import { deployDepositBox } from "../test/utils/deploy/depositBoxEth";
+import { deployERC20ModuleForMainnet } from "../test/utils/deploy/depoositBoxERC20";
+import { deployERC721ModuleForMainnet } from "../test/utils/deploy/depositBoxERC721";
 import { deployMessageProxyForMainnet } from "../test/utils/deploy/messageProxyForMainnet";
 
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");

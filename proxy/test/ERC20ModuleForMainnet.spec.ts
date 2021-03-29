@@ -40,9 +40,9 @@ import chai = require("chai");
 chai.should();
 chai.use((chaiAsPromised as any));
 
-import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
+import { deployLockAndDataForMainnet } from "./utils/deploy/imaLinker";
 import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
-import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
+import { deployERC20ModuleForMainnet } from "./utils/deploy/depoositBoxERC20";
 
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");

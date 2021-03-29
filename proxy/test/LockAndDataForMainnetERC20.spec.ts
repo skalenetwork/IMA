@@ -45,7 +45,7 @@ import chai = require("chai");
 chai.should();
 chai.use((chaiAsPromised as any));
 
-import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
+import { deployLockAndDataForMainnet } from "./utils/deploy/imaLinker";
 import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
 import { randomString } from "./utils/helper";
 

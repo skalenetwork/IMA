@@ -38,9 +38,9 @@ import chai = require("chai");
 chai.should();
 chai.use((chaiAsPromised as any));
 
-import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
-import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/lockAndDataForMainnetERC721";
-import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMainnet";
+import { deployLockAndDataForMainnet } from "./utils/deploy/imaLinker";
+import { deployLockAndDataForMainnetERC721 } from "./utils/deploy/contractManager";
+import { deployERC721ModuleForMainnet } from "./utils/deploy/depositBoxERC721";
 import { randomString } from "./utils/helper";
 
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");

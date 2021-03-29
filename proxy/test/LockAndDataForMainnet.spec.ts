@@ -40,8 +40,8 @@ import chai = require("chai");
 chai.should();
 chai.use((chaiAsPromised as any));
 
-import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
-import { deployDepositBox } from "./utils/deploy/depositBox";
+import { deployLockAndDataForMainnet } from "./utils/deploy/imaLinker";
+import { deployDepositBox } from "./utils/deploy/depositBoxEth";
 
 const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
 const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
