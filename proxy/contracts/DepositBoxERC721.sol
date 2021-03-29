@@ -62,7 +62,6 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
         uint256 tokenId
     )
         external
-        payable
         rightTransaction(schainID)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -81,7 +80,7 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
         messageProxy.postOutgoingMessage(
             schainID,
             tokenManagerAddress,
-            msg.value,
+            0,
             address(0),
             data
         );

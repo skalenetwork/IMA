@@ -26,16 +26,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import "../interfaces/IMessageProxy.sol";
+import "../interfaces/ILockAndDataERCOnSchain.sol";
 import "./ERC20ModuleForSchain.sol";
 import "./ERC721ModuleForSchain.sol";
 import "../Messages.sol";
 import "./PermissionsForSchain.sol";
 
-
-interface ILockAndDataERCOnSchain {
-    function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address);
-    function getERC721OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address);
-}
 
 /**
  * This contract runs on schains and accepts messages from main net creates ETH clones.

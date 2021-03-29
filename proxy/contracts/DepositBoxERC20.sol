@@ -68,12 +68,17 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
         uint256 amount
     )
         external
-        payable
         rightTransaction(schainID)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = tokenManagerERC20Addresses[schainHash];
         require(tokenManagerAddress != address(0), "Unconnected chain");
+        bytes memory data = _receiveERC20(
+            schainID,
+            contractOnMainnet,
+            to,
+            amount
+        );
         require(
             IERC20Metadata(contractOnMainnet).transferFrom(
                 msg.sender,
@@ -82,16 +87,10 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
             ),
             "Could not transfer ERC20 Token"
         );
-        bytes memory data = _receiveERC20(
-            schainID,
-            contractOnMainnet,
-            to,
-            amount
-        );
         messageProxy.postOutgoingMessage(
             schainID,
             tokenManagerAddress,
-            msg.value,
+            0,
             address(0),
             data
         );
