@@ -1838,7 +1838,6 @@ async function do_erc20_payment_from_main_net(
     joAccountDst,
     jo_deposit_box_erc20,
     jo_message_proxy_main_net, // for checking logs
-    jo_lock_and_data_main_net, // for checking logs
     chain_id_s_chain,
     token_amount, // how much ERC20 tokens to send
     wei_how_much, // how much ETH
