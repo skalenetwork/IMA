@@ -6,9 +6,9 @@ import { ContractManagerInstance } from "../../../types/truffle-contracts";
 const DepositBoxEth: DepositBoxEthContract = artifacts.require("./DepositBoxEth");
 
 export async function deployDepositBoxEth(
-    imaLinker: IMALinkerInstance,
     contractManager: ContractManagerInstance,
-    messageProxy: MessageProxyForMainnetInstance
+    messageProxy: MessageProxyForMainnetInstance,
+    imaLinker: IMALinkerInstance
 
 ) {
     const instance = await DepositBoxEth.new();

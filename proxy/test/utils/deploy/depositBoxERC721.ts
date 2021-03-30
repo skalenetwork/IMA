@@ -6,9 +6,9 @@ import { ContractManagerInstance } from "../../../types/truffle-contracts";
 const DepositBoxERC721: DepositBoxERC721Contract = artifacts.require("./DepositBoxERC721");
 
 export async function deployDepositBoxERC721(
-    imaLinker: IMALinkerInstance,
     contractManager: ContractManagerInstance,
-    messageProxy: MessageProxyForMainnetInstance
+    messageProxy: MessageProxyForMainnetInstance,
+    imaLinker: IMALinkerInstance
 
 ) {
     const instance = await DepositBoxERC721.new();

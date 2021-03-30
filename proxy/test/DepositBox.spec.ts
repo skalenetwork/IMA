@@ -81,9 +81,9 @@ contract("DepositBox", ([deployer, user, user2]) => {
     contractManagerAddress = contractManager.address;
     messageProxy = await deployMessageProxyForMainnet(contractManager);
     imaLinker = await deployIMALinker(contractManager, messageProxy);
-    depositBoxEth = await deployDepositBoxEth(imaLinker, contractManager, messageProxy);
-    depositBoxERC20 = await deployDepositBoxERC20(imaLinker, contractManager, messageProxy);
-    depositBoxERC721 = await deployDepositBoxERC721(imaLinker, contractManager, messageProxy);
+    depositBoxEth = await deployDepositBoxEth(contractManager, messageProxy, imaLinker);
+    depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxy, imaLinker);
+    depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxy, imaLinker);
   });
 
   describe("tests for `deposit` function", async () => {
