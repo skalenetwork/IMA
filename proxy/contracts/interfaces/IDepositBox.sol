@@ -26,8 +26,6 @@ interface IDepositBox {
     function postMessage(
         string calldata fromSchainID,
         address sender,
-        address to,
-        uint256 amount,
         bytes calldata data
     )
         external

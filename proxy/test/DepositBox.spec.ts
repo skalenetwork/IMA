@@ -321,7 +321,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       // for `Receiver chain is incorrect` message schainID should be `Mainnet`
       const schainID = "Bob";
       const amountEth = "10";
-      const bytesData = await messages.encodeTransferEthMessage(user, amount);
+      const bytesData = await messages.encodeTransferEthMessage(user, amountEth);
       const senderFromSchain = deployer;
 
       const sign = {
@@ -360,7 +360,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       const error = "Not enough money to finish this transaction";
       const schainID = randomString(10);
       const amountEth = "10";
-      const bytesData = await messages.encodeTransferEthMessage(user, amount);
+      const bytesData = await messages.encodeTransferEthMessage(user, amountEth);
       const senderFromSchain = deployer;
 
       const sign = {
@@ -373,7 +373,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       const message = {
         data: bytesData,
         destinationContract: depositBoxEth.address,
-        sender: senderFromSchain,
+        sender: senderFromSchain
       };
       // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
@@ -397,7 +397,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       const error = "Not enough money to finish this transaction";
       const schainID = randomString(10);
       const amountEth = "10";
-      const bytesData = web3.eth.abi.encodeParameters(['uint8'], [1]);
+      const bytesData = await messages.encodeTransferEthMessage(user, amountEth);
       const senderFromSchain = deployer;
 
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
@@ -412,11 +412,9 @@ contract("DepositBox", ([deployer, user, user2]) => {
       };
 
       const message = {
-        amount: amountEth,
         data: bytesData,
         destinationContract: depositBoxEth.address,
-        sender: senderFromSchain,
-        to: user
+        sender: senderFromSchain
       };
       // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
@@ -483,9 +481,9 @@ contract("DepositBox", ([deployer, user, user2]) => {
       //  preparation
       const schainID = randomString(10);
       // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
-      const bytesData = await messages.encodeTransferEthMessage(user, amount);
       const senderFromSchain = deployer;
       const wei = "30000000000000000";
+      const bytesData = await messages.encodeTransferEthMessage(user, wei);
 
       await setCommonPublicKey(contractManager, schainID);
 

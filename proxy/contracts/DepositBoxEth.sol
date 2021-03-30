@@ -95,8 +95,6 @@ contract DepositBoxEth is IMAConnected, IDepositBox {
     function postMessage(
         string calldata fromSchainID,
         address sender,
-        address to,
-        uint256 amount,
         bytes calldata data
     )
         external
@@ -111,6 +109,7 @@ contract DepositBoxEth is IMAConnected, IDepositBox {
             sender == tokenManagerEthAddresses[schainHash],
             "Receiver chain is incorrect"
         );
+        uint256 amount = Messages.decodeTransferEthMessage(data).amount;
         require(
             amount <= address(this).balance,
             "Not enough money to finish this transaction"
@@ -120,6 +119,7 @@ contract DepositBoxEth is IMAConnected, IDepositBox {
         // uint256 txFee = gasConsumption * tx.gasprice;
         // require(amount >= txFee, "Not enough funds to recover gas");
         if (operation == Messages.MessageType.TRANSFER_ETH) {
+            address to = Messages.decodeTransferEthMessage(data).receiver;
             approveTransfers[to] = approveTransfers[to].add(amount);
         } else {
             revert("MessageType is unknown");
@@ -182,9 +182,7 @@ contract DepositBoxEth is IMAConnected, IDepositBox {
         messageProxy.postOutgoingMessage(
             schainID,
             tokenManagerAddress,
-            msg.value,
-            to,
-            Messages.encodeTransferEthMessage()
+            Messages.encodeTransferEthMessage(to, msg.value)
         );
     }
 }

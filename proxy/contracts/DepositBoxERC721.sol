@@ -80,8 +80,6 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
         messageProxy.postOutgoingMessage(
             schainID,
             tokenManagerAddress,
-            0,
-            address(0),
             data
         );
     }
@@ -129,8 +127,6 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
     function postMessage(
         string calldata fromSchainID,
         address sender,
-        address,
-        uint256,
         bytes calldata data
     )
         external
