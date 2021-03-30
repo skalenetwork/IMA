@@ -39,6 +39,8 @@ import {
     LockAndDataForSchainERC20Contract,
     LockAndDataForSchainERC20Instance,
     LockAndDataForSchainInstance,
+    MessagesTesterContract,
+    MessagesTesterInstance,
     TokenFactoryContract,
     TokenFactoryInstance,
     } from "../types/truffle-contracts";
@@ -62,6 +64,7 @@ const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const ERC20ModuleForSchain: ERC20ModuleForSchainContract = artifacts.require("./ERC20ModuleForSchain");
 const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
+const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 
 contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
   let lockAndDataForSchain: LockAndDataForSchainInstance;
@@ -74,6 +77,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
   let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
+  let messages: MessagesTesterInstance;
 
   beforeEach(async () => {
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
@@ -93,6 +97,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
 
     eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20", {from: deployer});
     erc20OnMainnet = await ERC20OnChain.new("SKALE", "SKL", {from: deployer});
+    messages = await MessagesTester.new();
 
     await lockAndDataForSchainERC20.enableAutomaticDeploy("Mainnet", {from: deployer});
   });
@@ -181,25 +186,12 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const to = user;
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const amount = 10;
-    const data = "0x03" +
-    (erc20OnMainnet.address).substr(2)+ "000000000000000000000000" +  // contractPosition
-    to.substr(2) + "000000000000000000000000" + // receiver
-    "000000000000000000000000000000000000000000000000000000000000000a" + // tokenId
-    "000000000000000000000000000000000000000000000000000000000000000c" + // token name
-    "45524332304f6e436861696e" + // token name
-    "0000000000000000000000000000000000000000000000000000000000000005" + // token symbol
-    "455243323012" + // token symbol
-    "000000000000000000000000000000000000000000000000000000003b9ac9f6"; // total supply
+    const name = "D2 token";
+    const symbol = "D2";
+    const totalSupply = 1e9;
 
-    const data2 = "0x03" +
-    (erc20OnMainnet.address).substr(2)+ "000000000000000000000000" + // contractPosition
-    to.substr(2) + "000000000000000000000000" + // receiver
-    "000000000000000000000000000000000000000000000000000000000000000a" + // tokenId
-    "000000000000000000000000000000000000000000000000000000000000000c" + // token name
-    "45524332304f6e436861696e" + // token name
-    "0000000000000000000000000000000000000000000000000000000000000005" + // token symbol
-    "455243323012" + // token symbol
-    "000000000000000000000000000000000000000000000000000000003b9ac9f7"; // total supply
+    const data = await messages.encodeTransferErc20AndTokenInfoMessage(erc20OnMainnet.address, to, amount, totalSupply, {name, symbol, decimals: 18});
+    const data2 = await messages.encodeTransferErc20AndTokenInfoMessage(erc20OnMainnet.address, to, amount, totalSupply, {name, symbol, decimals: 18});
 
     // set `ERC20Module` contract before invoke `receiveERC20`
     await lockAndDataForSchain
@@ -218,7 +210,7 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const newERC20Contract = new web3.eth.Contract(ABIERC20OnChain.abi, newAddress);
     await eRC20ModuleForSchain.sendERC20(schainID, data2, {from: deployer});
     const balance = await newERC20Contract.methods.balanceOf(to).call();
-    // parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount * 2);
+    parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount * 2);
   });
 
   it("should return `true` for `sendERC20` with `to0==address(0)` and `contractAddreess==address(0)`", async () => {
@@ -227,15 +219,12 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     const to = user;
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const amount = 10;
-    const data = "0x03" +
-    (erc20OnMainnet.address).substr(2)+ "000000000000000000000000" +  // contractPosition
-    to.substr(2) + "000000000000000000000000" + // receiver
-    "000000000000000000000000000000000000000000000000000000000000000a" + // tokenId
-    "000000000000000000000000000000000000000000000000000000000000000c" + // token name
-    "45524332304f6e436861696e" + // token name
-    "0000000000000000000000000000000000000000000000000000000000000005" + // token symbol
-    "455243323012" + // token symbol
-    "000000000000000000000000000000000000000000000000000000003b9ac9f6"; // total supply
+    const name = "D2 token";
+    const symbol = "D2";
+    const totalSupply = 999999990;
+
+    const data = await messages.encodeTransferErc20AndTokenInfoMessage(erc20OnMainnet.address, to, amount, totalSupply, {name, symbol, decimals: 18})
+
     // set `ERC20Module` contract before invoke `receiveERC20`
     await lockAndDataForSchain
         .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
@@ -279,9 +268,18 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     await lockAndDataForSchainERC20
       .addERC20ForSchain(schainID, ERC20OnMainnet, contractHere, {from: deployer});
     // get data from `receiveERC20`
-    const data = await eRC20ModuleForSchain.receiveERC20.call(schainID, ERC20OnMainnet, to, amount, {from: deployer});
     await eRC20ModuleForSchain.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer});
     // execution
+    const data = await messages.encodeTransferErc20AndTokenInfoMessage(
+      ERC20OnMainnet,
+      to,
+      amount,
+      amount,
+      {
+        name: await erc20OnMainnet.name(),
+        decimals: "0x" + await erc20OnMainnet.decimals(),
+        symbol: await erc20OnMainnet.symbol()
+      });
     const res = await eRC20ModuleForSchain.getReceiver(data, {from: deployer});
     // expectation
     res.should.be.equal(user);

@@ -21,7 +21,8 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 import "./EthERC20.sol";
 import "./OwnableForSchain.sol";
@@ -33,6 +34,7 @@ import "./OwnableForSchain.sol";
  * balances of ETH tokens received through DepositBox.
  */
 contract LockAndDataForSchain is OwnableForSchain {
+    using Address for address;
     using SafeMath for uint256;
 
     address private _ethErc20Address;
@@ -55,7 +57,7 @@ contract LockAndDataForSchain is OwnableForSchain {
 
     bool private _isCustomDeploymentMode = false;
 
-    mapping(address => uint) public numberOfExits;
+    // uint public communityPool;
 
     modifier allow(string memory contractName) {
         require(
@@ -90,13 +92,8 @@ contract LockAndDataForSchain is OwnableForSchain {
 
         bytes32 contractId = keccak256(abi.encodePacked(contractName));
         require(!_checkPermitted(contractName, newContract), "Contract is already added");
-
-        uint256 length;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            length := extcodesize(newContract)
-        }
-        require(length > 0, "Given contract address does not contain code");
+        
+        require(newContract.isContract(), "Given contract address does not contain code");
         permitted[contractId] = newContract;
     }
 
@@ -208,59 +205,27 @@ contract LockAndDataForSchain is OwnableForSchain {
     }
 
     /**
-     * @dev Allows TokenManager to add gas costs to LockAndDataForSchain.
-     */
-    function addGasCosts(address , uint256) external allow("TokenManager") {
-        revert("Temporarily unimplemented");
-    }
-
-    /**
-     * @dev Allows SchainOwner to add some amount of exits to some address.
-     */
-    function addExit(address to, uint256 amount) external onlySchainOwner {
-        numberOfExits[to] = numberOfExits[to].add(amount);
-    }
-
-    /**
-     * @dev Allows TokenManager to reduce gas costs from LockAndDataForSchain.
-     */
-    function reduceGasCosts(address , uint256) external allow("TokenManager") returns (bool) {
-        revert("Temporarily unimplemented");
-    }
-
-    /**
      * @dev Allows TokenManager to reduce exit from some address.
      */
-    function reduceExit(address to) external allow("TokenManager") returns (bool) {
-        if (numberOfExits[to] >= 1) {
-            numberOfExits[to] -= 1;
-            return true;
-        } else if (numberOfExits[address(0)] >= 1) {
-            numberOfExits[address(0)] -= 1;
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @dev Allows TokenManager to remove gas costs from LockAndDataForSchain.
-     */
-    function removeGasCosts(address) external allow("TokenManager") returns (uint256 balance) {
-        revert("Temporarily unimplemented");
-    }
-
-    /**
-     * @dev Allows SchainOwner to remove exits from address to.
-     */
-    function removeExit(address to) external onlySchainOwner {
-        delete numberOfExits[to];
+    function reduceCommunityPool(uint256) external view allow("TokenManager") returns (bool) {
+        revert("Community Pool is not available");
+        // if (communityPool >= amountOfEth) {
+        //     communityPool = communityPool.sub(amountOfEth);
+        //     return true;
+        // }
+        // return false;
     }
 
     /**
      * @dev Allows TokenManager to send (mint) ETH from LockAndDataForSchain.
      */
     function sendEth(address to, uint256 amount) external allow("TokenManager") returns (bool) {
-        require(EthERC20(getEthErc20Address()).mint(to, amount), "Mint error");
+        if (to == address(0)) {
+            revert("Community Pool is not available");
+            // communityPool = communityPool.add(amount);
+        } else {
+            require(EthERC20(getEthErc20Address()).mint(to, amount), "Mint error");
+        }
         return true;
     }
 

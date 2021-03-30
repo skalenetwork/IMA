@@ -22,18 +22,21 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+
 import "./SkaleFeatures.sol";
+
 
 interface ContractReceiverForSchain {
     function postMessage(
-        address sender,
         string calldata schainID,
+        address sender,
         address to,
         uint256 amount,
         bytes calldata data
     )
-        external;
+        external
+        returns (bool);
 }
 
 
@@ -57,14 +60,12 @@ contract MessageProxyForSchain {
 
     struct OutgoingMessageData {
         string dstChain;
-        bytes32 dstChainHash;
         uint256 msgCounter;
         address srcContract;
         address dstContract;
         address to;
         uint256 amount;
         bytes data;
-        uint256 length;
     }
 
     struct ConnectedChainInfo {
@@ -100,33 +101,25 @@ contract MessageProxyForSchain {
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     mapping(address => bool) private _authorizedCaller;
     //      chainID  =>      message_id  => MessageData
-    mapping( bytes32 => mapping( uint256 => OutgoingMessageData )) private _outgoingMessageData;
+    mapping( bytes32 => mapping( uint256 => bytes32 )) private _outgoingMessageDataHash;
     //      chainID  => head of unprocessed messages
     mapping( bytes32 => uint ) private _idxHead;
     //      chainID  => tail of unprocessed messages
     mapping( bytes32 => uint ) private _idxTail;
 
     event OutgoingMessage(
-        string dstChain,
         bytes32 indexed dstChainHash,
         uint256 indexed msgCounter,
         address indexed srcContract,
         address dstContract,
         address to,
         uint256 amount,
-        bytes data,
-        uint256 length
+        bytes data
     );
 
     event PostMessageError(
         uint256 indexed msgCounter,
-        bytes32 indexed srcChainHash,
-        address sender,
-        string fromSchainID,
-        address to,
-        uint256 amount,
-        bytes data,
-        string message
+        bytes message
     );
 
     modifier connectMainnet() {
@@ -265,14 +258,12 @@ contract MessageProxyForSchain {
         _pushOutgoingMessageData(
             OutgoingMessageData(
                 dstChainID,
-                dstChainHash,
                 connectedChains[dstChainHash].outgoingMessageCounter - 1,
                 msg.sender,
                 dstContract,
                 to,
                 amount,
-                data,
-                data.length
+                data
             )
         );
     }
@@ -307,12 +298,13 @@ contract MessageProxyForSchain {
         string calldata srcChainID,
         uint256 startingCounter,
         Message[] calldata messages,
-        Signature calldata ,
+        Signature calldata /* sign */,
         uint256 idxLastToPopNotIncluding
     )
         external
         connectMainnet
     {
+        // TODO: check signature
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
@@ -320,26 +312,7 @@ contract MessageProxyForSchain {
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
         for (uint256 i = 0; i < messages.length; i++) {
-            try ContractReceiverForSchain(messages[i].destinationContract).postMessage(
-                messages[i].sender,
-                srcChainID,
-                messages[i].to,
-                messages[i].amount,
-                messages[i].data
-            ) {
-                ++startingCounter;
-            } catch Error(string memory reason) {
-                emit PostMessageError(
-                    ++startingCounter,
-                    srcChainHash,
-                    messages[i].sender,
-                    srcChainID,
-                    messages[i].to,
-                    messages[i].amount,
-                    messages[i].data,
-                    reason
-                );
-            }
+            _callReceiverContract(srcChainID, messages[i], startingCounter + 1);
         }
         connectedChains[srcChainHash].incomingMessageCounter 
             = connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
@@ -394,48 +367,79 @@ contract MessageProxyForSchain {
     }
 
     function verifyOutgoingMessageData(
-        string memory chainName,
-        uint256 idxMessage,
-        address sender,
-        address destinationContract,
-        address to,
-        uint256 amount
+        OutgoingMessageData memory message
     )
         public
         view
         returns (bool isValidMessage)
     {
-        bytes32 chainId = keccak256(abi.encodePacked(chainName));
-        isValidMessage = false;
-        OutgoingMessageData memory d = _outgoingMessageData[chainId][idxMessage];
-        if ( d.dstContract == destinationContract &&
-             d.srcContract == sender &&
-             d.to == to && 
-             d.amount == amount &&
-             keccak256(abi.encodePacked(d.dstChain)) == chainId &&
-             d.dstChainHash == chainId
-        )
+        bytes32 chainId = keccak256(abi.encodePacked(message.dstChain));
+        bytes32 messageDataHash = _outgoingMessageDataHash[chainId][message.msgCounter];
+        if (messageDataHash == _hashOfMessage(message))
             isValidMessage = true;
     }
 
-    function getSkaleFeaturesAddress() public view returns (address) {
+    function getSkaleFeaturesAddress() public pure returns (address) {
         return 0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2;
     }
 
+    function _callReceiverContract(
+        string memory srcChainID,
+        Message calldata message,
+        uint counter
+    )
+        private
+        returns (bool)
+    {
+        try ContractReceiverForSchain(message.destinationContract).postMessage(
+            srcChainID,
+            message.sender,
+            message.to,
+            message.amount,
+            message.data
+        ) returns (bool success) {
+            return success;
+        } catch Error(string memory reason) {
+            emit PostMessageError(
+                counter,
+                bytes(reason)
+            );
+            return false;
+        } catch (bytes memory revertData) {
+            emit PostMessageError(
+                counter,
+                revertData
+            );
+            return false;
+        }
+    }
+
+    function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
+        bytes memory data = abi.encodePacked(
+            bytes32(keccak256(abi.encodePacked(message.dstChain))),
+            bytes32(message.msgCounter),
+            bytes32(bytes20(message.srcContract)),
+            bytes32(bytes20(message.dstContract)),
+            bytes32(bytes20(message.to)),
+            message.amount,
+            message.data
+        );
+        return keccak256(data);
+    }
+
     function _pushOutgoingMessageData( OutgoingMessageData memory d ) private {
+        bytes32 dstChainHash = keccak256(abi.encodePacked(d.dstChain));
         emit OutgoingMessage(
-            d.dstChain,
-            d.dstChainHash,
+            dstChainHash,
             d.msgCounter,
             d.srcContract,
             d.dstContract,
             d.to,
             d.amount,
-            d.data,
-            d.length
+            d.data
         );
-        _outgoingMessageData[d.dstChainHash][_idxTail[d.dstChainHash]] = d;
-        _idxTail[d.dstChainHash] = _idxTail[d.dstChainHash].add(1);
+        _outgoingMessageDataHash[dstChainHash][_idxTail[dstChainHash]] = _hashOfMessage(d);
+        _idxTail[dstChainHash] = _idxTail[dstChainHash].add(1);
     }
 
     /**
@@ -453,7 +457,7 @@ contract MessageProxyForSchain {
         for ( uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++ i ) {
             if ( i >= idxTail )
                 break;
-            delete _outgoingMessageData[chainId][i];
+            delete _outgoingMessageDataHash[chainId][i];
             ++ cntDeleted;
         }
         if (cntDeleted > 0)

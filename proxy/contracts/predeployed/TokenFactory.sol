@@ -21,13 +21,14 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20BurnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721BurnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+
 import "./PermissionsForSchain.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20Burnable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/ERC721Burnable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/access/AccessControl.sol";
 
 
-contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
+contract ERC20OnChain is AccessControlUpgradeable, ERC20BurnableUpgradeable {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -49,7 +50,7 @@ contract ERC20OnChain is AccessControlUpgradeSafe, ERC20BurnableUpgradeSafe {
 }
 
 
-contract ERC721OnChain is AccessControlUpgradeSafe, ERC721BurnableUpgradeSafe {
+contract ERC721OnChain is AccessControlUpgradeable, ERC721BurnableUpgradeable {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 

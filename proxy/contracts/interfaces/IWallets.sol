@@ -22,5 +22,6 @@
 pragma solidity 0.6.12;
 
 interface IWallets {
-    function refundBySchain(bytes32 schainId, address payable spender, uint spentGas, bool isDebt) external virtual;
+    function refundGasBySchain(bytes32 schainId, address payable spender, uint spentGas, bool isDebt) external;
+    function rechargeSchainWallet(bytes32 schainId) external payable;
 }

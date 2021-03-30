@@ -22,8 +22,9 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+
 import "./PermissionsForMainnet.sol";
 import "./interfaces/IContractManager.sol";
 import "./interfaces/ISchainsInternal.sol";
@@ -31,13 +32,14 @@ import "./interfaces/IWallets.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
-        address sender,
         string calldata schainID,
+        address sender,
         address to,
         uint256 amount,
         bytes calldata data
     )
-        external;
+        external
+        returns (bool);
 }
 
 interface ISchains {
@@ -66,7 +68,7 @@ interface ISchains {
  * messages do not need to be signed.
  */
 contract MessageProxyForMainnet is PermissionsForMainnet {
-    using SafeMath for uint256;
+    using SafeMathUpgradeable for uint256;
 
     /**
      * 16 Agents
@@ -81,18 +83,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      * Call postIncomingMessages function passing (un)signed message array
      * ID of this schain, Chain 0 represents ETH mainnet,
     */
-
-    struct OutgoingMessageData {
-        string dstChain;
-        bytes32 dstChainHash;
-        uint256 msgCounter;
-        address srcContract;
-        address dstContract;
-        address to;
-        uint256 amount;
-        bytes data;
-        uint256 length;
-    }
 
     struct ConnectedChainInfo {
         // message counters start with 0
@@ -120,38 +110,26 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public owner;
 
+    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 50000;
+
     mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
-    //      chainID  =>      message_id  => MessageData
-    mapping( bytes32 => mapping( uint256 => OutgoingMessageData )) private _outgoingMessageData;
-    //      chainID  => head of unprocessed messages
-    mapping( bytes32 => uint ) private _idxHead;
-    //      chainID  => tail of unprocessed messages
-    mapping( bytes32 => uint ) private _idxTail;
 
     /**
      * @dev Emitted for every outgoing message to `dstChain`.
      */
     event OutgoingMessage(
-        string dstChain,
         bytes32 indexed dstChainHash,
         uint256 indexed msgCounter,
         address indexed srcContract,
         address dstContract,
         address to,
         uint256 amount,
-        bytes data,
-        uint256 length
+        bytes data
     );
 
     event PostMessageError(
         uint256 indexed msgCounter,
-        bytes32 indexed srcChainHash,
-        address sender,
-        string fromSchainID,
-        address to,
-        uint256 amount,
-        bytes data,
-        string message
+        bytes message
     );
 
     /**
@@ -216,21 +194,17 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
-        connectedChains[dstChainHash].outgoingMessageCounter = 
-            connectedChains[dstChainHash].outgoingMessageCounter.add(1);
-        _pushOutgoingMessageData(
-            OutgoingMessageData(
-                dstChainID,
-                dstChainHash,
-                connectedChains[dstChainHash].outgoingMessageCounter - 1,
-                msg.sender,
-                dstContract,
-                to,
-                amount,
-                data,
-                data.length
-            )
+        uint msgCounter = connectedChains[dstChainHash].outgoingMessageCounter;
+        emit OutgoingMessage(
+            dstChainHash,
+            msgCounter,
+            msg.sender,
+            dstContract,
+            to,
+            amount,
+            data
         );
+        connectedChains[dstChainHash].outgoingMessageCounter = msgCounter.add(1);
     }
 
     /**
@@ -248,26 +222,24 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         uint256 startingCounter,
         Message[] calldata messages,
         Signature calldata sign,
-        uint256 idxLastToPopNotIncluding
+        uint256
     )
         external
     {
-        uint gasTotal = gasleft();
+        uint256 gasTotal = gasleft();
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not equal to incoming message counter");
 
-        _convertAndVerifyMessages(srcChainID, messages, sign);
+        require(_verifyMessages(srcChainID, messages, sign), "Signature is not verified");
         for (uint256 i = 0; i < messages.length; i++) {
             _callReceiverContract(srcChainID, messages[i], startingCounter + i);
         }
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
-        _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
-        _refundGasBySchain(srcChainHash, gasTotal);
+        _refundGasBySchain(srcChainHash, gasTotal + BASIC_POST_INCOMING_MESSAGES_TX);
     }
 
     /**
@@ -370,34 +342,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     }
 
     /**
-     * @dev Checks whether outgoing message is valid.
-     */
-    function verifyOutgoingMessageData(
-        string memory chainName,
-        uint256 idxMessage,
-        address sender,
-        address destinationContract,
-        address to,
-        uint256 amount
-    )
-        public
-        view
-        returns (bool isValidMessage)
-    {
-        bytes32 chainId = keccak256(abi.encodePacked(chainName));
-        isValidMessage = false;
-        OutgoingMessageData memory d = _outgoingMessageData[chainId][idxMessage];
-        if ( d.dstContract == destinationContract &&
-             d.srcContract == sender &&
-             d.to == to && 
-             d.amount == amount &&
-             keccak256(abi.encodePacked(d.dstChain)) == chainId &&
-             d.dstChainHash == chainId
-        )
-            isValidMessage = true;
-    }
-
-    /**
      * @dev Checks whether sender is node address from the SKALE chain
      */
     function isAuthorizedCaller(bytes32 chainId, address sender) public view returns (bool) {
@@ -418,43 +362,10 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      * @dev Converts calldata structure to memory structure and checks
      * whether message BLS signature is valid.
      */
-    function _convertAndVerifyMessages(
+    function _verifyMessages(
         string calldata srcChainID,
         Message[] calldata messages,
         Signature calldata sign
-    )
-        internal
-    {
-        Message[] memory input = new Message[](messages.length);
-        for (uint256 i = 0; i < messages.length; i++) {
-            input[i].sender = messages[i].sender;
-            input[i].destinationContract = messages[i].destinationContract;
-            input[i].to = messages[i].to;
-            input[i].amount = messages[i].amount;
-            input[i].data = messages[i].data;
-        }
-        require(
-            _verifyMessageSignature(
-                sign.blsSignature,
-                _hashedArray(input),
-                sign.counter,
-                sign.hashA,
-                sign.hashB,
-                srcChainID
-            ), "Signature is not verified"
-        );
-    }
-
-    /**
-     * @dev Checks whether message BLS signature is valid.
-     */
-    function _verifyMessageSignature(
-        uint256[2] memory blsSignature,
-        bytes32 hash,
-        uint256 counter,
-        uint256 hashA,
-        uint256 hashB,
-        string memory srcChainID
     )
         private
         view
@@ -468,12 +379,12 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             "Schains"
         );
         return ISchains(skaleSchains).verifySchainSignature(
-            blsSignature[0],
-            blsSignature[1],
-            hash,
-            counter,
-            hashA,
-            hashB,
+            sign.blsSignature[0],
+            sign.blsSignature[1],
+            _hashedArray(messages),
+            sign.counter,
+            sign.hashA,
+            sign.hashB,
             srcChainID
         );
     }
@@ -481,7 +392,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     /**
      * @dev Returns hash of message array.
      */
-    function _hashedArray(Message[] memory messages) private pure returns (bytes32) {
+    function _hashedArray(Message[] calldata messages) private pure returns (bytes32) {
         bytes memory data;
         for (uint256 i = 0; i < messages.length; i++) {
             data = abi.encodePacked(
@@ -496,69 +407,34 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         return keccak256(data);
     }
 
-    /**
-     * @dev Push outgoing message into outgoingMessageData array.
-     * 
-     * Emits an {OutgoingMessage} event.
-     */
-    function _pushOutgoingMessageData( OutgoingMessageData memory d ) private {
-        emit OutgoingMessage(
-            d.dstChain,
-            d.dstChainHash,
-            d.msgCounter,
-            d.srcContract,
-            d.dstContract,
-            d.to,
-            d.amount,
-            d.data,
-            d.length
-        );
-        _outgoingMessageData[d.dstChainHash][_idxTail[d.dstChainHash]] = d;
-        _idxTail[d.dstChainHash] = _idxTail[d.dstChainHash].add(1);
-    }
-
-    /**
-     * @dev Pop outgoing message from outgoingMessageData array.
-     */
-    function _popOutgoingMessageData(
-        bytes32 chainId,
-        uint256 idxLastToPopNotIncluding
+    function _callReceiverContract(
+        string memory srcChainID,
+        Message calldata message,
+        uint counter
     )
         private
-        returns ( uint256 cntDeleted )
+        returns (bool)
     {
-        cntDeleted = 0;
-        uint idxTail = _idxTail[chainId];
-        for ( uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++i ) {
-            if ( i >= idxTail )
-                break;
-            delete _outgoingMessageData[chainId][i];
-            ++ cntDeleted;
-        }
-        if (cntDeleted > 0)
-            _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
-    }
-
-    function _callReceiverContract(string memory srcChainID, Message calldata message, uint counter) private {
         try ContractReceiverForMainnet(message.destinationContract).postMessage(
-            message.sender,
             srcChainID,
+            message.sender,
             message.to,
             message.amount,
             message.data
-        ) {
-            // solhint-disable-previous-line no-empty-blocks
+        ) returns (bool success) {
+            return success;
         } catch Error(string memory reason) {
             emit PostMessageError(
                 counter,
-                keccak256(abi.encodePacked(srcChainID)),
-                message.sender,
-                srcChainID,
-                message.to,
-                message.amount,
-                message.data,
-                reason
+                bytes(reason)
             );
+            return false;
+        } catch (bytes memory revertData) {
+            emit PostMessageError(
+                counter,
+                revertData
+            );
+            return false;
         }
     }
 
@@ -567,6 +443,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             "ContractManagerForSkaleManager"
         );
         address walletsAddress = IContractManager(contractManagerAddress).getContract("Wallets");
-        IWallets(walletsAddress).refundBySchain(schainId, msg.sender, gasTotal.sub(gasleft()), false);
+        IWallets(payable(walletsAddress)).refundGasBySchain(schainId, msg.sender, gasTotal.sub(gasleft()), false);
     }
 }

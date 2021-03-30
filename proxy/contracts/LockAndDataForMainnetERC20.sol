@@ -21,9 +21,10 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 import "./PermissionsForMainnet.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
+
 
 /**
  * @title Lock and Data For Mainnet ERC20
@@ -61,8 +62,11 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
         returns (bool)
     {
         require(contractOnMainnet.isContract(), "Given address is not a contract");
-        require(IERC20(contractOnMainnet).balanceOf(address(this)) >= amount, "Not enough money");
-        require(IERC20(contractOnMainnet).transfer(to, amount), "Something went wrong with `transfer` in ERC20");
+        require(IERC20Upgradeable(contractOnMainnet).balanceOf(address(this)) >= amount, "Not enough money");
+        require(
+            IERC20Upgradeable(contractOnMainnet).transfer(to, amount),
+            "Something went wrong with `transfer` in ERC20"
+        );
         return true;
     }
 
@@ -82,7 +86,7 @@ contract LockAndDataForMainnetERC20 is PermissionsForMainnet {
      */
     function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet) external {
         bytes32 schainId = keccak256(abi.encodePacked(schainName));
-        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
+        require(isSchainOwner(msg.sender, schainId) || msg.sender == getOwner(), "Sender is not a Schain owner");
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
         // require(!withoutWhitelist[schainId], "Whitelist is enabled");
         schainToERC20[schainId][erc20OnMainnet] = true;

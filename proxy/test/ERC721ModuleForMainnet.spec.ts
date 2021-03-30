@@ -29,6 +29,8 @@ import {
     ERC721OnChainInstance,
     LockAndDataForMainnetERC721Instance,
     LockAndDataForMainnetInstance,
+    MessagesTesterContract,
+    MessagesTesterInstance,
     } from "../types/truffle-contracts";
 
 import chai = require("chai");
@@ -42,18 +44,21 @@ import { deployERC721ModuleForMainnet } from "./utils/deploy/erc721ModuleForMain
 import { randomString } from "./utils/helper";
 
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
+const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 
 contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
   let lockAndDataForMainnet: LockAndDataForMainnetInstance;
   let lockAndDataForMainnetERC721: LockAndDataForMainnetERC721Instance;
   let eRC721OnChain: ERC721OnChainInstance;
   let eRC721ModuleForMainnet: ERC721ModuleForMainnetInstance;
+  let messages: MessagesTesterInstance;
 
   beforeEach(async () => {
     lockAndDataForMainnet = await deployLockAndDataForMainnet();
     lockAndDataForMainnetERC721 = await deployLockAndDataForMainnetERC721(lockAndDataForMainnet);
     eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
     eRC721ModuleForMainnet = await deployERC721ModuleForMainnet(lockAndDataForMainnet);
+    messages = await MessagesTester.new();
   });
 
   it("should invoke `receiveERC721`", async () => {
@@ -85,9 +90,9 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     // get data from `receiveERC721`
     await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
     await lockAndDataForMainnetERC721.disableWhitelist(schainID);
-    const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
     await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
     // execution
+    const data = await messages.encodeTransferErc721Message(contractHere, to, tokenId);
     await eRC721ModuleForMainnet.sendERC721(data, {from: deployer});
     // expectation
     expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(user);
@@ -108,30 +113,12 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     // get data from `receiveERC721`
     await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
     await lockAndDataForMainnetERC721.disableWhitelist(schainID);
-    const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
     await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
     // execution
+    const data = await messages.encodeTransferErc721Message(contractHere, to, tokenId);
     await eRC721ModuleForMainnet.sendERC721(data, {from: deployer});
     // expectation
     expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(user);
-  });
-
-  it("should return `receiver` when invoke `getReceiver` with `to0==eRC721OnChain.address`", async () => {
-    // preparation
-    const schainID = randomString(10);
-    const contractHere = eRC721OnChain.address;
-    const to = user;
-    const to0 = invoker; // bytes20
-    const tokenId = 10;
-    // get data from `receiveERC721`
-    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-    await lockAndDataForMainnetERC721.disableWhitelist(schainID);
-    const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
-    await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
-    // execution
-    const res = await eRC721ModuleForMainnet.getReceiver(data, {from: deployer});
-    // expectation
-    res.should.be.equal(user);
   });
 
   it("should return `receiver` when invoke `getReceiver` with `to0==address(0)`", async () => {
@@ -139,14 +126,14 @@ contract("ERC721ModuleForMainnet", ([deployer, user, invoker]) => {
     const schainID = randomString(10);
     const contractHere = eRC721OnChain.address;
     const to = user;
-    const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const tokenId = 10;
     // get data from `receiveERC721`
     await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
     await lockAndDataForMainnetERC721.disableWhitelist(schainID);
-    const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
+    // const data = await eRC721ModuleForMainnet.receiveERC721.call(schainID, contractHere, to, tokenId, {from: deployer});
     await eRC721ModuleForMainnet.receiveERC721(schainID, contractHere, to, tokenId, {from: deployer});
     // execution
+    const data = await messages.encodeTransferErc721Message(contractHere, to, tokenId);
     const res = await eRC721ModuleForMainnet.getReceiver(data, {from: deployer});
     // expectation
     res.should.be.equal(user);

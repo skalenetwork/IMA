@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   IERC721ModuleForMainnet.sol - SKALE Interchain Messaging Agent
- *   Copyright (C) 2019-Present SKALE Labs
+ *   TestKeyStorage.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
@@ -19,15 +19,22 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
+
+import "./TestFieldOperations.sol";
 
 
-interface IERC721ModuleForMainnet {
-    function receiveERC721(
-        string calldata schainID,
-        address contractOnMainnet,
-        address to,
-        uint256 tokenId) external returns (bytes memory);
-    function sendERC721(bytes calldata data) external returns (bool);
-    function getReceiver(bytes calldata data) external pure returns (address);
+contract KeyStorage {
+
+    mapping(bytes32 => G2Operations.G2Point) private _schainsPublicKeys;
+
+    function setCommonPublicKey(bytes32 schainId, G2Operations.G2Point memory value) external {
+        _schainsPublicKeys[schainId] = value;
+    }
+
+    function getCommonPublicKey(bytes32 schainId) external view returns (G2Operations.G2Point memory) {
+        return _schainsPublicKeys[schainId];
+    }
 }

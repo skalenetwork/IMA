@@ -20,26 +20,12 @@
  */
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
-
+import "../Messages.sol";
 import "./PermissionsForSchain.sol";
-
-
-interface ITokenFactoryForERC20 {
-    function createERC20(string memory name, string memory symbol)
-        external
-        returns (address payable);
-}
-
-interface ILockAndDataERC20S {
-    function addERC20ForSchain(string calldata schainID, address erc20OnMainnet, address erc20OnSchain) external;
-    function sendERC20(address contractOnSchain, address to, uint256 amount) external returns (bool);
-    function receiveERC20(address contractOnSchain, uint256 amount) external returns (bool);
-    function setTotalSupplyOnMainnet(address contractOnSchain, uint256 newTotalSupplyOnMainnet) external;
-    function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address);
-    function totalSupplyOnMainnet(address contractOnSchain) external view returns (uint256);
-}
+import "./TokenFactory.sol";
+import "./LockAndDataForSchainERC20.sol";
 
 /**
  * @title ERC20 Module For SKALE Chain
@@ -76,13 +62,14 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         address lockAndDataERC20 = LockAndDataForSchain(
             getLockAndDataAddress()
         ).getLockAndDataErc20();
-        address contractOnSchain = ILockAndDataERC20S(lockAndDataERC20).getERC20OnSchain(schainID, contractOnMainnet);
+        address contractOnSchain = LockAndDataForSchainERC20(lockAndDataERC20)
+            .getERC20OnSchain(schainID, contractOnMainnet);
         require(contractOnSchain != address(0), "ERC20 contract does not exist on SKALE chain.");
         require(
-            ILockAndDataERC20S(lockAndDataERC20).receiveERC20(contractOnSchain, amount),
+            LockAndDataForSchainERC20(lockAndDataERC20).receiveERC20(contractOnSchain, amount),
             "Could not receive ERC20 Token"
         );
-        data = _encodeData(contractOnMainnet, contractOnSchain, receiver, amount);
+        data = Messages.encodeTransferErc20Message(contractOnMainnet, receiver, amount);
     }
 
     /**
@@ -93,187 +80,75 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
      */
     function sendERC20(string calldata schainID, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC20 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc20();
-        address contractOnMainnet;
+        Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
+        address token;
         uint256 amount;
-        (contractOnMainnet, receiver, amount) = _fallbackDataParser(data);
-        address contractOnSchain = ILockAndDataERC20S(lockAndDataERC20).getERC20OnSchain(schainID, contractOnMainnet);
-        if (contractOnSchain == address(0)) {
-            contractOnSchain = _sendCreateERC20Request(data);
-            ILockAndDataERC20S(lockAndDataERC20).addERC20ForSchain(schainID, contractOnMainnet, contractOnSchain);
-            emit ERC20TokenCreated(schainID, contractOnMainnet, contractOnSchain);
+        uint256 totalSupply;
+        if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY) {
+            Messages.TransferErc20AndTotalSupplyMessage memory message =
+                Messages.decodeTransferErc20AndTotalSupplyMessage(data);
+            receiver = message.baseErc20transfer.receiver;
+            token = message.baseErc20transfer.token;
+            amount = message.baseErc20transfer.amount;
+            totalSupply = message.totalSupply;
+        } else {
+            Messages.TransferErc20AndTokenInfoMessage memory message =
+                Messages.decodeTransferErc20AndTokenInfoMessage(data);
+            receiver = message.baseErc20transfer.receiver;
+            token = message.baseErc20transfer.token;
+            amount = message.baseErc20transfer.amount;
+            totalSupply = message.totalSupply;
+            address contractOnSchainTmp = LockAndDataForSchainERC20(lockAndDataERC20)
+                .getERC20OnSchain(schainID, token);
+            if (contractOnSchainTmp == address(0)) {
+                contractOnSchainTmp = _sendCreateERC20Request(
+                    Messages.decodeTransferErc20AndTokenInfoMessage(data).tokenInfo
+                );
+                LockAndDataForSchainERC20(lockAndDataERC20)
+                    .addERC20ForSchain(schainID, token, contractOnSchainTmp);
+                emit ERC20TokenCreated(schainID, token, contractOnSchainTmp);
+            }
         }
-        uint256 totalSupply = _fallbackTotalSupplyParser(data);
-        if (totalSupply != ILockAndDataERC20S(lockAndDataERC20).totalSupplyOnMainnet(contractOnSchain)) {
-            ILockAndDataERC20S(lockAndDataERC20).setTotalSupplyOnMainnet(contractOnSchain, totalSupply);
+        address contractOnSchain = LockAndDataForSchainERC20(lockAndDataERC20)
+            .getERC20OnSchain(schainID, token);
+        if (totalSupply != LockAndDataForSchainERC20(lockAndDataERC20)
+            .totalSupplyOnMainnet(contractOnSchain))
+        {
+            LockAndDataForSchainERC20(lockAndDataERC20).setTotalSupplyOnMainnet(
+                contractOnSchain,
+                totalSupply
+            );
         }
-        emit ERC20TokenReceived(contractOnMainnet, contractOnSchain, amount);
-        return ILockAndDataERC20S(lockAndDataERC20).sendERC20(contractOnSchain, receiver, amount);
+        emit ERC20TokenReceived(token, contractOnSchain, amount);
+        return LockAndDataForSchainERC20(lockAndDataERC20).sendERC20(
+            contractOnSchain,
+            receiver,
+            amount
+        );
     }
 
     /**
      * @dev Returns the receiver address.
      */
-    function getReceiver(bytes calldata data) external view returns (address receiver) {
-        (, receiver, ) = _fallbackDataParser(data);
+    function getReceiver(bytes calldata data) external pure returns (address receiver) {
+        Messages.MessageType messageType = Messages.getMessageType(data);
+        if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY)
+            return Messages.decodeTransferErc20AndTotalSupplyMessage(data).baseErc20transfer.receiver;
+        else
+            return Messages.decodeTransferErc20AndTokenInfoMessage(data).baseErc20transfer.receiver;
     }
 
-    function _sendCreateERC20Request(bytes calldata data) internal returns (address newToken) {
-        string memory name;
-        string memory symbol;
-        (name, symbol, , ) = _fallbackDataCreateERC20Parser(data);
-        address tokenFactoryAddress = LockAndDataForSchain(
-            getLockAndDataAddress()
-        ).getTokenFactory();
-        newToken = ITokenFactoryForERC20(tokenFactoryAddress).createERC20(name, symbol);
-    }
-
-    /**
-     * @dev Returns encoded creation data.
-     */
-    function _encodeData(
-        address contractOnMainnet,
-        address contractOnSchain,
-        address to,
-        uint256 amount
+    function _sendCreateERC20Request(
+        Messages.Erc20TokenInfo memory erc20TokenInfo
     )
-        private
-        view
-        returns (bytes memory data)
+        internal
+        returns (address newToken)
     {
-        string memory name = ERC20UpgradeSafe(contractOnSchain).name();
-        uint8 decimals = ERC20UpgradeSafe(contractOnSchain).decimals();
-        string memory symbol = ERC20UpgradeSafe(contractOnSchain).symbol();
-        uint256 totalSupply = ERC20UpgradeSafe(contractOnSchain).totalSupply();
-        data = abi.encodePacked(
-            bytes1(uint8(3)),
-            bytes32(bytes20(contractOnMainnet)),
-            bytes32(bytes20(to)),
-            bytes32(amount),
-            bytes(name).length,
-            name,
-            bytes(symbol).length,
-            symbol,
-            decimals,
-            totalSupply
+        address tokenFactoryAddress = LockAndDataForSchain(getLockAndDataAddress()).getTokenFactory();
+        newToken = TokenFactory(tokenFactoryAddress).createERC20(
+            erc20TokenInfo.name,
+            erc20TokenInfo.symbol
         );
-    }
-
-    // /**
-    //  * @dev Returns encoded regular data.
-    //  */
-    // function _encodeRegularData(
-    //     address contractOnMainnet,
-    //     address to,
-    //     uint256 amount
-    // )
-    //     private
-    //     pure
-    //     returns (bytes memory data)
-    // {
-    //     data = abi.encodePacked(
-    //         bytes1(uint8(19)),
-    //         bytes32(bytes20(contractOnMainnet)),
-    //         bytes32(bytes20(to)),
-    //         bytes32(amount)
-    //     );
-    // }
-
-    /**
-     * @dev Returns fallback total supply data.
-     */
-    function _fallbackTotalSupplyParser(bytes memory data)
-        private
-        pure
-        returns (uint256)
-    {
-        bytes32 totalSupply;
-        bytes32 nameLength;
-        bytes32 symbolLength;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            nameLength := mload(add(data, 129))
-        }
-        uint256 lengthOfName = uint256(nameLength);
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            symbolLength := mload(add(data, add(161, lengthOfName)))
-        }
-        uint256 lengthOfSymbol = uint256(symbolLength);
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            totalSupply := mload(add(data,
-                add(194, add(lengthOfName, lengthOfSymbol))))
-        }
-        return uint256(totalSupply);
-    }
-
-    /**
-     * @dev Returns fallback data.
-     */
-    function _fallbackDataParser(bytes memory data)
-        private
-        pure
-        returns (address, address payable, uint256)
-    {
-        bytes32 contractOnMainnet;
-        bytes32 to;
-        bytes32 tokenAmount;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            contractOnMainnet := mload(add(data, 33))
-            to := mload(add(data, 65))
-            tokenAmount := mload(add(data, 97))
-        }
-        return (
-            address(bytes20(contractOnMainnet)), address(bytes20(to)), uint256(tokenAmount)
-        );
-    }
-
-    function _fallbackDataCreateERC20Parser(bytes memory data)
-        private
-        pure
-        returns (
-            string memory name,
-            string memory symbol,
-            uint8,
-            uint256
-        )
-    {
-        bytes1 decimals;
-        bytes32 totalSupply;
-        bytes32 nameLength;
-        bytes32 symbolLength;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            nameLength := mload(add(data, 129))
-        }
-        name = new string(uint256(nameLength));
-        for (uint256 i = 0; i < uint256(nameLength); i++) {
-            bytes(name)[i] = data[129 + i];
-        }
-        uint256 lengthOfName = uint256(nameLength);
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            symbolLength := mload(add(data, add(161, lengthOfName)))
-        }
-        symbol = new string(uint256(symbolLength));
-        for (uint256 i = 0; i < uint256(symbolLength); i++) {
-            bytes(symbol)[i] = data[161 + lengthOfName + i];
-        }
-        uint256 lengthOfSymbol = uint256(symbolLength);
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            decimals := mload(add(data,
-                add(193, add(lengthOfName, lengthOfSymbol))))
-            totalSupply := mload(add(data,
-                add(194, add(lengthOfName, lengthOfSymbol))))
-        }
-        return (
-            name,
-            symbol,
-            uint8(decimals),
-            uint256(totalSupply)
-            );
     }
 }

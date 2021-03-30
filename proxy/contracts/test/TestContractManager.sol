@@ -20,14 +20,24 @@
  */
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
+
+import "@openzeppelin/contracts/utils/Address.sol";
 
 
 contract ContractManager {
+    using Address for address;
 
     // mapping of actual smart contracts addresses
     mapping (bytes32 => address) public contracts;
 
+    address public owner;
+
     event ContractUpgraded(string contractsName, address contractsAddress);
+
+    constructor() public {
+        owner = msg.sender;
+    }
 
     /**
      * Adds actual contract to mapping of actual contract addresses
@@ -41,13 +51,8 @@ contract ContractManager {
         bytes32 contractId = keccak256(abi.encodePacked(contractsName));
         // check newContractsAddress is not equal the previous contract's address
         require(contracts[contractId] != newContractsAddress, "Contract is already added");
-        uint256 length;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            length := extcodesize(newContractsAddress)
-        }
         // check newContractsAddress contains code
-        require(length > 0, "Given contracts address is not contain code");
+        require(newContractsAddress.isContract(), "Given contracts address is not contain code");
         // add newContractsAddress to mapping of actual contract addresses
         contracts[contractId] = newContractsAddress;
         emit ContractUpgraded(contractsName, newContractsAddress);

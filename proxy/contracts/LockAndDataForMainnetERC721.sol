@@ -21,8 +21,10 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+
 import "./PermissionsForMainnet.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
+
 
 /**
  * @title Lock And Data For Mainnet ERC721
@@ -50,10 +52,8 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
         returns (bool)
     {
         require(contractOnMainnet.isContract(), "Given address is not a contract");
-        if (IERC721(contractOnMainnet).ownerOf(tokenId) == address(this)) {
-            IERC721(contractOnMainnet).transferFrom(address(this), to, tokenId);
-            require(IERC721(contractOnMainnet).ownerOf(tokenId) == to, "Did not transfer");
-        }
+        require(IERC721Upgradeable(contractOnMainnet).ownerOf(tokenId) == address(this), "Incorrect tokenId");
+        IERC721Upgradeable(contractOnMainnet).transferFrom(address(this), to, tokenId);
         return true;
     }
 
@@ -74,7 +74,7 @@ contract LockAndDataForMainnetERC721 is PermissionsForMainnet {
      */
     function addERC721TokenByOwner(string calldata schainName, address erc721OnMainnet) external {
         bytes32 schainId = keccak256(abi.encodePacked(schainName));
-        require(isSchainOwner(msg.sender, schainId), "Sender is not a Schain owner");
+        require(isSchainOwner(msg.sender, schainId) || msg.sender == getOwner(), "Sender is not a Schain owner");
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
         // require(withoutWhitelist[schainId], "Whitelist is disabled");
         schainToERC721[schainId][erc721OnMainnet] = true;

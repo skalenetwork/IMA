@@ -187,6 +187,8 @@ function parse( joExternalHandlers, argv ) {
             console.log( cc.sunny( "GENERAL" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "help" ) + cc.debug( ".........................." ) + cc.notice( "Show this " ) + cc.note( "help info" ) + cc.notice( " and exit." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "version" ) + cc.debug( "......................." ) + cc.notice( "Show " ) + cc.note( "version info" ) + cc.notice( " and exit." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "colors" ) + cc.debug( "........................" ) + cc.notice( "Use ANSI colorized logging." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-colors" ) + cc.debug( "....................." ) + cc.notice( "Use monochrome logging." ) );
             //
             console.log( cc.sunny( "BLOCKCHAIN NETWORK" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( ".............." ) + cc.note( "Main-net URL" ) + cc.notice( " for Web3. Value is automatically loaded from the " ) + cc.warning( "URL_W3_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
@@ -252,7 +254,6 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "ether" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( ".................." ) + cc.notice( "Amount of " ) + cc.attention( "ether" ) + cc.info( "(wei*1000*1000*1000*1000*1000*1000)" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "amount" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "................." ) + cc.notice( "Amount of " ) + cc.attention( "tokens" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "tid" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "...................." ) + cc.attention( "ERC721" ) + cc.notice( " token id to transfer." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "add-exit" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "......." ) + cc.notice( "Amount of exits for transferring" ) + cc.attention( "ETH" ) + cc.notice( "/" ) + cc.attention( "ERC20" ) + cc.notice( "/" ) + cc.attention( "ERC721" ) + cc.notice( " from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "Main-net" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sleep-between-tx" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "......." ) + cc.notice( "Number of of " ) + cc.attention( "milliseconds" ) + cc.notice( " to sleep between transactions during complex operations." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "wait-next-block" ) + cc.debug( "..............." ) + cc.notice( "Wait for next block between transactions during complex operations." ) );
             //
@@ -340,6 +341,14 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "version" ) {
             print_about();
             return 0;
+        }
+        if( joArg.name == "colors" ) {
+            cc.enable( true );
+            continue;
+        }
+        if( joArg.name == "no-colors" ) {
+            cc.enable( false );
+            continue;
         }
         if( joArg.name == "verbose" ) {
             IMA.verbose_set( IMA.verbose_parse( joArg.value ) );
@@ -506,11 +515,6 @@ function parse( joExternalHandlers, argv ) {
         }
         //
         //
-        if( joArg.name == "add-exit" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            IMA.setAmountToAddExit( joArg.value );
-            continue;
-        }
         if( joArg.name == "sleep-between-tx" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
             IMA.setSleepBetweenTransactionsOnSChainMilliseconds( joArg.value );

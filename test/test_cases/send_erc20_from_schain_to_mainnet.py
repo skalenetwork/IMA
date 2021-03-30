@@ -53,7 +53,7 @@ class SendERC20ToMainnet(TestCase):
                                                                               private_key=self.config.mainnet_key)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
-        self.blockchain.addERC20TokenByOwner(self.config.mainnet_key, self.config.schain_name, self.erc20.address)
+        self.blockchain.disableWhitelistERC20(self.config.mainnet_key, self.config.schain_name)
         self.blockchain.enableAutomaticDeployERC20(self.config.schain_key, "Mainnet")
 
         # send to schain
@@ -85,13 +85,15 @@ class SendERC20ToMainnet(TestCase):
             return
         balance = self.erc20.functions.balanceOf(destination_address).call()
 
-        self.agent.transfer_erc20_from_schain_to_mainnet(self.erc20_clone, # token
-                                                         self.erc20, # token on mainnet
-                                                         self.config.schain_key, # from
-                                                         self.config.mainnet_key, # to
-                                                         (self.amount - 2), # 2 tokens
-                                                         self.index,
-                                                         self.timeout)
+        self.agent.transfer_erc20_from_schain_to_mainnet(
+            self.erc20_clone, # token
+            self.erc20, # token on mainnet
+            self.config.schain_key, # from
+            self.config.mainnet_key, # to
+            (self.amount - 2), # 2 tokens
+            6 * 10 ** 16,
+            self.timeout
+        )
 
         # if self.erc20.functions.balanceOf(destination_address).call() == balance + self.amount:
         if self.erc20.functions.balanceOf(destination_address).call() == (self.amount - 2):
