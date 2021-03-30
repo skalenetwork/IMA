@@ -908,9 +908,9 @@ async function register_s_chain_in_deposit_boxes( // step 1
             // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
             joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
         }
-        if( verbose_get() >= RV_VERBOSE.information ) {
+        if( verbose_get() >= RV_VERBOSE.information )
             log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
-        }
+
         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
             jarrReceipts.push( {
                 "description": "register_s_chain_in_deposit_boxes",
