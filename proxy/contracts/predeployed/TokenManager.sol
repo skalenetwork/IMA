@@ -273,7 +273,7 @@ contract TokenManager is PermissionsForSchain {
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
             schainHash != keccak256(abi.encodePacked(getChainID())) && 
-            sender == LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(schainHash),
+            LockAndDataForSchain(getLockAndDataAddress()).hasDepositBox(sender),
             "Receiver chain is incorrect"
         );
         Messages.MessageType operation = Messages.getMessageType(data);

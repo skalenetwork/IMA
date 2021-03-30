@@ -195,8 +195,8 @@ async function get_web3_pastEvents( attempts, joContract, strEventName, nBlockFr
     } catch ( e ) {}
     let attemptIndex = 2;
     while( joAllEventsInBlock === "" && attemptIndex <= allAttempts ) {
-        log.write( cc.fatal( "Repeat getPastEvents" ) + cc.info( strEventName ) + cc.info( "attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( joAllEventsInBlock ) + "\n" );
-        await sleep( 10000 );
+        log.write( cc.fatal( "Repeat getPastEvents " ) + cc.info( strEventName ) + cc.info( " attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( joAllEventsInBlock ) + "\n" );
+        await sleep( 1000 );
         try {
             joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
                 filter: joFilter,
@@ -867,57 +867,56 @@ async function register_s_chain_in_deposit_boxes( // step 1
         // if( verbose_get() >= RV_VERBOSE.trace )
         //     log.write( strLogPrefix + cc.debug( "Account " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + cc.debug( " has S-Chain owner permission " ) + cc.info( isSchainOwner ) + "\n" );
         // if( isSchainOwner ) {
-            const methodWithArguments = jo_imalinker.methods.connectSchain(
-                chain_id_s_chain,
-                [
-                    jo_token_manager.options.address, // call params
-                    jo_token_manager.options.address, // call params
-                    jo_token_manager.options.address // call params
-                ]
-            );
-            const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+        const methodWithArguments = jo_imalinker.methods.connectSchain(
+            chain_id_s_chain,
+            [
+                jo_token_manager.options.address, // call params
+                jo_token_manager.options.address, // call params
+                jo_token_manager.options.address // call params
+            ]
+        );
+        const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+        //
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ), "0" );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
             //
-            const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
-            if( verbose_get() >= RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-            const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ), "0" );
-            if( verbose_get() >= RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
-            //
-            const isIgnore = false;
-            const strDRC = "register_s_chain_in_deposit_boxes, step 1, connectSchain";
-            await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
-            //
-            const rawTx = {
-                chainId: cid_main_net,
-                nonce: tcnt,
-                gasPrice: gasPrice,
-                // gasLimit: estimatedGas,
-                gas: estimatedGas, // gas is optional here
-                to: jo_imalinker.options.address, // contract address
-                data: dataTx
-            };
-            const tx = compose_tx_instance( strLogPrefix, rawTx );
-            const joSR = await safe_sign_transaction_with_account( w3_main_net, tx, rawTx, joAccount_main_net );
-            let joReceipt = null;
-            if( joSR.joACI.isAutoSend )
-                joReceipt = await get_web3_transactionReceipt( 10, w3_main_net, joSR.txHashSent );
-            else {
-                const serializedTx = tx.serialize();
-                strActionName = "reg-step1:w3_main_net.eth.sendSignedTransaction()";
-                // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-                joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
-            }
-            if( verbose_get() >= RV_VERBOSE.information ) {
-                console.log(joReceipt);
-                log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
-            }
-            if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
-                jarrReceipts.push( {
-                    "description": "register_s_chain_in_deposit_boxes",
-                    "receipt": joReceipt
-                } );
-            }
+        const isIgnore = false;
+        const strDRC = "register_s_chain_in_deposit_boxes, step 1, connectSchain";
+        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        //
+        const rawTx = {
+            chainId: cid_main_net,
+            nonce: tcnt,
+            gasPrice: gasPrice,
+            // gasLimit: estimatedGas,
+            gas: estimatedGas, // gas is optional here
+            to: jo_imalinker.options.address, // contract address
+            data: dataTx
+        };
+        const tx = compose_tx_instance( strLogPrefix, rawTx );
+        const joSR = await safe_sign_transaction_with_account( w3_main_net, tx, rawTx, joAccount_main_net );
+        let joReceipt = null;
+        if( joSR.joACI.isAutoSend )
+            joReceipt = await get_web3_transactionReceipt( 10, w3_main_net, joSR.txHashSent );
+        else {
+            const serializedTx = tx.serialize();
+            strActionName = "reg-step1:w3_main_net.eth.sendSignedTransaction()";
+            // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+            joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
+        }
+        if( verbose_get() >= RV_VERBOSE.information ) {
+            log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        }
+        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+            jarrReceipts.push( {
+                "description": "register_s_chain_in_deposit_boxes",
+                "receipt": joReceipt
+            } );
+        }
         // } else
         // if( verbose_get() >= RV_VERBOSE.trace )
         //     log.write( strLogPrefix + cc.debug( "Will wait until S-Chain owner will register S-Chain in ima-linker on Main-net" ) + "\n" );
@@ -936,7 +935,6 @@ async function register_s_chain_in_deposit_boxes( // step 1
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_s_chain_in_deposit_boxes() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return null;
     }
-    console.log("!!!!!!!!!!!!!!!!!!!!!!!!!! PASSED !!!!!!!!!!!!!!!!!!!!!!!!!!");
     return jarrReceipts;
 } // async function register_deposit_box_on_s_chain(...
 
