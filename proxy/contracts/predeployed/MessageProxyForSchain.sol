@@ -96,9 +96,9 @@ contract MessageProxyForSchain {
     mapping(address => bool) private _authorizedCaller;
     //      chainID  =>      message_id  => MessageData
     mapping(bytes32 => mapping(uint256 => bytes32)) private _outgoingMessageDataHash;
-    //      hainID  => head of unprocessed messages
+    //      chainID  => head of unprocessed messages
     mapping(bytes32 => uint) private _idxHead;
-    //      hainID  => tail of unprocessed messages
+    //      chainID  => tail of unprocessed messages
     mapping(bytes32 => uint) private _idxTail;
 
     event OutgoingMessage(
