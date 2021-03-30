@@ -26,16 +26,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import "../interfaces/IMessageProxy.sol";
+import "../interfaces/ILockAndDataERCOnSchain.sol";
 import "./ERC20ModuleForSchain.sol";
 import "./ERC721ModuleForSchain.sol";
 import "../Messages.sol";
 import "./PermissionsForSchain.sol";
 
-
-interface ILockAndDataERCOnSchain {
-    function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address);
-    function getERC721OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address);
-}
 
 /**
  * This contract runs on schains and accepts messages from main net creates ETH clones.
@@ -101,11 +97,9 @@ contract TokenManager is PermissionsForSchain {
     function exitToMainERC20(
         address contractOnMainnet,
         address to,
-        uint256 amount,
-        uint256 amountOfEth
+        uint256 amount
     )
         external
-        receivedEth(amountOfEth)
     {
         address lockAndDataERC20 = LockAndDataForSchain(
             getLockAndDataAddress()
@@ -130,7 +124,7 @@ contract TokenManager is PermissionsForSchain {
             ),
             "Could not transfer ERC20 Token"
         );
-        require(amountOfEth >= TX_FEE, "Not enough funds to exit");
+        // require(amountOfEth >= TX_FEE, "Not enough funds to exit");
         // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
         //     amountOfEth :
         //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
@@ -142,8 +136,8 @@ contract TokenManager is PermissionsForSchain {
             amount);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
-            LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            amountOfEth,
+            LockAndDataForSchain(getLockAndDataAddress()).getDepositBox(1),
+            0,
             address(0),
             data
         );
@@ -153,11 +147,10 @@ contract TokenManager is PermissionsForSchain {
         string calldata schainID,
         address contractOnMainnet,
         address to,
-        uint256 amount,
-        uint256 amountOfEth
+        uint256 amount
     )
         external
-        receivedEth(amountOfEth)
+        // receivedEth(amountOfEth)
     {
         address lockAndDataERC20 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc20();
         address erc20Module = LockAndDataForSchain(getLockAndDataAddress()).getErc20Module();
@@ -186,7 +179,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
             LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            amountOfEth,
+            0,
             address(0),
             data
         );
@@ -195,11 +188,9 @@ contract TokenManager is PermissionsForSchain {
     function exitToMainERC721(
         address contractOnMainnet,
         address to,
-        uint256 tokenId,
-        uint256 amountOfEth
+        uint256 tokenId
     )
         external
-        receivedEth(amountOfEth)
     {
         address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
         address erc721Module = LockAndDataForSchain(getLockAndDataAddress()).getErc721Module();
@@ -208,7 +199,7 @@ contract TokenManager is PermissionsForSchain {
         require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractOnSchain).transferFrom(address(this), lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-        require(amountOfEth >= TX_FEE, "Not enough funds to exit");
+        // require(amountOfEth >= TX_FEE, "Not enough funds to exit");
         // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
         //     amountOfEth :
         //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
@@ -220,8 +211,8 @@ contract TokenManager is PermissionsForSchain {
             tokenId);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
-            LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            amountOfEth,
+            LockAndDataForSchain(getLockAndDataAddress()).getDepositBox(2),
+            0,
             address(0),
             data
         );
@@ -231,11 +222,9 @@ contract TokenManager is PermissionsForSchain {
         string calldata schainID,
         address contractOnMainnet,
         address to,
-        uint256 tokenId,
-        uint256 amountOfEth
+        uint256 tokenId
     ) 
         external
-        receivedEth(amountOfEth)
     {
         address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
         address erc721Module = LockAndDataForSchain(getLockAndDataAddress()).getErc721Module();
@@ -252,7 +241,7 @@ contract TokenManager is PermissionsForSchain {
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
             LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            amountOfEth,
+            0,
             address(0),
             data
         );
@@ -284,7 +273,11 @@ contract TokenManager is PermissionsForSchain {
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
             schainHash != keccak256(abi.encodePacked(getChainID())) && 
-            sender == LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(schainHash),
+            (
+                schainHash == keccak256(abi.encodePacked("Mainnet")) ?
+                LockAndDataForSchain(getLockAndDataAddress()).hasDepositBox(sender) :
+                sender == LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(schainHash)
+            ),
             "Receiver chain is incorrect"
         );
         Messages.MessageType operation = Messages.getMessageType(data);
@@ -329,7 +322,7 @@ contract TokenManager is PermissionsForSchain {
         // require(amountOfEthToSend != 0, "Community pool is empty");
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
-            LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
+            LockAndDataForSchain(getLockAndDataAddress()).getDepositBox(0),
             amountOfEth,
             to,
             Messages.encodeTransferEthMessage()

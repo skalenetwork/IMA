@@ -40,14 +40,11 @@ async function deploy( deployer, networkName, accounts ) {
     const options = await ConfigManager.initNetworkConfiguration( { network: networkName, from: deployAccount } );
 
     const contracts = [
-        "LockAndDataForMainnet", // must be in first position
-
-        "MessageProxyForMainnet", // must be above MessageProxy
-        "DepositBox", // must be below DepositBox
-        "ERC20ModuleForMainnet",
-        "LockAndDataForMainnetERC20",
-        "ERC721ModuleForMainnet",
-        "LockAndDataForMainnetERC721"
+        "MessageProxyForMainnet",
+        "IMALinker",
+        "DepositBoxEth",
+        "DepositBoxERC20",
+        "DepositBoxERC721"
     ];
 
     contractsData = [];
@@ -58,30 +55,69 @@ async function deploy( deployer, networkName, accounts ) {
 
     await push( options );
 
+    if( jsonData.contract_manager_address !== null && jsonData.contract_manager_address !== "" && jsonData.contract_manager_address !== "0x0000000000000000000000000000000000000000" ) {
+        if( configFile.networks[networkName].host !== "" && configFile.networks[networkName].host !== undefined && configFile.networks[networkName].port !== "" && configFile.networks[networkName].port !== undefined ) {
+            const web3 = new Web3( new Web3.providers.HttpProvider( "http://" + configFile.networks[networkName].host + ":" + configFile.networks[networkName].port ) );
+            if( await web3.eth.getCode( jsonData.contract_manager_address ) === "0x" ) {
+                if( networkName !== "test" && networkName !== "coverage" ) {
+                    console.log( "Please provide a correct contract manager address of skale-manager with a code" );
+                    process.exit( 0 );
+                } else
+                    console.log( "WARNING: contract manager address does not contain code" );
+
+            }
+        } else if( configFile.networks[networkName].provider !== "" && configFile.networks[networkName].provider !== undefined ) {
+            const web3 = new Web3( configFile.networks[networkName].provider() );
+            if( await web3.eth.getCode( jsonData.contract_manager_address ) === "0x" ) {
+                if( networkName !== "test" && networkName !== "coverage" ) {
+                    console.log( "Please provide a correct contract manager address of skale-manager with a code" );
+                    process.exit( 0 );
+                } else
+                    console.log( "WARNING: contract manager address does not contain code" );
+
+            }
+        } else {
+            console.log( "Unknown type of provider" );
+            process.exit( 0 );
+        }
+    } else {
+        console.log( "Please provide a contract manager address of skale-manager" );
+        process.exit( 0 );
+    }
+
     const deployed = new Map();
-    let lockAndDataForMainnet;
+    let imaLinker;
     for( const contractName of contracts ) {
         let contract;
-        if( contractName == "LockAndDataForMainnet" ) {
-            contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [] }, options ) );
-            lockAndDataForMainnet = contract;
-            console.log( "lockAndDataForMainnet address:", contract.address );
-        } else
-            contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ lockAndDataForMainnet.address ] }, options ) );
+        if( contractName == "MessageProxyForMainnet" ) {
+            contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ jsonData.contract_manager_address ] }, options ) );
+            console.log( "MessageProxyForMainnet address:", contract.address );
+        } else if( contractName == "IMALinker" ) {
+            contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ jsonData.contract_manager_address, deployed.get( "MessageProxyForMainnet" ).address ] }, options ) );
+            imaLinker = contract;
+            console.log( "IMALinker address:", contract.address );
+        } else { // DepositBoxes
+            contract = await create(
+                Object.assign(
+                    {
+                        contractAlias: contractName,
+                        methodName: "initialize",
+                        methodArgs: [
+                            jsonData.contract_manager_address,
+                            deployed.get( "MessageProxyForMainnet" ).address,
+                            deployed.get( "IMALinker" ).address
+                        ]
+                    },
+                    options
+                )
+            );
+            console.log( contractName, "address:", contract.address );
+            await imaLinker.methods.registerDepositBox( contract.address ).send( { from: deployAccount } ).then( function( res ) {
+                console.log( "Contract", contractName, "with address", contract.address, "is registered as DepositBox in IMALinker" );
+            } );
+        }
 
         deployed.set( contractName, contract );
-    }
-    console.log( "Register contracts" );
-
-    for( const contract of contracts ) {
-        const address = deployed.get( contract ).address;
-        let registerName = "";
-        for( const part of contract.split( "ForMainnet" ) )
-            registerName += part;
-
-        await lockAndDataForMainnet.methods.setContract( registerName, address ).send( { from: deployAccount } ).then( function( res ) {
-            console.log( "Contract", registerName, "with address", address, "is registered in Contract Manager" );
-        } );
     }
 
     console.log( "Deploy done, writing results..." );
@@ -103,9 +139,6 @@ async function deploy( deployer, networkName, accounts ) {
     console.log( "Writing done, register contract manager and message proxy..." );
 
     if( jsonData.contract_manager_address !== null && jsonData.contract_manager_address !== "" && jsonData.contract_manager_address !== "0x0000000000000000000000000000000000000000" ) {
-        await lockAndDataForMainnet.methods.setContract( "ContractManagerForSkaleManager", jsonData.contract_manager_address ).send( { from: deployAccount } ).then( function( res ) {
-            console.log( "Contract ContractManagerForSkaleManager with address", jsonData.contract_manager_address, "is registered in Contract Manager" );
-        } );
         // register MessageProxy in ContractManager
         if( jsonData.contract_manager_abi !== "" && jsonData.contract_manager_abi !== undefined ) {
             if( configFile.networks[networkName].host !== "" && configFile.networks[networkName].host !== undefined && configFile.networks[networkName].port !== "" && configFile.networks[networkName].port !== undefined ) {

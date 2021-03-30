@@ -22,13 +22,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
-
-import "./PermissionsForMainnet.sol";
-import "./interfaces/IContractManager.sol";
-import "./interfaces/ISchainsInternal.sol";
-import "./interfaces/IWallets.sol";
+import "./connectors/ProxyConnector.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
@@ -42,21 +36,6 @@ interface ContractReceiverForMainnet {
         returns (bool);
 }
 
-interface ISchains {
-    function verifySchainSignature(
-        uint256 signA,
-        uint256 signB,
-        bytes32 hash,
-        uint256 counter,
-        uint256 hashA,
-        uint256 hashB,
-        string calldata schainName
-    )
-        external
-        view
-        returns (bool);
-}
-
 /**
  * @title Message Proxy for Mainnet
  * @dev Runs on Mainnet, contains functions to manage the incoming messages from
@@ -67,8 +46,7 @@ interface ISchains {
  * nodes in the chain. Since Ethereum Mainnet has no BLS public key, mainnet
  * messages do not need to be signed.
  */
-contract MessageProxyForMainnet is PermissionsForMainnet {
-    using SafeMathUpgradeable for uint256;
+contract MessageProxyForMainnet is ProxyConnector {
 
     /**
      * 16 Agents
@@ -141,7 +119,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      * - `newChainID` must not be "Mainnet".
      * - `newChainID` must not already be added.
      */
-    function addConnectedChain(string calldata newChainID) external allow("LockAndData") {
+    function addConnectedChain(string calldata newChainID) external {
         require(
             keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
@@ -167,7 +145,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      * - `msg.sender` must be LockAndData contract.
      * - `newChainID` must be initialized.
      */
-    function removeConnectedChain(string calldata newChainID) external allow("LockAndData") {
+    function removeConnectedChain(string calldata newChainID) external {
         require(
             connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
             "Chain is not initialized"
@@ -233,7 +211,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not equal to incoming message counter");
 
-        require(_verifyMessages(srcChainID, messages, sign), "Signature is not verified");
+        require(_verifyMessages(srcChainID, _hashedArray(messages), sign), "Signature is not verified");
         for (uint256 i = 0; i < messages.length; i++) {
             _callReceiverContract(srcChainID, messages[i], startingCounter + i);
         }
@@ -335,58 +313,10 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
 
     // Create a new message proxy
 
-    function initialize(address newLockAndDataAddress) public override initializer {
-        PermissionsForMainnet.initialize(newLockAndDataAddress);
+    function initialize(address newContractManagerOfSkaleManager) public override initializer {
+        ProxyConnector.initialize(newContractManagerOfSkaleManager);
         owner = msg.sender;
         chainID = "Mainnet";
-    }
-
-    /**
-     * @dev Checks whether sender is node address from the SKALE chain
-     */
-    function isAuthorizedCaller(bytes32 chainId, address sender) public view returns (bool) {
-        address skaleSchainsInternal = IContractManager(
-            IContractManager(getLockAndDataAddress()).getContract(
-                "ContractManagerForSkaleManager"
-            )
-        ).getContract(
-            "SchainsInternal"
-        );
-        return ISchainsInternal(skaleSchainsInternal).isNodeAddressesInGroup(
-            chainId,
-            sender
-        );
-    }
-
-    /**
-     * @dev Converts calldata structure to memory structure and checks
-     * whether message BLS signature is valid.
-     */
-    function _verifyMessages(
-        string calldata srcChainID,
-        Message[] calldata messages,
-        Signature calldata sign
-    )
-        private
-        view
-        returns (bool)
-    {
-        address skaleSchains = IContractManager(
-            IContractManager(getLockAndDataAddress()).getContract(
-                "ContractManagerForSkaleManager"
-            )
-        ).getContract(
-            "Schains"
-        );
-        return ISchains(skaleSchains).verifySchainSignature(
-            sign.blsSignature[0],
-            sign.blsSignature[1],
-            _hashedArray(messages),
-            sign.counter,
-            sign.hashA,
-            sign.hashB,
-            srcChainID
-        );
     }
 
     /**
@@ -436,13 +366,5 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             );
             return false;
         }
-    }
-
-    function _refundGasBySchain(bytes32 schainId, uint gasTotal) private {
-        address contractManagerAddress = IContractManager(getLockAndDataAddress()).getContract(
-            "ContractManagerForSkaleManager"
-        );
-        address walletsAddress = IContractManager(contractManagerAddress).getContract("Wallets");
-        IWallets(payable(walletsAddress)).refundGasBySchain(schainId, msg.sender, gasTotal.sub(gasleft()), false);
     }
 }
