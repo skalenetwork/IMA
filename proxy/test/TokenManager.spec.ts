@@ -202,57 +202,9 @@ contract("TokenManager", ([deployer, user, client]) => {
         //
         await eRC20OnChain.approve(tokenManager.address, amountTo, {from: user});
         // // execution/expectation
-        await tokenManager.exitToMainERC20(eRC20.address, client, amountTo, 0, {from: deployer})
+        await tokenManager.exitToMainERC20(eRC20.address, client, amountTo, {from: deployer})
             .should.be.eventually.rejectedWith(error);
     });
-
-    // it("should rejected with `ERC20: burn amount exceeds balance` when invoke `exitToMainERC20`", async () => {
-    //     const error = "ERC20: burn amount exceeds balance";
-    //     const amount = new BigNumber(200);
-    //     const amountTo = new BigNumber(20);
-    //     const amountEth = new BigNumber("60000000000000000");
-    //     // set EthERC20 address:
-    //     await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
-    //     // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
-    //     await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
-    //     // set contract TokenManager:
-    //     await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
-    //     await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
-    //     await lockAndDataForSchain.setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
-    //     // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
-    //     await lockAndDataForSchainERC20.addERC20ForSchain("Mainnet", eRC20.address, eRC20OnChain.address, {from: deployer});
-    //     const minterRole = await eRC20OnChain.MINTER_ROLE();
-    //     await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address);
-    //     await eRC20OnChain.mint(deployer, amount, {from: deployer});
-    //     await eRC20OnChain.approve(tokenManager.address, amountTo, {from: deployer});
-    //     await tokenManager.exitToMainERC20(eRC20.address, client, amountTo, {from: deployer})
-    //         .should.be.eventually.rejectedWith(error);
-    // });
-
-    // it("should rejected with `Not enough funds to exit` when invoke `exitToMainERC20`", async () => {
-    //     const error = "Not enough funds to exit";
-    //     const amount = new BigNumber(200);
-    //     const amountTo = new BigNumber(20);
-    //     const amountEth = new BigNumber("50000000000000000");
-    //     // set EthERC20 address:
-    //     await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
-    //     // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
-    //     await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
-    //     // send Eth:
-    //     await lockAndDataForSchain.sendEth(user, amountEth, {from: deployer});
-    //     // set contract TokenManager:
-    //     await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
-    //     await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
-    //     await lockAndDataForSchain.setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
-    //     // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
-    //     await lockAndDataForSchainERC20.addERC20ForSchain("Mainnet", eRC20.address, eRC20OnChain.address, {from: deployer});
-    //     const minterRole = await eRC20OnChain.MINTER_ROLE();
-    //     await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address);
-    //     await eRC20OnChain.mint(user, amount, {from: deployer});
-    //     await eRC20OnChain.approve(tokenManager.address, amountTo, {from: user});
-    //     await tokenManager.exitToMainERC20(eRC20.address, client, amountTo, {from: user})
-    //         .should.be.eventually.rejectedWith(error);
-    // });
 
     it("should invoke `exitToMainERC20` without mistakes", async () => {
         const amount = "20000000000000000";
@@ -311,7 +263,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // execution:
         const res = await tokenManager
-            .exitToMainERC20(eRC20.address, client, amountReduceCost, amountEth, {from: user});
+            .exitToMainERC20(eRC20.address, client, amountReduceCost, {from: user});
 
         // // expectation:
         const outgoingMessagesCounterMainnet = new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter("Mainnet"));
@@ -361,7 +313,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // execution:
         await tokenManager
-            .transferToSchainERC20(schainID, eRC20.address, client, amountReduceCost, 0, {from: deployer})
+            .transferToSchainERC20(schainID, eRC20.address, client, amountReduceCost, {from: deployer})
             .should.be.eventually.rejectedWith(error);
     });
 
@@ -395,7 +347,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // execution:
         await tokenManager
-            .transferToSchainERC20(schainID, eRC20.address, client, amountReduceCost, 0, {from: deployer});
+            .transferToSchainERC20(schainID, eRC20.address, client, amountReduceCost, {from: deployer});
         // expectation:
         const outgoingMessagesCounterMainnet = new BigNumber(
             await messageProxyForSchain.getOutgoingMessagesCounter(schainID));
@@ -431,87 +383,9 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // execution:
         await tokenManager
-            .exitToMainERC721(eRC721.address, client, tokenId, 0, {from: deployer})
+            .exitToMainERC721(eRC721.address, client, tokenId, {from: deployer})
             .should.be.eventually.rejectedWith(error);
     });
-
-    // it("should rejected with `ERC20: burn amount exceeds balance` when invoke `exitToMainERC721`", async () => {
-    //     const error = "ERC20: burn amount exceeds balance";
-    //     const tokenId = 10;
-    //     const amountEth = new BigNumber("60000000000000000");
-    //     // set EthERC20 address:
-    //     await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
-    //     // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
-    //     await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
-    //     // set contract TokenManager to avoid `Not allowed` exception on `exitToMainERC20` function:
-    //     await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
-    //     // set contract ERC20ModuleForSchain to avoid `revert` exception on `exitToMainERC20` function:
-    //     await lockAndDataForSchain.setContract("ERC721Module", eRC721ModuleForSchain.address, {from: deployer});
-    //     // set contract lockAndDataForSchainERC20 to avoid
-    //     // `ERC20: transfer to the zero address` exception on `exitToMainERC20` function:
-    //     await lockAndDataForSchain
-    //         .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
-    //     // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
-    //     await lockAndDataForSchain.setContract(
-    //         "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
-    //     // add connected chain:
-    //     await lockAndDataForSchainERC721
-    //         .addERC721ForSchain("Mainnet", eRC20.address,eRC20OnChain.address, {from: deployer});
-    //     // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
-    //     const minterRole = await eRC721OnChain.MINTER_ROLE();
-    //     await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
-    //     // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
-    //     await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-    //     // invoke `addERC721ForSchain` to avoid `Not existing ERC-721 contract` exception on `exitToMainERC721` function:
-    //     await lockAndDataForSchainERC721.addERC721ForSchain("Mainnet", eRC721.address, eRC721OnChain.address, {from: deployer});
-    //     await eRC721OnChain.transferFrom(deployer, tokenManager.address, tokenId, {from: deployer});
-
-    //     // execution:
-    //     await tokenManager
-    //         .exitToMainERC721(eRC721.address, client, tokenId, {from: deployer})
-    //         .should.be.eventually.rejectedWith(error);
-
-    // });
-
-    // it("should rejected with `Not enough funds to exit` when invoke `exitToMainERC721`", async () => {
-    //     const error = "Not enough funds to exit";
-    //     const tokenId = 10;
-    //     const amountEth = new BigNumber("50000000000000000");
-    //     // set EthERC20 address:
-    //     await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
-    //     // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
-    //     await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
-    //     // send Eth:
-    //     await lockAndDataForSchain.sendEth(user, amountEth, {from: deployer});
-    //     // set contract TokenManager to avoid `Not allowed` exception on `exitToMainERC20` function:
-    //     await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
-    //     // set contract ERC20ModuleForSchain to avoid `revert` exception on `exitToMainERC20` function:
-    //     await lockAndDataForSchain.setContract("ERC721Module", eRC721ModuleForSchain.address, {from: deployer});
-    //     // set contract lockAndDataForSchainERC20 to avoid
-    //     // `ERC20: transfer to the zero address` exception on `exitToMainERC20` function:
-    //     await lockAndDataForSchain
-    //         .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
-    //     // set contract MessageProxy to avoid `Not allowed` exception on `exitToMainERC20` function:
-    //     await lockAndDataForSchain.setContract(
-    //         "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
-    //     // add connected chain:
-    //     await lockAndDataForSchainERC721
-    //         .addERC721ForSchain("Mainnet", eRC20.address,eRC20OnChain.address, {from: deployer});
-    //     // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
-    //     const minterRole = await eRC721OnChain.MINTER_ROLE();
-    //     await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
-    //     // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
-    //     await eRC721OnChain.mint(user, tokenId, {from: deployer});
-    //     // invoke `addERC721ForSchain` to avoid `Not existing ERC-721 contract` exception on `exitToMainERC721` function:
-    //     await lockAndDataForSchainERC721.addERC721ForSchain("Mainnet", eRC721.address, eRC721OnChain.address, {from: deployer});
-    //     await eRC721OnChain.transferFrom(user, tokenManager.address, tokenId, {from: user});
-
-    //     // execution:
-    //     await tokenManager
-    //         .exitToMainERC721(eRC721.address, client, tokenId, {from: user})
-    //         .should.be.eventually.rejectedWith(error);
-
-    // });
 
     it("should invoke `exitToMainERC721` without mistakes", async () => {
         const amountToCost = "9000000000000000";
@@ -545,7 +419,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC721OnChain.transferFrom(user, tokenManager.address, tokenId, {from: user});
 
         // execution:
-        await tokenManager.exitToMainERC721(contractThere, to, tokenId, amountEth, {from: user});
+        await tokenManager.exitToMainERC721(contractThere, to, tokenId, {from: user});
         // expectation:
         const outgoingMessagesCounterMainnet = new BigNumber(await messageProxyForSchain
             .getOutgoingMessagesCounter("Mainnet"));
@@ -585,7 +459,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // execution:
         const res = await tokenManager
-            .transferToSchainERC721(schainID, contractThere, to, tokenId, 0, {from: deployer});
+            .transferToSchainERC721(schainID, contractThere, to, tokenId, {from: deployer});
         // expectation:
         const outgoingMessagesCounter = new BigNumber(await messageProxyForSchain
             .getOutgoingMessagesCounter(schainID));
@@ -627,7 +501,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // execution:
         await tokenManager
-            .transferToSchainERC721(schainID, contractThere, to, tokenId, 0, {from: deployer})
+            .transferToSchainERC721(schainID, contractThere, to, tokenId, {from: deployer})
             .should.be.eventually.rejectedWith(error);
     });
 

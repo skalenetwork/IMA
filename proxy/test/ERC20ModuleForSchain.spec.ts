@@ -26,15 +26,12 @@
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
-  ERC20ModuleForMainnetInstance,
     ERC20ModuleForSchainContract,
     ERC20ModuleForSchainInstance,
     ERC20OnChainContract,
     ERC20OnChainInstance,
     EthERC20Contract,
     EthERC20Instance,
-    LockAndDataForMainnetERC20Instance,
-    LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainERC20Contract,
     LockAndDataForSchainERC20Instance,
@@ -47,9 +44,6 @@ import {
 
 import chai = require("chai");
 import { randomString } from "./utils/helper";
-import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
-import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
-import { deployERC20ModuleForMainnet } from "./utils/deploy/erc20ModuleForMainnet";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -74,15 +68,9 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
   let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
   let eRC20OnChain: ERC20OnChainInstance;
   let erc20OnMainnet: ERC20OnChainInstance;
-  let lockAndDataForMainnet: LockAndDataForMainnetInstance;
-  let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
-  let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
   let messages: MessagesTesterInstance;
 
   beforeEach(async () => {
-    lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
-    eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
 
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     lockAndDataForSchainERC20 =
@@ -148,37 +136,37 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
     // (res).should.include("0x"); // l_sergiy: FIX - not passing
   });
 
-  it("should send ERC20 token from mainnet to schain", async () => {
-    // preparation
-    const contractHere = eRC20OnChain.address;
-    const to = user;
-    const ERC20OnMainnet = erc20OnMainnet.address;
-    const schainID = randomString(10);
-    const amount = 10;
-    // set `ERC20Module` contract before invoke `receiveERC20`
-    await lockAndDataForSchain
-        .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
-    // set `LockAndDataERC20` contract before invoke `receiveERC20`
-    await lockAndDataForSchain
-        .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
-    await lockAndDataForSchain
-        .setContract("TokenFactory", tokenFactory.address, {from: deployer});
-    // mint some quantity of ERC20 tokens for `deployer` address
-    await erc20OnMainnet.mint(deployer, "1000000000", {from: deployer});
-    await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
-    // get data from `receiveERC20`
-    await eRC20ModuleForMainnet.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
-    await lockAndDataForMainnetERC20.disableWhitelist(schainID);
-    const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, ERC20OnMainnet, to, amount, {from: deployer});
-    // await eRC20ModuleForMainnet.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer});
-    // execution
-    const {logs} = await eRC20ModuleForSchain.sendERC20(schainID, data, {from: deployer});
-    const contractOnSchain  = logs[0].args.contractOnSchain;
-    const newERC20: ERC20OnChainInstance = await ERC20OnChain.at(contractOnSchain);
-    // expectation
-    const balance = await newERC20.balanceOf(to);
-    parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount);
-  });
+  // it("should send ERC20 token from mainnet to schain", async () => {
+  //   // preparation
+  //   const contractHere = eRC20OnChain.address;
+  //   const to = user;
+  //   const ERC20OnMainnet = erc20OnMainnet.address;
+  //   const schainID = randomString(10);
+  //   const amount = 10;
+  //   // set `ERC20Module` contract before invoke `receiveERC20`
+  //   await lockAndDataForSchain
+  //       .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
+  //   // set `LockAndDataERC20` contract before invoke `receiveERC20`
+  //   await lockAndDataForSchain
+  //       .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
+  //   await lockAndDataForSchain
+  //       .setContract("TokenFactory", tokenFactory.address, {from: deployer});
+  //   // mint some quantity of ERC20 tokens for `deployer` address
+  //   await erc20OnMainnet.mint(deployer, "1000000000", {from: deployer});
+  //   await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
+  //   // get data from `receiveERC20`
+  //   await eRC20ModuleForMainnet.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+  //   await lockAndDataForMainnetERC20.disableWhitelist(schainID);
+  //   const data = await eRC20ModuleForMainnet.receiveERC20.call(schainID, ERC20OnMainnet, to, amount, {from: deployer});
+  //   // await eRC20ModuleForMainnet.receiveERC20(schainID, ERC20OnMainnet, to, amount, {from: deployer});
+  //   // execution
+  //   const {logs} = await eRC20ModuleForSchain.sendERC20(schainID, data, {from: deployer});
+  //   const contractOnSchain  = logs[0].args.contractOnSchain;
+  //   const newERC20: ERC20OnChainInstance = await ERC20OnChain.at(contractOnSchain);
+  //   // expectation
+  //   const balance = await newERC20.balanceOf(to);
+  //   parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount);
+  // });
 
   it("should return send ERC20 token twice", async () => {
     // preparation

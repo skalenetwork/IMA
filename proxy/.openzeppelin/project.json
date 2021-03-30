@@ -2,12 +2,10 @@
   "manifestVersion": "2.2",
   "contracts": {
     "MessageProxyForMainnet": "MessageProxyForMainnet",
-    "LockAndDataForMainnet": "LockAndDataForMainnet",
-    "DepositBox": "DepositBox",
-    "ERC20ModuleForMainnet": "ERC20ModuleForMainnet",
-    "LockAndDataForMainnetERC20": "LockAndDataForMainnetERC20",
-    "ERC721ModuleForMainnet": "ERC721ModuleForMainnet",
-    "LockAndDataForMainnetERC721": "LockAndDataForMainnetERC721"
+    "IMALinker": "IMALinker",
+    "DepositBoxEth": "DepositBoxEth",
+    "DepositBoxERC20": "DepositBoxERC20",
+    "DepositBoxERC721": "DepositBoxERC721"
   },
   "dependencies": {},
   "name": "skale-ima-proxy",

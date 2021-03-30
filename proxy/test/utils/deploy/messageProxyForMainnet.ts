@@ -1,18 +1,18 @@
 import { MessageProxyForMainnetContract } from "../../../types/truffle-contracts";
-import { LockAndDataForMainnetInstance } from "../../../types/truffle-contracts";
+import { ContractManagerInstance } from "../../../types/truffle-contracts";
 
 const MessageProxyForMainnet: MessageProxyForMainnetContract = artifacts.require("./MessageProxyForMainnet");
-const name = "MessageProxy";
+const name = "MessageProxyForMainnet";
 
 export async function deployMessageProxyForMainnet(
-    lockAndDataForMainnet: LockAndDataForMainnetInstance
+    contractManager: ContractManagerInstance
 ) {
-    if (await lockAndDataForMainnet.getContract(name) !== "0x0000000000000000000000000000000000000000") {
-        return MessageProxyForMainnet.at(await lockAndDataForMainnet.getContract(name));
+    if (await contractManager.getContract(name) !== "0x0000000000000000000000000000000000000000") {
+        return MessageProxyForMainnet.at(await contractManager.getContract(name));
     } else {
         const instance = await MessageProxyForMainnet.new();
-        await instance.initialize(lockAndDataForMainnet.address);
-        await lockAndDataForMainnet.setContract(name, instance.address);
+        await instance.initialize(contractManager.address);
+        await contractManager.setContractsAddress(name, instance.address);
         return instance;
     }
 }
