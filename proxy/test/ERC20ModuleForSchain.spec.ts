@@ -26,15 +26,12 @@
 import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
-  // ERC20ModuleForMainnetInstance,
     ERC20ModuleForSchainContract,
     ERC20ModuleForSchainInstance,
     ERC20OnChainContract,
     ERC20OnChainInstance,
     EthERC20Contract,
     EthERC20Instance,
-    // LockAndDataForMainnetERC20Instance,
-    // LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainERC20Contract,
     LockAndDataForSchainERC20Instance,
@@ -47,9 +44,6 @@ import {
 
 import chai = require("chai");
 import { randomString } from "./utils/helper";
-// import { deployLockAndDataForMainnet } from "./utils/deploy/imaLinker";
-// import { deployLockAndDataForMainnetERC20 } from "./utils/deploy/lockAndDataForMainnetERC20";
-// import { deployERC20ModuleForMainnet } from "./utils/deploy/depositBoxERC20";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -74,15 +68,9 @@ contract("ERC20ModuleForSchain", ([deployer, user, invoker]) => {
   let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
   let eRC20OnChain: ERC20OnChainInstance;
   let erc20OnMainnet: ERC20OnChainInstance;
-  // let lockAndDataForMainnet: LockAndDataForMainnetInstance;
-  // let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
-  // let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
   let messages: MessagesTesterInstance;
 
   beforeEach(async () => {
-    // lockAndDataForMainnet = await deployLockAndDataForMainnet();
-    // lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
-    // eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
 
     lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
     lockAndDataForSchainERC20 =

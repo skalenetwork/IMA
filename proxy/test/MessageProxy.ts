@@ -31,23 +31,13 @@ import {
     DepositBoxEthInstance,
     ContractManagerInstance,
     IMALinkerInstance,
-    // KeyStorageContract,
-    // KeyStorageInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainInstance,
     MessageProxyForMainnetInstance,
     MessageProxyForSchainContract,
     MessageProxyForSchainInstance,
-    // SchainsContract,
-    // SchainsInstance,
-    // SchainsInternalContract,
-    // SchainsInternalInstance,
     TokenManagerContract,
-    TokenManagerInstance,
-    // WalletsContract,
-    // WalletsInstance,
-    // SkaleVerifierInstance,
-    // SkaleVerifierContract,
+    TokenManagerInstance
 } from "../types/truffle-contracts";
 
 import { randomString } from "./utils/helper";
@@ -66,24 +56,12 @@ import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
-// const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
-// const Schains: SchainsContract = artifacts.require("./Schains");
-// const KeyStorage: KeyStorageContract = artifacts.require("./KeyStorage");
-// const SkaleVerifier: SkaleVerifierContract = artifacts.require("./SkaleVerifier");
-// const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
-// const Wallets: WalletsContract = artifacts.require("./Wallets");
 
 contract("MessageProxy", ([deployer, user, client, customer]) => {
-    // let messageProxyForMainnet: MessageProxyForMainnetInstance;
     let messageProxyForSchain: MessageProxyForSchainInstance;
     let tokenManager1: TokenManagerInstance;
     let tokenManager2: TokenManagerInstance;
     let lockAndDataForSchain: LockAndDataForSchainInstance;
-    // let schains: SchainsInstance;
-    // let skaleVerifier: SkaleVerifierInstance;
-    // let schainsInternal: SchainsInternalInstance;
-    // let keyStorage: KeyStorageInstance;
-    // let wallets: WalletsInstance;
 
     let depositBox: DepositBoxEthInstance;
     let contractManager: ContractManagerInstance;
@@ -97,17 +75,6 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
         "1122334455667788990011223344556677889900112233445566778899001122",
         "1122334455667788990011223344556677889900112233445566778899001122",
     ];
-
-    // const BLSPublicKey = {
-    //     x: {
-    //         a: "8276253263131369565695687329790911140957927205765534740198480597854608202714",
-    //         b: "12500085126843048684532885473768850586094133366876833840698567603558300429943",
-    //     },
-    //     y: {
-    //         a: "7025653765868604607777943964159633546920168690664518432704587317074821855333",
-    //         b: "14411459380456065006136894392078433460802915485975038137226267466736619639091",
-    //     }
-    // }
 
     const BlsSignature = [
         "178325537405109593276798394634841698946852714038246117383766698579865918287",
@@ -123,25 +90,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             contractManagerAddress = contractManager.address;
             messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
             imaLinker = await deployIMALinker(contractManager, messageProxyForMainnet);
-            depositBox = await deployDepositBoxEth(imaLinker, contractManager, messageProxyForMainnet);
-
-            // contractManager = await ContractManager.new({from: deployer});
-            // schains = await Schains.new({from: deployer});
-            // schainsInternal = await SchainsInternal.new({from: deployer});
-            // skaleVerifier = await SkaleVerifier.new({from: deployer});
-            // keyStorage = await KeyStorage.new({from: deployer});
-            // wallets = await Wallets.new({from: deployer});
-            // await contractManager.setContractsAddress("Schains", schains.address, {from: deployer});
-            // await contractManager.setContractsAddress("SchainsInternal", schainsInternal.address, {from: deployer});
-            // await contractManager.setContractsAddress("Wallets", wallets.address, {from: deployer});
-            // await contractManager.setContractsAddress("SkaleVerifier", skaleVerifier.address, {from: deployer});
-            // await contractManager.setContractsAddress("KeyStorage", keyStorage.address, {from: deployer});
-            // await schains.addContractManager(contractManager.address);
-            // await wallets.addContractManager(contractManager.address);
-            // lockAndDataForMainnet = await deployLockAndDataForMainnet();
-            // messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
-            // depositBox = await deployDepositBox(lockAndDataForMainnet);
-            // await lockAndDataForMainnet.setContract("ContractManagerForSkaleManager", contractManager.address, {from: deployer});
+            depositBox = await deployDepositBoxEth(contractManager, messageProxyForMainnet, imaLinker);
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {

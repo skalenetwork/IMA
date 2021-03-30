@@ -31,10 +31,8 @@ import {
     DepositBoxEthInstance,
     DepositBoxERC20Instance,
     DepositBoxERC721Instance,
-    // ERC20ModuleForMainnetInstance,
     ERC20ModuleForSchainContract,
     ERC20ModuleForSchainInstance,
-    // ERC721ModuleForMainnetInstance,
     ERC721ModuleForSchainContract,
     ERC721ModuleForSchainInstance,
     ERC20OnChainContract,
@@ -45,9 +43,6 @@ import {
     EthERC20Instance,
     KeyStorageContract,
     KeyStorageInstance,
-    // LockAndDataForMainnetERC20Instance,
-    // LockAndDataForMainnetERC721Instance,
-    // LockAndDataForMainnetInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainERC20Contract,
     LockAndDataForSchainERC20Instance,
@@ -75,7 +70,6 @@ import {
     WalletsInstance,
     IMALinkerInstance,
 } from "../types/truffle-contracts";
-import { randomString } from "../test/utils/helper";
 
 import chai = require("chai");
 
@@ -83,7 +77,6 @@ chai.should();
 chai.use((chaiAsPromised as any));
 
 import { deployIMALinker } from "../test/utils/deploy/imaLinker";
-import { deployContractManager } from "../test/utils/deploy/contractManager";
 import { deployDepositBoxEth } from "../test/utils/deploy/depositBoxEth";
 import { deployDepositBoxERC20 } from "../test/utils/deploy/depositBoxERC20";
 import { deployDepositBoxERC721 } from "../test/utils/deploy/depositBoxERC721";
@@ -322,26 +315,6 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         console.log("Deposit all remaining approved erc20 tokens cost:", res.receipt.gasUsed);
     });
 
-    // it("calculate erc20 deposits with eth without automatic deploy", async () => {
-    //     // register tokens
-    //     await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
-    //     await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
-    //     await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 6, {from: user});
-
-    //     let res = await depositBoxERC20.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 1, {from: user});
-    //     console.log("First deposit erc20 with eth cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC20.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 1, {from: user});
-    //     console.log("Second deposit erc20 with eth cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC20.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 1, {from: user});
-    //     console.log("Third deposit erc20 with eth cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC20.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 1, {from: user});
-    //     console.log("Forth deposit erc20 with eth cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC20.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 1, {from: user});
-    //     console.log("Fifth deposit erc20 with eth cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC20.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 1, {from: user});
-    //     console.log("Deposit all remaining approved erc20 tokens with eth cost:", res.receipt.gasUsed);
-    // });
-
     it("calculate erc20 deposits of all approved tokens without eth without automatic deploy", async () => {
         // register tokens
         await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
@@ -351,16 +324,6 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         const res = await depositBoxERC20.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 5, {from: user});
         console.log("Deposit all approved erc20 tokens at once cost:", res.receipt.gasUsed);
     });
-
-    // it("calculate erc20 deposits of all approved tokens with eth without automatic deploy", async () => {
-    //     // register tokens
-    //     await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
-    //     await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
-    //     await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
-
-    //     const res = await depositBoxERC20.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 5, {from: user});
-    //     console.log("Deposit all approved erc20 tokens at once with eth cost:", res.receipt.gasUsed);
-    // });
 
     it("calculate registration and approve ERC721", async () => {
         // register tokens
@@ -426,43 +389,6 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         console.log("Tenth deposit erc721 cost:", res.receipt.gasUsed);
     });
 
-    // it("calculate erc721 deposits with eth without automatic deploy", async () => {
-    //     // register tokens
-    //     await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
-    //     await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
-    //     await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 1, {from: user});
-    //     await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 2, {from: user});
-    //     await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 3, {from: user});
-    //     await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 4, {from: user});
-    //     await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 5, {from: user});
-    //     await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 6, {from: user});
-    //     await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 7, {from: user});
-    //     await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 8, {from: user});
-    //     await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 9, {from: user});
-    //     await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 10, {from: user});
-
-    //     let res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 1, {from: user});
-    //     console.log("First deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 2, {from: user});
-    //     console.log("Second deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 3, {from: user});
-    //     console.log("Third deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 4, {from: user});
-    //     console.log("Forth deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 5, {from: user});
-    //     console.log("Fifth deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 6, {from: user});
-    //     console.log("Sixth deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 7, {from: user});
-    //     console.log("Seventh deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 8, {from: user});
-    //     console.log("Eighth deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 9, {from: user});
-    //     console.log("Ninth deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 10, {from: user});
-    //     console.log("Tenth deposit erc721 with eth cost:", res.receipt.gasUsed);
-    // });
-
     it("calculate erc721 deposits without eth without automatic deploy and transfer each time", async () => {
         // register tokens
         await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
@@ -509,53 +435,6 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 10, {from: user});
         console.log("Tenth deposit erc721 cost:", res.receipt.gasUsed);
     });
-
-    // it("calculate erc721 deposits with eth without automatic deploy and transfer each time", async () => {
-    //     // register tokens
-    //     await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
-    //     await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
-
-    //     let res = await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 1, {from: user});
-    //     console.log("First transfer of ERC721 token cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 1, {from: user});
-    //     console.log("First deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 2, {from: user});
-    //     console.log("Second transfer of ERC721 token cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 2, {from: user});
-    //     console.log("Second deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 3, {from: user});
-    //     console.log("Third transfer of ERC721 token cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 3, {from: user});
-    //     console.log("Third deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 4, {from: user});
-    //     console.log("Forth transfer of ERC721 token cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 4, {from: user});
-    //     console.log("Forth deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 5, {from: user});
-    //     console.log("Fifth transfer of ERC721 token cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 5, {from: user});
-    //     console.log("Fifth deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 6, {from: user});
-    //     console.log("Sixth transfer of ERC721 token cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 6, {from: user});
-    //     console.log("Sixth deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 7, {from: user});
-    //     console.log("Seventh transfer of ERC721 token cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 7, {from: user});
-    //     console.log("Seventh deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 8, {from: user});
-    //     console.log("Eighth transfer of ERC721 token cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 8, {from: user});
-    //     console.log("Eighth deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 9, {from: user});
-    //     console.log("Ninth transfer of ERC721 token cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 9, {from: user});
-    //     console.log("Ninth deposit erc721 with eth cost:", res.receipt.gasUsed);
-    //     res = await ERC721TokenOnMainnet.transferFrom(user, depositBoxERC721.address, 10, {from: user});
-    //     console.log("Tenth transfer of ERC721 token cost:", res.receipt.gasUsed);
-    //     res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 10, {from: user});
-    //     console.log("Tenth deposit erc721 with eth cost:", res.receipt.gasUsed);
-    // });
 
     it("calculate 1 exit eth cost per one message", async () => {
         // make several deposits
