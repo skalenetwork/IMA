@@ -1635,7 +1635,6 @@ async function do_erc721_payment_from_main_net(
     joAccountDst,
     jo_deposit_box_erc721,
     jo_message_proxy_main_net, // for checking logs
-    jo_lock_and_data_main_net, // for checking logs
     chain_id_s_chain,
     token_id, // which ERC721 token id to send
     wei_how_much, // how much ETH
