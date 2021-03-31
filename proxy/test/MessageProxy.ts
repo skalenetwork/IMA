@@ -149,12 +149,12 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const bytesData = await messages.encodeTransferEthMessage(user, amount);
 
             await messageProxyForMainnet
-            .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer})
+            .postOutgoingMessage(web3.utils.soliditySha3(chainID), contractAddress, bytesData, {from: deployer})
             .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForMainnet.addConnectedChain(chainID, {from: deployer});
             await messageProxyForMainnet
-            .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer});
+            .postOutgoingMessage(web3.utils.soliditySha3(chainID), contractAddress, bytesData, {from: deployer});
             const outgoingMessagesCounter = new BigNumber(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
@@ -235,7 +235,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForMainnet
-            .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer});
+            .postOutgoingMessage(web3.utils.soliditySha3(chainID), contractAddress, bytesData, {from: deployer});
 
             const outgoingMessagesCounter = new BigNumber(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(chainID));
@@ -374,7 +374,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForMainnet.postOutgoingMessage(
-                chainID,
+                web3.utils.soliditySha3(chainID),
                 depositBox.address,
                 bytesData,
                 {from: deployer},

@@ -98,9 +98,9 @@ contract("DepositBox", ([deployer, user, user2]) => {
         .should.be.eventually.rejectedWith(error);
     });
 
-    it("should rejected with `SKALE chain name is incorrect` when invoke `deposit`", async () => {
+    it("should rejected with `Unconnected chain` when invoke `deposit`", async () => {
       // preparation
-      const error = "SKALE chain name is incorrect";
+      const error = "Unconnected chain";
       const schainID = "Mainnet";
       // execution/expectation
       await depositBoxEth
@@ -311,7 +311,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       const sender = deployer;
       // execution/expectation
       await depositBoxEth
-        .postMessage(schainID, sender, bytesData, {from: user})
+        .postMessage(web3.utils.soliditySha3(schainID), sender, bytesData, {from: user})
         .should.be.eventually.rejectedWith(error);
     });
 
@@ -432,9 +432,8 @@ contract("DepositBox", ([deployer, user, user2]) => {
       assert.equal(Buffer.from(messageError.slice(2), 'hex').toString(), error);
     });
 
-    it("should rejected with message `Invalid data`", async () => {
+    it("should rejected with message `null`", async () => {
       //  preparation
-      const error = "Invalid data";
       const schainID = randomString(10);
       const amountEth = "10";
       // for `Invalid data` message bytesData should be `0x`
@@ -473,8 +472,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       assert.equal(res.logs.length, 1);
       assert.equal(res.logs[0].event, "PostMessageError");
       assert.equal(res.logs[0].args.msgCounter.toString(), "0");
-      const messageError = res.logs[0].args.message.toString();
-      assert.equal(Buffer.from(messageError.slice(2), 'hex').toString(), error);
+      assert.equal(res.logs[0].args.message, null);
     });
 
     it("should transfer eth", async () => {

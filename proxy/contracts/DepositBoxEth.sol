@@ -128,7 +128,8 @@ contract DepositBoxEth is IMAConnected, IDepositBox {
             decodedMessage.amount <= address(this).balance,
             "Not enough money to finish this transaction"
         );
-        approveTransfers[decodedMessage.receiver] = approveTransfers[decodedMessage.receiver].add(decodedMessage.amount);
+        approveTransfers[decodedMessage.receiver] =
+            approveTransfers[decodedMessage.receiver].add(decodedMessage.amount);
         // TODO add gas reimbusement
         // uint256 txFee = gasConsumption * tx.gasprice;
         // require(amount >= txFee, "Not enough funds to recover gas");
