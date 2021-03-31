@@ -62,7 +62,6 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
         uint256 tokenId
     )
         external
-        rightTransaction(schainID)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = tokenManagerERC721Addresses[schainHash];
@@ -78,7 +77,7 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
             tokenId
         );
         messageProxy.postOutgoingMessage(
-            schainID,
+            schainHash,
             tokenManagerAddress,
             data
         );
@@ -125,7 +124,7 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
     }
 
     function postMessage(
-        string calldata fromSchainID,
+        bytes32 schainHash,
         address sender,
         bytes calldata data
     )
@@ -134,22 +133,18 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
         onlyMessageProxy
         returns (bool)
     {
-        require(data.length != 0, "Invalid data");
-        bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&
             sender == tokenManagerERC721Addresses[schainHash],
             "Receiver chain is incorrect"
         );
-        Messages.MessageType operation = Messages.getMessageType(data);
+        Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
+        require(message.token.isContract(), "Given address is not a contract");
+        require(IERC721Upgradeable(message.token).ownerOf(message.tokenId) == address(this), "Incorrect tokenId");
+        IERC721Upgradeable(message.token).transferFrom(address(this), message.receiver, message.tokenId);
         // TODO add gas reimbusement
         // uint256 txFee = gasConsumption * tx.gasprice;
         // require(amount >= txFee, "Not enough funds to recover gas");
-        if (operation == Messages.MessageType.TRANSFER_ERC721) {
-            require(_sendERC721(data), "Sending of ERC721 was failed");
-        } else {
-            revert("MessageType is unknown");
-        }
         // TODO add gas reimbusement
         // imaLinker.rechargeSchainWallet(schainId, txFee);
         return true;
