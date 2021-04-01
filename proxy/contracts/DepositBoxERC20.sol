@@ -105,6 +105,7 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
      */
     function addTokenManager(string calldata schainID, address newTokenManagerERC20Address) external override {
         require(
+            msg.sender == imaLinker ||
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
             _isOwner(), "Not authorized caller"
         );
@@ -125,6 +126,7 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
      */
     function removeTokenManager(string calldata schainID) external override {
         require(
+            msg.sender == imaLinker ||
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
             _isOwner(), "Not authorized caller"
         );
