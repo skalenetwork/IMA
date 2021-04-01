@@ -26,10 +26,8 @@ import "./connectors/ProxyConnector.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
-        string calldata schainID,
+        bytes32 schainHash,
         address sender,
-        address to,
-        uint256 amount,
         bytes calldata data
     )
         external
@@ -72,8 +70,6 @@ contract MessageProxyForMainnet is ProxyConnector {
     struct Message {
         address sender;
         address destinationContract;
-        address to;
-        uint256 amount;
         bytes data;
     }
 
@@ -100,8 +96,6 @@ contract MessageProxyForMainnet is ProxyConnector {
         uint256 indexed msgCounter,
         address indexed srcContract,
         address dstContract,
-        address to,
-        uint256 amount,
         bytes data
     );
 
@@ -162,15 +156,13 @@ contract MessageProxyForMainnet is ProxyConnector {
      * - `dstChainID` must be initialized.
      */
     function postOutgoingMessage(
-        string calldata dstChainID,
+        bytes32 dstChainHash,
         address dstContract,
-        uint256 amount,
-        address to,
         bytes calldata data
     )
         external
     {
-        bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
+        // bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         uint msgCounter = connectedChains[dstChainHash].outgoingMessageCounter;
         emit OutgoingMessage(
@@ -178,8 +170,6 @@ contract MessageProxyForMainnet is ProxyConnector {
             msgCounter,
             msg.sender,
             dstContract,
-            to,
-            amount,
             data
         );
         connectedChains[dstChainHash].outgoingMessageCounter = msgCounter.add(1);
@@ -213,7 +203,7 @@ contract MessageProxyForMainnet is ProxyConnector {
 
         require(_verifyMessages(srcChainID, _hashedArray(messages), sign), "Signature is not verified");
         for (uint256 i = 0; i < messages.length; i++) {
-            _callReceiverContract(srcChainID, messages[i], startingCounter + i);
+            _callReceiverContract(srcChainHash, messages[i], startingCounter + i);
         }
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
@@ -329,8 +319,6 @@ contract MessageProxyForMainnet is ProxyConnector {
                 data,
                 bytes32(bytes20(messages[i].sender)),
                 bytes32(bytes20(messages[i].destinationContract)),
-                bytes32(bytes20(messages[i].to)),
-                messages[i].amount,
                 messages[i].data
             );
         }
@@ -338,7 +326,7 @@ contract MessageProxyForMainnet is ProxyConnector {
     }
 
     function _callReceiverContract(
-        string memory srcChainID,
+        bytes32 schainHash,
         Message calldata message,
         uint counter
     )
@@ -346,10 +334,8 @@ contract MessageProxyForMainnet is ProxyConnector {
         returns (bool)
     {
         try ContractReceiverForMainnet(message.destinationContract).postMessage(
-            srcChainID,
+            schainHash,
             message.sender,
-            message.to,
-            message.amount,
             message.data
         ) returns (bool success) {
             return success;

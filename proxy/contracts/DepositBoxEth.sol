@@ -92,11 +92,25 @@ contract DepositBoxEth is IMAConnected, IDepositBox {
         delete tokenManagerEthAddresses[schainHash];
     }
 
+    function deposit(string memory schainID, address to)
+        external
+        payable
+        // receivedEth
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        address tokenManagerAddress = tokenManagerEthAddresses[schainHash];
+        require(tokenManagerAddress != address(0), "Unconnected chain");
+        require(to != address(0), "Community Pool is not available");
+        messageProxy.postOutgoingMessage(
+            schainHash,
+            tokenManagerAddress,
+            Messages.encodeTransferEthMessage(to, msg.value)
+        );
+    }
+
     function postMessage(
-        string calldata fromSchainID,
+        bytes32 schainHash,
         address sender,
-        address to,
-        uint256 amount,
         bytes calldata data
     )
         external
@@ -104,26 +118,21 @@ contract DepositBoxEth is IMAConnected, IDepositBox {
         onlyMessageProxy
         returns (bool)
     {
-        require(data.length != 0, "Invalid data");
-        bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&
             sender == tokenManagerEthAddresses[schainHash],
             "Receiver chain is incorrect"
         );
+        Messages.TransferEthMessage memory decodedMessage = Messages.decodeTransferEthMessage(data);
         require(
-            amount <= address(this).balance,
+            decodedMessage.amount <= address(this).balance,
             "Not enough money to finish this transaction"
         );
-        Messages.MessageType operation = Messages.getMessageType(data);
+        approveTransfers[decodedMessage.receiver] =
+            approveTransfers[decodedMessage.receiver].add(decodedMessage.amount);
         // TODO add gas reimbusement
         // uint256 txFee = gasConsumption * tx.gasprice;
         // require(amount >= txFee, "Not enough funds to recover gas");
-        if (operation == Messages.MessageType.TRANSFER_ETH) {
-            approveTransfers[to] = approveTransfers[to].add(amount);
-        } else {
-            revert("MessageType is unknown");
-        }
         // TODO add gas reimbusement
         // imaLinker.rechargeSchainWallet(schainId, txFee);
         return true;
@@ -167,24 +176,5 @@ contract DepositBoxEth is IMAConnected, IDepositBox {
     {
         IMAConnected.initialize(newIMALinkerAddress, newContractManagerOfSkaleManager, newMessageProxyAddress);
         // gasConsumption = 500000;
-    }
-
-    function deposit(string memory schainID, address to)
-        public
-        payable
-        rightTransaction(schainID)
-        // receivedEth
-    {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = tokenManagerEthAddresses[schainHash];
-        require(tokenManagerAddress != address(0), "Unconnected chain");
-        require(to != address(0), "Community Pool is not available");
-        messageProxy.postOutgoingMessage(
-            schainID,
-            tokenManagerAddress,
-            msg.value,
-            to,
-            Messages.encodeTransferEthMessage()
-        );
     }
 }

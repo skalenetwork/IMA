@@ -24,10 +24,8 @@ pragma solidity 0.6.12;
 interface IDepositBox {
 
     function postMessage(
-        string calldata fromSchainID,
+        bytes32 schainHash,
         address sender,
-        address to,
-        uint256 amount,
         bytes calldata data
     )
         external

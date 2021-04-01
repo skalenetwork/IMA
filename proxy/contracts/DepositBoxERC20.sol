@@ -68,7 +68,6 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
         uint256 amount
     )
         external
-        rightTransaction(schainID)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = tokenManagerERC20Addresses[schainHash];
@@ -88,10 +87,8 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
             "Could not transfer ERC20 Token"
         );
         messageProxy.postOutgoingMessage(
-            schainID,
+            schainHash,
             tokenManagerAddress,
-            0,
-            address(0),
             data
         );
     }
@@ -137,10 +134,8 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
     }
 
     function postMessage(
-        string calldata fromSchainID,
+        bytes32 schainHash,
         address sender,
-        address,
-        uint256,
         bytes calldata data
     )
         external
@@ -148,22 +143,21 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
         onlyMessageProxy
         returns (bool)
     {
-        require(data.length != 0, "Invalid data");
-        bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&
             sender == tokenManagerERC20Addresses[schainHash],
             "Receiver chain is incorrect"
         );
-        Messages.MessageType operation = Messages.getMessageType(data);
+        Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
+        require(message.token.isContract(), "Given address is not a contract");
+        require(IERC20Metadata(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
+        require(
+            IERC20Metadata(message.token).transfer(message.receiver, message.amount),
+            "Something went wrong with `transfer` in ERC20"
+        );
         // TODO add gas reimbusement
         // uint256 txFee = gasConsumption * tx.gasprice;
         // require(amount >= txFee, "Not enough funds to recover gas");
-        if (operation == Messages.MessageType.TRANSFER_ERC20) {
-            require(_sendERC20(data), "Sending of ERC20 was failed");
-        } else {
-            revert("MessageType is unknown");
-        }
         // TODO add gas reimbusement
         // imaLinker.rechargeSchainWallet(schainId, txFee);
         return true;

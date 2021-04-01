@@ -59,9 +59,7 @@ contract ERC20ModuleForSchain is PermissionsForSchain {
         allow("TokenManager")
         returns (bytes memory data)
     {
-        address lockAndDataERC20 = LockAndDataForSchain(
-            getLockAndDataAddress()
-        ).getLockAndDataErc20();
+        address lockAndDataERC20 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc20();
         address contractOnSchain = LockAndDataForSchainERC20(lockAndDataERC20)
             .getERC20OnSchain(schainID, contractOnMainnet);
         require(contractOnSchain != address(0), "ERC20 contract does not exist on SKALE chain.");

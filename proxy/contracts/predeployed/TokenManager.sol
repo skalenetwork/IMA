@@ -94,6 +94,40 @@ contract TokenManager is PermissionsForSchain {
         _chainID = newChainID;
     }
 
+    /**
+     * @dev Performs an exit (post outgoing message) to Mainnet.
+     */
+    function exitToMain(address to, uint256 amount) external receivedEth(amount) {
+        require(to != address(0), "Incorrect contractThere address");
+        require(amount >= TX_FEE, "Not enough funds to exit");
+        // uint amountOfEthToSend = amount >= TX_FEE ?
+        //     amount :
+        //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
+        // require(amountOfEthToSend != 0, "Community pool is empty");
+        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
+            "Mainnet",
+            LockAndDataForSchain(getLockAndDataAddress()).getDepositBox(0),
+            Messages.encodeTransferEthMessage(to, amount)
+        );
+    }
+
+    function transferToSchain(
+        string memory schainID,
+        address to,
+        uint256 amount
+    )
+        external
+        rightTransaction(schainID)
+        receivedEth(amount)
+    {
+        require(to != address(0), "Incorrect contractThere address");
+        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
+            schainID,
+            LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))),
+            Messages.encodeTransferEthMessage(to, amount)
+        );
+    }
+
     function exitToMainERC20(
         address contractOnMainnet,
         address to,
@@ -133,12 +167,11 @@ contract TokenManager is PermissionsForSchain {
             "Mainnet",
             contractOnMainnet,
             to,
-            amount);
+            amount
+        );
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             LockAndDataForSchain(getLockAndDataAddress()).getDepositBox(1),
-            0,
-            address(0),
             data
         );
     }
@@ -175,12 +208,11 @@ contract TokenManager is PermissionsForSchain {
             schainID,
             contractOnMainnet,
             to,
-            amount);
+            amount
+        );
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
             LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            0,
-            address(0),
             data
         );
     }
@@ -208,12 +240,11 @@ contract TokenManager is PermissionsForSchain {
             "Mainnet",
             contractOnMainnet,
             to,
-            tokenId);
+            tokenId
+        );
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             LockAndDataForSchain(getLockAndDataAddress()).getDepositBox(2),
-            0,
-            address(0),
             data
         );
     }
@@ -237,12 +268,11 @@ contract TokenManager is PermissionsForSchain {
             schainID,
             contractOnMainnet,
             to,
-            tokenId);
+            tokenId
+        );
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             schainID,
             LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked("Mainnet"))),
-            0,
-            address(0),
             data
         );
     }
@@ -261,8 +291,6 @@ contract TokenManager is PermissionsForSchain {
     function postMessage(
         string calldata fromSchainID,
         address sender,
-        address to,
-        uint256 amount,
         bytes calldata data
     )
         external
@@ -282,70 +310,30 @@ contract TokenManager is PermissionsForSchain {
         );
         Messages.MessageType operation = Messages.getMessageType(data);
         if (operation == Messages.MessageType.TRANSFER_ETH) {
-            require(to != address(0), "Incorrect receiver");
-            require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(to, amount), "Not Sent");
+            address receiver =  Messages.decodeTransferEthMessage(data).receiver;
+            uint amount =  Messages.decodeTransferEthMessage(data).amount;
+            require(receiver != address(0), "Incorrect receiver");
+            require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else if (
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOKEN_INFO ||
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY
         ) {
-            address erc20Module = LockAndDataForSchain(
-                getLockAndDataAddress()
-            ).getErc20Module();
+            address erc20Module = LockAndDataForSchain(getLockAndDataAddress()).getErc20Module();
             require(ERC20ModuleForSchain(erc20Module).sendERC20(fromSchainID, data), "Failed to send ERC20");
-            address receiver = ERC20ModuleForSchain(erc20Module).getReceiver(data);
-            require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
+            // address receiver = ERC20ModuleForSchain(erc20Module).getReceiver(data);
+            // require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else if (
             operation == Messages.MessageType.TRANSFER_ERC721_AND_TOKEN_INFO ||
             operation == Messages.MessageType.TRANSFER_ERC721
         ) {
-            address erc721Module = LockAndDataForSchain(
-                getLockAndDataAddress()
-            ).getErc721Module();
+            address erc721Module = LockAndDataForSchain(getLockAndDataAddress()).getErc721Module();
             require(ERC721ModuleForSchain(erc721Module).sendERC721(fromSchainID, data), "Failed to send ERC721");
-            address receiver = ERC721ModuleForSchain(erc721Module).getReceiver(data);
-            require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
+            // address receiver = ERC721ModuleForSchain(erc721Module).getReceiver(data);
+            // require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else {
             revert("MessageType is unknown");
         }
         return true;
-    }
-
-    /**
-     * @dev Performs an exit (post outgoing message) to Mainnet.
-     */
-    function exitToMain(address to, uint256 amountOfEth) public receivedEth(amountOfEth) {
-        require(to != address(0), "Incorrect contractThere address");
-        require(amountOfEth >= TX_FEE, "Not enough funds to exit");
-        // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
-        //     amountOfEth :
-        //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
-        // require(amountOfEthToSend != 0, "Community pool is empty");
-        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
-            "Mainnet",
-            LockAndDataForSchain(getLockAndDataAddress()).getDepositBox(0),
-            amountOfEth,
-            to,
-            Messages.encodeTransferEthMessage()
-        );
-    }
-
-    function transferToSchain(
-        string memory schainID,
-        address to,
-        uint256 amount
-    )
-        public
-        rightTransaction(schainID)
-        receivedEth(amount)
-    {
-        require(to != address(0), "Incorrect contractThere address");
-        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
-            schainID,
-            LockAndDataForSchain(getLockAndDataAddress()).tokenManagerAddresses(keccak256(abi.encodePacked(schainID))),
-            amount,
-            to,
-            ""
-        );
     }
 
     /**

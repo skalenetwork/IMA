@@ -37,7 +37,9 @@ import {
     MessageProxyForSchainContract,
     MessageProxyForSchainInstance,
     TokenManagerContract,
-    TokenManagerInstance
+    TokenManagerInstance,
+    MessagesTesterContract,
+    MessagesTesterInstance,
 } from "../types/truffle-contracts";
 
 import { randomString } from "./utils/helper";
@@ -56,6 +58,7 @@ import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
+const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 
 contract("MessageProxy", ([deployer, user, client, customer]) => {
     let messageProxyForSchain: MessageProxyForSchainInstance;
@@ -67,6 +70,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     let contractManager: ContractManagerInstance;
     let messageProxyForMainnet: MessageProxyForMainnetInstance;
     let imaLinker: IMALinkerInstance;
+    let messages: MessagesTesterInstance;
     let contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
     const publicKeyArray = [
@@ -91,6 +95,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
             imaLinker = await deployIMALinker(contractManager, messageProxyForMainnet);
             depositBox = await deployDepositBoxEth(contractManager, messageProxyForMainnet, imaLinker);
+            messages = await MessagesTester.new();
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -141,16 +146,15 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const chainID = randomString(10);
             const contractAddress = messageProxyForMainnet.address;
             const amount = 4;
-            const addressTo = user;
-            const bytesData = "0x0";
+            const bytesData = await messages.encodeTransferEthMessage(user, amount);
 
             await messageProxyForMainnet
-            .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer})
+            .postOutgoingMessage(web3.utils.soliditySha3(chainID), contractAddress, bytesData, {from: deployer})
             .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForMainnet.addConnectedChain(chainID, {from: deployer});
             await messageProxyForMainnet
-            .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
+            .postOutgoingMessage(web3.utils.soliditySha3(chainID), contractAddress, bytesData, {from: deployer});
             const outgoingMessagesCounter = new BigNumber(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
@@ -179,7 +183,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 sender: user,
                 to: customer};
 
-            const messages = [message1, message2];
+            const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
                 counter: Counter,
@@ -192,7 +196,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 .postIncomingMessages(
                     chainID,
                     startingCounter,
-                    messages,
+                    outgoingMessages,
                     sign,
                     0,
                     {from: deployer},
@@ -204,7 +208,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             .postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
@@ -219,7 +223,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const contractAddress = depositBox.address;
             const amount = 5;
             const addressTo = client;
-            const bytesData = "0x0";
+            const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
 
             // chain should be inited:
             await messageProxyForMainnet.getOutgoingMessagesCounter(chainID).should.be.rejected;
@@ -231,7 +235,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForMainnet
-            .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
+            .postOutgoingMessage(web3.utils.soliditySha3(chainID), contractAddress, bytesData, {from: deployer});
 
             const outgoingMessagesCounter = new BigNumber(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(chainID));
@@ -258,7 +262,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 destinationContract: depositBox.address,
                 sender: user,
                 to: customer};
-            const messages = [message1, message2];
+            const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
                 counter: Counter,
@@ -279,7 +283,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             .postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
@@ -330,7 +334,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 destinationContract: depositBox.address,
                 sender: user,
                 to: customer};
-            const messages = [message1, message2];
+            const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
                 counter: Counter,
@@ -351,7 +355,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             .postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
@@ -363,17 +367,15 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
             const amount = 5;
             const addressTo = client;
-            const bytesData = "0x0";
+            const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
 
             const outgoingMessagesCounter0 = new BigNumber(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForMainnet.postOutgoingMessage(
-                chainID,
+                web3.utils.soliditySha3(chainID),
                 depositBox.address,
-                amount,
-                addressTo,
                 bytesData,
                 {from: deployer},
             );
@@ -448,15 +450,16 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const contractAddress = messageProxyForSchain.address;
             const amount = 4;
             const addressTo = user;
-            const bytesData = "0x0";
+            const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
+
 
             await messageProxyForSchain
-            .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer})
+            .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer})
             .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
             await messageProxyForSchain
-            .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
+            .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer});
             const outgoingMessagesCounter = new BigNumber(
                 await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
@@ -479,7 +482,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 destinationContract: tokenManager2.address,
                 sender: user,
                 to: customer};
-            const messages = [message1, message2];
+            const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
                 counter: Counter,
@@ -491,7 +494,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             await messageProxyForSchain.postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
@@ -502,7 +505,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             await messageProxyForSchain.postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
@@ -517,7 +520,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const contractAddress = lockAndDataForSchain.address;
             const amount = 5;
             const addressTo = client;
-            const bytesData = "0x0";
+            const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
+
 
             // chain should be inited:
             new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID)).should.be.deep.equal(new BigNumber(0));
@@ -529,7 +533,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForSchain
-            .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
+            .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer});
 
             const outgoingMessagesCounter = new BigNumber(
                 await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
@@ -553,7 +557,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 destinationContract: tokenManager2.address,
                 sender: user,
                 to: customer};
-            const messages = [message1, message2];
+            const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
                 counter: Counter,
@@ -573,7 +577,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             await messageProxyForSchain.postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
