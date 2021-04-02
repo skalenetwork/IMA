@@ -170,7 +170,9 @@ async function get_web3_blockNumber( attempts, w3 ) {
     } catch ( e ) {}
     let attemptIndex = 2;
     while( nLatestBlockNumber === "" && attemptIndex <= allAttempts ) {
-        log.write( cc.fatal( "Repeat getBlockNumber attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( nLatestBlockNumber ) + "\n" );
+        log.write(
+            cc.warning( "Repeat " ) + cc.error( "getBlockNumber" ) + cc.warning( ", attempt " ) + cc.info( attemptIndex ) +
+            cc.info( ", previous result is: " ) + cc.info( nLatestBlockNumber ) + "\n" );
         await sleep( 10000 );
         try {
             nLatestBlockNumber = await w3.eth.blockNumber;
@@ -195,7 +197,10 @@ async function get_web3_pastEvents( attempts, joContract, strEventName, nBlockFr
     } catch ( e ) {}
     let attemptIndex = 2;
     while( joAllEventsInBlock === "" && attemptIndex <= allAttempts ) {
-        log.write( cc.fatal( "Repeat getPastEvents " ) + cc.info( strEventName ) + cc.info( " attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( joAllEventsInBlock ) + "\n" );
+        log.write(
+            cc.warning( "Repeat " ) + cc.error( "getPastEvents" ) + cc.warning( "/" ) + cc.error( strEventName ) +
+            cc.warning( ", attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( ", previous result is: " ) + cc.j( joAllEventsInBlock ) + "\n" );
         await sleep( 1000 );
         try {
             joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
@@ -219,7 +224,9 @@ async function get_web3_transactionCount( attempts, w3, address, param ) {
     } catch ( e ) {}
     let attemptIndex = 2;
     while( txc === "" && attemptIndex <= allAttempts ) {
-        log.write( cc.fatal( "Repeat getTransactionCount attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( txc ) + "\n" );
+        log.write(
+            cc.warning( "Repeat " ) + cc.error( "getTransactionCount" ) + cc.warning( " attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( ", previous result is: " ) + cc.info( txc ) + "\n" );
         await sleep( 10000 );
         try {
             txc = await w3.eth.blockNumber;
@@ -239,7 +246,9 @@ async function get_web3_transactionReceipt( attempts, w3, txHash ) {
     } catch ( e ) {}
     let attemptIndex = 2;
     while( txReceipt === "" && attemptIndex <= allAttempts ) {
-        log.write( cc.fatal( "Repeat getTransactionReceipt attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( txReceipt ) + "\n" );
+        log.write(
+            cc.warning( "Repeat " ) + cc.error( "getTransactionReceipt" ) + cc.warning( ", attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( ", previous result is: " ) + cc.j( txReceipt ) + "\n" );
         await sleep( 10000 );
         try {
             txReceipt = await w3.eth.getTransactionReceipt( txHash );
