@@ -835,9 +835,9 @@ async function wait_for_has_chain(
 
 async function register_s_chain_in_deposit_boxes( // step 1
     w3_main_net,
-    jo_deposit_box_eth, // only main net
-    jo_deposit_box_erc20, // only main net
-    jo_deposit_box_erc721, // only main net
+    // jo_deposit_box_eth, // only main net
+    // jo_deposit_box_erc20, // only main net
+    // jo_deposit_box_erc721, // only main net
     jo_imalinker,
     joAccount_main_net,
     jo_token_manager, // only s-chain
@@ -867,15 +867,15 @@ async function register_s_chain_in_deposit_boxes( // step 1
         //
         //
         //
-        if( verbose_get() >= RV_VERBOSE.debug ) {
-            const strOwnerOfDepositBoxEth = await jo_deposit_box_eth.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
-            const strOwnerOfDepositBoxERC20 = await jo_deposit_box_erc20.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
-            const strOwnerOfDepositBoxERC721 = await jo_deposit_box_erc721.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
-            log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxEth ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxEth" ) + "\n" );
-            log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxERC20 ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxERC20" ) + "\n" );
-            log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxERC721 ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxERC721" ) + "\n" );
-            log.write( strLogPrefix + cc.debug( "Calls came from " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + "\n" );
-        }
+        // if( verbose_get() >= RV_VERBOSE.debug ) {
+        //     const strOwnerOfDepositBoxEth = await jo_deposit_box_eth.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
+        //     const strOwnerOfDepositBoxERC20 = await jo_deposit_box_erc20.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
+        //     const strOwnerOfDepositBoxERC721 = await jo_deposit_box_erc721.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
+        //     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxEth ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxEth" ) + "\n" );
+        //     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxERC20 ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxERC20" ) + "\n" );
+        //     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxERC721 ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxERC721" ) + "\n" );
+        //     log.write( strLogPrefix + cc.debug( "Calls came from " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + "\n" );
+        // }
         //
         //
         if( verbose_get() >= RV_VERBOSE.trace )
