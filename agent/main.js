@@ -931,7 +931,9 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
     if( !bRetVal ) {
         jarrReceipts = await IMA.register_s_chain_in_deposit_boxes( // step 1
             imaState.w3_main_net,
-            // imaState.jo_deposit_box - only main net
+            // imaState.jo_deposit_box_eth, // only main net
+            // imaState.jo_deposit_box_erc20, // only main net
+            // imaState.jo_deposit_box_erc721, // only main net
             imaState.jo_imalinker,
             imaState.joAccount_main_net,
             imaState.jo_token_manager, // only s-chain

@@ -170,7 +170,9 @@ async function get_web3_blockNumber( attempts, w3 ) {
     } catch ( e ) {}
     let attemptIndex = 2;
     while( nLatestBlockNumber === "" && attemptIndex <= allAttempts ) {
-        log.write( cc.fatal( "Repeat getBlockNumber attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( nLatestBlockNumber ) + "\n" );
+        log.write(
+            cc.warning( "Repeat " ) + cc.error( "getBlockNumber" ) + cc.warning( ", attempt " ) + cc.info( attemptIndex ) +
+            cc.info( ", previous result is: " ) + cc.info( nLatestBlockNumber ) + "\n" );
         await sleep( 10000 );
         try {
             nLatestBlockNumber = await w3.eth.blockNumber;
@@ -178,7 +180,7 @@ async function get_web3_blockNumber( attempts, w3 ) {
         attemptIndex++;
     }
     if( attemptIndex + 1 > allAttempts && nLatestBlockNumber === "" )
-        throw new Error( "Cound not get blockNumber" );
+        throw new Error( "Could not not get blockNumber" );
     return nLatestBlockNumber;
 }
 
@@ -195,7 +197,10 @@ async function get_web3_pastEvents( attempts, joContract, strEventName, nBlockFr
     } catch ( e ) {}
     let attemptIndex = 2;
     while( joAllEventsInBlock === "" && attemptIndex <= allAttempts ) {
-        log.write( cc.fatal( "Repeat getPastEvents " ) + cc.info( strEventName ) + cc.info( " attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( joAllEventsInBlock ) + "\n" );
+        log.write(
+            cc.warning( "Repeat " ) + cc.error( "getPastEvents" ) + cc.warning( "/" ) + cc.error( strEventName ) +
+            cc.warning( ", attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( ", previous result is: " ) + cc.j( joAllEventsInBlock ) + "\n" );
         await sleep( 1000 );
         try {
             joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
@@ -207,7 +212,7 @@ async function get_web3_pastEvents( attempts, joContract, strEventName, nBlockFr
         attemptIndex++;
     }
     if( attemptIndex + 1 === allAttempts && joAllEventsInBlock === "" )
-        throw new Error( "Cound not get Event" + strEventName );
+        throw new Error( "Could not not get Event" + strEventName );
     return joAllEventsInBlock;
 }
 
@@ -219,7 +224,9 @@ async function get_web3_transactionCount( attempts, w3, address, param ) {
     } catch ( e ) {}
     let attemptIndex = 2;
     while( txc === "" && attemptIndex <= allAttempts ) {
-        log.write( cc.fatal( "Repeat getTransactionCount attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( txc ) + "\n" );
+        log.write(
+            cc.warning( "Repeat " ) + cc.error( "getTransactionCount" ) + cc.warning( " attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( ", previous result is: " ) + cc.info( txc ) + "\n" );
         await sleep( 10000 );
         try {
             txc = await w3.eth.blockNumber;
@@ -227,7 +234,7 @@ async function get_web3_transactionCount( attempts, w3, address, param ) {
         attemptIndex++;
     }
     if( attemptIndex + 1 > allAttempts && txc === "" )
-        throw new Error( "Cound not get Transaction Count" );
+        throw new Error( "Could not not get Transaction Count" );
     return txc;
 }
 
@@ -239,7 +246,9 @@ async function get_web3_transactionReceipt( attempts, w3, txHash ) {
     } catch ( e ) {}
     let attemptIndex = 2;
     while( txReceipt === "" && attemptIndex <= allAttempts ) {
-        log.write( cc.fatal( "Repeat getTransactionReceipt attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( txReceipt ) + "\n" );
+        log.write(
+            cc.warning( "Repeat " ) + cc.error( "getTransactionReceipt" ) + cc.warning( ", attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( ", previous result is: " ) + cc.j( txReceipt ) + "\n" );
         await sleep( 10000 );
         try {
             txReceipt = await w3.eth.getTransactionReceipt( txHash );
@@ -247,7 +256,7 @@ async function get_web3_transactionReceipt( attempts, w3, txHash ) {
         attemptIndex++;
     }
     if( attemptIndex + 1 > allAttempts && txReceipt === "" )
-        throw new Error( "Cound not get Transaction Count" );
+        throw new Error( "Could not not get Transaction Count" );
     return txReceipt;
 }
 
@@ -262,7 +271,7 @@ async function get_web3_transactionReceipt( attempts, w3, txHash ) {
 //             console.log("\n First type of call\n");
 //             result = await web3Obj.eth.blockNumber;
 //         } else if( params.length == 1 && ( params[0] === undefined || params[0] === null ) ) {
-//             console.log("\n Secnd type of call\n");
+//             console.log("\n Second type of call\n");
 //             result = await eth_call();
 //         } else {
 //             console.log("\n Third type of call\n");
@@ -279,7 +288,7 @@ async function get_web3_transactionReceipt( attempts, w3, txHash ) {
 //                 console.log("\n First type of call\n");
 //                 result = await web3Obj.eth.blockNumber;
 //             } else if( params.length == 1 && ( params[0] === undefined || params[0] === null ) ) {
-//                 console.log("\n Secnd type of call\n");
+//                 console.log("\n Second type of call\n");
 //                 result = await eth_call();
 //             } else {
 //                 console.log("\n Third type of call\n");
@@ -290,7 +299,7 @@ async function get_web3_transactionReceipt( attempts, w3, txHash ) {
 //     }
 //     console.log("\n\n\n" + result + "\n\n\n");
 //     if( attemptIndex + 1 === allAttempts && ( result === "" || result === undefined ) )
-//         throw new Error( "Cound not get " + strAction );
+//         throw new Error( "Could not not get " + strAction );
 //     return result;
 // }
 
@@ -826,7 +835,9 @@ async function wait_for_has_chain(
 
 async function register_s_chain_in_deposit_boxes( // step 1
     w3_main_net,
-    // jo_deposit_box, // only main net
+    // jo_deposit_box_eth, // only main net
+    // jo_deposit_box_erc20, // only main net
+    // jo_deposit_box_erc721, // only main net
     jo_imalinker,
     joAccount_main_net,
     jo_token_manager, // only s-chain
@@ -854,6 +865,17 @@ async function register_s_chain_in_deposit_boxes( // step 1
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
+        //
+        //
+        // if( verbose_get() >= RV_VERBOSE.debug ) {
+        //     const strOwnerOfDepositBoxEth = await jo_deposit_box_eth.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
+        //     const strOwnerOfDepositBoxERC20 = await jo_deposit_box_erc20.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
+        //     const strOwnerOfDepositBoxERC721 = await jo_deposit_box_erc721.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
+        //     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxEth ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxEth" ) + "\n" );
+        //     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxERC20 ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxERC20" ) + "\n" );
+        //     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxERC721 ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxERC721" ) + "\n" );
+        //     log.write( strLogPrefix + cc.debug( "Calls came from " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + "\n" );
+        // }
         //
         //
         if( verbose_get() >= RV_VERBOSE.trace )
@@ -1084,10 +1106,10 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
             data: dataTxERC20
         };
         const txERC20 = compose_tx_instance( strLogPrefix, rawTxERC20 );
-        const joSRERC20 = await safe_sign_transaction_with_account( w3_s_chain, txERC20, rawTxERC20, joAccount );
+        const joSChainRawERC20 = await safe_sign_transaction_with_account( w3_s_chain, txERC20, rawTxERC20, joAccount );
         let joReceiptERC20 = null;
-        if( joSRERC20.joACI.isAutoSend )
-            joReceiptERC20 = await get_web3_transactionReceipt( 10, w3_s_chain, joSRERC20.txHashSent );
+        if( joSChainRawERC20.joACI.isAutoSend )
+            joReceiptERC20 = await get_web3_transactionReceipt( 10, w3_s_chain, joSChainRawERC20.txHashSent );
         else {
             const serializedTx = txERC20.serialize();
             strActionName = "reg-step2A:w3_s_chain.eth.sendSignedTransaction()";
@@ -1114,10 +1136,10 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
             data: dataTxERC721
         };
         const txERC721 = compose_tx_instance( strLogPrefix, rawTxERC721 );
-        const joSRERC721 = await safe_sign_transaction_with_account( w3_s_chain, txERC721, rawTxERC721, joAccount );
+        const joSChainRawERC721 = await safe_sign_transaction_with_account( w3_s_chain, txERC721, rawTxERC721, joAccount );
         let joReceiptERC721 = null;
-        if( joSRERC721.joACI.isAutoSend )
-            joReceiptERC721 = await get_web3_transactionReceipt( 10, w3_s_chain, joSRERC721.txHashSent );
+        if( joSChainRawERC721.joACI.isAutoSend )
+            joReceiptERC721 = await get_web3_transactionReceipt( 10, w3_s_chain, joSChainRawERC721.txHashSent );
         else {
             const serializedTx = txERC721.serialize();
             strActionName = "reg-step2A:w3_s_chain.et1h.sendSignedTransaction()";
