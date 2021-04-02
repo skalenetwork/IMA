@@ -482,8 +482,9 @@ contract MessageProxyForSchain {
         Message[] calldata messages,
         Signature calldata signature
     )
-        private
+        internal
         view
+        virtual
         returns (bool)
     {
         return SkaleVerifier.verify(

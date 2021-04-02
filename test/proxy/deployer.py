@@ -51,7 +51,8 @@ class Deployer:
                     f'URL_W3_ETHEREUM="{self.config.mainnet_rpc_url}"',
                     f'PRIVATE_KEY_FOR_SCHAIN="{self.config.schain_key}"',
                     f'URL_W3_S_CHAIN="{self.config.schain_rpc_url}"',
-                    f'CHAIN_NAME_SCHAIN="{self.config.schain_name}"']
+                    f'CHAIN_NAME_SCHAIN="{self.config.schain_name}"',
+                    'NO_SIGNATURES=true']
 
         with open('.env', 'w') as dot_env:
             dot_env.write('\n'.join(env_file))
