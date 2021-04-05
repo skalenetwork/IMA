@@ -197,8 +197,8 @@ function compose_tx_instance( strLogPrefix, rawTx ) {
         log.write( cc.attention( "TRANSACTION COMPOSER" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3mod.version ) + "\n" );
     strLogPrefix = strLogPrefix || "";
     rawTx = JSON.parse( JSON.stringify( rawTx ) ); // clone
-    let joOpts = null;
-/*    
+    const joOpts = null;
+    /*
     if( "chainId" in rawTx && typeof rawTx.chainId == "number" ) {
         switch ( rawTx.chainId ) {
         case 1:
