@@ -346,7 +346,8 @@ function compose_tx_instance( strLogPrefix, rawTx ) {
         log.write( cc.attention( "TRANSACTION COMPOSER" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3mod.version ) + "\n" );
     strLogPrefix = strLogPrefix || "";
     rawTx = JSON.parse( JSON.stringify( rawTx ) ); // clone
-    let joOpts = null;
+    const joOpts = null;
+    /*
     if( "chainId" in rawTx && typeof rawTx.chainId == "number" ) {
         switch ( rawTx.chainId ) {
         case 1:
@@ -376,6 +377,7 @@ function compose_tx_instance( strLogPrefix, rawTx ) {
             break;
         } // switch( rawTx.chainId )
     }
+*/
     // if( rawTx.chainId && Number(rawTx.chainId) > 1 ) {
     //     rawTx.nonce += 1048576; // see https://ethereum.stackexchange.com/questions/12810/need-help-signing-a-raw-transaction-with-ethereumjs-tx
     //     rawTx.nonce = w3mod.utils.toHex( rawTx.nonce );
