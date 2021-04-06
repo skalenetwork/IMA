@@ -73,23 +73,39 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
      */
     function sendERC721(string calldata schainID, bytes calldata data) external allow("TokenManager") returns (bool) {
         address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc721();
-        Messages.TransferErc721AndTokenInfoMessage memory message =
-            Messages.decodeTransferErc721AndTokenInfoMessage(data);
-        address contractOnSchain = LockAndDataForSchainERC721(lockAndDataERC721)
-            .getERC721OnSchain(schainID, message.baseErc721transfer.token);
-        if (contractOnSchain == address(0)) {
-            contractOnSchain = _sendCreateERC721Request(message.tokenInfo);
-            LockAndDataForSchainERC721(lockAndDataERC721).addERC721ForSchain(
-                schainID,
-                message.baseErc721transfer.token,
-                contractOnSchain
-            );
-            emit ERC721TokenCreated(schainID, message.baseErc721transfer.token, contractOnSchain);
+        Messages.MessageType messageType = Messages.getMessageType(data);
+        address receiver;
+        address token;
+        uint256 tokenId;
+        if (messageType == Messages.MessageType.TRANSFER_ERC721){
+            Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
+            receiver = message.receiver;
+            token = message.token;
+            tokenId = message.tokenId;
+        } else {
+            Messages.TransferErc721AndTokenInfoMessage memory message =
+                Messages.decodeTransferErc721AndTokenInfoMessage(data);
+            receiver = message.baseErc721transfer.receiver;
+            token = message.baseErc721transfer.token;
+            tokenId = message.baseErc721transfer.tokenId;
+            address contractOnSchainTmp = LockAndDataForSchainERC721(lockAndDataERC721)
+                .getERC721OnSchain(schainID, token);
+            if (contractOnSchainTmp == address(0)) {
+                contractOnSchainTmp = _sendCreateERC721Request(message.tokenInfo);
+                LockAndDataForSchainERC721(lockAndDataERC721).addERC721ForSchain(
+                    schainID,
+                    token,
+                    contractOnSchainTmp
+                );
+                emit ERC721TokenCreated(schainID, token, contractOnSchainTmp);
+            }
         }
+        address contractOnSchain = LockAndDataForSchainERC721(lockAndDataERC721)
+            .getERC721OnSchain(schainID, token);
         return LockAndDataForSchainERC721(lockAndDataERC721).sendERC721(
             contractOnSchain,
-            message.baseErc721transfer.receiver,
-            message.baseErc721transfer.tokenId
+            receiver,
+            tokenId
         );
     }
 
@@ -97,7 +113,11 @@ contract ERC721ModuleForSchain is PermissionsForSchain {
      * @dev Returns the receiver address.
      */
     function getReceiver(bytes calldata data) external pure returns (address receiver) {
-        return Messages.decodeTransferErc721AndTokenInfoMessage(data).baseErc721transfer.receiver;
+        Messages.MessageType messageType = Messages.getMessageType(data);
+        if (messageType == Messages.MessageType.TRANSFER_ERC721)
+            return Messages.decodeTransferErc721Message(data).receiver;
+        else
+            return Messages.decodeTransferErc721AndTokenInfoMessage(data).baseErc721transfer.receiver;
     }
 
     function _sendCreateERC721Request(Messages.Erc721TokenInfo memory tokenInfo) internal returns (address) {

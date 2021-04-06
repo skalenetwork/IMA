@@ -29,12 +29,10 @@ import "./bls/SkaleVerifier.sol";
 import "./SkaleFeatures.sol";
 
 
-interface ContractReceiverForSchain {
+interface IContractReceiverForSchain {
     function postMessage(
         string calldata schainID,
         address sender,
-        address to,
-        uint256 amount,
         bytes calldata data
     )
         external
@@ -64,8 +62,6 @@ contract MessageProxyForSchain {
         uint256 msgCounter;
         address srcContract;
         address dstContract;
-        address to;
-        uint256 amount;
         bytes data;
     }
 
@@ -81,8 +77,6 @@ contract MessageProxyForSchain {
     struct Message {
         address sender;
         address destinationContract;
-        address to;
-        uint256 amount;
         bytes data;
     }
 
@@ -103,19 +97,17 @@ contract MessageProxyForSchain {
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     mapping(address => bool) private _authorizedCaller;
     //      chainID  =>      message_id  => MessageData
-    mapping( bytes32 => mapping( uint256 => bytes32 )) private _outgoingMessageDataHash;
+    mapping(bytes32 => mapping(uint256 => bytes32)) private _outgoingMessageDataHash;
     //      chainID  => head of unprocessed messages
-    mapping( bytes32 => uint ) private _idxHead;
+    mapping(bytes32 => uint) private _idxHead;
     //      chainID  => tail of unprocessed messages
-    mapping( bytes32 => uint ) private _idxTail;
+    mapping(bytes32 => uint) private _idxTail;
 
     event OutgoingMessage(
         bytes32 indexed dstChainHash,
         uint256 indexed msgCounter,
         address indexed srcContract,
         address dstContract,
-        address to,
-        uint256 amount,
         bytes data
     );
 
@@ -192,7 +184,7 @@ contract MessageProxyForSchain {
         view
         returns (bool)
     {
-        if ( ! connectedChains[keccak256(abi.encodePacked(someChainID))].inited ) {
+        if (! connectedChains[keccak256(abi.encodePacked(someChainID))].inited) {
             return false;
         }
         return true;
@@ -211,8 +203,8 @@ contract MessageProxyForSchain {
         external
         connectMainnet
     {
-        if ( keccak256(abi.encodePacked(newChainID)) ==
-            keccak256(abi.encodePacked("Mainnet")) )
+        if (keccak256(abi.encodePacked(newChainID)) ==
+            keccak256(abi.encodePacked("Mainnet")))
             return;
         require(isAuthorizedCaller(keccak256(abi.encodePacked(newChainID)), msg.sender), "Not authorized caller");
 
@@ -247,8 +239,6 @@ contract MessageProxyForSchain {
     function postOutgoingMessage(
         string calldata dstChainID,
         address dstContract,
-        uint256 amount,
-        address to,
         bytes calldata data
     )
         external
@@ -263,8 +253,6 @@ contract MessageProxyForSchain {
                 connectedChains[dstChainHash].outgoingMessageCounter - 1,
                 msg.sender,
                 dstContract,
-                to,
-                amount,
                 data
             )
         );
@@ -277,7 +265,7 @@ contract MessageProxyForSchain {
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
 
-        if ( !connectedChains[dstChainHash].inited )
+        if (!connectedChains[dstChainHash].inited)
             return 0;
 
         return connectedChains[dstChainHash].outgoingMessageCounter;
@@ -290,7 +278,7 @@ contract MessageProxyForSchain {
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
 
-        if ( !connectedChains[srcChainHash].inited )
+        if (!connectedChains[srcChainHash].inited)
             return 0;
 
         return connectedChains[srcChainHash].incomingMessageCounter;
@@ -366,7 +354,7 @@ contract MessageProxyForSchain {
         uint256 u = SkaleFeatures(getSkaleFeaturesAddress()).getConfigPermissionFlag(
             a, "skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers"
         );
-        if ( u != 0 )
+        if (u != 0)
             return true;
         return false;
     }
@@ -400,11 +388,9 @@ contract MessageProxyForSchain {
         private
         returns (bool)
     {
-        try ContractReceiverForSchain(message.destinationContract).postMessage(
+        try IContractReceiverForSchain(message.destinationContract).postMessage(
             srcChainID,
             message.sender,
-            message.to,
-            message.amount,
             message.data
         ) returns (bool success) {
             return success;
@@ -429,22 +415,18 @@ contract MessageProxyForSchain {
             bytes32(message.msgCounter),
             bytes32(bytes20(message.srcContract)),
             bytes32(bytes20(message.dstContract)),
-            bytes32(bytes20(message.to)),
-            message.amount,
             message.data
         );
         return keccak256(data);
     }
 
-    function _pushOutgoingMessageData( OutgoingMessageData memory d ) private {
+    function _pushOutgoingMessageData(OutgoingMessageData memory d) private {
         bytes32 dstChainHash = keccak256(abi.encodePacked(d.dstChain));
         emit OutgoingMessage(
             dstChainHash,
             d.msgCounter,
             d.srcContract,
             d.dstContract,
-            d.to,
-            d.amount,
             d.data
         );
         _outgoingMessageDataHash[dstChainHash][_idxTail[dstChainHash]] = _hashOfMessage(d);
@@ -459,12 +441,12 @@ contract MessageProxyForSchain {
         uint256 idxLastToPopNotIncluding
     )
         private
-        returns ( uint256 cntDeleted )
+        returns (uint256 cntDeleted)
     {
         cntDeleted = 0;
         uint idxTail = _idxTail[chainId];
-        for ( uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++ i ) {
-            if ( i >= idxTail )
+        for (uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++ i ) {
+            if (i >= idxTail)
                 break;
             delete _outgoingMessageDataHash[chainId][i];
             ++ cntDeleted;
@@ -510,8 +492,6 @@ contract MessageProxyForSchain {
                 data,
                 bytes32(bytes20(messages[i].sender)),
                 bytes32(bytes20(messages[i].destinationContract)),
-                bytes32(bytes20(messages[i].to)),
-                messages[i].amount,
                 messages[i].data
             );
         }

@@ -28,6 +28,7 @@ library Messages {
         EMPTY,
         TRANSFER_ETH,
         TRANSFER_ERC20,
+        TRANSFER_ERC20_AND_TOTAL_SUPPLY,
         TRANSFER_ERC20_AND_TOKEN_INFO,
         TRANSFER_ERC721,
         TRANSFER_ERC721_AND_TOKEN_INFO
@@ -39,6 +40,8 @@ library Messages {
 
     struct TransferEthMessage {
         BaseMessage message;
+        address receiver;
+        uint256 amount;
     }
 
     struct TransferErc20Message {
@@ -52,11 +55,16 @@ library Messages {
         string name;
         uint8 decimals;
         string symbol;
+    }
+
+    struct TransferErc20AndTotalSupplyMessage {
+        TransferErc20Message baseErc20transfer;
         uint256 totalSupply;
     }
 
     struct TransferErc20AndTokenInfoMessage {
         TransferErc20Message baseErc20transfer;
+        uint256 totalSupply;
         Erc20TokenInfo tokenInfo;
     }
 
@@ -88,9 +96,11 @@ library Messages {
         }
     }
 
-    function encodeTransferEthMessage() internal pure returns (bytes memory) {
+    function encodeTransferEthMessage(address receiver, uint256 amount) internal pure returns (bytes memory) {
         TransferEthMessage memory message = TransferEthMessage(
-            BaseMessage(MessageType.TRANSFER_ETH)
+            BaseMessage(MessageType.TRANSFER_ETH),
+            receiver,
+            amount
         );
         return abi.encode(message);
     }
@@ -116,6 +126,24 @@ library Messages {
         return abi.encode(message);
     }
 
+    function encodeTransferErc20AndTotalSupplyMessage(
+        address token,
+        address receiver,
+        uint256 amount,
+        uint256 totalSupply
+    ) internal pure returns (bytes memory) {
+        TransferErc20AndTotalSupplyMessage memory message = TransferErc20AndTotalSupplyMessage(
+            TransferErc20Message(
+                BaseMessage(MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY),
+                token,
+                receiver,
+                amount
+            ),
+            totalSupply
+        );
+        return abi.encode(message);
+    }
+
     function decodeTransferErc20Message(
         bytes memory data
     ) internal pure returns (TransferErc20Message memory) {
@@ -123,10 +151,21 @@ library Messages {
         return abi.decode(data, (TransferErc20Message));
     }
 
+    function decodeTransferErc20AndTotalSupplyMessage(
+        bytes memory data
+    ) internal pure returns (TransferErc20AndTotalSupplyMessage memory) {
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY,
+            "Message type is not ERC20 transfer and total supply"
+        );
+        return abi.decode(data, (TransferErc20AndTotalSupplyMessage));
+    }
+
     function encodeTransferErc20AndTokenInfoMessage(
         address token,
         address receiver,
         uint256 amount,
+        uint256 totalSupply,
         Erc20TokenInfo memory tokenInfo
     ) internal pure returns (bytes memory) {
         TransferErc20AndTokenInfoMessage memory message = TransferErc20AndTokenInfoMessage(
@@ -136,6 +175,7 @@ library Messages {
                 receiver,
                 amount
             ),
+            totalSupply,
             tokenInfo
         );
         return abi.encode(message);

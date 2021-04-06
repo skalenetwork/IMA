@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxy.sol - SKALE Interchain Messaging Agent
- *   Copyright (C) 2019-Present SKALE Labs
+ *   ILockAndDataERCOnSchain.sol - Interface of LockAndDataERC20/ERC721 Template Contract
+ *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
@@ -21,14 +21,7 @@
 
 pragma solidity 0.6.12;
 
-interface IMessageProxy {
-    function postOutgoingMessage(
-        string calldata dstChainID,
-        address dstContract,
-        bytes calldata data
-    )
-        external;
-
-    function addConnectedChain(string calldata newChainID) external;
-    function removeConnectedChain(string calldata newChainID) external;
+interface ILockAndDataERCOnSchain {
+    function getERC20OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address);
+    function getERC721OnSchain(string calldata schainID, address contractOnMainnet) external view returns (address);
 }

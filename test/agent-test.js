@@ -128,11 +128,13 @@ global.imaState = {
     "w3_main_net": null,
     "w3_s_chain": null,
 
-    "jo_deposit_box": null, // only main net
+    "jo_deposit_box_eth": null, // only main net
+    "jo_deposit_box_erc20": null, // only main net
+    "jo_deposit_box_erc721": null, // only main net
     "jo_token_manager": null, // only s-chain
     "jo_message_proxy_main_net": null,
     "jo_message_proxy_s_chain": null,
-    "jo_lock_and_data_main_net": null,
+    "jo_ima_linker": null,
     "jo_lock_and_data_s_chain": null,
     // "eth_erc721": null, // only s-chain
     "eth_erc20": null, // only s-chain

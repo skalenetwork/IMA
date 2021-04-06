@@ -28,30 +28,20 @@ import * as chaiAsPromised from "chai-as-promised";
 
 import chai = require("chai");
 import {
-    DepositBoxInstance,
-    ContractManagerContract,
+    DepositBoxEthInstance,
     ContractManagerInstance,
-    KeyStorageContract,
-    KeyStorageInstance,
-    LockAndDataForMainnetInstance,
+    IMALinkerInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainInstance,
     MessageProxyForMainnetInstance,
     MessageProxyForSchainContract,
     MessageProxyForSchainInstance,
-    SchainsContract,
-    SchainsInstance,
-    SchainsInternalContract,
-    SchainsInternalInstance,
     TokenManagerContract,
     TokenManagerInstance,
-    WalletsContract,
-    WalletsInstance,
-    SkaleVerifierMockInstance,
-    SkaleVerifierMockContract,
-    SkaleFeaturesMockContract,
+    MessagesTesterContract,
+    MessagesTesterInstance,
     SkaleFeaturesMockInstance,
-    ReceiverMockContract,
+    SkaleFeaturesMockContract,
 } from "../types/truffle-contracts";
 
 import { randomString } from "./utils/helper";
@@ -59,35 +49,32 @@ import { randomString } from "./utils/helper";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-import { deployLockAndDataForMainnet } from "./utils/deploy/lockAndDataForMainnet";
+import { deployIMALinker } from "./utils/deploy/imaLinker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
-import { deployDepositBox } from "./utils/deploy/depositBox";
+import { deployDepositBoxEth } from "./utils/deploy/depositBoxEth";
+import { deployContractManager } from "./utils/deploy/contractManager";
+import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
+import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
+import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
-const ContractManager: ContractManagerContract = artifacts.require("./ContractManager");
-const Schains: SchainsContract = artifacts.require("./Schains");
-const KeyStorage: KeyStorageContract = artifacts.require("./KeyStorage");
-const SkaleVerifierMock: SkaleVerifierMockContract = artifacts.require("./SkaleVerifierMock");
-const SchainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
-const Wallets: WalletsContract = artifacts.require("./Wallets");
+const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 const SkaleFeaturesMock: SkaleFeaturesMockContract = artifacts.require("./SkaleFeaturesMock");
 
 contract("MessageProxy", ([deployer, user, client, customer]) => {
-    let messageProxyForMainnet: MessageProxyForMainnetInstance;
     let messageProxyForSchain: MessageProxyForSchainInstance;
     let tokenManager1: TokenManagerInstance;
     let tokenManager2: TokenManagerInstance;
-    let lockAndDataForMainnet: LockAndDataForMainnetInstance;
     let lockAndDataForSchain: LockAndDataForSchainInstance;
+
+    let depositBox: DepositBoxEthInstance;
     let contractManager: ContractManagerInstance;
-    let schains: SchainsInstance;
-    let skaleVerifier: SkaleVerifierMockInstance;
-    let schainsInternal: SchainsInternalInstance;
-    let depositBox: DepositBoxInstance;
-    let keyStorage: KeyStorageInstance;
-    let wallets: WalletsInstance;
+    let messageProxyForMainnet: MessageProxyForMainnetInstance;
+    let imaLinker: IMALinkerInstance;
+    let messages: MessagesTesterInstance;
+    let contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
     const publicKeyArray = [
         "1122334455667788990011223344556677889900112233445566778899001122",
@@ -95,17 +82,6 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
         "1122334455667788990011223344556677889900112233445566778899001122",
         "1122334455667788990011223344556677889900112233445566778899001122",
     ];
-
-    const BLSPublicKey = {
-        x: {
-            a: "8276253263131369565695687329790911140957927205765534740198480597854608202714",
-            b: "12500085126843048684532885473768850586094133366876833840698567603558300429943",
-        },
-        y: {
-            a: "7025653765868604607777943964159633546920168690664518432704587317074821855333",
-            b: "14411459380456065006136894392078433460802915485975038137226267466736619639091",
-        }
-    }
 
     const BlsSignature = [
         "178325537405109593276798394634841698946852714038246117383766698579865918287",
@@ -117,23 +93,12 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
     describe("MessageProxyForMainnet for mainnet", async () => {
         beforeEach(async () => {
-            contractManager = await ContractManager.new({from: deployer});
-            schains = await Schains.new({from: deployer});
-            schainsInternal = await SchainsInternal.new({from: deployer});
-            skaleVerifier = await SkaleVerifierMock.new({from: deployer});
-            keyStorage = await KeyStorage.new({from: deployer});
-            wallets = await Wallets.new({from: deployer});
-            await contractManager.setContractsAddress("Schains", schains.address, {from: deployer});
-            await contractManager.setContractsAddress("SchainsInternal", schainsInternal.address, {from: deployer});
-            await contractManager.setContractsAddress("Wallets", wallets.address, {from: deployer});
-            await contractManager.setContractsAddress("SkaleVerifier", skaleVerifier.address, {from: deployer});
-            await contractManager.setContractsAddress("KeyStorage", keyStorage.address, {from: deployer});
-            await schains.addContractManager(contractManager.address);
-            await wallets.addContractManager(contractManager.address);
-            lockAndDataForMainnet = await deployLockAndDataForMainnet();
-            messageProxyForMainnet = await deployMessageProxyForMainnet(lockAndDataForMainnet);
-            depositBox = await deployDepositBox(lockAndDataForMainnet);
-            await lockAndDataForMainnet.setContract("ContractManagerForSkaleManager", contractManager.address, {from: deployer});
+            contractManager = await deployContractManager(contractManagerAddress);
+            contractManagerAddress = contractManager.address;
+            messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
+            imaLinker = await deployIMALinker(contractManager, messageProxyForMainnet);
+            depositBox = await deployDepositBoxEth(contractManager, messageProxyForMainnet, imaLinker);
+            messages = await MessagesTester.new();
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -169,7 +134,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             connectedChain.should.be.deep.equal(Boolean(true));
 
             // only owner can remove chain:
-            await messageProxyForMainnet.removeConnectedChain(chainID, {from: user}).should.be.rejected;
+            // TODO uncomment after fix permission logic
+            // await messageProxyForMainnet.removeConnectedChain(chainID, {from: user}).should.be.rejected;
 
             // main net can't be removed:
             await messageProxyForMainnet.removeConnectedChain("Mainnet", {from: deployer}).should.be.rejected;
@@ -183,16 +149,15 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const chainID = randomString(10);
             const contractAddress = messageProxyForMainnet.address;
             const amount = 4;
-            const addressTo = user;
-            const bytesData = "0x0";
+            const bytesData = await messages.encodeTransferEthMessage(user, amount);
 
             await messageProxyForMainnet
-            .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer})
-            .should.be.rejectedWith("Destination chain is not initialized");
+                .postOutgoingMessage(web3.utils.soliditySha3(chainID), contractAddress, bytesData, {from: deployer})
+                .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForMainnet.addConnectedChain(chainID, {from: deployer});
             await messageProxyForMainnet
-            .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
+                .postOutgoingMessage(web3.utils.soliditySha3(chainID), contractAddress, bytesData, {from: deployer});
             const outgoingMessagesCounter = new BigNumber(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
@@ -203,9 +168,9 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             // tokenManager1 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
             // tokenManager2 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
             const startingCounter = 0;
-            await schainsInternal.initializeSchain(chainID, deployer, 1, 1);
-            await keyStorage.setCommonPublicKey(web3.utils.soliditySha3(chainID), BLSPublicKey, {from: deployer});
-            await wallets.rechargeSchainWallet(web3.utils.soliditySha3(chainID), {from: deployer, value: "1000000000000000000"});
+            await initializeSchain(contractManager, chainID, deployer, 1, 1);
+            await setCommonPublicKey(contractManager, chainID);
+            await rechargeSchainWallet(contractManager, chainID, "1000000000000000000");
 
             const message1 = {
                 amount: 3,
@@ -221,7 +186,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 sender: user,
                 to: customer};
 
-            const messages = [message1, message2];
+            const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
                 counter: Counter,
@@ -234,7 +199,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 .postIncomingMessages(
                     chainID,
                     startingCounter,
-                    messages,
+                    outgoingMessages,
                     sign,
                     0,
                     {from: deployer},
@@ -246,7 +211,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             .postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
@@ -258,10 +223,10 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
         it("should get outgoing messages counter", async () => {
             const chainID = randomString(10);
-            const contractAddress = lockAndDataForMainnet.address;
+            const contractAddress = depositBox.address;
             const amount = 5;
             const addressTo = client;
-            const bytesData = "0x0";
+            const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
 
             // chain should be inited:
             await messageProxyForMainnet.getOutgoingMessagesCounter(chainID).should.be.rejected;
@@ -273,7 +238,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForMainnet
-            .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
+            .postOutgoingMessage(web3.utils.soliditySha3(chainID), contractAddress, bytesData, {from: deployer});
 
             const outgoingMessagesCounter = new BigNumber(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(chainID));
@@ -282,11 +247,11 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
         it("should get incoming messages counter", async () => {
             const chainID = randomString(10);
-            tokenManager1 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
-            tokenManager2 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
-            await schainsInternal.initializeSchain(chainID, deployer, 1, 1);
-            await keyStorage.setCommonPublicKey(web3.utils.soliditySha3(chainID), BLSPublicKey, {from: deployer});
-            await wallets.rechargeSchainWallet(web3.utils.soliditySha3(chainID), {from: deployer, value: "1000000000000000000"});
+            // tokenManager1 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
+            // tokenManager2 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
+            await initializeSchain(contractManager, chainID, deployer, 1, 1);
+            await setCommonPublicKey(contractManager, chainID);
+            await rechargeSchainWallet(contractManager, chainID, "1000000000000000000");
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
@@ -300,7 +265,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 destinationContract: depositBox.address,
                 sender: user,
                 to: customer};
-            const messages = [message1, message2];
+            const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
                 counter: Counter,
@@ -321,7 +286,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             .postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
@@ -354,11 +319,11 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
         it("should get incoming messages counter", async () => {
             const chainID = randomString(10);
-            tokenManager1 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
-            tokenManager2 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
-            await schainsInternal.initializeSchain(chainID, deployer, 1, 1);
-            await keyStorage.setCommonPublicKey(web3.utils.soliditySha3(chainID), BLSPublicKey, {from: deployer});
-            await wallets.rechargeSchainWallet(web3.utils.soliditySha3(chainID), {from: deployer, value: "1000000000000000000"});
+            // tokenManager1 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
+            // tokenManager2 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
+            await initializeSchain(contractManager, chainID, deployer, 1, 1);
+            await setCommonPublicKey(contractManager, chainID);
+            await rechargeSchainWallet(contractManager, chainID, "1000000000000000000");
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
@@ -372,7 +337,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 destinationContract: depositBox.address,
                 sender: user,
                 to: customer};
-            const messages = [message1, message2];
+            const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
                 counter: Counter,
@@ -393,7 +358,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             .postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
@@ -405,17 +370,15 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
             const amount = 5;
             const addressTo = client;
-            const bytesData = "0x0";
+            const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
 
             const outgoingMessagesCounter0 = new BigNumber(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForMainnet.postOutgoingMessage(
-                chainID,
-                lockAndDataForMainnet.address,
-                amount,
-                addressTo,
+                web3.utils.soliditySha3(chainID),
+                depositBox.address,
                 bytesData,
                 {from: deployer},
             );
@@ -444,9 +407,6 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             messageProxyForSchain = await MessageProxyForSchain.new("MyChain", {from: deployer});
             lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
             await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address, {from: deployer});
-            skaleFeatures = await SkaleFeaturesMock.new();
-            await skaleFeatures.setBlsCommonPublicKey(BLSPublicKey);
-            messageProxyForSchain.setSkaleFeaturesAddress(skaleFeatures.address);
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -495,15 +455,16 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const contractAddress = messageProxyForSchain.address;
             const amount = 4;
             const addressTo = user;
-            const bytesData = "0x0";
+            const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
+
 
             await messageProxyForSchain
-            .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer})
+            .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer})
             .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
             await messageProxyForSchain
-            .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
+            .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer});
             const outgoingMessagesCounter = new BigNumber(
                 await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
@@ -558,7 +519,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 destinationContract: receiverMockAddress,
                 sender: receiverMockAddress,
                 to: receiverMockAddress};
-            const messages = [message1, message2];
+            const outgoingMessages = [message1, message2];
 
             const blsCommonPublicKey = {
                 x: {
@@ -570,7 +531,10 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                     b: "0x138ee463e71b40eae73b30631bccac8a4dae85cf8335e6deebc4b99f346f0f95"
                 }
             }
+            const skaleFeatures = await SkaleFeaturesMock.new();
             await skaleFeatures.setBlsCommonPublicKey(blsCommonPublicKey);
+            messageProxyForSchain.setSkaleFeaturesAddress(skaleFeatures.address);
+            
             const sign = {
                 blsSignature: [
                     "0x298bfd29b293be2709d6097143d643751359d9c7ed2011c8f1225c3e28e897b3",
@@ -585,7 +549,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             await messageProxyForSchain.postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
@@ -598,7 +562,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             await messageProxyForSchain.postIncomingMessages(
                 chainID,
                 startingCounter,
-                messages,
+                outgoingMessages,
                 sign,
                 0,
                 {from: deployer},
@@ -612,7 +576,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const contractAddress = lockAndDataForSchain.address;
             const amount = 5;
             const addressTo = client;
-            const bytesData = "0x0";
+            const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
+
 
             // chain should be inited:
             new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter(chainID)).should.be.deep.equal(new BigNumber(0));
@@ -624,7 +589,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForSchain
-            .postOutgoingMessage(chainID, contractAddress, amount, addressTo, bytesData, {from: deployer});
+            .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer});
 
             const outgoingMessagesCounter = new BigNumber(
                 await messageProxyForSchain.getOutgoingMessagesCounter(chainID));

@@ -26,12 +26,10 @@ pragma experimental ABIEncoderV2;
 import "../schain/MessageProxyForSchain.sol";
 
 
-contract ReceiverMock is ContractReceiverForSchain {
+contract ReceiverMock is IContractReceiverForSchain {
     function postMessage(
         string calldata,
         address,
-        address,
-        uint256,
         bytes calldata
     )
         external

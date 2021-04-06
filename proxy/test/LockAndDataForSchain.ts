@@ -130,7 +130,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await lockAndDataForSchain.addDepositBox(depositBoxAddress, {from: deployer}).
     should.be.rejectedWith("Deposit Box is already set");
 
-    const getMapping = await lockAndDataForSchain.tokenManagerAddresses(web3.utils.soliditySha3("Mainnet"));
+    const getMapping = await lockAndDataForSchain.getDepositBox(0);
     expect(getMapping).to.equal(depositBoxAddress);
   });
 
@@ -258,7 +258,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     await lockAndDataForSchain.addDepositBox(depositBoxAddress, {from: deployer});
     // execution
     const res = await lockAndDataForSchain
-      .hasDepositBox({from: deployer});
+      .hasDepositBox(depositBoxAddress, {from: deployer});
     // expectation
     expect(res).to.be.true;
   });
@@ -268,7 +268,7 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     const depositBoxAddress = user;
     // execution
     const res = await lockAndDataForSchain
-      .hasDepositBox({from: deployer});
+      .hasDepositBox(depositBoxAddress, {from: deployer});
     // expectation
     expect(res).to.be.false;
   });
@@ -328,18 +328,17 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     // add deposit box:
     await lockAndDataForSchain.addDepositBox(depositBoxAddress, {from: deployer});
     // execution
-    await lockAndDataForSchain.removeDepositBox({from: deployer});
+    await lockAndDataForSchain.removeDepositBox(depositBoxAddress, {from: deployer});
     // expectation
     const getMapping = await lockAndDataForSchain.tokenManagerAddresses(web3.utils.soliditySha3("Mainnet"));
     expect(getMapping).to.equal(nullAddress);
   });
 
-  it("should rejected with `Deposit Box is not set` when invoke `removeDepositBox`", async () => {
+  it("should invoke `removeDepositBox` with 0 depositBoxes", async () => {
     // preparation
     const error = "Deposit Box is not set";
     // execution/expectation
-    await lockAndDataForSchain.removeDepositBox({from: deployer})
-      .should.be.eventually.rejectedWith(error);
+    await lockAndDataForSchain.removeDepositBox(user, {from: deployer});
   });
 
 });

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   LockAndDataForMainnetWorkaround.sol - SKALE Interchain Messaging Agent
- *   Copyright (C) 2019-Present SKALE Labs
+ *   IDepositBox.sol - Interface of DepositBox Template Contract
+ *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
@@ -21,20 +21,19 @@
 
 pragma solidity 0.6.12;
 
-import "../mainnet/LockAndDataForMainnet.sol";
+interface IDepositBox {
 
+    function postMessage(
+        bytes32 schainHash,
+        address sender,
+        bytes calldata data
+    )
+        external
+        returns (bool);
 
-contract LockAndDataForMainnetWorkaround is LockAndDataForMainnet {
+    function addTokenManager(string calldata schainID, address newTokenManagerAddress) external;
 
-    function setContract(string calldata contractName, address newContract) external override onlyOwner {
-        require(newContract != address(0), "New address is equal zero");
-        bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        require(permitted[contractId] != newContract, "Contract is already added");
-        permitted[contractId] = newContract;
-    }
+    function removeTokenManager(string calldata schainID) external;
 
-    function isSchainOwner(address, bytes32) public override view returns (bool) {
-        return true;
-    }
-
+    function hasTokenManager(string calldata schainID) external view returns (bool);
 }

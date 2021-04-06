@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxy.sol - SKALE Interchain Messaging Agent
- *   Copyright (C) 2019-Present SKALE Labs
+ *   ISchains.sol - Interface of SchainsInternal from SKALE-manager
+ *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
@@ -21,14 +21,17 @@
 
 pragma solidity 0.6.12;
 
-interface IMessageProxy {
-    function postOutgoingMessage(
-        string calldata dstChainID,
-        address dstContract,
-        bytes calldata data
+interface ISchains {
+    function verifySchainSignature(
+        uint256 signA,
+        uint256 signB,
+        bytes32 hash,
+        uint256 counter,
+        uint256 hashA,
+        uint256 hashB,
+        string calldata schainName
     )
-        external;
-
-    function addConnectedChain(string calldata newChainID) external;
-    function removeConnectedChain(string calldata newChainID) external;
+        external
+        view
+        returns (bool);
 }

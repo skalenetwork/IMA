@@ -22,40 +22,15 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
-
-import "../interfaces/IContractManager.sol";
-import "../interfaces/ISchainsInternal.sol";
-import "../interfaces/IWallets.sol";
-
-import "./PermissionsForMainnet.sol";
-
+import "./connectors/ProxyConnector.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
-        string calldata schainID,
+        bytes32 schainHash,
         address sender,
-        address to,
-        uint256 amount,
         bytes calldata data
     )
         external
-        returns (bool);
-}
-
-interface ISchains {
-    function verifySchainSignature(
-        uint256 signA,
-        uint256 signB,
-        bytes32 hash,
-        uint256 counter,
-        uint256 hashA,
-        uint256 hashB,
-        string calldata schainName
-    )
-        external
-        view
         returns (bool);
 }
 
@@ -69,8 +44,7 @@ interface ISchains {
  * nodes in the chain. Since Ethereum Mainnet has no BLS public key, mainnet
  * messages do not need to be signed.
  */
-contract MessageProxyForMainnet is PermissionsForMainnet {
-    using SafeMathUpgradeable for uint256;
+contract MessageProxyForMainnet is ProxyConnector {
 
     /**
      * 16 Agents
@@ -96,8 +70,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     struct Message {
         address sender;
         address destinationContract;
-        address to;
-        uint256 amount;
         bytes data;
     }
 
@@ -124,8 +96,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         uint256 indexed msgCounter,
         address indexed srcContract,
         address dstContract,
-        address to,
-        uint256 amount,
         bytes data
     );
 
@@ -143,7 +113,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      * - `newChainID` must not be "Mainnet".
      * - `newChainID` must not already be added.
      */
-    function addConnectedChain(string calldata newChainID) external allow("LockAndData") {
+    function addConnectedChain(string calldata newChainID) external {
         require(
             keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
@@ -169,7 +139,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      * - `msg.sender` must be LockAndData contract.
      * - `newChainID` must be initialized.
      */
-    function removeConnectedChain(string calldata newChainID) external allow("LockAndData") {
+    function removeConnectedChain(string calldata newChainID) external {
         require(
             connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
             "Chain is not initialized"
@@ -186,15 +156,13 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
      * - `dstChainID` must be initialized.
      */
     function postOutgoingMessage(
-        string calldata dstChainID,
+        bytes32 dstChainHash,
         address dstContract,
-        uint256 amount,
-        address to,
         bytes calldata data
     )
         external
     {
-        bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
+        // bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         uint msgCounter = connectedChains[dstChainHash].outgoingMessageCounter;
         emit OutgoingMessage(
@@ -202,8 +170,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             msgCounter,
             msg.sender,
             dstContract,
-            to,
-            amount,
             data
         );
         connectedChains[dstChainHash].outgoingMessageCounter = msgCounter.add(1);
@@ -235,9 +201,9 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not equal to incoming message counter");
 
-        require(_verifyMessages(srcChainID, messages, sign), "Signature is not verified");
+        require(_verifyMessages(srcChainID, _hashedArray(messages), sign), "Signature is not verified");
         for (uint256 i = 0; i < messages.length; i++) {
-            _callReceiverContract(srcChainID, messages[i], startingCounter + i);
+            _callReceiverContract(srcChainHash, messages[i], startingCounter + i);
         }
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
@@ -337,58 +303,10 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
 
     // Create a new message proxy
 
-    function initialize(address newLockAndDataAddress) public override initializer {
-        PermissionsForMainnet.initialize(newLockAndDataAddress);
+    function initialize(address newContractManagerOfSkaleManager) public override initializer {
+        ProxyConnector.initialize(newContractManagerOfSkaleManager);
         owner = msg.sender;
         chainID = "Mainnet";
-    }
-
-    /**
-     * @dev Checks whether sender is node address from the SKALE chain
-     */
-    function isAuthorizedCaller(bytes32 chainId, address sender) public view returns (bool) {
-        address skaleSchainsInternal = IContractManager(
-            IContractManager(getLockAndDataAddress()).getContract(
-                "ContractManagerForSkaleManager"
-            )
-        ).getContract(
-            "SchainsInternal"
-        );
-        return ISchainsInternal(skaleSchainsInternal).isNodeAddressesInGroup(
-            chainId,
-            sender
-        );
-    }
-
-    /**
-     * @dev Converts calldata structure to memory structure and checks
-     * whether message BLS signature is valid.
-     */
-    function _verifyMessages(
-        string calldata srcChainID,
-        Message[] calldata messages,
-        Signature calldata sign
-    )
-        private
-        view
-        returns (bool)
-    {
-        address skaleSchains = IContractManager(
-            IContractManager(getLockAndDataAddress()).getContract(
-                "ContractManagerForSkaleManager"
-            )
-        ).getContract(
-            "Schains"
-        );
-        return ISchains(skaleSchains).verifySchainSignature(
-            sign.blsSignature[0],
-            sign.blsSignature[1],
-            _hashedArray(messages),
-            sign.counter,
-            sign.hashA,
-            sign.hashB,
-            srcChainID
-        );
     }
 
     /**
@@ -401,8 +319,6 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
                 data,
                 bytes32(bytes20(messages[i].sender)),
                 bytes32(bytes20(messages[i].destinationContract)),
-                bytes32(bytes20(messages[i].to)),
-                messages[i].amount,
                 messages[i].data
             );
         }
@@ -410,7 +326,7 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
     }
 
     function _callReceiverContract(
-        string memory srcChainID,
+        bytes32 schainHash,
         Message calldata message,
         uint counter
     )
@@ -418,10 +334,8 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
         returns (bool)
     {
         try ContractReceiverForMainnet(message.destinationContract).postMessage(
-            srcChainID,
+            schainHash,
             message.sender,
-            message.to,
-            message.amount,
             message.data
         ) returns (bool success) {
             return success;
@@ -438,13 +352,5 @@ contract MessageProxyForMainnet is PermissionsForMainnet {
             );
             return false;
         }
-    }
-
-    function _refundGasBySchain(bytes32 schainId, uint gasTotal) private {
-        address contractManagerAddress = IContractManager(getLockAndDataAddress()).getContract(
-            "ContractManagerForSkaleManager"
-        );
-        address walletsAddress = IContractManager(contractManagerAddress).getContract("Wallets");
-        IWallets(payable(walletsAddress)).refundGasBySchain(schainId, msg.sender, gasTotal.sub(gasleft()), false);
     }
 }
