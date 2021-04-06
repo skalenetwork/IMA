@@ -37,7 +37,6 @@ import {
     MessageProxyForSchainContract,
     MessageProxyForSchainInstance,
     TokenManagerContract,
-    TokenManagerInstance,
     MessagesTesterContract,
     MessagesTesterInstance,
     SkaleFeaturesMockInstance,
@@ -65,8 +64,6 @@ const SkaleFeaturesMock: SkaleFeaturesMockContract = artifacts.require("./SkaleF
 
 contract("MessageProxy", ([deployer, user, client, customer]) => {
     let messageProxyForSchain: MessageProxyForSchainInstance;
-    let tokenManager1: TokenManagerInstance;
-    let tokenManager2: TokenManagerInstance;
     let lockAndDataForSchain: LockAndDataForSchainInstance;
 
     let depositBox: DepositBoxEthInstance;
@@ -401,7 +398,6 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     });
 
     describe("MessageProxyForSchain for schain", async () => {
-        let skaleFeatures: SkaleFeaturesMockInstance;
 
         beforeEach(async () => {
             messageProxyForSchain = await MessageProxyForSchain.new("MyChain", {from: deployer});
@@ -534,7 +530,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const skaleFeatures = await SkaleFeaturesMock.new();
             await skaleFeatures.setBlsCommonPublicKey(blsCommonPublicKey);
             messageProxyForSchain.setSkaleFeaturesAddress(skaleFeatures.address);
-            
+
             const sign = {
                 blsSignature: [
                     "0x298bfd29b293be2709d6097143d643751359d9c7ed2011c8f1225c3e28e897b3",
