@@ -502,29 +502,26 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
             const startingCounter = 0;
             const message1 = {
-                amount: 3,
                 data: "0x11",
-                // destinationContract: tokenManager1.address,
                 destinationContract: receiverMockAddress,
-                sender: receiverMockAddress,
-                to: receiverMockAddress};
+                sender: receiverMockAddress
+            };
             const message2 = {
-                amount: 7,
                 data: "0x22",
-                // destinationContract: tokenManager2.address,
                 destinationContract: receiverMockAddress,
-                sender: receiverMockAddress,
-                to: receiverMockAddress};
+                sender: receiverMockAddress
+            };
             const outgoingMessages = [message1, message2];
+            // hash = 0xe598d7c6fb46c03a26ab640152e3308ba88cf52ecdd7bd24082baa2f90bac9f0
 
             const blsCommonPublicKey = {
                 x: {
-                    a: "0x223d2b836b902069c9cd1e0a80616cd4c132870c3617341dcff10df034d57390",
-                    b: "0x0b7f115d0dbfe4afe63b1d4ad3c8f41c6dea357733e49d61db0ca7a00f6f68a9"
+                    a: "0x117899a4eef45b19c0c3e7f9be0bc70e7e576452704c5cc85ed772cb1a61571f",
+                    b: "0x2e4359ec9edb496b87a8ef1b44d50b30ed734a2cc991d109be75e62fff2e91f2"
                 },
                 y: {
-                    a: "0x0b195236fffcd189e4f63b4bc95aa095f515576f274192e7b317e86dd6771b62",
-                    b: "0x138ee463e71b40eae73b30631bccac8a4dae85cf8335e6deebc4b99f346f0f95"
+                    a: "0x13d4c965ff05891a8e50b11690a2942ce6be8849af6a798b8e4fb464c33ee4f6",
+                    b: "0x256f39ba1d0ae9d402321f6a4f8c46dac3e8bae3d83b23b85262203a400d178e"
                 }
             }
             const skaleFeatures = await SkaleFeaturesMock.new();
@@ -533,12 +530,12 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
             const sign = {
                 blsSignature: [
-                    "0x298bfd29b293be2709d6097143d643751359d9c7ed2011c8f1225c3e28e897b3",
-                    "0x15d5f1824739d2a6ac930834234cc010b5d88436d28f4f6da014223e97bf9e25"
+                    "0x2dedd4eaeac95881fbcaa4146f95a438494545c607bd57d560aa1d13d2679db8",
+                    "0x2e9a10a0baf75ccdbd2b5cf81491673108917ade57dea40d350d4cbebd7b0965"
                 ],
-                counter: 5,
-                hashA: "0x21deafc32cc506a2a8e1aed3c1a204c0cf6acd787080fd1c84dd820d620f48b9",
-                hashB: "0x287f866512be542d32e4cee320076446aef124a78bb49d1f8632e2391747f6fe",
+                counter: 0,
+                hashA: "0x24079dfb76803f93456a4d274cddcf154a874ae92c1092ef17a979d42ec6d4d4",
+                hashB: "0x1a44d878121e17e3f136ddbbba438a38d2dd0fdea786b0a815157828c2154047",
             };
 
             // chain should be inited:
