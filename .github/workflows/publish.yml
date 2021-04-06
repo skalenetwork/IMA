@@ -8,6 +8,7 @@ on:
       - beta
       - stable
       - 1.0.0-eth-global.148
+      - eth-global
 
 jobs:
   build:
