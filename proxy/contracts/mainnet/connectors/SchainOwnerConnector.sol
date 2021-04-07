@@ -21,7 +21,8 @@
 
 pragma solidity 0.6.12;
 
-import "../../interfaces/ISchainsInternal.sol";
+import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
+import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 
 import "./BasicConnector.sol";
 

@@ -23,11 +23,12 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 
 import "./TestSchainsInternal.sol";
 
 
-contract Wallets {
+contract Wallets is IWallets {
     using SafeMath for uint;
 
     ContractManager public contractManager;
@@ -49,6 +50,7 @@ contract Wallets {
         bool
     )
         external
+        override
     {
         uint amount = tx.gasprice * spentGas;
         require(schainId != bytes32(0), "SchainId cannot be null");
@@ -58,7 +60,7 @@ contract Wallets {
         spender.transfer(amount);
     }
 
-    function rechargeSchainWallet(bytes32 schainId) external payable {
+    function rechargeSchainWallet(bytes32 schainId) external payable override {
         SchainsInternal schainsInternal = SchainsInternal(contractManager.getContract("SchainsInternal"));
         require(schainsInternal.isSchainActive(schainId), "Schain should be active for recharging");
         _schainWallets[schainId] = _schainWallets[schainId].add(msg.value);

@@ -26,7 +26,6 @@ import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "../interfaces/IDepositBox.sol";
-import "../interfaces/IWallets.sol";
 
 import "./connectors/BasicConnector.sol";
 import "./MessageProxyForMainnet.sol";

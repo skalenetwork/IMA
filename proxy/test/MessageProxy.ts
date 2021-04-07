@@ -456,11 +456,11 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
             await messageProxyForSchain
             .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer})
-            .should.be.rejectedWith("Destination chain is not initialized");
+                .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
             await messageProxyForSchain
-            .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer});
+                .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer});
             const outgoingMessagesCounter = new BigNumber(
                 await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));

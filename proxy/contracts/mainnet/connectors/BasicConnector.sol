@@ -24,8 +24,6 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 
-import "../../interfaces/IContractManager.sol";
-
 
 /**
  * @title BasicConnector - connected module for Upgradeable approach, knows ContractManager

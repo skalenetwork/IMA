@@ -23,12 +23,14 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
+
 import "./TestContractManager.sol";
 import "./TestKeyStorage.sol";
 import "./SkaleVerifierMock.sol";
 
 
-contract Schains {
+contract Schains is ISchains {
 
     ContractManager public contractManager;
 
@@ -47,6 +49,7 @@ contract Schains {
     )
         external
         view
+        override
         returns (bool)
     {
         SkaleVerifierMock skaleVerifier = SkaleVerifierMock(contractManager.getContract("SkaleVerifier"));
