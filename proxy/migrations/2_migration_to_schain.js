@@ -62,8 +62,8 @@ async function deploy( deployer, network ) {
     }
     const schainName = process.env.CHAIN_NAME_SCHAIN;
     let messageProxy = MessageProxyForSchain;
-    if ( process.env.NO_SIGNATURES === "true" ) {
-        console.log("Deploy IMA without signature verification");
+    if( process.env.NO_SIGNATURES === "true" ) {
+        console.log( "Deploy IMA without signature verification" );
         messageProxy = MessageProxyForSchainWithoutSignatures;
     }
     await deployer.deploy( messageProxy, schainName, { gas: gasLimit } ).then( async function() {
