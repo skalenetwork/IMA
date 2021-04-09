@@ -8,8 +8,8 @@ module.exports = {
     ],
     providerOptions: {
         default_balance_ether: 3000, //000000000000000000,
-        callGasLimit: 10000000,
-        gasLimit: 0xfffffffffff,
+        callGasLimit: 10e6,
+        gasLimit: 50e6,
         port: 8555
     }
 };
