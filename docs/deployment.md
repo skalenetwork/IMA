@@ -469,8 +469,8 @@ The **--hash-g1** command line parameter must be used to specify path to the **h
 
 Message signing will work only on `SKALE Chain` where each **skaled** node configured properly and able to:
 
-- provide browse information for entire `SKALE Chain` network
-- provide **IMA** signing APIs and parameters
+-  provide browse information for entire `SKALE Chain` network
+-  provide **IMA** signing APIs and parameters
 
 Here is example of correct **config.json** file for **skaled** node:
 
