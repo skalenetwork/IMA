@@ -48,6 +48,7 @@ function postMessage(
 
 3)  Add the address of MessageProxy on some chain:
     Data of Smart contracts stores in `data` folder
+
 4)  Then continue developing your dApp
 
 ## Ether clone on SKALE chain

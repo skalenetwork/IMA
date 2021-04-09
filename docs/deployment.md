@@ -15,7 +15,9 @@ Deploy process includes:
 ## Prerequisites
 
 1)  `Mainnet` Ethereum network with known HTTP(S) URL of **Web3** interface.
+
 2)  `SKALE Chain` network with known HTTP(S) URL of **Web3** interface.
+
 3)  Preliminary deployed **Skale Manager** software with known address of **ContractManager** smart contract saved into the `proxy/data/skaleManagerComponents.json` file like shown in the following example:
 
     ```json
@@ -25,6 +27,7 @@ Deploy process includes:
     ```
 
 4)  `libBLS` command utilities
+
 5)  Truffle version **5.0.12** is recommended to install (notice, the _-g_ option of _npm_ may require _sudo_):
 
     ```shell
@@ -34,14 +37,13 @@ Deploy process includes:
     ```
 
 6)  Node modules should be initialized in the following folders:
-
-```shell
-export IMA_ROOT=.....
-cd $IMA_ROOT/proxy; npm install
-cd $IMA_ROOT/npms/skale-owasp; npm install
-cd $IMA_ROOT/npms/skale-ima; npm install
-cd $IMA_ROOT/agent; npm install
-```
+    ```shell
+    export IMA_ROOT=.....
+    cd $IMA_ROOT/proxy; npm install
+    cd $IMA_ROOT/npms/skale-owasp; npm install
+    cd $IMA_ROOT/npms/skale-ima; npm install
+    cd $IMA_ROOT/agent; npm install
+    ```
 
 ## Smart Contracts Installation
 
