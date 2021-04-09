@@ -988,9 +988,6 @@ function ima_common_init() {
             // if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
             //     log.write( cc.info("Auto-generated S-Chain ERC721 JSON is ") + cc.j(imaState.joErc721_s_chain) + "\n" );
         }
-    } else {
-        if( n1 != 0 && n2 != 0 ) {
-        }
     }
     //
     //
