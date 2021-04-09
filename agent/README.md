@@ -8,9 +8,9 @@ This article refers to **SKALE Interchain Messaging Agent** as **IMA**.
 
 **IMA** consists of the following parts:
 
-- Contracts on Mainnet
-- Contracts on a SKALE Chain
-- NodeJS based app
+-   Contracts on Mainnet
+-   Contracts on a SKALE Chain
+-   NodeJS based app
 
 ## Contracts installation
 
