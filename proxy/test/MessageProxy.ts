@@ -167,7 +167,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const startingCounter = 0;
             await initializeSchain(contractManager, chainID, deployer, 1, 1);
             await setCommonPublicKey(contractManager, chainID);
-            await rechargeSchainWallet(contractManager, chainID, "1000000000000000000");
+            await rechargeSchainWallet(contractManager, chainID, deployer, "1000000000000000000");
 
             const message1 = {
                 amount: 3,
@@ -248,7 +248,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             // tokenManager2 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
             await initializeSchain(contractManager, chainID, deployer, 1, 1);
             await setCommonPublicKey(contractManager, chainID);
-            await rechargeSchainWallet(contractManager, chainID, "1000000000000000000");
+            await rechargeSchainWallet(contractManager, chainID, deployer, "1000000000000000000");
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
@@ -320,7 +320,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             // tokenManager2 = await TokenManager.new(chainID, lockAndDataForMainnet.address, {from: deployer});
             await initializeSchain(contractManager, chainID, deployer, 1, 1);
             await setCommonPublicKey(contractManager, chainID);
-            await rechargeSchainWallet(contractManager, chainID, "1000000000000000000");
+            await rechargeSchainWallet(contractManager, chainID, deployer, "1000000000000000000");
             const startingCounter = 0;
             const message1 = {
                 amount: 3,

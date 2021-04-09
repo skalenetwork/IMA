@@ -327,7 +327,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       await messageProxy.addConnectedChain(schainID, {from: deployer});
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
-      await rechargeSchainWallet(contractManager, schainID, "1000000000000000000");
+      await rechargeSchainWallet(contractManager, schainID, deployer, "1000000000000000000");
       // execution
 
       const res = await messageProxy.postIncomingMessages(schainID, 0, [message], sign, 0, {from: deployer});
@@ -367,7 +367,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
         .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
-      await rechargeSchainWallet(contractManager, schainID, "1000000000000000000");
+      await rechargeSchainWallet(contractManager, schainID, deployer, "1000000000000000000");
       // execution
       const res = await messageProxy.postIncomingMessages(schainID, 0, [message], sign, 0, {from: deployer});
 
@@ -388,7 +388,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
 
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
-      await rechargeSchainWallet(contractManager, schainID, "1000000000000000000");
+      await rechargeSchainWallet(contractManager, schainID, deployer, "1000000000000000000");
 
       const sign = {
         blsSignature: BlsSignature,
@@ -429,7 +429,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
 
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
-      await rechargeSchainWallet(contractManager, schainID, "1000000000000000000");
+      await rechargeSchainWallet(contractManager, schainID, deployer, "1000000000000000000");
 
       const sign = {
         blsSignature: BlsSignature,
@@ -489,7 +489,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       // add schain to avoid the `Receiver chain is incorrect` error
 
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
-      await rechargeSchainWallet(contractManager, schainID, "1000000000000000000");
+      await rechargeSchainWallet(contractManager, schainID, deployer, "1000000000000000000");
       const chain = await imaLinker
         .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
       // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
@@ -527,7 +527,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
 
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
-      await rechargeSchainWallet(contractManager, schainID, "1000000000000000000");
+      await rechargeSchainWallet(contractManager, schainID, deployer, "1000000000000000000");
       // add schain to avoid the `Unconnected chain` error
       await imaLinker
         .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
@@ -574,7 +574,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
 
       await initializeSchain(contractManager, schainID, user2, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
-      await rechargeSchainWallet(contractManager, schainID, "1000000000000000000");
+      await rechargeSchainWallet(contractManager, schainID, user2, "1000000000000000000");
       // add schain to avoid the `Unconnected chain` error
       await imaLinker
         .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
