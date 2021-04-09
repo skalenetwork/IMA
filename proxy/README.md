@@ -111,8 +111,8 @@ npm run deploy-to-both
 
 Results will be saved to `[RESULTS_FOLDER]/ima_data.json`
 
--  `ARTIFACTS_FOLDER` - path to `build/contracts` folder
--  `RESULTS_FOLDER` - path to the folder where `ima_data.json` will be saved
+-   `ARTIFACTS_FOLDER` - path to `build/contracts` folder
+-   `RESULTS_FOLDER` - path to the folder where `ima_data.json` will be saved
 
 ```bash
 cd proxy
