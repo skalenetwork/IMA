@@ -97,7 +97,7 @@ echo "Base options:"
 echo "$BASE_OPTIONS"
 
 echo "Going to run: node $DIR/main.js --check-registration $BASE_OPTIONS"
-node $DIR/main.js --check-registration $BASE_OPTIONS
+node "$DIR/main.js" --check-registration "$BASE_OPTIONS"
 
 if [ $? -eq 0 ]
 then
@@ -105,9 +105,9 @@ then
 else
     echo "IMA is not registered yet"
     echo "Going to run: node $DIR/main.js --register $BASE_OPTIONS"
-    node $DIR/main.js --register2 $BASE_OPTIONS || true
+    node "$DIR/main.js" --register2 "$BASE_OPTIONS" || true
 fi
 
 echo "Running loop cmd..."
 echo "Going to run: node $DIR/main.js --loop $BASE_OPTIONS"
-node $DIR/main.js --loop $BASE_OPTIONS
+node "$DIR/main.js" --loop "$BASE_OPTIONS"

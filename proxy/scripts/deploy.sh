@@ -21,14 +21,14 @@ if [ "${DIRECTION}" = main ]; then
         echo "Please set NETWORK_FOR_ETHEREUM to .env file"
         exit 1
     fi
-    echo "NETWORK_FOR_ETHEREUM is" ${NETWORK_FOR_ETHEREUM}
+    echo "NETWORK_FOR_ETHEREUM is ${NETWORK_FOR_ETHEREUM}"
     ./node_modules/.bin/truffle deploy --f 1 --to 1 --network "${NETWORK_FOR_ETHEREUM}" || exit $?
 elif [ "${DIRECTION}" = schain ]; then
     if [[ -z "${NETWORK_FOR_SCHAIN}" ]]; then
         echo "Please set NETWORK_FOR_SCHAIN to .env file"
         exit 1
     fi
-    echo "NETWORK_FOR_SCHAIN is" ${NETWORK_FOR_SCHAIN}
+    echo "NETWORK_FOR_SCHAIN is ${NETWORK_FOR_SCHAIN}"
     ./node_modules/.bin/truffle deploy --f 2 --to 2 --network "${NETWORK_FOR_SCHAIN}" || exit $?
 elif [ "${DIRECTION}" = both ]; then
     if [[ -z "${NETWORK_FOR_ETHEREUM}" ]]; then
@@ -41,6 +41,6 @@ elif [ "${DIRECTION}" = both ]; then
     fi
     echo "NETWORK_FOR_ETHEREUM is" ${NETWORK_FOR_ETHEREUM}
     echo "NETWORK_FOR_SCHAIN is" ${NETWORK_FOR_SCHAIN}
-    ./node_modules/.bin/truffle deploy --f 1 --to 1 --network ${NETWORK_FOR_ETHEREUM} || exit $?
-    ./node_modules/.bin/truffle deploy --f 2 --to 2 --network ${NETWORK_FOR_SCHAIN} || exit $?
+    ./node_modules/.bin/truffle deploy --f 1 --to 1 --network "${NETWORK_FOR_ETHEREUM}" || exit $?
+    ./node_modules/.bin/truffle deploy --f 2 --to 2 --network "${NETWORK_FOR_SCHAIN}" || exit $?
 fi

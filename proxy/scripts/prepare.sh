@@ -3,7 +3,7 @@
 export $(cat .env | xargs)
 cd data
 sudo apt-get -y install jq
-git clone -b enhancement/Upgrade-SkaleVerifier https://${GITHUB_TOKEN}\@github.com/skalenetwork/skale-manager.git &&
+git clone -b enhancement/Upgrade-SkaleVerifier "https://${GITHUB_TOKEN}\@github.com/skalenetwork/skale-manager.git" &&
 cd skale-manager &&
 npm install &&
 #PRIVATE_KEY=${PRIVATE_KEY_FOR_ETHEREUM} ENDPOINT=${URL_W3_ETHEREUM} ./node_modules/.bin/truffle migrate --network unique
