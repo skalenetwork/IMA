@@ -942,9 +942,9 @@ function ima_common_init() {
                 process.exit( 126 );
             }
         } else {
-            if( n1 == 0 )
+            if( n1 === 0 )
                 log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC721 JSON is invalid" ) + "\n" );
-            if( n2 == 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
+            if( n2 === 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
                 log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC721 JSON is invalid" ) + "\n" );
             imaState.joErc721_main_net = null;
             imaState.joErc721_s_chain = null;
@@ -1030,9 +1030,9 @@ function ima_common_init() {
                 process.exit( 126 );
             }
         } else {
-            if( n1 == 0 )
+            if( n1 === 0 )
                 log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC20 JSON is invalid" ) + "\n" );
-            if( n2 == 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
+            if( n2 === 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
                 log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC20 JSON is invalid" ) + "\n" );
             imaState.joErc20_main_net = null;
             imaState.joErc20_s_chain = null;
