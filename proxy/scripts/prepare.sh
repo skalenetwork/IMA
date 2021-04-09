@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export $(cat .env | xargs)
+export $(xargs < .env)
 cd data
 sudo apt-get -y install jq
 git clone -b enhancement/Upgrade-SkaleVerifier "https://${GITHUB_TOKEN}\@github.com/skalenetwork/skale-manager.git" &&

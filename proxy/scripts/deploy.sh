@@ -15,7 +15,7 @@ if [[ ! ${DIRECTION} =~ ^(main|schain|both)$ ]]; then
     echo "DIRECTION variable proper values: ( main | schain | both )"
     exit 1
 fi
-export $(cat .env | xargs)
+export $(xargs < .env)
 if [ "${DIRECTION}" = main ]; then
     if [[ -z "${NETWORK_FOR_ETHEREUM}" ]]; then
         echo "Please set NETWORK_FOR_ETHEREUM to .env file"
