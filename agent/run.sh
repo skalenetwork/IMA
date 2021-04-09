@@ -48,15 +48,15 @@ export TIME_GAP=${TIME_GAP:-15}
 export CID_MAIN_NET=${CID_MAIN_NET:--4}
 export CID_SCHAIN=${CID_SCHAIN:--4}
 
-echo $(date) - Starting IMA agent...
-echo Params provided to the run.sh:
-echo MAINNET_PROXY_PATH: $MAINNET_PROXY_PATH
-echo SCHAIN_PROXY_PATH: $SCHAIN_PROXY_PATH
-echo SCHAIN_NAME: $SCHAIN_NAME
-echo SCHAIN_RPC_URL: $SCHAIN_RPC_URL
-echo MAINNET_RPC_URL: $MAINNET_RPC_URL
-echo NODE_NUMBER: $NODE_NUMBER
-echo NODES_COUNT: $NODES_COUNT
+echo "$(date) - Starting IMA agent..."
+echo "Params provided to the run.sh:"
+echo "MAINNET_PROXY_PATH: $MAINNET_PROXY_PATH"
+echo "SCHAIN_PROXY_PATH: $SCHAIN_PROXY_PATH"
+echo "SCHAIN_NAME: $SCHAIN_NAME"
+echo "SCHAIN_RPC_URL: $SCHAIN_RPC_URL"
+echo "MAINNET_RPC_URL: $MAINNET_RPC_URL"
+echo "NODE_NUMBER: $NODE_NUMBER"
+echo "NODES_COUNT: $NODES_COUNT"
 
 BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
     --verbose=$VERBOSE \
@@ -93,10 +93,10 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
     --tm-url-main-net=$TM_URL_MAIN_NET \
     --time-gap=$TIME_GAP"
 
-echo Base options:
-echo $BASE_OPTIONS
+echo "Base options:"
+echo "$BASE_OPTIONS"
 
-echo Going to run: node $DIR/main.js --check-registration $BASE_OPTIONS
+echo "Going to run: node $DIR/main.js --check-registration $BASE_OPTIONS"
 node $DIR/main.js --check-registration $BASE_OPTIONS
 
 if [ $? -eq 0 ]
@@ -104,10 +104,10 @@ then
     echo "IMA is already registered"
 else
     echo "IMA is not registered yet"
-    echo Going to run: node $DIR/main.js --register $BASE_OPTIONS
+    echo "Going to run: node $DIR/main.js --register $BASE_OPTIONS"
     node $DIR/main.js --register2 $BASE_OPTIONS || true
 fi
 
 echo "Running loop cmd..."
-echo Going to run: node $DIR/main.js --loop $BASE_OPTIONS
+echo "Going to run: node $DIR/main.js --loop $BASE_OPTIONS"
 node $DIR/main.js --loop $BASE_OPTIONS
