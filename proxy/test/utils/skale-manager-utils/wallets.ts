@@ -25,5 +25,6 @@ export async function rechargeSchainWallet(
     if ( !schainActive )
         await initializeSchain(contractManager, schainName, owner, 1, 1);
 
-    await walletsInstance.rechargeSchainWallet(web3.utils.soliditySha3(schainName), {value: amountEth /*"1000000000000000000"*/});
+    const schainId = await web3.utils.soliditySha3(schainName);
+    await walletsInstance.rechargeSchainWallet(schainId, {value: amountEth /*"1000000000000000000"*/});
 }
