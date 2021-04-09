@@ -71,7 +71,7 @@ function validateRadix( value, radix ) {
     value = value.trim();
     radix = ( radix == null || radix == undefined )
         ? ( ( value.length > 2 && value[0] == "0" && ( value[1] == "x" || value[1] == "X" ) ) ? 16 : 10 )
-        : parseInt( radix );
+        : parseInt( radix, 10 );
     return radix;
 }
 

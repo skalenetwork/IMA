@@ -199,7 +199,7 @@ async function rpc_call_create( strURL, opts, fn ) {
 function generate_random_integer_in_range( min, max ) {
     min = Math.ceil( min );
     max = Math.floor( max );
-    return parseInt( Math.floor( Math.random() * ( max - min + 1 ) ) + min );
+    return Math.floor( Math.random() * ( max - min + 1 ) ) + min;
 }
 
 function generate_random_rpc_call_id() {

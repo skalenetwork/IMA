@@ -420,7 +420,7 @@ function safeStringifyJSON( jo ) {
             return ( key, value ) => {
                 if( typeof value === "object" && value !== null ) {
                     if( seen.has( value ) )
-                        return;
+                        return undefined;
 
                     seen.add( value );
                 }
