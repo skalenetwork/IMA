@@ -358,6 +358,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         const error = "Not allowed ERC721 Token";
         const amountToCost = "9000000000000000";
         const tokenId = 10;
+        const tokenId2 = 11;
         // set contract TokenManager to avoid `Not allowed` exception on `exitToMainERC20` function:
         await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
         // set contract ERC20ModuleForSchain to avoid `revert` exception on `exitToMainERC20` function:
@@ -370,12 +371,13 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchain.setContract(
             "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
-        await lockAndDataForSchainERC721.addERC721ForSchain("Mainnet", eRC20.address,eRC20OnChain.address, {from: deployer});
+        await lockAndDataForSchainERC721.addERC721ForSchain("Mainnet", eRC20.address, eRC20OnChain.address, {from: deployer});
         // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
         const minterRole = await eRC721OnChain.MINTER_ROLE();
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
+        await eRC721OnChain.mint(deployer, tokenId2, {from: deployer});
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
         await lockAndDataForSchainERC721.addERC721ForSchain("Mainnet", eRC721.address, eRC721OnChain.address, {from: deployer});
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
@@ -383,7 +385,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // execution:
         await tokenManager
-            .exitToMainERC721(eRC721.address, client, tokenId, {from: deployer})
+            .exitToMainERC721(eRC721.address, client, tokenId2, {from: deployer})
             .should.be.eventually.rejectedWith(error);
     });
 
@@ -416,7 +418,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC721OnChain.mint(user, tokenId, {from: deployer});
         // invoke `addExit` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
         await lockAndDataForSchain.sendEth(user, amountEth, {from: deployer});
-        await eRC721OnChain.transferFrom(user, tokenManager.address, tokenId, {from: user});
+        await eRC721OnChain.approve(tokenManager.address, tokenId, {from: user});
 
         // execution:
         await tokenManager.exitToMainERC721(contractThere, to, tokenId, {from: user});
@@ -455,7 +457,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
 
-        await eRC721OnChain.transferFrom(deployer, tokenManager.address, tokenId, {from: deployer});
+        await eRC721OnChain.approve(tokenManager.address, tokenId, {from: deployer});
 
         // execution:
         const res = await tokenManager
@@ -470,11 +472,13 @@ contract("TokenManager", ([deployer, user, client]) => {
         const error = "Not allowed ERC721 Token";
         const amountToCost = "9000000000000000";
         const tokenId = 10;
+        const tokenId2 = 11;
         const contractHere = eRC721OnChain.address;
         const contractThere = eRC721.address;
         const to = user;
         const schainID = randomString(10);
         await lockAndDataForSchain.addSchain(schainID, tokenManager.address, {from: deployer});
+        await messageProxyForSchain.addConnectedChain(schainID, [0,0,0,0], {from: deployer})
         // set contract TokenManager to avoid `Not allowed` exception on `exitToMainERC20` function:
         await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
         // set contract ERC20ModuleForSchain to avoid `revert` exception on `exitToMainERC20` function:
@@ -494,6 +498,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
+        await eRC721OnChain.mint(deployer, tokenId2, {from: deployer});
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
         await lockAndDataForSchainERC721.addERC721ForSchain(schainID, eRC721.address, eRC721OnChain.address, {from: deployer});
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
@@ -501,7 +506,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // execution:
         await tokenManager
-            .transferToSchainERC721(schainID, contractThere, to, tokenId, {from: deployer})
+            .transferToSchainERC721(schainID, contractThere, to, tokenId2, {from: deployer})
             .should.be.eventually.rejectedWith(error);
     });
 
