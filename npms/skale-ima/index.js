@@ -2276,10 +2276,12 @@ async function do_erc721_payment_from_s_chain(
         const contractERC721 = new w3_s_chain.eth.Contract( erc721ABI, erc721Address_s_chain );
         // prepare the smart contract function deposit(string schainID, address to)
         // const depositBoxAddress = jo_deposit_box.options.address;
-        const methodWithArguments_transferFrom = contractERC721.methods.transferFrom(
-            accountForSchain, tokenManagerAddress, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
+        const methodWithArguments_approve = contractERC721.methods.approve(
+            // accountForSchain,
+            tokenManagerAddress,
+            "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
         );
-        const dataTxTransferFrom = methodWithArguments_transferFrom.encodeABI();
+        const dataTxApprove = methodWithArguments_approve.encodeABI();
         let dataTxExitToMainERC721 = null;
         const erc721Address_main_net = joErc721_main_net[strCoinNameErc721_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC721 = jo_token_manager.methods.exitToMainERC721(
@@ -2297,45 +2299,45 @@ async function do_erc721_payment_from_s_chain(
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
         //
-        strActionName = "create ERC721/transferFrom transaction S->M";
+        strActionName = "create ERC721/approve transaction S->M";
         let tcnt = parseInt( await get_web3_transactionCount( 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
-        const estimatedGas_transferFrom = await tc_s_chain.computeGas( methodWithArguments_transferFrom, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
+        const estimatedGas_approve = await tc_s_chain.computeGas( methodWithArguments_approve, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transferFrom ) + "\n" );
+            log.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         //
-        const isIgnore_transferFrom = false;
-        const strDRC_transferFrom = "erc721_payment_from_s_chain, transferFrom";
-        await dry_run_call( w3_s_chain, methodWithArguments_transferFrom, joAccountSrc, strDRC_transferFrom,isIgnore_transferFrom, gasPrice, estimatedGas_transferFrom, "0" );
+        const isIgnore_approve = false;
+        const strDRC_approve = "erc721_payment_from_s_chain, approve";
+        await dry_run_call( w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
         //
-        const rawTxTransferFrom = {
+        const rawTxApprove = {
             chainId: cid_s_chain,
             from: accountForSchain,
             nonce: "0x" + tcnt.toString( 16 ),
-            data: dataTxTransferFrom,
+            data: dataTxApprove,
             to: erc721Address_s_chain,
             gasPrice: gasPrice,
-            gas: estimatedGas_transferFrom
+            gas: estimatedGas_approve
         };
-        const txTransferFrom = compose_tx_instance( strLogPrefix, rawTxTransferFrom );
-        strActionName = "sign ERC721/transferFrom transaction S->M";
-        const joTransferFromSR = await safe_sign_transaction_with_account( w3_s_chain, txTransferFrom, rawTxTransferFrom, joAccountSrc );
-        let joReceiptTransferFrom = null;
-        if( joTransferFromSR.joACI.isAutoSend )
-            joReceiptTransferFrom = await get_web3_transactionReceipt( 10, w3_s_chain, joTransferFromSR.txHashSent );
+        const txApprove = compose_tx_instance( strLogPrefix, rawTxApprove );
+        strActionName = "sign ERC721/approve transaction S->M";
+        const joApproveSR = await safe_sign_transaction_with_account( w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
+        let joReceiptApprove = null;
+        if( joApproveSR.joACI.isAutoSend )
+            joReceiptApprove = await get_web3_transactionReceipt( 10, w3_s_chain, joApproveSR.txHashSent );
         else {
-            const serializedTxTransferFrom = txTransferFrom.serialize();
-            // let joReceiptTransferFrom = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxTransferFrom.toString( "hex" ) );
-            joReceiptTransferFrom = await safe_send_signed_transaction( w3_s_chain, serializedTxTransferFrom, strActionName, strLogPrefix );
+            const serializedTxApprove = txApprove.serialize();
+            // let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+            joReceiptApprove = await safe_send_signed_transaction( w3_s_chain, serializedTxApprove, strActionName, strLogPrefix );
         }
         if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "Result receipt for TransferFrom: " ) + cc.j( joReceiptTransferFrom ) + "\n" );
-        if( joReceiptTransferFrom && typeof joReceiptTransferFrom == "object" && "gasUsed" in joReceiptTransferFrom ) {
+            log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_s_chain/transfer-from",
-                "receipt": joReceiptTransferFrom
+                "receipt": joReceiptApprove
             } );
         }
         //
