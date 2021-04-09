@@ -1687,8 +1687,10 @@ async function do_erc721_payment_from_main_net(
         // prepare the smart contract function deposit(string schainID, address to)
         const depositBoxAddress = jo_deposit_box_erc721.options.address;
         const accountForSchain = joAccountDst.address( w3_s_chain );
-        const methodWithArguments_approve = contractERC721.methods.transferFrom( // same as approve in 20
-            joAccountSrc.address( w3_main_net ), depositBoxAddress, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
+        const methodWithArguments_approve = contractERC721.methods.approve( // same as approve in 20
+            // joAccountSrc.address( w3_main_net ),
+            depositBoxAddress,
+            "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
         );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
         let dataTxDeposit = null;
