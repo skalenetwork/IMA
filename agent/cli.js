@@ -84,7 +84,7 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
     } );
     let retVal = true;
     value = value.toString();
-    if( value.length == 0 ) {
+    if( value.length === 0 ) {
         retVal = false;
         console.log( cc.fatal( "CRITICAL ERROR:" ) +
             cc.error( " missing value for " ) + fnNameColorizer( name )
@@ -868,11 +868,11 @@ function ima_common_init() {
     // message_proxy_mainnet_address --> message_proxy_mainnet_abi
     // message_proxy_chain_address   --> message_proxy_chain_abi
 
-    if( imaState.strURL_main_net.length == 0 ) {
+    if( imaState.strURL_main_net.length === 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Missing " ) + cc.warning( "Main-net" ) + cc.error( " URL in command line arguments" ) + "\n" );
         process.exit( 126 );
     }
-    if( imaState.strURL_s_chain.length == 0 ) {
+    if( imaState.strURL_s_chain.length === 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Missing " ) + cc.warning( "S-Chain" ) + cc.error( " URL in command line arguments" ) + "\n" );
         process.exit( 126 );
     }
@@ -931,9 +931,9 @@ function ima_common_init() {
                         log.write( cc.info( "Loaded S-Chain  ERC721 ABI " ) + cc.attention( imaState.strCoinNameErc721_s_chain ) + "\n" );
                 }
             } else {
-                if( n1 == 0 )
+                if( n1 === 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
-                if( n2 == 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
+                if( n2 === 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
                 imaState.joErc721_main_net = null;
                 imaState.joErc721_s_chain = null;
@@ -977,8 +977,8 @@ function ima_common_init() {
             }
         }
     }
-    if( n1 != 0 && n2 == 0 ) {
-        if( imaState.strAddrErc721_explicit.length == 0 )
+    if( n1 !== 0 && n2 === 0 ) {
+        if( imaState.strAddrErc721_explicit.length === 0 )
             log.write( cc.fatal( "IMPORTANT NOTICE:" ) + " " + cc.error( "Both S-Chain ERC721 JSON and explicit ERC721 address are not specified" ) + "\n" );
         else {
             log.write( cc.attention( "IMPORTANT NOTICE:" ) + " " + cc.note( "S-Chain ERC721 ABI will be auto-generated" ) + "\n" );
@@ -1019,9 +1019,9 @@ function ima_common_init() {
                         log.write( cc.info( "Loaded S-Chain  ERC20 ABI " ) + cc.attention( imaState.strCoinNameErc20_s_chain ) + "\n" );
                 }
             } else {
-                if( n1 == 0 )
+                if( n1 === 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
-                if( n2 == 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
+                if( n2 === 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
                 imaState.joErc20_main_net = null;
                 imaState.joErc20_s_chain = null;
@@ -1065,8 +1065,8 @@ function ima_common_init() {
             }
         }
     }
-    if( n1 != 0 && n2 == 0 ) {
-        if( imaState.strAddrErc20_explicit.length == 0 )
+    if( n1 !== 0 && n2 === 0 ) {
+        if( imaState.strAddrErc20_explicit.length === 0 )
             log.write( cc.fatal( "IMPORTANT NOTICE:" ) + " " + cc.error( "Both S-Chain ERC20 JSON and explicit ERC20 address are not specified" ) + "\n" );
         else {
             log.write( cc.attention( "IMPORTANT NOTICE:" ) + " " + cc.note( "S-Chain ERC20 ABI will be auto-generated" ) + "\n" );

@@ -152,7 +152,7 @@ async function do_call( joCall, joIn, fn ) {
             // console.log( "--- --- --- err is", err );
             // console.log( "--- --- --- response is", response );
             // console.log( "--- --- --- body is", body );
-            if( response && response.statusCode && response.statusCode != 200 )
+            if( response && response.statusCode && response.statusCode !== 200 )
                 log.write( cc.error( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" );
             if( err ) {
                 log.write( cc.u( joCall.url ) + cc.error( " REST error " ) + cc.warning( err ) + "\n" );
@@ -207,7 +207,7 @@ function generate_random_rpc_call_id() {
 }
 
 function enrich_top_level_json_fields( jo ) {
-    if( ( !( "jsonrpc" in jo ) ) || ( typeof jo.jsonrpc !== "string" ) || jo.jsonrpc.length == 0 )
+    if( ( !( "jsonrpc" in jo ) ) || ( typeof jo.jsonrpc !== "string" ) || jo.jsonrpc.length === 0 )
         jo.jsonrpc = "2.0";
     if( ( !( "id" in jo ) ) || ( typeof jo.id !== "number" ) || jo.id <= 0 )
         jo.id = generate_random_rpc_call_id();

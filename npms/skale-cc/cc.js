@@ -162,7 +162,7 @@ function safeURL( arg ) {
         if( !objURL.hostname )
             return null;
 
-        if( objURL.hostname.length == 0 )
+        if( objURL.hostname.length === 0 )
             return null;
 
         objURL.strStrippedStringComma = null;
@@ -175,7 +175,7 @@ function safeURL( arg ) {
 function to_ipv4_arr( s ) {
     if( /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test( s ) ) {
         const arr = s.split( "." );
-        if( ( !arr ) || arr.length != 4 )
+        if( ( !arr ) || arr.length !== 4 )
             return null;
 
         return arr;
