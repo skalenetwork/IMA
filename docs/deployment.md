@@ -7,16 +7,16 @@
 Deploy process includes:
 
 1)  Prepare prerequisites
-1)  Deploy contracts to the `Mainnet`
-1)  Deploy contracts to the `SKALE Chain`
-1)  Initialize IMA Agent application
-1)  Run IMA Agent application in message processing loop mode
+2)  Deploy contracts to the `Mainnet`
+3)  Deploy contracts to the `SKALE Chain`
+4)  Initialize IMA Agent application
+5)  Run IMA Agent application in message processing loop mode
 
 ## Prerequisites
 
 1)  `Mainnet` Ethereum network with known HTTP(S) URL of **Web3** interface.
-1)  `SKALE Chain` network with known HTTP(S) URL of **Web3** interface.
-1)  Preliminary deployed **Skale Manager** software with known address of **ContractManager** smart contract saved into the `proxy/data/skaleManagerComponents.json` file like shown in the following example:
+2)  `SKALE Chain` network with known HTTP(S) URL of **Web3** interface.
+3)  Preliminary deployed **Skale Manager** software with known address of **ContractManager** smart contract saved into the `proxy/data/skaleManagerComponents.json` file like shown in the following example:
 
     ```json
     {
@@ -24,8 +24,8 @@ Deploy process includes:
     }
     ```
 
-1)  `libBLS` command utilities
-1)  Truffle version **5.0.12** is recommended to install (notice, the _-g_ option of _npm_ may require _sudo_):
+4)  `libBLS` command utilities
+5)  Truffle version **5.0.12** is recommended to install (notice, the _-g_ option of _npm_ may require _sudo_):
 
     ```shell
     sudo npm uninstall -g truffle
@@ -33,7 +33,7 @@ Deploy process includes:
     truffle --version
     ```
 
-1)  Node modules should be initialized in the following folders:
+6)  Node modules should be initialized in the following folders:
 
 ```shell
 export IMA_ROOT=.....

@@ -7,7 +7,7 @@ These helper scripts will deploy `IMA` on a SKALE chain.
 ## Usage
 
 1)  Place credentials files for each SKALE chain into the `creds` directory
-1)  Run `python deployer.py`
+2)  Run `python deployer.py`
 
 ## Requirements
 
