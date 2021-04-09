@@ -166,7 +166,7 @@ async function get_web3_blockNumber( attempts, w3 ) {
     const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
     let nLatestBlockNumber = "";
     try {
-        nLatestBlockNumber = await w3.eth.blockNumber;
+        nLatestBlockNumber = await w3.eth.getBlockNumber();
     } catch ( e ) {}
     let attemptIndex = 2;
     while( nLatestBlockNumber === "" && attemptIndex <= allAttempts ) {
@@ -175,7 +175,7 @@ async function get_web3_blockNumber( attempts, w3 ) {
             cc.info( ", previous result is: " ) + cc.info( nLatestBlockNumber ) + "\n" );
         await sleep( 10000 );
         try {
-            nLatestBlockNumber = await w3.eth.blockNumber;
+            nLatestBlockNumber = await w3.eth.getBlockNumber();
         } catch ( e ) {}
         attemptIndex++;
     }
@@ -229,7 +229,7 @@ async function get_web3_transactionCount( attempts, w3, address, param ) {
             cc.warning( ", previous result is: " ) + cc.info( txc ) + "\n" );
         await sleep( 10000 );
         try {
-            txc = await w3.eth.blockNumber;
+            txc = await w3.eth.getBlockNumber();
         } catch ( e ) {}
         attemptIndex++;
     }
@@ -269,7 +269,7 @@ async function get_web3_transactionReceipt( attempts, w3, txHash ) {
 //     try {
 //         if( strAction === "BlockNumber" ) {
 //             console.log("\n First type of call\n");
-//             result = await web3Obj.eth.blockNumber;
+//             result = await web3Obj.eth.getBlockNumber();
 //         } else if( params.length == 1 && ( params[0] === undefined || params[0] === null ) ) {
 //             console.log("\n Second type of call\n");
 //             result = await eth_call();
@@ -286,7 +286,7 @@ async function get_web3_transactionReceipt( attempts, w3, txHash ) {
 //         try {
 //             if( strAction === "BlockNumber" ) {
 //                 console.log("\n First type of call\n");
-//                 result = await web3Obj.eth.blockNumber;
+//                 result = await web3Obj.eth.getBlockNumber();
 //             } else if( params.length == 1 && ( params[0] === undefined || params[0] === null ) ) {
 //                 console.log("\n Second type of call\n");
 //                 result = await eth_call();
@@ -346,7 +346,8 @@ function compose_tx_instance( strLogPrefix, rawTx ) {
         log.write( cc.attention( "TRANSACTION COMPOSER" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3mod.version ) + "\n" );
     strLogPrefix = strLogPrefix || "";
     rawTx = JSON.parse( JSON.stringify( rawTx ) ); // clone
-    let joOpts = null;
+    const joOpts = null;
+    /*
     if( "chainId" in rawTx && typeof rawTx.chainId == "number" ) {
         switch ( rawTx.chainId ) {
         case 1:
@@ -376,6 +377,7 @@ function compose_tx_instance( strLogPrefix, rawTx ) {
             break;
         } // switch( rawTx.chainId )
     }
+*/
     // if( rawTx.chainId && Number(rawTx.chainId) > 1 ) {
     //     rawTx.nonce += 1048576; // see https://ethereum.stackexchange.com/questions/12810/need-help-signing-a-raw-transaction-with-ethereumjs-tx
     //     rawTx.nonce = w3mod.utils.toHex( rawTx.nonce );
@@ -2097,7 +2099,6 @@ async function do_erc20_payment_from_s_chain(
             tokenManagerAddress, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
-        let dataExitToMainERC20 = null;
         const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC20 = jo_token_manager.methods.exitToMainERC20(
             erc20Address_main_net,
@@ -2105,7 +2106,7 @@ async function do_erc20_payment_from_s_chain(
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
         );
-        dataExitToMainERC20 = methodWithArguments_rawExitToMainERC20.encodeABI();
+        const dataExitToMainERC20 = methodWithArguments_rawExitToMainERC20.encodeABI();
         //
         // prepare for transactions
         //
