@@ -38,7 +38,7 @@ task("accounts", "Prints the list of accounts", async (_, { web3 }) => {
   }
 });
 
-task("erc20", "Deploys ERC20 Token sample to chain")
+task("erc20", "Deploy ERC20 Token sample to chain")
     .addParam("name", "ERC20 Token name")
     .addParam("symbol", "ERC20 Token symbol")
     .setAction(async (taskArgs: any, { ethers }) => {
@@ -54,7 +54,7 @@ task("erc20", "Deploys ERC20 Token sample to chain")
     }
 );
 
-task("erc721", "Deploys ERC721 Token sample to chain")
+task("erc721", "Deploy ERC721 Token sample to chain")
     .addParam("name", "ERC721 Token name")
     .addParam("symbol", "ERC721 Token symbol")
     .setAction(async (taskArgs: any, { ethers }) => {
@@ -67,6 +67,37 @@ task("erc721", "Deploys ERC721 Token sample to chain")
         jsonObj.erc721_address = erc721.address;
         jsonObj.erc721_abi = erc721.interface;
         await fs.writeFile("data/" + contractName + "-" + taskArgs.name + "-" + taskArgs.symbol + ".json", JSON.stringify(jsonObj, null, 4));
+    }
+);
+
+task("mint-erc20", "Mint ERC20 Token")
+    .addParam("tokenAddress", "Address of ERC20 token")
+    .addParam("receiverAddress", "Address of receiver")
+    .addParam("amount", "Amount of tokens")
+    .setAction(async (taskArgs: any, { ethers }) => {
+        const contractName = "ERC20Example";
+        const erc20Factory = await ethers.getContractFactory(contractName);
+        const erc20 = erc20Factory.attach(taskArgs.tokenAddress);
+        const amount = web3.utils.toBN(taskArgs.amount).mul(web3.utils.toBN(10 ** 18)).toString()
+        const res = await(await erc20.mint(taskArgs.receiverAddress, amount)).wait();
+        console.log("ERC20 Token at address:", taskArgs.tokenAddress);
+        console.log("Minted tokens amount:", taskArgs.amount, "to address", taskArgs.receiverAddress);
+        console.log("Gas spent:", res.gasUsed.toNumber());
+    }
+);
+
+task("mint-erc721", "Mint ERC721 Token")
+    .addParam("tokenAddress", "Address of ERC721 token")
+    .addParam("receiverAddress", "Address of receiver")
+    .addParam("tokenId", "Token ID of ERC721 Token")
+    .setAction(async (taskArgs: any, { ethers }) => {
+        const contractName = "ERC721Example";
+        const erc721Factory = await ethers.getContractFactory(contractName);
+        const erc721 = erc721Factory.attach(taskArgs.tokenAddress);
+        const res = await(await erc721.mint(taskArgs.receiverAddress, taskArgs.tokenId)).wait();
+        console.log("ERC721 Token at address:", taskArgs.tokenAddress);
+        console.log("Minted tokenId:", taskArgs.tokenId, "to address", taskArgs.receiverAddress);
+        console.log("Gas spent:", res.gasUsed.toNumber());
     }
 );
 
