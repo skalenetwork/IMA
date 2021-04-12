@@ -23,7 +23,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "./TestFieldOperations.sol";
+import "../schain/bls/FieldOperations.sol";
 
 
 contract KeyStorage {

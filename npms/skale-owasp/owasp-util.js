@@ -71,7 +71,7 @@ function validateRadix( value, radix ) {
     value = value.trim();
     radix = ( radix == null || radix == undefined )
         ? ( ( value.length > 2 && value[0] == "0" && ( value[1] == "x" || value[1] == "X" ) ) ? 16 : 10 )
-        : parseInt( radix );
+        : parseInt( radix, 10 );
     return radix;
 }
 
@@ -83,7 +83,7 @@ function validateInteger( value, radix ) {
             return false;
         radix = validateRadix( value, radix );
         if( ( !isNaN( value ) ) &&
-            ( parseInt( Number( value ), radix ) == value || radix != 10 ) &&
+            ( parseInt( Number( value ), radix ) == value || radix !== 10 ) &&
             ( !isNaN( parseInt( value, radix ) ) )
         )
             return true;
@@ -154,7 +154,7 @@ function toURL( s ) {
         const u = new URL( s );
         if( !u.hostname )
             return null;
-        if( u.hostname.length == 0 )
+        if( u.hostname.length === 0 )
             return null;
         u.strStrippedStringComma = null;
         return u;
@@ -241,7 +241,7 @@ function toEthPrivateKey( value, defValue ) {
 }
 
 function verifyArgumentWithNonEmptyValue( joArg ) {
-    if( ( !joArg.value ) || ( typeof joArg.value === "string" && joArg.value.length == 0 ) ) {
+    if( ( !joArg.value ) || ( typeof joArg.value === "string" && joArg.value.length === 0 ) ) {
         console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
         process.exit( 126 );
     }

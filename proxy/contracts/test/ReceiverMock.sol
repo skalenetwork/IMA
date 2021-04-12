@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   ISchainsInternal.sol - Interface of SchainsInternal from SKALE-manager
- *   Copyright (C) 2019-Present SKALE Labs
- *   @author Artem Payvin
+ *   ReceiverMock.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2021-Present SKALE Labs
+ *   @author Dmytro Stebaiev
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published
@@ -19,9 +19,23 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
 
-interface ISchainsInternal {
-    function isNodeAddressesInGroup(bytes32 schainId, address sender) external view returns (bool);
-    function isOwnerAddress(address from, bytes32 schainId) external view returns (bool);
+pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
+
+import "../schain/MessageProxyForSchain.sol";
+
+
+contract ReceiverMock is IContractReceiverForSchain {
+    function postMessage(
+        string calldata,
+        address,
+        bytes calldata
+    )
+        external
+        override
+        returns (bool) 
+    {
+        return true;
+    }
 }

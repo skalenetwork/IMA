@@ -542,7 +542,7 @@ imaCLI.parse( {
             "name": "Brows S-Chain network",
             "fn": async function() {
                 const strLogPrefix = cc.info( "S Browse:" ) + " ";
-                if( imaState.strURL_s_chain.length == 0 ) {
+                if( imaState.strURL_s_chain.length === 0 ) {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing S-Chain URL, please specify " ) + cc.info( "url-s-chain" ) );
                     process.exit( 154 );
                 }

@@ -24,14 +24,13 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721MetadataUpgradeable.sol";
 
+import "../interfaces/IDepositBox.sol";
+import "../Messages.sol";
+
 import "./IMAConnected.sol";
-import "./Messages.sol";
-import "./interfaces/IDepositBox.sol";
 
 
 // This contract runs on the main net and accepts deposits
-
-
 contract DepositBoxERC721 is IMAConnected, IDepositBox {
 
     // uint256 public gasConsumption;

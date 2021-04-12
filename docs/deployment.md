@@ -6,17 +6,19 @@
 
 Deploy process includes:
 
-1) Prepare prerequisites
-2) Deploy contracts to the `Mainnet`
-3) Deploy contracts to the `SKALE Chain`
-4) Initialize IMA Agent application
-5) Run IMA Agent application in message processing loop mode
+1)  Prepare prerequisites
+2)  Deploy contracts to the `Mainnet`
+3)  Deploy contracts to the `SKALE Chain`
+4)  Initialize IMA Agent application
+5)  Run IMA Agent application in message processing loop mode
 
 ## Prerequisites
 
-1) `Mainnet` Ethereum network with known HTTP(S) URL of **Web3** interface.
-2) `SKALE Chain` network with known HTTP(S) URL of **Web3** interface.
-3) Preliminary deployed **Skale Manager** software with known address of **ContractManager** smart contract saved into the `proxy/data/skaleManagerComponents.json` file like shown in the following example:
+1)  `Mainnet` Ethereum network with known HTTP(S) URL of **Web3** interface.
+
+2)  `SKALE Chain` network with known HTTP(S) URL of **Web3** interface.
+
+3)  Preliminary deployed **Skale Manager** software with known address of **ContractManager** smart contract saved into the `proxy/data/skaleManagerComponents.json` file like shown in the following example:
 
     ```json
     {
@@ -24,8 +26,9 @@ Deploy process includes:
     }
     ```
 
-4) `libBLS` command utilities
-5) Truffle version **5.0.12** is recommended to install (notice, the _-g_ option of _npm_ may require _sudo_):
+4)  `libBLS` command utilities
+
+5)  Truffle version **5.0.12** is recommended to install (notice, the _-g_ option of _npm_ may require _sudo_):
 
     ```shell
     sudo npm uninstall -g truffle
@@ -33,15 +36,14 @@ Deploy process includes:
     truffle --version
     ```
 
-6) Node modules should be initialized in the following folders:
-
-```shell
-export IMA_ROOT=.....
-cd $IMA_ROOT/proxy; npm install
-cd $IMA_ROOT/npms/skale-owasp; npm install
-cd $IMA_ROOT/npms/skale-ima; npm install
-cd $IMA_ROOT/agent; npm install
-```
+6)  Node modules should be initialized in the following folders:
+    ```shell
+    export IMA_ROOT=.....
+    cd $IMA_ROOT/proxy; npm install
+    cd $IMA_ROOT/npms/skale-owasp; npm install
+    cd $IMA_ROOT/npms/skale-ima; npm install
+    cd $IMA_ROOT/agent; npm install
+    ```
 
 ## Smart Contracts Installation
 
@@ -469,8 +471,8 @@ The **--hash-g1** command line parameter must be used to specify path to the **h
 
 Message signing will work only on `SKALE Chain` where each **skaled** node configured properly and able to:
 
-- provide browse information for entire `SKALE Chain` network
-- provide **IMA** signing APIs and parameters
+-   provide browse information for entire `SKALE Chain` network
+-   provide **IMA** signing APIs and parameters
 
 Here is example of correct **config.json** file for **skaled** node:
 
