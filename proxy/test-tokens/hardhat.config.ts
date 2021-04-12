@@ -101,6 +101,36 @@ task("mint-erc721", "Mint ERC721 Token")
     }
 );
 
+task("add-minter-erc20", "Add minter to ERC20 Token")
+    .addParam("tokenAddress", "Address of ERC20 token")
+    .addParam("address", "Minter Address of ERC20 token")
+    .setAction(async (taskArgs: any, { ethers }) => {
+        const contractName = "ERC20Example";
+        const erc20Factory = await ethers.getContractFactory(contractName);
+        const erc20 = erc20Factory.attach(taskArgs.tokenAddress);
+        const minterRole = await erc20.MINTER_ROLE();
+        const res = await(await erc20.grantRole(minterRole, taskArgs.address)).wait();
+        console.log("ERC20 Token at address:", taskArgs.tokenAddress);
+        console.log("Minter address:", taskArgs.address);
+        console.log("Gas spent:", res.gasUsed.toNumber());
+    }
+);
+
+task("add-minter-erc721", "Add minter to ERC721 Token")
+    .addParam("tokenAddress", "Address of ERC721 token")
+    .addParam("address", "Minter Address of ERC721 token")
+    .setAction(async (taskArgs: any, { ethers }) => {
+        const contractName = "ERC721Example";
+        const erc721Factory = await ethers.getContractFactory(contractName);
+        const erc721 = erc721Factory.attach(taskArgs.tokenAddress);
+        const minterRole = await erc721.MINTER_ROLE();
+        const res = await(await erc721.grantRole(minterRole, taskArgs.address)).wait();
+        console.log("ERC721 Token at address:", taskArgs.tokenAddress);
+        console.log("Minter address:", taskArgs.address);
+        console.log("Gas spent:", res.gasUsed.toNumber());
+    }
+);
+
 function getCustomUrl(url: string | undefined) {
   if (url) {
     return url;
