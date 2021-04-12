@@ -66,8 +66,8 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
         address tokenManagerAddress = tokenManagerERC721Addresses[schainHash];
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(
-            IERC721Upgradeable(contractOnMainnet).ownerOf(tokenId) == address(this),
-            "Did not transfer ERC721 token"
+            IERC721Upgradeable(contractOnMainnet).getApproved(tokenId) == address(this),
+            "DepositBox was not approved for ERC721 token"
         );
         bytes memory data = _receiveERC721(
             schainID,
@@ -75,6 +75,7 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
             to,
             tokenId
         );
+        IERC721Upgradeable(contractOnMainnet).transferFrom(msg.sender, address(this), tokenId);
         messageProxy.postOutgoingMessage(
             schainHash,
             tokenManagerAddress,

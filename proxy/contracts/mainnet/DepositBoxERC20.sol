@@ -70,6 +70,10 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         address tokenManagerAddress = tokenManagerERC20Addresses[schainHash];
         require(tokenManagerAddress != address(0), "Unconnected chain");
+        require(
+            IERC20Metadata(contractOnMainnet).allowance(msg.sender, address(this)) >= amount,
+            "DepositBox was not approved for ERC20 token"
+        );
         bytes memory data = _receiveERC20(
             schainID,
             contractOnMainnet,

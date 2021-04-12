@@ -1,5 +1,6 @@
 import { ContractManagerInstance } from "../../../types/truffle-contracts";
 import { WalletsContract, WalletsInstance } from "../../../types/truffle-contracts";
+import { initializeSchain, isSchainActive } from "./schainsInternal";
 
 const wallets: WalletsContract = artifacts.require("./Wallets");
 const nameWallets = "Wallets";
@@ -7,6 +8,7 @@ const nameWallets = "Wallets";
 export async function rechargeSchainWallet(
     contractManager: ContractManagerInstance,
     schainName: string,
+    owner: string,
     amountEth: string
 ) {
     let walletsInstance: WalletsInstance;
@@ -19,5 +21,10 @@ export async function rechargeSchainWallet(
         walletsInstance = await wallets.at(await contractManager.getContract(nameWallets));
     }
 
-    await walletsInstance.rechargeSchainWallet(web3.utils.soliditySha3(schainName), {value: amountEth /*"1000000000000000000"*/});
+    const schainActive = await isSchainActive(contractManager, schainName);
+    if ( !schainActive )
+        await initializeSchain(contractManager, schainName, owner, 1, 1);
+
+    const schainId = await web3.utils.soliditySha3(schainName);
+    await walletsInstance.rechargeSchainWallet(schainId, {value: amountEth /*"1000000000000000000"*/});
 }

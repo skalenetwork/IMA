@@ -228,8 +228,8 @@ contract TokenManager is PermissionsForSchain {
         address erc721Module = LockAndDataForSchain(getLockAndDataAddress()).getErc721Module();
         address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC721)
             .getERC721OnSchain("Mainnet", contractOnMainnet);
-        require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721(contractOnSchain).transferFrom(address(this), lockAndDataERC721, tokenId);
+        require(IERC721(contractOnSchain).getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
+        IERC721(contractOnSchain).transferFrom(msg.sender, lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         // require(amountOfEth >= TX_FEE, "Not enough funds to exit");
         // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
@@ -261,8 +261,8 @@ contract TokenManager is PermissionsForSchain {
         address erc721Module = LockAndDataForSchain(getLockAndDataAddress()).getErc721Module();
         address contractOnSchain = ILockAndDataERCOnSchain(lockAndDataERC721)
             .getERC721OnSchain(schainID, contractOnMainnet);
-        require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721(contractOnSchain).transferFrom(address(this), lockAndDataERC721, tokenId);
+        require(IERC721(contractOnSchain).getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
+        IERC721(contractOnSchain).transferFrom(msg.sender, lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
         bytes memory data = ERC721ModuleForSchain(erc721Module).receiveERC721(
             schainID,
