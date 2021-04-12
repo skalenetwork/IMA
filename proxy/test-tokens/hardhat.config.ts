@@ -4,6 +4,7 @@ import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-ethers";
 import * as dotenv from "dotenv"
 import { utils, Wallet } from "ethers";
+// import { ERC20Example, ERC721Example } from "./typechain";
 import { HardhatNetworkAccountUserConfig } from "hardhat/types/config";
 import { promises as fs } from "fs";
 
@@ -36,6 +37,30 @@ task("accounts", "Prints the list of accounts", async (_, { web3 }) => {
     console.log(account);
   }
 });
+
+task("erc20", "Deploys ERC20 Token sample to chain")
+    .addParam("name", "ERC20 Token name")
+    .addParam("symbol", "ERC20 Token symbol")
+    .setAction(async (taskArgs: any, { ethers }) => {
+        if (!process.env.URL_W3_ETHEREUM) {
+            console.log("No URL_W3_ETHEREUM found in .env file");
+            return;
+        }
+        if(!process.env.PRIVATE_KEY_FOR_ETHEREUM) {
+            console.log("No PRIVATE_KEY_FOR_ETHEREUM found in .env file");
+            return;
+        }
+        const contractName = "ERC20Example";
+        const erc20Factory = await ethers.getContractFactory(contractName);
+        const erc20 = await erc20Factory.deploy(taskArgs.name, taskArgs.symbol);
+        console.log("ERC20 Token with name", taskArgs.name, "and symbol", taskArgs.symbol, "was deployed");
+        console.log("Address:", erc20.address);
+        const jsonObj: {[str: string]: any} = {};
+        jsonObj["erc20_address"] = erc20.address;
+        jsonObj["erc20_abi"] = erc20.interface;
+        await fs.writeFile("data/" + contractName + "-" + taskArgs.name + "-" + taskArgs.symbol + ".json", JSON.stringify(jsonObj, null, 4));
+    }
+);
 
 function getCustomUrl(url: string | undefined) {
   if (url) {
@@ -79,10 +104,15 @@ const config: HardhatUserConfig = {
     hardhat: {
       blockGasLimit: 12000000
     },
-    custom: {
-      url: getCustomUrl(process.env.ENDPOINT),
-      accounts: getCustomPrivateKey(process.env.PRIVATE_KEY),
-      gasPrice: getGasPrice(process.env.GASPRICE)
+    mainnet: {
+        url: getCustomUrl(process.env.URL_W3_ETHEREUM),
+        accounts: getCustomPrivateKey(process.env.PRIVATE_KEY_FOR_ETHEREUM),
+        gasPrice: getGasPrice(process.env.GASPRICE)
+    },
+    schain: {
+        url: getCustomUrl(process.env.URL_W3_S_CHAiN),
+        accounts: getCustomPrivateKey(process.env.PRIVATE_KEY_FOR_SCHAIN),
+        gasPrice: getGasPrice(process.env.GASPRICE)
     }
   },
   etherscan: {
