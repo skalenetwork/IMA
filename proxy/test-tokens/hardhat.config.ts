@@ -42,22 +42,30 @@ task("erc20", "Deploys ERC20 Token sample to chain")
     .addParam("name", "ERC20 Token name")
     .addParam("symbol", "ERC20 Token symbol")
     .setAction(async (taskArgs: any, { ethers }) => {
-        if (!process.env.URL_W3_ETHEREUM) {
-            console.log("No URL_W3_ETHEREUM found in .env file");
-            return;
-        }
-        if(!process.env.PRIVATE_KEY_FOR_ETHEREUM) {
-            console.log("No PRIVATE_KEY_FOR_ETHEREUM found in .env file");
-            return;
-        }
         const contractName = "ERC20Example";
         const erc20Factory = await ethers.getContractFactory(contractName);
         const erc20 = await erc20Factory.deploy(taskArgs.name, taskArgs.symbol);
         console.log("ERC20 Token with name", taskArgs.name, "and symbol", taskArgs.symbol, "was deployed");
         console.log("Address:", erc20.address);
         const jsonObj: {[str: string]: any} = {};
-        jsonObj["erc20_address"] = erc20.address;
-        jsonObj["erc20_abi"] = erc20.interface;
+        jsonObj.erc20_address = erc20.address;
+        jsonObj.erc20_abi = erc20.interface;
+        await fs.writeFile("data/" + contractName + "-" + taskArgs.name + "-" + taskArgs.symbol + ".json", JSON.stringify(jsonObj, null, 4));
+    }
+);
+
+task("erc721", "Deploys ERC721 Token sample to chain")
+    .addParam("name", "ERC721 Token name")
+    .addParam("symbol", "ERC721 Token symbol")
+    .setAction(async (taskArgs: any, { ethers }) => {
+        const contractName = "ERC721Example";
+        const erc721Factory = await ethers.getContractFactory(contractName);
+        const erc721 = await erc721Factory.deploy(taskArgs.name, taskArgs.symbol);
+        console.log("ERC721 Token with name", taskArgs.name, "and symbol", taskArgs.symbol, "was deployed");
+        console.log("Address:", erc721.address);
+        const jsonObj: {[str: string]: any} = {};
+        jsonObj.erc721_address = erc721.address;
+        jsonObj.erc721_abi = erc721.interface;
         await fs.writeFile("data/" + contractName + "-" + taskArgs.name + "-" + taskArgs.symbol + ".json", JSON.stringify(jsonObj, null, 4));
     }
 );
