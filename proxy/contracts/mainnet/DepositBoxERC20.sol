@@ -22,16 +22,14 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "./thirdparty/openzeppelin/IERC20Metadata.sol";
+import "../interfaces/IDepositBox.sol";
+import "../thirdparty/openzeppelin/IERC20Metadata.sol";
+import "../Messages.sol";
 
 import "./IMAConnected.sol";
-import "./Messages.sol";
-import "./interfaces/IDepositBox.sol";
 
 
 // This contract runs on the main net and accepts deposits
-
-
 contract DepositBoxERC20 is IMAConnected, IDepositBox {
 
     // uint256 public gasConsumption;

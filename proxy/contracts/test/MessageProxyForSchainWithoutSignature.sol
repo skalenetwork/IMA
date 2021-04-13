@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   IContractManager.sol - Interface of ContractManager Contract
- *   Copyright (C) 2019-Present SKALE Labs
- *   @author Artem Payvin
+ *   MessageProxyForSchain.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2021-Present SKALE Labs
+ *   @author Dmytro Stebaiev
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published
@@ -20,7 +20,25 @@
  */
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
-interface IContractManager {
-    function getContract(string memory name) external view returns(address);
+import "../schain/MessageProxyForSchain.sol";
+
+contract MessageProxyForSchainWithoutSignature is MessageProxyForSchain {
+
+    constructor(string memory newChainID) public MessageProxyForSchain(newChainID)
+    // solhint-disable-next-line no-empty-blocks
+    { }
+
+    function _verifyMessages(
+        Message[] calldata,
+        Signature calldata
+    )
+        internal
+        view
+        override
+        returns (bool)
+    {
+        return true;
+    }
 }

@@ -23,11 +23,13 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@nomiclabs/buidler/console.sol";
 
+import "./bls/SkaleVerifier.sol";
 import "./SkaleFeatures.sol";
 
 
-interface ContractReceiverForSchain {
+interface IContractReceiverForSchain {
     function postMessage(
         string calldata schainID,
         address sender,
@@ -40,7 +42,6 @@ interface ContractReceiverForSchain {
 
 contract MessageProxyForSchain {
     using SafeMath for uint256;
-
 
     /**
      * 16 Agents
@@ -89,6 +90,7 @@ contract MessageProxyForSchain {
     bool public mainnetConnected;
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public ownerAddress;
+    address public skaleFeaturesAddress;
     string private _chainID;
     bool private _isCustomDeploymentMode;
 
@@ -286,15 +288,14 @@ contract MessageProxyForSchain {
         string calldata srcChainID,
         uint256 startingCounter,
         Message[] calldata messages,
-        Signature calldata /* sign */,
+        Signature calldata signature,
         uint256 idxLastToPopNotIncluding
     )
         external
         connectMainnet
     {
-        // TODO: check signature
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(isAuthorizedCaller(srcChainHash, msg.sender), "Not authorized caller");
+        require(_verifyMessages(messages, signature), "Signature is not valid");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
@@ -341,6 +342,10 @@ contract MessageProxyForSchain {
         ownerAddress = newAddressOwner;
     }
 
+    function setSkaleFeaturesAddress(address newSkaleFeaturesAddress) external onlyOwner {
+        skaleFeaturesAddress = newSkaleFeaturesAddress;
+    }
+
     function isAuthorizedCaller(bytes32 , address a) public view returns (bool) {
         if (_authorizedCaller[a] )
             return true;
@@ -367,8 +372,12 @@ contract MessageProxyForSchain {
             isValidMessage = true;
     }
 
-    function getSkaleFeaturesAddress() public pure returns (address) {
-        return 0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2;
+    function getSkaleFeaturesAddress() public view returns (address) {
+        if (skaleFeaturesAddress != address(0)) {
+            return skaleFeaturesAddress;
+        } else {
+            return 0xC033b369416c9Ecd8e4A07AaFA8b06b4107419E2;
+        }
     }
 
     function _callReceiverContract(
@@ -379,7 +388,7 @@ contract MessageProxyForSchain {
         private
         returns (bool)
     {
-        try ContractReceiverForSchain(message.destinationContract).postMessage(
+        try IContractReceiverForSchain(message.destinationContract).postMessage(
             srcChainID,
             message.sender,
             message.data
@@ -444,5 +453,62 @@ contract MessageProxyForSchain {
         }
         if (cntDeleted > 0)
             _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
+    }
+
+    /**
+     * @dev Converts calldata structure to memory structure and checks
+     * whether message BLS signature is valid.
+     * Returns true if signature is valid
+     */
+    function _verifyMessages(
+        Message[] calldata messages,
+        Signature calldata signature
+    )
+        internal
+        view
+        virtual
+        returns (bool)
+    {
+        return SkaleVerifier.verify(
+            Fp2Operations.Fp2Point({
+                a: signature.blsSignature[0],
+                b: signature.blsSignature[1]
+            }),
+            _hashedArray(messages),
+            signature.counter,
+            signature.hashA,
+            signature.hashB,
+            _getBlsCommonPublicKey()
+        );
+    }
+
+    /**
+     * @dev Returns hash of message array.
+     */
+    function _hashedArray(Message[] calldata messages) private pure returns (bytes32) {
+        bytes memory data;
+        for (uint256 i = 0; i < messages.length; i++) {
+            data = abi.encodePacked(
+                data,
+                bytes32(bytes20(messages[i].sender)),
+                bytes32(bytes20(messages[i].destinationContract)),
+                messages[i].data
+            );
+        }
+        return keccak256(data);
+    }
+
+    function _getBlsCommonPublicKey() private view returns (G2Operations.G2Point memory) {
+        SkaleFeatures skaleFeature = SkaleFeatures(getSkaleFeaturesAddress());
+        return G2Operations.G2Point({
+            x: Fp2Operations.Fp2Point({
+                a: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey0"),
+                b: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey1")
+            }),
+            y: Fp2Operations.Fp2Point({
+                a: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey2"),
+                b: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey3")
+            })
+        });
     }
 }

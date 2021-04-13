@@ -37,9 +37,10 @@ import {
     MessageProxyForSchainContract,
     MessageProxyForSchainInstance,
     TokenManagerContract,
-    TokenManagerInstance,
     MessagesTesterContract,
     MessagesTesterInstance,
+    SkaleFeaturesMockInstance,
+    SkaleFeaturesMockContract,
 } from "../types/truffle-contracts";
 
 import { randomString } from "./utils/helper";
@@ -59,11 +60,10 @@ const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
+const SkaleFeaturesMock: SkaleFeaturesMockContract = artifacts.require("./SkaleFeaturesMock");
 
 contract("MessageProxy", ([deployer, user, client, customer]) => {
     let messageProxyForSchain: MessageProxyForSchainInstance;
-    let tokenManager1: TokenManagerInstance;
-    let tokenManager2: TokenManagerInstance;
     let lockAndDataForSchain: LockAndDataForSchainInstance;
 
     let depositBox: DepositBoxEthInstance;
@@ -149,12 +149,12 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             const bytesData = await messages.encodeTransferEthMessage(user, amount);
 
             await messageProxyForMainnet
-            .postOutgoingMessage(web3.utils.soliditySha3(chainID), contractAddress, bytesData, {from: deployer})
-            .should.be.rejectedWith("Destination chain is not initialized");
+                .postOutgoingMessage(web3.utils.soliditySha3(chainID), contractAddress, bytesData, {from: deployer})
+                .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForMainnet.addConnectedChain(chainID, {from: deployer});
             await messageProxyForMainnet
-            .postOutgoingMessage(web3.utils.soliditySha3(chainID), contractAddress, bytesData, {from: deployer});
+                .postOutgoingMessage(web3.utils.soliditySha3(chainID), contractAddress, bytesData, {from: deployer});
             const outgoingMessagesCounter = new BigNumber(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
@@ -398,6 +398,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     });
 
     describe("MessageProxyForSchain for schain", async () => {
+
         beforeEach(async () => {
             messageProxyForSchain = await MessageProxyForSchain.new("MyChain", {from: deployer});
             lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
@@ -455,39 +456,86 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
             await messageProxyForSchain
             .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer})
-            .should.be.rejectedWith("Destination chain is not initialized");
+                .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
             await messageProxyForSchain
-            .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer});
+                .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer});
             const outgoingMessagesCounter = new BigNumber(
                 await messageProxyForSchain.getOutgoingMessagesCounter(chainID));
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
         });
 
-        it("should post incoming messages", async () => {
+        it("should post incoming messages and increase incoming message counter", async () => {
             const chainID = randomString(10);
-            tokenManager1 = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
-            tokenManager2 = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
+
+            // We have hardcoded signature in the test
+            // To be correct it requires the same message
+            // Message contains destination contract address
+            // We deploy a mock to emulate this contract with a new address with 0 nonce
+            // The mock will have the same address
+            // IMPORTANT: if this address does not have 0 nonce the mock address is changed
+            // and signature becomes incorrect
+
+            const testPrivateKey = "0x27e29ffbb26fb7e77da65afc0cea8918655bad55f4d6f8e4b6daaddcf622781a";
+            const testAddress = "0xd2000c8962Ba034be9eAe372B177D405D5bd4970";
+
+            await web3.eth.sendTransaction({
+                from: deployer,
+                value: "500000",
+                to: testAddress
+            });
+
+            const bytecode = artifacts.require("./ReceiverMock").bytecode;
+            const deployTx = {
+                gas: 500000,
+                gasPrice: 1,
+                data: bytecode
+            }
+            const signedDeployTx = await web3.eth.accounts.signTransaction(deployTx, testPrivateKey);
+            const receipt = await web3.eth.sendSignedTransaction(signedDeployTx.rawTransaction);
+            const receiverMockAddress = receipt.contractAddress;
+            assert(
+                receiverMockAddress === "0xb2DD6f3FE1487daF2aC8196Ae8639DDC2763b871",
+                "ReceiverMock address was changed. BLS signature has to be regenerated"
+            );
+
             const startingCounter = 0;
             const message1 = {
-                amount: 3,
                 data: "0x11",
-                destinationContract: tokenManager1.address,
-                sender: deployer,
-                to: client};
+                destinationContract: receiverMockAddress,
+                sender: receiverMockAddress
+            };
             const message2 = {
-                amount: 7,
                 data: "0x22",
-                destinationContract: tokenManager2.address,
-                sender: user,
-                to: customer};
+                destinationContract: receiverMockAddress,
+                sender: receiverMockAddress
+            };
             const outgoingMessages = [message1, message2];
+            // hash = 0xe598d7c6fb46c03a26ab640152e3308ba88cf52ecdd7bd24082baa2f90bac9f0
+
+            const blsCommonPublicKey = {
+                x: {
+                    a: "0x117899a4eef45b19c0c3e7f9be0bc70e7e576452704c5cc85ed772cb1a61571f",
+                    b: "0x2e4359ec9edb496b87a8ef1b44d50b30ed734a2cc991d109be75e62fff2e91f2"
+                },
+                y: {
+                    a: "0x13d4c965ff05891a8e50b11690a2942ce6be8849af6a798b8e4fb464c33ee4f6",
+                    b: "0x256f39ba1d0ae9d402321f6a4f8c46dac3e8bae3d83b23b85262203a400d178e"
+                }
+            }
+            const skaleFeatures = await SkaleFeaturesMock.new();
+            await skaleFeatures.setBlsCommonPublicKey(blsCommonPublicKey);
+            messageProxyForSchain.setSkaleFeaturesAddress(skaleFeatures.address);
+
             const sign = {
-                blsSignature: BlsSignature,
-                counter: Counter,
-                hashA: HashA,
-                hashB: HashB,
+                blsSignature: [
+                    "0x2dedd4eaeac95881fbcaa4146f95a438494545c607bd57d560aa1d13d2679db8",
+                    "0x2e9a10a0baf75ccdbd2b5cf81491673108917ade57dea40d350d4cbebd7b0965"
+                ],
+                counter: 0,
+                hashA: "0x24079dfb76803f93456a4d274cddcf154a874ae92c1092ef17a979d42ec6d4d4",
+                hashB: "0x1a44d878121e17e3f136ddbbba438a38d2dd0fdea786b0a815157828c2154047",
             };
 
             // chain should be inited:
@@ -502,6 +550,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
             await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
 
+            (await messageProxyForSchain.getIncomingMessagesCounter(chainID)).toNumber().should.be.equal(0);
+
             await messageProxyForSchain.postIncomingMessages(
                 chainID,
                 startingCounter,
@@ -510,9 +560,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
                 0,
                 {from: deployer},
             );
-            const incomingMessagesCounter = new BigNumber(
-                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
-            incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
+
+            (await messageProxyForSchain.getIncomingMessagesCounter(chainID)).toNumber().should.be.equal(2);
         });
 
         it("should get outgoing messages counter", async () => {
@@ -540,51 +589,5 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
         });
 
-        it("should get incoming messages counter", async () => {
-            const chainID = randomString(10);
-            tokenManager1 = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
-            tokenManager2 = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
-            const startingCounter = 0;
-            const message1 = {
-                amount: 3,
-                data: "0x11",
-                destinationContract: tokenManager1.address,
-                sender: deployer,
-                to: client};
-            const message2 = {
-                amount: 7,
-                data: "0x22",
-                destinationContract: tokenManager2.address,
-                sender: user,
-                to: customer};
-            const outgoingMessages = [message1, message2];
-            const sign = {
-                blsSignature: BlsSignature,
-                counter: Counter,
-                hashA: HashA,
-                hashB: HashB,
-            };
-
-            // chain should be inited:
-            new BigNumber(await messageProxyForSchain.getIncomingMessagesCounter(chainID)).should.be.deep.equal(new BigNumber(0));
-
-            await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
-
-            const incomingMessagesCounter0 = new BigNumber(
-                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
-            incomingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
-
-            await messageProxyForSchain.postIncomingMessages(
-                chainID,
-                startingCounter,
-                outgoingMessages,
-                sign,
-                0,
-                {from: deployer},
-            );
-            const incomingMessagesCounter = new BigNumber(
-                await messageProxyForSchain.getIncomingMessagesCounter(chainID));
-            incomingMessagesCounter.should.be.deep.equal(new BigNumber(2));
-        });
     });
 });

@@ -21,11 +21,14 @@
 
 pragma solidity 0.6.12;
 
-import "./BasicConnector.sol";
-import "../interfaces/ISchainsInternal.sol";
-import "../interfaces/IWallets.sol";
-import "../interfaces/ISchains.sol";
+import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
+import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
+import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
+import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
+
 import "../MessageProxyForMainnet.sol";
+
+import "./BasicConnector.sol";
 
 
 /**

@@ -22,14 +22,13 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "../interfaces/IDepositBox.sol";
+import "../Messages.sol";
+
 import "./IMAConnected.sol";
-import "./Messages.sol";
-import "./interfaces/IDepositBox.sol";
 
 
 // This contract runs on the main net and accepts deposits
-
-
 contract DepositBoxEth is IMAConnected, IDepositBox {
 
     using SafeMathUpgradeable for uint;
