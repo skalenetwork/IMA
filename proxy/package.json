@@ -15,7 +15,8 @@
         "test": "npx buidler test && yarn tsc",
         "tsc": "tsc --noEmit",
         "tslint": "npx tslint --project .",
-        "slither": "slither ."
+        "slither": "slither .",
+        "postinstall": "cd ./test-tokens && yarn install && cd .."
     },
     "dependencies": {
         "@openzeppelin/cli": "^2.8.2",
