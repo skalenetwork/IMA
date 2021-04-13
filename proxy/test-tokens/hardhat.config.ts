@@ -39,10 +39,11 @@ task("accounts", "Prints the list of accounts", async (_, { web3 }) => {
 });
 
 task("erc20", "Deploy ERC20 Token sample to chain")
+    .addOptionalParam("contract", "ERC20 Token contract")
     .addParam("name", "ERC20 Token name")
     .addParam("symbol", "ERC20 Token symbol")
     .setAction(async (taskArgs: any, { ethers }) => {
-        const contractName = "ERC20Example";
+        const contractName = taskArgs.contract ? taskArgs.contract : "ERC20Example";
         const erc20Factory = await ethers.getContractFactory(contractName);
         const erc20 = await erc20Factory.deploy(taskArgs.name, taskArgs.symbol);
         console.log("ERC20 Token with name", taskArgs.name, "and symbol", taskArgs.symbol, "was deployed");
@@ -55,10 +56,11 @@ task("erc20", "Deploy ERC20 Token sample to chain")
 );
 
 task("erc721", "Deploy ERC721 Token sample to chain")
+    .addOptionalParam("contract", "ERC721 Token contract")
     .addParam("name", "ERC721 Token name")
     .addParam("symbol", "ERC721 Token symbol")
     .setAction(async (taskArgs: any, { ethers }) => {
-        const contractName = "ERC721Example";
+        const contractName = taskArgs.contract ? taskArgs.contract : "ERC721Example";
         const erc721Factory = await ethers.getContractFactory(contractName);
         const erc721 = await erc721Factory.deploy(taskArgs.name, taskArgs.symbol);
         console.log("ERC721 Token with name", taskArgs.name, "and symbol", taskArgs.symbol, "was deployed");
