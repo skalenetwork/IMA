@@ -38,6 +38,15 @@ To skale-chain:
 npx hardhat erc20 --name ERC20TokenName --symbol ERC20TokenSymbol --network schain
 ```
 
+To deploy custom token - please develop your ERC20 contract and add option param with you contract name:
+
+```bash
+--contract "Your contract name"
+
+npx hardhat erc20 --contract ERC20CustomName --name ERC20TokenName --symbol ERC20TokenSymbol --network mainnet
+npx hardhat erc20 --contract ERC20CustomName --name ERC20TokenName --symbol ERC20TokenSymbol --network schain
+```
+
 Help:
 
 ```bash
@@ -60,6 +69,15 @@ To skale-chain:
 
 ```bash
 npx hardhat erc721 --name ERC721TokenName --symbol ERC721TokenSymbol --network schain
+```
+
+To deploy custom token - please develop your ERC721 contract and add option param with you contract name:
+
+```bash
+--contract "Your contract name"
+
+npx hardhat erc721 --contract ERC721CustomName --name ERC721TokenName --symbol ERC721TokenSymbol --network mainnet
+npx hardhat erc721 --contract ERC721CustomName --name ERC721TokenName --symbol ERC721TokenSymbol --network schain
 ```
 
 Help:
@@ -96,7 +114,7 @@ npx hardhat help verify
 
 ### ERC20
 
-Add minetr to ERC20 token:
+Add minter to ERC20 token:
 
 To main-chain:
 

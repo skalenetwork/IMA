@@ -2,6 +2,10 @@
 
 pragma solidity 0.8.0;
 
+interface IERC721Receiver {
+    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external returns(bytes4);
+}
+
 
 contract ERC721Custom {
 
@@ -23,6 +27,11 @@ contract ERC721Custom {
     mapping (address => mapping (address => bool)) private _operatorApprovals;
 
     bytes4 private constant _INTERFACE_ID_ERC721 = 0x80ac58cd;
+
+    event Approval(address owner, address spender, uint256 tokenId);
+    event ApprovalForAll(address owner, address operator, bool approved);
+
+    event Transfer(address from, address to, uint256 tokenId);
 
     constructor (string memory tokenName, string memory tokenSymbol) {
         _name = tokenName;
@@ -158,10 +167,6 @@ contract ERC721Custom {
     function _checkOnERC721Received(address from, address to, uint256 tokenId, bytes memory _data)
         internal returns (bool)
     {
-        if (!to.isContract()) {
-            return true;
-        }
-
         bytes4 retval = IERC721Receiver(to).onERC721Received(msg.sender, from, tokenId, _data);
         return (retval == _ERC721_RECEIVED);
     }

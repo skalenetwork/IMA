@@ -15,7 +15,7 @@ contract ERC20Custom {
     string private _symbol;
     uint8 private _decimals;
 
-    event Approval(address sender, address spender, uint256 amount);
+    event Approval(address owner, address spender, uint256 amount);
 
     event Transfer(address from, address to, uint256 amount);
 
