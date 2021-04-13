@@ -10,7 +10,6 @@ To initialize you need to run only one command and setup .env file:
 
 `yarn install`
 
-
 Setup `.env` file
 
 ```bash
@@ -53,8 +52,6 @@ Help:
 npx hardhat help erc20
 ```
 
-
-
 ### ERC721
 
 Deploy ERC721 sample based on openzeppelin contracts:
@@ -86,7 +83,6 @@ Help:
 npx hardhat help erc721
 ```
 
-
 ## Verify your token on Etherscan
 
 To verify your contract need to run:
@@ -96,7 +92,6 @@ To verify your contract need to run:
 ```bash
 npx hardhat verify ERC20TokenAddress "ERC20TokenName" "ERC20TokenSymbol" --network mainnet
 ```
-
 
 ### ERC721
 
@@ -134,7 +129,6 @@ Help:
 npx hardhat help add-minter-erc20
 ```
 
-
 ### ERC721
 
 Mint ERC721 token:
@@ -156,7 +150,6 @@ Help:
 ```bash
 npx hardhat help add-minter-erc721
 ```
-
 
 ## Mint
 
@@ -182,7 +175,6 @@ Help:
 ```bash
 npx hardhat help mint-erc20
 ```
-
 
 ### ERC721
 
