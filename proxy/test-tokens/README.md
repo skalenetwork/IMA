@@ -21,7 +21,7 @@ URL_W3_S_CHAIN="ENDPOINT_TO_SKALE_CHAIN"
 
 ## Deploy
 
-### ERC20
+### ERC20 Deploy
 
 Deploy ERC20 sample based on openzeppelin contracts:
 
@@ -52,7 +52,7 @@ Help:
 npx hardhat help erc20
 ```
 
-### ERC721
+### ERC721 Deploy
 
 Deploy ERC721 sample based on openzeppelin contracts:
 
@@ -87,19 +87,19 @@ npx hardhat help erc721
 
 To verify your contract need to run:
 
-### ERC20
+### ERC20 Verify
 
 ```bash
 npx hardhat verify ERC20TokenAddress "ERC20TokenName" "ERC20TokenSymbol" --network mainnet
 ```
 
-### ERC721
+### ERC721 Verify
 
 ```bash
 npx hardhat verify ERC721TokenAddress "ERC721TokenName" "ERC721TokenSymbol" --network mainnet
 ```
 
-### Help:
+Help:
 
 ```bash
 npx hardhat help verify
@@ -107,7 +107,7 @@ npx hardhat help verify
 
 ## Add minter
 
-### ERC20
+### ERC20 Add minter
 
 Add minter to ERC20 token:
 
@@ -129,7 +129,7 @@ Help:
 npx hardhat help add-minter-erc20
 ```
 
-### ERC721
+### ERC721 Add minter
 
 Mint ERC721 token:
 
@@ -153,7 +153,7 @@ npx hardhat help add-minter-erc721
 
 ## Mint
 
-### ERC20
+### ERC20 Mint
 
 Mint ERC20 token:
 To mint 5 tokens - you need to specify `--amount 5` - will mint 5 * DECIMALS
@@ -176,7 +176,7 @@ Help:
 npx hardhat help mint-erc20
 ```
 
-### ERC721
+### ERC721 Mint
 
 Mint ERC721 token:
 
