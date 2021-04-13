@@ -23,6 +23,7 @@
         "@openzeppelin/contracts": "^3.4.1",
         "@openzeppelin/contracts-upgradeable": "^3.4.1",
         "@openzeppelin/upgrades": "^2.8.0",
+        "@skalenetwork/skale-manager-interfaces": "^0.1.0",
         "@truffle/hdwallet-provider": "^1.1.1",
         "dotenv": "^8.2.0",
         "ethereumjs-tx": "2.1.2",

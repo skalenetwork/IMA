@@ -69,7 +69,7 @@ module.exports = {
             name: "test",
             host: "127.0.0.1",
             port: "8555",
-            gas: 0xfffffffffff,
+            gas: "0xfffffffffff",
             gasPrice: 0x01,
             network_id: "*"
         },
@@ -84,7 +84,7 @@ module.exports = {
             provider: () => {
                 return new hdwalletProvider( mnemonicForMainnet, mainnetRpcUrl );
             },
-            gasPrice: 10000000000,
+            gasPrice: "10000000000",
             gas: 8000000,
             network_id: "*",
             skipDryRun: true // added experimentally

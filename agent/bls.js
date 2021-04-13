@@ -556,7 +556,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 }
                 log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " sign result: " ) + cc.j( joOut.result ? joOut.result : null ) + "\n" );
                 try {
-                    if( joOut.result.signResult.signatureShare.length > 0 && joOut.result.signResult.status == 0 ) {
+                    if( joOut.result.signResult.signatureShare.length > 0 && joOut.result.signResult.status === 0 ) {
                         const nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
                         //
                         // partial BLS verification for one participant

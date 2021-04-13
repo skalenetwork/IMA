@@ -1857,6 +1857,11 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.7.0.tgz#9a06f4f137ee84d7df0460c1fdb1135ffa6c50fd"
   integrity sha512-ONhaKPIufzzrlNbqtWFFd+jlnemX6lJAgq9ZeiZtS7I1PIf/la7CW4m83rTXRnVnsMbW2k56pGYu7AUFJD9Pow==
 
+"@skalenetwork/skale-manager-interfaces@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/skale-manager-interfaces/-/skale-manager-interfaces-0.1.0.tgz#f454241c20e0a950973bcdfb2d5f5a573f4409f9"
+  integrity sha512-nRBNC34dhnOFre+9kfMBCdWSJ80nsANDj7v5uWyT9pt++7MNI9XmFhqthkPeX7h9gPsezmqQDWZoCxozH43PxA==
+
 "@solidity-parser/parser@^0.5.2":
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/@solidity-parser/parser/-/parser-0.5.2.tgz#4d74670ead39e4f4fdab605a393ba8ea2390a2c4"

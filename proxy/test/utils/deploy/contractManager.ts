@@ -1,9 +1,8 @@
-import { ContractManagerContract, ContractManagerInstance } from "../../../types/truffle-contracts";
+import { ContractManagerContract, ContractManagerInstance, SkaleVerifierMockContract } from "../../../types/truffle-contracts";
 import { KeyStorageContract } from "../../../types/truffle-contracts";
 import { NodesContract } from "../../../types/truffle-contracts";
 import { SchainsContract } from "../../../types/truffle-contracts";
 import { SchainsInternalContract } from "../../../types/truffle-contracts";
-import { SkaleVerifierContract } from "../../../types/truffle-contracts";
 import { WalletsContract } from "../../../types/truffle-contracts";
 
 const contractManager: ContractManagerContract = artifacts.require("./ContractManager");
@@ -11,7 +10,7 @@ const keyStorage: KeyStorageContract = artifacts.require("./KeyStorage");
 const nodes: NodesContract = artifacts.require("./Nodes");
 const schains: SchainsContract = artifacts.require("./Schains");
 const schainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
-const skaleVerifier: SkaleVerifierContract = artifacts.require("./SkaleVerifier");
+const skaleVerifier: SkaleVerifierMockContract = artifacts.require("./SkaleVerifierMock");
 const wallets: WalletsContract = artifacts.require("./Wallets");
 const nameKeyStorage = "KeyStorage";
 const nameNodes = "Nodes";

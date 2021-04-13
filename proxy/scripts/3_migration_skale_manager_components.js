@@ -31,7 +31,7 @@ const Schains = artifacts.require( "./Schains" );
 const SchainsInternal = artifacts.require( "./SchainsInternal" );
 const Wallets = artifacts.require( "./Wallets" );
 const KeyStorage = artifacts.require( "./KeyStorage" );
-const SkaleVerifier = artifacts.require( "./SkaleVerifier" );
+const SkaleVerifierMock = artifacts.require( "./SkaleVerifierMock" );
 const Nodes = artifacts.require( "./Nodes" );
 
 const gasLimit = 8000000;
@@ -70,8 +70,8 @@ async function deploy( deployer, network ) {
             return instWallets;
         } ); ;
         instCM.setContractsAddress( "Wallets", Wallets.address );
-        await deployer.deploy( SkaleVerifier, { gas: gasLimit } );
-        instCM.setContractsAddress( "SkaleVerifier", SkaleVerifier.address );
+        await deployer.deploy( SkaleVerifierMock, { gas: gasLimit } );
+        instCM.setContractsAddress( "SkaleVerifier", SkaleVerifierMock.address );
         const keyStorage = await deployer.deploy( KeyStorage, { gas: gasLimit } );
         instCM.setContractsAddress( "KeyStorage", KeyStorage.address );
         await deployer.deploy( Nodes, { gas: gasLimit } );
