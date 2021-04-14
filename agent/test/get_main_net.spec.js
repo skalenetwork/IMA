@@ -134,7 +134,7 @@ function isConnectedChain(string) {
 function call({}) {
     return true
 }
-function addConnectedChain(string, []) {
+function addConnectedChain(string) {
     return {encodeABI: encodeABI}
 }
 
