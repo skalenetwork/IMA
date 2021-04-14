@@ -295,7 +295,7 @@ contract MessageProxyForSchain {
         connectMainnet
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(_verifyMessages(messages, signature), "Signature is not valid");
+        require(_verifyMessages(messages, signature), "Signature is not verified");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
