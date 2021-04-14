@@ -66,8 +66,6 @@ contract MessageProxyForSchain {
     }
 
     struct ConnectedChainInfo {
-        // BLS key is null for main chain, and not null for schains
-        uint256[4] publicKey;
         // message counters start with 0
         uint256 incomingMessageCounter;
         uint256 outgoingMessageCounter;
@@ -121,12 +119,6 @@ contract MessageProxyForSchain {
             connectedChains[
                 keccak256(abi.encodePacked("Mainnet"))
             ] = ConnectedChainInfo(
-                [
-                    uint256(0),
-                    uint256(0),
-                    uint256(0),
-                    uint256(0)
-                ],
                 0,
                 0,
                 true
@@ -154,12 +146,6 @@ contract MessageProxyForSchain {
             connectedChains[
                 keccak256(abi.encodePacked("Mainnet"))
             ] = ConnectedChainInfo(
-                [
-                    uint256(0),
-                    uint256(0),
-                    uint256(0),
-                    uint256(0)
-                ],
                 0,
                 0,
                 true
@@ -215,7 +201,6 @@ contract MessageProxyForSchain {
         connectedChains[
             keccak256(abi.encodePacked(newChainID))
         ] = ConnectedChainInfo({
-            publicKey: newPublicKey,
             incomingMessageCounter: 0,
             outgoingMessageCounter: 0,
             inited: true
