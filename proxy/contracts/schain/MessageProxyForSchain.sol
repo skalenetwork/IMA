@@ -66,8 +66,6 @@ contract MessageProxyForSchain {
     }
 
     struct ConnectedChainInfo {
-        // BLS key is null for main chain, and not null for schains
-        uint256[4] publicKey;
         // message counters start with 0
         uint256 incomingMessageCounter;
         uint256 outgoingMessageCounter;
@@ -121,12 +119,6 @@ contract MessageProxyForSchain {
             connectedChains[
                 keccak256(abi.encodePacked("Mainnet"))
             ] = ConnectedChainInfo(
-                [
-                    uint256(0),
-                    uint256(0),
-                    uint256(0),
-                    uint256(0)
-                ],
                 0,
                 0,
                 true
@@ -154,12 +146,6 @@ contract MessageProxyForSchain {
             connectedChains[
                 keccak256(abi.encodePacked("Mainnet"))
             ] = ConnectedChainInfo(
-                [
-                    uint256(0),
-                    uint256(0),
-                    uint256(0),
-                    uint256(0)
-                ],
                 0,
                 0,
                 true
@@ -197,8 +183,7 @@ contract MessageProxyForSchain {
      * To connect to other chains, the owner needs to explicitly call this function
      */
     function addConnectedChain(
-        string calldata newChainID,
-        uint256[4] calldata newPublicKey
+        string calldata newChainID
     )
         external
         connectMainnet
@@ -215,7 +200,6 @@ contract MessageProxyForSchain {
         connectedChains[
             keccak256(abi.encodePacked(newChainID))
         ] = ConnectedChainInfo({
-            publicKey: newPublicKey,
             incomingMessageCounter: 0,
             outgoingMessageCounter: 0,
             inited: true
@@ -295,7 +279,7 @@ contract MessageProxyForSchain {
         connectMainnet
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(_verifyMessages(messages, signature), "Signature is not valid");
+        require(_verifyMessages(messages, signature), "Signature is not verified");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
