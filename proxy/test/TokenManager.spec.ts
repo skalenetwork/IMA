@@ -164,7 +164,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
 
         // add connected chain:
-        await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
+        await messageProxyForSchain.addConnectedChain(chainID, {from: deployer});
 
         // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
         await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
@@ -236,7 +236,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         // "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
 
         // add connected chain:
-        // await messageProxyForSchain.addConnectedChain(chainID, publicKeyArray, {from: deployer});
+        // await messageProxyForSchain.addConnectedChain(chainID, {from: deployer});
 
         // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
         // const minterRole = await eRC20OnChain.MINTER_ROLE();
@@ -333,7 +333,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchain
             .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
         // add connected chain:
-        await messageProxyForSchain.addConnectedChain(schainID, publicKeyArray, {from: deployer});
+        await messageProxyForSchain.addConnectedChain(schainID, {from: deployer});
         // invoke `setTotalSupplyOnMainnet` before `mint` to avoid `SafeMath: subtraction overflow` exception:
         // await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
@@ -447,7 +447,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchain.setContract(
             "MessageProxyForSchain", messageProxyForSchain.address, {from: deployer});
         // add connected chain:
-        await messageProxyForSchain.addConnectedChain(schainID, publicKeyArray, {from: deployer});
+        await messageProxyForSchain.addConnectedChain(schainID, {from: deployer});
         await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
         await lockAndDataForSchainERC721
             .addERC721ForSchain(schainID, contractThere, contractHere, {from: deployer});
@@ -478,7 +478,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         const to = user;
         const schainID = randomString(10);
         await lockAndDataForSchain.addSchain(schainID, tokenManager.address, {from: deployer});
-        await messageProxyForSchain.addConnectedChain(schainID, [0,0,0,0], {from: deployer})
+        await messageProxyForSchain.addConnectedChain(schainID, {from: deployer})
         // set contract TokenManager to avoid `Not allowed` exception on `exitToMainERC20` function:
         await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
         // set contract ERC20ModuleForSchain to avoid `revert` exception on `exitToMainERC20` function:
@@ -654,7 +654,7 @@ contract("TokenManager", ([deployer, user, client]) => {
                 .addSchain(schainID, deployer, {from: deployer});
             // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
             await messageProxyForSchain
-              .addConnectedChain(schainID, publicKeyArray, {from: deployer});
+              .addConnectedChain(schainID, {from: deployer});
             // set `ERC20Module` contract before invoke `postMessage`
             await lockAndDataForSchain
               .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
@@ -708,7 +708,7 @@ contract("TokenManager", ([deployer, user, client]) => {
                 .addSchain(schainID, deployer, {from: deployer});
             // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
             await messageProxyForSchain
-                .addConnectedChain(schainID, publicKeyArray, {from: deployer});
+                .addConnectedChain(schainID, {from: deployer});
             // set `ERC721Module` contract before invoke `receiveERC721`
             await lockAndDataForSchain
                 .setContract("ERC721Module", eRC721ModuleForSchain.address, {from: deployer});
