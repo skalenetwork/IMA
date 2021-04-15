@@ -2035,21 +2035,19 @@
     emittery "^0.4.1"
     ora "^3.4.0"
 
-"@truffle/hdwallet-provider@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@truffle/hdwallet-provider/-/hdwallet-provider-1.1.1.tgz#951f16cf3ca412c7c0e58efddb0eb0f32b127317"
-  integrity sha512-Gw5lk2dUs6NhLcaF49FuuL3Qv1Setpgr9uUhf7voIS/1OD4ar2CW9Zv7QJiR5m0PD/b8SUqbIckq0evY4Mendg==
+"@truffle/hdwallet-provider@^1.2.6":
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/@truffle/hdwallet-provider/-/hdwallet-provider-1.2.6.tgz#249cfdb291e9b6ce6f0444a60bc4b0f06e87b627"
+  integrity sha512-g4n1ETH2y7KlqQYq0PMjuHaLxggU96RSj1p3i6dGCAgONyPyA+TD1wyot8M2dXp+RG/VVzZoVTuyFGyBs5EhXw==
   dependencies:
     "@trufflesuite/web3-provider-engine" "15.0.13-1"
-    "@types/web3" "^1.0.20"
     any-promise "^1.3.0"
     bindings "^1.5.0"
     ethereum-cryptography "^0.1.3"
     ethereum-protocol "^1.0.1"
     ethereumjs-tx "^1.0.0"
     ethereumjs-util "^6.1.0"
-    ethereumjs-wallet "^0.6.3"
-    source-map-support "^0.5.19"
+    ethereumjs-wallet "^1.0.1"
 
 "@truffle/interface-adapter@^0.3.0":
   version "0.3.3"
@@ -2207,6 +2205,13 @@
   version "4.11.6"
   resolved "https://registry.yarnpkg.com/@types/bn.js/-/bn.js-4.11.6.tgz#c306c70d9358aaea33cd4eda092a742b9505967c"
   integrity sha512-pqr857jrp2kPuO9uRjZ3PwnJTjoQy+fcdxvBTvHm6dkmEL9q+hDD/2j/0ELOBPtPnS8LjCX0gI9nbl8lVkadpg==
+  dependencies:
+    "@types/node" "*"
+
+"@types/bn.js@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@types/bn.js/-/bn.js-5.1.0.tgz#32c5d271503a12653c62cf4d2b45e6eab8cebc68"
+  integrity sha512-QSSVYj7pYFN49kW77o2s9xTCwZ8F2xLbjLLSEVh8D2F4JUhZtPAGOFLTD+ffqksBx/u4cE/KImFjyhqCjn/LIA==
   dependencies:
     "@types/node" "*"
 
@@ -2525,13 +2530,6 @@
   dependencies:
     "@types/bn.js" "*"
     "@types/underscore" "*"
-
-"@types/web3@^1.0.20":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@types/web3/-/web3-1.2.2.tgz#d95a101547ce625c5ebd0470baa5dbd4b9f3c015"
-  integrity sha512-eFiYJKggNrOl0nsD+9cMh2MLk4zVBfXfGnVeRFbpiZzBE20eet4KLA3fXcjSuHaBn0RnQzwLAGdgzgzdet4C0A==
-  dependencies:
-    web3 "*"
 
 "@types/websocket@1.0.1":
   version "1.0.1"
@@ -3523,7 +3521,7 @@ bn.js@^4.11.9:
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-4.11.9.tgz#26d556829458f9d1e81fc48952493d0ba3507828"
   integrity sha512-E6QoYqCKZfgatHTdHzs1RRKP7ip4vvm+EyRUeE2RF0NblwVvb0p6jSVeNTOFxPn26QXN2o6SMfNxKp6kU8zQaw==
 
-bn.js@^5.1.3:
+bn.js@^5.1.2, bn.js@^5.1.3:
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-5.2.0.tgz#358860674396c6997771a9d051fcc1b57d4ae002"
   integrity sha512-D7iWRBvnZE8ecXiLj/9wbxH7Tk79fAh8IHaTNq1RWRixsS02W+5qS+iE9yq6RYl0asXx5tw0bLhmT5pIfbSquw==
@@ -5845,6 +5843,18 @@ ethereumjs-util@^5.0.0, ethereumjs-util@^5.1.1, ethereumjs-util@^5.1.2, ethereum
     rlp "^2.0.0"
     safe-buffer "^5.1.1"
 
+ethereumjs-util@^7.0.2:
+  version "7.0.10"
+  resolved "https://registry.yarnpkg.com/ethereumjs-util/-/ethereumjs-util-7.0.10.tgz#5fb7b69fa1fda0acc59634cf39d6b0291180fc1f"
+  integrity sha512-c/xThw6A+EAnej5Xk5kOzFzyoSnw0WX0tSlZ6pAsfGVvQj3TItaDg9b1+Fz1RJXA+y2YksKwQnuzgt1eY6LKzw==
+  dependencies:
+    "@types/bn.js" "^5.1.0"
+    bn.js "^5.1.2"
+    create-hash "^1.1.2"
+    ethereum-cryptography "^0.1.3"
+    ethjs-util "0.1.6"
+    rlp "^2.2.4"
+
 ethereumjs-util@~6.1.0:
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/ethereumjs-util/-/ethereumjs-util-6.1.0.tgz#e9c51e5549e8ebd757a339cc00f5380507e799c8"
@@ -5875,18 +5885,17 @@ ethereumjs-vm@^2.3.4, ethereumjs-vm@^2.6.0:
     rustbn.js "~0.2.0"
     safe-buffer "^5.1.1"
 
-ethereumjs-wallet@^0.6.3:
-  version "0.6.5"
-  resolved "https://registry.yarnpkg.com/ethereumjs-wallet/-/ethereumjs-wallet-0.6.5.tgz#685e9091645cee230ad125c007658833991ed474"
-  integrity sha512-MDwjwB9VQVnpp/Dc1XzA6J1a3wgHQ4hSvA1uWNatdpOrtCbPVuQSKSyRnjLvS0a+KKMw2pvQ9Ybqpb3+eW8oNA==
+ethereumjs-wallet@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/ethereumjs-wallet/-/ethereumjs-wallet-1.0.1.tgz#664a4bcacfc1291ca2703de066df1178938dba1c"
+  integrity sha512-3Z5g1hG1das0JWU6cQ9HWWTY2nt9nXCcwj7eXVNAHKbo00XAZO8+NHlwdgXDWrL0SXVQMvTWN8Q/82DRH/JhPw==
   dependencies:
     aes-js "^3.1.1"
     bs58check "^2.1.2"
     ethereum-cryptography "^0.1.3"
-    ethereumjs-util "^6.0.0"
+    ethereumjs-util "^7.0.2"
     randombytes "^2.0.6"
-    safe-buffer "^5.1.2"
-    scryptsy "^1.2.1"
+    scrypt-js "^3.0.1"
     utf8 "^3.0.0"
     uuid "^3.3.2"
 
@@ -11236,6 +11245,13 @@ rlp@^2.2.1, rlp@^2.2.2, rlp@^2.2.3:
   dependencies:
     bn.js "^4.11.1"
 
+rlp@^2.2.4:
+  version "2.2.6"
+  resolved "https://registry.yarnpkg.com/rlp/-/rlp-2.2.6.tgz#c80ba6266ac7a483ef1e69e8e2f056656de2fb2c"
+  integrity sha512-HAfAmL6SDYNWPUOJNrM500x4Thn4PZsEy5pijPh40U9WfNk0z15hUYzO9xVIMAdIHdFtD8CBDHd75Td1g36Mjg==
+  dependencies:
+    bn.js "^4.11.1"
+
 rn-host-detect@^1.1.5:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/rn-host-detect/-/rn-host-detect-1.2.0.tgz#8b0396fc05631ec60c1cb8789e5070cdb04d0da0"
@@ -11353,13 +11369,6 @@ scryptsy@2.1.0, scryptsy@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/scryptsy/-/scryptsy-2.1.0.tgz#8d1e8d0c025b58fdd25b6fa9a0dc905ee8faa790"
   integrity sha512-1CdSqHQowJBnMAFyPEBRfqag/YP9OF394FV+4YREIJX4ljD7OxvQRDayyoyyCk+senRjSkP6VnUNQmVQqB6g7w==
-
-scryptsy@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/scryptsy/-/scryptsy-1.2.1.tgz#a3225fa4b2524f802700761e2855bdf3b2d92163"
-  integrity sha1-oyJfpLJST4AnAHYeKFW987LZIWM=
-  dependencies:
-    pbkdf2 "^3.0.3"
 
 secp256k1@^3.0.1:
   version "3.7.1"
@@ -13075,16 +13084,6 @@ web3-bzz@1.2.1:
     swarm-js "0.1.39"
     underscore "1.9.1"
 
-web3-bzz@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-bzz/-/web3-bzz-1.2.11.tgz#41bc19a77444bd5365744596d778b811880f707f"
-  integrity sha512-XGpWUEElGypBjeFyUhTkiPXFbDVD6Nr/S5jznE3t8cWUA0FxRf1n3n/NuIZeb0H9RkN2Ctd/jNma/k8XGa3YKg==
-  dependencies:
-    "@types/node" "^12.12.6"
-    got "9.6.0"
-    swarm-js "^0.1.40"
-    underscore "1.9.1"
-
 web3-bzz@1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/web3-bzz/-/web3-bzz-1.2.2.tgz#a3b9f613c49fd3e120e0997088a73557d5adb724"
@@ -13144,15 +13143,6 @@ web3-core-helpers@1.2.1:
     web3-eth-iban "1.2.1"
     web3-utils "1.2.1"
 
-web3-core-helpers@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-core-helpers/-/web3-core-helpers-1.2.11.tgz#84c681ed0b942c0203f3b324a245a127e8c67a99"
-  integrity sha512-PEPoAoZd5ME7UfbnCZBdzIerpe74GEvlwT4AjOmHeCVZoIFk7EqvOZDejJHt+feJA6kMVTdd0xzRNN295UhC1A==
-  dependencies:
-    underscore "1.9.1"
-    web3-eth-iban "1.2.11"
-    web3-utils "1.2.11"
-
 web3-core-helpers@1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/web3-core-helpers/-/web3-core-helpers-1.2.2.tgz#484974f4bd4a487217b85b0d7cfe841af0907619"
@@ -13208,18 +13198,6 @@ web3-core-method@1.2.1:
     web3-core-promievent "1.2.1"
     web3-core-subscriptions "1.2.1"
     web3-utils "1.2.1"
-
-web3-core-method@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-core-method/-/web3-core-method-1.2.11.tgz#f880137d1507a0124912bf052534f168b8d8fbb6"
-  integrity sha512-ff0q76Cde94HAxLDZ6DbdmKniYCQVtvuaYh+rtOUMB6kssa5FX0q3vPmixi7NPooFnbKmmZCM6NvXg4IreTPIw==
-  dependencies:
-    "@ethersproject/transactions" "^5.0.0-beta.135"
-    underscore "1.9.1"
-    web3-core-helpers "1.2.11"
-    web3-core-promievent "1.2.11"
-    web3-core-subscriptions "1.2.11"
-    web3-utils "1.2.11"
 
 web3-core-method@1.2.2:
   version "1.2.2"
@@ -13287,13 +13265,6 @@ web3-core-promievent@1.2.1:
     any-promise "1.3.0"
     eventemitter3 "3.1.2"
 
-web3-core-promievent@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-core-promievent/-/web3-core-promievent-1.2.11.tgz#51fe97ca0ddec2f99bf8c3306a7a8e4b094ea3cf"
-  integrity sha512-il4McoDa/Ox9Agh4kyfQ8Ak/9ABYpnF8poBLL33R/EnxLsJOGQG2nZhkJa3I067hocrPSjEdlPt/0bHXsln4qA==
-  dependencies:
-    eventemitter3 "4.0.4"
-
 web3-core-promievent@1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/web3-core-promievent/-/web3-core-promievent-1.2.2.tgz#3b60e3f2a0c96db8a891c927899d29d39e66ab1c"
@@ -13341,17 +13312,6 @@ web3-core-requestmanager@1.2.1:
     web3-providers-http "1.2.1"
     web3-providers-ipc "1.2.1"
     web3-providers-ws "1.2.1"
-
-web3-core-requestmanager@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-core-requestmanager/-/web3-core-requestmanager-1.2.11.tgz#fe6eb603fbaee18530293a91f8cf26d8ae28c45a"
-  integrity sha512-oFhBtLfOiIbmfl6T6gYjjj9igOvtyxJ+fjS+byRxiwFJyJ5BQOz4/9/17gWR1Cq74paTlI7vDGxYfuvfE/mKvA==
-  dependencies:
-    underscore "1.9.1"
-    web3-core-helpers "1.2.11"
-    web3-providers-http "1.2.11"
-    web3-providers-ipc "1.2.11"
-    web3-providers-ws "1.2.11"
 
 web3-core-requestmanager@1.2.2:
   version "1.2.2"
@@ -13418,15 +13378,6 @@ web3-core-subscriptions@1.2.1:
     underscore "1.9.1"
     web3-core-helpers "1.2.1"
 
-web3-core-subscriptions@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-core-subscriptions/-/web3-core-subscriptions-1.2.11.tgz#beca908fbfcb050c16f45f3f0f4c205e8505accd"
-  integrity sha512-qEF/OVqkCvQ7MPs1JylIZCZkin0aKK9lDxpAtQ1F8niEDGFqn7DT8E/vzbIa0GsOjL2fZjDhWJsaW+BSoAW1gg==
-  dependencies:
-    eventemitter3 "4.0.4"
-    underscore "1.9.1"
-    web3-core-helpers "1.2.11"
-
 web3-core-subscriptions@1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/web3-core-subscriptions/-/web3-core-subscriptions-1.2.2.tgz#bf4ba23a653a003bdc3551649958cc0b080b068e"
@@ -13481,19 +13432,6 @@ web3-core@1.2.1:
     web3-core-method "1.2.1"
     web3-core-requestmanager "1.2.1"
     web3-utils "1.2.1"
-
-web3-core@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-core/-/web3-core-1.2.11.tgz#1043cacc1becb80638453cc5b2a14be9050288a7"
-  integrity sha512-CN7MEYOY5ryo5iVleIWRE3a3cZqVaLlIbIzDPsvQRUfzYnvzZQRZBm9Mq+ttDi2STOOzc1MKylspz/o3yq/LjQ==
-  dependencies:
-    "@types/bn.js" "^4.11.5"
-    "@types/node" "^12.12.6"
-    bignumber.js "^9.0.0"
-    web3-core-helpers "1.2.11"
-    web3-core-method "1.2.11"
-    web3-core-requestmanager "1.2.11"
-    web3-utils "1.2.11"
 
 web3-core@1.2.2:
   version "1.2.2"
@@ -13567,15 +13505,6 @@ web3-eth-abi@1.2.1:
     underscore "1.9.1"
     web3-utils "1.2.1"
 
-web3-eth-abi@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-eth-abi/-/web3-eth-abi-1.2.11.tgz#a887494e5d447c2926d557a3834edd66e17af9b0"
-  integrity sha512-PkRYc0+MjuLSgg03QVWqWlQivJqRwKItKtEpRUaxUAeLE7i/uU39gmzm2keHGcQXo3POXAbOnMqkDvOep89Crg==
-  dependencies:
-    "@ethersproject/abi" "5.0.0-beta.153"
-    underscore "1.9.1"
-    web3-utils "1.2.11"
-
 web3-eth-abi@1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/web3-eth-abi/-/web3-eth-abi-1.2.2.tgz#d5616d88a90020f894763423a9769f2da11fe37a"
@@ -13637,23 +13566,6 @@ web3-eth-accounts@1.2.1:
     web3-core-helpers "1.2.1"
     web3-core-method "1.2.1"
     web3-utils "1.2.1"
-
-web3-eth-accounts@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-eth-accounts/-/web3-eth-accounts-1.2.11.tgz#a9e3044da442d31903a7ce035a86d8fa33f90520"
-  integrity sha512-6FwPqEpCfKIh3nSSGeo3uBm2iFSnFJDfwL3oS9pyegRBXNsGRVpgiW63yhNzL0796StsvjHWwQnQHsZNxWAkGw==
-  dependencies:
-    crypto-browserify "3.12.0"
-    eth-lib "0.2.8"
-    ethereumjs-common "^1.3.2"
-    ethereumjs-tx "^2.1.1"
-    scrypt-js "^3.0.1"
-    underscore "1.9.1"
-    uuid "3.3.2"
-    web3-core "1.2.11"
-    web3-core-helpers "1.2.11"
-    web3-core-method "1.2.11"
-    web3-utils "1.2.11"
 
 web3-eth-accounts@1.2.2:
   version "1.2.2"
@@ -13756,21 +13668,6 @@ web3-eth-contract@1.2.1:
     web3-eth-abi "1.2.1"
     web3-utils "1.2.1"
 
-web3-eth-contract@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-eth-contract/-/web3-eth-contract-1.2.11.tgz#917065902bc27ce89da9a1da26e62ef663663b90"
-  integrity sha512-MzYuI/Rq2o6gn7vCGcnQgco63isPNK5lMAan2E51AJLknjSLnOxwNY3gM8BcKoy4Z+v5Dv00a03Xuk78JowFow==
-  dependencies:
-    "@types/bn.js" "^4.11.5"
-    underscore "1.9.1"
-    web3-core "1.2.11"
-    web3-core-helpers "1.2.11"
-    web3-core-method "1.2.11"
-    web3-core-promievent "1.2.11"
-    web3-core-subscriptions "1.2.11"
-    web3-eth-abi "1.2.11"
-    web3-utils "1.2.11"
-
 web3-eth-contract@1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/web3-eth-contract/-/web3-eth-contract-1.2.2.tgz#84e92714918a29e1028ee7718f0712536e14e9a1"
@@ -13860,21 +13757,6 @@ web3-eth-ens@1.2.1:
     web3-eth-contract "1.2.1"
     web3-utils "1.2.1"
 
-web3-eth-ens@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-eth-ens/-/web3-eth-ens-1.2.11.tgz#26d4d7f16d6cbcfff918e39832b939edc3162532"
-  integrity sha512-dbW7dXP6HqT1EAPvnniZVnmw6TmQEKF6/1KgAxbo8iBBYrVTMDGFQUUnZ+C4VETGrwwaqtX4L9d/FrQhZ6SUiA==
-  dependencies:
-    content-hash "^2.5.2"
-    eth-ens-namehash "2.0.8"
-    underscore "1.9.1"
-    web3-core "1.2.11"
-    web3-core-helpers "1.2.11"
-    web3-core-promievent "1.2.11"
-    web3-eth-abi "1.2.11"
-    web3-eth-contract "1.2.11"
-    web3-utils "1.2.11"
-
 web3-eth-ens@1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/web3-eth-ens/-/web3-eth-ens-1.2.2.tgz#0a4abed1d4cbdacbf5e1ab06e502d806d1192bc6"
@@ -13956,14 +13838,6 @@ web3-eth-iban@1.2.1:
     bn.js "4.11.8"
     web3-utils "1.2.1"
 
-web3-eth-iban@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-eth-iban/-/web3-eth-iban-1.2.11.tgz#f5f73298305bc7392e2f188bf38a7362b42144ef"
-  integrity sha512-ozuVlZ5jwFC2hJY4+fH9pIcuH1xP0HEFhtWsR69u9uDIANHLPQQtWYmdj7xQ3p2YT4bQLq/axKhZi7EZVetmxQ==
-  dependencies:
-    bn.js "^4.11.9"
-    web3-utils "1.2.11"
-
 web3-eth-iban@1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/web3-eth-iban/-/web3-eth-iban-1.2.2.tgz#76bec73bad214df7c4192388979a59fc98b96c5a"
@@ -14014,18 +13888,6 @@ web3-eth-personal@1.2.1:
     web3-core-method "1.2.1"
     web3-net "1.2.1"
     web3-utils "1.2.1"
-
-web3-eth-personal@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-eth-personal/-/web3-eth-personal-1.2.11.tgz#a38b3942a1d87a62070ce0622a941553c3d5aa70"
-  integrity sha512-42IzUtKq9iHZ8K9VN0vAI50iSU9tOA1V7XU2BhF/tb7We2iKBVdkley2fg26TxlOcKNEHm7o6HRtiiFsVK4Ifw==
-  dependencies:
-    "@types/node" "^12.12.6"
-    web3-core "1.2.11"
-    web3-core-helpers "1.2.11"
-    web3-core-method "1.2.11"
-    web3-net "1.2.11"
-    web3-utils "1.2.11"
 
 web3-eth-personal@1.2.2:
   version "1.2.2"
@@ -14105,25 +13967,6 @@ web3-eth@1.2.1:
     web3-eth-personal "1.2.1"
     web3-net "1.2.1"
     web3-utils "1.2.1"
-
-web3-eth@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-eth/-/web3-eth-1.2.11.tgz#4c81fcb6285b8caf544058fba3ae802968fdc793"
-  integrity sha512-REvxW1wJ58AgHPcXPJOL49d1K/dPmuw4LjPLBPStOVkQjzDTVmJEIsiLwn2YeuNDd4pfakBwT8L3bz1G1/wVsQ==
-  dependencies:
-    underscore "1.9.1"
-    web3-core "1.2.11"
-    web3-core-helpers "1.2.11"
-    web3-core-method "1.2.11"
-    web3-core-subscriptions "1.2.11"
-    web3-eth-abi "1.2.11"
-    web3-eth-accounts "1.2.11"
-    web3-eth-contract "1.2.11"
-    web3-eth-ens "1.2.11"
-    web3-eth-iban "1.2.11"
-    web3-eth-personal "1.2.11"
-    web3-net "1.2.11"
-    web3-utils "1.2.11"
 
 web3-eth@1.2.2:
   version "1.2.2"
@@ -14229,15 +14072,6 @@ web3-net@1.2.1:
     web3-core-method "1.2.1"
     web3-utils "1.2.1"
 
-web3-net@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-net/-/web3-net-1.2.11.tgz#eda68ef25e5cdb64c96c39085cdb74669aabbe1b"
-  integrity sha512-sjrSDj0pTfZouR5BSTItCuZ5K/oZPVdVciPQ6981PPPIwJJkCMeVjD7I4zO3qDPCnBjBSbWvVnLdwqUBPtHxyg==
-  dependencies:
-    web3-core "1.2.11"
-    web3-core-method "1.2.11"
-    web3-utils "1.2.11"
-
 web3-net@1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/web3-net/-/web3-net-1.2.2.tgz#5c3226ca72df7c591422440ce6f1203fd42ddad9"
@@ -14291,14 +14125,6 @@ web3-providers-http@1.2.1:
     web3-core-helpers "1.2.1"
     xhr2-cookies "1.1.0"
 
-web3-providers-http@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-providers-http/-/web3-providers-http-1.2.11.tgz#1cd03442c61670572d40e4dcdf1faff8bd91e7c6"
-  integrity sha512-psh4hYGb1+ijWywfwpB2cvvOIMISlR44F/rJtYkRmQ5jMvG4FOCPlQJPiHQZo+2cc3HbktvvSJzIhkWQJdmvrA==
-  dependencies:
-    web3-core-helpers "1.2.11"
-    xhr2-cookies "1.1.0"
-
 web3-providers-http@1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/web3-providers-http/-/web3-providers-http-1.2.2.tgz#155e55c1d69f4c5cc0b411ede40dea3d06720956"
@@ -14347,15 +14173,6 @@ web3-providers-ipc@1.2.1:
     oboe "2.1.4"
     underscore "1.9.1"
     web3-core-helpers "1.2.1"
-
-web3-providers-ipc@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-providers-ipc/-/web3-providers-ipc-1.2.11.tgz#d16d6c9be1be6e0b4f4536c4acc16b0f4f27ef21"
-  integrity sha512-yhc7Y/k8hBV/KlELxynWjJDzmgDEDjIjBzXK+e0rHBsYEhdCNdIH5Psa456c+l0qTEU2YzycF8VAjYpWfPnBpQ==
-  dependencies:
-    oboe "2.1.4"
-    underscore "1.9.1"
-    web3-core-helpers "1.2.11"
 
 web3-providers-ipc@1.2.2:
   version "1.2.2"
@@ -14410,16 +14227,6 @@ web3-providers-ws@1.2.1:
     underscore "1.9.1"
     web3-core-helpers "1.2.1"
     websocket "github:web3-js/WebSocket-Node#polyfill/globalThis"
-
-web3-providers-ws@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-providers-ws/-/web3-providers-ws-1.2.11.tgz#a1dfd6d9778d840561d9ec13dd453046451a96bb"
-  integrity sha512-ZxnjIY1Er8Ty+cE4migzr43zA/+72AF1myzsLaU5eVgdsfV7Jqx7Dix1hbevNZDKFlSoEyq/3j/jYalh3So1Zg==
-  dependencies:
-    eventemitter3 "4.0.4"
-    underscore "1.9.1"
-    web3-core-helpers "1.2.11"
-    websocket "^1.0.31"
 
 web3-providers-ws@1.2.2:
   version "1.2.2"
@@ -14478,16 +14285,6 @@ web3-shh@1.2.1:
     web3-core-method "1.2.1"
     web3-core-subscriptions "1.2.1"
     web3-net "1.2.1"
-
-web3-shh@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-shh/-/web3-shh-1.2.11.tgz#f5d086f9621c9a47e98d438010385b5f059fd88f"
-  integrity sha512-B3OrO3oG1L+bv3E1sTwCx66injW1A8hhwpknDUbV+sw3fehFazA06z9SGXUefuFI1kVs4q2vRi0n4oCcI4dZDg==
-  dependencies:
-    web3-core "1.2.11"
-    web3-core-method "1.2.11"
-    web3-core-subscriptions "1.2.11"
-    web3-net "1.2.11"
 
 web3-shh@1.2.2:
   version "1.2.2"
@@ -14549,20 +14346,6 @@ web3-utils@1.2.1:
     ethjs-unit "0.1.6"
     number-to-bn "1.7.0"
     randomhex "0.1.5"
-    underscore "1.9.1"
-    utf8 "3.0.0"
-
-web3-utils@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3-utils/-/web3-utils-1.2.11.tgz#af1942aead3fb166ae851a985bed8ef2c2d95a82"
-  integrity sha512-3Tq09izhD+ThqHEaWYX4VOT7dNPdZiO+c/1QMA0s5X2lDFKK/xHJb7cyTRRVzN2LvlHbR7baS1tmQhSua51TcQ==
-  dependencies:
-    bn.js "^4.11.9"
-    eth-lib "0.2.8"
-    ethereum-bloom-filters "^1.0.6"
-    ethjs-unit "0.1.6"
-    number-to-bn "1.7.0"
-    randombytes "^2.1.0"
     underscore "1.9.1"
     utf8 "3.0.0"
 
@@ -14635,19 +14418,6 @@ web3-utils@1.3.1:
     randombytes "^2.1.0"
     underscore "1.9.1"
     utf8 "3.0.0"
-
-web3@*:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/web3/-/web3-1.2.11.tgz#50f458b2e8b11aa37302071c170ed61cff332975"
-  integrity sha512-mjQ8HeU41G6hgOYm1pmeH0mRAeNKJGnJEUzDMoerkpw7QUQT4exVREgF1MYPvL/z6vAshOXei25LE/t/Bxl8yQ==
-  dependencies:
-    web3-bzz "1.2.11"
-    web3-core "1.2.11"
-    web3-eth "1.2.11"
-    web3-eth-personal "1.2.11"
-    web3-net "1.2.11"
-    web3-shh "1.2.11"
-    web3-utils "1.2.11"
 
 web3@1.2.1:
   version "1.2.1"
