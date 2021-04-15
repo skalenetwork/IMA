@@ -27,7 +27,7 @@ const fs = require( "fs" );
 const path = require( "path" );
 // const url = require( "url" );
 const os = require( "os" );
-const uuid = require( "uuid/v4" );
+const { v4: uuid } = require('uuid');
 
 const log = require( "../npms/skale-log/log.js" );
 const cc = log.cc;
