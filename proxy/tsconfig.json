@@ -12,8 +12,8 @@
         "resolveJsonModule": true,
         "lib": ["es2015", "esnext.asynciterable"],
         "sourceMap": true,
-        "typeRoots": ["./node_modules/@types", "./types", "./customTypes"],
-        "types": ["node", "truffle-contracts"],
+        "typeRoots": ["./node_modules/@types", "./typechain"],
+        "types": ["node"],
         "esModuleInterop": false
     },
     "include": ["**/*.ts"],

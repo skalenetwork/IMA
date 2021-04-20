@@ -1,10 +1,7 @@
-# truffle build
-proxy/build/
-proxy/types/
-
 # artifacts
 proxy/artifacts/
 proxy/cache/
+proxy/typechain
 
 # openzeppelin
 proxy/.openzeppelin/dev-*.json
