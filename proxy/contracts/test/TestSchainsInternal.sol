@@ -23,10 +23,12 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
+
 import "./TestContractManager.sol";
 import "./TestNodes.sol";
 
-contract SchainsInternal {
+contract SchainsInternal is ISchainsInternal {
 
     struct Schain {
         string name;
@@ -73,7 +75,7 @@ contract SchainsInternal {
         schainsGroups[schainId] = nodes;
     }
 
-    function isNodeAddressesInGroup(bytes32 schainId, address sender) external view returns (bool) {
+    function isNodeAddressesInGroup(bytes32 schainId, address sender) external view override returns (bool) {
         Nodes nodes = Nodes(contractManager.getContract("Nodes"));
         for (uint i = 0; i < schainsGroups[schainId].length; i++) {
             if (nodes.getNodeAddress(schainsGroups[schainId][i]) == sender) {
@@ -83,7 +85,7 @@ contract SchainsInternal {
         return true;
     }
 
-    function isOwnerAddress(address from, bytes32 schainId) external view returns (bool) {
+    function isOwnerAddress(address from, bytes32 schainId) external view override returns (bool) {
         return schains[schainId].owner == from || true;
     }
 }

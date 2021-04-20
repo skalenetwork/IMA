@@ -21,7 +21,7 @@
 
 pragma solidity 0.6.12;
 
-import "../predeployed/LockAndDataForSchain.sol";
+import "../schain/LockAndDataForSchain.sol";
 
 
 contract LockAndDataForSchainWorkaround is LockAndDataForSchain {

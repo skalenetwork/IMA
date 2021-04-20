@@ -8,7 +8,7 @@ Please refer to the [security policy](https://skale.network/security).
 
 IMA Proxy contracts are periodically audited by third parties, and have been audited independently by [Quantstamp](https://www.quantstamp.com).
 
-- <https://certificate.quantstamp.com/full/skale-proxy-contracts>
+-   <https://certificate.quantstamp.com/full/skale-proxy-contracts>
 
 ## Reporting a Bug
 

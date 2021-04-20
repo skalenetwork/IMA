@@ -84,7 +84,7 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
     } );
     let retVal = true;
     value = value.toString();
-    if( value.length == 0 ) {
+    if( value.length === 0 ) {
         retVal = false;
         console.log( cc.fatal( "CRITICAL ERROR:" ) +
             cc.error( " missing value for " ) + fnNameColorizer( name )
@@ -857,19 +857,22 @@ function ima_common_init() {
     imaState.joTrufflePublishResult_main_net = imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net, null, true );
     imaState.joTrufflePublishResult_s_chain = imaUtils.jsonFileLoad( imaState.strPathAbiJson_s_chain, null, true );
 
-    imaUtils.check_keys_exist_in_abi( "main-net", imaState.strPathAbiJson_main_net, imaState.joTrufflePublishResult_main_net, [ "deposit_box_abi", "deposit_box_address", "message_proxy_mainnet_abi", "message_proxy_mainnet_address" ] );
+    imaUtils.check_keys_exist_in_abi( "main-net", imaState.strPathAbiJson_main_net, imaState.joTrufflePublishResult_main_net, [ "deposit_box_eth_abi", "deposit_box_eth_address", "message_proxy_mainnet_abi", "message_proxy_mainnet_address", "imalinker_abi", "imalinker_address", "deposit_box_erc20_abi", "deposit_box_erc20_address", "deposit_box_erc721_abi", "deposit_box_erc721_address" ] );
     imaUtils.check_keys_exist_in_abi( "S-Chain", imaState.strPathAbiJson_s_chain, imaState.joTrufflePublishResult_s_chain, [ "token_manager_abi", "token_manager_address", "message_proxy_chain_abi", "message_proxy_chain_address" ] );
 
-    // deposit_box_address           --> deposit_box_abi
+    // deposit_box_eth_address       --> deposit_box_eth_abi
+    // deposit_box_erc20_address     --> deposit_box_erc20_abi
+    // deposit_box_erc721_address    --> deposit_box_erc721_abi
+    // imalinker_address             --> imalinker_abi
     // token_manager_address         --> token_manager_abi
     // message_proxy_mainnet_address --> message_proxy_mainnet_abi
     // message_proxy_chain_address   --> message_proxy_chain_abi
 
-    if( imaState.strURL_main_net.length == 0 ) {
+    if( imaState.strURL_main_net.length === 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Missing " ) + cc.warning( "Main-net" ) + cc.error( " URL in command line arguments" ) + "\n" );
         process.exit( 126 );
     }
-    if( imaState.strURL_s_chain.length == 0 ) {
+    if( imaState.strURL_s_chain.length === 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Missing " ) + cc.warning( "S-Chain" ) + cc.error( " URL in command line arguments" ) + "\n" );
         process.exit( 126 );
     }
@@ -877,22 +880,26 @@ function ima_common_init() {
     imaState.w3_main_net = getWeb3FromURL( imaState.strURL_main_net );
     imaState.w3_s_chain = getWeb3FromURL( imaState.strURL_s_chain );
 
-    imaState.jo_deposit_box = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.deposit_box_abi, imaState.joTrufflePublishResult_main_net.deposit_box_address ); // only main net
+    imaState.jo_deposit_box_eth = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.deposit_box_eth_abi, imaState.joTrufflePublishResult_main_net.deposit_box_eth_address ); // only main net
+    imaState.jo_deposit_box_erc20 = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.deposit_box_erc20_abi, imaState.joTrufflePublishResult_main_net.deposit_box_erc20_address ); // only main net
+    imaState.jo_deposit_box_erc721 = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.deposit_box_erc721_abi, imaState.joTrufflePublishResult_main_net.deposit_box_erc721_address ); // only main net
+    imaState.jo_imalinker = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.imalinker_abi, imaState.joTrufflePublishResult_main_net.imalinker_address ); // only main net
     imaState.jo_token_manager = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.token_manager_abi, imaState.joTrufflePublishResult_s_chain.token_manager_address ); // only s-chain
     imaState.jo_message_proxy_main_net = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.message_proxy_mainnet_abi, imaState.joTrufflePublishResult_main_net.message_proxy_mainnet_address );
     imaState.jo_message_proxy_s_chain = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.message_proxy_chain_abi, imaState.joTrufflePublishResult_s_chain.message_proxy_chain_address );
-    imaState.jo_lock_and_data_main_net = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.lock_and_data_for_mainnet_abi, imaState.joTrufflePublishResult_main_net.lock_and_data_for_mainnet_address );
     imaState.jo_lock_and_data_s_chain = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.lock_and_data_for_schain_abi, imaState.joTrufflePublishResult_s_chain.lock_and_data_for_schain_address );
     // imaState.eth_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.eth_erc721_abi, imaState.joTrufflePublishResult_s_chain.eth_erc721_address ); // only s-chain
     imaState.eth_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.eth_erc20_abi, imaState.joTrufflePublishResult_s_chain.eth_erc20_address ); // only s-chain
 
-    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBox" ) + cc.info( "   address is....." ) + cc.bright( imaState.jo_deposit_box.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManager" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_token_manager.options.address ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_message_proxy_main_net.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_message_proxy_s_chain.options.address ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( imaState.jo_lock_and_data_main_net.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( imaState.jo_lock_and_data_s_chain.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "ERC20" ) + cc.info( "        address is....." ) + cc.bright( imaState.eth_erc20.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxEth" ) + cc.info( "    address is....." ) + cc.bright( imaState.jo_deposit_box_eth.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC20" ) + cc.info( "  address is....." ) + cc.bright( imaState.jo_deposit_box_erc20.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC721" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_deposit_box_erc721.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManager" ) + cc.info( "     address is....." ) + cc.bright( imaState.jo_token_manager.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( "     address is....." ) + cc.bright( imaState.jo_message_proxy_main_net.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( "     address is....." ) + cc.bright( imaState.jo_message_proxy_s_chain.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "        address is....." ) + cc.bright( imaState.jo_imalinker.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "LockAndData" ) + cc.info( "      address is....." ) + cc.bright( imaState.jo_lock_and_data_s_chain.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "ERC20" ) + cc.info( "            address is....." ) + cc.bright( imaState.eth_erc20.options.address ) + "\n" );
 
     //
     //
@@ -924,9 +931,9 @@ function ima_common_init() {
                         log.write( cc.info( "Loaded S-Chain  ERC721 ABI " ) + cc.attention( imaState.strCoinNameErc721_s_chain ) + "\n" );
                 }
             } else {
-                if( n1 == 0 )
+                if( n1 === 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
-                if( n2 == 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
+                if( n2 === 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
                 imaState.joErc721_main_net = null;
                 imaState.joErc721_s_chain = null;
@@ -935,9 +942,9 @@ function ima_common_init() {
                 process.exit( 126 );
             }
         } else {
-            if( n1 == 0 )
+            if( n1 === 0 )
                 log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC721 JSON is invalid" ) + "\n" );
-            if( n2 == 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
+            if( n2 === 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
                 log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC721 JSON is invalid" ) + "\n" );
             imaState.joErc721_main_net = null;
             imaState.joErc721_s_chain = null;
@@ -959,7 +966,7 @@ function ima_common_init() {
                 n2 = imaState.strCoinNameErc721_s_chain.length;
                 if( n2 > 0 )
                     log.write( cc.info( "Loaded S-Chain  ERC721 ABI " ) + cc.attention( imaState.strCoinNameErc721_s_chain ) + "\n" ); else {
-                    if( n2 == 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
+                    if( n2 === 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
                         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
                     imaState.joErc721_main_net = null;
                     imaState.joErc721_s_chain = null;
@@ -970,8 +977,8 @@ function ima_common_init() {
             }
         }
     }
-    if( n1 != 0 && n2 == 0 ) {
-        if( imaState.strAddrErc721_explicit.length == 0 )
+    if( n1 !== 0 && n2 === 0 ) {
+        if( imaState.strAddrErc721_explicit.length === 0 )
             log.write( cc.fatal( "IMPORTANT NOTICE:" ) + " " + cc.error( "Both S-Chain ERC721 JSON and explicit ERC721 address are not specified" ) + "\n" );
         else {
             log.write( cc.attention( "IMPORTANT NOTICE:" ) + " " + cc.note( "S-Chain ERC721 ABI will be auto-generated" ) + "\n" );
@@ -980,9 +987,6 @@ function ima_common_init() {
             imaState.joErc721_s_chain[imaState.strCoinNameErc721_s_chain + "_address"] = "" + imaState.strAddrErc721_explicit; // set explicit address
             // if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
             //     log.write( cc.info("Auto-generated S-Chain ERC721 JSON is ") + cc.j(imaState.joErc721_s_chain) + "\n" );
-        }
-    } else {
-        if( n1 != 0 && n2 != 0 ) {
         }
     }
     //
@@ -1015,9 +1019,9 @@ function ima_common_init() {
                         log.write( cc.info( "Loaded S-Chain  ERC20 ABI " ) + cc.attention( imaState.strCoinNameErc20_s_chain ) + "\n" );
                 }
             } else {
-                if( n1 == 0 )
+                if( n1 === 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
-                if( n2 == 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
+                if( n2 === 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
                 imaState.joErc20_main_net = null;
                 imaState.joErc20_s_chain = null;
@@ -1026,9 +1030,9 @@ function ima_common_init() {
                 process.exit( 126 );
             }
         } else {
-            if( n1 == 0 )
+            if( n1 === 0 )
                 log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC20 JSON is invalid" ) + "\n" );
-            if( n2 == 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
+            if( n2 === 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
                 log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC20 JSON is invalid" ) + "\n" );
             imaState.joErc20_main_net = null;
             imaState.joErc20_s_chain = null;
@@ -1050,7 +1054,7 @@ function ima_common_init() {
                 n2 = imaState.strCoinNameErc20_s_chain.length;
                 if( n2 > 0 )
                     log.write( cc.info( "Loaded S-Chain  ERC20 ABI " ) + cc.attention( imaState.strCoinNameErc20_s_chain ) + "\n" ); else {
-                    if( n2 == 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
+                    if( n2 === 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
                         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
                     imaState.joErc20_main_net = null;
                     imaState.joErc20_s_chain = null;
@@ -1061,8 +1065,8 @@ function ima_common_init() {
             }
         }
     }
-    if( n1 != 0 && n2 == 0 ) {
-        if( imaState.strAddrErc20_explicit.length == 0 )
+    if( n1 !== 0 && n2 === 0 ) {
+        if( imaState.strAddrErc20_explicit.length === 0 )
             log.write( cc.fatal( "IMPORTANT NOTICE:" ) + " " + cc.error( "Both S-Chain ERC20 JSON and explicit ERC20 address are not specified" ) + "\n" );
         else {
             log.write( cc.attention( "IMPORTANT NOTICE:" ) + " " + cc.note( "S-Chain ERC20 ABI will be auto-generated" ) + "\n" );
@@ -1071,9 +1075,6 @@ function ima_common_init() {
             imaState.joErc20_s_chain[imaState.strCoinNameErc20_s_chain + "_address"] = "" + imaState.strAddrErc20_explicit; // set explicit address
             // if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
             //     log.write( cc.info("Auto-generated S-Chain ERC20 JSON is ") + cc.j(imaState.joErc20_s_chain) + "\n" );
-        }
-    } else {
-        if( n1 != 0 && n2 != 0 ) {
         }
     }
     //

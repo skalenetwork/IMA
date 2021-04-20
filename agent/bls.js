@@ -119,17 +119,17 @@ function compose_one_message_byte_sequence( joMessage ) {
     bytesDestinationContract = imaUtils.invertArrayItemsLR( bytesDestinationContract );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesDestinationContract );
     //
-    let bytesTo = imaUtils.hexToBytes( joMessage.to );
-    bytesTo = imaUtils.invertArrayItemsLR( bytesTo );
-    bytesTo = imaUtils.bytesAlignLeftWithZeroes( bytesTo, 32 );
-    bytesTo = imaUtils.invertArrayItemsLR( bytesTo );
-    arrBytes = imaUtils.bytesConcat( arrBytes, bytesTo );
+    // let bytesTo = imaUtils.hexToBytes( joMessage.to );
+    // bytesTo = imaUtils.invertArrayItemsLR( bytesTo );
+    // bytesTo = imaUtils.bytesAlignLeftWithZeroes( bytesTo, 32 );
+    // bytesTo = imaUtils.invertArrayItemsLR( bytesTo );
+    // arrBytes = imaUtils.bytesConcat( arrBytes, bytesTo );
     //
-    const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
-    let bytesAmount = imaUtils.hexToBytes( strHexAmount );
-    // bytesAmount = imaUtils.invertArrayItemsLR( bytesAmount );
-    bytesAmount = imaUtils.bytesAlignLeftWithZeroes( bytesAmount, 32 );
-    arrBytes = imaUtils.bytesConcat( arrBytes, bytesAmount );
+    // const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
+    // let bytesAmount = imaUtils.hexToBytes( strHexAmount );
+    // /////////////////// bytesAmount = imaUtils.invertArrayItemsLR( bytesAmount );
+    // bytesAmount = imaUtils.bytesAlignLeftWithZeroes( bytesAmount, 32 );
+    // arrBytes = imaUtils.bytesConcat( arrBytes, bytesAmount );
     //
     const bytesData = imaUtils.hexToBytes( joMessage.data );
     // bytesData = imaUtils.invertArrayItemsLR( bytesData ); // do not invert byte order data field (see SKALE-3554 for details)
@@ -303,6 +303,9 @@ function perform_bls_verify_i( strDirection, nZeroBasedNodeIndex, joResultFromNo
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( jarrMessages ) + cc.debug( " using glue " ) + cc.j( joResultFromNode ) + cc.debug( " and public key " ) + cc.j( joPublicKey ) + "\n" );
         const strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
+        // console.log( "--- joResultFromNode ---", JSON.stringify( joResultFromNode ) );
+        // console.log( "--- joMsg ---", JSON.stringify( joMsg ) );
+        // console.log( "--- joPublicKey ---", JSON.stringify( joPublicKey ) );
         imaUtils.jsonFileSave( strSignResultFileName, joResultFromNode );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
         imaUtils.jsonFileSave( strActionDir + "/BLS_keys" + nZeroBasedNodeIndex + ".json", joPublicKey );
@@ -415,14 +418,14 @@ async function check_correctness_of_messages_to_sign( strLogPrefix, strDirection
         for( i = 0; i < cnt; ++i ) {
             const joMessage = jarrMessages[i]; const idxMessage = nIdxCurrentMsgBlockStart + i;
             try {
-                const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
+                // const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
                 const outgoingMessageData = {
                     dstChain: joChainName,
                     msgCounter: idxMessage,
                     srcContract: joMessage.sender,
                     dstContract: joMessage.destinationContract,
-                    to: joMessage.to,
-                    amount: strHexAmount,
+                    // to: joMessage.to,
+                    // amount: strHexAmount,
                     data: joMessage.data
                 };
                 const m = joMessageProxy.methods.verifyOutgoingMessageData(
@@ -553,7 +556,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 }
                 log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " sign result: " ) + cc.j( joOut.result ? joOut.result : null ) + "\n" );
                 try {
-                    if( joOut.result.signResult.signatureShare.length > 0 && joOut.result.signResult.status == 0 ) {
+                    if( joOut.result.signResult.signatureShare.length > 0 && joOut.result.signResult.status === 0 ) {
                         const nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
                         //
                         // partial BLS verification for one participant
@@ -578,7 +581,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                                 bNodeSignatureOKay = true; // node verification passed
                             } else {
                                 const strError = "BLS verify failed";
-                                log.write( strLogPrefixA + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
+                                log.write( strLogPrefixA + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( strError ) + "\n" );
                             }
                         } catch ( err ) {
                             log.write( strLogPrefixA + cc.fatal( "Node sign CRITICAL ERROR:" ) + cc.error( " partial signature fail from node " ) + cc.info( joNode.nodeID ) + cc.error( " with index " ) + cc.info( nZeroBasedNodeIndex ) + cc.error( ", error is " ) + cc.warning( err.toString() ) + "\n" );

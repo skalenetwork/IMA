@@ -23,9 +23,10 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
 
 
-contract ContractManager {
+contract ContractManager is IContractManager {
     using Address for address;
 
     // mapping of actual smart contracts addresses
@@ -44,7 +45,7 @@ contract ContractManager {
      * @param contractsName - contracts name in skale manager system
      * @param newContractsAddress - contracts address in skale manager system
      */
-    function setContractsAddress(string calldata contractsName, address newContractsAddress) external {
+    function setContractsAddress(string calldata contractsName, address newContractsAddress) external override {
         // check newContractsAddress is not equal zero
         require(newContractsAddress != address(0), "New address is equal zero");
         // create hash of contractsName
@@ -61,7 +62,7 @@ contract ContractManager {
     /**
      * @dev Returns the contract address for a given contractName.
      */
-    function getContract(string memory contractName) external view returns (address) {
+    function getContract(string memory contractName) external view override returns (address) {
         return contracts[keccak256(abi.encodePacked(contractName))];
     }
 }

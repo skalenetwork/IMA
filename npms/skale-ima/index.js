@@ -166,19 +166,21 @@ async function get_web3_blockNumber( attempts, w3 ) {
     const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
     let nLatestBlockNumber = "";
     try {
-        nLatestBlockNumber = await w3.eth.blockNumber;
+        nLatestBlockNumber = await w3.eth.getBlockNumber();
     } catch ( e ) {}
     let attemptIndex = 2;
     while( nLatestBlockNumber === "" && attemptIndex <= allAttempts ) {
-        log.write( cc.fatal( "Repeat getBlockNumber attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( nLatestBlockNumber ) + "\n" );
+        log.write(
+            cc.warning( "Repeat " ) + cc.error( "getBlockNumber" ) + cc.warning( ", attempt " ) + cc.info( attemptIndex ) +
+            cc.info( ", previous result is: " ) + cc.info( nLatestBlockNumber ) + "\n" );
         await sleep( 10000 );
         try {
-            nLatestBlockNumber = await w3.eth.blockNumber;
+            nLatestBlockNumber = await w3.eth.getBlockNumber();
         } catch ( e ) {}
         attemptIndex++;
     }
     if( attemptIndex + 1 > allAttempts && nLatestBlockNumber === "" )
-        throw new Error( "Cound not get blockNumber" );
+        throw new Error( "Could not not get blockNumber" );
     return nLatestBlockNumber;
 }
 
@@ -195,8 +197,11 @@ async function get_web3_pastEvents( attempts, joContract, strEventName, nBlockFr
     } catch ( e ) {}
     let attemptIndex = 2;
     while( joAllEventsInBlock === "" && attemptIndex <= allAttempts ) {
-        log.write( cc.fatal( "Repeat getPastEvents" ) + cc.info( strEventName ) + cc.info( "attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( joAllEventsInBlock ) + "\n" );
-        await sleep( 10000 );
+        log.write(
+            cc.warning( "Repeat " ) + cc.error( "getPastEvents" ) + cc.warning( "/" ) + cc.error( strEventName ) +
+            cc.warning( ", attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( ", previous result is: " ) + cc.j( joAllEventsInBlock ) + "\n" );
+        await sleep( 1000 );
         try {
             joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
                 filter: joFilter,
@@ -207,7 +212,7 @@ async function get_web3_pastEvents( attempts, joContract, strEventName, nBlockFr
         attemptIndex++;
     }
     if( attemptIndex + 1 === allAttempts && joAllEventsInBlock === "" )
-        throw new Error( "Cound not get Event" + strEventName );
+        throw new Error( "Could not not get Event" + strEventName );
     return joAllEventsInBlock;
 }
 
@@ -219,15 +224,17 @@ async function get_web3_transactionCount( attempts, w3, address, param ) {
     } catch ( e ) {}
     let attemptIndex = 2;
     while( txc === "" && attemptIndex <= allAttempts ) {
-        log.write( cc.fatal( "Repeat getTransactionCount attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( txc ) + "\n" );
+        log.write(
+            cc.warning( "Repeat " ) + cc.error( "getTransactionCount" ) + cc.warning( " attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( ", previous result is: " ) + cc.info( txc ) + "\n" );
         await sleep( 10000 );
         try {
-            txc = await w3.eth.blockNumber;
+            txc = await w3.eth.getBlockNumber();
         } catch ( e ) {}
         attemptIndex++;
     }
     if( attemptIndex + 1 > allAttempts && txc === "" )
-        throw new Error( "Cound not get Transaction Count" );
+        throw new Error( "Could not not get Transaction Count" );
     return txc;
 }
 
@@ -239,7 +246,9 @@ async function get_web3_transactionReceipt( attempts, w3, txHash ) {
     } catch ( e ) {}
     let attemptIndex = 2;
     while( txReceipt === "" && attemptIndex <= allAttempts ) {
-        log.write( cc.fatal( "Repeat getTransactionReceipt attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( txReceipt ) + "\n" );
+        log.write(
+            cc.warning( "Repeat " ) + cc.error( "getTransactionReceipt" ) + cc.warning( ", attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( ", previous result is: " ) + cc.j( txReceipt ) + "\n" );
         await sleep( 10000 );
         try {
             txReceipt = await w3.eth.getTransactionReceipt( txHash );
@@ -247,7 +256,7 @@ async function get_web3_transactionReceipt( attempts, w3, txHash ) {
         attemptIndex++;
     }
     if( attemptIndex + 1 > allAttempts && txReceipt === "" )
-        throw new Error( "Cound not get Transaction Count" );
+        throw new Error( "Could not not get Transaction Count" );
     return txReceipt;
 }
 
@@ -260,9 +269,9 @@ async function get_web3_transactionReceipt( attempts, w3, txHash ) {
 //     try {
 //         if( strAction === "BlockNumber" ) {
 //             console.log("\n First type of call\n");
-//             result = await web3Obj.eth.blockNumber;
+//             result = await web3Obj.eth.getBlockNumber();
 //         } else if( params.length == 1 && ( params[0] === undefined || params[0] === null ) ) {
-//             console.log("\n Secnd type of call\n");
+//             console.log("\n Second type of call\n");
 //             result = await eth_call();
 //         } else {
 //             console.log("\n Third type of call\n");
@@ -277,9 +286,9 @@ async function get_web3_transactionReceipt( attempts, w3, txHash ) {
 //         try {
 //             if( strAction === "BlockNumber" ) {
 //                 console.log("\n First type of call\n");
-//                 result = await web3Obj.eth.blockNumber;
+//                 result = await web3Obj.eth.getBlockNumber();
 //             } else if( params.length == 1 && ( params[0] === undefined || params[0] === null ) ) {
-//                 console.log("\n Secnd type of call\n");
+//                 console.log("\n Second type of call\n");
 //                 result = await eth_call();
 //             } else {
 //                 console.log("\n Third type of call\n");
@@ -290,7 +299,7 @@ async function get_web3_transactionReceipt( attempts, w3, txHash ) {
 //     }
 //     console.log("\n\n\n" + result + "\n\n\n");
 //     if( attemptIndex + 1 === allAttempts && ( result === "" || result === undefined ) )
-//         throw new Error( "Cound not get " + strAction );
+//         throw new Error( "Could not not get " + strAction );
 //     return result;
 // }
 
@@ -337,7 +346,8 @@ function compose_tx_instance( strLogPrefix, rawTx ) {
         log.write( cc.attention( "TRANSACTION COMPOSER" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3mod.version ) + "\n" );
     strLogPrefix = strLogPrefix || "";
     rawTx = JSON.parse( JSON.stringify( rawTx ) ); // clone
-    let joOpts = null;
+    const joOpts = null;
+    /*
     if( "chainId" in rawTx && typeof rawTx.chainId == "number" ) {
         switch ( rawTx.chainId ) {
         case 1:
@@ -367,6 +377,7 @@ function compose_tx_instance( strLogPrefix, rawTx ) {
             break;
         } // switch( rawTx.chainId )
     }
+*/
     // if( rawTx.chainId && Number(rawTx.chainId) > 1 ) {
     //     rawTx.nonce += 1048576; // see https://ethereum.stackexchange.com/questions/12810/need-help-signing-a-raw-transaction-with-ethereumjs-tx
     //     rawTx.nonce = w3mod.utils.toHex( rawTx.nonce );
@@ -744,33 +755,33 @@ async function safe_send_signed_transaction( w3, serializedTx, strActionName, st
 // register direction for money transfer
 // main-net.DepositBox call: function addSchain(uint64 schainID, address tokenManagerAddress)
 //
-async function check_is_registered_s_chain_in_deposit_box( // step 1
+async function check_is_registered_s_chain_in_deposit_boxes( // step 1
     w3_main_net,
-    jo_lock_and_data_main_net,
+    jo_imalinker,
     joAccount_main_net,
     chain_id_s_chain
 ) {
-    log.write( cc.info( "Main-net " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( jo_lock_and_data_main_net.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "  address is....." ) + cc.bright( jo_imalinker.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
     const strLogPrefix = cc.note( "RegChk S in depositBox:" ) + " ";
     if( verbose_get() >= RV_VERBOSE.debug ) {
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( strLogPrefix + cc.bright( "check_is_registered_s_chain_in_deposit_box(reg-step1)" ) + "\n" );
+        log.write( strLogPrefix + cc.bright( "check_is_registered_s_chain_in_deposit_boxes(reg-step1)" ) + "\n" );
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
     let strActionName = "";
     try {
-        strActionName = "check_is_registered_s_chain_in_deposit_box(reg-step1)";
+        strActionName = "check_is_registered_s_chain_in_deposit_boxes(reg-step1)";
         const addressFrom = joAccount_main_net.address( w3_main_net );
-        const bIsRegistered = await jo_lock_and_data_main_net.methods.hasSchain( chain_id_s_chain ).call( {
+        const bIsRegistered = await jo_imalinker.methods.hasSchain( chain_id_s_chain ).call( {
             from: addressFrom
         } );
         if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "check_is_registered_s_chain_in_deposit_box(reg-step1) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
+            log.write( strLogPrefix + cc.success( "check_is_registered_s_chain_in_deposit_boxes(reg-step1) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
         return bIsRegistered;
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in check_is_registered_s_chain_in_deposit_box(reg-step1)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in check_is_registered_s_chain_in_deposit_boxes(reg-step1)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
     }
     return false;
 }
@@ -824,10 +835,12 @@ async function wait_for_has_chain(
     return false;
 }
 
-async function register_s_chain_in_deposit_box( // step 1
+async function register_s_chain_in_deposit_boxes( // step 1
     w3_main_net,
-    // jo_deposit_box, // only main net
-    jo_lock_and_data_main_net,
+    // jo_deposit_box_eth, // only main net
+    // jo_deposit_box_erc20, // only main net
+    // jo_deposit_box_erc721, // only main net
+    jo_imalinker,
     joAccount_main_net,
     jo_token_manager, // only s-chain
     chain_id_s_chain,
@@ -836,13 +849,13 @@ async function register_s_chain_in_deposit_box( // step 1
     cntWaitAttempts,
     nSleepMilliseconds
 ) {
-    const jarrReceipts = []; // register_s_chain_in_deposit_box
-    log.write( cc.info( "Main-net " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( jo_lock_and_data_main_net.options.address ) + "\n" );
+    const jarrReceipts = []; // register_s_chain_in_deposit_boxes
+    log.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "  address is......." ) + cc.bright( jo_imalinker.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
-    const strLogPrefix = cc.sunny( "Reg S in depositBox:" ) + " ";
+    const strLogPrefix = cc.sunny( "Reg S in depositBoxes:" ) + " ";
     if( verbose_get() >= RV_VERBOSE.debug ) {
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( strLogPrefix + cc.bright( "reg-step1:register_s_chain_in_deposit_box" ) + "\n" );
+        log.write( strLogPrefix + cc.bright( "reg-step1:register_s_chain_in_deposit_boxes" ) + "\n" );
         log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     }
     let strActionName = "";
@@ -856,67 +869,84 @@ async function register_s_chain_in_deposit_box( // step 1
         //
         //
         //
+        // if( verbose_get() >= RV_VERBOSE.debug ) {
+        //     const strOwnerOfDepositBoxEth = await jo_deposit_box_eth.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
+        //     const strOwnerOfDepositBoxERC20 = await jo_deposit_box_erc20.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
+        //     const strOwnerOfDepositBoxERC721 = await jo_deposit_box_erc721.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
+        //     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxEth ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxEth" ) + "\n" );
+        //     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxERC20 ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxERC20" ) + "\n" );
+        //     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxERC721 ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxERC721" ) + "\n" );
+        //     log.write( strLogPrefix + cc.debug( "Calls came from " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + "\n" );
+        // }
+        //
+        //
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will register S-Chain in lock_and_data on Main-net" ) + "\n" );
-        const isSchainOwner = await jo_lock_and_data_main_net.methods.isSchainOwner(
-            joAccount_main_net.address( w3_main_net ),
-            w3_main_net.utils.soliditySha3(
-                chain_id_s_chain
-            )
-        ).call( { from: joAccount_main_net.address( w3_main_net ) } );
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "Account " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + cc.debug( " has S-Chain owner permission " ) + cc.info( isSchainOwner ) + "\n" );
-        if( isSchainOwner ) {
-            const methodWithArguments = jo_lock_and_data_main_net.methods.addSchain(
-                chain_id_s_chain, jo_token_manager.options.address // call params
-            );
-            const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+        // const isSchainOwner = await jo_lock_and_data_main_net.methods.isSchainOwner(
+        //     joAccount_main_net.address( w3_main_net ),
+        //     w3_main_net.utils.soliditySha3(
+        //         chain_id_s_chain
+        //     )
+        // ).call( { from: joAccount_main_net.address( w3_main_net ) } );
+        // if( verbose_get() >= RV_VERBOSE.trace )
+        //     log.write( strLogPrefix + cc.debug( "Account " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + cc.debug( " has S-Chain owner permission " ) + cc.info( isSchainOwner ) + "\n" );
+        // if( isSchainOwner ) {
+        const methodWithArguments = jo_imalinker.methods.connectSchain(
+            chain_id_s_chain,
+            [
+                jo_token_manager.options.address, // call params
+                jo_token_manager.options.address, // call params
+                jo_token_manager.options.address // call params
+            ]
+        );
+        const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+        //
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ), "0" );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
             //
-            const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
-            if( verbose_get() >= RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-            const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ), "0" );
-            if( verbose_get() >= RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
-            //
-            const isIgnore = false;
-            const strDRC = "register_s_chain_in_deposit_box, step 1, addSchain";
-            await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
-            //
-            const rawTx = {
-                chainId: cid_main_net,
-                nonce: tcnt,
-                gasPrice: gasPrice,
-                // gasLimit: estimatedGas,
-                gas: estimatedGas, // gas is optional here
-                to: jo_lock_and_data_main_net.options.address, // contract address
-                data: dataTx
-            };
-            const tx = compose_tx_instance( strLogPrefix, rawTx );
-            const joSR = await safe_sign_transaction_with_account( w3_main_net, tx, rawTx, joAccount_main_net );
-            let joReceipt = null;
-            if( joSR.joACI.isAutoSend )
-                joReceipt = await get_web3_transactionReceipt( 10, w3_main_net, joSR.txHashSent );
-            else {
-                const serializedTx = tx.serialize();
-                strActionName = "reg-step1:w3_main_net.eth.sendSignedTransaction()";
-                // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-                joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
-            }
-            if( verbose_get() >= RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
-            if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
-                jarrReceipts.push( {
-                    "description": "register_s_chain_in_deposit_box",
-                    "receipt": joReceipt
-                } );
-            }
-        } else
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "Will wait until S-Chain owner will register S-Chain in lock_and_data on Main-net" ) + "\n" );
+        const isIgnore = false;
+        const strDRC = "register_s_chain_in_deposit_boxes, step 1, connectSchain";
+        await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        //
+        const rawTx = {
+            chainId: cid_main_net,
+            nonce: tcnt,
+            gasPrice: gasPrice,
+            // gasLimit: estimatedGas,
+            gas: estimatedGas, // gas is optional here
+            to: jo_imalinker.options.address, // contract address
+            data: dataTx
+        };
+        const tx = compose_tx_instance( strLogPrefix, rawTx );
+        const joSR = await safe_sign_transaction_with_account( w3_main_net, tx, rawTx, joAccount_main_net );
+        let joReceipt = null;
+        if( joSR.joACI.isAutoSend )
+            joReceipt = await get_web3_transactionReceipt( 10, w3_main_net, joSR.txHashSent );
+        else {
+            const serializedTx = tx.serialize();
+            strActionName = "reg-step1:w3_main_net.eth.sendSignedTransaction()";
+            // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+            joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
+        }
+        if( verbose_get() >= RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+            jarrReceipts.push( {
+                "description": "register_s_chain_in_deposit_boxes",
+                "receipt": joReceipt
+            } );
+        }
+        // } else
+        // if( verbose_get() >= RV_VERBOSE.trace )
+        //     log.write( strLogPrefix + cc.debug( "Will wait until S-Chain owner will register S-Chain in ima-linker on Main-net" ) + "\n" );
         const isSChainStatusOKay = await wait_for_has_chain(
             w3_main_net,
-            jo_lock_and_data_main_net,
+            jo_imalinker,
             joAccount_main_net,
             chain_id_s_chain,
             cntWaitAttempts,
@@ -926,7 +956,7 @@ async function register_s_chain_in_deposit_box( // step 1
             throw new Error( "S-Chain ownership status check timeout" );
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_s_chain_in_deposit_box() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_s_chain_in_deposit_boxes() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
         return null;
     }
     return jarrReceipts;
@@ -934,6 +964,9 @@ async function register_s_chain_in_deposit_box( // step 1
 
 async function check_is_registered_main_net_depositBox_on_s_chain( // step 2A
     w3_s_chain,
+    jo_deposit_box_eth_main_net,
+    jo_deposit_box_erc20_main_net,
+    jo_deposit_box_erc721_main_net,
     jo_lock_and_data_s_chain,
     joAccount
 ) {
@@ -948,12 +981,22 @@ async function check_is_registered_main_net_depositBox_on_s_chain( // step 2A
     try {
         strActionName = "check_is_registered_main_net_depositBox_on_s_chain(reg-step2A)";
         const addressFrom = joAccount.address( w3_s_chain );
-        const bIsRegistered = await jo_lock_and_data_s_chain.methods.hasDepositBox().call( {
+        const bIsRegisteredEth = await jo_lock_and_data_s_chain.methods.hasDepositBox( jo_deposit_box_eth_main_net.options.address ).call( {
+            from: addressFrom
+        } );
+        const bIsRegisteredERC20 = await jo_lock_and_data_s_chain.methods.hasDepositBox( jo_deposit_box_erc20_main_net.options.address ).call( {
+            from: addressFrom
+        } );
+        const bIsRegisteredERC721 = await jo_lock_and_data_s_chain.methods.hasDepositBox( jo_deposit_box_erc721_main_net.options.address ).call( {
             from: addressFrom
         } );
         if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "check_is_registered_main_net_depositBox_on_s_chain(reg-step2A) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
-        return bIsRegistered;
+            log.write( strLogPrefix + cc.success( "check_is_registered_main_net_depositBox_eth_on_s_chain(reg-step2A) status is: " ) + cc.attention( bIsRegisteredEth ) + "\n" );
+        if( verbose_get() >= RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.success( "check_is_registered_main_net_depositBox_erc20_on_s_chain(reg-step2A) status is: " ) + cc.attention( bIsRegisteredERC20 ) + "\n" );
+        if( verbose_get() >= RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.success( "check_is_registered_main_net_depositBox_erc721_on_s_chain(reg-step2A) status is: " ) + cc.attention( bIsRegisteredERC721 ) + "\n" );
+        return bIsRegisteredEth && bIsRegisteredERC20 && bIsRegisteredERC721;
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( "Error in check_is_registered_main_net_depositBox_on_s_chain(reg-step2)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
@@ -964,7 +1007,9 @@ async function check_is_registered_main_net_depositBox_on_s_chain( // step 2A
 async function register_main_net_depositBox_on_s_chain( // step 2A
     w3_s_chain,
     // excluded here: jo_token_manager,
-    jo_deposit_box_main_net,
+    jo_deposit_box_eth_main_net,
+    jo_deposit_box_erc20_main_net,
+    jo_deposit_box_erc721_main_net,
     jo_lock_and_data_s_chain,
     joAccount,
     cid_s_chain,
@@ -984,53 +1029,131 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
         strActionName = "reg-step2A:w3_s_chain.eth.getTransactionCount()/register_main_net_depositBox_on_s_chain";
         if( verbose_get() >= RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        const tcnt = await get_web3_transactionCount( 10, w3_s_chain, joAccount.address( w3_s_chain ), null );
+        let tcnt = await get_web3_transactionCount( 10, w3_s_chain, joAccount.address( w3_s_chain ), null );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
-        const methodWithArguments = jo_lock_and_data_s_chain.methods.addDepositBox(
-            jo_deposit_box_main_net.options.address // call params
+        const methodWithArgumentsEth = jo_lock_and_data_s_chain.methods.addDepositBox(
+            jo_deposit_box_eth_main_net.options.address // call params
         );
-        const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+        const dataTxEth = methodWithArgumentsEth.encodeABI(); // the encoded ABI of the method
+        //
+        const methodWithArgumentsERC20 = jo_lock_and_data_s_chain.methods.addDepositBox(
+            jo_deposit_box_erc20_main_net.options.address // call params
+        );
+        const dataTxERC20 = methodWithArgumentsERC20.encodeABI(); // the encoded ABI of the method
+        //
+        const methodWithArgumentsERC721 = jo_lock_and_data_s_chain.methods.addDepositBox(
+            jo_deposit_box_erc721_main_net.options.address // call params
+        );
+        const dataTxERC721 = methodWithArgumentsERC721.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-        const estimatedGas = await tc_s_chain.computeGas( methodWithArguments, w3_s_chain, 3000000, gasPrice, joAccount.address( w3_s_chain ), "0" );
+        const estimatedGasEth = await tc_s_chain.computeGas( methodWithArgumentsEth, w3_s_chain, 3000000, gasPrice, joAccount.address( w3_s_chain ), "0" );
+        const estimatedGasERC20 = await tc_s_chain.computeGas( methodWithArgumentsERC20, w3_s_chain, 3000000, gasPrice, joAccount.address( w3_s_chain ), "0" );
+        const estimatedGasERC721 = await tc_s_chain.computeGas( methodWithArgumentsERC721, w3_s_chain, 3000000, gasPrice, joAccount.address( w3_s_chain ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+            log.write( strLogPrefix + cc.debug( "Using estimated for addDepositBoxEth " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasEth ) + "\n" );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using estimated for addDepositBoxERC20 " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasERC20 ) + "\n" );
+        if( verbose_get() >= RV_VERBOSE.debug )
+            log.write( strLogPrefix + cc.debug( "Using estimated for addDepositBoxERC721 " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasERC721 ) + "\n" );
         //
         const isIgnore = false;
         const strDRC = "register_main_net_depositBox_on_s_chain, step 2A, addDepositBox";
-        await dry_run_call( w3_s_chain, methodWithArguments, joAccount, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        await dry_run_call( w3_s_chain, methodWithArgumentsEth, joAccount, strDRC, isIgnore, gasPrice, estimatedGasEth, "0" );
+        await dry_run_call( w3_s_chain, methodWithArgumentsEth, joAccount, strDRC, isIgnore, gasPrice, estimatedGasERC20, "0" );
+        await dry_run_call( w3_s_chain, methodWithArgumentsEth, joAccount, strDRC, isIgnore, gasPrice, estimatedGasERC721, "0" );
         //
-        const rawTx = {
+        const rawTxEth = {
             chainId: cid_s_chain,
             nonce: tcnt,
             gasPrice: gasPrice,
-            // gasLimit: estimatedGas,
-            gas: estimatedGas, // gas is optional here
+            // gasLimit: estimatedGasEth,
+            gas: estimatedGasEth, // gas is optional here
             to: jo_lock_and_data_s_chain.options.address, // contract address
-            data: dataTx
+            data: dataTxEth
         };
-        const tx = compose_tx_instance( strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( w3_s_chain, tx, rawTx, joAccount );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await get_web3_transactionReceipt( 10, w3_s_chain, joSR.txHashSent );
+        const txEth = compose_tx_instance( strLogPrefix, rawTxEth );
+        const joSREth = await safe_sign_transaction_with_account( w3_s_chain, txEth, rawTxEth, joAccount );
+        let joReceiptEth = null;
+        if( joSREth.joACI.isAutoSend )
+            joReceiptEth = await get_web3_transactionReceipt( 10, w3_s_chain, joSREth.txHashSent );
         else {
-            const serializedTx = tx.serialize();
+            const serializedTx = txEth.serialize();
             strActionName = "reg-step2A:w3_s_chain.eth.sendSignedTransaction()";
-            // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
+            // let joReceiptEth = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+            joReceiptEth = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
         }
         if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
-        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+            log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceiptEth ) + "\n" );
+        if( joReceiptEth && typeof joReceiptEth == "object" && "gasUsed" in joReceiptEth ) {
             jarrReceipts.push( {
-                "description": "register_main_net_depositBox_on_s_chain",
-                "receipt": joReceipt
+                "description": "register_main_net_depositBox_eth_on_s_chain",
+                "receipt": joReceiptEth
+            } );
+        }
+        //
+        tcnt = await get_web3_transactionCount( 10, w3_s_chain, joAccount.address( w3_s_chain ), null );
+        const rawTxERC20 = {
+            chainId: cid_s_chain,
+            nonce: tcnt,
+            gasPrice: gasPrice,
+            // gasLimit: estimatedGasERC20,
+            gas: estimatedGasERC20, // gas is optional here
+            to: jo_lock_and_data_s_chain.options.address, // contract address
+            data: dataTxERC20
+        };
+        const txERC20 = compose_tx_instance( strLogPrefix, rawTxERC20 );
+        const joSChainRawERC20 = await safe_sign_transaction_with_account( w3_s_chain, txERC20, rawTxERC20, joAccount );
+        let joReceiptERC20 = null;
+        if( joSChainRawERC20.joACI.isAutoSend )
+            joReceiptERC20 = await get_web3_transactionReceipt( 10, w3_s_chain, joSChainRawERC20.txHashSent );
+        else {
+            const serializedTx = txERC20.serialize();
+            strActionName = "reg-step2A:w3_s_chain.eth.sendSignedTransaction()";
+            // let joReceiptERC20 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+            joReceiptERC20 = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
+        }
+        if( verbose_get() >= RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceiptERC20 ) + "\n" );
+        if( joReceiptERC20 && typeof joReceiptERC20 == "object" && "gasUsed" in joReceiptERC20 ) {
+            jarrReceipts.push( {
+                "description": "register_main_net_depositBox_erc20_on_s_chain",
+                "receipt": joReceiptERC20
+            } );
+        }
+        //
+        tcnt = await get_web3_transactionCount( 10, w3_s_chain, joAccount.address( w3_s_chain ), null );
+        const rawTxERC721 = {
+            chainId: cid_s_chain,
+            nonce: tcnt,
+            gasPrice: gasPrice,
+            // gasLimit: estimatedGasERC721,
+            gas: estimatedGasERC721, // gas is optional here
+            to: jo_lock_and_data_s_chain.options.address, // contract address
+            data: dataTxERC721
+        };
+        const txERC721 = compose_tx_instance( strLogPrefix, rawTxERC721 );
+        const joSChainRawERC721 = await safe_sign_transaction_with_account( w3_s_chain, txERC721, rawTxERC721, joAccount );
+        let joReceiptERC721 = null;
+        if( joSChainRawERC721.joACI.isAutoSend )
+            joReceiptERC721 = await get_web3_transactionReceipt( 10, w3_s_chain, joSChainRawERC721.txHashSent );
+        else {
+            const serializedTx = txERC721.serialize();
+            strActionName = "reg-step2A:w3_s_chain.et1h.sendSignedTransaction()";
+            // let joReceiptERC721 = await w3_s_chain.et1h.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+            joReceiptERC721 = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
+        }
+        if( verbose_get() >= RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceiptERC721 ) + "\n" );
+        if( joReceiptERC721 && typeof joReceiptERC721 == "object" && "gasUsed" in joReceiptERC721 ) {
+            jarrReceipts.push( {
+                "description": "register_main_net_depositBox_erc721_on_s_chain",
+                "receipt": joReceiptERC721
             } );
         }
     } catch ( err ) {
@@ -1109,7 +1232,7 @@ async function register_main_net_on_s_chain( // step 2B
         // https://ethereum.stackexchange.com/questions/47426/call-contract-function-signed-on-client-side-web3-js-1-0
         // https://ethereum.stackexchange.com/questions/25839/how-to-make-transactions-using-private-key-in-web3
         const methodWithArguments = jo_message_proxy_s_chain.methods.addConnectedChain(
-            chain_id_main_net, [ 0, 0, 0, 0 ] // call params
+            chain_id_main_net // call params
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
@@ -1180,7 +1303,6 @@ async function do_eth_payment_from_main_net(
     joAccountDst,
     jo_deposit_box,
     jo_message_proxy_main_net, // for checking logs
-    jo_lock_and_data_main_net, // for checking logs
     chain_id_s_chain,
     wei_how_much, // how much WEI money to send
     tc_main_net
@@ -1258,31 +1380,31 @@ async function do_eth_payment_from_main_net(
             } else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
-        if( jo_lock_and_data_main_net ) {
-            if( verbose_get() >= RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "ETHReceived" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-            const joEvents = await get_contract_call_events( w3_main_net, jo_lock_and_data_main_net, "ETHReceived", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-            if( joEvents.length > 0 ) {
-                if( verbose_get() >= RV_VERBOSE.information )
-                    log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "ETHReceived" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-            } else
-                throw new Error( "Verification failed for the \"ETHReceived\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-        } // if( jo_lock_and_data_main_net )
+        // if( jo_lock_and_data_main_net ) {
+        //     if( verbose_get() >= RV_VERBOSE.information )
+        //         log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "ETHReceived" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
+        //     const joEvents = await get_contract_call_events( w3_main_net, jo_lock_and_data_main_net, "ETHReceived", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length > 0 ) {
+        //         if( verbose_get() >= RV_VERBOSE.information )
+        //             log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "ETHReceived" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+        //     } else
+        //         throw new Error( "Verification failed for the \"ETHReceived\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
+        // } // if( jo_lock_and_data_main_net )
         //
         // Must-absent event(s) analysis as indicator(s) of success
         //
-        if( jo_lock_and_data_main_net ) {
-            if( verbose_get() >= RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-            const joEvents = await get_contract_call_events( w3_main_net, jo_lock_and_data_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-            if( joEvents.length == 0 ) {
-                if( verbose_get() >= RV_VERBOSE.information )
-                    log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, no event found" ) + "\n" );
-            } else {
-                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error verification fail" ) + cc.error( " for the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-                throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-            }
-        } // if( jo_lock_and_data_main_net )
+        // if( jo_lock_and_data_main_net ) {
+        //     if( verbose_get() >= RV_VERBOSE.information )
+        //         log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
+        //     const joEvents = await get_contract_call_events( w3_main_net, jo_lock_and_data_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length == 0 ) {
+        //         if( verbose_get() >= RV_VERBOSE.information )
+        //             log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, no event found" ) + "\n" );
+        //     } else {
+        //         log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error verification fail" ) + cc.error( " for the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+        //         throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
+        //     }
+        // } // if( jo_lock_and_data_main_net )
         if( jo_deposit_box ) {
             if( verbose_get() >= RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.debug( " contract..." ) + "\n" );
@@ -1422,7 +1544,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
     w3_main_net,
     cid_main_net,
     joAccount_main_net,
-    jo_lock_and_data_main_net,
+    jo_imalinker,
     tc_main_net
 ) {
     const jarrReceipts = []; // receive_eth_payment_from_s_chain_on_main_net
@@ -1436,7 +1558,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
-        const methodWithArguments = jo_lock_and_data_main_net.methods.getMyEth(
+        const methodWithArguments = jo_imalinker.methods.getMyEth(
             // call params(empty)
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
@@ -1458,7 +1580,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             gas: estimatedGas, // 2100000
             gasPrice: gasPrice,
             // gasLimit: estimatedGas, // 3000000
-            to: jo_lock_and_data_main_net.options.address, // contract address
+            to: jo_imalinker.options.address, // contract address
             data: dataTx,
             value: 0 // how much money to send
         };
@@ -1496,7 +1618,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
 async function view_eth_payment_from_s_chain_on_main_net(
     w3_main_net,
     joAccount_main_net,
-    jo_lock_and_data_main_net
+    jo_imalinker
 ) {
     let strActionName = ""; const strLogPrefix = cc.info( "S ETH View:" ) + " ";
     try {
@@ -1509,7 +1631,7 @@ async function view_eth_payment_from_s_chain_on_main_net(
         //
         //
         const addressFrom = joAccount_main_net.address( w3_main_net );
-        const xWei = await jo_lock_and_data_main_net.methods.approveTransfers( addressFrom ).call( {
+        const xWei = await jo_imalinker.methods.approveTransfers( addressFrom ).call( {
             from: addressFrom
         } );
         if( verbose_get() >= RV_VERBOSE.information )
@@ -1535,9 +1657,8 @@ async function do_erc721_payment_from_main_net(
     cid_s_chain,
     joAccountSrc,
     joAccountDst,
-    jo_deposit_box,
+    jo_deposit_box_erc721,
     jo_message_proxy_main_net, // for checking logs
-    jo_lock_and_data_main_net, // for checking logs
     chain_id_s_chain,
     token_id, // which ERC721 token id to send
     wei_how_much, // how much ETH
@@ -1564,14 +1685,16 @@ async function do_erc721_payment_from_main_net(
         const erc721Address_main_net = erc721PrivateTestnetJson_main_net[strCoinNameErc721_main_net + "_address"];
         const contractERC721 = new w3_main_net.eth.Contract( erc721ABI, erc721Address_main_net );
         // prepare the smart contract function deposit(string schainID, address to)
-        const depositBoxAddress = jo_deposit_box.options.address;
+        const depositBoxAddress = jo_deposit_box_erc721.options.address;
         const accountForSchain = joAccountDst.address( w3_s_chain );
-        const methodWithArguments_approve = contractERC721.methods.transferFrom( // same as approve in 20
-            joAccountSrc.address( w3_main_net ), depositBoxAddress, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
+        const methodWithArguments_approve = contractERC721.methods.approve( // same as approve in 20
+            // joAccountSrc.address( w3_main_net ),
+            depositBoxAddress,
+            "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
         );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
         let dataTxDeposit = null;
-        const methodWithArguments_rawDepositERC721 = jo_deposit_box.methods.depositERC721(
+        const methodWithArguments_rawDepositERC721 = jo_deposit_box_erc721.methods.depositERC721(
             chain_id_s_chain,
             erc721Address_main_net,
             accountForSchain,
@@ -1634,13 +1757,13 @@ async function do_erc721_payment_from_main_net(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const estimatedGas_deposit = await tc_main_net.computeGas( methodWithArguments_rawDepositERC721, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ), wei_how_much );
+        const estimatedGas_deposit = await tc_main_net.computeGas( methodWithArguments_rawDepositERC721, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_deposit ) + "\n" );
         //
         const isIgnore_rawDepositERC721 = true;
         const strDRC_rawDepositERC721 = "do_erc721_payment_from_main_net, rawDepositERC721";
-        await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721, gasPrice, estimatedGas_deposit, wei_how_much );
+        await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721, gasPrice, estimatedGas_deposit, "0" );
         //
         const rawTxDeposit = {
             chainId: cid_main_net,
@@ -1649,8 +1772,8 @@ async function do_erc721_payment_from_main_net(
             data: dataTxDeposit,
             to: depositBoxAddress,
             gasPrice: gasPrice,
-            gas: estimatedGas_deposit,
-            value: "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
+            gas: estimatedGas_deposit
+            // value: "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
             //, value: 2000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" )
         };
         const txDeposit = compose_tx_instance( strLogPrefix, rawTxDeposit );
@@ -1695,28 +1818,28 @@ async function do_erc721_payment_from_main_net(
         //
         // Must-absent event(s) analysis as indicator(s) of success
         //
-        if( jo_lock_and_data_main_net ) {
+        // if( jo_lock_and_data_main_net ) {
+        //     if( verbose_get() >= RV_VERBOSE.information )
+        //         log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
+        //     const joEvents = await get_contract_call_events( w3_main_net, jo_lock_and_data_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length == 0 ) {
+        //         if( verbose_get() >= RV_VERBOSE.information )
+        //             log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, no event found" ) + "\n" );
+        //     } else {
+        //         log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error verification fail" ) + cc.error( " for the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+        //         throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
+        //     }
+        // } // if( jo_lock_and_data_main_net )
+        if( jo_deposit_box_erc721 ) {
             if( verbose_get() >= RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-            const joEvents = await get_contract_call_events( w3_main_net, jo_lock_and_data_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+                log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_erc721.options.address ) + cc.debug( " contract..." ) + "\n" );
+            const joEvents = await get_contract_call_events( w3_main_net, jo_deposit_box_erc721, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length == 0 ) {
                 if( verbose_get() >= RV_VERBOSE.information )
-                    log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, no event found" ) + "\n" );
+                    log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_erc721.options.address ) + cc.success( " contract, no event found" ) + "\n" );
             } else {
-                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error verification fail" ) + cc.error( " for the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-                throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-            }
-        } // if( jo_lock_and_data_main_net )
-        if( jo_deposit_box ) {
-            if( verbose_get() >= RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.debug( " contract..." ) + "\n" );
-            const joEvents = await get_contract_call_events( w3_main_net, jo_deposit_box, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-            if( joEvents.length == 0 ) {
-                if( verbose_get() >= RV_VERBOSE.information )
-                    log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.success( " contract, no event found" ) + "\n" );
-            } else {
-                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error verification fail" ) + cc.error( " for the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-                throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box.options.address + " contract, no events found" );
+                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error verification fail" ) + cc.error( " for the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_erc721.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_erc721.options.address + " contract, no events found" );
             }
         } // if( jo_deposit_box )
     } catch ( err ) {
@@ -1739,9 +1862,8 @@ async function do_erc20_payment_from_main_net(
     cid_s_chain,
     joAccountSrc,
     joAccountDst,
-    jo_deposit_box,
+    jo_deposit_box_erc20,
     jo_message_proxy_main_net, // for checking logs
-    jo_lock_and_data_main_net, // for checking logs
     chain_id_s_chain,
     token_amount, // how much ERC20 tokens to send
     wei_how_much, // how much ETH
@@ -1771,14 +1893,14 @@ async function do_erc20_payment_from_main_net(
         // log.write( strLogPrefix + cc.normal("erc20Address_main_net = ") + cc.info(erc20Address_main_net) + "\n" )
         const contractERC20 = new w3_main_net.eth.Contract( erc20ABI, erc20Address_main_net );
         // prepare the smart contract function deposit(string schainID, address to)
-        const depositBoxAddress = jo_deposit_box.options.address;
+        const depositBoxAddress = jo_deposit_box_erc20.options.address;
         const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC20.methods.approve(
             depositBoxAddress, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
         let dataTxDeposit = null;
-        const methodWithArguments_rawDepositERC20 = jo_deposit_box.methods.depositERC20(
+        const methodWithArguments_rawDepositERC20 = jo_deposit_box_erc20.methods.depositERC20(
             chain_id_s_chain,
             erc20Address_main_net,
             accountForSchain,
@@ -1840,13 +1962,13 @@ async function do_erc20_payment_from_main_net(
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
-        const estimatedGas_deposit = await tc_main_net.computeGas( methodWithArguments_rawDepositERC20, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ), wei_how_much );
+        const estimatedGas_deposit = await tc_main_net.computeGas( methodWithArguments_rawDepositERC20, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_deposit ) + "\n" );
         //
         const isIgnore_rawDepositERC20 = true;
         const strDRC_rawDepositERC20 = "do_erc20_payment_from_main_net, rawDepositERC20";
-        await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20, gasPrice, estimatedGas_deposit, wei_how_much );
+        await dry_run_call( w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20, gasPrice, estimatedGas_deposit, "0" );
         //
         tcnt += 1;
         const rawTxDeposit = {
@@ -1856,8 +1978,8 @@ async function do_erc20_payment_from_main_net(
             data: dataTxDeposit,
             to: depositBoxAddress,
             gasPrice: gasPrice, // 0
-            gas: estimatedGas_deposit,
-            value: "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
+            gas: estimatedGas_deposit
+            // value: "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
         };
         const txDeposit = compose_tx_instance( strLogPrefix, rawTxDeposit );
         strActionName = "sign ERC20/deposit transaction M->S";
@@ -1901,28 +2023,28 @@ async function do_erc20_payment_from_main_net(
         //
         // Must-absent event(s) analysis as indicator(s) of success
         //
-        if( jo_lock_and_data_main_net ) {
+        // if( jo_lock_and_data_main_net ) {
+        //     if( verbose_get() >= RV_VERBOSE.information )
+        //         log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
+        //     const joEvents = await get_contract_call_events( w3_main_net, jo_lock_and_data_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length == 0 ) {
+        //         if( verbose_get() >= RV_VERBOSE.information )
+        //             log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, no event found" ) + "\n" );
+        //     } else {
+        //         log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error verification fail" ) + cc.error( " for the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+        //         throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
+        //     }
+        // } // if( jo_lock_and_data_main_net )
+        if( jo_deposit_box_erc20 ) {
             if( verbose_get() >= RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-            const joEvents = await get_contract_call_events( w3_main_net, jo_lock_and_data_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+                log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_erc20.options.address ) + cc.debug( " contract..." ) + "\n" );
+            const joEvents = await get_contract_call_events( w3_main_net, jo_deposit_box_erc20, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length == 0 ) {
                 if( verbose_get() >= RV_VERBOSE.information )
-                    log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, no event found" ) + "\n" );
+                    log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_erc20.options.address ) + cc.success( " contract, no event found" ) + "\n" );
             } else {
-                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error verification fail" ) + cc.error( " for the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-                throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-            }
-        } // if( jo_lock_and_data_main_net )
-        if( jo_deposit_box ) {
-            if( verbose_get() >= RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.debug( " contract..." ) + "\n" );
-            const joEvents = await get_contract_call_events( w3_main_net, jo_deposit_box, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-            if( joEvents.length == 0 ) {
-                if( verbose_get() >= RV_VERBOSE.information )
-                    log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.success( " contract, no event found" ) + "\n" );
-            } else {
-                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error verification fail" ) + cc.error( " for the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-                throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box.options.address + " contract, no events found" );
+                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error verification fail" ) + cc.error( " for the " ) + cc.warning( "Error" ) + cc.error( " event of the " ) + cc.warning( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_erc20.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_erc20.options.address + " contract, no events found" );
             }
         } // if( jo_deposit_box )
     } catch ( err ) {
@@ -1979,15 +2101,14 @@ async function do_erc20_payment_from_s_chain(
             tokenManagerAddress, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
         const dataTxApprove = methodWithArguments_approve.encodeABI();
-        let dataExitToMainERC20 = null;
         const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC20 = jo_token_manager.methods.exitToMainERC20(
             erc20Address_main_net,
             accountForMainnet,
-            "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 ),
-            "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
+            "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
+            // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
         );
-        dataExitToMainERC20 = methodWithArguments_rawExitToMainERC20.encodeABI();
+        const dataExitToMainERC20 = methodWithArguments_rawExitToMainERC20.encodeABI();
         //
         // prepare for transactions
         //
@@ -2155,17 +2276,19 @@ async function do_erc721_payment_from_s_chain(
         const contractERC721 = new w3_s_chain.eth.Contract( erc721ABI, erc721Address_s_chain );
         // prepare the smart contract function deposit(string schainID, address to)
         // const depositBoxAddress = jo_deposit_box.options.address;
-        const methodWithArguments_transferFrom = contractERC721.methods.transferFrom(
-            accountForSchain, tokenManagerAddress, "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
+        const methodWithArguments_approve = contractERC721.methods.approve(
+            // accountForSchain,
+            tokenManagerAddress,
+            "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
         );
-        const dataTxTransferFrom = methodWithArguments_transferFrom.encodeABI();
+        const dataTxApprove = methodWithArguments_approve.encodeABI();
         let dataTxExitToMainERC721 = null;
         const erc721Address_main_net = joErc721_main_net[strCoinNameErc721_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC721 = jo_token_manager.methods.exitToMainERC721(
             erc721Address_main_net,
             accountForMainnet,
-            "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
-            "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
+            "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
+            // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
         );
         dataTxExitToMainERC721 = methodWithArguments_rawExitToMainERC721.encodeABI();
         //
@@ -2176,45 +2299,45 @@ async function do_erc721_payment_from_s_chain(
             log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         //
         //
-        strActionName = "create ERC721/transferFrom transaction S->M";
+        strActionName = "create ERC721/approve transaction S->M";
         let tcnt = parseInt( await get_web3_transactionCount( 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         if( verbose_get() >= RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
-        const estimatedGas_transferFrom = await tc_s_chain.computeGas( methodWithArguments_transferFrom, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
+        const estimatedGas_approve = await tc_s_chain.computeGas( methodWithArguments_approve, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
         if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transferFrom ) + "\n" );
+            log.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         //
-        const isIgnore_transferFrom = false;
-        const strDRC_transferFrom = "erc721_payment_from_s_chain, transferFrom";
-        await dry_run_call( w3_s_chain, methodWithArguments_transferFrom, joAccountSrc, strDRC_transferFrom,isIgnore_transferFrom, gasPrice, estimatedGas_transferFrom, "0" );
+        const isIgnore_approve = false;
+        const strDRC_approve = "erc721_payment_from_s_chain, approve";
+        await dry_run_call( w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
         //
-        const rawTxTransferFrom = {
+        const rawTxApprove = {
             chainId: cid_s_chain,
             from: accountForSchain,
             nonce: "0x" + tcnt.toString( 16 ),
-            data: dataTxTransferFrom,
+            data: dataTxApprove,
             to: erc721Address_s_chain,
             gasPrice: gasPrice,
-            gas: estimatedGas_transferFrom
+            gas: estimatedGas_approve
         };
-        const txTransferFrom = compose_tx_instance( strLogPrefix, rawTxTransferFrom );
-        strActionName = "sign ERC721/transferFrom transaction S->M";
-        const joTransferFromSR = await safe_sign_transaction_with_account( w3_s_chain, txTransferFrom, rawTxTransferFrom, joAccountSrc );
-        let joReceiptTransferFrom = null;
-        if( joTransferFromSR.joACI.isAutoSend )
-            joReceiptTransferFrom = await get_web3_transactionReceipt( 10, w3_s_chain, joTransferFromSR.txHashSent );
+        const txApprove = compose_tx_instance( strLogPrefix, rawTxApprove );
+        strActionName = "sign ERC721/approve transaction S->M";
+        const joApproveSR = await safe_sign_transaction_with_account( w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
+        let joReceiptApprove = null;
+        if( joApproveSR.joACI.isAutoSend )
+            joReceiptApprove = await get_web3_transactionReceipt( 10, w3_s_chain, joApproveSR.txHashSent );
         else {
-            const serializedTxTransferFrom = txTransferFrom.serialize();
-            // let joReceiptTransferFrom = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxTransferFrom.toString( "hex" ) );
-            joReceiptTransferFrom = await safe_send_signed_transaction( w3_s_chain, serializedTxTransferFrom, strActionName, strLogPrefix );
+            const serializedTxApprove = txApprove.serialize();
+            // let joReceiptApprove = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+            joReceiptApprove = await safe_send_signed_transaction( w3_s_chain, serializedTxApprove, strActionName, strLogPrefix );
         }
         if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "Result receipt for TransferFrom: " ) + cc.j( joReceiptTransferFrom ) + "\n" );
-        if( joReceiptTransferFrom && typeof joReceiptTransferFrom == "object" && "gasUsed" in joReceiptTransferFrom ) {
+            log.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_s_chain/transfer-from",
-                "receipt": joReceiptTransferFrom
+                "receipt": joReceiptApprove
             } );
         }
         //
@@ -3324,11 +3447,11 @@ module.exports.safe_send_signed_transaction = safe_send_signed_transaction;
 
 module.exports.invoke_has_chain = invoke_has_chain;
 module.exports.wait_for_has_chain = wait_for_has_chain;
-module.exports.register_s_chain_in_deposit_box = register_s_chain_in_deposit_box; // step 1
+module.exports.register_s_chain_in_deposit_boxes = register_s_chain_in_deposit_boxes; // step 1
 module.exports.register_main_net_depositBox_on_s_chain = register_main_net_depositBox_on_s_chain; // step 2A
 module.exports.register_main_net_on_s_chain = register_main_net_on_s_chain; // step 2B
 
-module.exports.check_is_registered_s_chain_in_deposit_box = check_is_registered_s_chain_in_deposit_box; // step 1
+module.exports.check_is_registered_s_chain_in_deposit_boxes = check_is_registered_s_chain_in_deposit_boxes; // step 1
 module.exports.check_is_registered_main_net_depositBox_on_s_chain = check_is_registered_main_net_depositBox_on_s_chain; // step 2A
 module.exports.check_is_registered_main_net_on_s_chain = check_is_registered_main_net_on_s_chain; // step 2B
 

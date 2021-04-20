@@ -11,6 +11,6 @@ HASH_G1_URL=$BASE_URL/$LIB_BLS_RELEASE_TAG/hash_g1
 BLS_VERIFY_URL=$BASE_URL/$LIB_BLS_RELEASE_TAG/verify_bls
 
 echo "Downloading BLS binaries..."
-curl -L $BLS_GLUE_URL > $DIR/bls_binaries/bls_glue
-curl -L $HASH_G1_URL > $DIR/bls_binaries/hash_g1
-curl -L $BLS_VERIFY_URL > $DIR/bls_binaries/verify_bls
+curl -L "$BLS_GLUE_URL" > "$DIR/bls_binaries/bls_glue"
+curl -L "$HASH_G1_URL" > "$DIR/bls_binaries/hash_g1"
+curl -L "$BLS_VERIFY_URL" > "$DIR/bls_binaries/verify_bls"

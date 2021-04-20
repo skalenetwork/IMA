@@ -197,7 +197,7 @@ function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount )
                     let i = 0; const cnt = 0 + this.nMaxFilesCount;
                     for( i = 0; i < cnt; ++i ) {
                         const j = this.nMaxFilesCount - i - 1;
-                        const strPath = "" + this.strPath + ( ( j == 0 ) ? "" : ( "." + j ) );
+                        const strPath = "" + this.strPath + ( ( j === 0 ) ? "" : ( "." + j ) );
                         if( j == ( cnt - 1 ) ) {
                             try { fs.unlinkSync( strPath ); } catch ( err ) { }
                             continue;

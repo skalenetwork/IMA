@@ -27,7 +27,7 @@ const fs = require( "fs" );
 const path = require( "path" );
 // const url = require( "url" );
 const os = require( "os" );
-const uuid = require( "uuid/v4" );
+const { v4: uuid } = require( "uuid" );
 
 const log = require( "../npms/skale-log/log.js" );
 const cc = log.cc;
@@ -202,7 +202,7 @@ function hexToBytes( strHex, isInversiveOrder ) { // convert a hex string to a b
     strHex = strHex.trim().toLowerCase();
     if( strHex.length > 1 && strHex[0] == "0" && ( strHex[1] == "x" || strHex[1] == "X" ) )
         strHex = strHex.substr( 2, strHex.length - 2 );
-    if( ( strHex.length & 1 ) != 0 )
+    if( ( strHex.length & 1 ) !== 0 )
         strHex = "0" + strHex;
     const cnt = strHex.length;
     let i, j;
@@ -320,7 +320,7 @@ function discover_in_json_coin_name( jo ) {
             continue;
         }
     }
-    if( s1.length == 0 || s2.length == 0 )
+    if( s1.length === 0 || s2.length === 0 )
         return "";
     if( s1 !== s2 )
         return "";

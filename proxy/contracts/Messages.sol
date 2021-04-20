@@ -40,6 +40,8 @@ library Messages {
 
     struct TransferEthMessage {
         BaseMessage message;
+        address receiver;
+        uint256 amount;
     }
 
     struct TransferErc20Message {
@@ -94,9 +96,11 @@ library Messages {
         }
     }
 
-    function encodeTransferEthMessage() internal pure returns (bytes memory) {
+    function encodeTransferEthMessage(address receiver, uint256 amount) internal pure returns (bytes memory) {
         TransferEthMessage memory message = TransferEthMessage(
-            BaseMessage(MessageType.TRANSFER_ETH)
+            BaseMessage(MessageType.TRANSFER_ETH),
+            receiver,
+            amount
         );
         return abi.encode(message);
     }
