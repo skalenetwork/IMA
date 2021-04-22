@@ -1,54 +1,52 @@
-import { ContractManagerContract, ContractManagerInstance, SkaleVerifierMockContract } from "../../../types/truffle-contracts";
-import { KeyStorageContract } from "../../../types/truffle-contracts";
-import { NodesContract } from "../../../types/truffle-contracts";
-import { SchainsContract } from "../../../types/truffle-contracts";
-import { SchainsInternalContract } from "../../../types/truffle-contracts";
-import { WalletsContract } from "../../../types/truffle-contracts";
+import { Wallet } from "@ethersproject/wallet";
+import { ethers } from "hardhat";
+import { ContractManager, KeyStorage, Nodes, Schains, SchainsInternal, SkaleVerifierMock, Wallets } from "../../../typechain";
 
-const contractManager: ContractManagerContract = artifacts.require("./ContractManager");
-const keyStorage: KeyStorageContract = artifacts.require("./KeyStorage");
-const nodes: NodesContract = artifacts.require("./Nodes");
-const schains: SchainsContract = artifacts.require("./Schains");
-const schainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
-const skaleVerifier: SkaleVerifierMockContract = artifacts.require("./SkaleVerifierMock");
-const wallets: WalletsContract = artifacts.require("./Wallets");
+// const contractManager: ContractManagerContract = artifacts.require("./ContractManager");
+// const keyStorage: KeyStorageContract = artifacts.require("./KeyStorage");
+// const nodes: NodesContract = artifacts.require("./Nodes");
+// const schains: SchainsContract = artifacts.require("./Schains");
+// const schainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
+// const skaleVerifier: SkaleVerifierMockContract = artifacts.require("./SkaleVerifierMock");
+// const wallets: WalletsContract = artifacts.require("./Wallets");
 const nameKeyStorage = "KeyStorage";
 const nameNodes = "Nodes";
 const nameSchains = "Schains";
 const nameSchainsInternal = "SchainsInternal";
-const nameSkaleVerifier = "SkaleVerifier";
+const nameSkaleVerifier = "SkaleVerifierMock";
 const nameWallets = "Wallets";
 
 export async function deployContractManager(contractManagerAddress: string) {
-    let instance: ContractManagerInstance;
+    const contractManagerFactory = await ethers.getContractFactory("ContractManager");
+    let instance: ContractManager;
     if (contractManagerAddress === "0x0000000000000000000000000000000000000000") {
-        instance = await contractManager.new();
+        instance = await contractManagerFactory.deploy() as ContractManager;
     } else {
-        instance = await contractManager.at(contractManagerAddress);
+        instance = await contractManagerFactory.attach(contractManagerAddress) as ContractManager;
     }
     if (await instance.getContract(nameKeyStorage) === "0x0000000000000000000000000000000000000000") {
-        const keyStorageInstance = await keyStorage.new();
+        const keyStorageInstance = await (await ethers.getContractFactory(nameKeyStorage)).deploy() as KeyStorage;
         await instance.setContractsAddress(nameKeyStorage, keyStorageInstance.address);
     }
     if (await instance.getContract(nameNodes) === "0x0000000000000000000000000000000000000000") {
-        const nodesInstance = await nodes.new();
+        const nodesInstance = await (await ethers.getContractFactory(nameNodes)).deploy() as Nodes;
         await instance.setContractsAddress(nameNodes, nodesInstance.address);
     }
     if (await instance.getContract(nameSchains) === "0x0000000000000000000000000000000000000000") {
-        const schainsInstance = await schains.new();
+        const schainsInstance = await (await ethers.getContractFactory(nameSchains)).deploy() as Schains;
         await schainsInstance.addContractManager(instance.address);
         await instance.setContractsAddress(nameSchains, schainsInstance.address);
     }
     if (await instance.getContract(nameSchainsInternal) === "0x0000000000000000000000000000000000000000") {
-        const schainsInternalInstance = await schainsInternal.new();
+        const schainsInternalInstance = await (await ethers.getContractFactory(nameSchainsInternal)).deploy() as SchainsInternal;
         await instance.setContractsAddress(nameSchainsInternal, schainsInternalInstance.address);
     }
     if (await instance.getContract(nameSkaleVerifier) === "0x0000000000000000000000000000000000000000") {
-        const skaleVerifierInstance = await skaleVerifier.new();
+        const skaleVerifierInstance = await (await ethers.getContractFactory(nameSkaleVerifier)).deploy() as SkaleVerifierMock;
         await instance.setContractsAddress(nameSkaleVerifier, skaleVerifierInstance.address);
     }
     if (await instance.getContract(nameWallets) === "0x0000000000000000000000000000000000000000") {
-        const walletsInstance = await wallets.new();
+        const walletsInstance = await (await ethers.getContractFactory(nameWallets)).deploy() as Wallets;
         await walletsInstance.addContractManager(instance.address);
         await instance.setContractsAddress(nameWallets, walletsInstance.address);
     }

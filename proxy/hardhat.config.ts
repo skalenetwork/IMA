@@ -1,9 +1,9 @@
-import { HardhatUserConfig } from "hardhat/config";
+import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
 import "@openzeppelin/hardhat-upgrades";
 import "hardhat-typechain";
 import "solidity-coverage";
-import * as dotenv from "dotenv"
+import * as dotenv from "dotenv";
 
 dotenv.config();
 

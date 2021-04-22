@@ -1,17 +1,14 @@
-import { DepositBoxERC20Contract } from "../../../types/truffle-contracts";
-import { MessageProxyForMainnetInstance } from "../../../types/truffle-contracts";
-import { IMALinkerInstance } from "../../../types/truffle-contracts";
-import { ContractManagerInstance } from "../../../types/truffle-contracts";
-
-const DepositBoxERC20: DepositBoxERC20Contract = artifacts.require("./DepositBoxERC20");
+import { ethers } from "hardhat";
+import { ContractManager, MessageProxyForMainnet, IMALinker, DepositBoxERC20 } from "../../../typechain";
 
 export async function deployDepositBoxERC20(
-    contractManager: ContractManagerInstance,
-    messageProxy: MessageProxyForMainnetInstance,
-    imaLinker: IMALinkerInstance,
+    contractManager: ContractManager,
+    messageProxy: MessageProxyForMainnet,
+    imaLinker: IMALinker,
 
 ) {
-    const instance = await DepositBoxERC20.new();
+    const factory = await ethers.getContractFactory("DepositBoxERC20");
+    const instance = await factory.deploy() as DepositBoxERC20;
     await instance.initialize(contractManager.address, messageProxy.address, imaLinker.address);
     await imaLinker.registerDepositBox(instance.address);
     return instance;

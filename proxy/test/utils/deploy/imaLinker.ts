@@ -1,14 +1,12 @@
-import { IMALinkerContract } from "../../../types/truffle-contracts";
-import { MessageProxyForMainnetInstance } from "../../../types/truffle-contracts";
-import { ContractManagerInstance } from "../../../types/truffle-contracts";
-
-const imaLinker: IMALinkerContract = artifacts.require("./IMALinker");
+import { ethers } from "hardhat";
+import { ContractManager, IMALinker, MessageProxyForMainnet } from "../../../typechain";
 
 export async function deployIMALinker(
-    contractManager: ContractManagerInstance,
-    messageProxy: MessageProxyForMainnetInstance
+    contractManager: ContractManager,
+    messageProxy: MessageProxyForMainnet
 ) {
-    const instance = await imaLinker.new();
+    const factory = await ethers.getContractFactory("IMALinker");
+    const instance = await factory.deploy() as IMALinker;
     await instance.initialize(contractManager.address, messageProxy.address);
     return instance;
 }
