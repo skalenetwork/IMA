@@ -72,7 +72,15 @@ const RV_VERBOSE = ( function() {
     return m;
 }() );
 
+let g_isExposeDetails = false;
 let g_verboseLevel = RV_VERBOSE.error;
+
+function expose_details_get() {
+    return g_isExposeDetails;
+}
+function expose_details_set( x ) {
+    g_isExposeDetails = x ? true : false;
+}
 
 function verbose_get() {
     return g_verboseLevel;
@@ -641,7 +649,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         details.write( s );
         log.write( s );
         if( isExitIfEmpty ) {
-            details.exposeDetailsTo( log, "safe_sign_transaction_with_account" );
+            details.exposeDetailsTo( log, "safe_sign_transaction_with_account", false );
             details.close();
             process.exit( 126 );
         }
@@ -707,7 +715,8 @@ async function check_is_registered_s_chain_in_deposit_boxes( // step 1
             from: addressFrom
         } );
         details.write( strLogPrefix + cc.success( "check_is_registered_s_chain_in_deposit_boxes(reg-step1) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
-        // details.exposeDetailsTo( log, "check_is_registered_s_chain_in_deposit_boxes" );
+        if( expose_details_get() )
+            details.exposeDetailsTo( log, "check_is_registered_s_chain_in_deposit_boxes", true );
         details.close();
         return bIsRegistered;
     } catch ( err ) {
@@ -715,7 +724,7 @@ async function check_is_registered_s_chain_in_deposit_boxes( // step 1
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( s );
         details.write( s );
-        details.exposeDetailsTo( log, "check_is_registered_s_chain_in_deposit_boxes" );
+        details.exposeDetailsTo( log, "check_is_registered_s_chain_in_deposit_boxes", false );
         details.close();
     }
     return false;
@@ -886,11 +895,12 @@ async function register_s_chain_in_deposit_boxes( // step 1
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( s );
         details.write( s );
-        details.exposeDetailsTo( log, "register_s_chain_in_deposit_boxes" );
+        details.exposeDetailsTo( log, "register_s_chain_in_deposit_boxes", false );
         details.close();
         return null;
     }
-    // details.exposeDetailsTo( log, "register_s_chain_in_deposit_boxes" );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "register_s_chain_in_deposit_boxes", true );
     details.close();
     return jarrReceipts;
 } // async function register_deposit_box_on_s_chain(...
@@ -931,7 +941,8 @@ async function check_is_registered_main_net_depositBox_on_s_chain( // step 2A
         details.write( s2 );
         log.write( s3 );
         details.write( s3 );
-        // details.exposeDetailsTo( log, "check_is_registered_main_net_depositBox_on_s_chain" );
+        if( expose_details_get() )
+            details.exposeDetailsTo( log, "check_is_registered_main_net_depositBox_on_s_chain", true );
         details.close();
         return bIsRegisteredEth && bIsRegisteredERC20 && bIsRegisteredERC721;
     } catch ( err ) {
@@ -940,7 +951,7 @@ async function check_is_registered_main_net_depositBox_on_s_chain( // step 2A
             log.write( s );
         details.write( s );
         details.write( s );
-        details.exposeDetailsTo( log, "check_is_registered_main_net_depositBox_on_s_chain" );
+        details.exposeDetailsTo( log, "check_is_registered_main_net_depositBox_on_s_chain", false );
         details.close();
     }
     return false;
@@ -1093,12 +1104,13 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( s );
         details.write( s );
-        details.exposeDetailsTo( log, "register_main_net_depositBox_on_s_chain" );
+        details.exposeDetailsTo( log, "register_main_net_depositBox_on_s_chain", false );
         details.close();
         return null;
     }
     print_gas_usage_report_from_array( "REGISTER MAIN-NET DEPOSIT BOX ON S-CHAIN", jarrReceipts );
-    // details.exposeDetailsTo( log, "register_main_net_depositBox_on_s_chain" );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "register_main_net_depositBox_on_s_chain", true );
     details.close();
     return jarrReceipts;
 }
@@ -1131,7 +1143,8 @@ async function check_is_registered_main_net_on_s_chain( // step 2B
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( s );
         details.write( s );
-        // details.exposeDetailsTo( log, "check_is_registered_main_net_on_s_chain" );
+        if( expose_details_get() )
+            details.exposeDetailsTo( log, "check_is_registered_main_net_on_s_chain", true );
         details.close();
         return bIsRegistered;
     } catch ( err ) {
@@ -1139,7 +1152,7 @@ async function check_is_registered_main_net_on_s_chain( // step 2B
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( s );
         details.write( s );
-        details.exposeDetailsTo( log, "check_is_registered_main_net_on_s_chain" );
+        details.exposeDetailsTo( log, "check_is_registered_main_net_on_s_chain", false );
         details.close();
     }
     return false;
@@ -1220,12 +1233,13 @@ async function register_main_net_on_s_chain( // step 2B
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( s );
         details.write( s );
-        details.exposeDetailsTo( log, "register_main_net_on_s_chain" );
+        details.exposeDetailsTo( log, "register_main_net_on_s_chain", false );
         details.close();
         return null;
     }
     print_gas_usage_report_from_array( "REGISTER MAIN-NET ON S-CHAIN", jarrReceipts );
-    // details.exposeDetailsTo( log, "register_main_net_on_s_chain" );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "register_main_net_on_s_chain", true );
     details.close();
     return jarrReceipts;
 } // async function register_s_chain(...
@@ -1353,12 +1367,13 @@ async function do_eth_payment_from_main_net(
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( s );
         details.write( s );
-        details.exposeDetailsTo( log, "do_eth_payment_from_main_net" );
+        details.exposeDetailsTo( log, "do_eth_payment_from_main_net", false );
         details.close();
         return false;
     }
     print_gas_usage_report_from_array( "ETH PAYMENT FROM MAIN NET", jarrReceipts );
-    // details.exposeDetailsTo( log, "do_eth_payment_from_main_net" );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "do_eth_payment_from_main_net", true );
     details.close();
     return true;
 } // async function do_eth_payment_from_main_net(...
@@ -1463,12 +1478,13 @@ async function do_eth_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( s );
         details.write( s );
-        details.exposeDetailsTo( log, "do_eth_payment_from_s_chain" );
+        details.exposeDetailsTo( log, "do_eth_payment_from_s_chain", false );
         details.close();
         return false;
     }
     print_gas_usage_report_from_array( "ETH PAYMENT FROM S-CHAIN", jarrReceipts );
-    // details.exposeDetailsTo( log, "do_eth_payment_from_s_chain" );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "do_eth_payment_from_s_chain", true );
     details.close();
     return true;
 } // async function do_eth_payment_from_s_chain(...
@@ -1540,12 +1556,13 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( s );
         details.write( s );
-        details.exposeDetailsTo( log, "receive_eth_payment_from_s_chain_on_main_net" );
+        details.exposeDetailsTo( log, "receive_eth_payment_from_s_chain_on_main_net", false );
         details.close();
         return false;
     }
     print_gas_usage_report_from_array( "RECEIVE ETH ON MAIN NET", jarrReceipts );
-    // details.exposeDetailsTo( log, "receive_eth_payment_from_s_chain_on_main_net" );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "receive_eth_payment_from_s_chain_on_main_net", true );
     details.close();
     return true;
 }
@@ -1577,7 +1594,8 @@ async function view_eth_payment_from_s_chain_on_main_net(
         if( verbose_get() >= RV_VERBOSE.information )
             log.write( s );
         details.write( s );
-        // details.exposeDetailsTo( log, "view_eth_payment_from_s_chain_on_main_net" );
+        if( expose_details_get() )
+            details.exposeDetailsTo( log, "view_eth_payment_from_s_chain_on_main_net", true );
         details.close();
         return xWei;
     } catch ( err ) {
@@ -1585,7 +1603,7 @@ async function view_eth_payment_from_s_chain_on_main_net(
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( s );
         details.write( s );
-        details.exposeDetailsTo( log, "view_eth_payment_from_s_chain_on_main_net" );
+        details.exposeDetailsTo( log, "view_eth_payment_from_s_chain_on_main_net", false );
         details.close();
         return null;
     }
@@ -1774,12 +1792,13 @@ async function do_erc721_payment_from_main_net(
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( s );
         details.write( s );
-        details.exposeDetailsTo( log, "do_erc721_payment_from_main_net" );
+        details.exposeDetailsTo( log, "do_erc721_payment_from_main_net", false );
         details.close();
         return false;
     }
     print_gas_usage_report_from_array( "ERC-721 PAYMENT FROM MAIN NET", jarrReceipts );
-    // details.exposeDetailsTo( log, "do_erc721_payment_from_main_net" );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "do_erc721_payment_from_main_net", true );
     details.close();
     return true;
 } // async function do_erc721_payment_from_main_net(...
@@ -1968,12 +1987,13 @@ async function do_erc20_payment_from_main_net(
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( s );
         details.write( s );
-        details.exposeDetailsTo( log, "do_erc20_payment_from_main_net" );
+        details.exposeDetailsTo( log, "do_erc20_payment_from_main_net", false );
         details.close();
         return false;
     }
     print_gas_usage_report_from_array( "ERC-20 PAYMENT FROM MAIN NET", jarrReceipts );
-    // details.exposeDetailsTo( log, "do_erc20_payment_from_main_net" );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "do_erc20_payment_from_main_net", true );
     details.close();
     return true;
 } // async function do_erc20_payment_from_main_net(...
@@ -2145,12 +2165,13 @@ async function do_erc20_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( s );
         details.write( s );
-        details.exposeDetailsTo( log, "do_erc20_payment_from_s_chain" );
+        details.exposeDetailsTo( log, "do_erc20_payment_from_s_chain", false );
         details.close();
         return false;
     }
     print_gas_usage_report_from_array( "ERC-20 PAYMENT FROM S-CHAIN", jarrReceipts );
-    // details.exposeDetailsTo( log, "do_erc20_payment_from_s_chain" );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "do_erc20_payment_from_s_chain", true );
     details.close();
     return true;
 } // async function do_erc20_payment_from_s_chain(...
@@ -2329,12 +2350,13 @@ async function do_erc721_payment_from_s_chain(
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( s );
         details.write( s );
-        details.exposeDetailsTo( log, "do_erc721_payment_from_s_chain" );
+        details.exposeDetailsTo( log, "do_erc721_payment_from_s_chain", false );
         details.close();
         return false;
     }
     print_gas_usage_report_from_array( "ERC-721 PAYMENT FROM S-CHAIN", jarrReceipts );
-    // details.exposeDetailsTo( log, "do_erc721_payment_from_s_chain" );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "do_erc721_payment_from_s_chain", true );
     details.close();
     return true;
 } // async function do_erc721_payment_from_s_chain(...
@@ -2798,7 +2820,7 @@ async function do_transfer(
                 if( joValues == "" ) {
                     log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
                     details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
-                    details.exposeDetailsTo( log, "do_transfer" );
+                    details.exposeDetailsTo( log, "do_transfer", false );
                     details.close();
                     return; // process.exit( 126 );
                 }
@@ -2826,7 +2848,7 @@ async function do_transfer(
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( s );
                         details.write( s );
-                        details.exposeDetailsTo( log, "do_transfer" );
+                        details.exposeDetailsTo( log, "do_transfer", false );
                         details.close();
                         return false;
                     }
@@ -2869,7 +2891,7 @@ async function do_transfer(
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( s );
                         details.write( s );
-                        details.exposeDetailsTo( log, "do_transfer" );
+                        details.exposeDetailsTo( log, "do_transfer", false );
                         details.close();
                         return false;
                     }
@@ -3022,7 +3044,7 @@ async function do_transfer(
                     if( verbose_get() >= RV_VERBOSE.fatal )
                         log.write( s );
                     details.write( s );
-                    details.exposeDetailsTo( log, "do_transfer" );
+                    details.exposeDetailsTo( log, "do_transfer", false );
                     details.close();
                     return;
                 }
@@ -3228,12 +3250,13 @@ async function do_transfer(
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
         details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-        details.exposeDetailsTo( log, "do_transfer" );
+        details.exposeDetailsTo( log, "do_transfer", false );
         details.close();
         return false;
     }
     print_gas_usage_report_from_array( "TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
-    // details.exposeDetailsTo( log, "do_transfer" );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "do_transfer", true );
     details.close();
     return true;
 } // async function do_transfer( ...
@@ -3339,6 +3362,8 @@ module.exports.ethereumjs_util = ethereumjs_util;
 
 module.exports.VERBOSE = VERBOSE;
 module.exports.RV_VERBOSE = RV_VERBOSE;
+module.exports.expose_details_get = expose_details_get;
+module.exports.expose_details_set = expose_details_set;
 module.exports.verbose_get = verbose_get;
 module.exports.verbose_set = verbose_set;
 module.exports.verbose_parse = verbose_parse;

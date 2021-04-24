@@ -38,6 +38,7 @@ global.ethereumjs_util = IMA.ethereumjs_util;
 global.compose_tx_instance = IMA.compose_tx_instance;
 global.owaspUtils = IMA.owaspUtils;
 global.imaUtils = require( "../agent/utils.js" );
+IMA.expose_details_set( false );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
 global.log = global.imaUtils.log;
 global.cc = global.imaUtils.cc;

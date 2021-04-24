@@ -330,6 +330,8 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
             //
             console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "expose" ) + cc.debug( "........................" ) + cc.notice( "Expose low-level log details after successful operations. By default details exposed only on errors." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-expose" ) + cc.debug( "....................." ) + cc.notice( "Expose low-level log details only after errors. Default expose mode." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "verbose" ) + cc.sunny( "=" ) + cc.bright( "value" ) + cc.debug( "................." ) + cc.notice( "Set " ) + cc.note( "level" ) + cc.notice( " of output details." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "verbose-list" ) + cc.debug( ".................." ) + cc.notice( "List available " ) + cc.note( "verbose levels" ) + cc.notice( " and exit." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "log" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "......................" ) + cc.notice( "Write program output to specified log file(multiple files can be specified)." ) );
@@ -348,6 +350,14 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "no-colors" ) {
             cc.enable( false );
+            continue;
+        }
+        if( joArg.name == "expose" ) {
+            IMA.expose_details_set( true );
+            continue;
+        }
+        if( joArg.name == "no-expose" ) {
+            IMA.expose_details_set( false );
             continue;
         }
         if( joArg.name == "verbose" ) {

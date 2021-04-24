@@ -148,12 +148,13 @@ function createMemoryOutputStream() {
             size: function() { return 0; },
             rotate: function( nBytesToWrite ) { this.strAccumulatedLogText = ""; },
             toString: function() { return "" + this.strAccumulatedLogText; },
-            exposeDetailsTo: function( otherStream, strTitle ) {
-                strTitle = strTitle ? ( " (" + strTitle + ")" ) : "";
+            exposeDetailsTo: function( otherStream, strTitle, isSuccess ) {
+                strTitle = strTitle ? ( cc.bright( " (" ) + cc.attention( strTitle ) + cc.bright( ")" ) ) : "";
+                const strSuccessPrefix = isSuccess ? cc.success( "SUCCESS" ) : cc.fatal( "ERROR" );
                 otherStream.write(
-                    "\n\n\n--- --- --- Gathered details for latest" + strTitle + " action (BEGIN) --- --- ---\n" +
+                    cc.bright( "\n\n\n--- --- --- --- --- GATHERED " ) + strSuccessPrefix + cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) + cc.bright( " action (" ) + cc.sunny( "BEGIN" ) + cc.bright( ") --- --- ------ --- \n\n" ) +
                     this.strAccumulatedLogText +
-                    "--- --- --- Gathered details for latest" + strTitle + " action (END) --- --- ---\n\n\n\n"
+                    cc.bright( "\n--- --- --- --- --- GATHERED " ) + strSuccessPrefix + cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) + cc.bright( " action (" ) + cc.sunny( "END" ) + cc.bright( ") --- --- --- --- ---\n\n\n\n" )
                 );
             }
         };
