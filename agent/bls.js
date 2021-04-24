@@ -218,7 +218,6 @@ function perform_bls_glue( details, strDirection, jarrMessages, arrSignResults )
         joGlueResult = imaUtils.jsonFileLoad( strActionDir + "/glue-result.json" );
         details.write( strLogPrefix + cc.normal( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
         if( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) {
-            // if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             details.write( strLogPrefix + cc.success( "BLS glue success" ) + "\n" );
             joGlueResult.hashSrc = strSummaryMessage;
             //
@@ -236,7 +235,6 @@ function perform_bls_glue( details, strDirection, jarrMessages, arrSignResults )
             strOutput = child_process.execSync( strHasG1Command );
             details.write( strLogPrefix + cc.normal( "HashG1 output is:\n" ) + cc.notice( strOutput ) + "\n" );
             const joResultHashG1 = imaUtils.jsonFileLoad( strActionDir + "/g1.json" );
-            // if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             details.write( strLogPrefix + cc.normal( "HashG1 result is: " ) + cc.j( joResultHashG1 ) + "\n" );
             //
             //
@@ -571,7 +569,6 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                             details.write( strLogPrefixA + cc.info( "Will verify sign result for node " ) + cc.info( nZeroBasedNodeIndex ) + "\n" );
                             const joPublicKey = discover_public_key_by_index( nZeroBasedNodeIndex, imaState.joSChainNetworkInfo );
                             if( perform_bls_verify_i( details, strDirection, nZeroBasedNodeIndex, joResultFromNode, jarrMessages, joPublicKey ) ) {
-                                // if ( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                                 details.write( strLogPrefixA + cc.success( "Got successful BLS verification result for node " ) + cc.info( joNode.nodeID ) + cc.success( " with index " ) + cc.info( nZeroBasedNodeIndex ) + "\n" );
                                 bNodeSignatureOKay = true; // node verification passed
                             } else {
