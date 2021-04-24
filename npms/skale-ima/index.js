@@ -260,50 +260,6 @@ async function get_web3_transactionReceipt( attempts, w3, txHash ) {
     return txReceipt;
 }
 
-// async function get_web3_universal_call(attempts, strAction, web3Obj, eth_call, ...params) {
-//     const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
-
-//     console.log("\n" + params + "\n" + allAttempts + "\n");
-
-//     let result = "";
-//     try {
-//         if( strAction === "BlockNumber" ) {
-//             console.log("\n First type of call\n");
-//             result = await web3Obj.eth.getBlockNumber();
-//         } else if( params.length == 1 && ( params[0] === undefined || params[0] === null ) ) {
-//             console.log("\n Second type of call\n");
-//             result = await eth_call();
-//         } else {
-//             console.log("\n Third type of call\n");
-//             result = await eth_call(params);
-//         }
-//     } catch ( e ) {}
-//     let attemptIndex = 2;
-//     while( ( result === "" || result === undefined ) && attemptIndex <= allAttempts ) {
-//         console.log("\n" + result + "\n");
-//         log.write( cc.fatal( "Repeat " ) + cc.info( strAction ) + cc.info( " attempt number " ) + cc.info( attemptIndex ) + cc.info( " Previous result " ) + cc.info( result ) + "\n" );
-//         await sleep( 10000 );
-//         try {
-//             if( strAction === "BlockNumber" ) {
-//                 console.log("\n First type of call\n");
-//                 result = await web3Obj.eth.getBlockNumber();
-//             } else if( params.length == 1 && ( params[0] === undefined || params[0] === null ) ) {
-//                 console.log("\n Second type of call\n");
-//                 result = await eth_call();
-//             } else {
-//                 console.log("\n Third type of call\n");
-//                 result = await eth_call(params);
-//             }
-//         } catch ( e ) {}
-//         attemptIndex++;
-//     }
-//     console.log("\n\n\n" + result + "\n\n\n");
-//     if( attemptIndex + 1 === allAttempts && ( result === "" || result === undefined ) )
-//         throw new Error( "Could not not get " + strAction );
-//     return result;
-// }
-
-//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -761,14 +717,13 @@ async function check_is_registered_s_chain_in_deposit_boxes( // step 1
     joAccount_main_net,
     chain_id_s_chain
 ) {
-    log.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "  address is....." ) + cc.bright( jo_imalinker.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
+    const details = log.createMemoryStream();
+    details.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "  address is....." ) + cc.bright( jo_imalinker.options.address ) + "\n" );
+    details.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
     const strLogPrefix = cc.note( "RegChk S in depositBox:" ) + " ";
-    if( verbose_get() >= RV_VERBOSE.debug ) {
-        log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( strLogPrefix + cc.bright( "check_is_registered_s_chain_in_deposit_boxes(reg-step1)" ) + "\n" );
-        log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-    }
+    details.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
+    details.write( strLogPrefix + cc.bright( "check_is_registered_s_chain_in_deposit_boxes(reg-step1)" ) + "\n" );
+    details.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     let strActionName = "";
     try {
         strActionName = "check_is_registered_s_chain_in_deposit_boxes(reg-step1)";
@@ -776,12 +731,16 @@ async function check_is_registered_s_chain_in_deposit_boxes( // step 1
         const bIsRegistered = await jo_imalinker.methods.hasSchain( chain_id_s_chain ).call( {
             from: addressFrom
         } );
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "check_is_registered_s_chain_in_deposit_boxes(reg-step1) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
+        details.write( strLogPrefix + cc.success( "check_is_registered_s_chain_in_deposit_boxes(reg-step1) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
+        // details.exposeDetailsTo( log, "check_is_registered_s_chain_in_deposit_boxes" );
         return bIsRegistered;
     } catch ( err ) {
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in check_is_registered_s_chain_in_deposit_boxes(reg-step1)() during " + strActionName + ": " ) + cc.error( err ) + "\n";
         if( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in check_is_registered_s_chain_in_deposit_boxes(reg-step1)() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( s );
+        details.write( s );
+        details.exposeDetailsTo( log, "check_is_registered_s_chain_in_deposit_boxes" );
+        details.close();
     }
     return false;
 }
@@ -849,47 +808,40 @@ async function register_s_chain_in_deposit_boxes( // step 1
     cntWaitAttempts,
     nSleepMilliseconds
 ) {
+    const details = log.createMemoryStream();
     const jarrReceipts = []; // register_s_chain_in_deposit_boxes
-    log.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "  address is......." ) + cc.bright( jo_imalinker.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
+    details.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "  address is......." ) + cc.bright( jo_imalinker.options.address ) + "\n" );
+    details.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
     const strLogPrefix = cc.sunny( "Reg S in depositBoxes:" ) + " ";
-    if( verbose_get() >= RV_VERBOSE.debug ) {
-        log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( strLogPrefix + cc.bright( "reg-step1:register_s_chain_in_deposit_boxes" ) + "\n" );
-        log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-    }
+    details.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
+    details.write( strLogPrefix + cc.bright( "reg-step1:register_s_chain_in_deposit_boxes" ) + "\n" );
+    details.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     let strActionName = "";
     try {
         strActionName = "reg-step1:w3_main_net.eth.getTransactionCount()";
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         const tcnt = await get_web3_transactionCount( 10, w3_main_net, joAccount_main_net.address( w3_main_net ), null );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
         //
-        // if( verbose_get() >= RV_VERBOSE.debug ) {
-        //     const strOwnerOfDepositBoxEth = await jo_deposit_box_eth.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
-        //     const strOwnerOfDepositBoxERC20 = await jo_deposit_box_erc20.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
-        //     const strOwnerOfDepositBoxERC721 = await jo_deposit_box_erc721.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
-        //     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxEth ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxEth" ) + "\n" );
-        //     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxERC20 ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxERC20" ) + "\n" );
-        //     log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxERC721 ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxERC721" ) + "\n" );
-        //     log.write( strLogPrefix + cc.debug( "Calls came from " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + "\n" );
-        // }
+        // const strOwnerOfDepositBoxEth = await jo_deposit_box_eth.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
+        // const strOwnerOfDepositBoxERC20 = await jo_deposit_box_erc20.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
+        // const strOwnerOfDepositBoxERC721 = await jo_deposit_box_erc721.methods.getOwner().call( { from: joAccount_main_net.address( w3_main_net ) } );
+        // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxEth ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxEth" ) + "\n" );
+        // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxERC20 ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxERC20" ) + "\n" );
+        // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( strOwnerOfDepositBoxERC721 ) + cc.debug( " owner of " ) + cc.notice( "DepositBoxERC721" ) + "\n" );
+        // details.write( strLogPrefix + cc.debug( "Calls came from " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + "\n" );
         //
         //
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "Will register S-Chain in lock_and_data on Main-net" ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will register S-Chain in lock_and_data on Main-net" ) + "\n" );
         // const isSchainOwner = await jo_lock_and_data_main_net.methods.isSchainOwner(
         //     joAccount_main_net.address( w3_main_net ),
         //     w3_main_net.utils.soliditySha3(
         //         chain_id_s_chain
         //     )
         // ).call( { from: joAccount_main_net.address( w3_main_net ) } );
-        // if( verbose_get() >= RV_VERBOSE.trace )
-        //     log.write( strLogPrefix + cc.debug( "Account " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + cc.debug( " has S-Chain owner permission " ) + cc.info( isSchainOwner ) + "\n" );
+        // details.write( strLogPrefix + cc.debug( "Account " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + cc.debug( " has S-Chain owner permission " ) + cc.info( isSchainOwner ) + "\n" );
         // if( isSchainOwner ) {
         const methodWithArguments = jo_imalinker.methods.connectSchain(
             chain_id_s_chain,
@@ -902,12 +854,10 @@ async function register_s_chain_in_deposit_boxes( // step 1
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ), "0" );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
-            //
+        details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        //
         const isIgnore = false;
         const strDRC = "register_s_chain_in_deposit_boxes, step 1, connectSchain";
         await dry_run_call( w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
@@ -932,8 +882,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
             // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
             joReceipt = await safe_send_signed_transaction( w3_main_net, serializedTx, strActionName, strLogPrefix );
         }
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
 
         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
             jarrReceipts.push( {
@@ -942,8 +891,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
             } );
         }
         // } else
-        // if( verbose_get() >= RV_VERBOSE.trace )
-        //     log.write( strLogPrefix + cc.debug( "Will wait until S-Chain owner will register S-Chain in ima-linker on Main-net" ) + "\n" );
+        // details.write( strLogPrefix + cc.debug( "Will wait until S-Chain owner will register S-Chain in ima-linker on Main-net" ) + "\n" );
         const isSChainStatusOKay = await wait_for_has_chain(
             w3_main_net,
             jo_imalinker,
@@ -954,9 +902,14 @@ async function register_s_chain_in_deposit_boxes( // step 1
         );
         if( ! isSChainStatusOKay )
             throw new Error( "S-Chain ownership status check timeout" );
+            // details.exposeDetailsTo( log, "register_s_chain_in_deposit_boxes" );
     } catch ( err ) {
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_s_chain_in_deposit_boxes() during " + strActionName + ": " ) + cc.error( err ) + "\n";
         if( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_s_chain_in_deposit_boxes() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( s );
+        details.write( s );
+        details.exposeDetailsTo( log, "register_s_chain_in_deposit_boxes" );
+        details.close();
         return null;
     }
     return jarrReceipts;
@@ -1015,23 +968,20 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
     cid_s_chain,
     tc_s_chain
 ) {
+    const details = log.createMemoryStream();
     const jarrReceipts = []; // register_main_net_depositBox_on_s_chain
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( jo_lock_and_data_s_chain.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( cid_s_chain ) + "\n" );
+    details.write( cc.info( "S-Chain  " ) + cc.sunny( "LockAndData" ) + cc.info( "  address is....." ) + cc.bright( jo_lock_and_data_s_chain.options.address ) + "\n" );
+    details.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( cid_s_chain ) + "\n" );
     const strLogPrefix = cc.sunny( "Reg MS depositBox on S:" ) + " ";
-    if( verbose_get() >= RV_VERBOSE.debug ) {
-        log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-        log.write( strLogPrefix + cc.bright( "register_main_net_depositBox_on_s_chain" ) + "\n" );
-        log.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
-    }
+    details.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
+    details.write( strLogPrefix + cc.bright( "register_main_net_depositBox_on_s_chain" ) + "\n" );
+    details.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
     let strActionName = "";
     try {
         strActionName = "reg-step2A:w3_s_chain.eth.getTransactionCount()/register_main_net_depositBox_on_s_chain";
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         let tcnt = await get_web3_transactionCount( 10, w3_s_chain, joAccount.address( w3_s_chain ), null );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
         const methodWithArgumentsEth = jo_lock_and_data_s_chain.methods.addDepositBox(
@@ -1050,17 +1000,13 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
         const dataTxERC721 = methodWithArgumentsERC721.encodeABI(); // the encoded ABI of the method
         //
         const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGasEth = await tc_s_chain.computeGas( methodWithArgumentsEth, w3_s_chain, 3000000, gasPrice, joAccount.address( w3_s_chain ), "0" );
         const estimatedGasERC20 = await tc_s_chain.computeGas( methodWithArgumentsERC20, w3_s_chain, 3000000, gasPrice, joAccount.address( w3_s_chain ), "0" );
         const estimatedGasERC721 = await tc_s_chain.computeGas( methodWithArgumentsERC721, w3_s_chain, 3000000, gasPrice, joAccount.address( w3_s_chain ), "0" );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using estimated for addDepositBoxEth " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasEth ) + "\n" );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using estimated for addDepositBoxERC20 " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasERC20 ) + "\n" );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Using estimated for addDepositBoxERC721 " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasERC721 ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using estimated for addDepositBoxEth " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasEth ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using estimated for addDepositBoxERC20 " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasERC20 ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using estimated for addDepositBoxERC721 " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasERC721 ) + "\n" );
         //
         const isIgnore = false;
         const strDRC = "register_main_net_depositBox_on_s_chain, step 2A, addDepositBox";
@@ -1088,8 +1034,7 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
             // let joReceiptEth = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
             joReceiptEth = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
         }
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceiptEth ) + "\n" );
+        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceiptEth ) + "\n" );
         if( joReceiptEth && typeof joReceiptEth == "object" && "gasUsed" in joReceiptEth ) {
             jarrReceipts.push( {
                 "description": "register_main_net_depositBox_eth_on_s_chain",
@@ -1118,8 +1063,7 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
             // let joReceiptERC20 = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
             joReceiptERC20 = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
         }
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceiptERC20 ) + "\n" );
+        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceiptERC20 ) + "\n" );
         if( joReceiptERC20 && typeof joReceiptERC20 == "object" && "gasUsed" in joReceiptERC20 ) {
             jarrReceipts.push( {
                 "description": "register_main_net_depositBox_erc20_on_s_chain",
@@ -1148,17 +1092,21 @@ async function register_main_net_depositBox_on_s_chain( // step 2A
             // let joReceiptERC721 = await w3_s_chain.et1h.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
             joReceiptERC721 = await safe_send_signed_transaction( w3_s_chain, serializedTx, strActionName, strLogPrefix );
         }
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceiptERC721 ) + "\n" );
+        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceiptERC721 ) + "\n" );
         if( joReceiptERC721 && typeof joReceiptERC721 == "object" && "gasUsed" in joReceiptERC721 ) {
             jarrReceipts.push( {
                 "description": "register_main_net_depositBox_erc721_on_s_chain",
                 "receipt": joReceiptERC721
             } );
         }
+        // details.exposeDetailsTo( log, "register_main_net_depositBox_on_s_chain" );
     } catch ( err ) {
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_main_net_depositBox_on_s_chain() during " + strActionName + ": " ) + cc.error( err ) + "\n";
         if( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_main_net_depositBox_on_s_chain() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( s );
+        details.write( s );
+        details.exposeDetailsTo( log, "register_main_net_depositBox_on_s_chain" );
+        details.close();
         return null;
     }
     return jarrReceipts;
@@ -2452,19 +2400,20 @@ function w3_2_url( w3 ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function async_pending_tx_start( w3, w3_opposite, chain_id, chain_id_opposite, txHash ) {
+async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain_id_opposite, txHash ) {
     const strLogPrefix = "";
     try {
         if( chain_id == "Mainnet" ) {
-            if( verbose_get() >= RV_VERBOSE.trace )
-                log.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " start from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " start from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
             const strNodeURL = w3_2_url( w3_opposite );
-            if( verbose_get() >= RV_VERBOSE.trace )
-                log.write( strLogPrefix + cc.debug( "Will report pending work cache to " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Will report pending work cache to " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
             const rpcCallOpts = null;
             await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
                 if( err ) {
-                    console.log( cc.fatal( "PENDING WORK START ERROR:" ) + cc.error( " JSON RPC call to S-Chain node failed" ) );
+                    const s = cc.fatal( "PENDING WORK START ERROR:" ) + cc.error( " JSON RPC call to S-Chain node failed" ) + "\n";
+                    if( verbose_get() >= RV_VERBOSE.error )
+                        log.write( s );
+                    details.write( s );
                     return; // process.exit( 155 );
                 }
                 const joIn = {
@@ -2473,27 +2422,29 @@ async function async_pending_tx_start( w3, w3_opposite, chain_id, chain_id_oppos
                         hash: "" + txHash
                     }
                 };
-                if( verbose_get() >= RV_VERBOSE.debug )
-                    log.write( cc.debug( "Starting pending work with " ) + cc.j( joIn ) + "\n" );
+                details.write( cc.debug( "Starting pending work with " ) + cc.j( joIn ) + "\n" );
                 await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
                     if( err ) {
-                        console.log( cc.fatal( "PENDING WORK START ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, error: " ) + cc.warning( err ) );
+                        const s = cc.fatal( "PENDING WORK START ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, error: " ) + cc.warning( err ) + "\n";
+                        if( verbose_get() >= RV_VERBOSE.error )
+                            log.write( s );
+                        details.write( s );
                         return; // process.exit( 156 );
                     }
-                    if( verbose_get() >= RV_VERBOSE.debug )
-                        log.write( cc.debug( "Pending work start result is: " ) + cc.j( joOut ) + "\n" );
+                    details.write( cc.debug( "Pending work start result is: " ) + cc.j( joOut ) + "\n" );
                     if( joOut && "result" in joOut && "success" in joOut.result ) {
                         if( joOut.result.success ) {
-                            if( verbose_get() >= RV_VERBOSE.trace )
-                                log.write( strLogPrefix + cc.success( "Success, pending work start reported" ) + "\n" );
+                            details.write( strLogPrefix + cc.success( "Success, pending work start reported" ) + "\n" );
                             return;
                         } else {
-                            if( verbose_get() >= RV_VERBOSE.trace )
-                                log.write( strLogPrefix + cc.warning( "Pending work start was not reported with success" ) + "\n" );
+                            details.write( strLogPrefix + cc.warning( "Pending work start was not reported with success" ) + "\n" );
                             return;
                         }
                     } else {
-                        console.log( cc.fatal( "PENDING WORK START ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, returned bad answer: " ) + cc.j( joOut ) );
+                        const s = cc.fatal( "PENDING WORK START ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, returned bad answer: " ) + cc.j( joOut ) + "\n";
+                        if( verbose_get() >= RV_VERBOSE.error )
+                            log.write( s );
+                        details.write( s );
                         return; // process.exit( 156 );
                     }
                 } );
@@ -2501,28 +2452,30 @@ async function async_pending_tx_start( w3, w3_opposite, chain_id, chain_id_oppos
 
         }
     } catch ( err ) {
-        if( verbose_get() >= RV_VERBOSE.error ) {
-            log.write(
-                strLogPrefix + cc.error( "PENDING WORK START ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
-                cc.error( ": " ) + cc.error( err ) +
-                "\n" );
-        }
+        const s =
+            strLogPrefix + cc.error( "PENDING WORK START ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
+            cc.error( ": " ) + cc.error( err ) +
+            "\n";
+        if( verbose_get() >= RV_VERBOSE.error )
+            log.write( s );
+        details.write( s );
     }
 }
 
-async function async_pending_tx_complete( w3, w3_opposite, chain_id, chain_id_opposite, txHash ) {
+async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, chain_id_opposite, txHash ) {
     const strLogPrefix = "";
     try {
         if( chain_id == "Mainnet" ) {
-            if( verbose_get() >= RV_VERBOSE.trace )
-                log.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " completion from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " completion from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
             const strNodeURL = w3_2_url( w3_opposite );
-            if( verbose_get() >= RV_VERBOSE.trace )
-                log.write( strLogPrefix + cc.debug( "Will report pending work cache to " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Will report pending work cache to " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
             const rpcCallOpts = null;
             await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
                 if( err ) {
-                    console.log( cc.fatal( "PENDING WORK COMPLETE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node failed" ) );
+                    const s = cc.fatal( "PENDING WORK COMPLETE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node failed" ) + "\n";
+                    if( verbose_get() >= RV_VERBOSE.error )
+                        log.write( s );
+                    details.write( s );
                     return; // process.exit( 155 );
                 }
                 const joIn = {
@@ -2531,27 +2484,29 @@ async function async_pending_tx_complete( w3, w3_opposite, chain_id, chain_id_op
                         hash: "" + txHash
                     }
                 };
-                if( verbose_get() >= RV_VERBOSE.debug )
-                    log.write( cc.debug( "Completing pending work with " ) + cc.j( joIn ) + "\n" );
+                details.write( cc.debug( "Completing pending work with " ) + cc.j( joIn ) + "\n" );
                 await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
                     if( err ) {
-                        console.log( cc.fatal( "PENDING WORK COMPLETE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, error: " ) + cc.warning( err ) );
+                        const s = cc.fatal( "PENDING WORK COMPLETE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, error: " ) + cc.warning( err ) + "'n";
+                        if( verbose_get() >= RV_VERBOSE.error )
+                            log.write( s );
+                        details.write( s );
                         return; // process.exit( 156 );
                     }
-                    if( verbose_get() >= RV_VERBOSE.debug )
-                        log.write( cc.debug( "Pending work complete result is: " ) + cc.j( joOut ) + "\n" );
+                    details.write( cc.debug( "Pending work complete result is: " ) + cc.j( joOut ) + "\n" );
                     if( joOut && "result" in joOut && "success" in joOut.result ) {
                         if( joOut.result.success ) {
-                            if( verbose_get() >= RV_VERBOSE.trace )
-                                log.write( strLogPrefix + cc.success( "Success, pending work complete reported" ) + "\n" );
+                            details.write( strLogPrefix + cc.success( "Success, pending work complete reported" ) + "\n" );
                             return;
                         } else {
-                            if( verbose_get() >= RV_VERBOSE.trace )
-                                log.write( strLogPrefix + cc.warning( "Pending work complete was not reported with success" ) + "\n" );
+                            details.write( strLogPrefix + cc.warning( "Pending work complete was not reported with success" ) + "\n" );
                             return;
                         }
                     } else {
-                        console.log( cc.fatal( "PENDING WORK COMPLETE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, returned bad answer: " ) + cc.j( joOut ) );
+                        const s = cc.fatal( "PENDING WORK COMPLETE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, returned bad answer: " ) + cc.j( joOut ) + "\n";
+                        if( verbose_get() >= RV_VERBOSE.error )
+                            log.write( s );
+                        details.write( s );
                         return; // process.exit( 156 );
                     }
                 } );
@@ -2559,12 +2514,13 @@ async function async_pending_tx_complete( w3, w3_opposite, chain_id, chain_id_op
 
         }
     } catch ( err ) {
-        if( verbose_get() >= RV_VERBOSE.error ) {
-            log.write(
-                strLogPrefix + cc.error( "PENDING WORK COMPLETE ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
-                cc.error( ": " ) + cc.error( err ) +
-                "\n" );
-        }
+        const s =
+            strLogPrefix + cc.error( "PENDING WORK COMPLETE ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
+            cc.error( ": " ) + cc.error( err ) +
+            "\n";
+        if( verbose_get() >= RV_VERBOSE.error )
+            log.write( s );
+        details.write( s );
     }
 }
 
@@ -2572,41 +2528,42 @@ async function async_pending_tx_complete( w3, w3_opposite, chain_id, chain_id_op
 //     return Symbol.iterator in Object( value );
 // }
 
-async function async_pending_tx_scanner( w3, w3_opposite, chain_id, chain_id_opposite, cb ) {
+async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, chain_id_opposite, cb ) {
     cb = cb || function( tx ) { };
     const strLogPrefix = "";
     try {
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "Scanning pending transactions from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Scanning pending transactions from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
         if( chain_id == "Mainnet" ) {
             const strNodeURL = w3_2_url( w3_opposite );
-            if( verbose_get() >= RV_VERBOSE.trace )
-                log.write( strLogPrefix + cc.debug( "Using pending work cache from " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Using pending work cache from " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
             let havePendingWorkInfo = false;
             const rpcCallOpts = null;
             await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
                 if( err ) {
-                    console.log( cc.fatal( "PENDING WORK CACHE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node failed" ) );
+                    const s = cc.fatal( "PENDING WORK CACHE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node failed" ) + "\n";
+                    if( verbose_get() >= RV_VERBOSE.error )
+                        log.write( s );
+                    details.write( s );
                     return; // process.exit( 155 );
                 }
                 const joIn = {
                     method: "skale_imaTxnListAll",
                     params: {}
                 };
-                if( verbose_get() >= RV_VERBOSE.debug )
-                    log.write( cc.debug( "Calling pending work cache with " ) + cc.j( joIn ) + "\n" );
+                details.write( cc.debug( "Calling pending work cache with " ) + cc.j( joIn ) + "\n" );
                 await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
                     if( err ) {
                         havePendingWorkInfo = true;
-                        console.log( cc.fatal( "PENDING WORK CACHE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, error: " ) + cc.warning( err ) );
+                        const s = cc.fatal( "PENDING WORK CACHE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, error: " ) + cc.warning( err );
+                        if( verbose_get() >= RV_VERBOSE.error )
+                            log.write( s );
+                        details.write( s );
                         return; // process.exit( 156 );
                     }
-                    if( verbose_get() >= RV_VERBOSE.debug )
-                        log.write( cc.debug( "Pending work cache result is: " ) + cc.j( joOut ) + "\n" );
+                    details.write( cc.debug( "Pending work cache result is: " ) + cc.j( joOut ) + "\n" );
                     if( joOut && "result" in joOut && "success" in joOut.result ) {
                         if( joOut.result.success && "allTrackedTXNs" in joOut.result && joOut.result.allTrackedTXNs.length > 0 ) {
-                            if( verbose_get() >= RV_VERBOSE.trace )
-                                log.write( strLogPrefix + cc.debug( "Got " ) + cc.j( joOut.result.allTrackedTXNs.length ) + cc.debug( " pending transaction(s)" ) + "\n" );
+                            details.write( strLogPrefix + cc.debug( "Got " ) + cc.j( joOut.result.allTrackedTXNs.length ) + cc.debug( " pending transaction(s)" ) + "\n" );
                             let cntReviewedTNXs = 0;
                             for( const joTXE of joOut.result.allTrackedTXNs ) {
                                 ++ cntReviewedTNXs;
@@ -2618,18 +2575,19 @@ async function async_pending_tx_scanner( w3, w3_opposite, chain_id, chain_id_opp
                                 if( ! isContinue )
                                     break;
                             }
-                            if( verbose_get() >= RV_VERBOSE.trace )
-                                log.write( strLogPrefix + cc.debug( "Reviewed " ) + cc.info( cntReviewedTNXs ) + cc.debug( " pending transaction(s)" ) + "\n" );
+                            details.write( strLogPrefix + cc.debug( "Reviewed " ) + cc.info( cntReviewedTNXs ) + cc.debug( " pending transaction(s)" ) + "\n" );
                             havePendingWorkInfo = true;
                             return;
                         } else {
-                            if( verbose_get() >= RV_VERBOSE.trace )
-                                log.write( strLogPrefix + cc.debug( "Reviewed " ) + cc.info( 0 ) + cc.debug( " pending transaction(s)" ) + "\n" );
+                            details.write( strLogPrefix + cc.debug( "Reviewed " ) + cc.info( 0 ) + cc.debug( " pending transaction(s)" ) + "\n" );
                             havePendingWorkInfo = true;
                             return;
                         }
                     } else {
-                        console.log( cc.fatal( "PENDING WORK CACHE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, returned bad answer: " ) + cc.j( joOut ) );
+                        const s = cc.fatal( "PENDING WORK CACHE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, returned bad answer: " ) + cc.j( joOut );
+                        if( verbose_get() >= RV_VERBOSE.error )
+                            log.write( s );
+                        details.write( s );
                         havePendingWorkInfo = true;
                         return; // process.exit( 156 );
                     }
@@ -2641,7 +2599,10 @@ async function async_pending_tx_scanner( w3, w3_opposite, chain_id, chain_id_opp
                 ++ nWaitAttempt;
                 if( nWaitAttempt >= 10 ) {
                     havePendingWorkInfo = true; // workaround for es-lint
-                    console.log( cc.fatal( "PENDING WORK CACHE ERROR:" ) + cc.error( " Wait timeout" ) );
+                    const s = cc.fatal( "PENDING WORK CACHE ERROR:" ) + cc.error( " Wait timeout" ) + "\n";
+                    if( verbose_get() >= RV_VERBOSE.error )
+                        log.write( s );
+                    details.write( s );
                     break;
                 }
             }
@@ -2663,8 +2624,7 @@ async function async_pending_tx_scanner( w3, w3_opposite, chain_id, chain_id_opp
                         if( hash in mapTXs )
                             return;
                         mapTXs[hash] = rslt;
-                        // if( verbose_get() >= RV_VERBOSE.trace )
-                        //     log.write( strLogPrefix + cc.debug( "Got pending transaction: " ) + cc.j( rslt ) + "\n" );
+                        // details.write( strLogPrefix + cc.debug( "Got pending transaction: " ) + cc.j( rslt ) + "\n" );
                         const isContinue = cb( rslt );
                         if( ! isContinue ) {
                             have_next_tx = false;
@@ -2672,10 +2632,13 @@ async function async_pending_tx_scanner( w3, w3_opposite, chain_id, chain_id_opp
                         }
                     } catch ( err ) {
                         if( verbose_get() >= RV_VERBOSE.error ) {
-                            log.write(
+                            const s =
                                 strLogPrefix + cc.error( "PENDING TRANSACTIONS ENUMERATION HANDLER ERROR: from " ) + cc.u( w3_2_url( w3 ) ) +
                                 cc.error( ": " ) + cc.error( err ) +
-                                "\n" );
+                                "\n";
+                            if( verbose_get() >= RV_VERBOSE.error )
+                                log.write( s );
+                            details.write( s );
                         }
                     }
                 } );
@@ -2683,18 +2646,16 @@ async function async_pending_tx_scanner( w3, w3_opposite, chain_id, chain_id_opp
                     break;
                 ++ tx_idx;
             }
-            if( verbose_get() >= RV_VERBOSE.trace ) {
-                const cntTXNs = Object.keys( mapTXs ).length;
-                log.write( strLogPrefix + cc.debug( "Got " ) + cc.j( cntTXNs ) + cc.debug( " pending transaction(s)" ) + "\n" );
-            }
+            details.write( strLogPrefix + cc.debug( "Got " ) + cc.j( Object.keys( mapTXs ).length ) + cc.debug( " pending transaction(s)" ) + "\n" );
         } // else from if( chain_id == "Mainnet" )
     } catch ( err ) {
-        if( verbose_get() >= RV_VERBOSE.error ) {
-            log.write(
-                strLogPrefix + cc.error( "PENDING TRANSACTIONS SCAN ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
-                cc.error( ": " ) + cc.error( err ) +
-                "\n" );
-        }
+        const s =
+            strLogPrefix + cc.error( "PENDING TRANSACTIONS SCAN ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
+            cc.error( ": " ) + cc.error( err ) +
+            "\n";
+        if( verbose_get() >= RV_VERBOSE.error )
+            log.write( s );
+        details.write( s );
     }
 }
 
@@ -2744,13 +2705,13 @@ async function do_transfer(
     //
     optsPendingTxAnalysis
 ) {
-    const details = log.createMemoryOutputStream();
+    const details = log.createMemoryStream();
     const jarrReceipts = []; // do_transfer
     let bErrorInSigningMessages = false;
     const strLogPrefix = cc.info( "Transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
         details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
-        fn_sign_messages = async function( jarrMessages, nIdxCurrentMsgBlockStart, fnAfter ) {
+        fn_sign_messages = async function( jarrMessages, nIdxCurrentMsgBlockStart, details, fnAfter ) {
             details.write( strLogPrefix + cc.debug( "Message signing callback was " ) + cc.error( "not provided" ) +
                 cc.debug( " to IMA, message start index is " ) + cc.info( nIdxCurrentMsgBlockStart ) + cc.debug( ", have " ) +
                 cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) + "\n" );
@@ -2820,6 +2781,7 @@ async function do_transfer(
                         cc.warning( "Time framing overflow (after entering block former iteration loop)" ) +
                         "\n" );
                 }
+                details.close();
                 return;
             }
             const arrMessageCounters = [];
@@ -2867,6 +2829,7 @@ async function do_transfer(
                     log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
                     details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
                     details.exposeDetailsTo( log, "do_transfer" );
+                    details.close();
                     return; // process.exit( 126 );
                 }
                 //
@@ -2893,6 +2856,7 @@ async function do_transfer(
                             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Exception(evaluate block depth) while getting transaction hash and block number during " + strActionName + ": " ) + cc.error( err ) + "\n" );
                         details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Exception(evaluate block depth) while getting transaction hash and block number during " + strActionName + ": " ) + cc.error( err ) + "\n" );
                         details.exposeDetailsTo( log, "do_transfer" );
+                        details.close();
                         return false;
                     }
                     strActionName = "" + strActionName_old;
@@ -2933,6 +2897,7 @@ async function do_transfer(
                             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Exception(evaluate block age) while getting block number and timestamp during " + strActionName + ": " ) + cc.error( err ) + "\n" );
                         details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Exception(evaluate block age) while getting block number and timestamp during " + strActionName + ": " ) + cc.error( err ) + "\n" );
                         details.exposeDetailsTo( log, "do_transfer" );
+                        details.close();
                         return false;
                     }
                     strActionName = "" + strActionName_old;
@@ -2973,6 +2938,7 @@ async function do_transfer(
                         cc.warning( "Time framing overflow (after forming block of messages)" ) +
                         "\n" );
                 }
+                details.close();
                 return;
             }
             //
@@ -2983,7 +2949,7 @@ async function do_transfer(
                 let wasIgnoredPTX = false;
                 try {
                     const strShortMessageProxyAddressToCompareWith = owaspUtils.remove_starting_0x( jo_message_proxy_dst.options.address ).toLowerCase();
-                    await async_pending_tx_scanner( w3_dst, w3_src, chain_id_dst, chain_id_src, function( joTX ) {
+                    await async_pending_tx_scanner( details, w3_dst, w3_src, chain_id_dst, chain_id_src, function( joTX ) {
                         if( "to" in joTX ) {
                             if( joTX.to == "holder.value.MessageProxy" ) {
                                 joFoundPendingTX = joTX;
@@ -3061,10 +3027,11 @@ async function do_transfer(
                         cc.error( ": " ) + cc.error( err ) +
                         "\n" );
                 }
-                if( !wasIgnoredPTX )
+                if( !wasIgnoredPTX ) {
                     details.write(
                         strLogPrefix + cc.success( "PENDING TRANSACTION ANALYSIS did not found transactions to wait for complete" ) +
                         "\n" );
+                }
                 if( "check_time_framing" in global && ( ! global.check_time_framing() ) ) {
                     if( verbose_get() >= RV_VERBOSE.information ) {
                         log.write(
@@ -3072,19 +3039,21 @@ async function do_transfer(
                             cc.warning( "Time framing overflow (after pending transactions analysis)" ) +
                             "\n" );
                     }
+                    details.close();
                     return;
                 }
             }
             //
             //
             strActionName = "sign messages";
-            await fn_sign_messages( messages, nIdxCurrentMsgBlockStart, async function( err, jarrMessages, joGlueResult ) {
+            await fn_sign_messages( messages, nIdxCurrentMsgBlockStart, details, async function( err, jarrMessages, joGlueResult ) {
                 if( err ) {
                     bErrorInSigningMessages = true;
                     if( verbose_get() >= RV_VERBOSE.fatal )
                         log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error signing messages: " ) + cc.error( err ) + "\n" );
                     details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error signing messages: " ) + cc.error( err ) + "\n" );
                     details.exposeDetailsTo( log, "do_transfer" );
+                    details.close();
                     return;
                 }
                 if( "check_time_framing" in global && ( ! global.check_time_framing() ) ) {
@@ -3094,6 +3063,7 @@ async function do_transfer(
                             cc.warning( "Time framing overflow (after signing messages)" ) +
                             "\n" );
                     }
+                    details.close();
                     return;
                 }
                 strActionName = "dst-chain.getTransactionCount()";
@@ -3205,7 +3175,7 @@ async function do_transfer(
                 let joReceipt = null;
                 if( joPostIncomingMessagesSR.joACI.isAutoSend ) {
                     if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-                        await async_pending_tx_start( w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joPostIncomingMessagesSR.txHashSent );
+                        await async_pending_tx_start( details, w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joPostIncomingMessagesSR.txHashSent );
                     joReceipt = await get_web3_transactionReceipt( 10, w3_dst, joPostIncomingMessagesSR.txHashSent );
                 } else {
                     const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
@@ -3222,7 +3192,7 @@ async function do_transfer(
                     } );
                     print_gas_usage_report_from_array( "(intermediate result) TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
                     if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-                        await async_pending_tx_complete( w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joReceipt.transactionHash );
+                        await async_pending_tx_complete( details, w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joReceipt.transactionHash );
                 }
                 cntProcessed += cntAccumulatedForBlock;
                 //
@@ -3242,9 +3212,9 @@ async function do_transfer(
                         if( joReceipt && "blockNumber" in joReceipt && "transactionHash" in joReceipt ) {
                             details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "PostMessageError" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.debug( " contract..." ) + "\n" );
                             const joEvents = await get_contract_call_events( w3_dst, jo_message_proxy_dst, "PostMessageError", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-                            if( joEvents.length == 0 ) {
+                            if( joEvents.length == 0 )
                                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "PostMessageError" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.success( " contract, no events found" ) + "\n" );
-                            } else {
+                            else {
                                 log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) + cc.error( " event of the " ) + cc.warning( "MessageProxy" ) + cc.error( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                                 details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) + cc.error( " event of the " ) + cc.warning( "MessageProxy" ) + cc.error( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                                 throw new Error( "Verification failed for the \"PostMessageError\" event of the \"MessageProxy\"/" + jo_message_proxy_dst.options.address + " contract, error events found" );
@@ -3289,9 +3259,11 @@ async function do_transfer(
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
         details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
         details.exposeDetailsTo( log, "do_transfer" );
+        details.close();
         return false;
     }
     print_gas_usage_report_from_array( "TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
+    // details.exposeDetailsTo( log, "do_transfer" );
     details.close();
     return true;
 } // async function do_transfer( ...

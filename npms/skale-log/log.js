@@ -151,10 +151,10 @@ function createMemoryOutputStream() {
             exposeDetailsTo: function( otherStream, strTitle ) {
                 strTitle = strTitle ? ( " (" + strTitle + ")" ) : "";
                 otherStream.write(
-                    "\n\n\n--- --- --- Gathered details for latest" + strTitle + " action (BEGIN) --- --- ---\n"
-                    + this.strAccumulatedLogText
-                    + "--- --- --- Gathered details for latest" + strTitle + " action (END) --- --- ---\n\n\n\n"
-                    );
+                    "\n\n\n--- --- --- Gathered details for latest" + strTitle + " action (BEGIN) --- --- ---\n" +
+                    this.strAccumulatedLogText +
+                    "--- --- --- Gathered details for latest" + strTitle + " action (END) --- --- ---\n\n\n\n"
+                );
             }
         };
         objEntry.open();
