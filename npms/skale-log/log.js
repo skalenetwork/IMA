@@ -135,17 +135,27 @@ function insertStandardOutputStream() {
 function createMemoryOutputStream() {
     try {
         const objEntry = {
-			  strPath: "memory",
-			  nMaxSizeBeforeRotation: -1,
-			  nMaxFilesCount: -1,
-			  strAccumulatedLogText: "",
-			  write: function( s ) {
+            strPath: "memory",
+            nMaxSizeBeforeRotation: -1,
+            nMaxFilesCount: -1,
+            strAccumulatedLogText: "",
+            write: function( s ) {
                 this.strAccumulatedLogText += s;
             },
-			  close: function() { this.strAccumulatedLogText = ""; },
-			  open: function() { this.strAccumulatedLogText = ""; },
-			  size: function() { return 0; },
-			  rotate: function( nBytesToWrite ) { this.strAccumulatedLogText = ""; }
+            clear: function() { this.strAccumulatedLogText = ""; },
+            close: function() { this.clear(); },
+            open: function() { this.clear(); },
+            size: function() { return 0; },
+            rotate: function( nBytesToWrite ) { this.strAccumulatedLogText = ""; },
+            toString: function() { return "" + this.strAccumulatedLogText; },
+            exposeDetailsTo: function( otherStream, strTitle ) {
+                strTitle = strTitle ? ( " (" + strTitle + ")" ) : "";
+                otherStream.write(
+                    "\n\n\n--- --- --- Gathered details for latest" + strTitle + " action (BEGIN) --- --- ---\n"
+                    + this.strAccumulatedLogText
+                    + "--- --- --- Gathered details for latest" + strTitle + " action (END) --- --- ---\n\n\n\n"
+                    );
+            }
         };
         objEntry.open();
         return objEntry;
@@ -271,6 +281,9 @@ module.exports = {
     },
     addMemory: function() {
         return insertMemoryOutputStream();
+    },
+    createMemoryStream: function() {
+        return createMemoryOutputStream();
     },
     add: function( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
         return insertFileOutput(

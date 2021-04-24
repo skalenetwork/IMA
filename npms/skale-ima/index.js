@@ -2744,20 +2744,20 @@ async function do_transfer(
     //
     optsPendingTxAnalysis
 ) {
+    const details = log.createMemoryOutputStream();
     const jarrReceipts = []; // do_transfer
-    let bErrorInSigningMessages = false; const strLogPrefix = cc.info( "Transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
+    let bErrorInSigningMessages = false;
+    const strLogPrefix = cc.info( "Transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
-        if( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
         fn_sign_messages = async function( jarrMessages, nIdxCurrentMsgBlockStart, fnAfter ) {
-            // if ( verbose_get() >= RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "Message signing callback was " ) + cc.error( "not provided" ) +
+            details.write( strLogPrefix + cc.debug( "Message signing callback was " ) + cc.error( "not provided" ) +
                 cc.debug( " to IMA, message start index is " ) + cc.info( nIdxCurrentMsgBlockStart ) + cc.debug( ", have " ) +
                 cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) + "\n" );
             await fnAfter( null, jarrMessages, null ); // null - no error, null - no signatures
         };
     } else
-        log.write( strLogPrefix + cc.debug( "Using externally provided signing function" ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using externally provided signing function" ) + "\n" );
     nTransactionsCountInBlock = nTransactionsCountInBlock || 5;
     nMaxTransactionsCount = nMaxTransactionsCount || 100;
     if( nTransactionsCountInBlock < 1 )
@@ -2773,31 +2773,27 @@ async function do_transfer(
     let idxLastToPopNotIncluding = 0;
     try {
         let nPossibleIntegerValue = 0;
-        log.write( cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_src.options.address ) + "\n" );
-        log.write( cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_dst.options.address ) + "\n" );
+        details.write( cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_src.options.address ) + "\n" );
+        details.write( cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_dst.options.address ) + "\n" );
         strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         nPossibleIntegerValue = await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( {
             from: joAccountSrc.address( w3_src )
         } );
         if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
             throw new Error( "DST chain " + chain_id_dst + " returned outgoing message counter " + nPossibleIntegerValue + " which is not a valid integer" );
         nOutMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( nOutMsgCnt ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( nOutMsgCnt ) + "\n" );
         //
         strActionName = "dst-chain.MessageProxy.getIncomingMessagesCounter()";
-        if( verbose_get() >= RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         nPossibleIntegerValue = await jo_message_proxy_dst.methods.getIncomingMessagesCounter( chain_id_src ).call( {
             from: joAccountDst.address( w3_dst )
         } );
         if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
             throw new Error( "SRC chain " + chain_id_src + " returned incoming message counter " + nPossibleIntegerValue + " which is not a valid integer" );
         nIncMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( nIncMsgCnt ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( nIncMsgCnt ) + "\n" );
         //
         strActionName = "src-chain.MessageProxy.getIncomingMessagesCounter()";
         nPossibleIntegerValue = await jo_message_proxy_src.methods.getIncomingMessagesCounter( chain_id_dst ).call( {
@@ -2806,20 +2802,17 @@ async function do_transfer(
         if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
             throw new Error( "DST chain " + chain_id_dst + " returned incoming message counter " + nPossibleIntegerValue + " which is not a valid integer" );
         idxLastToPopNotIncluding = owaspUtils.toInteger( nPossibleIntegerValue );
-        if( verbose_get() >= RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( idxLastToPopNotIncluding ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( idxLastToPopNotIncluding ) + "\n" );
         //
         // outer loop is block former/creator, then transfer
         //
         nIdxCurrentMsg = nIncMsgCnt;
         let cntProcessed = 0;
         while( nIdxCurrentMsg < nOutMsgCnt ) {
-            if( verbose_get() >= RV_VERBOSE.trace ) {
-                log.write(
-                    strLogPrefix + cc.debug( "Entering block former iteration with " ) + cc.notice( "message counter" ) +
-                    cc.debug( " set to " ) + cc.info( nIdxCurrentMsg ) +
-                    "\n" );
-            }
+            details.write(
+                strLogPrefix + cc.debug( "Entering block former iteration with " ) + cc.notice( "message counter" ) +
+                cc.debug( " set to " ) + cc.info( nIdxCurrentMsg ) +
+                "\n" );
             if( "check_time_framing" in global && ( ! global.check_time_framing() ) ) {
                 if( verbose_get() >= RV_VERBOSE.information ) {
                     log.write(
@@ -2843,8 +2836,7 @@ async function do_transfer(
                 //
                 //
                 strActionName = "src-chain.MessageProxy.getPastEvents()";
-                if( verbose_get() >= RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event now..." ) + "\n" );
+                details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event now..." ) + "\n" );
                 r = await get_web3_pastEvents(
                     10,
                     jo_message_proxy_src,
@@ -2873,6 +2865,8 @@ async function do_transfer(
                 }
                 if( joValues == "" ) {
                     log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
+                    details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
+                    details.exposeDetailsTo( log, "do_transfer" );
                     return; // process.exit( 126 );
                 }
                 //
@@ -2884,29 +2878,28 @@ async function do_transfer(
                     strActionName = "security check: evaluate block depth";
                     try {
                         const transactionHash = r[0].transactionHash;
-                        if( verbose_get() >= RV_VERBOSE.trace )
-                            log.write( strLogPrefix + cc.debug( "Event transactionHash is " ) + cc.info( transactionHash ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Event transactionHash is " ) + cc.info( transactionHash ) + "\n" );
                         const blockNumber = r[0].blockNumber;
-                        if( verbose_get() >= RV_VERBOSE.trace )
-                            log.write( strLogPrefix + cc.debug( "Event blockNumber is " ) + cc.info( blockNumber ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Event blockNumber is " ) + cc.info( blockNumber ) + "\n" );
                         const nLatestBlockNumber = await get_web3_blockNumber( 10, w3_src );
-                        if( verbose_get() >= RV_VERBOSE.trace )
-                            log.write( strLogPrefix + cc.debug( "Latest blockNumber is " ) + cc.info( nLatestBlockNumber ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Latest blockNumber is " ) + cc.info( nLatestBlockNumber ) + "\n" );
                         const nDist = nLatestBlockNumber - blockNumber;
                         if( nDist < nBlockAwaitDepth )
                             bSecurityCheckPassed = false;
-                        if( verbose_get() >= RV_VERBOSE.trace )
-                            log.write( strLogPrefix + cc.debug( "Distance by blockNumber is " ) + cc.info( nDist ) + cc.debug( ", await check is " ) + ( bSecurityCheckPassed ? cc.success( "PASSED" ) : cc.error( "FAILED" ) ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Distance by blockNumber is " ) + cc.info( nDist ) + cc.debug( ", await check is " ) + ( bSecurityCheckPassed ? cc.success( "PASSED" ) : cc.error( "FAILED" ) ) + "\n" );
                     } catch ( err ) {
                         bSecurityCheckPassed = false;
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Exception(evaluate block depth) while getting transaction hash and block number during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+                        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Exception(evaluate block depth) while getting transaction hash and block number during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+                        details.exposeDetailsTo( log, "do_transfer" );
                         return false;
                     }
                     strActionName = "" + strActionName_old;
                     if( !bSecurityCheckPassed ) {
                         if( verbose_get() >= RV_VERBOSE.trace )
                             log.write( strLogPrefix + cc.warning( "Block depth check was not passed, canceling search for transfer events" ) + "\n" );
+                        details.write( strLogPrefix + cc.warning( "Block depth check was not passed, canceling search for transfer events" ) + "\n" );
                         break;
                     }
                 } // if( nBlockAwaitDepth > 0 )
@@ -2916,61 +2909,52 @@ async function do_transfer(
                     strActionName = "security check: evaluate block age";
                     try {
                         const transactionHash = r[0].transactionHash;
-                        if( verbose_get() >= RV_VERBOSE.trace )
-                            log.write( strLogPrefix + cc.debug( "Event transactionHash is " ) + cc.info( transactionHash ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Event transactionHash is " ) + cc.info( transactionHash ) + "\n" );
                         const blockNumber = r[0].blockNumber;
-                        if( verbose_get() >= RV_VERBOSE.trace )
-                            log.write( strLogPrefix + cc.debug( "Event blockNumber is " ) + cc.info( blockNumber ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Event blockNumber is " ) + cc.info( blockNumber ) + "\n" );
                         //
                         //
                         const joBlock = await w3_src.eth.getBlock( blockNumber );
                         if( !owaspUtils.validateInteger( joBlock.timestamp ) )
                             throw new Error( "Block \"timestamp\" is not a valid integer value: " + joBlock.timestamp );
                         const timestampBlock = owaspUtils.toInteger( joBlock.timestamp );
-                        if( verbose_get() >= RV_VERBOSE.trace )
-                            log.write( strLogPrefix + cc.debug( "Block   TS is " ) + cc.info( timestampBlock ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Block   TS is " ) + cc.info( timestampBlock ) + "\n" );
                         const timestampCurrent = parseInt( parseInt( Date.now().valueOf() ) / 1000 );
-                        if( verbose_get() >= RV_VERBOSE.trace )
-                            log.write( strLogPrefix + cc.debug( "Current TS is " ) + cc.info( timestampCurrent ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Current TS is " ) + cc.info( timestampCurrent ) + "\n" );
                         const tsDiff = timestampCurrent - timestampBlock;
-                        if( verbose_get() >= RV_VERBOSE.trace ) {
-                            log.write( strLogPrefix + cc.debug( "Diff    TS is " ) + cc.info( tsDiff ) + "\n" );
-                            log.write( strLogPrefix + cc.debug( "Expected diff " ) + cc.info( nBlockAge ) + "\n" );
-                        }
+                        details.write( strLogPrefix + cc.debug( "Diff    TS is " ) + cc.info( tsDiff ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Expected diff " ) + cc.info( nBlockAge ) + "\n" );
                         if( tsDiff < nBlockAge )
                             bSecurityCheckPassed = false;
-                        if( verbose_get() >= RV_VERBOSE.trace )
-                            log.write( strLogPrefix + cc.debug( "Block age check is " ) + ( bSecurityCheckPassed ? cc.success( "PASSED" ) : cc.error( "FAILED" ) ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Block age check is " ) + ( bSecurityCheckPassed ? cc.success( "PASSED" ) : cc.error( "FAILED" ) ) + "\n" );
                     } catch ( err ) {
                         bSecurityCheckPassed = false;
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Exception(evaluate block age) while getting block number and timestamp during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+                        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Exception(evaluate block age) while getting block number and timestamp during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+                        details.exposeDetailsTo( log, "do_transfer" );
                         return false;
                     }
                     strActionName = "" + strActionName_old;
                     if( !bSecurityCheckPassed ) {
-                        if( verbose_get() >= RV_VERBOSE.trace )
-                            log.write( strLogPrefix + cc.warning( "Block age check was not passed, canceling search for transfer events" ) + "\n" );
+                        details.write( strLogPrefix + cc.warning( "Block age check was not passed, canceling search for transfer events" ) + "\n" );
                         break;
                     }
                 } // if( nBlockAge > 0 )
                 //
                 //
                 //
-                if( verbose_get() >= RV_VERBOSE.debug ) {
-                    log.write(
-                        strLogPrefix +
-                        cc.success( "Got event details from " ) + cc.notice( "getPastEvents()" ) +
-                        cc.success( " event invoked with " ) + cc.notice( "msgCounter" ) + cc.success( " set to " ) + cc.info( nIdxCurrentMsg ) +
-                        cc.success( " and " ) + cc.notice( "dstChain" ) + cc.success( " set to " ) + cc.info( chain_id_dst ) +
-                        cc.success( ", event description: " ) + cc.j( joValues ) + // + cc.j(evs) +
-                        "\n"
-                    );
-                }
+                details.write(
+                    strLogPrefix +
+                    cc.success( "Got event details from " ) + cc.notice( "getPastEvents()" ) +
+                    cc.success( " event invoked with " ) + cc.notice( "msgCounter" ) + cc.success( " set to " ) + cc.info( nIdxCurrentMsg ) +
+                    cc.success( " and " ) + cc.notice( "dstChain" ) + cc.success( " set to " ) + cc.info( chain_id_dst ) +
+                    cc.success( ", event description: " ) + cc.j( joValues ) + // + cc.j(evs) +
+                    "\n"
+                );
                 //
                 //
-                if( verbose_get() >= RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.debug( "Will process message counter value " ) + cc.info( nIdxCurrentMsg ) + "\n" );
+                details.write( strLogPrefix + cc.debug( "Will process message counter value " ) + cc.info( nIdxCurrentMsg ) + "\n" );
                 arrMessageCounters.push( nIdxCurrentMsg );
                 messages.push( {
                     sender: joValues.srcContract,
@@ -2995,81 +2979,72 @@ async function do_transfer(
             //
             // Analyze pending transactions potentially awaited by previous IMA agent running in previous time frame
             if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled ) {
-                let joFountPendingTX = null;
+                let joFoundPendingTX = null;
                 let wasIgnoredPTX = false;
                 try {
                     const strShortMessageProxyAddressToCompareWith = owaspUtils.remove_starting_0x( jo_message_proxy_dst.options.address ).toLowerCase();
                     await async_pending_tx_scanner( w3_dst, w3_src, chain_id_dst, chain_id_src, function( joTX ) {
                         if( "to" in joTX ) {
                             if( joTX.to == "holder.value.MessageProxy" ) {
-                                joFountPendingTX = joTX;
+                                joFoundPendingTX = joTX;
                                 return false; // stop pending tx scanner
                             }
                             const strShortToAddress = owaspUtils.remove_starting_0x( joTX.to ).toLowerCase();
                             if( strShortToAddress == strShortMessageProxyAddressToCompareWith ) {
-                                joFountPendingTX = joTX;
+                                joFoundPendingTX = joTX;
                                 return false; // stop pending tx scanner
                             }
                         }
                         return true; // continue pending tx scanner
                     } );
-                    if( joFountPendingTX ) {
-                        if( verbose_get() >= RV_VERBOSE.information ) {
-                            log.write(
-                                strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( w3_2_url( w3_dst ) ) +
-                                cc.warning( " found un-finished transaction(s) in pending queue to be processed by destination message proxy: " ) +
-                                cc.j( joFountPendingTX ) +
-                                "\n" );
-                        }
+                    if( joFoundPendingTX ) {
+                        details.write(
+                            strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                            cc.warning( " found un-finished transaction(s) in pending queue to be processed by destination message proxy: " ) +
+                            cc.j( joFoundPendingTX ) +
+                            "\n" );
                         if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled &&
                             "nTimeoutSecondsBeforeSecondAttempt" in optsPendingTxAnalysis && optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt > 0
                         ) {
-                            if( verbose_get() >= RV_VERBOSE.trace )
-                                log.write( cc.debug( "Sleeping " ) + cc.info( optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt ) + cc.debug( " seconds before secondary pending transactions analysis..." ) + "\n" );
+                            details.write( cc.debug( "Sleeping " ) + cc.info( optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt ) + cc.debug( " seconds before secondary pending transactions analysis..." ) + "\n" );
                             await sleep( optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt * 1000 );
                             //
-                            joFountPendingTX = null;
+                            joFoundPendingTX = null;
                             await async_pending_tx_scanner( w3_dst, w3_src, chain_id_dst, chain_id_src, function( joTX ) {
                                 if( "to" in joTX ) {
                                     if( joTX.to == "holder.value.MessageProxy" ) {
-                                        joFountPendingTX = joTX;
+                                        joFoundPendingTX = joTX;
                                         return false; // stop pending tx scanner
                                     }
                                     const strShortToAddress = owaspUtils.remove_starting_0x( joTX.to ).toLowerCase();
                                     if( strShortToAddress == strShortMessageProxyAddressToCompareWith ) {
-                                        joFountPendingTX = joTX;
+                                        joFoundPendingTX = joTX;
                                         return false; // stop pending tx scanner
                                     }
                                 }
                                 return true; // continue pending tx scanner
                             } );
-                            if( joFountPendingTX ) {
-                                if( verbose_get() >= RV_VERBOSE.information ) {
-                                    log.write(
-                                        strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( w3_2_url( w3_dst ) ) +
-                                        cc.warning( " found un-finished transaction(s) in pending queue to be processed by destination message proxy: " ) +
-                                        cc.j( joFountPendingTX ) +
-                                        "\n" );
-                                }
+                            if( joFoundPendingTX ) {
+                                details.write(
+                                    strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                                    cc.warning( " found un-finished transaction(s) in pending queue to be processed by destination message proxy: " ) +
+                                    cc.j( joFoundPendingTX ) +
+                                    "\n" );
                                 if( "isIgnore2" in optsPendingTxAnalysis && ( !optsPendingTxAnalysis.isIgnore2 ) )
                                     return; // return after 2nd pending transactions analysis
-                                if( verbose_get() >= RV_VERBOSE.information ) {
-                                    log.write(
-                                        strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( w3_2_url( w3_dst ) ) +
-                                        cc.warning( " result is " ) + cc.error( "ignored" ) +
-                                        "\n" );
-                                }
+                                details.write(
+                                    strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                                    cc.warning( " result is " ) + cc.error( "ignored" ) +
+                                    "\n" );
                                 wasIgnoredPTX = true;
                             }
                         } else {
                             if( "isIgnore" in optsPendingTxAnalysis && ( !optsPendingTxAnalysis.isIgnore ) )
                                 return; // return after first 1st transactions analysis
-                            if( verbose_get() >= RV_VERBOSE.information ) {
-                                log.write(
-                                    strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( w3_2_url( w3_dst ) ) +
-                                    cc.warning( " result is " ) + cc.error( "ignored" ) +
-                                    "\n" );
-                            }
+                            details.write(
+                                strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                                cc.warning( " result is " ) + cc.error( "ignored" ) +
+                                "\n" );
                             wasIgnoredPTX = true;
                         }
 
@@ -3081,12 +3056,15 @@ async function do_transfer(
                             cc.error( ": " ) + cc.error( err ) +
                             "\n" );
                     }
-                }
-                if( ( !wasIgnoredPTX ) && verbose_get() >= RV_VERBOSE.information ) {
-                    log.write(
-                        strLogPrefix + cc.success( "PENDING TRANSACTION ANALYSIS did not found transactions to wait for complete" ) +
+                    details.write(
+                        strLogPrefix + cc.error( "PENDING TRANSACTION ANALYSIS ERROR: API call error from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                        cc.error( ": " ) + cc.error( err ) +
                         "\n" );
                 }
+                if( !wasIgnoredPTX )
+                    details.write(
+                        strLogPrefix + cc.success( "PENDING TRANSACTION ANALYSIS did not found transactions to wait for complete" ) +
+                        "\n" );
                 if( "check_time_framing" in global && ( ! global.check_time_framing() ) ) {
                     if( verbose_get() >= RV_VERBOSE.information ) {
                         log.write(
@@ -3105,6 +3083,8 @@ async function do_transfer(
                     bErrorInSigningMessages = true;
                     if( verbose_get() >= RV_VERBOSE.fatal )
                         log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error signing messages: " ) + cc.error( err ) + "\n" );
+                    details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error signing messages: " ) + cc.error( err ) + "\n" );
+                    details.exposeDetailsTo( log, "do_transfer" );
                     return;
                 }
                 if( "check_time_framing" in global && ( ! global.check_time_framing() ) ) {
@@ -3118,46 +3098,40 @@ async function do_transfer(
                 }
                 strActionName = "dst-chain.getTransactionCount()";
                 const tcnt = await get_web3_transactionCount( 10, w3_dst, joAccountDst.address( w3_dst ), null );
-                if( verbose_get() >= RV_VERBOSE.debug )
-                    log.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+                details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
                 //
                 //
                 const nBlockSize = arrMessageCounters.length;
                 strActionName = "dst-chain.MessageProxy.postIncomingMessages()";
-                if( verbose_get() >= RV_VERBOSE.trace ) {
-                    log.write(
-                        strLogPrefix +
-                        cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) +
-                        cc.notice( "block size" ) + cc.debug( " set to " ) + cc.info( nBlockSize ) +
-                        cc.debug( ", " ) + cc.notice( "message counters =" ) + cc.debug( " are " ) + cc.info( JSON.stringify( arrMessageCounters ) ) +
-                        cc.debug( "..." ) + "\n"
-                    );
-                }
+                details.write(
+                    strLogPrefix +
+                    cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) +
+                    cc.notice( "block size" ) + cc.debug( " set to " ) + cc.info( nBlockSize ) +
+                    cc.debug( ", " ) + cc.notice( "message counters =" ) + cc.debug( " are " ) + cc.info( JSON.stringify( arrMessageCounters ) ) +
+                    cc.debug( "..." ) + "\n"
+                );
                 //
                 //
                 //
                 { // EXPERIMENTAL BLOCK: check DST permissions, result is ignored
-                    if( verbose_get() >= RV_VERBOSE.trace )
-                        log.write( strLogPrefix + cc.debug( "Will check permissions in destination message proxy..." ) + "\n" );
+                    details.write( strLogPrefix + cc.debug( "Will check permissions in destination message proxy..." ) + "\n" );
                     try {
                         const a = joAccountDst.address( w3_dst );
                         const hashOfSchainName = w3_dst.utils.keccak256( chain_id_src );
-                        if( verbose_get() >= RV_VERBOSE.trace ) {
-                            log.write( strLogPrefix + cc.debug( "From address " ) + cc.info( a ) + "\n" );
-                            log.write( strLogPrefix + cc.debug( "Chain name " ) + cc.info( chain_id_src ) + "\n" );
-                            log.write( strLogPrefix + cc.debug( "Hash of chain name " ) + cc.info( hashOfSchainName ) + "\n" );
-                        }
+                        details.write( strLogPrefix + cc.debug( "From address " ) + cc.info( a ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Chain name " ) + cc.info( chain_id_src ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Hash of chain name " ) + cc.info( hashOfSchainName ) + "\n" );
                         const r = await jo_message_proxy_dst.methods.isAuthorizedCaller(
                             hashOfSchainName,
                             a
                         ).call( {
                             from: a
                         } );
-                        if( verbose_get() >= RV_VERBOSE.trace )
-                            log.write( strLogPrefix + cc.debug( "Result of checking permissions in destination message proxy is " ) + cc.info( r ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Result of checking permissions in destination message proxy is " ) + cc.info( r ) + "\n" );
                     } catch ( err ) {
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error check permissions in destination message proxy: " ) + cc.error( err ) + "\n" );
+                        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error check permissions in destination message proxy: " ) + cc.error( err ) + "\n" );
                     }
 
                 } // EXPERIMENTAL BLOCK: check DST permissions, result is ignored
@@ -3200,7 +3174,7 @@ async function do_transfer(
                         hashPoint.Y, // G1.Y from joGlueResult.hashSrc
                         hint
                     ];
-                    log.write(
+                    details.write(
                         strLogPrefix +
                         cc.debug( "....debug args for " ) +
                         cc.notice( "msgCounter" ) + cc.debug( " set to " ) + cc.info( nIdxCurrentMsgBlockStart ) + cc.debug( ": " ) +
@@ -3208,11 +3182,9 @@ async function do_transfer(
                 }
                 //
                 const gasPrice = await tc_dst.computeGasPrice( w3_dst, 200000000000 );
-                if( verbose_get() >= RV_VERBOSE.debug )
-                    log.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+                details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
                 const estimatedGas_postIncomingMessages = await tc_dst.computeGas( methodWithArguments_postIncomingMessages, w3_dst, 10000000, gasPrice, joAccountDst.address( w3_dst ), "0" );
-                if( verbose_get() >= RV_VERBOSE.debug )
-                    log.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_postIncomingMessages ) + "\n" );
+                details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_postIncomingMessages ) + "\n" );
                 //
                 const isIgnore_postIncomingMessages = false;
                 const strDRC_postIncomingMessages = "postIncomingMessages in message signer";
@@ -3241,8 +3213,7 @@ async function do_transfer(
                     // let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx_postIncomingMessages.toString( "hex" ) );
                     joReceipt = await safe_send_signed_transaction( w3_dst, serializedTx_postIncomingMessages, strActionName, strLogPrefix );
                 }
-                if( verbose_get() >= RV_VERBOSE.information )
-                    log.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
 
                 if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
                     jarrReceipts.push( {
@@ -3261,58 +3232,50 @@ async function do_transfer(
                 //
                 //
                 //
-                if( verbose_get() >= RV_VERBOSE.information )
-                    log.write( strLogPrefix + cc.debug( "Validating transfer from " ) + cc.info( chain_id_src ) + cc.debug( " to " ) + cc.info( chain_id_dst ) + cc.debug( "..." ) + "\n" );
+                details.write( strLogPrefix + cc.debug( "Validating transfer from " ) + cc.info( chain_id_src ) + cc.debug( " to " ) + cc.info( chain_id_dst ) + cc.debug( "..." ) + "\n" );
                 //
                 // check DepositBox -> Error on Mainnet only
                 //
                 if( chain_id_dst == "Mainnet" ) {
-                    if( verbose_get() >= RV_VERBOSE.information )
-                        log.write( strLogPrefix + cc.debug( "Validating transfer to Main Net via MessageProxy error absence on Main Net..." ) + "\n" );
+                    details.write( strLogPrefix + cc.debug( "Validating transfer to Main Net via MessageProxy error absence on Main Net..." ) + "\n" );
                     if( jo_deposit_box_main_net ) {
                         if( joReceipt && "blockNumber" in joReceipt && "transactionHash" in joReceipt ) {
-                            if( verbose_get() >= RV_VERBOSE.information )
-                                log.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "PostMessageError" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.debug( " contract..." ) + "\n" );
+                            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "PostMessageError" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.debug( " contract..." ) + "\n" );
                             const joEvents = await get_contract_call_events( w3_dst, jo_message_proxy_dst, "PostMessageError", joReceipt.blockNumber, joReceipt.transactionHash, {} );
                             if( joEvents.length == 0 ) {
-                                if( verbose_get() >= RV_VERBOSE.information )
-                                    log.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "PostMessageError" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.success( " contract, no events found" ) + "\n" );
+                                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "PostMessageError" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.success( " contract, no events found" ) + "\n" );
                             } else {
                                 log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) + cc.error( " event of the " ) + cc.warning( "MessageProxy" ) + cc.error( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                                details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) + cc.error( " event of the " ) + cc.warning( "MessageProxy" ) + cc.error( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                                 throw new Error( "Verification failed for the \"PostMessageError\" event of the \"MessageProxy\"/" + jo_message_proxy_dst.options.address + " contract, error events found" );
                             }
-                            if( verbose_get() >= RV_VERBOSE.information )
-                                log.write( strLogPrefix + cc.success( "Done, validated transfer to Main Net via MessageProxy error absence on Main Net" ) + "\n" );
+                            details.write( strLogPrefix + cc.success( "Done, validated transfer to Main Net via MessageProxy error absence on Main Net" ) + "\n" );
                         } else
-                            log.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no valid transaction receipt provided" ) + "\n" );
+                            details.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no valid transaction receipt provided" ) + "\n" );
                     } else
-                        log.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no MessageProxy provided" ) + "\n" );
+                        details.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no MessageProxy provided" ) + "\n" );
                 } // if( chain_id_dst == "Mainnet" )
                 /*
                 //
                 // check TokenManager -> Error on Schain only
                 //
                 if( chain_id_dst != "Mainnet" ) {
-                    if ( verbose_get() >= RV_VERBOSE.information )
-                        log.write( strLogPrefix + cc.debug("Validating transfer to S-Chain via TokenManager error absence on S-Chain...") + "\n" );
+                    details.write( strLogPrefix + cc.debug("Validating transfer to S-Chain via TokenManager error absence on S-Chain...") + "\n" );
                     if( jo_token_manager_schain ) {
-                        if ( verbose_get() >= RV_VERBOSE.information )
-                            log.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("Error") + cc.debug(" event of the ") + cc.info("TokenManager") + cc.debug("/") + cc.notice(jo_token_manager_schain.options.address) + cc.debug(" contract..." ) + "\n" );
+                        details.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("Error") + cc.debug(" event of the ") + cc.info("TokenManager") + cc.debug("/") + cc.notice(jo_token_manager_schain.options.address) + cc.debug(" contract..." ) + "\n" );
                         let joEvents = await get_contract_call_events( w3_????????????????????????, jo_token_manager_schain, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
                         if( joEvents.length == 0 ) {
-                            if ( verbose_get() >= RV_VERBOSE.information )
-                                log.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("TokenManager") + cc.success("/") + cc.notice(jo_token_manager_schain.options.address) + cc.success(" contract, no events found" ) + "\n" );
+                            details.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("TokenManager") + cc.success("/") + cc.notice(jo_token_manager_schain.options.address) + cc.success(" contract, no events found" ) + "\n" );
                         } else {
                             log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.warning(" Failed") + cc.error(" verification of the ") + cc.warning("Error") + cc.error(" event of the ") + cc.warning("TokenManager") + cc.error("/") + cc.notice(jo_token_manager_schain.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                            details.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.warning(" Failed") + cc.error(" verification of the ") + cc.warning("Error") + cc.error(" event of the ") + cc.warning("TokenManager") + cc.error("/") + cc.notice(jo_token_manager_schain.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                             throw new Error( "Verification failed for the \"Error\" event of the \"TokenManager\"/" + jo_token_manager_schain.options.address + " contract, error events found" );
                         }
-                        if ( verbose_get() >= RV_VERBOSE.information )
-                            log.write( strLogPrefix + cc.success("Done, validated transfer to S-Chain via TokenManager error absence on S-Chain") + "\n" );
+                        details.write( strLogPrefix + cc.success("Done, validated transfer to S-Chain via TokenManager error absence on S-Chain") + "\n" );
                     } else
-                        log.write( strLogPrefix + cc.warn("Cannot validate transfer to S-Chain via TokenManager error absence on S-Chain, no TokenManager provided") + "\n" );
+                        details.write( strLogPrefix + cc.warn("Cannot validate transfer to S-Chain via TokenManager error absence on S-Chain, no TokenManager provided") + "\n" );
                 } // if( chain_id_dst != "Mainnet" )
-                if ( verbose_get() >= RV_VERBOSE.information )
-                    log.write( strLogPrefix + cc.success("Done, validated transfer from ") + cc.info(chain_id_src) + cc.debug(" to ") + cc.info(chain_id_dst) + cc.debug(", everything is OKay") + "\n" );
+                details.write( strLogPrefix + cc.success("Done, validated transfer from ") + cc.info(chain_id_src) + cc.debug(" to ") + cc.info(chain_id_dst) + cc.debug(", everything is OKay") + "\n" );
                 */
                 //
                 //
@@ -3324,9 +3287,12 @@ async function do_transfer(
     } catch ( err ) {
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+        details.exposeDetailsTo( log, "do_transfer" );
         return false;
     }
     print_gas_usage_report_from_array( "TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
+    details.close();
     return true;
 } // async function do_transfer( ...
 
