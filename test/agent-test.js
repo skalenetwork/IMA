@@ -795,9 +795,9 @@ describe( "Agent Utils Module", function() {
             try { fs.unlinkSync( strPathTmpFile ); } catch ( err ) { };
             assert.equal( imaUtils.fileExists( strPathTmpFile ), false );
             const joContentSaved = { a: 123, b: 456 };
-            assert.equal( imaUtils.jsonFileSave( strPathTmpFile, joContentSaved, false ), true );
+            assert.equal( imaUtils.jsonFileSave( strPathTmpFile, joContentSaved ), true );
             assert.equal( imaUtils.fileExists( strPathTmpFile ), true );
-            const joContentLoaded = imaUtils.jsonFileLoad( strPathTmpFile, { error: "file \"" + strPathTmpFile + "\"was not loaded" }, false );
+            const joContentLoaded = imaUtils.jsonFileLoad( strPathTmpFile, { error: "file \"" + strPathTmpFile + "\"was not loaded" } );
             assert.equal( JSON.stringify( joContentSaved ), JSON.stringify( joContentLoaded ) );
             try { fs.unlinkSync( strPathTmpFile ); } catch ( err ) { };
         } );
@@ -809,7 +809,7 @@ describe( "Agent Utils Module", function() {
         it( "Find ABI entries", function() {
             const strName = imaState.strChainID_s_chain;
             const strFile = imaState.strPathAbiJson_s_chain;
-            const joABI = imaUtils.jsonFileLoad( strFile, { error: "file \"" + strFile + "\"was not loaded" }, false );
+            const joABI = imaUtils.jsonFileLoad( strFile, { error: "file \"" + strFile + "\"was not loaded" } );
             const strKey = "lock_and_data_for_schain_address";
             const arrKeys = [
                 "lock_and_data_for_schain_address",
@@ -838,7 +838,7 @@ describe( "Agent Utils Module", function() {
 
         it( "Discover coin name", function() {
             const strFile = imaState.strPathAbiJson_s_chain;
-            const joABI = imaUtils.jsonFileLoad( strFile, { error: "file \"" + strFile + "\"was not loaded" }, false );
+            const joABI = imaUtils.jsonFileLoad( strFile, { error: "file \"" + strFile + "\"was not loaded" } );
             const strCoinName = imaUtils.discover_in_json_coin_name( joABI );
             // console.log( "strCoinName is", strCoinName );
             assert.equal( strCoinName.length > 0, true );
