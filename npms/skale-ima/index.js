@@ -1232,7 +1232,7 @@ async function register_main_net_on_s_chain( // step 2B
         // https://ethereum.stackexchange.com/questions/47426/call-contract-function-signed-on-client-side-web3-js-1-0
         // https://ethereum.stackexchange.com/questions/25839/how-to-make-transactions-using-private-key-in-web3
         const methodWithArguments = jo_message_proxy_s_chain.methods.addConnectedChain(
-            chain_id_main_net, [ 0, 0, 0, 0 ] // call params
+            chain_id_main_net // call params
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
