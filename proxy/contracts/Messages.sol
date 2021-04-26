@@ -48,7 +48,7 @@ library Messages {
     struct FreezeStateMessage {
         BaseMessage message;
         address receiver;
-        bool isFrozen;
+        bool isUnfrozen;
     }
 
     struct TransferErc20Message {
@@ -112,11 +112,11 @@ library Messages {
         return abi.encode(message);
     }
 
-    function encodeFreezeStateMessage(address receiver, bool isFrozen) internal pure returns (bytes memory) {
+    function encodeFreezeStateMessage(address receiver, bool isUnfrozen) internal pure returns (bytes memory) {
         FreezeStateMessage memory message = FreezeStateMessage(
             BaseMessage(MessageType.FREEZE_STATE),
             receiver,
-            isFrozen
+            isUnfrozen
         );
         return abi.encode(message);
     }

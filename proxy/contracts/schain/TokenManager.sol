@@ -33,6 +33,10 @@ import "../Messages.sol";
 import "./PermissionsForSchain.sol";
 
 
+interface IUsersOnSchain {
+    function checkAllowedToSendMessage(address receiver) external view;
+}
+
 /**
  * This contract runs on schains and accepts messages from main net creates ETH clones.
  * When the user exits, it burns them
@@ -50,17 +54,7 @@ contract TokenManager is PermissionsForSchain {
     // ID of this schain,
     string private _chainID;
 
-    /**
-     * TX_FEE - equals "Eth exit" operation gas consumption (300 000 gas) multiplied by
-     * max gas price of "Eth exit" (200 Gwei) = 60 000 000 Gwei = 0.06 Eth
-     *
-     * !!! IMPORTANT !!!
-     * It is a max estimation, of "Eth exit" operation.
-     * If it would take less eth - it would be returned to the mainnet DepositBox.
-     * And you could take it back or send back to SKALE-chain.
-     * !!! IMPORTANT !!!
-     */
-    uint256 public constant TX_FEE = 60000000000000000;
+    address public usersOnSchainAddress;
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -99,11 +93,7 @@ contract TokenManager is PermissionsForSchain {
      */
     function exitToMain(address to, uint256 amount) external receivedEth(amount) {
         require(to != address(0), "Incorrect contractThere address");
-        require(amount >= TX_FEE, "Not enough funds to exit");
-        // uint amountOfEthToSend = amount >= TX_FEE ?
-        //     amount :
-        //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
-        // require(amountOfEthToSend != 0, "Community pool is empty");
+        IUsersOnSchain(usersOnSchainAddress).checkAllowedToSendMessage(to);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             LockAndDataForSchain(getLockAndDataAddress()).getDepositBox(0),
@@ -158,11 +148,7 @@ contract TokenManager is PermissionsForSchain {
             ),
             "Could not transfer ERC20 Token"
         );
-        // require(amountOfEth >= TX_FEE, "Not enough funds to exit");
-        // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
-        //     amountOfEth :
-        //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
-        // require(amountOfEthToSend != 0, "Community pool is empty");
+        IUsersOnSchain(usersOnSchainAddress).checkAllowedToSendMessage(to);
         bytes memory data = ERC20ModuleForSchain(erc20Module).receiveERC20(
             "Mainnet",
             contractOnMainnet,
@@ -183,7 +169,6 @@ contract TokenManager is PermissionsForSchain {
         uint256 amount
     )
         external
-        // receivedEth(amountOfEth)
     {
         address lockAndDataERC20 = LockAndDataForSchain(getLockAndDataAddress()).getLockAndDataErc20();
         address erc20Module = LockAndDataForSchain(getLockAndDataAddress()).getErc20Module();
@@ -231,12 +216,7 @@ contract TokenManager is PermissionsForSchain {
         require(IERC721(contractOnSchain).getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractOnSchain).transferFrom(msg.sender, lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-        require()
-        // require(amountOfEth >= TX_FEE, "Not enough funds to exit");
-        // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
-        //     amountOfEth :
-        //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
-        // require(amountOfEthToSend != 0, "Community pool is empty");
+        IUsersOnSchain(usersOnSchainAddress).checkAllowedToSendMessage(to);
         bytes memory data = ERC721ModuleForSchain(erc721Module).receiveERC721(
             "Mainnet",
             contractOnMainnet,
@@ -321,20 +301,20 @@ contract TokenManager is PermissionsForSchain {
         ) {
             address erc20Module = LockAndDataForSchain(getLockAndDataAddress()).getErc20Module();
             require(ERC20ModuleForSchain(erc20Module).sendERC20(fromSchainID, data), "Failed to send ERC20");
-            // address receiver = ERC20ModuleForSchain(erc20Module).getReceiver(data);
-            // require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else if (
             operation == Messages.MessageType.TRANSFER_ERC721_AND_TOKEN_INFO ||
             operation == Messages.MessageType.TRANSFER_ERC721
         ) {
             address erc721Module = LockAndDataForSchain(getLockAndDataAddress()).getErc721Module();
             require(ERC721ModuleForSchain(erc721Module).sendERC721(fromSchainID, data), "Failed to send ERC721");
-            // address receiver = ERC721ModuleForSchain(erc721Module).getReceiver(data);
-            // require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else {
             revert("MessageType is unknown");
         }
         return true;
+    }
+
+    function setUsersOnSchain(address newUsersOnSchainAddress) external onlyOwner {
+        usersOnSchainAddress = newUsersOnSchainAddress;
     }
 
     /**

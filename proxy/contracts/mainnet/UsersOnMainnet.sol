@@ -33,7 +33,7 @@ import "@nomiclabs/buidler/console.sol";
  */
 contract UsersOnMainnet is IMAConnected {
     mapping(address => mapping(bytes32 => uint)) private _userWallets;
-    mapping(address => bool) private _frozenUsers;
+    mapping(address => bool) private _unfrozenUsers;
     mapping(bytes32 => address) public schainLinks;
 
     uint public constant MIN_TRANSACTION_GAS = 500000;
@@ -45,15 +45,16 @@ contract UsersOnMainnet is IMAConnected {
         uint gas
     ) 
         external
+        onlyMessageProxy
     {
         uint gasTotal = gasleft();
         uint amount = tx.gasprice * gas;
         if (_userWallets[user][schainHash].sub(amount) < MIN_TRANSACTION_GAS * tx.gasprice) {
-            _frozenUsers[user] = true;
+            _unfrozenUsers[user] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
-                Messages.encodeFreezeStateMessage(user, true)
+                Messages.encodeFreezeStateMessage(user, false)
             );
         }
         amount += (_userWallets[user][schainHash] == 0 ? 20000 : 5000) * tx.gasprice;
@@ -69,12 +70,12 @@ contract UsersOnMainnet is IMAConnected {
                 MIN_TRANSACTION_GAS * tx.gasprice,
             "Not enough money for transaction"
         );
-        if (_frozenUsers[msg.sender]) {
-            _frozenUsers[msg.sender] = false;
+        if (!_unfrozenUsers[msg.sender]) {
+            _unfrozenUsers[msg.sender] = true;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
-                Messages.encodeFreezeStateMessage(msg.sender, false)
+                Messages.encodeFreezeStateMessage(msg.sender, true)
             );
         }
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].add(msg.value);
@@ -83,7 +84,8 @@ contract UsersOnMainnet is IMAConnected {
     function withdrawFunds(string calldata schainID, uint amount) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
-        if (_userWallets[msg.sender][schainHash].sub(amount) < MIN_TRANSACTION_GAS * tx.gasprice && !_frozenUsers[msg.sender]) {
+        if (_userWallets[msg.sender][schainHash].sub(amount) < MIN_TRANSACTION_GAS * tx.gasprice 
+            && _unfrozenUsers[msg.sender]) {
             messageProxy.postOutgoingMessage(
                 keccak256(abi.encodePacked(schainID)),
                 schainLinks[keccak256(abi.encodePacked(schainID))],

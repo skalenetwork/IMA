@@ -23,7 +23,6 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "./connectors/ProxyConnector.sol";
-// import "./UsersOnMainnet.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
@@ -95,7 +94,7 @@ contract MessageProxyForMainnet is ProxyConnector {
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public owner;
 
-    address public usersOnMainnet;
+    address public usersOnMainnetAddress;
 
     uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 55000;
 
@@ -160,8 +159,8 @@ contract MessageProxyForMainnet is ProxyConnector {
         delete connectedChains[keccak256(abi.encodePacked(newChainID))];
     }
 
-    function setUsersOnMainnet(address newUsersOnMainnet) external onlyOwner {
-        usersOnMainnet = newUsersOnMainnet;
+    function setUsersOnMainnet(address newUsersOnMainnetAddress) external onlyOwner {
+        usersOnMainnetAddress = newUsersOnMainnetAddress;
     }
 
     /**
@@ -229,7 +228,7 @@ contract MessageProxyForMainnet is ProxyConnector {
             address receiver = _callReceiverContract(srcChainHash, messages[i], startingCounter + i);
             if (receiver == address(0)) 
                 continue;
-            IUsersOnMainnet(usersOnMainnet).refundGasByUser(
+            IUsersOnMainnet(usersOnMainnetAddress).refundGasByUser(
                 srcChainHash,
                 msg.sender,
                 receiver,

@@ -34,8 +34,10 @@ import "../Messages.sol";
 contract UsersOnSchain is PermissionsForSchain {
 
     string private _chainID;
+    uint public constant TIME_LIMIT_PER_MESSAGE = 5 minutes;
 
-    mapping(address => bool) private _frozenUsers;
+    mapping(address => bool) private _unfrozenUsers;
+    mapping(address => uint) private _lastMessageTimeStamp;
 
     constructor(
         string memory newChainID,
@@ -49,7 +51,7 @@ contract UsersOnSchain is PermissionsForSchain {
 
     function postMessage(
         string calldata fromSchainID,
-        address sender,
+        address,
         bytes calldata data
     )
         external
@@ -64,9 +66,19 @@ contract UsersOnSchain is PermissionsForSchain {
         Messages.MessageType operation = Messages.getMessageType(data);
         require(operation == Messages.MessageType.FREEZE_STATE, "The message should contain a frozen state");
         Messages.FreezeStateMessage memory message =  Messages.decodeFreezeStateMessage(data);
-        require(_frozenUsers[message.receiver] != message.isFrozen, "Freezing conditions must be different");
-        _frozenUsers[message.receiver] = message.isFrozen;
+        require(_unfrozenUsers[message.receiver] != message.isUnfrozen, "Freezing states must be different");
+        _unfrozenUsers[message.receiver] = message.isUnfrozen;
         return true;
+    }
+
+    function checkAllowedToSendMessage(address receiver) external {
+        require(msg.sender == getProxyForSchainAddress(), "Sender must be MessageProxy");
+        require(_unfrozenUsers[receiver], "Recipient must be unfrozen");
+        require(
+            _lastMessageTimeStamp[receiver] + TIME_LIMIT_PER_MESSAGE < block.timestamp,
+            "Trying to send messages too often"
+        );
+        _lastMessageTimeStamp[receiver] = block.timestamp;
     }
 
     /**
