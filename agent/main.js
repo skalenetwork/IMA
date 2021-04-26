@@ -931,7 +931,7 @@ if( imaState.nMonitoringPort > 0 ) {
                     } break;
                 case "get_last_transfer_errors":
                     // call:   { "id": 1, "method": "get_last_transfer_errors" }
-                    // answer: { "id": 1, "method": "get_last_transfer_errors", "error": null, "last_transfer_errors": ... }
+                    // answer: { "id": 1, "method": "get_last_transfer_errors", "error": null, "last_transfer_errors": [ { ts: ..., textLog: ... }, ... ] }
                     joAnswer.last_transfer_errors = IMA.get_last_transfer_errors();
                     break;
                 default:
