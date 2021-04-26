@@ -23,6 +23,7 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "./connectors/ProxyConnector.sol";
+// import "./UsersOnMainnet.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
@@ -31,7 +32,17 @@ interface ContractReceiverForMainnet {
         bytes calldata data
     )
         external
-        returns (bool);
+        returns (address);
+}
+
+interface IUsersOnMainnet {
+    function refundGasByUser(
+        bytes32 schainHash,
+        address node,
+        address user,
+        uint256 gas
+    ) external;
+    function getBalance() external view returns (uint);
 }
 
 /**
@@ -84,7 +95,9 @@ contract MessageProxyForMainnet is ProxyConnector {
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public owner;
 
-    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 50000;
+    address public usersOnMainnet;
+
+    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 55000;
 
     mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
 
@@ -147,6 +160,10 @@ contract MessageProxyForMainnet is ProxyConnector {
         delete connectedChains[keccak256(abi.encodePacked(newChainID))];
     }
 
+    function setUsersOnMainnet(address newUsersOnMainnet) external onlyOwner {
+        usersOnMainnet = newUsersOnMainnet;
+    }
+
     /**
      * @dev Posts message from this contract to `dstChainID` MessageProxy contract.
      * This is called by a smart contract to make a cross-chain call.
@@ -202,12 +219,26 @@ contract MessageProxyForMainnet is ProxyConnector {
             "Starting counter is not equal to incoming message counter");
 
         require(_verifyMessages(srcChainID, _hashedArray(messages), sign), "Signature is not verified");
+        uint additionalGasPerMessage = 
+            (gasTotal.sub(gasleft())
+            .add(BASIC_POST_INCOMING_MESSAGES_TX)
+            .add(messages.length * 8790))
+            .div(messages.length);
         for (uint256 i = 0; i < messages.length; i++) {
-            _callReceiverContract(srcChainHash, messages[i], startingCounter + i);
+            gasTotal = gasleft();
+            address receiver = _callReceiverContract(srcChainHash, messages[i], startingCounter + i);
+            if (receiver == address(0)) 
+                continue;
+            IUsersOnMainnet(usersOnMainnet).refundGasByUser(
+                srcChainHash,
+                msg.sender,
+                receiver,
+                gasTotal.sub(gasleft()).add(additionalGasPerMessage)
+            );
         }
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
-        _refundGasBySchain(srcChainHash, gasTotal + BASIC_POST_INCOMING_MESSAGES_TX);
+        // _refundGasBySchain(srcChainHash, gasTotal + BASIC_POST_INCOMING_MESSAGES_TX);
     }
 
     /**
@@ -219,8 +250,7 @@ contract MessageProxyForMainnet is ProxyConnector {
      * 
      * - `msg.sender` must be owner.
      */
-    function moveIncomingCounter(string calldata schainName) external {
-        require(msg.sender == owner, "Sender is not an owner");
+    function moveIncomingCounter(string calldata schainName) external onlyOwner {
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 
             connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
     }
@@ -234,8 +264,7 @@ contract MessageProxyForMainnet is ProxyConnector {
      * 
      * - `msg.sender` must be owner.
      */
-    function setCountersToZero(string calldata schainName) external {
-        require(msg.sender == owner, "Sender is not an owner");
+    function setCountersToZero(string calldata schainName) external onlyOwner {
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
@@ -331,26 +360,26 @@ contract MessageProxyForMainnet is ProxyConnector {
         uint counter
     )
         private
-        returns (bool)
+        returns (address)
     {
         try ContractReceiverForMainnet(message.destinationContract).postMessage(
             schainHash,
             message.sender,
             message.data
-        ) returns (bool success) {
-            return success;
+        ) returns (address receiver) {
+            return receiver;
         } catch Error(string memory reason) {
             emit PostMessageError(
                 counter,
                 bytes(reason)
             );
-            return false;
+            return address(0);
         } catch (bytes memory revertData) {
             emit PostMessageError(
                 counter,
                 revertData
             );
-            return false;
+            return address(0);
         }
     }
 }

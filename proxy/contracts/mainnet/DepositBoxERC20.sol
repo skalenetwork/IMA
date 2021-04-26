@@ -145,7 +145,7 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
         external
         override
         onlyMessageProxy
-        returns (bool)
+        returns (address)
     {
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&
@@ -159,12 +159,7 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
             IERC20Metadata(message.token).transfer(message.receiver, message.amount),
             "Something went wrong with `transfer` in ERC20"
         );
-        // TODO add gas reimbusement
-        // uint256 txFee = gasConsumption * tx.gasprice;
-        // require(amount >= txFee, "Not enough funds to recover gas");
-        // TODO add gas reimbusement
-        // imaLinker.rechargeSchainWallet(schainId, txFee);
-        return true;
+        return message.receiver;
     }
 
     /**

@@ -79,12 +79,6 @@ contract IMALinker is BasicConnector {
         messageProxy.removeConnectedChain(schainName);
     }
 
-    // function rechargeSchainWallet(bytes32 schainId, uint256 amount) external {
-    //     require(address(this).balance >= amount, "Not enough ETH to rechargeSchainWallet");
-    //     address walletsAddress = IContractManager(contractManagerOfSkaleManager).getContract("Wallets");
-    //     IWallets(payable(walletsAddress)).rechargeSchainWallet{value: amount}(schainId);
-    // }
-
     function hasDepositBox(address depositBoxAddress) external view returns (bool) {
         uint index;
         uint length = _depositBoxes.length;

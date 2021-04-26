@@ -231,6 +231,7 @@ contract TokenManager is PermissionsForSchain {
         require(IERC721(contractOnSchain).getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractOnSchain).transferFrom(msg.sender, lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
+        require()
         // require(amountOfEth >= TX_FEE, "Not enough funds to exit");
         // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
         //     amountOfEth :

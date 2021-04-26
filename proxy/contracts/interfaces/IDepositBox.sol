@@ -29,7 +29,7 @@ interface IDepositBox {
         bytes calldata data
     )
         external
-        returns (bool);
+        returns (address);
 
     function addTokenManager(string calldata schainID, address newTokenManagerAddress) external;
 

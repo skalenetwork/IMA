@@ -133,7 +133,7 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
         external
         override
         onlyMessageProxy
-        returns (bool)
+        returns (address)
     {
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&
@@ -144,12 +144,7 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
         require(message.token.isContract(), "Given address is not a contract");
         require(IERC721Upgradeable(message.token).ownerOf(message.tokenId) == address(this), "Incorrect tokenId");
         IERC721Upgradeable(message.token).transferFrom(address(this), message.receiver, message.tokenId);
-        // TODO add gas reimbusement
-        // uint256 txFee = gasConsumption * tx.gasprice;
-        // require(amount >= txFee, "Not enough funds to recover gas");
-        // TODO add gas reimbusement
-        // imaLinker.rechargeSchainWallet(schainId, txFee);
-        return true;
+        return message.receiver;
     }
 
     /**
