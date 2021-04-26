@@ -2652,6 +2652,24 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const g_nMaxLastTransferErrors = 10;
+const g_arrLastTransferErrors = [];
+
+function save_transfer_error( textLog ) {
+    const ts = Math.round( ( new Date() ).getTime() / 1000 );
+    g_arrLastTransferErrors.push( {
+        ts: ts,
+        textLog: "" + textLog.toString()
+    } );
+    while( g_arrLastTransferErrors.length > g_nMaxLastTransferErrors )
+        g_arrLastTransferErrors.shift();
+}
+
+function get_last_transfer_errors( textLog ) {
+    return JSON.parse( JSON.stringify( g_arrLastTransferErrors ) );
+}
+
 //
 // Do real money movement from main-net to S-chain by sniffing events
 // 1) main-net.MessageProxyForMainnet.getOutgoingMessagesCounter -> save to nOutMsgCnt
@@ -2821,6 +2839,7 @@ async function do_transfer(
                     log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
                     details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
                     details.exposeDetailsTo( log, "do_transfer", false );
+                    save_transfer_error( details.toString() );
                     details.close();
                     return; // process.exit( 126 );
                 }
@@ -2849,6 +2868,7 @@ async function do_transfer(
                             log.write( s );
                         details.write( s );
                         details.exposeDetailsTo( log, "do_transfer", false );
+                        save_transfer_error( details.toString() );
                         details.close();
                         return false;
                     }
@@ -2892,6 +2912,7 @@ async function do_transfer(
                             log.write( s );
                         details.write( s );
                         details.exposeDetailsTo( log, "do_transfer", false );
+                        save_transfer_error( details.toString() );
                         details.close();
                         return false;
                     }
@@ -3045,6 +3066,7 @@ async function do_transfer(
                         log.write( s );
                     details.write( s );
                     details.exposeDetailsTo( log, "do_transfer", false );
+                    save_transfer_error( details.toString() );
                     details.close();
                     return;
                 }
@@ -3251,6 +3273,7 @@ async function do_transfer(
             log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
         details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
         details.exposeDetailsTo( log, "do_transfer", false );
+        save_transfer_error( details.toString() );
         details.close();
         return false;
     }
@@ -3397,6 +3420,8 @@ module.exports.do_erc20_payment_from_main_net = do_erc20_payment_from_main_net;
 module.exports.do_erc20_payment_from_s_chain = do_erc20_payment_from_s_chain;
 module.exports.do_erc721_payment_from_s_chain = do_erc721_payment_from_s_chain;
 module.exports.do_transfer = do_transfer;
+module.exports.save_transfer_error = save_transfer_error;
+module.exports.get_last_transfer_errors = get_last_transfer_errors;
 
 module.exports.compose_gas_usage_report_from_array = compose_gas_usage_report_from_array;
 module.exports.print_gas_usage_report_from_array = print_gas_usage_report_from_array;

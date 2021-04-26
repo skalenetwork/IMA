@@ -29,6 +29,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 // const path = require( "path" );
 // const url = require( "url" );
 // const os = require( "os" );
+const ws = require( "ws" ); // https://www.npmjs.com/package/ws
 global.IMA = require( "../npms/skale-ima" );
 global.w3mod = IMA.w3mod;
 global.ethereumjs_tx = IMA.ethereumjs_tx;
@@ -175,12 +176,14 @@ global.imaState = {
     "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
     "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
 
-    optsPendingTxAnalysis: {
-        isEnabled: false, // disable bv default
-        nTimeoutSecondsBeforeSecondAttempt: 30, // 0 - disable 2nd attempt
-        isIgnore: false, // ignore PTX result
-        isIgnore2: true // ignore secondary PTX result
+    "optsPendingTxAnalysis": {
+        "isEnabled": false, // disable bv default
+        "nTimeoutSecondsBeforeSecondAttempt": 30, // 0 - disable 2nd attempt
+        "isIgnore": false, // ignore PTX result
+        "isIgnore2": true // ignore secondary PTX result
     },
+
+    "nMonitoringPort": 0, // 0 - default, means monitoring server is disabled
 
     "arrActions": [] // array of actions to run
 };
@@ -840,9 +843,128 @@ async function discover_s_chain_network( fnAfter, isSilent ) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// register S-Chain 1 on main net
-//
+
+let g_ws_server_monitoring = null;
+
+if( imaState.nMonitoringPort > 0 ) {
+    const strLogPrefix = cc.attention( "Monitoring" ) + " " + cc.sunny( ">>" ) + " ";
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+        log.write( strLogPrefix + cc.normal( "Will start monitoring WS server on port " ) + cc.info( imaState.nMonitoringPort ) + "\n" );
+    g_ws_server_monitoring = new ws.Server( { port: 0 + imaState.nMonitoringPort } );
+    g_ws_server_monitoring.on( "connection", function( ws_peer, req ) {
+        const ip = req.socket.remoteAddress;
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+            log.write( strLogPrefix + cc.normal( "New connection from " ) + cc.info( ip ) + "\n" );
+        ws_peer.on( "message", function( message ) {
+            const joAnswer = {
+                method: null,
+                id: null,
+                error: null
+            };
+            try {
+                const joMessage = JSON.parse( message );
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                    log.write( strLogPrefix + cc.normal( "Message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
+                if( ! ( "method" in joMessage ) )
+                    throw new Error( "\"method\" field was not specified" );
+                joAnswer.method = joMessage.method;
+                if( ! ( "id" in joMessage ) )
+                    throw new Error( "\"id\" field was not specified" );
+                joAnswer.id = joMessage.id;
+                switch ( joMessage.method ) {
+                case "echo":
+                case "ping":
+                    // call:   { "id": 1, "method": "echo" }
+                    // answer: { "id": 1, "method": "echo", "error": null }
+                    // call:   { "id": 1, "method": "ping" }
+                    // answer: { "id": 1, "method": "ping", "error": null }
+                    break;
+                case "get_schain_network_info":
+                    // call:   { "id": 1, "method": "get_schain_network_info" }
+                    // answer: { "id": 1, "method": "get_schain_network_info", "error": null, "schain_network_info": ... }
+                    joAnswer.schain_network_info = imaState.joSChainNetworkInfo;
+                    break;
+                case "get_runtime_params":
+                    // call:   { "id": 1, "method": "get_runtime_params" }
+                    // answer: { "id": 1, "method": "get_runtime_params", "error": null, "runtime_params": ... }
+                    {
+                        joAnswer.runtime_params = {};
+                        const arr_runtime_param_names = [
+                            "bNoWaitSChainStarted",
+                            "nMaxWaitSChainAttempts",
+                            "isPreventExitAfterLastAction",
+
+                            "strURL_main_net",
+                            "strURL_s_chain",
+
+                            "strChainID_main_net",
+                            "strChainID_s_chain",
+                            "cid_main_net",
+                            "cid_s_chain",
+
+                            "nTransferBlockSizeM2S",
+                            "nTransferBlockSizeS2M",
+                            "nMaxTransactionsM2S",
+                            "nMaxTransactionsS2M",
+
+                            "nBlockAwaitDepthM2S",
+                            "nBlockAwaitDepthS2M",
+                            "nBlockAgeM2S",
+                            "nBlockAgeS2M",
+
+                            "nLoopPeriodSeconds",
+
+                            "nNodeNumber",
+                            "nNodesCount",
+                            "nTimeFrameSeconds",
+                            "nNextFrameGap",
+
+                            "optsPendingTxAnalysis",
+
+                            "nMonitoringPort"
+                        ];
+                        for( const param_name of arr_runtime_param_names ) {
+                            if( param_name in imaState )
+                                joAnswer.runtime_params[param_name] = imaState[param_name];
+
+                        }
+                    } break;
+                case "get_last_transfer_errors":
+                    // call:   { "id": 1, "method": "get_last_transfer_errors" }
+                    // answer: { "id": 1, "method": "get_last_transfer_errors", "error": null, "last_transfer_errors": ... }
+                    joAnswer.last_transfer_errors = IMA.get_last_transfer_errors();
+                    break;
+                default:
+                    throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
+                } // switch( joMessage.method )
+            } catch ( err ) {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                    log.write( strLogPrefix +
+                        cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
+                        cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                    );
+                }
+            }
+            try {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                    log.write( strLogPrefix + cc.normal( "Answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                ws_peer.send( JSON.stringify( joAnswer ) );
+            } catch ( err ) {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                    log.write( strLogPrefix +
+                        cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
+                        cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                    );
+                }
+            }
+        } );
+        // ws_peer.send( "something" );
+    } );
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 async function do_the_job() {
     const strLogPrefix = cc.info( "Job 1:" ) + " ";
     let idxAction = 0;

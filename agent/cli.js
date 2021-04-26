@@ -326,6 +326,9 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "hash-g1" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( ".................." ) + cc.notice( "Specifies path to " ) + cc.note( "hash_g1" ) + cc.note( " application" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "bls-verify" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "..............." ) + cc.notice( "Optional parameter, specifies path to " ) + cc.note( "verify_bls" ) + cc.note( " application" ) + cc.notice( "." ) );
             //
+            console.log( cc.sunny( "MONITORING" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "........" ) + cc.notice( "Run monitoring web socket RPC server on specified port. By default monitoring server is disabled." ) );
+            //
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
             //
@@ -811,6 +814,11 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "bls-verify" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathBlsVerify = "" + joArg.value;
+            continue;
+        }
+        if( joArg.name == "monitoring-port" ) {
+            owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg );
+            imaState.nMonitoringPort = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "register" ||
