@@ -48,27 +48,28 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: yarn install
 
-    - name: Install slither
-      working-directory: ${{env.working-directory}}
-      run: pip3 install -r scripts/requirements.txt
-
-    - name: Lint solidity
-      working-directory: ${{env.working-directory}}
-      run: yarn lint
-
-    - name: Compile typescript
-      working-directory: ${{env.working-directory}}
-      run: yarn tsc
-
-    - name: Lint typescript
-      working-directory: ${{env.working-directory}}
-      run: yarn tslint
-
-    - name: Slither checks
-      working-directory: ${{env.working-directory}}
-      run: yarn slither
-    
     # TODO: uncomment
+
+    # - name: Install slither
+    #   working-directory: ${{env.working-directory}}
+    #   run: pip3 install -r scripts/requirements.txt
+
+    # - name: Lint solidity
+    #   working-directory: ${{env.working-directory}}
+    #   run: yarn lint
+
+    # - name: Compile typescript
+    #   working-directory: ${{env.working-directory}}
+    #   run: yarn tsc
+
+    # - name: Lint typescript
+    #   working-directory: ${{env.working-directory}}
+    #   run: yarn tslint
+
+    # - name: Slither checks
+    #   working-directory: ${{env.working-directory}}
+    #   run: yarn slither    
+    
     # - name: Run tests
     #   working-directory: ${{env.working-directory}}
     #   run: |
@@ -78,6 +79,7 @@ jobs:
     - name: Build predeployed pip package
       working-directory: ${{env.working-directory}}
       run: |
+        python3 -m pip install --upgrade build
         ./predeployed/scripts/build_package.sh
 
     - name: Test predeployed pip package
