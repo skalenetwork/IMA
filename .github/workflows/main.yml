@@ -76,6 +76,11 @@ jobs:
     #     npx buidler coverage --solcoverjs .solcover.js
     #     bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"         
 
+    - name: Install geth
+      run: |
+        sudo add-apt-repository -y ppa:ethereum/ethereum
+        sudo apt install ethereum
+    
     - name: Build predeployed pip package
       working-directory: ${{env.working-directory}}
       run: |
