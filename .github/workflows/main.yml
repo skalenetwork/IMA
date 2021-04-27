@@ -68,11 +68,24 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: yarn slither
     
-    - name: Run tests
+    # TODO: uncomment
+    # - name: Run tests
+    #   working-directory: ${{env.working-directory}}
+    #   run: |
+    #     npx buidler coverage --solcoverjs .solcover.js
+    #     bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"         
+
+    - name: Build predeployed pip package
       working-directory: ${{env.working-directory}}
       run: |
-        npx buidler coverage --solcoverjs .solcover.js
-        bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"         
+        ./predeployed/scripts/build_package.sh
+
+    - name: Test predeployed pip package
+      working-directory: ${{env.working-directory}}
+      run: |
+        ./predeployed/test/prepare_environment.sh
+        ./predeployed/test/test.sh
+
 
   test-agent:
     # The type of runner that the job will run on

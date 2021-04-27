@@ -2,6 +2,14 @@ import json
 import os
 
 
+def to_even_length(hex_string: str) -> str:
+    assert hex_string.startswith('0x')
+    if len(hex_string) % 2 != 0:
+        return "0x0" + hex_string[2:]
+    else:
+        return hex_string
+
+
 class ContractGenerator:
     bytecode = None
     storage = {}
@@ -18,7 +26,7 @@ class ContractGenerator:
         assert isinstance(self.storage, dict)
         contract = {
             'code': self.bytecode,
-            'balance': hex(balance)
+            'balance': str(balance)
         }
         if self.storage:
             contract['storage'] = self.storage
@@ -29,4 +37,6 @@ class ContractGenerator:
     # private
 
     def _write_address(self, slot: int, address: str) -> None:
-        self.storage[hex(slot)] = address.lower()
+        self.storage[to_even_length(hex(slot))] = address.lower()
+
+
