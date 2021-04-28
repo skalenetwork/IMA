@@ -51,7 +51,9 @@ import { ERC20ModuleForSchainContract,
     TokenManagerContract,
     TokenManagerInstance,
     MessagesTesterContract,
-    MessagesTesterInstance} from "../types/truffle-contracts";
+    MessagesTesterInstance,
+    UsersOnSchainInstance,
+    UsersOnSchainContract} from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
 
 chai.should();
@@ -70,6 +72,9 @@ const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract = artifacts
     .require("./LockAndDataForSchainERC721");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
+const UsersOnSchain: UsersOnSchainContract = artifacts.require("./UsersOnSchain");
+
+
 
 contract("TokenManager", ([deployer, user, client]) => {
     let tokenManager: TokenManagerInstance;
@@ -86,6 +91,7 @@ contract("TokenManager", ([deployer, user, client]) => {
     let lockAndDataForSchainERC721: LockAndDataForSchainERC721Instance;
     let tokenFactory: TokenFactoryInstance;
     let messages: MessagesTesterInstance;
+    let usersOnSchain: UsersOnSchainInstance
 
     const publicKeyArray = [
         "1122334455667788990011223344556677889900112233445566778899001122",
@@ -102,6 +108,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
         await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address);
         tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
+        usersOnSchain = await UsersOnSchain.new(chainID, lockAndDataForSchain.address, {from: deployer});
         ethERC20 = await EthERC20.new({from: deployer});
         lockAndDataForSchainERC20 = await LockAndDataForSchainERC20
             .new(lockAndDataForSchain.address, {from: deployer});
@@ -124,6 +131,13 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchainERC721.enableAutomaticDeploy("Mainnet", {from: deployer});
     });
 
+    async function unfreezeUser(receiver: string) {
+        const data = await messages.encodeFreezeStateMessage(receiver, true);
+        await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
+        await usersOnSchain.postMessage("Mainnet", tokenManager.address, data);
+        await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address, {from: deployer});
+    }
+
     it("should send Eth to somebody on Mainnet, closed to Mainnet, called by schain", async () => {
         const amount = new BigNumber("600000000000000000");
         const amountTo = new BigNumber("20000000000000000");
@@ -133,9 +147,9 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // set EthERC20 address:
         await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
+        await lockAndDataForSchain.setContract("TokenManager", tokenManager.address);
 
-        // set contract TokenManager:
-        await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
+        await tokenManager.setUsersOnSchain(usersOnSchain.address, {from: deployer});
 
         // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
         await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
@@ -144,7 +158,10 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
 
         // send Eth to a client on Mainnet:
-        await tokenManager.exitToMain(to, amountTo, {from: user}).should.be.eventually.rejectedWith("Not enough funds to exit");
+        await tokenManager.exitToMain(to, amountTo, {from: user}).should.be.eventually.rejectedWith("Recipient must be unfrozen");
+
+        await unfreezeUser(to);
+
         await tokenManager.exitToMain(to, amountTo2, {from: user});
         const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
         balanceAfter.should.be.deep.equal(amountAfter);
@@ -260,10 +277,12 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // add schain:
         // await lockAndDataForSchain.addSchain(chainID, tokenManager.address, {from: deployer});
+        await tokenManager.setUsersOnSchain(usersOnSchain.address, {from: deployer});
+
+        await unfreezeUser(client);
 
         // execution:
-        const res = await tokenManager
-            .exitToMainERC20(eRC20.address, client, amountReduceCost, {from: user});
+        await tokenManager.exitToMainERC20(eRC20.address, client, amountReduceCost, {from: user});
 
         // // expectation:
         const outgoingMessagesCounterMainnet = new BigNumber(await messageProxyForSchain.getOutgoingMessagesCounter("Mainnet"));
@@ -420,6 +439,9 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchain.sendEth(user, amountEth, {from: deployer});
         await eRC721OnChain.approve(tokenManager.address, tokenId, {from: user});
 
+        await tokenManager.setUsersOnSchain(usersOnSchain.address, {from: deployer});
+
+        await unfreezeUser(to);
         // execution:
         await tokenManager.exitToMainERC721(contractThere, to, tokenId, {from: user});
         // expectation:

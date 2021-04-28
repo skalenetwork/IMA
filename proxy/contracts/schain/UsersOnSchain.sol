@@ -71,8 +71,7 @@ contract UsersOnSchain is PermissionsForSchain {
         return true;
     }
 
-    function checkAllowedToSendMessage(address receiver) external {
-        require(msg.sender == getProxyForSchainAddress(), "Sender must be MessageProxy");
+    function checkAllowedToSendMessage(address receiver) external allow("TokenManager") {
         require(_unfrozenUsers[receiver], "Recipient must be unfrozen");
         require(
             _lastMessageTimeStamp[receiver] + TIME_LIMIT_PER_MESSAGE < block.timestamp,

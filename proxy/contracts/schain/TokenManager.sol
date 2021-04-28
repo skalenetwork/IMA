@@ -34,7 +34,7 @@ import "./PermissionsForSchain.sol";
 
 
 interface IUsersOnSchain {
-    function checkAllowedToSendMessage(address receiver) external view;
+    function checkAllowedToSendMessage(address receiver) external;
 }
 
 /**

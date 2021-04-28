@@ -96,7 +96,7 @@ contract MessageProxyForMainnet is ProxyConnector {
 
     address public usersOnMainnetAddress;
 
-    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 55000;
+    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 70000;
 
     mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
 

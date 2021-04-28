@@ -404,6 +404,8 @@ contract("DepositBox", ([deployer, user, user2]) => {
 
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
+      // add schain to avoid the `Receiver chain is incorrect` error
+      await imaLinker.connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
       await messageProxy.setUsersOnMainnet(usersOnMainnet.address);
       await usersOnMainnet.rechargeUserWallet(schainID, {value: wei, from: user});
       const sign = {
@@ -421,9 +423,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
       // await lockAndDataForMainnet.setContract("MessageProxy", deployer);
-      // add schain to avoid the `Receiver chain is incorrect` error
-      const chain = await imaLinker
-        .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+
       // execution
       const res = await messageProxy.postIncomingMessages(schainID, 0, [message], sign, 0, {from: deployer});
 
@@ -446,6 +446,8 @@ contract("DepositBox", ([deployer, user, user2]) => {
 
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
+      // add schain to avoid the `Receiver chain is incorrect` error
+      await imaLinker.connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
       await messageProxy.setUsersOnMainnet(usersOnMainnet.address);
       await usersOnMainnet.rechargeUserWallet(schainID, {value: wei, from: user});
 
@@ -464,12 +466,9 @@ contract("DepositBox", ([deployer, user, user2]) => {
       // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
       // await lockAndDataForMainnet.setContract("MessageProxy", deployer);
-      // add schain to avoid the `Receiver chain is incorrect` error
-      await imaLinker
-        .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+
       // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
-      await depositBoxEth
-        .deposit(schainID, user, {value: wei, from: deployer});
+      await depositBoxEth.deposit(schainID, user, {value: wei, from: deployer});
       // execution
       const res = await messageProxy.postIncomingMessages(schainID, 0, [message], sign, 0, {from: deployer});
 
@@ -484,7 +483,8 @@ contract("DepositBox", ([deployer, user, user2]) => {
       const schainID = randomString(10);
       // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
       const senderFromSchain = deployer;
-      const wei = 1e18.toString();
+      const MIN_TRANSACTION_GAS =  (await usersOnMainnet.MIN_TRANSACTION_GAS()).toNumber();
+      const wei = (MIN_TRANSACTION_GAS * 8e9).toString();
       const bytesData = await messages.encodeTransferEthMessage(user, wei);
 
       await setCommonPublicKey(contractManager, schainID);
@@ -511,8 +511,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       await messageProxy.setUsersOnMainnet(usersOnMainnet.address);
       await usersOnMainnet.rechargeUserWallet(schainID, {value: wei, from: user});
       // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
-      await depositBoxEth
-        .deposit(schainID, user, {value: wei, from: deployer});
+      await depositBoxEth.deposit(schainID, user, {value: wei, from: deployer});
       // execution
       const balanceBefore = await getBalance(deployer);
       await messageProxy.postIncomingMessages(schainID, 0, [message], sign, 0, {from: deployer});
@@ -550,11 +549,11 @@ contract("DepositBox", ([deployer, user, user2]) => {
 
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
+      // add schain to avoid the `Receiver chain is incorrect` error
+      await imaLinker.connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
       await messageProxy.setUsersOnMainnet(usersOnMainnet.address);
       await usersOnMainnet.rechargeUserWallet(schainID, {value: wei, from: user});
-      // add schain to avoid the `Unconnected chain` error
-      await imaLinker
-        .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+
       // mint some quantity of ERC20 tokens for `deployer` address
       await ethERC20.mint(deployer, "1000000000", {from: deployer});
       /**
@@ -603,11 +602,11 @@ contract("DepositBox", ([deployer, user, user2]) => {
 
       await initializeSchain(contractManager, schainID, user2, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
+      // add schain to avoid the `Receiver chain is incorrect` error
+      await imaLinker.connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
       await messageProxy.setUsersOnMainnet(usersOnMainnet.address);
       await usersOnMainnet.rechargeUserWallet(schainID, {value: wei, from: user});
-      // add schain to avoid the `Unconnected chain` error
-      await imaLinker
-        .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+
       // mint some ERC721 of  for `deployer` address
       await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
       // transfer tokenId from `deployer` to `depositBoxERC721`

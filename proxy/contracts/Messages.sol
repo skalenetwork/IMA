@@ -112,20 +112,6 @@ library Messages {
         return abi.encode(message);
     }
 
-    function encodeFreezeStateMessage(address receiver, bool isUnfrozen) internal pure returns (bytes memory) {
-        FreezeStateMessage memory message = FreezeStateMessage(
-            BaseMessage(MessageType.FREEZE_STATE),
-            receiver,
-            isUnfrozen
-        );
-        return abi.encode(message);
-    }
-
-    function decodeFreezeStateMessage(bytes memory data) internal pure returns (FreezeStateMessage memory) {
-        require(getMessageType(data) == MessageType.FREEZE_STATE, "Message type is not Freeze User");
-        return abi.decode(data, (FreezeStateMessage));
-    }
-
     function decodeTransferEthMessage(
         bytes memory data
     ) internal pure returns (TransferEthMessage memory) {
@@ -259,5 +245,19 @@ library Messages {
             "Message type is not ERC721 transfer with token info"
         );
         return abi.decode(data, (TransferErc721AndTokenInfoMessage));
+    }
+
+    function encodeFreezeStateMessage(address receiver, bool isUnfrozen) internal pure returns (bytes memory) {
+        FreezeStateMessage memory message = FreezeStateMessage(
+            BaseMessage(MessageType.FREEZE_STATE),
+            receiver,
+            isUnfrozen
+        );
+        return abi.encode(message);
+    }
+
+    function decodeFreezeStateMessage(bytes memory data) internal pure returns (FreezeStateMessage memory) {
+        require(getMessageType(data) == MessageType.FREEZE_STATE, "Message type is not Freeze User");
+        return abi.decode(data, (FreezeStateMessage));
     }
 }
