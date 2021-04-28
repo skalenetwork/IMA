@@ -47,9 +47,9 @@ contract UsersOnMainnet is IMAConnected {
         external
         onlyMessageProxy
     {
-        uint gasTotal = gasleft();
         uint amount = tx.gasprice * gas;
-        if (_userWallets[user][schainHash].sub(amount) < MIN_TRANSACTION_GAS * tx.gasprice) {
+        _userWallets[user][schainHash] = _userWallets[user][schainHash].sub(amount);
+        if (_userWallets[user][schainHash] < MIN_TRANSACTION_GAS * tx.gasprice) {
             _unfrozenUsers[user] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
@@ -57,9 +57,6 @@ contract UsersOnMainnet is IMAConnected {
                 Messages.encodeFreezeStateMessage(user, false)
             );
         }
-        amount += (_userWallets[user][schainHash] == 0 ? 20000 : 5000) * tx.gasprice;
-        amount += (gasTotal - gasleft()) * tx.gasprice;
-        _userWallets[user][schainHash] = _userWallets[user][schainHash].sub(amount);
         node.transfer(amount);
     }
 
@@ -70,6 +67,7 @@ contract UsersOnMainnet is IMAConnected {
                 MIN_TRANSACTION_GAS * tx.gasprice,
             "Not enough money for transaction"
         );
+        _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].add(msg.value);
         if (!_unfrozenUsers[msg.sender]) {
             _unfrozenUsers[msg.sender] = true;
             messageProxy.postOutgoingMessage(
@@ -78,12 +76,12 @@ contract UsersOnMainnet is IMAConnected {
                 Messages.encodeFreezeStateMessage(msg.sender, true)
             );
         }
-        _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].add(msg.value);
     }
 
     function withdrawFunds(string calldata schainID, uint amount) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
+        _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].sub(amount);
         if (_userWallets[msg.sender][schainHash].sub(amount) < MIN_TRANSACTION_GAS * tx.gasprice 
             && _unfrozenUsers[msg.sender]) {
             messageProxy.postOutgoingMessage(
@@ -92,7 +90,6 @@ contract UsersOnMainnet is IMAConnected {
                 Messages.encodeFreezeStateMessage(msg.sender, true)
             );
         }
-        _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].sub(amount);
         msg.sender.transfer(amount);
     }
 
