@@ -47,6 +47,7 @@ contract UsersOnMainnet is IMAConnected {
         external
         onlyMessageProxy
     {
+        require(_unfrozenUsers[user], "User should be unfrozen");
         uint amount = tx.gasprice * gas;
         _userWallets[user][schainHash] = _userWallets[user][schainHash].sub(amount);
         if (_userWallets[user][schainHash] < MIN_TRANSACTION_GAS * tx.gasprice) {
@@ -82,7 +83,7 @@ contract UsersOnMainnet is IMAConnected {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].sub(amount);
-        if (_userWallets[msg.sender][schainHash].sub(amount) < MIN_TRANSACTION_GAS * tx.gasprice 
+        if (_userWallets[msg.sender][schainHash] < MIN_TRANSACTION_GAS * tx.gasprice 
             && _unfrozenUsers[msg.sender]) {
             messageProxy.postOutgoingMessage(
                 keccak256(abi.encodePacked(schainID)),

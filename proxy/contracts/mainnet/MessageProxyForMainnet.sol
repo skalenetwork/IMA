@@ -96,9 +96,10 @@ contract MessageProxyForMainnet is ProxyConnector {
 
     address public usersOnMainnetAddress;
 
-    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 70000;
-
     mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
+
+    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 70000;
+    uint256 public constant MESSAGE_GAS_COST = 8790;
 
     /**
      * @dev Emitted for every outgoing message to `dstChain`.
@@ -221,7 +222,7 @@ contract MessageProxyForMainnet is ProxyConnector {
         uint additionalGasPerMessage = 
             (gasTotal.sub(gasleft())
             .add(BASIC_POST_INCOMING_MESSAGES_TX)
-            .add(messages.length * 8790))
+            .add(messages.length * MESSAGE_GAS_COST))
             .div(messages.length);
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
