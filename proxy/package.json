@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "@openzeppelin/cli": "^2.8.2",
-        "@openzeppelin/contracts": "^3.4.1",
+        "@openzeppelin/contracts": "^4.0.0",
         "@openzeppelin/contracts-upgradeable": "^3.4.1",
         "@openzeppelin/upgrades": "^2.8.0",
         "@skalenetwork/skale-manager-interfaces": "^0.1.0",
