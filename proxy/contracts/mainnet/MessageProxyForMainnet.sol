@@ -76,7 +76,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
         uint256 counter;
     }
 
-    string public constant chainID = "Mainnet";
+    bytes32 public constant MAINNET_CHAIN_ID = keccak256(abi.encodePacked("Mainnet"));
     bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
 
     uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 50000;
@@ -115,13 +115,14 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
      */
     function addConnectedChain(string calldata newChainID) external {
         require(
-            keccak256(abi.encodePacked(newChainID)) !=
-            keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
-
+            keccak256(abi.encodePacked(newChainID)) != MAINNET_CHAIN_ID,
+            "SKALE chain name is incorrect. Inside in MessageProxy"
+        );
         require(
             !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
             "Chain is already connected"
         );
+
         connectedChains[
             keccak256(abi.encodePacked(newChainID))
         ] = ConnectedChainInfo({

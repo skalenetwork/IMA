@@ -172,7 +172,10 @@ contract DepositBoxERC20 is DepositBox {
      */
     function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet) external {
         bytes32 schainId = keccak256(abi.encodePacked(schainName));
-        require(isSchainOwner(msg.sender, schainId) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not a Schain owner");
+        require(
+            isSchainOwner(msg.sender, schainId) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            "Sender is not a Schain owner"
+        );
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
         // require(!withoutWhitelist[schainId], "Whitelist is enabled");
         schainToERC20[schainId][erc20OnMainnet] = true;
