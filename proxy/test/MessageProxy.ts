@@ -30,7 +30,7 @@ import chai = require("chai");
 import {
     DepositBoxEthInstance,
     ContractManagerInstance,
-    IMALinkerInstance,
+    LinkerInstance,
     LockAndDataForSchainContract,
     LockAndDataForSchainInstance,
     MessageProxyForMainnetInstance,
@@ -48,7 +48,7 @@ import { randomString } from "./utils/helper";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-import { deployIMALinker } from "./utils/deploy/imaLinker";
+import { deployLinker } from "./utils/deploy/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
 import { deployDepositBoxEth } from "./utils/deploy/depositBoxEth";
 import { deployContractManager } from "./utils/deploy/contractManager";
@@ -69,7 +69,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     let depositBox: DepositBoxEthInstance;
     let contractManager: ContractManagerInstance;
     let messageProxyForMainnet: MessageProxyForMainnetInstance;
-    let imaLinker: IMALinkerInstance;
+    let imaLinker: LinkerInstance;
     let messages: MessagesTesterInstance;
     let contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
@@ -93,7 +93,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             contractManager = await deployContractManager(contractManagerAddress);
             contractManagerAddress = contractManager.address;
             messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
-            imaLinker = await deployIMALinker(contractManager, messageProxyForMainnet);
+            imaLinker = await deployLinker(messageProxyForMainnet);
             depositBox = await deployDepositBoxEth(contractManager, messageProxyForMainnet, imaLinker);
             messages = await MessagesTester.new();
         });
@@ -305,7 +305,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             );
 
             // main net does not have a public key and is implicitly connected:
-            await messageProxyForMainnet.moveIncomingCounter(chainID, {from: deployer});
+            await messageProxyForMainnet.incrementIncomingCounter(chainID, {from: deployer});
 
             const newIncomingMessages = new BigNumber(
                 await messageProxyForMainnet.getIncomingMessagesCounter(chainID, {from: deployer}),

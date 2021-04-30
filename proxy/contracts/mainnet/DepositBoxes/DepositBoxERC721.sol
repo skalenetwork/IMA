@@ -200,14 +200,14 @@ contract DepositBoxERC721 is DepositBox {
     /// Create a new deposit box
     function initialize(
         IContractManager contractManagerOfSkaleManager,        
-        DepositBoxManager depositBoxManager,
+        Linker linker,
         MessageProxyForMainnet messageProxyAddress
     )
         public
         override
         initializer
     {
-        DepositBox.initialize(contractManagerOfSkaleManager, depositBoxManager, messageProxyAddress);
+        DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxyAddress);
     }
 
     /**

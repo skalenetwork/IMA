@@ -168,7 +168,7 @@ contract DepositBoxEth is DepositBox {
     /// Create a new deposit box
     function initialize(
         IContractManager newContractManagerOfSkaleManager,        
-        DepositBoxManager newIMALinkerAddress,
+        Linker newIMALinkerAddress,
         MessageProxyForMainnet newMessageProxyAddress
     )
         public

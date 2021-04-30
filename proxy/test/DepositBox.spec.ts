@@ -34,7 +34,7 @@ import {
   EthERC20Instance,
   ERC721OnChainContract,
   ERC721OnChainInstance,
-  IMALinkerInstance,
+  LinkerInstance,
   MessageProxyForMainnetInstance,
   MessagesTesterContract,
   MessagesTesterInstance
@@ -49,7 +49,7 @@ chai.use((chaiAsPromised as any));
 import { deployDepositBoxEth } from "./utils/deploy/depositBoxEth";
 import { deployDepositBoxERC20 } from "./utils/deploy/depositBoxERC20";
 import { deployDepositBoxERC721 } from "./utils/deploy/depositBoxERC721";
-import { deployIMALinker } from "./utils/deploy/imaLinker";
+import { deployLinker } from "./utils/deploy/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
 import { deployContractManager } from "./utils/deploy/contractManager";
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
@@ -73,14 +73,14 @@ contract("DepositBox", ([deployer, user, user2]) => {
   let depositBoxERC721: DepositBoxERC721Instance;
   let contractManager: ContractManagerInstance;
   let messageProxy: MessageProxyForMainnetInstance;
-  let imaLinker: IMALinkerInstance;
+  let imaLinker: LinkerInstance;
   let contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
   beforeEach(async () => {
     contractManager = await deployContractManager(contractManagerAddress);
     contractManagerAddress = contractManager.address;
     messageProxy = await deployMessageProxyForMainnet(contractManager);
-    imaLinker = await deployIMALinker(contractManager, messageProxy);
+    imaLinker = await deployLinker(messageProxy);
     depositBoxEth = await deployDepositBoxEth(contractManager, messageProxy, imaLinker);
     depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxy, imaLinker);
     depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxy, imaLinker);

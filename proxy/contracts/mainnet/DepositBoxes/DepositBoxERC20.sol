@@ -215,14 +215,14 @@ contract DepositBoxERC20 is DepositBox {
     /// Create a new deposit box
     function initialize(
         IContractManager contractManagerOfSkaleManager,
-        DepositBoxManager depositBoxManager,
+        Linker linker,
         MessageProxyForMainnet newMessageProxyAddress
     )
         public
         override
         initializer
     {
-        DepositBox.initialize(contractManagerOfSkaleManager, depositBoxManager, newMessageProxyAddress);
+        DepositBox.initialize(contractManagerOfSkaleManager, linker, newMessageProxyAddress);
     }
 
     /**

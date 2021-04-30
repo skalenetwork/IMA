@@ -26,7 +26,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 
 import "../interfaces/IDepositBox.sol";
-import "./DepositBoxManager.sol";
+import "./Linker.sol";
 import "./MessageProxyForMainnet.sol";
 
 
@@ -55,7 +55,7 @@ abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, ID
     
     function initialize(
         IContractManager contractManagerOfSkaleManager,
-        DepositBoxManager depositBoxManagerAddress,
+        Linker linkerAddress,
         MessageProxyForMainnet messageProxyAddress
     )
         public
@@ -64,7 +64,7 @@ abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, ID
     {
         SkaleManagerClient.initialize(contractManagerOfSkaleManager);
         AccessControlUpgradeable.__AccessControl_init();
-        _setupRole(DEPOSIT_BOX_MANAGER_ROLE, address(depositBoxManagerAddress));
+        _setupRole(DEPOSIT_BOX_MANAGER_ROLE, address(linkerAddress));
         messageProxy = messageProxyAddress;
     }
 }

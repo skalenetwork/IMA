@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   DepositBoxManager.sol - SKALE Interchain Messaging Agent
+ *   Linker.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -36,7 +36,7 @@ import "./MessageProxyForMainnet.sol";
  * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
  * balances of ETH tokens received through DepositBox.
  */
-contract DepositBoxManager is AccessControlUpgradeable {
+contract Linker is AccessControlUpgradeable {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     using SafeMathUpgradeable for uint;
