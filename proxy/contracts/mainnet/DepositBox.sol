@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   IMAConnected.sol - SKALE Interchain Messaging Agent
+ *   DepositBox.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
+ *   @author Dmytro Stebaiev
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published
@@ -21,19 +22,23 @@
 
 pragma solidity 0.6.12;
 
-import "./IMALinker.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
+
+import "../interfaces/IDepositBox.sol";
+import "./DepositBoxManager.sol";
 import "./MessageProxyForMainnet.sol";
-import "./connectors/SchainOwnerConnector.sol";
 
 
 /**
  * @title IMAConnected - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-contract IMAConnected is SchainOwnerConnector {
+abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, IDepositBox {
+
+    bytes32 public constant DEPOSIT_BOX_MANAGER_ROLE = keccak256("DEPOSIT_BOX_MANAGER_ROLE");
 
     MessageProxyForMainnet public messageProxy;
-    address public imaLinker;
 
     modifier onlyMessageProxy() {
         require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
@@ -41,20 +46,25 @@ contract IMAConnected is SchainOwnerConnector {
     }
 
     /**
-     * @dev initialize - sets current address of ContractManager
-     * @param newIMALinkerAddress - current address of ContractManager
+     * @dev Checks whether sender is owner of SKALE chain
      */
+    function isSchainOwner(address sender, bytes32 schainId) public view returns (bool) {
+        address skaleChainsInternal = IContractManager(contractManagerOfSkaleManager).getContract("SchainsInternal");
+        return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainId);
+    }
+    
     function initialize(
-        address newIMALinkerAddress,
-        address newContractManagerOfSkaleManager,
-        address newMessageProxyAddress
+        IContractManager contractManagerOfSkaleManager,
+        DepositBoxManager depositBoxManagerAddress,
+        MessageProxyForMainnet messageProxyAddress
     )
         public
         virtual
         initializer
     {
-        SchainOwnerConnector.initialize(newContractManagerOfSkaleManager);
-        imaLinker = newIMALinkerAddress;
-        messageProxy = MessageProxyForMainnet(newMessageProxyAddress);
+        SkaleManagerClient.initialize(contractManagerOfSkaleManager);
+        AccessControlUpgradeable.__AccessControl_init();
+        _setupRole(DEPOSIT_BOX_MANAGER_ROLE, address(depositBoxManagerAddress));
+        messageProxy = messageProxyAddress;
     }
 }

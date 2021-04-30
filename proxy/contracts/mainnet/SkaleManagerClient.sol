@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   SchainOwnerConnector.sol - SKALE Interchain Messaging Agent
+ *   SkaleManagerClient.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -21,38 +21,33 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
-import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
-
-import "./BasicConnector.sol";
 
 
 /**
- * @title SchainOwnerConnector - connected module for Upgradeable approach, knows ContractManager
+ * @title SkaleManagerClient - contract that knows ContractManager
+ * and makes calls to SkaleManager contracts
  * @author Artem Payvin
+ * @author Dmytro Stebaiev
  */
-contract SchainOwnerConnector is BasicConnector {
+contract SkaleManagerClient is Initializable {
+    using SafeMathUpgradeable for uint256;
+
+    IContractManager public contractManagerOfSkaleManager;
 
     /**
      * @dev initialize - sets current address of ContractManager of SkaleManager
      * @param newContractManagerOfSkaleManager - current address of ContractManager of SkaleManager
      */
     function initialize(
-        address newContractManagerOfSkaleManager
+        IContractManager newContractManagerOfSkaleManager
     )
         public
         virtual
-        override
         initializer
     {
-        BasicConnector.initialize(newContractManagerOfSkaleManager);
-    }
-
-    /**
-     * @dev Checks whether sender is owner of SKALE chain
-     */
-    function isSchainOwner(address sender, bytes32 schainId) public virtual view returns (bool) {
-        address skaleChainsInternal = IContractManager(contractManagerOfSkaleManager).getContract("SchainsInternal");
-        return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainId);
+        contractManagerOfSkaleManager = newContractManagerOfSkaleManager;
     }
 }
