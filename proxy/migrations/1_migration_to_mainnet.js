@@ -41,7 +41,7 @@ async function deploy( deployer, networkName, accounts ) {
 
     const contracts = [
         "MessageProxyForMainnet",
-        "IMALinker",
+        "Linker",
         "DepositBoxEth",
         "DepositBoxERC20",
         "DepositBoxERC721"
@@ -92,10 +92,10 @@ async function deploy( deployer, networkName, accounts ) {
         if( contractName == "MessageProxyForMainnet" ) {
             contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ jsonData.contract_manager_address ] }, options ) );
             console.log( "MessageProxyForMainnet address:", contract.address );
-        } else if( contractName == "IMALinker" ) {
-            contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ jsonData.contract_manager_address, deployed.get( "MessageProxyForMainnet" ).address ] }, options ) );
+        } else if( contractName == "Linker" ) {
+            contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ deployed.get( "MessageProxyForMainnet" ).address ] }, options ) );
             imaLinker = contract;
-            console.log( "IMALinker address:", contract.address );
+            console.log( "Linker address:", contract.address );
         } else { // DepositBoxes
             contract = await create(
                 Object.assign(
@@ -105,7 +105,7 @@ async function deploy( deployer, networkName, accounts ) {
                         methodArgs: [
                             jsonData.contract_manager_address,
                             deployed.get( "MessageProxyForMainnet" ).address,
-                            deployed.get( "IMALinker" ).address
+                            deployed.get( "Linker" ).address
                         ]
                     },
                     options
@@ -113,7 +113,7 @@ async function deploy( deployer, networkName, accounts ) {
             );
             console.log( contractName, "address:", contract.address );
             await imaLinker.methods.registerDepositBox( contract.address ).send( { from: deployAccount } ).then( function( res ) {
-                console.log( "Contract", contractName, "with address", contract.address, "is registered as DepositBox in IMALinker" );
+                console.log( "Contract", contractName, "with address", contract.address, "is registered as DepositBox in Linker" );
             } );
         }
 

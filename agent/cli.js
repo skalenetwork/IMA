@@ -915,7 +915,7 @@ function ima_common_init() {
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManager" ) + cc.info( "     address is....." ) + cc.bright( imaState.jo_token_manager.options.address ) + "\n" );
     log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( "     address is....." ) + cc.bright( imaState.jo_message_proxy_main_net.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( "     address is....." ) + cc.bright( imaState.jo_message_proxy_s_chain.options.address ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "        address is....." ) + cc.bright( imaState.jo_imalinker.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "        address is....." ) + cc.bright( imaState.jo_imalinker.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "LockAndData" ) + cc.info( "      address is....." ) + cc.bright( imaState.jo_lock_and_data_s_chain.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "ERC20" ) + cc.info( "            address is....." ) + cc.bright( imaState.eth_erc20.options.address ) + "\n" );
 

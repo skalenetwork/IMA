@@ -701,7 +701,7 @@ async function check_is_registered_s_chain_in_deposit_boxes( // step 1
     chain_id_s_chain
 ) {
     const details = log.createMemoryStream();
-    details.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "  address is....." ) + cc.bright( jo_imalinker.options.address ) + "\n" );
+    details.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "  address is....." ) + cc.bright( jo_imalinker.options.address ) + "\n" );
     details.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
     const strLogPrefix = cc.note( "RegChk S in depositBox:" ) + " ";
     details.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
@@ -797,7 +797,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // register_s_chain_in_deposit_boxes
-    details.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "  address is......." ) + cc.bright( jo_imalinker.options.address ) + "\n" );
+    details.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "  address is......." ) + cc.bright( jo_imalinker.options.address ) + "\n" );
     details.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
     const strLogPrefix = cc.sunny( "Reg S in depositBoxes:" ) + " ";
     details.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
