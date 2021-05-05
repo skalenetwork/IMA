@@ -44,7 +44,8 @@ async function deploy( deployer, networkName, accounts ) {
         "IMALinker",
         "DepositBoxEth",
         "DepositBoxERC20",
-        "DepositBoxERC721"
+        "DepositBoxERC721",
+        "UsersOnMainnet"
     ];
 
     contractsData = [];
