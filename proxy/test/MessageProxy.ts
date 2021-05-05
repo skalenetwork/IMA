@@ -298,6 +298,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             await messageProxyForMainnet.addConnectedChain(chainID, {from: deployer});
             const isConnectedChain = await messageProxyForMainnet.isConnectedChain(chainID);
             isConnectedChain.should.be.deep.equal(Boolean(true));
+            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.DEBUGGER_ROLE(), deployer);
 
             // chain can't be connected twice:
             const incomingMessages = new BigNumber(

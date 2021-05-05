@@ -104,8 +104,8 @@ async function deploy( deployer, networkName, accounts ) {
                         methodName: "initialize",
                         methodArgs: [
                             jsonData.contract_manager_address,
+                            deployed.get( "Linker" ).address,
                             deployed.get( "MessageProxyForMainnet" ).address,
-                            deployed.get( "Linker" ).address
                         ]
                     },
                     options
