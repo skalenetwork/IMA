@@ -61,8 +61,8 @@ contract UsersOnMainnet is IMAConnected {
         node.transfer(amount);
     }
 
-    function rechargeUserWallet(string calldata schainID) external payable {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+    function rechargeUserWallet(string calldata schainName) external payable {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             msg.value.add(_userWallets[msg.sender][schainHash]) >=
                 MIN_TRANSACTION_GAS * tx.gasprice,
@@ -79,46 +79,46 @@ contract UsersOnMainnet is IMAConnected {
         }
     }
 
-    function withdrawFunds(string calldata schainID, uint amount) external {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+    function withdrawFunds(string calldata schainName, uint amount) external {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].sub(amount);
         if (_userWallets[msg.sender][schainHash] < MIN_TRANSACTION_GAS * tx.gasprice 
             && _unfrozenUsers[msg.sender]) {
             messageProxy.postOutgoingMessage(
-                keccak256(abi.encodePacked(schainID)),
-                schainLinks[keccak256(abi.encodePacked(schainID))],
+                schainHash,
+                schainLinks[schainHash],
                 Messages.encodeFreezeStateMessage(msg.sender, true)
             );
         }
         msg.sender.transfer(amount);
     }
 
-    function linkToContractOnSchain(string calldata schainID, address contractOnSchain) external {
+    function linkToContractOnSchain(string calldata schainName, address contractOnSchain) external {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             msg.sender == imaLinker ||
-            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
+            isSchainOwner(msg.sender, schainHash) ||
             _isOwner(), "Not authorized caller"
         );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(schainLinks[schainHash] == address(0), "SKALE chain is already set");
         require(contractOnSchain != address(0), "Incorrect address for contract on Schain");
         schainLinks[schainHash] = contractOnSchain;
     }
 
-    function unlinkFromContractOnSchain(string calldata schainID) external {
+    function unlinkFromContractOnSchain(string calldata schainName) external {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             msg.sender == imaLinker ||
-            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
+            isSchainOwner(msg.sender, schainHash) ||
             _isOwner(), "Not authorized caller"
         );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(schainLinks[schainHash] != address(0), "SKALE chain is not set");
         delete schainLinks[schainHash];
     }
 
-    function getBalance(string calldata schainID) external view returns (uint) {
-        return _userWallets[msg.sender][keccak256(abi.encodePacked(schainID))];
+    function getBalance(string calldata schainName) external view returns (uint) {
+        return _userWallets[msg.sender][keccak256(abi.encodePacked(schainName))];
     }
 
     function initialize(

@@ -187,6 +187,21 @@ class BlockChain:
 
         self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
+    def recharge_user_wallet(self, from_key, schainName):
+        sender_address = self.key_to_address(from_key)
+        users_on_mainnet = self._get_contract_on_mainnet('users_on_mainnet')
+        disable = users_on_mainnet.encodeABI(fn_name="rechargeUserWallet", args=[schainName])
+        signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
+                nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
+                gasPrice=self.web3_mainnet.eth.gasPrice,
+                gas=200000,
+                to=users_on_mainnet.address,
+                value=0,
+                data = disable
+            ),
+            from_key)
+        self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+
     def deploy_erc20_on_mainnet(self, private_key, name, symbol, decimals):
         return self._deploy_contract_to_mainnet(self.config.test_root + '/resources/ERC20MintableDetailed.json',
                                                 [name, symbol, decimals],

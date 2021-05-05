@@ -35,6 +35,7 @@ class Senderc721ToMainnet(TestCase):
 
     def _prepare(self):
         # deploy token
+        self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name)
         self.erc721 = self.blockchain.deploy_erc721_on_mainnet(self.config.mainnet_key, 'elv721', 'ELV')
         # mint
         address = self.blockchain.key_to_address(self.config.mainnet_key)

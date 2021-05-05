@@ -36,6 +36,7 @@ class SendERC20ToMainnet(TestCase):
         super().__init__('Send ERC20 from schain to mainnet', config)
 
     def _prepare(self):
+        self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name)
 
         # deploy token
 
