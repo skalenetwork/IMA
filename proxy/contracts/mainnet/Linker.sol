@@ -32,7 +32,7 @@ import "./MessageProxyForMainnet.sol";
 
 
 /**
- * @title IMALinker For Mainnet
+ * @title Linker For Mainnet
  * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
  * balances of ETH tokens received through DepositBox.
  */

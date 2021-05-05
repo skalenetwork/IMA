@@ -2,7 +2,7 @@
   "manifestVersion": "2.2",
   "contracts": {
     "MessageProxyForMainnet": "MessageProxyForMainnet",
-    "IMALinker": "IMALinker",
+    "Linker": "Linker",
     "DepositBoxEth": "DepositBoxEth",
     "DepositBoxERC20": "DepositBoxERC20",
     "DepositBoxERC721": "DepositBoxERC721"
