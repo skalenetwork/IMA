@@ -12,7 +12,7 @@ export async function deployDepositBoxERC721(
 
 ) {
     const instance = await DepositBoxERC721.new();
-    await instance.initialize(contractManager.address, messageProxy.address, imaLinker.address);
+    await instance.initialize(contractManager.address, imaLinker.address, messageProxy.address);
     await imaLinker.registerDepositBox(instance.address);
     return instance;
 }
