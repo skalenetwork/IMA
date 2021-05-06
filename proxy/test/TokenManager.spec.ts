@@ -52,8 +52,8 @@ import { ERC20ModuleForSchainContract,
     TokenManagerInstance,
     MessagesTesterContract,
     MessagesTesterInstance,
-    UsersOnSchainInstance,
-    UsersOnSchainContract} from "../types/truffle-contracts";
+    CommunityLockerInstance,
+    CommunityLockerContract} from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
 
 chai.should();
@@ -72,7 +72,7 @@ const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract = artifacts
     .require("./LockAndDataForSchainERC721");
 const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
-const UsersOnSchain: UsersOnSchainContract = artifacts.require("./UsersOnSchain");
+const CommunityLocker: CommunityLockerContract = artifacts.require("./CommunityLocker");
 
 
 
@@ -91,7 +91,7 @@ contract("TokenManager", ([deployer, user, client]) => {
     let lockAndDataForSchainERC721: LockAndDataForSchainERC721Instance;
     let tokenFactory: TokenFactoryInstance;
     let messages: MessagesTesterInstance;
-    let usersOnSchain: UsersOnSchainInstance
+    let communityLocker: CommunityLockerInstance
 
     const publicKeyArray = [
         "1122334455667788990011223344556677889900112233445566778899001122",
@@ -108,7 +108,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
         await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address);
         tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
-        usersOnSchain = await UsersOnSchain.new(chainID, lockAndDataForSchain.address, {from: deployer});
+        communityLocker = await CommunityLocker.new(chainID, lockAndDataForSchain.address, {from: deployer});
         ethERC20 = await EthERC20.new({from: deployer});
         lockAndDataForSchainERC20 = await LockAndDataForSchainERC20
             .new(lockAndDataForSchain.address, {from: deployer});
@@ -134,7 +134,7 @@ contract("TokenManager", ([deployer, user, client]) => {
     async function unfreezeUser(receiver: string) {
         const data = await messages.encodeFreezeStateMessage(receiver, true);
         await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
-        await usersOnSchain.postMessage("Mainnet", tokenManager.address, data);
+        await communityLocker.postMessage("Mainnet", tokenManager.address, data);
         await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address, {from: deployer});
     }
 
@@ -149,7 +149,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
         await lockAndDataForSchain.setContract("TokenManager", tokenManager.address);
 
-        await tokenManager.setUsersOnSchain(usersOnSchain.address, {from: deployer});
+        await tokenManager.setCommunityLocker(communityLocker.address, {from: deployer});
 
         // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
         await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
@@ -277,7 +277,7 @@ contract("TokenManager", ([deployer, user, client]) => {
 
         // add schain:
         // await lockAndDataForSchain.addSchain(chainID, tokenManager.address, {from: deployer});
-        await tokenManager.setUsersOnSchain(usersOnSchain.address, {from: deployer});
+        await tokenManager.setCommunityLocker(communityLocker.address, {from: deployer});
 
         await unfreezeUser(client);
 
@@ -439,7 +439,7 @@ contract("TokenManager", ([deployer, user, client]) => {
         await lockAndDataForSchain.sendEth(user, amountEth, {from: deployer});
         await eRC721OnChain.approve(tokenManager.address, tokenId, {from: user});
 
-        await tokenManager.setUsersOnSchain(usersOnSchain.address, {from: deployer});
+        await tokenManager.setCommunityLocker(communityLocker.address, {from: deployer});
 
         await unfreezeUser(to);
         // execution:

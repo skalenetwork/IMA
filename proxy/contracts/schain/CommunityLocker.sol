@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /*
-    UsersOnSchain.sol - SKALE Manager
+    CommunityLocker.sol - SKALE Manager
     Copyright (C) 2021-Present SKALE Labs
     @author Dmytro Stebaiev
     @author Artem Payvin
@@ -28,10 +28,10 @@ import "./PermissionsForSchain.sol";
 import "../Messages.sol";
 
 /**
- * @title UsersOnSchain
+ * @title CommunityLocker
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract UsersOnSchain is PermissionsForSchain {
+contract CommunityLocker is PermissionsForSchain {
 
     string private _chainID;
     uint public constant TIME_LIMIT_PER_MESSAGE = 5 minutes;

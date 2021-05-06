@@ -4,7 +4,7 @@ import {
   ContractManagerInstance,
   IMALinkerInstance,
   MessageProxyForMainnetInstance,
-  UsersOnMainnetInstance
+  CommunityPoolInstance
   } from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
 
@@ -18,42 +18,42 @@ chai.use(chaiAlmost(0.000000000002));
 import { deployIMALinker } from "./utils/deploy/imaLinker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
 import { deployContractManager } from "./utils/deploy/contractManager";
-import { deployUsersOnMainnet } from "./utils/deploy/usersOnMainnet";
+import { deployCommunityPool } from "./utils/deploy/communityPool";
 
 async function getBalance(address: string) {
   return parseFloat(web3.utils.fromWei(await web3.eth.getBalance(address)));
 }
 
-contract("UsersOnMainnet", ([deployer, user]) => {
+contract("CommunityPool", ([deployer, user]) => {
   let contractManager: ContractManagerInstance;
   let messageProxy: MessageProxyForMainnetInstance;
   let imaLinker: IMALinkerInstance;
-  let usersOnMainnet: UsersOnMainnetInstance;
+  let communityPool: CommunityPoolInstance;
   let contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
   beforeEach(async () => {
     contractManager = await deployContractManager(contractManagerAddress);
     messageProxy = await deployMessageProxyForMainnet(contractManager);
     imaLinker = await deployIMALinker(contractManager, messageProxy);
-    usersOnMainnet = await deployUsersOnMainnet(contractManager, messageProxy, imaLinker);
+    communityPool = await deployCommunityPool(contractManager, messageProxy, imaLinker);
 
   });
 
   it("should revert if user recharged not enough money for most costly transaction", async () => {
     const schainID = randomString(10);
-    const MIN_TRANSACTION_GAS =  (await usersOnMainnet.MIN_TRANSACTION_GAS()).toNumber();
+    const MIN_TRANSACTION_GAS =  (await communityPool.MIN_TRANSACTION_GAS()).toNumber();
     let wei = MIN_TRANSACTION_GAS * 8e9 - 1;
-    await usersOnMainnet.rechargeUserWallet(schainID, {value: wei.toString(), from: user})
+    await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user})
         .should.be.eventually.rejectedWith("Not enough money for transaction");
   });
  
   it("should recharge wallet if user passed enough money", async () => {
     const schainID = randomString(10);
     await messageProxy.addConnectedChain(schainID);
-    const MIN_TRANSACTION_GAS =  (await usersOnMainnet.MIN_TRANSACTION_GAS()).toNumber();
+    const MIN_TRANSACTION_GAS =  (await communityPool.MIN_TRANSACTION_GAS()).toNumber();
     let wei = MIN_TRANSACTION_GAS * 8e9;
-    await usersOnMainnet.rechargeUserWallet(schainID, {value: wei.toString(), from: user});
-    const userBalance = (await usersOnMainnet.getBalance(schainID, {from: user})).toNumber();
+    await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user});
+    const userBalance = (await communityPool.getBalance(schainID, {from: user})).toNumber();
     userBalance.should.be.equal(wei);
   });
 
@@ -61,15 +61,15 @@ contract("UsersOnMainnet", ([deployer, user]) => {
     const schainID = randomString(10);
     const gasPrice = 8e9;
     await messageProxy.addConnectedChain(schainID);
-    const MIN_TRANSACTION_GAS =  (await usersOnMainnet.MIN_TRANSACTION_GAS()).toNumber();
+    const MIN_TRANSACTION_GAS =  (await communityPool.MIN_TRANSACTION_GAS()).toNumber();
     let wei = MIN_TRANSACTION_GAS * gasPrice;
-    await usersOnMainnet.rechargeUserWallet(schainID, {value: wei.toString(), from: user});
+    await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user});
 
-    await usersOnMainnet.withdrawFunds(schainID, wei + 1, {from: user})
+    await communityPool.withdrawFunds(schainID, wei + 1, {from: user})
         .should.be.eventually.rejectedWith("Balance is too low");
 
     const balanceBefore = await getBalance(user);
-    const tx = await usersOnMainnet.withdrawFunds(schainID, wei, {from: user});
+    const tx = await communityPool.withdrawFunds(schainID, wei, {from: user});
     const balanceAfter = await getBalance(user);
     const transactionFee = (tx.receipt.gasUsed * gasPrice);
     (balanceAfter + transactionFee / 1e18).should.be.almost(balanceBefore + wei / 1e18);

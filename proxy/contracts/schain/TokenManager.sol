@@ -33,7 +33,7 @@ import "../Messages.sol";
 import "./PermissionsForSchain.sol";
 
 
-interface IUsersOnSchain {
+interface ICommunityLocker {
     function checkAllowedToSendMessage(address receiver) external;
 }
 
@@ -54,7 +54,7 @@ contract TokenManager is PermissionsForSchain {
     // ID of this schain,
     string private _chainID;
 
-    address public usersOnSchainAddress;
+    address public communityLockerAddress;
 
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
@@ -93,7 +93,7 @@ contract TokenManager is PermissionsForSchain {
      */
     function exitToMain(address to, uint256 amount) external receivedEth(amount) {
         require(to != address(0), "Incorrect contractThere address");
-        IUsersOnSchain(usersOnSchainAddress).checkAllowedToSendMessage(to);
+        ICommunityLocker(communityLockerAddress).checkAllowedToSendMessage(to);
         IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
             "Mainnet",
             LockAndDataForSchain(getLockAndDataAddress()).getDepositBox(0),
@@ -148,7 +148,7 @@ contract TokenManager is PermissionsForSchain {
             ),
             "Could not transfer ERC20 Token"
         );
-        IUsersOnSchain(usersOnSchainAddress).checkAllowedToSendMessage(to);
+        ICommunityLocker(communityLockerAddress).checkAllowedToSendMessage(to);
         bytes memory data = ERC20ModuleForSchain(erc20Module).receiveERC20(
             "Mainnet",
             contractOnMainnet,
@@ -216,7 +216,7 @@ contract TokenManager is PermissionsForSchain {
         require(IERC721(contractOnSchain).getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
         IERC721(contractOnSchain).transferFrom(msg.sender, lockAndDataERC721, tokenId);
         require(IERC721(contractOnSchain).ownerOf(tokenId) == lockAndDataERC721, "Did not transfer ERC721 token");
-        IUsersOnSchain(usersOnSchainAddress).checkAllowedToSendMessage(to);
+        ICommunityLocker(communityLockerAddress).checkAllowedToSendMessage(to);
         bytes memory data = ERC721ModuleForSchain(erc721Module).receiveERC721(
             "Mainnet",
             contractOnMainnet,
@@ -313,8 +313,8 @@ contract TokenManager is PermissionsForSchain {
         return true;
     }
 
-    function setUsersOnSchain(address newUsersOnSchainAddress) external onlyOwner {
-        usersOnSchainAddress = newUsersOnSchainAddress;
+    function setCommunityLocker(address newCommunityLockerAddress) external onlyOwner {
+        communityLockerAddress = newCommunityLockerAddress;
     }
 
     /**

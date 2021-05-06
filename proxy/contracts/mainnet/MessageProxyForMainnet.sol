@@ -34,7 +34,7 @@ interface ContractReceiverForMainnet {
         returns (address);
 }
 
-interface IUsersOnMainnet {
+interface ICommunityPool {
     function refundGasByUser(
         bytes32 schainHash,
         address node,
@@ -94,7 +94,7 @@ contract MessageProxyForMainnet is ProxyConnector {
     // Owner of this chain. For mainnet, the owner is SkaleManager
     address public owner;
 
-    address public usersOnMainnetAddress;
+    address public communityPoolAddress;
 
     mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
 
@@ -160,8 +160,8 @@ contract MessageProxyForMainnet is ProxyConnector {
         delete connectedChains[keccak256(abi.encodePacked(newChainID))];
     }
 
-    function setUsersOnMainnet(address newUsersOnMainnetAddress) external onlyOwner {
-        usersOnMainnetAddress = newUsersOnMainnetAddress;
+    function setCommunityPool(address newCommunityPoolAddress) external onlyOwner {
+        communityPoolAddress = newCommunityPoolAddress;
     }
 
     /**
@@ -229,7 +229,7 @@ contract MessageProxyForMainnet is ProxyConnector {
             address receiver = _callReceiverContract(srcChainHash, messages[i], startingCounter + i);
             if (receiver == address(0)) 
                 continue;
-            IUsersOnMainnet(usersOnMainnetAddress).refundGasByUser(
+            ICommunityPool(communityPoolAddress).refundGasByUser(
                 srcChainHash,
                 msg.sender,
                 receiver,

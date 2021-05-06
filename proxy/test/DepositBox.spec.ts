@@ -38,7 +38,7 @@ import {
   MessageProxyForMainnetInstance,
   MessagesTesterContract,
   MessagesTesterInstance,
-  UsersOnMainnetInstance
+  CommunityPoolInstance
   } from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
 
@@ -55,7 +55,7 @@ import { deployDepositBoxERC721 } from "./utils/deploy/depositBoxERC721";
 import { deployIMALinker } from "./utils/deploy/imaLinker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
 import { deployContractManager } from "./utils/deploy/contractManager";
-import { deployUsersOnMainnet } from "./utils/deploy/usersOnMainnet";
+import { deployCommunityPool } from "./utils/deploy/communityPool";
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
@@ -82,7 +82,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
   let contractManager: ContractManagerInstance;
   let messageProxy: MessageProxyForMainnetInstance;
   let imaLinker: IMALinkerInstance;
-  let usersOnMainnet: UsersOnMainnetInstance;
+  let communityPool: CommunityPoolInstance;
   let contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
   beforeEach(async () => {
@@ -93,7 +93,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
     depositBoxEth = await deployDepositBoxEth(contractManager, messageProxy, imaLinker);
     depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxy, imaLinker);
     depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxy, imaLinker);
-    usersOnMainnet = await deployUsersOnMainnet(contractManager, messageProxy, imaLinker);
+    communityPool = await deployCommunityPool(contractManager, messageProxy, imaLinker);
 
   });
 
@@ -339,8 +339,8 @@ contract("DepositBox", ([deployer, user, user2]) => {
       await messageProxy.addConnectedChain(schainID, {from: deployer});
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
-      await messageProxy.setUsersOnMainnet(usersOnMainnet.address);
-      await usersOnMainnet.rechargeUserWallet(schainID, {value: wei, from: user});
+      await messageProxy.setCommunityPool(communityPool.address);
+      await communityPool.rechargeUserWallet(schainID, {value: wei, from: user});
       // execution
 
       const res = await messageProxy.postIncomingMessages(schainID, 0, [message], sign, 0, {from: deployer});
@@ -381,8 +381,8 @@ contract("DepositBox", ([deployer, user, user2]) => {
         .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
-      await messageProxy.setUsersOnMainnet(usersOnMainnet.address);
-      await usersOnMainnet.rechargeUserWallet(schainID, {value: wei, from: user});
+      await messageProxy.setCommunityPool(communityPool.address);
+      await communityPool.rechargeUserWallet(schainID, {value: wei, from: user});
       // execution
       const res = await messageProxy.postIncomingMessages(schainID, 0, [message], sign, 0, {from: deployer});
 
@@ -406,8 +406,8 @@ contract("DepositBox", ([deployer, user, user2]) => {
       await setCommonPublicKey(contractManager, schainID);
       // add schain to avoid the `Receiver chain is incorrect` error
       await imaLinker.connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
-      await messageProxy.setUsersOnMainnet(usersOnMainnet.address);
-      await usersOnMainnet.rechargeUserWallet(schainID, {value: wei, from: user});
+      await messageProxy.setCommunityPool(communityPool.address);
+      await communityPool.rechargeUserWallet(schainID, {value: wei, from: user});
       const sign = {
         blsSignature: BlsSignature,
         counter: Counter,
@@ -448,8 +448,8 @@ contract("DepositBox", ([deployer, user, user2]) => {
       await setCommonPublicKey(contractManager, schainID);
       // add schain to avoid the `Receiver chain is incorrect` error
       await imaLinker.connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
-      await messageProxy.setUsersOnMainnet(usersOnMainnet.address);
-      await usersOnMainnet.rechargeUserWallet(schainID, {value: wei, from: user});
+      await messageProxy.setCommunityPool(communityPool.address);
+      await communityPool.rechargeUserWallet(schainID, {value: wei, from: user});
 
       const sign = {
         blsSignature: BlsSignature,
@@ -483,7 +483,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       const schainID = randomString(10);
       // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
       const senderFromSchain = deployer;
-      const MIN_TRANSACTION_GAS =  (await usersOnMainnet.MIN_TRANSACTION_GAS()).toNumber();
+      const MIN_TRANSACTION_GAS =  (await communityPool.MIN_TRANSACTION_GAS()).toNumber();
       const wei = (MIN_TRANSACTION_GAS * 8e9).toString();
       const bytesData = await messages.encodeTransferEthMessage(user, wei);
 
@@ -508,8 +508,8 @@ contract("DepositBox", ([deployer, user, user2]) => {
 
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await imaLinker.connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
-      await messageProxy.setUsersOnMainnet(usersOnMainnet.address);
-      await usersOnMainnet.rechargeUserWallet(schainID, {value: wei, from: user});
+      await messageProxy.setCommunityPool(communityPool.address);
+      await communityPool.rechargeUserWallet(schainID, {value: wei, from: user});
       // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await depositBoxEth.deposit(schainID, user, {value: wei, from: deployer});
       // execution
@@ -551,8 +551,8 @@ contract("DepositBox", ([deployer, user, user2]) => {
       await setCommonPublicKey(contractManager, schainID);
       // add schain to avoid the `Receiver chain is incorrect` error
       await imaLinker.connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
-      await messageProxy.setUsersOnMainnet(usersOnMainnet.address);
-      await usersOnMainnet.rechargeUserWallet(schainID, {value: wei, from: user});
+      await messageProxy.setCommunityPool(communityPool.address);
+      await communityPool.rechargeUserWallet(schainID, {value: wei, from: user});
 
       // mint some quantity of ERC20 tokens for `deployer` address
       await ethERC20.mint(deployer, "1000000000", {from: deployer});
@@ -604,8 +604,8 @@ contract("DepositBox", ([deployer, user, user2]) => {
       await setCommonPublicKey(contractManager, schainID);
       // add schain to avoid the `Receiver chain is incorrect` error
       await imaLinker.connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
-      await messageProxy.setUsersOnMainnet(usersOnMainnet.address);
-      await usersOnMainnet.rechargeUserWallet(schainID, {value: wei, from: user});
+      await messageProxy.setCommunityPool(communityPool.address);
+      await communityPool.rechargeUserWallet(schainID, {value: wei, from: user});
 
       // mint some ERC721 of  for `deployer` address
       await eRC721OnChain.mint(deployer, tokenId, {from: deployer});

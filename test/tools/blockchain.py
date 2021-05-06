@@ -189,13 +189,13 @@ class BlockChain:
 
     def recharge_user_wallet(self, from_key, schainName):
         sender_address = self.key_to_address(from_key)
-        users_on_mainnet = self._get_contract_on_mainnet('users_on_mainnet')
-        disable = users_on_mainnet.encodeABI(fn_name="rechargeUserWallet", args=[schainName])
+        community_pool = self._get_contract_on_mainnet('community_pool')
+        disable = community_pool.encodeABI(fn_name="rechargeUserWallet", args=[schainName])
         signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
                 nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
                 gasPrice=self.web3_mainnet.eth.gasPrice,
                 gas=200000,
-                to=users_on_mainnet.address,
+                to=community_pool.address,
                 value=0,
                 data = disable
             ),

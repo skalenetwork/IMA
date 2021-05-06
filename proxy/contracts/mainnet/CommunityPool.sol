@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /*
-    UsersOnMainnet.sol - SKALE Manager
+    CommunityPool.sol - SKALE Manager
     Copyright (C) 2021-Present SKALE Labs
     @author Dmytro Stebaiev
     @author Artem Payvin
@@ -26,12 +26,12 @@ pragma experimental ABIEncoderV2;
 
 import "../Messages.sol";
 import "./IMAConnected.sol";
-import "@nomiclabs/buidler/console.sol";
+
 /**
- * @title UsersOnMainnet
+ * @title CommunityPool
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract UsersOnMainnet is IMAConnected {
+contract CommunityPool is IMAConnected {
     mapping(address => mapping(bytes32 => uint)) private _userWallets;
     mapping(address => bool) private _unfrozenUsers;
     mapping(bytes32 => address) public schainLinks;

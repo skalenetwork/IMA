@@ -45,7 +45,7 @@ async function deploy( deployer, networkName, accounts ) {
         "DepositBoxEth",
         "DepositBoxERC20",
         "DepositBoxERC721",
-        "UsersOnMainnet"
+        "CommunityPool"
     ];
 
     contractsData = [];
