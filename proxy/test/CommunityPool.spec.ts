@@ -29,7 +29,7 @@ contract("CommunityPool", ([deployer, user]) => {
   let messageProxy: MessageProxyForMainnetInstance;
   let imaLinker: IMALinkerInstance;
   let communityPool: CommunityPoolInstance;
-  let contractManagerAddress = "0x0000000000000000000000000000000000000000";
+  const contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
   beforeEach(async () => {
     contractManager = await deployContractManager(contractManagerAddress);
@@ -42,16 +42,16 @@ contract("CommunityPool", ([deployer, user]) => {
   it("should revert if user recharged not enough money for most costly transaction", async () => {
     const schainID = randomString(10);
     const MIN_TRANSACTION_GAS =  (await communityPool.MIN_TRANSACTION_GAS()).toNumber();
-    let wei = MIN_TRANSACTION_GAS * 8e9 - 1;
+    const wei = MIN_TRANSACTION_GAS * 8e9 - 1;
     await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user})
         .should.be.eventually.rejectedWith("Not enough money for transaction");
   });
- 
+
   it("should recharge wallet if user passed enough money", async () => {
     const schainID = randomString(10);
     await messageProxy.addConnectedChain(schainID);
     const MIN_TRANSACTION_GAS =  (await communityPool.MIN_TRANSACTION_GAS()).toNumber();
-    let wei = MIN_TRANSACTION_GAS * 8e9;
+    const wei = MIN_TRANSACTION_GAS * 8e9;
     await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user});
     const userBalance = (await communityPool.getBalance(schainID, {from: user})).toNumber();
     userBalance.should.be.equal(wei);
@@ -62,7 +62,7 @@ contract("CommunityPool", ([deployer, user]) => {
     const gasPrice = 8e9;
     await messageProxy.addConnectedChain(schainID);
     const MIN_TRANSACTION_GAS =  (await communityPool.MIN_TRANSACTION_GAS()).toNumber();
-    let wei = MIN_TRANSACTION_GAS * gasPrice;
+    const wei = MIN_TRANSACTION_GAS * gasPrice;
     await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user});
 
     await communityPool.withdrawFunds(schainID, wei + 1, {from: user})
@@ -74,6 +74,5 @@ contract("CommunityPool", ([deployer, user]) => {
     const transactionFee = (tx.receipt.gasUsed * gasPrice);
     (balanceAfter + transactionFee / 1e18).should.be.almost(balanceBefore + wei / 1e18);
   });
- 
+
  });
- 
