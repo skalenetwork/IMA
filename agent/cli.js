@@ -326,10 +326,15 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "hash-g1" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( ".................." ) + cc.notice( "Specifies path to " ) + cc.note( "hash_g1" ) + cc.note( " application" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "bls-verify" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "..............." ) + cc.notice( "Optional parameter, specifies path to " ) + cc.note( "verify_bls" ) + cc.note( " application" ) + cc.notice( "." ) );
             //
+            console.log( cc.sunny( "MONITORING" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "........" ) + cc.notice( "Run monitoring web socket RPC server on specified port. By default monitoring server is disabled." ) );
+            //
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
             //
             console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "expose" ) + cc.debug( "........................" ) + cc.notice( "Expose low-level log details after successful operations. By default details exposed only on errors." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-expose" ) + cc.debug( "....................." ) + cc.notice( "Expose low-level log details only after errors. Default expose mode." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "verbose" ) + cc.sunny( "=" ) + cc.bright( "value" ) + cc.debug( "................." ) + cc.notice( "Set " ) + cc.note( "level" ) + cc.notice( " of output details." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "verbose-list" ) + cc.debug( ".................." ) + cc.notice( "List available " ) + cc.note( "verbose levels" ) + cc.notice( " and exit." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "log" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "......................" ) + cc.notice( "Write program output to specified log file(multiple files can be specified)." ) );
@@ -348,6 +353,14 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "no-colors" ) {
             cc.enable( false );
+            continue;
+        }
+        if( joArg.name == "expose" ) {
+            IMA.expose_details_set( true );
+            continue;
+        }
+        if( joArg.name == "no-expose" ) {
+            IMA.expose_details_set( false );
             continue;
         }
         if( joArg.name == "verbose" ) {
@@ -803,6 +816,11 @@ function parse( joExternalHandlers, argv ) {
             imaState.strPathBlsVerify = "" + joArg.value;
             continue;
         }
+        if( joArg.name == "monitoring-port" ) {
+            owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg );
+            imaState.nMonitoringPort = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
         if( joArg.name == "register" ||
             joArg.name == "register1" ||
             joArg.name == "register2" ||
@@ -854,8 +872,8 @@ function getWeb3FromURL( strURL ) {
 function ima_common_init() {
     let n1 = 0;
     let n2 = 0;
-    imaState.joTrufflePublishResult_main_net = imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net, null, true );
-    imaState.joTrufflePublishResult_s_chain = imaUtils.jsonFileLoad( imaState.strPathAbiJson_s_chain, null, true );
+    imaState.joTrufflePublishResult_main_net = imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net, null );
+    imaState.joTrufflePublishResult_s_chain = imaUtils.jsonFileLoad( imaState.strPathAbiJson_s_chain, null );
 
     imaUtils.check_keys_exist_in_abi( "main-net", imaState.strPathAbiJson_main_net, imaState.joTrufflePublishResult_main_net, [ "deposit_box_eth_abi", "deposit_box_eth_address", "message_proxy_mainnet_abi", "message_proxy_mainnet_address", "imalinker_abi", "imalinker_address", "deposit_box_erc20_abi", "deposit_box_erc20_address", "deposit_box_erc721_abi", "deposit_box_erc721_address" ] );
     imaUtils.check_keys_exist_in_abi( "S-Chain", imaState.strPathAbiJson_s_chain, imaState.joTrufflePublishResult_s_chain, [ "token_manager_abi", "token_manager_address", "message_proxy_chain_abi", "message_proxy_chain_address" ] );
@@ -909,12 +927,12 @@ function ima_common_init() {
         n2 = 0;
         if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
             log.write( cc.info( "Loading Main-net ERC721 ABI from " ) + cc.info( imaState.strPathJsonErc721_main_net ) + "\n" );
-        imaState.joErc721_main_net = imaUtils.jsonFileLoad( imaState.strPathJsonErc721_main_net, null, true );
+        imaState.joErc721_main_net = imaUtils.jsonFileLoad( imaState.strPathJsonErc721_main_net, null );
         n1 = Object.keys( imaState.joErc721_main_net ).length;
         if( imaState.strPathJsonErc721_s_chain.length > 0 ) {
             if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
                 log.write( cc.info( "Loading S-Chain ERC721 ABI from " ) + cc.info( imaState.strPathJsonErc721_s_chain ) + "\n" );
-            imaState.joErc721_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc721_s_chain, null, true );
+            imaState.joErc721_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc721_s_chain, null );
             n2 = Object.keys( imaState.joErc721_s_chain ).length;
         }
         if( n1 > 0 /* && n2 > 0 */ ) {
@@ -958,7 +976,7 @@ function ima_common_init() {
             n2 = 0;
             if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
                 log.write( cc.info( "Loading S-Chain ERC721 ABI from " ) + cc.info( imaState.strPathJsonErc721_s_chain ) + "\n" );
-            imaState.joErc721_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc721_s_chain, null, true );
+            imaState.joErc721_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc721_s_chain, null );
             n2 = Object.keys( imaState.joErc721_s_chain ).length;
 
             if( n2 > 0 ) {
@@ -997,12 +1015,12 @@ function ima_common_init() {
         n2 = 0;
         if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
             log.write( cc.info( "Loading Main-net ERC20 ABI from " ) + cc.info( imaState.strPathJsonErc20_main_net ) + "\n" );
-        imaState.joErc20_main_net = imaUtils.jsonFileLoad( imaState.strPathJsonErc20_main_net, null, true );
+        imaState.joErc20_main_net = imaUtils.jsonFileLoad( imaState.strPathJsonErc20_main_net, null );
         n1 = Object.keys( imaState.joErc20_main_net ).length;
         if( imaState.strPathJsonErc20_s_chain.length > 0 ) {
             if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
                 log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( imaState.strPathJsonErc20_s_chain ) + "\n" );
-            imaState.joErc20_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc20_s_chain, null, true );
+            imaState.joErc20_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc20_s_chain, null );
             n2 = Object.keys( imaState.joErc20_s_chain ).length;
         }
         if( n1 > 0 /* && n2 > 0 */ ) {
@@ -1046,7 +1064,7 @@ function ima_common_init() {
             n2 = 0;
             if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
                 log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( imaState.strPathJsonErc20_s_chain ) + "\n" );
-            imaState.joErc20_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc20_s_chain, null, true );
+            imaState.joErc20_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc20_s_chain, null );
             n2 = Object.keys( imaState.joErc20_s_chain ).length;
 
             if( n2 > 0 ) {

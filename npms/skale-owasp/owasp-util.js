@@ -282,6 +282,21 @@ function verifyArgumentIsInteger( joArg ) {
     }
 }
 
+function verifyArgumentIsIntegerIpPortNumber( joArg ) {
+    try {
+        verifyArgumentIsInteger( joArg );
+        if( joArg.value < 0 )
+            throw new Error( "Port number " + joArg.value + " cannot be negative" );
+        if( joArg.value < 1 )
+            throw new Error( "Port number " + joArg.value + " too small" );
+        if( joArg.value > 65535 )
+            throw new Error( "Port number " + joArg.value + " too big" );
+    } catch ( err ) {
+        console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid integer IP port number" ) );
+        process.exit( 126 );
+    }
+}
+
 function verifyArgumentIsPathToExistingFile( joArg ) {
     try {
         verifyArgumentWithNonEmptyValue( joArg );
@@ -536,6 +551,7 @@ module.exports = {
     verifyArgumentWithNonEmptyValue: verifyArgumentWithNonEmptyValue,
     verifyArgumentIsURL: verifyArgumentIsURL,
     verifyArgumentIsInteger: verifyArgumentIsInteger,
+    verifyArgumentIsIntegerIpPortNumber: verifyArgumentIsIntegerIpPortNumber,
     verifyArgumentIsPathToExistingFile: verifyArgumentIsPathToExistingFile,
     verifyArgumentIsPathToExistingFolder: verifyArgumentIsPathToExistingFolder,
     ensure_starts_with_0x: ensure_starts_with_0x,

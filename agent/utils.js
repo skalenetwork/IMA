@@ -27,7 +27,7 @@ const fs = require( "fs" );
 const path = require( "path" );
 // const url = require( "url" );
 const os = require( "os" );
-const uuid = require( "uuid/v4" );
+const { v4: uuid } = require( "uuid" );
 
 const log = require( "../npms/skale-log/log.js" );
 const cc = log.cc;
@@ -106,8 +106,7 @@ function jsonFileLoad( strPath, joDefault, bLogOutput ) {
             log.write( cc.success( "Done, loaded content of JSON file " ) + cc.info( strPath ) + cc.success( "." ) + "\n" );
         return jo;
     } catch ( err ) {
-        if( bLogOutput )
-            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to load JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( err ) );
+        log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to load JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( err ) + "\n" );
     }
     return joDefault;
 }
@@ -124,8 +123,7 @@ function jsonFileSave( strPath, jo, bLogOutput ) {
             log.write( cc.success( "Done, saved content of JSON file " ) + cc.info( strPath ) + cc.success( "." ) + "\n" );
         return true;
     } catch ( err ) {
-        if( bLogOutput )
-            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to save JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( err ) );
+        log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to save JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( err ) + "\n" );
     }
     return false;
 }
