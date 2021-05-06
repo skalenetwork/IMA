@@ -17,6 +17,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 : "${NODE_NUMBER?Need to set NODE_NUMBER}"
 : "${NODES_COUNT?Need to set NODES_COUNT}"
 
+: "${MONITORING_PORT?Need to set MONITORING_PORT}"
+
 : "${TM_URL_MAIN_NET?Need to set TM_URL_MAIN_NET}"
 
 # SGX variables
@@ -91,7 +93,8 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
     --nodes-count=$NODES_COUNT \
     --time-framing=$TIME_FRAMING \
     --tm-url-main-net=$TM_URL_MAIN_NET \
-    --time-gap=$TIME_GAP"
+    --time-gap=$TIME_GAP \
+    --monitoring-port=$MONITORING_PORT"
 
 echo "Base options:"
 echo "$BASE_OPTIONS"
