@@ -24,6 +24,7 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
+import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 
 
 /**
@@ -36,6 +37,14 @@ contract SkaleManagerClient is Initializable {
     using SafeMathUpgradeable for uint256;
 
     IContractManager public contractManagerOfSkaleManager;
+
+    /**
+     * @dev Checks whether sender is owner of SKALE chain
+     */
+    function isSchainOwner(address sender, bytes32 schainId) public view returns (bool) {
+        address skaleChainsInternal = IContractManager(contractManagerOfSkaleManager).getContract("SchainsInternal");
+        return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainId);
+    }
 
     /**
      * @dev initialize - sets current address of ContractManager of SkaleManager

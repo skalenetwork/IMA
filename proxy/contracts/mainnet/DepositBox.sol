@@ -23,7 +23,6 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 
 import "../interfaces/IDepositBox.sol";
 import "./Linker.sol";
@@ -43,14 +42,6 @@ abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, ID
     modifier onlyMessageProxy() {
         require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
         _;
-    }
-
-    /**
-     * @dev Checks whether sender is owner of SKALE chain
-     */
-    function isSchainOwner(address sender, bytes32 schainId) public view returns (bool) {
-        address skaleChainsInternal = IContractManager(contractManagerOfSkaleManager).getContract("SchainsInternal");
-        return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainId);
     }
     
     function initialize(

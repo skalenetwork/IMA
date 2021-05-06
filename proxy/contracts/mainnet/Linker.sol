@@ -81,11 +81,10 @@ contract Linker is AccessControlUpgradeable {
 
     function hasSchain(string calldata schainName) external view returns (bool connected) {
         uint length = _depositBoxes.length();
-        connected = true;
+        connected = messageProxy.isConnectedChain(schainName);
         for (uint i = 0; connected && i < length; i++) {
             connected = connected && IDepositBox(_depositBoxes.at(i)).hasTokenManager(schainName);
         }
-        connected = connected && messageProxy.isConnectedChain(schainName);
     }
 
     function initialize(address messageProxyAddress) public initializer {
