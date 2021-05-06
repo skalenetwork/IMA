@@ -34,7 +34,7 @@ import {
   EthERC20Instance,
   ERC721OnChainContract,
   ERC721OnChainInstance,
-  IMALinkerInstance,
+  LinkerInstance,
   MessageProxyForMainnetInstance,
   MessagesTesterContract,
   MessagesTesterInstance
@@ -49,7 +49,7 @@ chai.use((chaiAsPromised as any));
 import { deployDepositBoxEth } from "./utils/deploy/depositBoxEth";
 import { deployDepositBoxERC20 } from "./utils/deploy/depositBoxERC20";
 import { deployDepositBoxERC721 } from "./utils/deploy/depositBoxERC721";
-import { deployIMALinker } from "./utils/deploy/imaLinker";
+import { deployLinker } from "./utils/deploy/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
 import { deployContractManager } from "./utils/deploy/contractManager";
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
@@ -73,17 +73,17 @@ contract("DepositBox", ([deployer, user, user2]) => {
   let depositBoxERC721: DepositBoxERC721Instance;
   let contractManager: ContractManagerInstance;
   let messageProxy: MessageProxyForMainnetInstance;
-  let imaLinker: IMALinkerInstance;
+  let linker: LinkerInstance;
   let contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
   beforeEach(async () => {
     contractManager = await deployContractManager(contractManagerAddress);
     contractManagerAddress = contractManager.address;
     messageProxy = await deployMessageProxyForMainnet(contractManager);
-    imaLinker = await deployIMALinker(contractManager, messageProxy);
-    depositBoxEth = await deployDepositBoxEth(contractManager, messageProxy, imaLinker);
-    depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxy, imaLinker);
-    depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxy, imaLinker);
+    linker = await deployLinker(messageProxy);
+    depositBoxEth = await deployDepositBoxEth(contractManager, messageProxy, linker);
+    depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxy, linker);
+    depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxy, linker);
   });
 
   describe("tests for `deposit` function", async () => {
@@ -116,7 +116,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       // to avoid the `Not enough money` error
       const wei = "20000000000000000";
       // add schain to avoid the `Unconnected chain` error
-      const chain = await imaLinker
+      const chain = await linker
         .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
       // execution
       const tx = await depositBoxEth
@@ -151,7 +151,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
         const error = "Whitelist is enabled";
         const schainID = randomString(10);
         // add schain to avoid the `Unconnected chain` error
-        const chain = await imaLinker
+        const chain = await linker
           .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
 
         await ethERC20.mint(user, "1000000000", {from: deployer});
@@ -168,7 +168,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
         const error = "DepositBox was not approved for ERC20 token";
         const schainID = randomString(10);
         // add schain to avoid the `Unconnected chain` error
-        const chain = await imaLinker
+        const chain = await linker
           .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
 
         await ethERC20.mint(user, "1000000000", {from: deployer});
@@ -184,7 +184,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
         // preparation
         const schainID = randomString(10);
         // add schain to avoid the `Unconnected chain` error
-        const chain = await imaLinker
+        const chain = await linker
           .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
         // mint some quantity of ERC20 tokens for `deployer` address
         await ethERC20.mint(deployer, "1000000000", {from: deployer});
@@ -229,7 +229,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
         // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
         const wei = "20000000000000000";
         // add schain to avoid the `Unconnected chain` error
-        await imaLinker
+        await linker
           .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
 
         // execution/expectation
@@ -248,7 +248,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
         // the wei should be MORE than (55000 * 1000000000)
         // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
         // add schain to avoid the `Unconnected chain` error
-        await imaLinker
+        await linker
           .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
         // transfer tokenId from `deployer` to `depositBoxERC721`
         await eRC721OnChain.approve(depositBoxERC721.address, tokenId, {from: deployer});
@@ -363,7 +363,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       };
       // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
-      const chain = await imaLinker
+      const chain = await linker
         .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
@@ -406,7 +406,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       // to avoid `Incorrect sender` error
       // await lockAndDataForMainnet.setContract("MessageProxy", deployer);
       // add schain to avoid the `Receiver chain is incorrect` error
-      const chain = await imaLinker
+      const chain = await linker
         .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
       // execution
       const res = await messageProxy.postIncomingMessages(schainID, 0, [message], sign, 0, {from: deployer});
@@ -447,7 +447,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       // to avoid `Incorrect sender` error
       // await lockAndDataForMainnet.setContract("MessageProxy", deployer);
       // add schain to avoid the `Receiver chain is incorrect` error
-      const chain = await imaLinker
+      const chain = await linker
         .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
       // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await depositBoxEth
@@ -490,7 +490,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
 
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await rechargeSchainWallet(contractManager, schainID, deployer, "1000000000000000000");
-      const chain = await imaLinker
+      const chain = await linker
         .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
       // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
       await depositBoxEth
@@ -529,7 +529,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       await setCommonPublicKey(contractManager, schainID);
       await rechargeSchainWallet(contractManager, schainID, deployer, "1000000000000000000");
       // add schain to avoid the `Unconnected chain` error
-      await imaLinker
+      await linker
         .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
       // mint some quantity of ERC20 tokens for `deployer` address
       await ethERC20.mint(deployer, "1000000000", {from: deployer});
@@ -576,7 +576,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       await setCommonPublicKey(contractManager, schainID);
       await rechargeSchainWallet(contractManager, schainID, user2, "1000000000000000000");
       // add schain to avoid the `Unconnected chain` error
-      await imaLinker
+      await linker
         .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
       // mint some ERC721 of  for `deployer` address
       await eRC721OnChain.mint(deployer, tokenId, {from: deployer});

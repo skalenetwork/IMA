@@ -24,14 +24,12 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721MetadataUpgradeable.sol";
 
-import "../interfaces/IDepositBox.sol";
-import "../Messages.sol";
-
-import "./IMAConnected.sol";
+import "../DepositBox.sol";
+import "../../Messages.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract DepositBoxERC721 is IMAConnected, IDepositBox {
+contract DepositBoxERC721 is DepositBox {
 
     // uint256 public gasConsumption;
 
@@ -93,16 +91,17 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addTokenManager(string calldata schainID, address newTokenManagerERC721Address) external override {
+    function addTokenManager(string calldata schainName, address newTokenManagerERC721Address) external override {
+        bytes32 schainId = keccak256(abi.encodePacked(schainName));
         require(
-            msg.sender == imaLinker ||
-            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            _isOwner(), "Not authorized caller"
+            hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
+            isSchainOwner(msg.sender, schainId) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerERC721Addresses[schainHash] == address(0), "SKALE chain is already set");
+        require(tokenManagerERC721Addresses[schainId] == address(0), "SKALE chain is already set");
         require(newTokenManagerERC721Address != address(0), "Incorrect Token Manager address");
-        tokenManagerERC721Addresses[schainHash] = newTokenManagerERC721Address;
+
+        tokenManagerERC721Addresses[schainId] = newTokenManagerERC721Address;
     }
 
     /**
@@ -114,15 +113,16 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
      * - `msg.sender` must be schain owner or contract owner
      * - SKALE chain must already be set.
      */
-    function removeTokenManager(string calldata schainID) external override {
+    function removeTokenManager(string calldata schainName) external override {
+        bytes32 schainId = keccak256(abi.encodePacked(schainName));
         require(
-            msg.sender == imaLinker ||
-            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            _isOwner(), "Not authorized caller"
-        );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerERC721Addresses[schainHash] != address(0), "SKALE chain is not set");
-        delete tokenManagerERC721Addresses[schainHash];
+            hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
+            isSchainOwner(msg.sender, schainId) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
+        );        
+        require(tokenManagerERC721Addresses[schainId] != address(0), "SKALE chain is not set");
+
+        delete tokenManagerERC721Addresses[schainId];
     }
 
     function postMessage(
@@ -157,7 +157,10 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
      */
     function addERC721TokenByOwner(string calldata schainName, address erc721OnMainnet) external {
         bytes32 schainId = keccak256(abi.encodePacked(schainName));
-        require(isSchainOwner(msg.sender, schainId) || msg.sender == getOwner(), "Sender is not a Schain owner");
+        require(
+            isSchainOwner(msg.sender, schainId) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            "Sender is not a Schain owner"
+        );
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
         // require(!withoutWhitelist[schainId], "Whitelist is enabled");
         schainToERC721[schainId][erc721OnMainnet] = true;
@@ -196,16 +199,15 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
 
     /// Create a new deposit box
     function initialize(
-        address newContractManagerOfSkaleManager,
-        address newMessageProxyAddress,
-        address newIMALinkerAddress
+        IContractManager contractManagerOfSkaleManager,        
+        Linker linker,
+        MessageProxyForMainnet messageProxyAddress
     )
         public
         override
         initializer
     {
-        IMAConnected.initialize(newIMALinkerAddress, newContractManagerOfSkaleManager, newMessageProxyAddress);
-        // gasConsumption = 500000;
+        DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxyAddress);
     }
 
     /**
