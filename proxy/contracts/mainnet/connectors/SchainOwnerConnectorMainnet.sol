@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   BasicConnector.sol - SKALE Interchain Messaging Agent
+ *   SchainOwnerConnectorMainnet.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -21,23 +21,17 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
+import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
+
+import "./BasicConnectorMainnet.sol";
 
 
 /**
- * @title BasicConnector - connected module for Upgradeable approach, knows ContractManager
+ * @title SchainOwnerConnectorMainnet - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-contract BasicConnector is AccessControlUpgradeable {
-    using SafeMathUpgradeable for uint256;
-
-    address public contractManagerOfSkaleManager;
-
-    modifier onlyOwner() {
-        require(_isOwner(), "Sender is not the owner");
-        _;
-    }
+contract SchainOwnerConnectorMainnet is BasicConnectorMainnet {
 
     /**
      * @dev initialize - sets current address of ContractManager of SkaleManager
@@ -48,24 +42,17 @@ contract BasicConnector is AccessControlUpgradeable {
     )
         public
         virtual
+        override
         initializer
     {
-        AccessControlUpgradeable.__AccessControl_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        contractManagerOfSkaleManager = newContractManagerOfSkaleManager;
-    }
-
-    /**
-     * @dev Returns owner address.
-     */
-    function getOwner() public view returns ( address ow ) {
-        return getRoleMember(DEFAULT_ADMIN_ROLE, 0);
+        BasicConnectorMainnet.initialize(newContractManagerOfSkaleManager);
     }
 
     /**
      * @dev Checks whether sender is owner of SKALE chain
      */
-    function _isOwner() internal view returns (bool) {
-        return hasRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    function isSchainOwner(address sender, bytes32 schainId) public virtual view returns (bool) {
+        address skaleChainsInternal = IContractManager(contractManagerOfSkaleManager).getContract("SchainsInternal");
+        return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainId);
     }
 }

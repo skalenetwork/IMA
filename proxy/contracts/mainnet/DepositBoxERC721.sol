@@ -27,11 +27,11 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721MetadataUpgradea
 import "../interfaces/IDepositBox.sol";
 import "../Messages.sol";
 
-import "./IMAConnected.sol";
+import "./connectors/LinkerConnectorMainnet.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract DepositBoxERC721 is IMAConnected, IDepositBox {
+contract DepositBoxERC721 is LinkerConnectorMainnet, IDepositBox {
 
     // uint256 public gasConsumption;
 
@@ -204,7 +204,7 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
         override
         initializer
     {
-        IMAConnected.initialize(newIMALinkerAddress, newContractManagerOfSkaleManager, newMessageProxyAddress);
+        LinkerConnectorMainnet.initialize(newContractManagerOfSkaleManager, newMessageProxyAddress, newIMALinkerAddress);
         // gasConsumption = 500000;
     }
 

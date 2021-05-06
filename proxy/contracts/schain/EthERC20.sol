@@ -22,14 +22,11 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import "./OwnableForSchain.sol";
+import "./connectors/ContractConnectorSchain.sol";
 
 
-contract EthERC20 is OwnableForSchain, IERC20 {
-
-    using SafeMath for uint256;
+contract EthERC20 is ContractConnectorSchain, IERC20 {
 
     mapping (address => uint256) private _balances;
 
@@ -43,11 +40,11 @@ contract EthERC20 is OwnableForSchain, IERC20 {
 
     bool private _initialized = false;
 
-    constructor() public {
+    constructor(string memory chainID) public ContractConnectorSchain(chainID) {
         _delayedInit();
     }
 
-    function mint(address account, uint256 amount) external onlyLockAndDataOwner returns (bool) {
+    function mint(address account, uint256 amount) external allow("TokenManagerEth") returns (bool) {
         _delayedInit();
         _mint(account, amount);
         return true;
@@ -58,7 +55,7 @@ contract EthERC20 is OwnableForSchain, IERC20 {
         _burn(msg.sender, amount);
     }
 
-    function burnFrom(address account, uint256 amount) external onlyLockAndDataOwner {
+    function burnFrom(address account, uint256 amount) external allow("TokenManagerEth") {
         _delayedInit();
         _burn(account, amount);
     }

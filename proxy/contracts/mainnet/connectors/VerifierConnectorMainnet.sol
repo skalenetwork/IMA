@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   ProxyConnector.sol - SKALE Interchain Messaging Agent
+ *   VerifierConnectorMainnet.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -28,14 +28,14 @@ import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 
 import "../MessageProxyForMainnet.sol";
 
-import "./BasicConnector.sol";
+import "./BasicConnectorMainnet.sol";
 
 
 /**
- * @title ProxyConnector - connected module for Upgradeable approach, knows ContractManager
+ * @title VerifierConnectorMainnet - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-contract ProxyConnector is BasicConnector {
+contract VerifierConnectorMainnet is BasicConnectorMainnet {
 
     /**
      * @dev initialize - sets current address of ContractManager of SkaleManager
@@ -49,18 +49,7 @@ contract ProxyConnector is BasicConnector {
         override
         initializer
     {
-        BasicConnector.initialize(newContractManagerOfSkaleManager);
-    }
-
-    /**
-     * @dev Checks whether sender is node address from the SKALE chain
-     */
-    function isAuthorizedCaller(bytes32 chainId, address sender) public view returns (bool) {
-        address skaleSchainsInternal = IContractManager(contractManagerOfSkaleManager).getContract("SchainsInternal");
-        return ISchainsInternal(skaleSchainsInternal).isNodeAddressesInGroup(
-            chainId,
-            sender
-        );
+        BasicConnectorMainnet.initialize(newContractManagerOfSkaleManager);
     }
 
     function _refundGasBySchain(bytes32 schainId, uint gasTotal) internal {

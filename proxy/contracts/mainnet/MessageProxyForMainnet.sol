@@ -22,7 +22,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "./connectors/ProxyConnector.sol";
+import "./connectors/VerifierConnectorMainnet.sol";
 
 interface ContractReceiverForMainnet {
     function postMessage(
@@ -44,7 +44,7 @@ interface ContractReceiverForMainnet {
  * nodes in the chain. Since Ethereum Mainnet has no BLS public key, mainnet
  * messages do not need to be signed.
  */
-contract MessageProxyForMainnet is ProxyConnector {
+contract MessageProxyForMainnet is VerifierConnectorMainnet {
 
     /**
      * 16 Agents
@@ -304,7 +304,7 @@ contract MessageProxyForMainnet is ProxyConnector {
     // Create a new message proxy
 
     function initialize(address newContractManagerOfSkaleManager) public override initializer {
-        ProxyConnector.initialize(newContractManagerOfSkaleManager);
+        VerifierConnectorMainnet.initialize(newContractManagerOfSkaleManager);
         owner = msg.sender;
         chainID = "Mainnet";
     }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   IMALinker.sol - SKALE Interchain Messaging Agent
+ *   IMALinkerMainnet.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -27,21 +27,19 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "../interfaces/IDepositBox.sol";
 
-import "./connectors/BasicConnector.sol";
-import "./MessageProxyForMainnet.sol";
+import "./connectors/ProxyConnectorMainnet.sol";
 
 
 /**
- * @title IMALinker For Mainnet
+ * @title IMALinkerMainnet For Mainnet
  * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
  * balances of ETH tokens received through DepositBox.
  */
-contract IMALinker is BasicConnector {
+contract IMALinkerMainnet is ProxyConnectorMainnet {
     using AddressUpgradeable for address;
     using SafeMathUpgradeable for uint;
 
     address[] private _depositBoxes;
-    MessageProxyForMainnet public messageProxy;
 
     function registerDepositBox(address newDepositBoxAddress) external onlyOwner {
         _depositBoxes.push(newDepositBoxAddress);
@@ -63,13 +61,13 @@ contract IMALinker is BasicConnector {
         }
     }
 
-    function connectSchain(string calldata schainName, address[] calldata tokenManagerAddresses) external onlyOwner {
-        require(tokenManagerAddresses.length == _depositBoxes.length, "Incorrect number of addresses");
-        for (uint i = 0; i < tokenManagerAddresses.length; i++) {
-            IDepositBox(_depositBoxes[i]).addTokenManager(schainName, tokenManagerAddresses[i]);
-        }
-        messageProxy.addConnectedChain(schainName);
-    }
+    // function connectSchain(string calldata schainName, address[] calldata tokenManagerAddresses) external onlyOwner {
+    //     require(tokenManagerAddresses.length == _depositBoxes.length, "Incorrect number of addresses");
+    //     for (uint i = 0; i < tokenManagerAddresses.length; i++) {
+    //         IDepositBox(_depositBoxes[i]).addTokenManager(schainName, tokenManagerAddresses[i]);
+    //     }
+    //     messageProxy.addConnectedChain(schainName);
+    // }
 
     function unconnectSchain(string calldata schainName) external onlyOwner {
         uint length = _depositBoxes.length;
@@ -105,8 +103,7 @@ contract IMALinker is BasicConnector {
         connected = connected && messageProxy.isConnectedChain(schainName);
     }
 
-    function initialize(address newContractManagerOfSkaleManager, address newMessageProxyAddress) public initializer {
-        BasicConnector.initialize(newContractManagerOfSkaleManager);
-        messageProxy = MessageProxyForMainnet(newMessageProxyAddress);
+    function initialize(address newContractManagerOfSkaleManager, address newMessageProxyAddress) public override initializer {
+        ProxyConnectorMainnet.initialize(newContractManagerOfSkaleManager, newMessageProxyAddress);
     }
 }

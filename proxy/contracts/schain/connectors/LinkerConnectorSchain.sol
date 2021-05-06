@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   IMAConnected.sol - SKALE Interchain Messaging Agent
+ *   LinkerConnectorSchain.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -21,40 +21,45 @@
 
 pragma solidity 0.6.12;
 
-import "./IMALinker.sol";
-import "./MessageProxyForMainnet.sol";
-import "./connectors/SchainOwnerConnector.sol";
+
+import "./ProxyConnectorSchain.sol";
 
 
 /**
- * @title IMAConnected - connected module for Upgradeable approach, knows ContractManager
+ * @title LinkerConnectorSchain - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-contract IMAConnected is SchainOwnerConnector {
+contract LinkerConnectorSchain is ProxyConnectorSchain {
 
-    MessageProxyForMainnet public messageProxy;
     address public imaLinker;
 
-    modifier onlyMessageProxy() {
-        require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
+    modifier onlyIMALinker() {
+        require(msg.sender == getIMALinkerAddress(), "Sender is not a IMALinker");
         _;
     }
 
     /**
-     * @dev initialize - sets current address of ContractManager
-     * @param newIMALinkerAddress - current address of ContractManager
+     * @dev constructor - sets chainID
      */
-    function initialize(
-        address newIMALinkerAddress,
-        address newContractManagerOfSkaleManager,
-        address newMessageProxyAddress
+    constructor(
+        string memory chainID,
+        address newMessageProxyAddress,
+        address newIMALinkerAddress
     )
         public
-        virtual
-        initializer
+        ProxyConnectorSchain(chainID, newMessageProxyAddress)
     {
-        SchainOwnerConnector.initialize(newContractManagerOfSkaleManager);
         imaLinker = newIMALinkerAddress;
-        messageProxy = MessageProxyForMainnet(newMessageProxyAddress);
+    }
+
+    /**
+     * @dev Returns IMALinker address.
+     */
+    function getIMALinkerAddress() public view returns (address) {
+        if (imaLinker != address(0) )
+            return imaLinker;
+        return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
+            "skaleConfig.contractSettings.IMA.IMALinker"
+        );
     }
 }

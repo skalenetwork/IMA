@@ -31,7 +31,7 @@ contract MessageProxyForSchainWithoutSignature is MessageProxyForSchain {
     { }
 
     function _verifyMessages(
-        Message[] calldata,
+        bytes32 hashedMessages,
         Signature calldata
     )
         internal

@@ -26,11 +26,11 @@ import "../interfaces/IDepositBox.sol";
 import "../thirdparty/openzeppelin/IERC20Metadata.sol";
 import "../Messages.sol";
 
-import "./IMAConnected.sol";
+import "./connectors/LinkerConnectorMainnet.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract DepositBoxERC20 is IMAConnected, IDepositBox {
+contract DepositBoxERC20 is LinkerConnectorMainnet, IDepositBox {
 
     // uint256 public gasConsumption;
 
@@ -219,7 +219,7 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
         override
         initializer
     {
-        IMAConnected.initialize(newIMALinkerAddress, newContractManagerOfSkaleManager, newMessageProxyAddress);
+        LinkerConnectorMainnet.initialize(newContractManagerOfSkaleManager, newMessageProxyAddress, newIMALinkerAddress);
         // gasConsumption = 500000;
     }
 

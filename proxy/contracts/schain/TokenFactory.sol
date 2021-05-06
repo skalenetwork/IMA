@@ -25,7 +25,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20BurnableUpgradeable
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
-import "./PermissionsForSchain.sol";
+import "./connectors/ContractConnectorSchain.sol";
 
 
 contract ERC20OnChain is AccessControlUpgradeable, ERC20BurnableUpgradeable {
@@ -86,38 +86,33 @@ contract ERC721OnChain is AccessControlUpgradeable, ERC721BurnableUpgradeable {
 }
 
 
-contract TokenFactory is PermissionsForSchain {
+contract TokenFactory is ContractConnectorSchain {
 
-    constructor(address _lockAndDataAddress) public PermissionsForSchain(_lockAndDataAddress) {
+    constructor(string memory chainID) public ContractConnectorSchain(chainID) {
         // solhint-disable-previous-line no-empty-blocks
     }
 
     function createERC20(string memory name, string memory symbol)
         external
-        allow("ERC20Module")
+        allow("TokenManagerERC20")
         returns (address)
     {
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
             symbol
         );
-        address lockAndDataERC20 = LockAndDataForSchain(
-            getLockAndDataAddress()
-        ).getLockAndDataErc20();
-        newERC20.grantRole(newERC20.MINTER_ROLE(), lockAndDataERC20);
+        newERC20.grantRole(newERC20.MINTER_ROLE(), getContract("TokenManagerERC20"));
         newERC20.revokeRole(newERC20.MINTER_ROLE(), address(this));
         return address(newERC20);
     }
 
     function createERC721(string memory name, string memory symbol)
         external
-        allow("ERC721Module")
+        allow("TokenManagerERC721")
         returns (address)
     {
         ERC721OnChain newERC721 = new ERC721OnChain(name, symbol);
-        address lockAndDataERC721 = LockAndDataForSchain(getLockAndDataAddress()).
-            getLockAndDataErc721();
-        newERC721.grantRole(newERC721.MINTER_ROLE(), lockAndDataERC721);
+        newERC721.grantRole(newERC721.MINTER_ROLE(), getContract("TokenManagerERC721"));
         newERC721.revokeRole(newERC721.MINTER_ROLE(), address(this));
         return address(newERC721);
     }

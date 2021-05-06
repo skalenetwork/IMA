@@ -25,11 +25,11 @@ pragma experimental ABIEncoderV2;
 import "../interfaces/IDepositBox.sol";
 import "../Messages.sol";
 
-import "./IMAConnected.sol";
+import "./connectors/LinkerConnectorMainnet.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract DepositBoxEth is IMAConnected, IDepositBox {
+contract DepositBoxEth is LinkerConnectorMainnet, IDepositBox {
 
     using SafeMathUpgradeable for uint;
 
@@ -57,7 +57,8 @@ contract DepositBoxEth is IMAConnected, IDepositBox {
      *
      * Requirements:
      *
-     * - `msg.sender` must be schain owner or contract owner.
+     * - `msg.sender` must be schain owner or contract owner
+     * = or imaLinker contract.
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
@@ -175,7 +176,7 @@ contract DepositBoxEth is IMAConnected, IDepositBox {
         override
         initializer
     {
-        IMAConnected.initialize(newIMALinkerAddress, newContractManagerOfSkaleManager, newMessageProxyAddress);
+        LinkerConnectorMainnet.initialize(newContractManagerOfSkaleManager, newMessageProxyAddress, newIMALinkerAddress);
         // gasConsumption = 500000;
     }
 }
