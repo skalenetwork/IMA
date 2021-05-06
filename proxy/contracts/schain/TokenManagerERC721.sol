@@ -348,7 +348,7 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
      * - ERC721 token must be received by LockAndDataForSchainERC721.
      */
     function _receiveERC721(
-        string calldata schainID,
+        string memory schainID,
         address contractOnMainnet,
         address receiver,
         uint256 tokenId

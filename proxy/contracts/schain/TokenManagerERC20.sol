@@ -386,7 +386,7 @@ contract TokenManagerERC20 is LinkerConnectorSchain, ITokenManager {
      * - ERC20 token must be received by LockAndDataForSchainERC20.
      */
     function _receiveERC20(
-        string calldata schainID,
+        string memory schainID,
         address contractOnMainnet,
         address receiver,
         uint256 amount
