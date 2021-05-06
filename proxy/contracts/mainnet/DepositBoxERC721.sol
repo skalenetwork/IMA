@@ -24,14 +24,14 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721MetadataUpgradeable.sol";
 
-import "../interfaces/IDepositBox.sol";
+import "../interfaces/IMainnetContract.sol";
 import "../Messages.sol";
 
 import "./IMAConnected.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract DepositBoxERC721 is IMAConnected, IDepositBox {
+contract DepositBoxERC721 is IMAConnected, IMainnetContract {
 
     // uint256 public gasConsumption;
 
@@ -93,7 +93,7 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addTokenManager(string calldata schainID, address newTokenManagerERC721Address) external override {
+    function addSchainContract(string calldata schainID, address newTokenManagerERC721Address) external override {
         require(
             msg.sender == imaLinker ||
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
@@ -114,7 +114,7 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
      * - `msg.sender` must be schain owner or contract owner
      * - SKALE chain must already be set.
      */
-    function removeTokenManager(string calldata schainID) external override {
+    function removeSchainContract(string calldata schainID) external override {
         require(
             msg.sender == imaLinker ||
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
@@ -185,7 +185,7 @@ contract DepositBoxERC721 is IMAConnected, IDepositBox {
     /**
      * @dev Checks whether depositBoxERC721 is connected to a SKALE chain TokenManagerERC721.
      */
-    function hasTokenManager(string calldata schainID) external view override returns (bool) {
+    function hasSchainContract(string calldata schainID) external view override returns (bool) {
         return tokenManagerERC721Addresses[keccak256(abi.encodePacked(schainID))] != address(0);
     }
 

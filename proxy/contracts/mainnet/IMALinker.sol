@@ -25,7 +25,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
-import "../interfaces/IDepositBox.sol";
+import "../interfaces/IMainnetContract.sol";
 
 import "./connectors/BasicConnector.sol";
 import "./MessageProxyForMainnet.sol";
@@ -40,50 +40,50 @@ contract IMALinker is BasicConnector {
     using AddressUpgradeable for address;
     using SafeMathUpgradeable for uint;
 
-    address[] private _depositBoxes;
+    address[] private _mainnetContracts;
     MessageProxyForMainnet public messageProxy;
 
-    function registerDepositBox(address newDepositBoxAddress) external onlyOwner {
-        _depositBoxes.push(newDepositBoxAddress);
+    function registerMainnetContract(address newMainnetContract) external onlyOwner {
+        _mainnetContracts.push(newMainnetContract);
     }
 
-    function removeDepositBox(address depositBoxAddress) external onlyOwner {
+    function removeMainnetContract(address mainnetContract) external onlyOwner {
         uint index;
-        uint length = _depositBoxes.length;
+        uint length = _mainnetContracts.length;
         for (index = 0; index < length; index++) {
-            if (_depositBoxes[index] == depositBoxAddress) {
+            if (_mainnetContracts[index] == mainnetContract) {
                 break;
             }
         }
         if (index < length) {
             if (index < length.sub(1)) {
-                _depositBoxes[index] = _depositBoxes[length.sub(1)];
+                _mainnetContracts[index] = _mainnetContracts[length.sub(1)];
             }
-            _depositBoxes.pop();
+            _mainnetContracts.pop();
         }
     }
 
-    function connectSchain(string calldata schainName, address[] calldata tokenManagerAddresses) external onlyOwner {
-        require(tokenManagerAddresses.length == _depositBoxes.length, "Incorrect number of addresses");
-        for (uint i = 0; i < tokenManagerAddresses.length; i++) {
-            IDepositBox(_depositBoxes[i]).addTokenManager(schainName, tokenManagerAddresses[i]);
+    function connectSchain(string calldata schainName, address[] calldata schainContracts) external onlyOwner {
+        require(schainContracts.length == _mainnetContracts.length, "Incorrect number of addresses");
+        for (uint i = 0; i < schainContracts.length; i++) {
+            IMainnetContract(_mainnetContracts[i]).addSchainContract(schainName, schainContracts[i]);
         }
         messageProxy.addConnectedChain(schainName);
     }
 
     function unconnectSchain(string calldata schainName) external onlyOwner {
-        uint length = _depositBoxes.length;
+        uint length = _mainnetContracts.length;
         for (uint i = 0; i < length; i++) {
-            IDepositBox(_depositBoxes[i]).removeTokenManager(schainName);
+            IMainnetContract(_mainnetContracts[i]).removeSchainContract(schainName);
         }
         messageProxy.removeConnectedChain(schainName);
     }
 
-    function hasDepositBox(address depositBoxAddress) external view returns (bool) {
+    function hasMainnetContract(address mainnetContract) external view returns (bool) {
         uint index;
-        uint length = _depositBoxes.length;
+        uint length = _mainnetContracts.length;
         for (index = 0; index < length; index++) {
-            if (_depositBoxes[index] == depositBoxAddress) {
+            if (_mainnetContracts[index] == mainnetContract) {
                 return true;
             }
         }
@@ -91,10 +91,10 @@ contract IMALinker is BasicConnector {
     }
 
     function hasSchain(string calldata schainName) external view returns (bool connected) {
-        uint length = _depositBoxes.length;
+        uint length = _mainnetContracts.length;
         connected = true;
         for (uint i = 0; i < length; i++) {
-            connected = connected && IDepositBox(_depositBoxes[i]).hasTokenManager(schainName);
+            connected = connected && IMainnetContract(_mainnetContracts[i]).hasSchainContract(schainName);
         }
         connected = connected && messageProxy.isConnectedChain(schainName);
     }

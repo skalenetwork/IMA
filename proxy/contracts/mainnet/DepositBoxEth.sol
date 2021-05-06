@@ -22,14 +22,14 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/IDepositBox.sol";
+import "../interfaces/IMainnetContract.sol";
 import "../Messages.sol";
 
 import "./IMAConnected.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract DepositBoxEth is IMAConnected, IDepositBox {
+contract DepositBoxEth is IMAConnected, IMainnetContract {
 
     using SafeMathUpgradeable for uint;
 
@@ -61,7 +61,7 @@ contract DepositBoxEth is IMAConnected, IDepositBox {
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addTokenManager(string calldata schainID, address newTokenManagerEthAddress) external override {
+    function addSchainContract(string calldata schainID, address newTokenManagerEthAddress) external override {
         require(
             msg.sender == imaLinker ||
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
@@ -82,7 +82,7 @@ contract DepositBoxEth is IMAConnected, IDepositBox {
      * - `msg.sender` must be schain owner or contract owner
      * - SKALE chain must already be set.
      */
-    function removeTokenManager(string calldata schainID) external override {
+    function removeSchainContract(string calldata schainID) external override {
         require(
             msg.sender == imaLinker ||
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
@@ -156,7 +156,7 @@ contract DepositBoxEth is IMAConnected, IDepositBox {
     /**
      * @dev Checks whether depositBoxEth is connected to a SKALE chain TokenManagerEth.
      */
-    function hasTokenManager(string calldata schainID) external view override returns (bool) {
+    function hasSchainContract(string calldata schainID) external view override returns (bool) {
         return tokenManagerEthAddresses[keccak256(abi.encodePacked(schainID))] != address(0);
     }
 

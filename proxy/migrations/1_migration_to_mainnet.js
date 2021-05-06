@@ -97,7 +97,7 @@ async function deploy( deployer, networkName, accounts ) {
             contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ jsonData.contract_manager_address, deployed.get( "MessageProxyForMainnet" ).address ] }, options ) );
             imaLinker = contract;
             console.log( "IMALinker address:", contract.address );
-        } else { // DepositBoxes
+        } else { // Mainnet Contracts
             contract = await create(
                 Object.assign(
                     {
@@ -113,8 +113,8 @@ async function deploy( deployer, networkName, accounts ) {
                 )
             );
             console.log( contractName, "address:", contract.address );
-            await imaLinker.methods.registerDepositBox( contract.address ).send( { from: deployAccount } ).then( function( res ) {
-                console.log( "Contract", contractName, "with address", contract.address, "is registered as DepositBox in IMALinker" );
+            await imaLinker.methods.registerMainnetContract( contract.address ).send( { from: deployAccount } ).then( function( res ) {
+                console.log( "Contract", contractName, "with address", contract.address, "is registered as Mainnet Contract in IMALinker" );
             } );
         }
 

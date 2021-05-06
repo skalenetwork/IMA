@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   IDepositBox.sol - Interface of DepositBox Template Contract
+ *   IMainnetContract.sol - Interface of Mainnet Template Contract
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -21,7 +21,7 @@
 
 pragma solidity 0.6.12;
 
-interface IDepositBox {
+interface IMainnetContract {
 
     function postMessage(
         bytes32 schainHash,
@@ -31,9 +31,9 @@ interface IDepositBox {
         external
         returns (address);
 
-    function addTokenManager(string calldata schainID, address newTokenManagerAddress) external;
+    function addSchainContract(string calldata schainID, address newSchainContract) external;
 
-    function removeTokenManager(string calldata schainID) external;
+    function removeSchainContract(string calldata schainID) external;
 
-    function hasTokenManager(string calldata schainID) external view returns (bool);
+    function hasSchainContract(string calldata schainID) external view returns (bool);
 }

@@ -94,7 +94,7 @@ contract UsersOnMainnet is IMAConnected {
         msg.sender.transfer(amount);
     }
 
-    function linkToContractOnSchain(string calldata schainName, address contractOnSchain) external {
+    function addSchainContract(string calldata schainName, address contractOnSchain) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             msg.sender == imaLinker ||
@@ -106,7 +106,7 @@ contract UsersOnMainnet is IMAConnected {
         schainLinks[schainHash] = contractOnSchain;
     }
 
-    function unlinkFromContractOnSchain(string calldata schainName) external {
+    function removeSchainContract(string calldata schainName) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             msg.sender == imaLinker ||
