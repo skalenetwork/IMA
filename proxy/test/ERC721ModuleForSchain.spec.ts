@@ -24,61 +24,62 @@
  */
 
 import * as chaiAsPromised from "chai-as-promised";
+import * as chai from "chai";
 import {
-    ERC721ModuleForSchainContract,
-    ERC721ModuleForSchainInstance,
-    ERC721OnChainContract,
-    ERC721OnChainInstance,
-    LockAndDataForSchainContract,
-    LockAndDataForSchainERC721Contract,
-    LockAndDataForSchainERC721Instance,
-    LockAndDataForSchainInstance,
-    MessagesTesterContract,
-    MessagesTesterInstance,
-    TokenFactoryContract,
-    TokenFactoryInstance,
-    } from "../types/truffle-contracts";
+    ERC721ModuleForSchain,
+    ERC721OnChain,
+    LockAndDataForSchainERC721,
+    LockAndDataForSchain,
+    MessagesTester,
+    TokenFactory
+    } from "../typechain";
 
-import chai = require("chai");
-import { randomString } from "./utils/helper";
+import { randomString, stringValue } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
 // tslint:disable-next-line: no-var-requires
-const ABIERC721OnChain = require("../build/contracts/ERC721OnChain.json");
+const ABIERC721OnChain = require("../artifacts/contracts/schain/TokenFactory.sol/ERC721OnChain.json");
 
-const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
-const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract =
-    artifacts.require("./LockAndDataForSchainERC721");
-const TokenFactory: TokenFactoryContract =
-    artifacts.require("./TokenFactory");
-const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
-const ERC721ModuleForSchain: ERC721ModuleForSchainContract = artifacts.require("./ERC721ModuleForSchain");
-const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
+import { deployMessages } from "./utils/deploy/messages";
+import { deployTokenFactory } from "./utils/deploy/schain/tokenFactory";
+import { deployERC721ModuleForSchain } from "./utils/deploy/schain/erc721ModuleForSchain";
+import { deployLockAndDataForSchain } from "./utils/deploy/schain/lockAndDataForSchain";
+import { deployLockAndDataForSchainERC721 } from "./utils/deploy/schain/lockAndDataForSchainERC721";
+import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
 
-contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
-  let lockAndDataForSchain: LockAndDataForSchainInstance;
-  let lockAndDataForSchainERC721: LockAndDataForSchainERC721Instance;
-  let tokenFactory: TokenFactoryInstance;
-  let eRC721OnChain: ERC721OnChainInstance;
-  let eRC721ModuleForSchain: ERC721ModuleForSchainInstance;
-  let eRC721OnMainnet: ERC721OnChainInstance;
-  let messages: MessagesTesterInstance;
+import { ethers, web3 } from "hardhat";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { BigNumber } from "ethers";
+
+import { assert, expect } from "chai";
+
+describe("ERC721ModuleForSchain", () => {
+  let deployer: SignerWithAddress;
+  let user: SignerWithAddress;
+  let invoker: SignerWithAddress;
+
+  let lockAndDataForSchain: LockAndDataForSchain;
+  let lockAndDataForSchainERC721: LockAndDataForSchainERC721;
+  let tokenFactory: TokenFactory;
+  let eRC721ModuleForSchain: ERC721ModuleForSchain;
+  let eRC721OnChain: ERC721OnChain;
+  let eRC721OnMainnet: ERC721OnChain;
+  let messages: MessagesTester;
+
+  before(async () => {
+    [deployer, user, invoker] = await ethers.getSigners();
+  });
 
   beforeEach(async () => {
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
-    lockAndDataForSchainERC721 =
-        await LockAndDataForSchainERC721.new(lockAndDataForSchain.address,
-        {from: deployer});
-    tokenFactory =
-        await TokenFactory.new(lockAndDataForSchain.address,
-        {from: deployer});
-    eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
-    eRC721OnMainnet = await ERC721OnChain.new("SKALE", "SKL");
-    eRC721ModuleForSchain = await ERC721ModuleForSchain.new(lockAndDataForSchain.address,
-        {from: deployer});
-    messages = await MessagesTester.new();
+    lockAndDataForSchain = await deployLockAndDataForSchain();
+    lockAndDataForSchainERC721 = await deployLockAndDataForSchainERC721(lockAndDataForSchain);
+    tokenFactory = await deployTokenFactory(lockAndDataForSchain);
+    eRC721OnChain = await deployERC721OnChain("ERC721OnChain", "ERC721");
+    eRC721OnMainnet = await deployERC721OnChain("SKALE", "SKL");
+    eRC721ModuleForSchain = await deployERC721ModuleForSchain(lockAndDataForSchain);
+    messages = await deployMessages();
   });
 
   it("should rejected with `ERC721 contract does not exist on SKALE chain`", async () => {
@@ -86,14 +87,15 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     const error = "ERC721 contract does not exist on SKALE chain";
     const contractHere = eRC721OnChain.address;
     const schainID = randomString(10);
-    const to = user;
+    const to = user.address;
     const tokenId = 1;
     // set `LockAndDataERC721` contract before invoke `receiveERC721`
     await lockAndDataForSchain
-        .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
-    await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
+        .connect(deployer)
+        .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address);
+    await lockAndDataForSchainERC721.connect(deployer).enableAutomaticDeploy(schainID);
     // execution/expectation
-    await eRC721ModuleForSchain.receiveERC721(schainID, contractHere , to, tokenId, {from: deployer})
+    await eRC721ModuleForSchain.connect(deployer).receiveERC721(schainID, contractHere , to, tokenId)
       .should.be.eventually.rejectedWith(error);
   });
 
@@ -102,43 +104,49 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     const contractHere = eRC721OnChain.address;
     const contractThere = eRC721OnMainnet.address;
     const schainID = randomString(10);
-    const to = user;
+    const to = user.address;
     const tokenId = 1;
     // to avoid "Message sender is invalid" error
     await lockAndDataForSchain
-        .setContract("ERC721Module", eRC721ModuleForSchain.address, {from: deployer});
+        .connect(deployer)
+        .setContract("ERC721Module", eRC721ModuleForSchain.address);
     // set `LockAndDataERC721` contract before invoke `receiveERC721`
     await lockAndDataForSchain
-        .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
-    await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
+        .connect(deployer)
+        .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address);
+    await lockAndDataForSchainERC721.connect(deployer).enableAutomaticDeploy(schainID);
     // add ERC721 token to avoid "ERC721 contract does not exist on SKALE chain" error
     await lockAndDataForSchainERC721
-      .addERC721ForSchain(schainID, eRC721OnMainnet.address, contractHere, {from: deployer});
+      .connect(deployer)
+      .addERC721ForSchain(schainID, eRC721OnMainnet.address, contractHere);
     // mint ERC721 to avoid "ERC721: owner query for nonexistent token" error
-    await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
+    await eRC721OnChain.connect(deployer).mint(deployer.address, tokenId);
     // transfer ERC721 token to `lockAndDataForMainnetERC721` to avoid "Token not transferred" error
-    await eRC721OnChain.transferFrom(deployer, lockAndDataForSchainERC721.address, tokenId, {from: deployer});
+    await eRC721OnChain.connect(deployer).transferFrom(deployer.address, lockAndDataForSchainERC721.address, tokenId);
     // execution
-    const res = await eRC721ModuleForSchain.receiveERC721.call(schainID, contractThere , to, tokenId, {from: deployer});
+    const res = await eRC721ModuleForSchain.connect(deployer).callStatic.receiveERC721(schainID, contractThere , to, tokenId);
     // expectation
     (res).should.include("0x");
   });
 
   it("should return `true` for `sendERC721`", async () => {
     // preparation
-    const to = user;
+    const to = user.address;
     const schainID = randomString(10);
     const tokenId = 2;
     // set `ERC721Module` contract before invoke `receiveERC721`
     await lockAndDataForSchain
-        .setContract("ERC721Module", eRC721ModuleForSchain.address, {from: deployer});
+        .connect(deployer)
+        .setContract("ERC721Module", eRC721ModuleForSchain.address);
     // set `LockAndDataERC721` contract before invoke `receiveERC721`
     await lockAndDataForSchain
-        .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
+        .connect(deployer)
+        .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address);
     await lockAndDataForSchain
-        .setContract("TokenFactory", tokenFactory.address, {from: deployer});
+        .connect(deployer)
+        .setContract("TokenFactory", tokenFactory.address);
     // mint ERC721 to avoid "ERC721: owner query for nonexistent token" error
-    await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
+    await eRC721OnChain.connect(deployer).mint(deployer.address, tokenId);
     const data = await messages.encodeTransferErc721AndTokenInfoMessage(
       eRC721OnMainnet.address,
       to,
@@ -147,12 +155,16 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
         name: await eRC721OnMainnet.name(),
         symbol: await eRC721OnMainnet.symbol()
       });
-    await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
+    await lockAndDataForSchainERC721.connect(deployer).enableAutomaticDeploy(schainID);
     // execution
-    const res = await eRC721ModuleForSchain.sendERC721(schainID, data, {from: deployer});
+    const res = await (await eRC721ModuleForSchain.connect(deployer).sendERC721(schainID, data)).wait();
     // expectation
     // get new token address
-    const newAddress = res.logs[0].args.contractOnSchain;
+    let newAddress = null;
+    if (res.events) 
+      newAddress = res.events[5].args?.contractOnSchain;
+    else
+      assert(false, "No events were emitted");
     const newERC721Contract = new web3.eth.Contract(ABIERC721OnChain.abi, newAddress);
     expect(await newERC721Contract.methods.ownerOf(tokenId).call()).to.be.equal(to);
   });
@@ -162,30 +174,34 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     const contractHere = eRC721OnChain.address;
     const contractThere = eRC721OnMainnet.address;
     const schainID = randomString(10);
-    const to = user;
+    const to = user.address;
     const tokenId = 2;
     // set `ERC721Module` contract before invoke `receiveERC721`
     await lockAndDataForSchain
-        .setContract("ERC721Module", eRC721ModuleForSchain.address, {from: deployer});
+        .connect(deployer)
+        .setContract("ERC721Module", eRC721ModuleForSchain.address);
     // set `LockAndDataERC721` contract before invoke `receiveERC721`
     await lockAndDataForSchain
-        .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
+        .connect(deployer)
+        .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address);
     await lockAndDataForSchain
-        .setContract("TokenFactory", tokenFactory.address, {from: deployer});
+        .connect(deployer)
+        .setContract("TokenFactory", tokenFactory.address);
     // mint ERC721 to avoid "ERC721: owner query for nonexistent token" error
-    await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
+    await eRC721OnChain.connect(deployer).mint(deployer.address, tokenId);
     // transfer tokenId from `deployer` to `lockAndDataForSchainERC721`
-    await eRC721OnChain.transferFrom(deployer,
-      lockAndDataForSchainERC721.address, tokenId, {from: deployer});
-    await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
+    await eRC721OnChain.connect(deployer).transferFrom(deployer.address,
+      lockAndDataForSchainERC721.address, tokenId);
+    await lockAndDataForSchainERC721.connect(deployer).enableAutomaticDeploy(schainID);
     // add ERC721 token to avoid "ERC721 contract does not exist on SKALE chain" error
     await lockAndDataForSchainERC721
-      .addERC721ForSchain(schainID, contractThere, contractHere, {from: deployer});
+      .connect(deployer)
+      .addERC721ForSchain(schainID, contractThere, contractHere);
     // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
     const minterRole = await eRC721OnChain.MINTER_ROLE();
     await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
     // get data from `receiveERC721`
-    await eRC721ModuleForSchain.receiveERC721(schainID, contractThere , to, tokenId, {from: deployer});
+    await eRC721ModuleForSchain.connect(deployer).receiveERC721(schainID, contractThere , to, tokenId);
     // execution
     const data = await messages.encodeTransferErc721AndTokenInfoMessage(
       contractThere,
@@ -196,9 +212,9 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
         symbol: await eRC721OnMainnet.symbol()
       }
     );
-    await eRC721ModuleForSchain.sendERC721(schainID, data, {from: deployer});
+    await eRC721ModuleForSchain.connect(deployer).sendERC721(schainID, data);
     // expectation
-    expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(user);
+    expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(user.address);
   });
 
   it("should return `receiver` when invoke `getReceiver`", async () => {
@@ -206,25 +222,28 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
     const contractHere = eRC721OnChain.address;
     const contractThere = eRC721OnMainnet.address;
     const schainID = randomString(10);
-    const to = user;
+    const to = user.address;
     const to0 = "0x0000000000000000000000000000000000000000"; // bytes20
     const tokenId = 10;
     // set `ERC721Module` contract before invoke `receiveERC721`
     await lockAndDataForSchain
-        .setContract("ERC721Module", eRC721ModuleForSchain.address, {from: deployer});
+        .connect(deployer)
+        .setContract("ERC721Module", eRC721ModuleForSchain.address);
     // set `LockAndDataERC721` contract before invoke `receiveERC721`
     await lockAndDataForSchain
-        .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
-    await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
+        .connect(deployer)
+        .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address);
+    await lockAndDataForSchainERC721.connect(deployer).enableAutomaticDeploy(schainID);
     // add ERC721 token to avoid "ERC721 contract does not exist on SKALE chain" error
     await lockAndDataForSchainERC721
-      .addERC721ForSchain(schainID, contractThere, contractHere, {from: deployer});
+      .connect(deployer)
+      .addERC721ForSchain(schainID, contractThere, contractHere);
     // mint ERC721 to avoid "ERC721: owner query for nonexistent token" error
-    await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
+    await eRC721OnChain.connect(deployer).mint(deployer.address, tokenId);
     // transfer ERC721 token to `lockAndDataForMainnetERC721` to avoid "Token not transferred" error
-    await eRC721OnChain.transferFrom(deployer, lockAndDataForSchainERC721.address, tokenId, {from: deployer});
+    await eRC721OnChain.connect(deployer).transferFrom(deployer.address, lockAndDataForSchainERC721.address, tokenId);
     // get data from `receiveERC721`
-    await eRC721ModuleForSchain.receiveERC721(schainID, contractThere , to, tokenId, {from: deployer});
+    await eRC721ModuleForSchain.connect(deployer).receiveERC721(schainID, contractThere , to, tokenId);
     // execution
     const data = await messages.encodeTransferErc721AndTokenInfoMessage(
       contractThere,
@@ -235,9 +254,9 @@ contract("ERC721ModuleForSchain", ([deployer, user, invoker]) => {
         symbol: await eRC721OnMainnet.symbol()
       }
     )
-    const res = await eRC721ModuleForSchain.getReceiver(data, {from: deployer});
+    const res = await eRC721ModuleForSchain.connect(deployer).getReceiver(data);
     // expectation
-    res.should.be.equal(user);
+    res.should.be.equal(user.address);
   });
 
 });
