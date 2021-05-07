@@ -34,7 +34,7 @@ import "../Messages.sol";
 contract CommunityLocker is PermissionsForSchain {
 
     string private _chainID;
-    uint public constant TIME_LIMIT_PER_MESSAGE = 5 minutes;
+    uint public timeLimitPerMessage;
 
     mapping(address => bool) private _unfrozenUsers;
     mapping(address => uint) private _lastMessageTimeStamp;
@@ -52,6 +52,7 @@ contract CommunityLocker is PermissionsForSchain {
         PermissionsForSchain(newLockAndDataAddress)
     {
         _chainID = newChainID;
+        timeLimitPerMessage = 5 minutes;
     }
 
     function postMessage(
@@ -80,10 +81,14 @@ contract CommunityLocker is PermissionsForSchain {
     function checkAllowedToSendMessage(address receiver) external allow("TokenManager") {
         require(_unfrozenUsers[receiver], "Recipient must be unfrozen");
         require(
-            _lastMessageTimeStamp[receiver] + TIME_LIMIT_PER_MESSAGE < block.timestamp,
+            _lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
             "Trying to send messages too often"
         );
         _lastMessageTimeStamp[receiver] = block.timestamp;
+    }
+
+    function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external onlySchainOwner {
+        timeLimitPerMessage = newTimeLimitPerMessage;
     }
 
     /**
