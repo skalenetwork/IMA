@@ -91,9 +91,8 @@ contract TokenManagerERC721 is TokenManager {
     )
         public
         TokenManager(newChainID, newMessageProxyAddress, newIMALinker)
-    {
-        
-    }
+        // solhint-disable-next-line no-empty-blocks
+    { }
 
     /**
      * @dev Adds a DepositBoxERC721 address to
@@ -344,7 +343,8 @@ contract TokenManagerERC721 is TokenManager {
         private
         returns (bytes memory data)
     {
-        ERC721Burnable contractOnSchain = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
+        ERC721Burnable contractOnSchain = 
+            schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
         require(address(contractOnSchain) != address(0), "ERC721 contract does not exist on SKALE chain");
         require(contractOnSchain.ownerOf(tokenId) == address(this), "Token not transferred");
         contractOnSchain.burn(tokenId);

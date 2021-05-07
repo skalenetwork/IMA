@@ -101,9 +101,8 @@ contract TokenManagerERC20 is TokenManager {
     )
         public
         TokenManager(newChainID, newMessageProxyAddress, newIMALinker)
-    {
-        
-    }
+        // solhint-disable-next-line no-empty-blocks
+    { }
 
     /**
      * @dev Adds a DepositBoxERC20 address to
@@ -387,7 +386,8 @@ contract TokenManagerERC20 is TokenManager {
         private
         returns (bytes memory data)
     {
-        ERC20Burnable contractOnSchain = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
+        ERC20Burnable contractOnSchain = 
+            schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
         require(address(contractOnSchain) != address(0), "ERC20 contract does not exist on SKALE chain.");
         require(contractOnSchain.balanceOf(address(this)) >= amount, "Amount not transferred");
         contractOnSchain.burn(amount);

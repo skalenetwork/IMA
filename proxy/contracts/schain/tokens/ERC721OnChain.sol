@@ -34,8 +34,8 @@ contract ERC721OnChain is AccessControl, ERC721Burnable {
         string memory contractName,
         string memory contractSymbol
     )
-        ERC721(contractName, contractSymbol)
         public
+        ERC721(contractName, contractSymbol)        
     {
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
         _setupRole(MINTER_ROLE, _msgSender());

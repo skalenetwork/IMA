@@ -34,8 +34,8 @@ contract ERC20OnChain is AccessControl, ERC20Burnable {
         string memory contractName,
         string memory contractSymbol
     )
-        ERC20(contractName, contractSymbol)
         public
+        ERC20(contractName, contractSymbol)        
     {
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
         _setupRole(MINTER_ROLE, _msgSender());
