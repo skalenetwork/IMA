@@ -895,7 +895,7 @@ function ima_common_init() {
         "message_proxy_chain_abi",
         "message_proxy_chain_address",
         "community_locker_abi",
-        "community_locker_address",
+        "community_locker_address"
     ] );
 
     // deposit_box_eth_address       --> deposit_box_eth_abi
