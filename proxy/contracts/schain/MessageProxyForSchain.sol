@@ -22,7 +22,9 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "./connectors/VerifierConnectorSchain.sol";
+import "./bls/FieldOperations.sol";
+import "./bls/SkaleVerifier.sol";
+import "./SkaleFeaturesClient.sol";
 
 
 interface IContractReceiverForSchain {
@@ -36,7 +38,9 @@ interface IContractReceiverForSchain {
 }
 
 
-contract MessageProxyForSchain is VerifierConnectorSchain {
+contract MessageProxyForSchain is SkaleFeaturesClient {
+
+    using SafeMath for uint;
 
     /**
      * 16 Agents
@@ -80,6 +84,9 @@ contract MessageProxyForSchain is VerifierConnectorSchain {
         uint256 counter;
     }
 
+    bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
+    bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
+
     bool public mainnetConnected;
 
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
@@ -117,9 +124,19 @@ contract MessageProxyForSchain is VerifierConnectorSchain {
         _;
     }
 
+    modifier onlyDebugger() {
+        require(hasRole(DEBUGGER_ROLE, msg.sender), "DEBUGGER_ROLE is required");
+        _;
+    }
+
+    modifier onlyChainConnector() {
+        require(hasRole(CHAIN_CONNECTOR_ROLE, msg.sender), "CHAIN_CONNECTOR_ROLE is required");
+        _;
+    }
+
     /// Create a new message proxy
 
-    constructor(string memory newChainID) public VerifierConnectorSchain(newChainID) {
+    constructor(string memory newChainID) public {
         if (keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet"))
         ) {
@@ -132,6 +149,7 @@ contract MessageProxyForSchain is VerifierConnectorSchain {
             );
             mainnetConnected = true;
         }
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     // Registration state detection
@@ -159,12 +177,11 @@ contract MessageProxyForSchain is VerifierConnectorSchain {
     )
         external
         connectMainnet
+        onlyChainConnector
     {
         if (keccak256(abi.encodePacked(newChainID)) ==
             keccak256(abi.encodePacked("Mainnet")))
             return;
-        require(isAuthorizedCaller(keccak256(abi.encodePacked(newChainID)), msg.sender), "Not authorized caller");
-
         require(
             !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
             "Chain is already connected"
@@ -178,7 +195,7 @@ contract MessageProxyForSchain is VerifierConnectorSchain {
         });
     }
 
-    function removeConnectedChain(string calldata newChainID) external onlyOwner {
+    function removeConnectedChain(string calldata newChainID) external onlyChainConnector {
         require(
             keccak256(abi.encodePacked(newChainID)) !=
             keccak256(abi.encodePacked("Mainnet")),
@@ -251,7 +268,7 @@ contract MessageProxyForSchain is VerifierConnectorSchain {
         connectMainnet
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        // require(_verifyMessages(_hashedArray(messages), signature), "Signature is not verified");
+        require(_verifyMessages(_hashedArray(messages), signature), "Signature is not verified");
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
@@ -264,12 +281,12 @@ contract MessageProxyForSchain is VerifierConnectorSchain {
         _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
     }
 
-    function moveIncomingCounter(string calldata schainName) external onlyOwner {
+    function moveIncomingCounter(string calldata schainName) external onlyDebugger {
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter =
             connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
     }
 
-    function setCountersToZero(string calldata schainName) external onlyOwner {
+    function setCountersToZero(string calldata schainName) external onlyDebugger {
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
@@ -376,5 +393,46 @@ contract MessageProxyForSchain is VerifierConnectorSchain {
             );
         }
         return keccak256(data);
+    }
+
+    /**
+     * @dev Converts calldata structure to memory structure and checks
+     * whether message BLS signature is valid.
+     * Returns true if signature is valid
+     */
+    function _verifyMessages(
+        bytes32 hashedMessages,
+        MessageProxyForSchain.Signature calldata signature
+    )
+        internal
+        view
+        virtual
+        returns (bool)
+    {
+        return SkaleVerifier.verify(
+            Fp2Operations.Fp2Point({
+                a: signature.blsSignature[0],
+                b: signature.blsSignature[1]
+            }),
+            hashedMessages,
+            signature.counter,
+            signature.hashA,
+            signature.hashB,
+            _getBlsCommonPublicKey()
+        );
+    }
+
+    function _getBlsCommonPublicKey() private view returns (G2Operations.G2Point memory) {
+        SkaleFeatures skaleFeature = getSkaleFeatures();
+        return G2Operations.G2Point({
+            x: Fp2Operations.Fp2Point({
+                a: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey0"),
+                b: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey1")
+            }),
+            y: Fp2Operations.Fp2Point({
+                a: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey2"),
+                b: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey3")
+            })
+        });
     }
 }

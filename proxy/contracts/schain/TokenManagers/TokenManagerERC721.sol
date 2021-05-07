@@ -24,23 +24,10 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-import "../interfaces/ITokenManager.sol";
-import "../Messages.sol";
-import "./connectors/LinkerConnectorSchain.sol";
+import "../../Messages.sol";
+import "../TokenFactory.sol";
+import "../TokenManager.sol";
 
-import "./TokenFactory.sol";
-
-
-/**
- * This contract runs on schains and accepts messages from main net creates ETH clones.
- * When the user exits, it burns them
- */
-
-interface ERC721MintAndBurn {
-    function mint(address to, uint256 tokenId) external returns (bool);
-    function burn(uint256 tokenId) external;
-    function ownerOf(uint256 tokenId) external view returns (address);
-}
 
 /**
  * @title Token Manager
@@ -49,15 +36,15 @@ interface ERC721MintAndBurn {
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
+contract TokenManagerERC721 is TokenManager {
 
     address public depositBoxERC721;
 
-    address private _tokenFactory;
+    TokenFactory private _tokenFactory;
 
     mapping(bytes32 => address) public tokenManagerERC721Addresses;
     // address of ERC721 on Mainnet => address of ERC721 on Schain
-    mapping(bytes32 => mapping(address => address)) public schainToERC721OnSchain;
+    mapping(bytes32 => mapping(address => ERC721OnChain)) public schainToERC721OnSchain;
     //     schainId => bool 
     mapping(bytes32 => bool) public automaticDeploy;
 
@@ -103,7 +90,7 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
         address newIMALinker
     )
         public
-        LinkerConnectorSchain(newChainID, newMessageProxyAddress, newIMALinker)
+        TokenManager(newChainID, newMessageProxyAddress, newIMALinker)
     {
         
     }
@@ -121,9 +108,9 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
      */
     function addDepositBox(address newDepositBoxERC721Address) external override {
         require(
-            msg.sender == imaLinker ||
-            isSchainOwner(msg.sender) ||
-            _isOwner(), "Not authorized caller"
+            msg.sender == address(tokenManagerLinker) ||
+            _isSchainOwner(msg.sender) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         require(depositBoxERC721 == address(0), "DepositBoxERC721 is already set");
         require(newDepositBoxERC721Address != address(0), "Incorrect DepoositBoxEth address");
@@ -142,9 +129,9 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
      */
     function removeDepositBox() external override {
         require(
-            msg.sender == imaLinker ||
-            isSchainOwner(msg.sender) ||
-            _isOwner(), "Not authorized caller"
+            msg.sender == address(tokenManagerLinker) ||
+            _isSchainOwner(msg.sender) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         require(depositBoxERC721 != address(0), "DepositBoxERC721 is not set");
         delete depositBoxERC721;
@@ -163,9 +150,9 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
      */
     function addTokenManager(string calldata schainID, address newTokenManagerERC20Address) external override {
         require(
-            msg.sender == imaLinker ||
-            isSchainOwner(msg.sender) ||
-            _isOwner(), "Not authorized caller"
+            msg.sender == address(tokenManagerLinker) ||
+            _isSchainOwner(msg.sender) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerERC721Addresses[schainHash] == address(0), "SKALE chain is already set");
@@ -184,9 +171,9 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
      */
     function removeTokenManager(string calldata schainID) external override {
         require(
-            msg.sender == imaLinker ||
-            isSchainOwner(msg.sender) ||
-            _isOwner(), "Not authorized caller"
+            msg.sender == address(tokenManagerLinker) ||
+            _isSchainOwner(msg.sender) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerERC721Addresses[schainHash] != address(0), "SKALE chain is not set");
@@ -197,7 +184,7 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
      * @dev Allows Schain owner turn on automatic deploy on schain.
      */
     function enableAutomaticDeploy(string calldata schainName) external {
-        require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        require(_isSchainOwner(msg.sender), "Sender is not a Schain owner");
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = true;
     }
 
@@ -205,7 +192,7 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
      * @dev Allows Schain owner turn off automatic deploy on schain.
      */
     function disableAutomaticDeploy(string calldata schainName) external {
-        require(isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        require(_isSchainOwner(msg.sender), "Sender is not a Schain owner");
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
     }
 
@@ -216,10 +203,10 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
     )
         external
     {
-        address contractOnSchain = schainToERC721OnSchain[keccak256(abi.encodePacked("Mainnet"))][contractOnMainnet];
-        require(IERC721(contractOnSchain).getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721(contractOnSchain).transferFrom(msg.sender, address(this), tokenId);
-        require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Did not transfer ERC721 token");
+        IERC721 contractOnSchain = schainToERC721OnSchain[keccak256(abi.encodePacked("Mainnet"))][contractOnMainnet];
+        require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
+        contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
+        require(contractOnSchain.ownerOf(tokenId) == address(this), "Did not transfer ERC721 token");
         // require(amountOfEth >= TX_FEE, "Not enough funds to exit");
         // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
         //     amountOfEth :
@@ -231,7 +218,7 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
             to,
             tokenId
         );
-        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
+        messageProxy.postOutgoingMessage(
             "Mainnet",
             depositBoxERC721,
             data
@@ -246,17 +233,17 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
     ) 
         external
     {
-        address contractOnSchain = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
-        require(IERC721(contractOnSchain).getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
-        IERC721(contractOnSchain).transferFrom(msg.sender, address(this), tokenId);
-        require(IERC721(contractOnSchain).ownerOf(tokenId) == address(this), "Did not transfer ERC721 token");
+        IERC721 contractOnSchain = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
+        require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
+        contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
+        require(contractOnSchain.ownerOf(tokenId) == address(this), "Did not transfer ERC721 token");
         bytes memory data = _receiveERC721(
             schainID,
             contractOnMainnet,
             to,
             tokenId
         );
-        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
+        messageProxy.postOutgoingMessage(
             schainID,
             tokenManagerERC721Addresses[keccak256(abi.encodePacked(schainID))],
             data
@@ -283,10 +270,10 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
         override
         returns (bool)
     {
-        require(msg.sender == getProxyForSchainAddress(), "Not a sender");
+        require(msg.sender == address(messageProxy), "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
-            schainHash != keccak256(abi.encodePacked(getChainID())) && 
+            schainHash != schainId && 
             (
                 schainHash == keccak256(abi.encodePacked("Mainnet")) ?
                 sender == depositBoxERC721 :
@@ -325,18 +312,19 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
     /**
      * @dev Returns TokenFactory address
      */
-    function getTokenFactory() public view returns (address) {
-        if (_tokenFactory == address(0)) {
-            return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
-                "skaleConfig.contractSettings.IMA.TokenFactory"
+    function getTokenFactory() public view returns (TokenFactory) {
+        if (address(_tokenFactory) == address(0)) {
+            return TokenFactory(
+                getSkaleFeatures().getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.TokenFactory"
+                )
             );
         }
         return _tokenFactory;
     }
 
-    function _sendCreateERC721Request(Messages.Erc721TokenInfo memory tokenInfo) internal returns (address) {
-        address tokenFactoryAddress = getTokenFactory();
-        return TokenFactory(tokenFactoryAddress).createERC721(tokenInfo.name, tokenInfo.symbol);
+    function _sendCreateERC721Request(Messages.Erc721TokenInfo memory tokenInfo) internal returns (ERC721OnChain) {
+        return getTokenFactory().createERC721(tokenInfo.name, tokenInfo.symbol);
     }
 
     /**
@@ -356,10 +344,10 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
         private
         returns (bytes memory data)
     {
-        address contractOnSchain = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
-        require(contractOnSchain != address(0), "ERC721 contract does not exist on SKALE chain");
-        require(ERC721MintAndBurn(contractOnSchain).ownerOf(tokenId) == address(this), "Token not transferred");
-        ERC721MintAndBurn(contractOnSchain).burn(tokenId);
+        ERC721Burnable contractOnSchain = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
+        require(address(contractOnSchain) != address(0), "ERC721 contract does not exist on SKALE chain");
+        require(contractOnSchain.ownerOf(tokenId) == address(this), "Token not transferred");
+        contractOnSchain.burn(tokenId);
         data = Messages.encodeTransferErc721Message(contractOnMainnet, receiver, tokenId);
     }
 
@@ -384,18 +372,18 @@ contract TokenManagerERC721 is LinkerConnectorSchain, ITokenManager {
             receiver = message.baseErc721transfer.receiver;
             token = message.baseErc721transfer.token;
             tokenId = message.baseErc721transfer.tokenId;
-            address contractOnSchainTmp = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token];
-            if (contractOnSchainTmp == address(0)) {
+            ERC721OnChain contractOnSchainTmp = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token];
+            if (address(contractOnSchainTmp) == address(0)) {
                 contractOnSchainTmp = _sendCreateERC721Request(message.tokenInfo);
-                require(contractOnSchainTmp.isContract(), "Given address is not a contract");
+                require(address(contractOnSchainTmp).isContract(), "Given address is not a contract");
                 require(automaticDeploy[keccak256(abi.encodePacked(schainID))], "Automatic deploy is disabled");
                 schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchainTmp;
-                emit ERC721TokenAdded(schainID, token, contractOnSchainTmp);
-                emit ERC721TokenCreated(schainID, token, contractOnSchainTmp);
+                emit ERC721TokenAdded(schainID, token, address(contractOnSchainTmp));
+                emit ERC721TokenCreated(schainID, token, address(contractOnSchainTmp));
             }
         }
-        address contractOnSchain= schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token];
-        require(ERC721MintAndBurn(contractOnSchain).mint(receiver, tokenId), "Could not mint ERC721 Token");
+        ERC721OnChain contractOnSchain= schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token];
+        require(contractOnSchain.mint(receiver, tokenId), "Could not mint ERC721 Token");
         return true;
     }
 }

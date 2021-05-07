@@ -21,35 +21,46 @@
 
 pragma solidity 0.6.12;
 
-import "../interfaces/ITokenManager.sol";
-import "../interfaces/IMessageProxy.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import "./connectors/ProxyConnectorSchain.sol";
+import "../interfaces/IMessageProxy.sol";
+import "./TokenManager.sol";
 
 
 /**
- * @title IMALinkerSchain For Schain
+ * @title TokenManagerLinker
  * @dev Runs on Schain
  */
-contract IMALinkerSchain is ProxyConnectorSchain {
+contract TokenManagerLinker is AccessControl {
 
-    address[] private _tokenManagers;
+    using SafeMath for uint;
+
+    bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
+
+    IMessageProxy public messageProxy;
+    TokenManager[] private _tokenManagers;    
 
     constructor(
-        string memory chainID,
         address newMessageProxyAddress
     )
         public
-        ProxyConnectorSchain(chainID, newMessageProxyAddress)
     {
-        
+        messageProxy = IMessageProxy(newMessageProxyAddress);
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(REGISTRAR_ROLE, msg.sender);
     }
 
-    function registerTokenManager(address newTokenManagerAddress) external onlyOwner {
+    modifier onlyRegistrar() {
+        require(hasRole(REGISTRAR_ROLE, msg.sender), "REGISTRAR_ROLE is required");
+        _;
+    }
+
+    function registerTokenManager(TokenManager newTokenManagerAddress) external onlyRegistrar {
         _tokenManagers.push(newTokenManagerAddress);
     }
 
-    function removeTokenManager(address tokenManagerAddress) external onlyOwner {
+    function removeTokenManager(TokenManager tokenManagerAddress) external onlyRegistrar {
         uint index;
         uint length = _tokenManagers.length;
         for (index = 0; index < length; index++) {
@@ -81,18 +92,18 @@ contract IMALinkerSchain is ProxyConnectorSchain {
     //     IMessageProxy(getProxyForSchainAddress()).addConnectedChain("Mainnet");
     // }
 
-    function unconnectSchain(string calldata schainName) external onlyOwner {
+    function disconnectSchain(string calldata schainName) external onlyRegistrar {
         uint length = _tokenManagers.length;
         for (uint i = 0; i < length; i++) {
-            ITokenManager(_tokenManagers[i]).removeTokenManager(schainName);
+            _tokenManagers[i].removeTokenManager(schainName);
         }
-        IMessageProxy(getProxyForSchainAddress()).removeConnectedChain(schainName);
+        messageProxy.removeConnectedChain(schainName);
     }
 
-    function unconnectMainnet() external onlyOwner {
+    function disconnectMainnet() external onlyRegistrar {
         uint length = _tokenManagers.length;
         for (uint i = 0; i < length; i++) {
-            ITokenManager(_tokenManagers[i]).removeDepositBox();
+            _tokenManagers[i].removeDepositBox();
         }
     }
 
@@ -102,7 +113,7 @@ contract IMALinkerSchain is ProxyConnectorSchain {
     //     IWallets(payable(walletsAddress)).rechargeSchainWallet{value: amount}(schainId);
     // }
 
-    function hasTokenManager(address tokenManagerAddress) external view returns (bool) {
+    function hasTokenManager(TokenManager tokenManagerAddress) external view returns (bool) {
         uint index;
         uint length = _tokenManagers.length;
         for (index = 0; index < length; index++) {
@@ -117,17 +128,17 @@ contract IMALinkerSchain is ProxyConnectorSchain {
         uint length = _tokenManagers.length;
         connected = true;
         for (uint i = 0; i < length; i++) {
-            connected = connected && ITokenManager(_tokenManagers[i]).hasTokenManager(schainName);
+            connected = connected && _tokenManagers[i].hasTokenManager(schainName);
         }
-        connected = connected && IMessageProxy(getProxyForSchainAddress()).isConnectedChain(schainName);
+        connected = connected && messageProxy.isConnectedChain(schainName);
     }
 
     function hasMainnet() external view returns (bool connected) {
         uint length = _tokenManagers.length;
         connected = true;
         for (uint i = 0; i < length; i++) {
-            connected = connected && ITokenManager(_tokenManagers[i]).hasDepositBox();
+            connected = connected && _tokenManagers[i].hasDepositBox();
         }
-        connected = connected && IMessageProxy(getProxyForSchainAddress()).isConnectedChain("Mainnet");
+        connected = connected && messageProxy.isConnectedChain("Mainnet");
     }
 }

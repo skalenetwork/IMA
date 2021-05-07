@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   ContractConnectorSchain.sol - SKALE Interchain Messaging Agent
- *   Copyright (C) 2021-Present SKALE Labs
+ *   MessageProxyForSchain.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
@@ -21,36 +21,30 @@
 
 pragma solidity 0.6.12;
 
-import "./AuthorizedConnectorSchain.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 
-/**
- * @title ContractConnectorSchain - connected module for Upgradeable approach, knows ContractManager
- * @author Artem Payvin
- */
-contract ContractConnectorSchain is AuthorizedConnectorSchain {
+contract ContractsRegistry is AccessControl {
+
+    using Address for address;
+
+    bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
 
     mapping (bytes32 => address) private _contractAddresses;
 
-    modifier authorizedOrOwner() {
-        require(isAuthorizedCaller(bytes32(0), msg.sender) || _isOwner(), "Not authorized sender");
+    modifier onlyRegistrar() {
+        require(hasRole(REGISTRAR_ROLE, msg.sender), "REGISTRAR_ROLE is required");
         _;
     }
 
     modifier allow(string memory contractName) {
-        require(getContract(contractName) == msg.sender || _isOwner(), "Not allowed");
+        require(getContract(contractName) == msg.sender, "Not allowed");
         _;
     }
 
-    /**
-     * @dev constructor - sets chainID
-     */
-    constructor(string memory chainID) public AuthorizedConnectorSchain(chainID)
-    {
-        
-    }
-
-    function setContract(string memory contractName, address contractAddress) external authorizedOrOwner {
+    function setContract(string memory contractName, address contractAddress) external onlyRegistrar {
+        require(contractAddress.isContract(), "Is not contract");
         _contractAddresses[keccak256(abi.encodePacked(contractName))] = contractAddress;
     }
 
@@ -58,10 +52,7 @@ contract ContractConnectorSchain is AuthorizedConnectorSchain {
      * @dev Returns owner address.
      */
     function getContract(string memory contractName) public view returns (address) {
-        // if (_contractAddresses[keccak256(abi.encodePacked(contractName))] == (address(0)) )
-        //     return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
-        //         string(abi.encodePacked("skaleConfig.contractSettings.IMA.", contractName))
-        //     );
         return _contractAddresses[keccak256(abi.encodePacked(contractName))];
     }
+
 }

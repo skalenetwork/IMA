@@ -22,11 +22,9 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/ITokenManager.sol";
-import "./connectors/LinkerConnectorSchain.sol";
-
-import "./EthERC20.sol";
-import "../Messages.sol";
+import "../../Messages.sol";
+import "../tokens/EthERC20.sol";
+import "../TokenManager.sol";
 
 
 /**
@@ -41,11 +39,11 @@ import "../Messages.sol";
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-contract TokenManagerEth is LinkerConnectorSchain, ITokenManager {
+contract TokenManagerEth is TokenManager {
 
     address public depositBoxEth;
 
-    address private _ethErc20Address;
+    EthERC20 private _ethErc20;
 
     mapping(bytes32 => address) public tokenManagerEthAddresses;
 
@@ -86,7 +84,7 @@ contract TokenManagerEth is LinkerConnectorSchain, ITokenManager {
         address newIMALinker
     )
         public
-        LinkerConnectorSchain(newChainID, newMessageProxyAddress, newIMALinker)
+        TokenManager(newChainID, newMessageProxyAddress, newIMALinker)
     {
         
     }
@@ -104,9 +102,9 @@ contract TokenManagerEth is LinkerConnectorSchain, ITokenManager {
      */
     function addDepositBox(address newDepositBoxEthAddress) external override {
         require(
-            msg.sender == imaLinker ||
-            isSchainOwner(msg.sender) ||
-            _isOwner(), "Not authorized caller"
+            msg.sender == address(tokenManagerLinker) ||
+            _isSchainOwner(msg.sender) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         require(depositBoxEth == address(0), "DepositBoxEth is already set");
         require(newDepositBoxEthAddress != address(0), "Incorrect DepoositBoxEth address");
@@ -125,9 +123,9 @@ contract TokenManagerEth is LinkerConnectorSchain, ITokenManager {
      */
     function removeDepositBox() external override {
         require(
-            msg.sender == imaLinker ||
-            isSchainOwner(msg.sender) ||
-            _isOwner(), "Not authorized caller"
+            msg.sender == address(tokenManagerLinker) ||
+            _isSchainOwner(msg.sender) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         require(depositBoxEth != address(0), "DepositBoxEth is not set");
         delete depositBoxEth;
@@ -146,9 +144,9 @@ contract TokenManagerEth is LinkerConnectorSchain, ITokenManager {
      */
     function addTokenManager(string calldata schainID, address newTokenManagerEthAddress) external override {
         require(
-            msg.sender == imaLinker ||
-            isSchainOwner(msg.sender) ||
-            _isOwner(), "Not authorized caller"
+            msg.sender == address(tokenManagerLinker) ||
+            _isSchainOwner(msg.sender) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerEthAddresses[schainHash] == address(0), "SKALE chain is already set");
@@ -167,9 +165,9 @@ contract TokenManagerEth is LinkerConnectorSchain, ITokenManager {
      */
     function removeTokenManager(string calldata schainID) external override {
         require(
-            msg.sender == imaLinker ||
-            isSchainOwner(msg.sender) ||
-            _isOwner(), "Not authorized caller"
+            msg.sender == address(tokenManagerLinker) ||
+            _isSchainOwner(msg.sender) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerEthAddresses[schainHash] != address(0), "SKALE chain is not set");
@@ -186,7 +184,7 @@ contract TokenManagerEth is LinkerConnectorSchain, ITokenManager {
         //     amount :
         //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
         // require(amountOfEthToSend != 0, "Community pool is empty");
-        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
+        messageProxy.postOutgoingMessage(
             "Mainnet",
             depositBoxEth,
             Messages.encodeTransferEthMessage(to, amount)
@@ -205,7 +203,7 @@ contract TokenManagerEth is LinkerConnectorSchain, ITokenManager {
         require(to != address(0), "Incorrect receiver address");
         address tokenManagerAddress = tokenManagerEthAddresses[keccak256(abi.encodePacked(schainID))];
         require(tokenManagerAddress != address(0), "Unconnected chain");
-        IMessageProxy(getProxyForSchainAddress()).postOutgoingMessage(
+        messageProxy.postOutgoingMessage(
             schainID,
             tokenManagerAddress,
             Messages.encodeTransferEthMessage(to, amount)
@@ -232,10 +230,10 @@ contract TokenManagerEth is LinkerConnectorSchain, ITokenManager {
         override
         returns (bool)
     {
-        require(msg.sender == getProxyForSchainAddress(), "Not a sender");
+        require(msg.sender == address(messageProxy), "Not a sender");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
-            schainHash != keccak256(abi.encodePacked(getChainID())) && 
+            schainHash != schainId && 
             (
                 schainHash == keccak256(abi.encodePacked("Mainnet")) ?
                 sender == depositBoxEth :
@@ -268,14 +266,14 @@ contract TokenManagerEth is LinkerConnectorSchain, ITokenManager {
         return depositBoxEth != address(0);
     }
 
-    function getEthErc20Address() public view returns (address) {
-        if (_ethErc20Address == address(0)) {
-            return SkaleFeatures(
-                    getSkaleFeaturesAddress()
-                ).getConfigVariableAddress(
-                "skaleConfig.contractSettings.IMA.EthERC20"
+    function getEthErc20Address() public view returns (EthERC20) {
+        if (address(_ethErc20) == address(0)) {
+            return EthERC20(
+                getSkaleFeatures().getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.EthERC20"
+                )
             );
         }
-        return _ethErc20Address;
+        return _ethErc20;
     }
 }

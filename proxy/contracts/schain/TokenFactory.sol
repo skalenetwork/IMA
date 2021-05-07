@@ -21,81 +21,21 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20BurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721BurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-
-import "./connectors/ContractConnectorSchain.sol";
+import "./tokens/ERC20OnChain.sol";
+import "./tokens/ERC721OnChain.sol";
+import "./ContractsRegistry.sol";
 
 
-contract ERC20OnChain is AccessControlUpgradeable, ERC20BurnableUpgradeable {
+contract TokenFactory is ContractsRegistry {
 
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-
-    constructor(
-        string memory contractName,
-        string memory contractSymbol
-    )
-        public
-    {
-        __ERC20_init(contractName, contractSymbol);
-        _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
-        _setupRole(MINTER_ROLE, _msgSender());
-    }
-
-    function mint(address account, uint256 value) public {
-        require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
-        _mint(account, value);
-    }
-}
-
-
-contract ERC721OnChain is AccessControlUpgradeable, ERC721BurnableUpgradeable {
-
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-
-    constructor(
-        string memory contractName,
-        string memory contractSymbol
-    )
-        public
-    {
-        __ERC721_init(contractName, contractSymbol);
-        _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
-        _setupRole(MINTER_ROLE, _msgSender());
-    }
-
-    function mint(address to, uint256 tokenId)
-        external
-        returns (bool)
-    {
-        require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
-        _mint(to, tokenId);
-        return true;
-    }
-
-    function setTokenURI(uint256 tokenId, string calldata tokenUri)
-        external
-        returns (bool)
-    {
-        require(_exists(tokenId), "Token does not exists");
-        require(_isApprovedOrOwner(msg.sender, tokenId), "Sender can not set token URI");
-        _setTokenURI(tokenId, tokenUri);
-        return true;
-    }
-}
-
-
-contract TokenFactory is ContractConnectorSchain {
-
-    constructor(string memory chainID) public ContractConnectorSchain(chainID) {
-        // solhint-disable-previous-line no-empty-blocks
+    constructor() public {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     function createERC20(string memory name, string memory symbol)
         external
         allow("TokenManagerERC20")
-        returns (address)
+        returns (ERC20OnChain)
     {
         ERC20OnChain newERC20 = new ERC20OnChain(
             name,
@@ -103,17 +43,17 @@ contract TokenFactory is ContractConnectorSchain {
         );
         newERC20.grantRole(newERC20.MINTER_ROLE(), getContract("TokenManagerERC20"));
         newERC20.revokeRole(newERC20.MINTER_ROLE(), address(this));
-        return address(newERC20);
+        return newERC20;
     }
 
     function createERC721(string memory name, string memory symbol)
         external
         allow("TokenManagerERC721")
-        returns (address)
+        returns (ERC721OnChain)
     {
         ERC721OnChain newERC721 = new ERC721OnChain(name, symbol);
         newERC721.grantRole(newERC721.MINTER_ROLE(), getContract("TokenManagerERC721"));
         newERC721.revokeRole(newERC721.MINTER_ROLE(), address(this));
-        return address(newERC721);
+        return newERC721;
     }
 }

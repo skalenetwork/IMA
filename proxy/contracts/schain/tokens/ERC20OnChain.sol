@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   ITokenManager.sol - Interface of TokenManager Template Contract
+ *   ERC20OnChain.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
+ *   @author Dmytro Stebaiev
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published
@@ -21,25 +22,27 @@
 
 pragma solidity 0.6.12;
 
-interface ITokenManager {
+import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-    function postMessage(
-        string calldata fromSchainID,
-        address sender,
-        bytes calldata data
+
+contract ERC20OnChain is AccessControl, ERC20Burnable {
+
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
+    constructor(
+        string memory contractName,
+        string memory contractSymbol
     )
-        external
-        returns (bool);
+        ERC20(contractName, contractSymbol)
+        public
+    {
+        _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
+        _setupRole(MINTER_ROLE, _msgSender());
+    }
 
-    function addTokenManager(string calldata schainID, address newTokenManagerAddress) external;
-
-    function removeTokenManager(string calldata schainID) external;
-
-    function addDepositBox(address newDepositBoxAddress) external;
-
-    function removeDepositBox() external;
-
-    function hasTokenManager(string calldata schainID) external view returns (bool);
-
-    function hasDepositBox() external view returns (bool);
+    function mint(address account, uint256 value) public {
+        require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
+        _mint(account, value);
+    }
 }

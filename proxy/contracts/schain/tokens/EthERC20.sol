@@ -21,12 +21,15 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "./connectors/ContractConnectorSchain.sol";
+import "../ContractsRegistry.sol";
 
 
-contract EthERC20 is ContractConnectorSchain, IERC20 {
+contract EthERC20 is IERC20, ContractsRegistry {
+
+    using SafeMath for uint;
 
     mapping (address => uint256) private _balances;
 
@@ -40,7 +43,7 @@ contract EthERC20 is ContractConnectorSchain, IERC20 {
 
     bool private _initialized = false;
 
-    constructor(string memory chainID) public ContractConnectorSchain(chainID) {
+    constructor() public {
         _delayedInit();
     }
 
