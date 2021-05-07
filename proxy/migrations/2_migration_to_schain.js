@@ -42,6 +42,7 @@ const LockAndDataForSchainERC20 = artifacts.require( "./LockAndDataForSchainERC2
 const ERC721ModuleForSchain = artifacts.require( "./ERC721ModuleForSchain.sol" );
 const LockAndDataForSchainERC721 = artifacts.require( "./LockAndDataForSchainERC721.sol" );
 const TokenFactory = artifacts.require( "./TokenFactory.sol" );
+const CommunityLocker = artifacts.require( "./CommunityLocker.sol" );
 
 const networks = require( "../truffle-config.js" );
 // const proxyMainnet = require( "../data/proxyMainnet.json" );
@@ -70,12 +71,12 @@ async function deploy( deployer, network ) {
         return await deployer.deploy( LockAndDataForSchain, { gas: gasLimit } );
     } ).then( async function( inst ) {
         await inst.setContract( "MessageProxy", messageProxy.address );
-        await deployer.deploy( TokenManager, schainName, inst.address, { gas: gasLimit * gasMultiplier } );
         await deployer.deploy( EthERC20, { gas: gasLimit * gasMultiplier } ).then( async function( EthERC20Inst ) {
             await EthERC20Inst.transferOwnership( inst.address, { gas: gasLimit } );
         } );
-        await inst.setContract( "TokenManager", TokenManager.address );
         await inst.setEthErc20Address( EthERC20.address );
+        const tokenManager = await deployer.deploy( TokenManager, schainName, inst.address, { gas: gasLimit * gasMultiplier } );
+        await inst.setContract( "TokenManager", TokenManager.address );
         await deployer.deploy( ERC20ModuleForSchain, inst.address, { gas: gasLimit * gasMultiplier } );
         await inst.setContract( "ERC20Module", ERC20ModuleForSchain.address );
         await deployer.deploy( LockAndDataForSchainERC20, inst.address, { gas: gasLimit * gasMultiplier } );
@@ -86,6 +87,9 @@ async function deploy( deployer, network ) {
         await inst.setContract( "LockAndDataERC721", LockAndDataForSchainERC721.address );
         await deployer.deploy( TokenFactory, inst.address, { gas: gasLimit * gasMultiplier } );
         await inst.setContract( "TokenFactory", TokenFactory.address );
+        await deployer.deploy( CommunityLocker, schainName, inst.address, { gas: gasLimit * gasMultiplier } );
+        await inst.setContract( "CommunityLocker", CommunityLocker.address );
+        await tokenManager.setCommunityLocker(CommunityLocker.address);
 
         const strPathToBuildDir = path.join( __dirname, "../build/contracts" );
         const strPathToERC20OnChainJSON = path.join( strPathToBuildDir, "ERC20OnChain.json" );
@@ -123,7 +127,9 @@ async function deploy( deployer, network ) {
             message_proxy_chain_abi: messageProxy.abi,
             //
             ERC20OnChain_abi: joBuiltERC20OnChain.abi,
-            ERC721OnChain_abi: joBuiltERC721OnChain.abi
+            ERC721OnChain_abi: joBuiltERC721OnChain.abi,
+            community_locker_address: CommunityLocker.address,
+            community_locker_abi: CommunityLocker.abi
         };
 
         const jsonObject2 = {
@@ -146,7 +152,9 @@ async function deploy( deployer, network ) {
             // erc721_on_chain_address: ERC721OnChain.address,
             // erc721_on_chain_bytecode: ERC721OnChain.bytecode,
             message_proxy_chain_address: messageProxy.address,
-            message_proxy_chain_bytecode: messageProxy.bytecode
+            message_proxy_chain_bytecode: messageProxy.bytecode,
+            community_locker_address: CommunityLocker.address,
+            community_locker_bytecode: CommunityLocker.bytecode
         };
 
         await fsPromises.writeFile( `data/proxySchain_${schainName}.json`, JSON.stringify( jsonObject ) );

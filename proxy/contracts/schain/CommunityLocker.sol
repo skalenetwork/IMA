@@ -39,6 +39,11 @@ contract CommunityLocker is PermissionsForSchain {
     mapping(address => bool) private _unfrozenUsers;
     mapping(address => uint) private _lastMessageTimeStamp;
 
+    event UserUnfrozed(
+        bytes32 schainHash,
+        address user
+    );
+
     constructor(
         string memory newChainID,
         address newLockAndDataAddress
@@ -68,6 +73,7 @@ contract CommunityLocker is PermissionsForSchain {
         Messages.FreezeStateMessage memory message =  Messages.decodeFreezeStateMessage(data);
         require(_unfrozenUsers[message.receiver] != message.isUnfrozen, "Freezing states must be different");
         _unfrozenUsers[message.receiver] = message.isUnfrozen;
+        emit UserUnfrozed(schainHash, message.receiver);
         return true;
     }
 

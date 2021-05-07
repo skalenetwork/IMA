@@ -26,6 +26,7 @@ pragma experimental ABIEncoderV2;
 
 import "../Messages.sol";
 import "./IMAConnected.sol";
+import "../interfaces/IMainnetContract.sol";
 
 /**
  * @title CommunityPool
@@ -115,6 +116,10 @@ contract CommunityPool is IMAConnected {
         );
         require(schainLinks[schainHash] != address(0), "SKALE chain is not set");
         delete schainLinks[schainHash];
+    }
+
+    function hasSchainContract(string calldata schainName) external view returns (bool) {
+        return schainLinks[keccak256(abi.encodePacked(schainName))] != address(0);
     }
 
     function getBalance(string calldata schainName) external view returns (uint) {

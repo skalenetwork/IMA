@@ -126,11 +126,13 @@ global.imaState = {
     "w3_main_net": null,
     "w3_s_chain": null,
 
+    "jo_community_pool": null, // only main net
     "jo_deposit_box_eth": null, // only main net
     "jo_deposit_box_erc20": null, // only main net
     "jo_deposit_box_erc721": null, // only main net
     "jo_imalinker": null, // only main net
     "jo_token_manager": null, // only s-chain
+    "jo_community_locker": null, // only s-chain
     "jo_message_proxy_main_net": null,
     "jo_message_proxy_s_chain": null,
     "jo_lock_and_data_s_chain": null,
@@ -1060,6 +1062,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
             imaState.jo_imalinker,
             imaState.joAccount_main_net,
             imaState.jo_token_manager, // only s-chain
+            imaState.jo_community_locker, // only s-chain
             imaState.strChainID_s_chain,
             imaState.cid_main_net,
             imaState.tc_main_net //,

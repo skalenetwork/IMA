@@ -88,10 +88,12 @@ async function deploy( deployer, networkName, accounts ) {
 
     const deployed = new Map();
     let imaLinker;
+    let messageProxy;
     for( const contractName of contracts ) {
         let contract;
         if( contractName == "MessageProxyForMainnet" ) {
             contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ jsonData.contract_manager_address ] }, options ) );
+            messageProxy = contract;
             console.log( "MessageProxyForMainnet address:", contract.address );
         } else if( contractName == "IMALinker" ) {
             contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ jsonData.contract_manager_address, deployed.get( "MessageProxyForMainnet" ).address ] }, options ) );
@@ -116,6 +118,9 @@ async function deploy( deployer, networkName, accounts ) {
             await imaLinker.methods.registerMainnetContract( contract.address ).send( { from: deployAccount } ).then( function( res ) {
                 console.log( "Contract", contractName, "with address", contract.address, "is registered as Mainnet Contract in IMALinker" );
             } );
+            if (contractName == "CommunityPool") {
+                await messageProxy.methods.setCommunityPool(contract.address).send({from: deployAccount});
+            }
         }
 
         deployed.set( contractName, contract );

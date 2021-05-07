@@ -789,6 +789,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
     jo_imalinker,
     joAccount_main_net,
     jo_token_manager, // only s-chain
+    jo_community_locker, // only s-chain
     chain_id_s_chain,
     cid_main_net,
     tc_main_net,
@@ -835,7 +836,8 @@ async function register_s_chain_in_deposit_boxes( // step 1
             [
                 jo_token_manager.options.address, // call params
                 jo_token_manager.options.address, // call params
-                jo_token_manager.options.address // call params
+                jo_token_manager.options.address, // call params
+                jo_community_locker.options.address, // call params
             ]
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
