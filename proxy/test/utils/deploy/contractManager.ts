@@ -43,7 +43,7 @@ export async function deployContractManager(contractManagerAddress: string) {
     }
     if (await instance.getContract(nameSkaleVerifier) === "0x0000000000000000000000000000000000000000") {
         const skaleVerifierInstance = await (await ethers.getContractFactory(nameSkaleVerifier)).deploy() as SkaleVerifierMock;
-        await instance.setContractsAddress(nameSkaleVerifier, skaleVerifierInstance.address);
+        await instance.setContractsAddress("SkaleVerifier", skaleVerifierInstance.address);
     }
     if (await instance.getContract(nameWallets) === "0x0000000000000000000000000000000000000000") {
         const walletsInstance = await (await ethers.getContractFactory(nameWallets)).deploy() as Wallets;

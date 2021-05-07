@@ -9,7 +9,7 @@ export async function deployDepositBoxERC20(
 ) {
     const factory = await ethers.getContractFactory("DepositBoxERC20");
     const instance = await factory.deploy() as DepositBoxERC20;
-    await instance.initialize(contractManager.address, messageProxy.address, imaLinker.address);
+    await instance["initialize(address,address,address)"](contractManager.address, messageProxy.address, imaLinker.address);
     await imaLinker.registerDepositBox(instance.address);
     return instance;
 }

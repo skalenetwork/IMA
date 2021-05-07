@@ -62,3 +62,11 @@ export function stringFromHex(hex: string, str: string) {
     }
     return str;
 }
+
+export function stringValue(value: string | null) {
+  if (value) {
+      return value;
+  } else {
+      return "";
+  }
+}
