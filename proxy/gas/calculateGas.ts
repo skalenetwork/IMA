@@ -68,7 +68,7 @@ import {
     TokenManagerInstance,
     WalletsContract,
     WalletsInstance,
-    IMALinkerInstance,
+    LinkerInstance,
 } from "../types/truffle-contracts";
 
 import chai = require("chai");
@@ -76,7 +76,7 @@ import chai = require("chai");
 chai.should();
 chai.use((chaiAsPromised as any));
 
-import { deployIMALinker } from "../test/utils/deploy/imaLinker";
+import { deployLinker } from "../test/utils/deploy/linker";
 import { deployDepositBoxEth } from "../test/utils/deploy/depositBoxEth";
 import { deployDepositBoxERC20 } from "../test/utils/deploy/depositBoxERC20";
 import { deployDepositBoxERC721 } from "../test/utils/deploy/depositBoxERC721";
@@ -105,7 +105,7 @@ const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 
 contract("Gas calculation", ([deployer, schainOwner, user]) => {
-    let imaLinker: IMALinkerInstance;
+    let imaLinker: LinkerInstance;
     let depositBoxEth: DepositBoxEthInstance;
     let depositBoxERC20: DepositBoxERC20Instance;
     let depositBoxERC721: DepositBoxERC721Instance;
@@ -211,7 +211,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
         // IMA mainnet part deployment
         messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
-        imaLinker = await deployIMALinker(contractManager, messageProxyForMainnet);
+        imaLinker = await deployLinker(messageProxyForMainnet);
         depositBoxEth = await deployDepositBoxEth(contractManager, messageProxyForMainnet, imaLinker);
         depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxyForMainnet, imaLinker);
         depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxyForMainnet, imaLinker);

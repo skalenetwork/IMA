@@ -696,12 +696,12 @@ async function safe_send_signed_transaction( details, w3, serializedTx, strActio
 //
 async function check_is_registered_s_chain_in_deposit_boxes( // step 1
     w3_main_net,
-    jo_imalinker,
+    jo_linker,
     joAccount_main_net,
     chain_id_s_chain
 ) {
     const details = log.createMemoryStream();
-    details.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "  address is....." ) + cc.bright( jo_imalinker.options.address ) + "\n" );
+    details.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "  address is....." ) + cc.bright( jo_linker.options.address ) + "\n" );
     details.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
     const strLogPrefix = cc.note( "RegChk S in depositBox:" ) + " ";
     details.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
@@ -711,7 +711,7 @@ async function check_is_registered_s_chain_in_deposit_boxes( // step 1
     try {
         strActionName = "check_is_registered_s_chain_in_deposit_boxes(reg-step1)";
         const addressFrom = joAccount_main_net.address( w3_main_net );
-        const bIsRegistered = await jo_imalinker.methods.hasSchain( chain_id_s_chain ).call( {
+        const bIsRegistered = await jo_linker.methods.hasSchain( chain_id_s_chain ).call( {
             from: addressFrom
         } );
         details.write( strLogPrefix + cc.success( "check_is_registered_s_chain_in_deposit_boxes(reg-step1) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
@@ -786,7 +786,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
     // jo_deposit_box_eth, // only main net
     // jo_deposit_box_erc20, // only main net
     // jo_deposit_box_erc721, // only main net
-    jo_imalinker,
+    jo_linker,
     joAccount_main_net,
     jo_token_manager, // only s-chain
     chain_id_s_chain,
@@ -797,7 +797,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // register_s_chain_in_deposit_boxes
-    details.write( cc.info( "Main-net " ) + cc.sunny( "IMALinker" ) + cc.info( "  address is......." ) + cc.bright( jo_imalinker.options.address ) + "\n" );
+    details.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "  address is......." ) + cc.bright( jo_linker.options.address ) + "\n" );
     details.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
     const strLogPrefix = cc.sunny( "Reg S in depositBoxes:" ) + " ";
     details.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
@@ -830,7 +830,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
         // ).call( { from: joAccount_main_net.address( w3_main_net ) } );
         // details.write( strLogPrefix + cc.debug( "Account " ) + cc.info( joAccount_main_net.address( w3_main_net ) ) + cc.debug( " has S-Chain owner permission " ) + cc.info( isSchainOwner ) + "\n" );
         // if( isSchainOwner ) {
-        const methodWithArguments = jo_imalinker.methods.connectSchain(
+        const methodWithArguments = jo_linker.methods.connectSchain(
             chain_id_s_chain,
             [
                 jo_token_manager.options.address, // call params
@@ -855,7 +855,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
             gasPrice: gasPrice,
             // gasLimit: estimatedGas,
             gas: estimatedGas, // gas is optional here
-            to: jo_imalinker.options.address, // contract address
+            to: jo_linker.options.address, // contract address
             data: dataTx
         };
         const tx = compose_tx_instance( details, strLogPrefix, rawTx );
@@ -882,7 +882,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
         const isSChainStatusOKay = await wait_for_has_chain(
             details,
             w3_main_net,
-            jo_imalinker,
+            jo_linker,
             joAccount_main_net,
             chain_id_s_chain,
             cntWaitAttempts,
@@ -1496,7 +1496,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
     w3_main_net,
     cid_main_net,
     joAccount_main_net,
-    jo_imalinker,
+    jo_linker,
     tc_main_net
 ) {
     const details = log.createMemoryStream();
@@ -1509,7 +1509,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
-        const methodWithArguments = jo_imalinker.methods.getMyEth(
+        const methodWithArguments = jo_linker.methods.getMyEth(
             // call params(empty)
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
@@ -1529,7 +1529,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             gas: estimatedGas, // 2100000
             gasPrice: gasPrice,
             // gasLimit: estimatedGas, // 3000000
-            to: jo_imalinker.options.address, // contract address
+            to: jo_linker.options.address, // contract address
             data: dataTx,
             value: 0 // how much money to send
         };
@@ -1573,7 +1573,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
 async function view_eth_payment_from_s_chain_on_main_net(
     w3_main_net,
     joAccount_main_net,
-    jo_imalinker
+    jo_linker
 ) {
     const details = log.createMemoryStream();
     let strActionName = ""; const strLogPrefix = cc.info( "S ETH View:" ) + " ";
@@ -1585,7 +1585,7 @@ async function view_eth_payment_from_s_chain_on_main_net(
         //
         //
         const addressFrom = joAccount_main_net.address( w3_main_net );
-        const xWei = await jo_imalinker.methods.approveTransfers( addressFrom ).call( {
+        const xWei = await jo_linker.methods.approveTransfers( addressFrom ).call( {
             from: addressFrom
         } );
         details.write( strLogPrefix + cc.success( "You can receive(wei): " ) + cc.attention( xWei ) + "\n" );

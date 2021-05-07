@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   ProxyConnectorMainnet.sol - SKALE Interchain Messaging Agent
+ *   DepositBox.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
+ *   @author Dmytro Stebaiev
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published
@@ -21,16 +22,20 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
-import "./SchainOwnerConnectorMainnet.sol";
-import "../MessageProxyForMainnet.sol";
+import "../interfaces/IDepositBox.sol";
+import "./Linker.sol";
+import "./MessageProxyForMainnet.sol";
 
 
 /**
  * @title ProxyConnectorMainnet - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-contract ProxyConnectorMainnet is SchainOwnerConnectorMainnet {
+abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, IDepositBox {
+
+    bytes32 public constant DEPOSIT_BOX_MANAGER_ROLE = keccak256("DEPOSIT_BOX_MANAGER_ROLE");
 
     MessageProxyForMainnet public messageProxy;
 
@@ -38,17 +43,19 @@ contract ProxyConnectorMainnet is SchainOwnerConnectorMainnet {
         require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
         _;
     }
-
-    /**
-     * @dev initialize - sets current address of ContractManager of SkaleManager
-     * @param newContractManagerOfSkaleManager - current address of ContractManager of SkaleManager
-     */
-    function initialize(address newContractManagerOfSkaleManager, address newMessageProxyAddress)
+    
+    function initialize(
+        IContractManager contractManagerOfSkaleManager,
+        Linker linkerAddress,
+        MessageProxyForMainnet messageProxyAddress
+    )
         public
         virtual
         initializer
     {
-        SchainOwnerConnectorMainnet.initialize(newContractManagerOfSkaleManager);
-        messageProxy = MessageProxyForMainnet(newMessageProxyAddress);
+        SkaleManagerClient.initialize(contractManagerOfSkaleManager);
+        AccessControlUpgradeable.__AccessControl_init();
+        _setupRole(DEPOSIT_BOX_MANAGER_ROLE, address(linkerAddress));
+        messageProxy = messageProxyAddress;
     }
 }

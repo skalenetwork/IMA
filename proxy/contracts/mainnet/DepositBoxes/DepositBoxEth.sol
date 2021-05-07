@@ -22,14 +22,12 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/IDepositBox.sol";
-import "../Messages.sol";
-
-import "./connectors/LinkerConnectorMainnet.sol";
+import "../DepositBox.sol";
+import "../../Messages.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract DepositBoxEth is LinkerConnectorMainnet, IDepositBox {
+contract DepositBoxEth is DepositBox {
 
     using SafeMathUpgradeable for uint;
 
@@ -62,16 +60,17 @@ contract DepositBoxEth is LinkerConnectorMainnet, IDepositBox {
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addTokenManager(string calldata schainID, address newTokenManagerEthAddress) external override {
+    function addTokenManager(string calldata schainName, address newTokenManagerEthAddress) external override {
+        bytes32 schainId = keccak256(abi.encodePacked(schainName));
         require(
-            msg.sender == imaLinker ||
-            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            _isOwner(), "Not authorized caller"
+            hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
+            isSchainOwner(msg.sender, schainId) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerEthAddresses[schainHash] == address(0), "SKALE chain is already set");
+        require(tokenManagerEthAddresses[schainId] == address(0), "SKALE chain is already set");
         require(newTokenManagerEthAddress != address(0), "Incorrect Token Manager address");
-        tokenManagerEthAddresses[schainHash] = newTokenManagerEthAddress;
+
+        tokenManagerEthAddresses[schainId] = newTokenManagerEthAddress;
     }
 
     /**
@@ -83,15 +82,16 @@ contract DepositBoxEth is LinkerConnectorMainnet, IDepositBox {
      * - `msg.sender` must be schain owner or contract owner
      * - SKALE chain must already be set.
      */
-    function removeTokenManager(string calldata schainID) external override {
+    function removeTokenManager(string calldata schainName) external override {
+        bytes32 schainId = keccak256(abi.encodePacked(schainName));
         require(
-            msg.sender == imaLinker ||
-            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            _isOwner(), "Not authorized caller"
+            hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
+            isSchainOwner(msg.sender, schainId) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerEthAddresses[schainHash] != address(0), "SKALE chain is not set");
-        delete tokenManagerEthAddresses[schainHash];
+        require(tokenManagerEthAddresses[schainId] != address(0), "SKALE chain is not set");
+
+        delete tokenManagerEthAddresses[schainId];
     }
 
     function deposit(string memory schainID, address to)
@@ -168,15 +168,14 @@ contract DepositBoxEth is LinkerConnectorMainnet, IDepositBox {
 
     /// Create a new deposit box
     function initialize(
-        address newContractManagerOfSkaleManager,
-        address newMessageProxyAddress,
-        address newIMALinkerAddress
+        IContractManager newContractManagerOfSkaleManager,        
+        Linker newLinkerAddress,
+        MessageProxyForMainnet newMessageProxyAddress
     )
         public
         override
         initializer
     {
-        LinkerConnectorMainnet.initialize(newContractManagerOfSkaleManager, newMessageProxyAddress, newIMALinkerAddress);
-        // gasConsumption = 500000;
+        DepositBox.initialize(newContractManagerOfSkaleManager, newLinkerAddress, newMessageProxyAddress);
     }
 }
