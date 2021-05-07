@@ -295,6 +295,23 @@ contract TokenManagerERC721 is TokenManager {
     }
 
     /**
+     * @dev Allows Schain owner to add an ERC721 token to LockAndDataForSchainERC721.
+     */
+    function addERC721TokenByOwner(
+        string calldata schainName,
+        address erc721OnMainnet,
+        ERC721OnChain erc721OnSchain
+    )
+        external
+    {
+        require(_isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        require(address(erc721OnSchain).isContract(), "Given address is not a contract");
+        // require(!automaticDeploy[keccak256(abi.encodePacked(schainName))], "Custom deploy is enabled");
+        schainToERC721OnSchain[keccak256(abi.encodePacked(schainName))][erc721OnMainnet] = erc721OnSchain;
+        emit ERC721TokenAdded(schainName, erc721OnMainnet, address(erc721OnSchain));
+    }
+
+    /**
      * @dev Checks whether TokenManagerERC721 is connected to a {schainID} SKALE chain TokenManagerERC721.
      */
     function hasTokenManager(string calldata schainID) external view override returns (bool) {

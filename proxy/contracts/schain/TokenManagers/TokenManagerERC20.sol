@@ -330,6 +330,18 @@ contract TokenManagerERC20 is TokenManager {
     }
 
     /**
+     * @dev Allows Schain owner to add an ERC20 token to LockAndDataForSchainERC20.
+     */
+    function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet, ERC20OnChain erc20OnSchain) external {
+        require(_isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        require(address(erc20OnSchain).isContract(), "Given address is not a contract");
+        require(erc20OnSchain.totalSupply() == 0, "TotalSupply is not zero");
+        // require(!automaticDeploy[keccak256(abi.encodePacked(schainName))], "Custom deploy is enabled");
+        schainToERC20OnSchain[keccak256(abi.encodePacked(schainName))][erc20OnMainnet] = erc20OnSchain;
+        emit ERC20TokenAdded(schainName, erc20OnMainnet, address(erc20OnSchain));
+    }
+
+    /**
      * @dev Checks whether TokenManagerERC20 is connected to a {schainID} SKALE chain TokenManagerERC20.
      */
     function hasTokenManager(string calldata schainID) external view override returns (bool) {

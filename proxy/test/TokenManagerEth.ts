@@ -41,7 +41,7 @@ chai.use((chaiAsPromised as any));
 const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
 
-contract("LockAndDataForSchain", ([user, deployer]) => {
+contract("TokenManagerEth", ([user, deployer]) => {
   let lockAndDataForSchain: LockAndDataForSchainInstance;
   let ethERC20: EthERC20Instance;
 
@@ -339,6 +339,190 @@ contract("LockAndDataForSchain", ([user, deployer]) => {
     const error = "Deposit Box is not set";
     // execution/expectation
     await lockAndDataForSchain.removeDepositBox(user, {from: deployer});
+  });
+
+  it("should send Eth to somebody on Mainnet, closed to Mainnet, called by schain", async () => {
+    const amount = new BigNumber("600000000000000000");
+    const amountTo = new BigNumber("20000000000000000");
+    const amountTo2 = new BigNumber("60000000000000000");
+    const amountAfter = new BigNumber("540000000000000000");
+    const to = deployer;
+
+    // set EthERC20 address:
+    await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
+
+    // set contract TokenManager:
+    await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
+
+    // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
+    await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
+
+    // send Eth:
+    await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
+
+    // send Eth to a client on Mainnet:
+    await tokenManager.exitToMain(to, amountTo, {from: user}).should.be.eventually.rejectedWith("Not enough funds to exit");
+    await tokenManager.exitToMain(to, amountTo2, {from: user});
+    const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
+    balanceAfter.should.be.deep.equal(amountAfter);
+});
+
+  it("should transfer to somebody on schain Eth and some data", async () => {
+      const amount = new BigNumber("20000000000000000");
+      const amountTo = new BigNumber("2000000000000000");
+      const amountAfter = new BigNumber("18000000000000000");
+      const bytesData = "0x0";
+      const to = deployer;
+
+      // set EthERC20 address:
+      await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
+
+      // set contract TokenManager:
+      await lockAndDataForSchain.setContract("TokenManager", tokenManager.address, {from: deployer});
+
+      // add connected chain:
+      await messageProxyForSchain.addConnectedChain(chainID, {from: deployer});
+
+      // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
+      await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
+
+      // send Eth:
+      await lockAndDataForSchain.sendEth(user, amount, {from: deployer});
+
+      // add schain:
+      await lockAndDataForSchain.addSchain(chainID, user, {from: deployer});
+
+      // send Eth and data to a client on schain:
+      await tokenManager.transferToSchain(chainID, to, amountTo, {from: user});
+
+      const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
+      balanceAfter.should.be.deep.equal(amountAfter);
+  });
+
+  it("should not receive ETH", async () => {
+    await web3.eth.sendTransaction({from: deployer, to: tokenManager.address, value: "1000000000000000000"})
+        .should.be.eventually.rejected;
+  });
+
+  describe("tests for `postMessage` function", async () => {
+    it("should rejected with `Not a sender`", async () => {
+      //  preparation
+      const error = "Not a sender";
+      const schainID = randomString(10);
+      const amount = 10;
+      const bytesData = await messages.encodeTransferEthMessage(user, amount);
+
+      const sender = deployer;
+      // execution/expectation
+      await tokenManager
+        .postMessage(chainID, sender, bytesData, {from: deployer})
+        .should.be.eventually.rejectedWith(error);
+    });
+
+    it("should be Error event with message `Receiver chain is incorrect` when schainID=`mainnet`", async () => {
+      //  preparation
+      const error = "Receiver chain is incorrect";
+      // for `Receiver chain is incorrect` message schainID should be `Mainnet`
+      const schainID = randomString(10);
+      const amount = 10;
+      const bytesData = await messages.encodeTransferEthMessage(user, amount);
+      const sender = deployer;
+      // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
+      // to avoid `Not a sender` error
+      tokenManager = await TokenManager.new(schainID, lockAndDataForSchain.address, {from: deployer});
+      await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
+      // execution
+      await tokenManager
+          .postMessage(chainID, sender, bytesData, {from: deployer})
+          .should.be.eventually.rejectedWith(error);
+    });
+
+    it("should be Error event with message `Invalid data`", async () => {
+        //  preparation
+        const error = "Invalid data";
+        const schainID = randomString(10);
+        const amount = 10;
+        // for `Invalid data` message bytesData should be `0x`
+        const bytesData = "0x";
+        const sender = deployer;
+        // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
+        // to avoid `Not a sender` error
+        tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
+        // set `tokenManager` contract to avoid the `Not allowed` error in lockAndDataForSchain.sol
+        await lockAndDataForSchain
+            .setContract("TokenManager", tokenManager.address, {from: deployer});
+        // add schain to avoid the `Receiver chain is incorrect` error
+        await lockAndDataForSchain
+            .addSchain(schainID, deployer, {from: deployer});
+        // execution
+        await tokenManager
+            .postMessage(schainID, sender, bytesData, {from: deployer})
+            .should.be.eventually.rejectedWith(error);
+    });
+
+    it("should transfer eth", async () => {
+        //  preparation
+        const schainID = randomString(10);
+        const amount = "30000000000000000";
+        const sender = deployer;
+        const to = user;
+        // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
+        const bytesData = await messages.encodeTransferEthMessage(to, amount);
+        // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
+        // to avoid `Not a sender` error
+        tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
+        // set `tokenManager` contract to avoid the `Not allowed` error in lockAndDataForSchain.sol
+        await lockAndDataForSchain
+            .setContract("TokenManager", tokenManager.address, {from: deployer});
+        // add schain to avoid the `Receiver chain is incorrect` error
+        await lockAndDataForSchain
+            .addSchain(schainID, deployer, {from: deployer});
+        // set EthERC20 address:
+        await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
+        // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
+        await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
+        await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
+        // execution
+        await tokenManager
+            .postMessage(schainID, sender, bytesData, {from: deployer});
+        // expectation
+        expect(parseInt((new BigNumber(await ethERC20.balanceOf(to))).toString(), 10))
+            .to.be.equal(parseInt(amount, 10));
+    });
+
+    it("should add funds to communityPool when `eth` transfer", async () => {
+        // TODO: Remove if this test is not actual
+        //  preparation
+        const error = "Incorrect receiver";
+        const schainID = randomString(10);
+        const amount = "30000000000000000";
+        // for transfer `eth` bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
+        const to = "0x0000000000000000000000000000000000000000";
+        const bytesData = await messages.encodeTransferEthMessage(to, amount);;
+        const sender = deployer;
+        // const communityPoolBefore = new BigNumber(await lockAndDataForSchain.communityPool());
+        // communityPoolBefore.should.be.deep.equal(new BigNumber(0));
+        // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
+        // to avoid `Not a sender` error
+        tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address, {from: deployer});
+        // set `tokenManager` contract to avoid the `Not allowed` error in lockAndDataForSchain.sol
+        await lockAndDataForSchain
+            .setContract("TokenManager", tokenManager.address, {from: deployer});
+        // add schain to avoid the `Receiver chain is incorrect` error
+        await lockAndDataForSchain
+            .addSchain(schainID, deployer, {from: deployer});
+        // set EthERC20 address:
+        await lockAndDataForSchain.setEthErc20Address(ethERC20.address, {from: deployer});
+        // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
+        await ethERC20.transferOwnership(lockAndDataForSchain.address, {from: deployer});
+        await lockAndDataForSchain.setContract("MessageProxy", deployer, {from: deployer});
+        // execution
+        await tokenManager
+            .postMessage(schainID, sender, bytesData, {from: deployer})
+            .should.be.eventually.rejectedWith(error);
+        // const communityPoolAfter = new BigNumber(await lockAndDataForSchain.communityPool());
+        // communityPoolAfter.should.be.deep.equal(new BigNumber(amount));
+    });
   });
 
 });
