@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { ContractManager, MessageProxyForMainnet, IMALinker, DepositBoxEth } from "../../../typechain";
+import { ContractManager, MessageProxyForMainnet, IMALinker, DepositBoxEth } from "../../../../typechain";
 
 export async function deployDepositBoxEth(
     contractManager: ContractManager,

@@ -48,10 +48,10 @@ import { randomString } from "./utils/helper";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-import { deployIMALinker } from "./utils/deploy/imaLinker";
+import { deployIMALinker } from "./utils/deploy/mainnet/imaLinker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
-import { deployDepositBoxEth } from "./utils/deploy/depositBoxEth";
-import { deployContractManager } from "./utils/deploy/contractManager";
+import { deployDepositBoxEth } from "./utils/deploy/mainnet/depositBoxEth";
+import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";

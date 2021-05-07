@@ -43,23 +43,22 @@ import { randomString, stringValue } from "./utils/helper";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-import { deployDepositBoxEth } from "./utils/deploy/depositBoxEth";
-import { deployDepositBoxERC20 } from "./utils/deploy/depositBoxERC20";
-import { deployDepositBoxERC721 } from "./utils/deploy/depositBoxERC721";
-import { deployIMALinker } from "./utils/deploy/imaLinker";
+import { deployDepositBoxEth } from "./utils/deploy/mainnet/depositBoxEth";
+import { deployDepositBoxERC20 } from "./utils/deploy/mainnet/depositBoxERC20";
+import { deployDepositBoxERC721 } from "./utils/deploy/mainnet/depositBoxERC721";
+import { deployIMALinker } from "./utils/deploy/mainnet/imaLinker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
-import { deployContractManager } from "./utils/deploy/contractManager";
+import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
 import { deployMessages } from "./utils/deploy/messages";
-import { deployEthERC20 } from "./utils/deploy/ethERC20";
+import { deployEthERC20 } from "./utils/deploy/schain/ethERC20";
 import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 
 import { ethers, web3 } from "hardhat";
-import { solidity } from "ethereum-waffle";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber, Event, ContractFactory } from "ethers";
+import { BigNumber } from "ethers";
 
 import { assert, expect } from "chai";
 

@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { EthERC20 } from "../../../typechain/EthERC20";
+import { EthERC20 } from "../../../../typechain/EthERC20";
 
 export async function deployEthERC20() {
     const factory = await ethers.getContractFactory("EthERC20");

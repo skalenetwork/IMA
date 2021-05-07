@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
-import { ContractManager } from "../../../typechain/ContractManager";
-import { IMALinker } from "../../../typechain/IMALinker";
-import { MessageProxyForMainnet } from "../../../typechain/MessageProxyForMainnet";
+import { ContractManager } from "../../../../typechain/ContractManager";
+import { IMALinker } from "../../../../typechain/IMALinker";
+import { MessageProxyForMainnet } from "../../../../typechain/MessageProxyForMainnet";
 
 export async function deployIMALinker(
     contractManager: ContractManager,
