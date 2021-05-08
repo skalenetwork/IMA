@@ -26,7 +26,6 @@
 import * as chaiAsPromised from "chai-as-promised";
 import * as chai from "chai";
 import {
-    ERC20ModuleForSchain,
     ERC20OnChain,
     LockAndDataForSchainERC20,
     LockAndDataForSchain,
@@ -40,7 +39,6 @@ chai.use((chaiAsPromised as any));
 
 import { deployLockAndDataForSchain } from "./utils/deploy/schain/lockAndDataForSchain";
 import { deployLockAndDataForSchainERC20 } from "./utils/deploy/schain/lockAndDataForSchainERC20";
-import { deployERC20ModuleForSchain } from "./utils/deploy/schain/erc20ModuleForSchain";
 import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
 
 import { ethers, web3 } from "hardhat";

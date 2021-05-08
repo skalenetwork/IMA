@@ -23,60 +23,71 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
+import * as chai from "chai";
 import {
-    ERC721OnChainContract,
-    ERC721OnChainInstance,
-    LockAndDataForSchainContract,
-    LockAndDataForSchainERC721Contract,
-    LockAndDataForSchainERC721Instance,
-    LockAndDataForSchainInstance,
-    } from "../types/truffle-contracts";
+  ERC721OnChain,
+  LockAndDataForSchainERC721,
+  LockAndDataForSchain,
+  } from "../typechain";
 
-import chai = require("chai");
 import { gasMultiplier } from "./utils/command_line";
-import { randomString } from "./utils/helper";
+import { randomString, stringValue } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
-const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract =
-    artifacts.require("./LockAndDataForSchainERC721");
-const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
+import { deployLockAndDataForSchain } from "./utils/deploy/schain/lockAndDataForSchain";
+import { deployLockAndDataForSchainERC721 } from "./utils/deploy/schain/lockAndDataForSchainERC721";
+import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
 
-contract("LockAndDataForSchainERC721", ([deployer, user]) => {
-  let lockAndDataForSchain: LockAndDataForSchainInstance;
-  let lockAndDataForSchainERC721: LockAndDataForSchainERC721Instance;
-  let eRC721OnChain: ERC721OnChainInstance;
-  let eRC721OnChain2: ERC721OnChainInstance;
-  let eRC721OnMainnet: ERC721OnChainInstance;
-  let eRC721OnMainnet2: ERC721OnChainInstance;
+import { ethers, web3 } from "hardhat";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { BigNumber } from "ethers";
+
+import { assert, expect } from "chai";
+
+describe("LockAndDataForSchainERC721", () => {
+  let deployer: SignerWithAddress;
+  let user: SignerWithAddress;
+
+  let lockAndDataForSchain: LockAndDataForSchain;
+  let lockAndDataForSchainERC721: LockAndDataForSchainERC721;
+  let eRC721OnChain: ERC721OnChain;
+  let eRC721OnChain2: ERC721OnChain;
+  let eRC721OnMainnet: ERC721OnChain;
+  let eRC721OnMainnet2: ERC721OnChain;
+
+  before(async () => {
+    [deployer, user] = await ethers.getSigners();
+  });
 
   beforeEach(async () => {
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchainERC721 =
-        await LockAndDataForSchainERC721.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
-    eRC721OnChain = await ERC721OnChain.new("ELVIS", "ELV", {from: deployer});
-    eRC721OnMainnet = await ERC721OnChain.new("SKALE", "SKL", {from: deployer});
+    lockAndDataForSchain = await deployLockAndDataForSchain();
+    lockAndDataForSchainERC721 = await deployLockAndDataForSchainERC721(lockAndDataForSchain);
+    eRC721OnChain = await deployERC721OnChain("ELVIS", "ELV");
+    eRC721OnMainnet = await deployERC721OnChain("SKALE", "SKL");
 
   });
 
   it("should invoke `sendERC721` without mistakes", async () => {
     // preparation
     const contractHere = eRC721OnChain.address;
-    const to = user;
+    const to = user.address;
     const tokenId = 10;
     // invoke `grantRole` before `sendERC721` to avoid `MinterRole: caller does not have the Minter role`  exception
     const minterRole = await eRC721OnChain.MINTER_ROLE();
     await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
     // execution
-    const res = await lockAndDataForSchainERC721
-        .sendERC721(contractHere, to, tokenId, {from: deployer});
+    const res = await (await lockAndDataForSchainERC721
+        .connect(deployer)
+        .sendERC721(contractHere, to, tokenId)).wait();
     // expectation
-    expect(res.logs[0].args.result).to.be.true;
+    if (res.events) {
+      expect(res.events[1].args?.result).to.be.true;
+    } else {
+      assert(false, "No events were emitted");
+    }
   });
 
   it("should rejected with `Token not transferred` after invoke `receiveERC721`", async () => {
@@ -85,10 +96,11 @@ contract("LockAndDataForSchainERC721", ([deployer, user]) => {
     const contractHere = eRC721OnChain.address;
     const tokenId = 10;
     // mint some quantity of ERC721 tokens for `deployer` address
-    await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
+    await eRC721OnChain.connect(deployer).mint(deployer.address, tokenId);
     // execution/expectation
-    const res = await lockAndDataForSchainERC721
-        .receiveERC721(contractHere, tokenId, {from: deployer})
+    await lockAndDataForSchainERC721
+        .connect(deployer)
+        .receiveERC721(contractHere, tokenId)
         .should.be.eventually.rejectedWith(error);
   });
 
@@ -97,14 +109,19 @@ contract("LockAndDataForSchainERC721", ([deployer, user]) => {
     const contractHere = eRC721OnChain.address;
     const tokenId = 10;
     // mint ERC721 token for `deployer` address
-    await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
+    await eRC721OnChain.connect(deployer).mint(deployer.address, tokenId);
     // transfer ERC721 token to `lockAndDataForMainnetERC721` address
-    await eRC721OnChain.transferFrom(deployer, lockAndDataForSchainERC721.address, tokenId, {from: deployer});
+    await eRC721OnChain.connect(deployer).transferFrom(deployer.address, lockAndDataForSchainERC721.address, tokenId);
     // execution
-    const res = await lockAndDataForSchainERC721
-        .receiveERC721(contractHere, tokenId, {from: deployer});
+    const res = await (await lockAndDataForSchainERC721
+        .connect(deployer)
+        .receiveERC721(contractHere, tokenId)).wait();
     // expectation
-    expect(res.logs[0].args.result).to.be.true;
+    if (res.events) {
+      expect(res.events[2].args?.result).to.be.true;
+    } else {
+      assert(false, "No events were emitted");
+    }
   });
 
   it("should set `ERC721Tokens` and `ERC721Mapper`", async () => {
@@ -112,11 +129,13 @@ contract("LockAndDataForSchainERC721", ([deployer, user]) => {
     const addressERC721 = eRC721OnChain.address;
     const schainID = randomString(10);
     await lockAndDataForSchainERC721
-        .addERC721ForSchain(schainID, eRC721OnMainnet.address, addressERC721, {from: deployer}).should.be.eventually.rejectedWith("Automatic deploy is disabled");
-    await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID, {from: deployer});
+        .connect(deployer)
+        .addERC721ForSchain(schainID, eRC721OnMainnet.address, addressERC721).should.be.eventually.rejectedWith("Automatic deploy is disabled");
+    await lockAndDataForSchainERC721.connect(deployer).enableAutomaticDeploy(schainID);
     // execution
     await lockAndDataForSchainERC721
-        .addERC721ForSchain(schainID, eRC721OnMainnet.address, addressERC721, {from: deployer});
+        .connect(deployer)
+        .addERC721ForSchain(schainID, eRC721OnMainnet.address, addressERC721);
     // expectation
     expect(await lockAndDataForSchainERC721.getERC721OnSchain(schainID, eRC721OnMainnet.address,)).to.be.equal(addressERC721);
   });
@@ -127,7 +146,7 @@ contract("LockAndDataForSchainERC721", ([deployer, user]) => {
     const contractHere2 = eRC721OnMainnet.address;
     const schainID = randomString(10);
 
-    const automaticDeploy = await lockAndDataForSchainERC721.automaticDeploy(web3.utils.soliditySha3(schainID));
+    const automaticDeploy = await lockAndDataForSchainERC721.automaticDeploy(stringValue(web3.utils.soliditySha3(schainID)));
     await lockAndDataForSchainERC721.addERC721TokenByOwner(schainID, contractHere2, contractHere);
     // automaticDeploy == true - enabled automaticDeploy = false - disabled
     if (automaticDeploy) {
@@ -138,8 +157,8 @@ contract("LockAndDataForSchainERC721", ([deployer, user]) => {
 
     await lockAndDataForSchainERC721.addERC721TokenByOwner(schainID, contractHere2, contractHere);
 
-    eRC721OnChain2 = await ERC721OnChain.new("NewToken", "NTN");
-    eRC721OnMainnet2 = await ERC721OnChain.new("NewToken", "NTN");
+    eRC721OnChain2 = await deployERC721OnChain("NewToken", "NTN");
+    eRC721OnMainnet2 = await deployERC721OnChain("NewToken", "NTN");
 
     if (automaticDeploy) {
       await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID);
