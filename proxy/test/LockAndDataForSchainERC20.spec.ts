@@ -23,53 +23,59 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
+import * as chai from "chai";
 import {
-    ERC20ModuleForSchainContract,
-    ERC20ModuleForSchainInstance,
-    ERC20OnChainContract,
-    ERC20OnChainInstance,
-    LockAndDataForSchainContract,
-    LockAndDataForSchainERC20Contract,
-    LockAndDataForSchainERC20Instance,
-    LockAndDataForSchainInstance,
-    } from "../types/truffle-contracts";
+    ERC20ModuleForSchain,
+    ERC20OnChain,
+    LockAndDataForSchainERC20,
+    LockAndDataForSchain,
+    } from "../typechain";
 
-import chai = require("chai");
 import { gasMultiplier } from "./utils/command_line";
-import { randomString } from "./utils/helper";
+import { randomString, stringValue } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
-const LockAndDataForSchainERC20: LockAndDataForSchainERC20Contract =
-    artifacts.require("./LockAndDataForSchainERC20");
-const ERC20ModuleForSchain: ERC20ModuleForSchainContract = artifacts.require("./ERC20ModuleForSchain");
-const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
+import { deployLockAndDataForSchain } from "./utils/deploy/schain/lockAndDataForSchain";
+import { deployLockAndDataForSchainERC20 } from "./utils/deploy/schain/lockAndDataForSchainERC20";
+import { deployERC20ModuleForSchain } from "./utils/deploy/schain/erc20ModuleForSchain";
+import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
 
-contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
-  let lockAndDataForSchain: LockAndDataForSchainInstance;
-  let lockAndDataForSchainERC20: LockAndDataForSchainERC20Instance;
-  let eRC20OnChain: ERC20OnChainInstance;
-  let eRC20OnChain2: ERC20OnChainInstance;
-  let eRC20OnMainnet: ERC20OnChainInstance;
-  let eRC20OnMainnet2: ERC20OnChainInstance;
+import { ethers, web3 } from "hardhat";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { BigNumber } from "ethers";
+
+import { assert, expect } from "chai";
+
+describe("LockAndDataForSchainERC20", () => {
+  let deployer: SignerWithAddress;
+  let user: SignerWithAddress;
+  let invoker: SignerWithAddress;
+
+  let lockAndDataForSchain: LockAndDataForSchain;
+  let lockAndDataForSchainERC20: LockAndDataForSchainERC20;
+  let eRC20OnChain: ERC20OnChain;
+  let eRC20OnChain2: ERC20OnChain;
+  let eRC20OnMainnet: ERC20OnChain;
+  let eRC20OnMainnet2: ERC20OnChain;
+
+  before(async () => {
+    [deployer, user, invoker] = await ethers.getSigners();
+  });
 
   beforeEach(async () => {
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer, gas: 8000000 * gasMultiplier});
-    lockAndDataForSchainERC20 =
-        await LockAndDataForSchainERC20.new(lockAndDataForSchain.address,
-        {from: deployer, gas: 8000000 * gasMultiplier});
-    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20", {from: deployer});
-    eRC20OnMainnet = await ERC20OnChain.new("SKALE", "SKL", {from: deployer});
+    lockAndDataForSchain = await deployLockAndDataForSchain();
+    lockAndDataForSchainERC20 = await deployLockAndDataForSchainERC20(lockAndDataForSchain);
+    eRC20OnChain = await deployERC20OnChain("ERC20OnChain", "ERC20");
+    eRC20OnMainnet = await deployERC20OnChain("SKALE", "SKL");
   });
 
   it("should invoke `sendERC20` without mistakes", async () => {
     // preparation
     const contractHere = eRC20OnChain.address;
-    const to = user;
+    const to = user.address;
     const amount = 10;
     // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
     const minterRole = await eRC20OnChain.MINTER_ROLE();
@@ -77,13 +83,19 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     await lockAndDataForSchainERC20.setTotalSupplyOnMainnet(contractHere, 9);
     // execution
     await lockAndDataForSchainERC20
-        .sendERC20(contractHere, to, amount, {from: deployer}).should.be.eventually.rejectedWith("Total supply exceeded");
+        .connect(deployer)
+        .sendERC20(contractHere, to, amount).should.be.eventually.rejectedWith("Total supply exceeded");
     await lockAndDataForSchainERC20.setTotalSupplyOnMainnet(contractHere, 11);
     // execution
-    const res = await lockAndDataForSchainERC20
-        .sendERC20(contractHere, to, amount, {from: deployer});
+    const res = await (await lockAndDataForSchainERC20
+        .connect(deployer)
+        .sendERC20(contractHere, to, amount)).wait();
     // expectation
-    expect(res.logs[0].args.result).to.be.true;
+    if (res.events) {
+      expect(res.events[1].args?.result).to.be.true;
+    } else {
+      assert(false, "No events were emitted");
+    }
   });
 
   it("should rejected with `Amount not transferred`", async () => {
@@ -92,8 +104,9 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     const contractHere = eRC20OnChain.address;
     const amount = 10;
     // execution/expectation
-    const res = await lockAndDataForSchainERC20
-        .receiveERC20(contractHere, amount, {from: deployer})
+    await lockAndDataForSchainERC20
+        .connect(deployer)
+        .receiveERC20(contractHere, amount)
         .should.be.eventually.rejectedWith(error);
   });
 
@@ -105,14 +118,19 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     const minterRole = await eRC20OnChain.MINTER_ROLE();
     await eRC20OnChain.grantRole(minterRole, lockAndDataForSchainERC20.address);
     // mint some quantity of ERC20 tokens for `deployer` address
-    await eRC20OnChain.mint(deployer, "1000000000", {from: deployer});
+    await eRC20OnChain.connect(deployer).mint(deployer.address, "1000000000");
     // transfer some quantity of ERC20 tokens for `lockAndDataForMainnetERC20` address
-    await eRC20OnChain.transfer(lockAndDataForSchainERC20.address, "1000000", {from: deployer});
+    await eRC20OnChain.connect(deployer).transfer(lockAndDataForSchainERC20.address, "1000000");
     // execution
-    const res = await lockAndDataForSchainERC20
-        .receiveERC20(contractHere, amount, {from: deployer});
+    const res = await (await lockAndDataForSchainERC20
+        .connect(deployer)
+        .receiveERC20(contractHere, amount)).wait();
     // expectation
-    expect(res.logs[0].args.result).to.be.true;
+    if (res.events) {
+      expect(res.events[1].args?.result).to.be.true;
+    } else {
+      assert(false, "No events were emitted");
+    }
   });
 
   it("should set `ERC20Tokens` and `ERC20Mapper`", async () => {
@@ -120,11 +138,13 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     const addressERC20 = eRC20OnChain.address;
     const schainID = randomString(10);
     await lockAndDataForSchainERC20
-        .addERC20ForSchain(schainID, eRC20OnMainnet.address, addressERC20, {from: deployer}).should.be.eventually.rejectedWith("Automatic deploy is disabled");
-    await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID, {from: deployer});
+        .connect(deployer)
+        .addERC20ForSchain(schainID, eRC20OnMainnet.address, addressERC20).should.be.eventually.rejectedWith("Automatic deploy is disabled");
+    await lockAndDataForSchainERC20.connect(deployer).enableAutomaticDeploy(schainID);
     // execution
     await lockAndDataForSchainERC20
-        .addERC20ForSchain(schainID, eRC20OnMainnet.address, addressERC20, {from: deployer});
+        .connect(deployer)
+        .addERC20ForSchain(schainID, eRC20OnMainnet.address, addressERC20);
     // expectation
     expect(await lockAndDataForSchainERC20.getERC20OnSchain(schainID, eRC20OnMainnet.address)).to.be.equal(addressERC20);
   });
@@ -134,7 +154,7 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
     const schainID = randomString(10);
     const addressERC20 = eRC20OnChain.address;
     const addressERC201 = eRC20OnMainnet.address;
-    const automaticDeploy = await lockAndDataForSchainERC20.automaticDeploy(web3.utils.soliditySha3(schainID));
+    const automaticDeploy = await lockAndDataForSchainERC20.automaticDeploy(stringValue(web3.utils.soliditySha3(schainID)));
     await lockAndDataForSchainERC20.addERC20TokenByOwner(schainID, addressERC201, addressERC20);
     // automaticDeploy == true - enabled automaticDeploy = false - disabled
     if (automaticDeploy) {
@@ -145,8 +165,8 @@ contract("LockAndDataForSchainERC20", ([deployer, user, invoker]) => {
 
     await lockAndDataForSchainERC20.addERC20TokenByOwner(schainID, addressERC201, addressERC20);
 
-    eRC20OnChain2 = await ERC20OnChain.new("NewToken", "NTN");
-    eRC20OnMainnet2 = await ERC20OnChain.new("NewToken", "NTN");
+    eRC20OnChain2 = await deployERC20OnChain("NewToken", "NTN");
+    eRC20OnMainnet2 = await deployERC20OnChain("NewToken", "NTN");
 
     if (automaticDeploy) {
       await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID);
