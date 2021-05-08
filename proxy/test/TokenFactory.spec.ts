@@ -23,75 +23,68 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
-
-import chai = require("chai");
+import * as chai from "chai";
 import {
-    ERC20ModuleForSchainContract,
-    ERC20ModuleForSchainInstance,
-    ERC20OnChainContract,
-    ERC20OnChainInstance,
-    ERC721ModuleForSchainContract,
-    ERC721ModuleForSchainInstance,
-    ERC721OnChainContract,
-    ERC721OnChainInstance,
-    LockAndDataForSchainWorkaroundContract,
-    LockAndDataForSchainERC20Contract,
-    LockAndDataForSchainERC20Instance,
-    LockAndDataForSchainERC721Contract,
-    LockAndDataForSchainERC721Instance,
-    LockAndDataForSchainWorkaroundInstance,
-    MessageProxyForSchainContract,
-    MessageProxyForSchainInstance,
-    TokenFactoryContract,
-    TokenFactoryInstance,
-  } from "../types/truffle-contracts";
+    ERC20ModuleForSchain,
+    ERC20OnChain,
+    ERC721ModuleForSchain,
+    ERC721OnChain,
+    LockAndDataForSchainWorkaround,
+    LockAndDataForSchainERC20,
+    LockAndDataForSchainERC721,
+    MessageProxyForSchain,
+    TokenFactory,
+  } from "../typechain";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
-const LockAndDataForSchain: LockAndDataForSchainWorkaroundContract = artifacts.require("./LockAndDataForSchainWorkaround");
-const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
-const LockAndDataForSchainERC20: LockAndDataForSchainERC20Contract =
-    artifacts.require("./LockAndDataForSchainERC20");
-const ERC20ModuleForSchain: ERC20ModuleForSchainContract = artifacts.require("./ERC20ModuleForSchain");
-const LockAndDataForSchainERC721: LockAndDataForSchainERC721Contract =
-    artifacts.require("./LockAndDataForSchainERC721");
-const ERC721ModuleForSchain: ERC721ModuleForSchainContract = artifacts.require("./ERC721ModuleForSchain");
-const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
-const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
+import { deployLockAndDataForSchainWorkaround } from "./utils/deploy/test/lockAndDataForSchainWorkaround";
+import { deployLockAndDataForSchainERC20 } from "./utils/deploy/schain/lockAndDataForSchainERC20";
+import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
+import { deployLockAndDataForSchainERC721 } from "./utils/deploy/schain/lockAndDataForSchainERC721";
+import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
+import { deployERC20ModuleForSchain } from "./utils/deploy/schain/erc20ModuleForSchain";
+import { deployERC721ModuleForSchain } from "./utils/deploy/schain/erc721ModuleForSchain";
+import { deployTokenFactory } from "./utils/deploy/schain/tokenFactory";
+import { deployMessageProxyForSchain } from "./utils/deploy/schain/messageProxyForSchain";
 
-contract("TokenFactory", ([user, deployer]) => {
-  let messageProxy: MessageProxyForSchainInstance;
-  let lockAndDataForSchain: LockAndDataForSchainWorkaroundInstance;
-  let tokenFactory: TokenFactoryInstance;
-  let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
-  let lockAndDataForSchainERC20: LockAndDataForSchainERC20Instance;
-  let eRC721ModuleForSchain: ERC721ModuleForSchainInstance;
-  let lockAndDataForSchainERC721: LockAndDataForSchainERC721Instance;
+import { ethers, web3 } from "hardhat";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { BigNumber } from "ethers";
+
+import { assert, expect } from "chai";
+
+describe("TokenFactory", () => {
+  let deployer: SignerWithAddress;
+  let user: SignerWithAddress;
+
+  let messageProxy: MessageProxyForSchain;
+  let lockAndDataForSchain: LockAndDataForSchainWorkaround;
+  let tokenFactory: TokenFactory;
+  let eRC20ModuleForSchain: ERC20ModuleForSchain;
+  let lockAndDataForSchainERC20: LockAndDataForSchainERC20;
+  let eRC721ModuleForSchain: ERC721ModuleForSchain;
+  let lockAndDataForSchainERC721: LockAndDataForSchainERC721;
+
+  before(async () => {
+    [deployer, user] = await ethers.getSigners();
+  });
 
   beforeEach(async () => {
-    messageProxy = await MessageProxyForSchain.new(
-      "Mainnet", {from: deployer});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
-    tokenFactory = await TokenFactory.new(lockAndDataForSchain.address,
-      {from: deployer});
-    eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
-      {from: deployer});
-    eRC721ModuleForSchain = await ERC721ModuleForSchain.new(lockAndDataForSchain.address,
-      {from: deployer});
-    lockAndDataForSchainERC20 =
-      await LockAndDataForSchainERC20.new(lockAndDataForSchain.address, {from: deployer});
-    lockAndDataForSchainERC721 =
-      await LockAndDataForSchainERC721.new(lockAndDataForSchain.address,
-        {from: deployer});
+    lockAndDataForSchain = await deployLockAndDataForSchainWorkaround();
+    lockAndDataForSchainERC721 = await deployLockAndDataForSchainERC721(lockAndDataForSchain);
+    lockAndDataForSchainERC20 = await deployLockAndDataForSchainERC20(lockAndDataForSchain);
+    eRC20ModuleForSchain = await deployERC20ModuleForSchain(lockAndDataForSchain);
+    eRC721ModuleForSchain = await deployERC721ModuleForSchain(lockAndDataForSchain);
+    tokenFactory = await deployTokenFactory(lockAndDataForSchain);
+    messageProxy = await deployMessageProxyForSchain("Mainnet");
   });
 
   it("should createERC20", async () => {
     // preparation
-    const to = user;
+    const to = user.address;
     const data = "0x03" +
     "000000000000000000000000000000000000000000000000000000000000000a" + // contractPosition
     to.substr(2) + "000000000000000000000000" + // receiver
@@ -103,19 +96,21 @@ contract("TokenFactory", ([user, deployer]) => {
     "000000000000000000000000000000000000000000000000000000003b9ac9f6"; // total supply
     // set `ERC20Module` to avoid `Roles: account is the zero address` error
     await lockAndDataForSchain
-      .setContract("ERC20Module", eRC20ModuleForSchain.address, {from: deployer});
+      .connect(deployer)
+      .setContract("ERC20Module", eRC20ModuleForSchain.address);
     // set `LockAndDataERC20` to avoid `Roles: account is the zero address` error
     await lockAndDataForSchain
-      .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address, {from: deployer});
+      .connect(deployer)
+      .setContract("LockAndDataERC20", lockAndDataForSchainERC20.address);
     // execution
-    const res = await tokenFactory.createERC20.call("elvis", "ELV", {from: deployer});
+    const res = await tokenFactory.connect(deployer).callStatic.createERC20("elvis", "ELV");
     // expectation
     expect(res).to.include("0x");
   });
 
   it("should createERC721", async () => {
     // preparation
-    const to = user;
+    const to = user.address;
     const data = "0x05" +
     "0000000000000000000000000000000000000000000000000000000000000001" + // contractPosition
     to.substr(2) + "000000000000000000000000" + // receiver
@@ -126,43 +121,51 @@ contract("TokenFactory", ([user, deployer]) => {
     "455243373231"; // token symbol
     // set `ERC721Module` to avoid `Roles: account is the zero address` error
     await lockAndDataForSchain
-        .setContract("ERC721Module", eRC721ModuleForSchain.address, {from: deployer});
+        .connect(deployer)
+        .setContract("ERC721Module", eRC721ModuleForSchain.address);
     // set `LockAndDataERC721` to avoid `Roles: account is the zero address` error
     await lockAndDataForSchain
-        .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address, {from: deployer});
+        .connect(deployer)
+        .setContract("LockAndDataERC721", lockAndDataForSchainERC721.address);
     // execution
-    const res = await tokenFactory.createERC721.call("elvis", "ELV", {from: deployer});
+    const res = await tokenFactory.connect(deployer).callStatic.createERC721("elvis", "ELV");
     // expectation
     expect(res).to.include("0x");
   });
 
 });
 
-contract("ERC20OnChain", ([deployer, user]) => {
-  let messageProxy: MessageProxyForSchainInstance;
-  let lockAndDataForSchain: LockAndDataForSchainWorkaroundInstance;
-  let eRC20OnChain: ERC20OnChainInstance;
-  let eRC20ModuleForSchain: ERC20ModuleForSchainInstance;
+describe("ERC20OnChain", () => {
+  let deployer: SignerWithAddress;
+  let user: SignerWithAddress;
 
-  beforeEach(async () => {
-    messageProxy = await MessageProxyForSchain.new(
-      "Mainnet", {from: deployer});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
-    eRC20ModuleForSchain = await ERC20ModuleForSchain.new(lockAndDataForSchain.address,
-      {from: deployer});
+  let messageProxy: MessageProxyForSchain;
+  let lockAndDataForSchain: LockAndDataForSchainWorkaround;
+  let eRC20OnChain: ERC20OnChain;
+  let eRC20ModuleForSchain: ERC20ModuleForSchain;
+
+  before(async () => {
+    [deployer, user] = await ethers.getSigners();
+  });
+
+  beforeEach(async () => {  
+    lockAndDataForSchain = await deployLockAndDataForSchainWorkaround();
+    eRC20ModuleForSchain = await deployERC20ModuleForSchain(lockAndDataForSchain);
+    messageProxy = await deployMessageProxyForSchain("Mainnet");
+
     await lockAndDataForSchain.setContract("ERC20Module", eRC20ModuleForSchain.address);
-    eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20", {from: deployer});
+    eRC20OnChain = await deployERC20OnChain("ERC20OnChain", "ERC20");
   });
 
   it("should invoke `_mint` as internal", async () => {
     // preparation
-    const account = user;
+    const account = user.address;
     const value = 500;
     // execution
-    await eRC20OnChain.mint(account, value, {from: deployer});
+    await eRC20OnChain.connect(deployer).mint(account, value);
     // expectation
     const balance = await eRC20OnChain.balanceOf(account);
-    parseInt(new BigNumber(balance).toString(), 10).should.be.equal(value);
+    parseInt(BigNumber.from(balance).toString(), 10).should.be.equal(value);
   });
 
   it("should invoke `burn`", async () => {
@@ -170,49 +173,55 @@ contract("ERC20OnChain", ([deployer, user]) => {
     const amount = 500;
     const mintAmount = 1500;
     // mint to avoid `SafeMath: subtraction overflow` error
-    await eRC20OnChain.mint(deployer, mintAmount, {from: deployer});
+    await eRC20OnChain.connect(deployer).mint(deployer.address, mintAmount);
     // execution
-    await eRC20OnChain.burn(amount, {from: deployer});
+    await eRC20OnChain.connect(deployer).burn(amount);
     // expectation
-    const balance = await eRC20OnChain.balanceOf(deployer);
-    parseInt(new BigNumber(balance).toString(), 10).should.be.equal(mintAmount - amount);
+    const balance = await eRC20OnChain.balanceOf(deployer.address);
+    parseInt(BigNumber.from(balance).toString(), 10).should.be.equal(mintAmount - amount);
   });
 
   it("should invoke `burnFrom`", async () => {
     // preparation
-    const account = user;
+    const account = user.address;
     const amount = 100;
     const mintAmount = 200;
     // mint to avoid `SafeMath: subtraction overflow` error
-    await eRC20OnChain.mint(account, mintAmount, {from: deployer});
+    await eRC20OnChain.connect(deployer).mint(account, mintAmount);
     // approve to avoid `SafeMath: subtraction overflow` error
-    await eRC20OnChain.approve(deployer, 100, {from: account});
+    await eRC20OnChain.connect(user).approve(deployer.address, 100);
     // execution
-    await eRC20OnChain.burnFrom(account, amount, {from: deployer});
+    await eRC20OnChain.connect(deployer).burnFrom(account, amount);
     // expectation
     const balance = await eRC20OnChain.balanceOf(account);
-    parseInt(new BigNumber(balance).toString(), 10).should.be.equal(mintAmount - amount);
+    parseInt(BigNumber.from(balance).toString(), 10).should.be.equal(mintAmount - amount);
   });
 });
 
-contract("ERC721OnChain", ([user, deployer]) => {
-  let messageProxy: MessageProxyForSchainInstance;
-  let lockAndDataForSchain: LockAndDataForSchainWorkaroundInstance;
-  let eRC721OnChain: ERC721OnChainInstance;
+describe("ERC721OnChain", () => {
+  let deployer: SignerWithAddress;
+  let user: SignerWithAddress;
+
+  let messageProxy: MessageProxyForSchain;
+  let lockAndDataForSchain: LockAndDataForSchainWorkaround;
+  let eRC721OnChain: ERC721OnChain;
+
+  before(async () => {
+    [deployer, user] = await ethers.getSigners();
+  });
 
   beforeEach(async () => {
-    messageProxy = await MessageProxyForSchain.new(
-      "Mainnet", {from: deployer});
-    lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
-    eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721", {from: deployer});
+    lockAndDataForSchain = await deployLockAndDataForSchainWorkaround();
+    messageProxy = await deployMessageProxyForSchain("Mainnet");
+    eRC721OnChain = await deployERC721OnChain("ERC721OnChain", "ERC721");
   });
 
   it("should invoke `mint`", async () => {
     // preparation
-    const account = user;
+    const account = user.address;
     const tokenId = 500;
     // execution
-    await eRC721OnChain.mint(account, tokenId, {from: deployer});
+    await eRC721OnChain.connect(deployer).mint(account, tokenId);
     // expectation
     expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(account);
   });
@@ -222,9 +231,9 @@ contract("ERC721OnChain", ([user, deployer]) => {
     const error = "ERC721: owner query for nonexistent token";
     const tokenId = 55;
     // mint to avoid `owner query for nonexistent token` error
-    await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
+    await eRC721OnChain.connect(deployer).mint(deployer.address, tokenId);
     // execution
-    await eRC721OnChain.burn(tokenId, {from: deployer});
+    await eRC721OnChain.connect(deployer).burn(tokenId);
     // expectation
     await eRC721OnChain.ownerOf(tokenId).should.be.eventually.rejectedWith(error);
   });
@@ -233,11 +242,11 @@ contract("ERC721OnChain", ([user, deployer]) => {
     // preparation
     const error = "ERC721Burnable: caller is not owner nor approved";
     const tokenId = 55;
-    const account = user;
+    const account = user.address;
     // mint to avoid `owner query for nonexistent token` error
-    await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
+    await eRC721OnChain.connect(deployer).mint(deployer.address, tokenId);
     // execution/expectation
-    await eRC721OnChain.burn(tokenId, {from: account}).should.be.eventually.rejectedWith(error);
+    await eRC721OnChain.connect(user).burn(tokenId).should.be.eventually.rejectedWith(error);
   });
 
   it("should invoke `setTokenURI`", async () => {
@@ -245,11 +254,11 @@ contract("ERC721OnChain", ([user, deployer]) => {
     const tokenURI = "Some string with describe token";
     const tokenId = 55;
     // mint to avoid `owner query for nonexistent token` error
-    await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
+    await eRC721OnChain.connect(deployer).mint(deployer.address, tokenId);
     // execution
-    const res = await eRC721OnChain.setTokenURI(tokenId, tokenURI, {from: deployer});
+    const res = await (await eRC721OnChain.connect(deployer).setTokenURI(tokenId, tokenURI)).wait();
     // expectation
-    expect(res.receipt.status).to.be.true;
+    expect(res.status).to.be.equal(1);
   });
 
 });
