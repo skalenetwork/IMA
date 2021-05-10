@@ -25,16 +25,32 @@
 
 import { BigNumber } from "ethers";
 import * as chaiAsPromised from "chai-as-promised";
-import chai = require("chai");
+import * as chai from "chai";
 import { expect } from "chai";
 import { randomString } from "./utils/helper";
 import { artifacts } from "hardhat";
-import { TokenManager, MessageProxyForSchain, EthERC20, LockAndDataForSchain, LockAndDataForSchainERC20, ERC20ModuleForSchain, ERC20OnChain, ERC721OnChain, ERC721ModuleForSchain, LockAndDataForSchainERC721, TokenFactory, MessagesTester } from "../typechain";
-import { ethers } from "hardhat";
+import { TokenManager, MessageProxyForSchain, EthERC20, LockAndDataForSchainWorkaround, LockAndDataForSchainERC20, ERC20ModuleForSchain, ERC20OnChain, ERC721OnChain, ERC721ModuleForSchain, LockAndDataForSchainERC721, TokenFactory, MessagesTester } from "../typechain";
+import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 
 chai.should();
 chai.use((chaiAsPromised as any));
+
+import { deployLockAndDataForSchainWorkaround } from "./utils/deploy/test/lockAndDataForSchainWorkaround";
+import { deployLockAndDataForSchainERC20 } from "./utils/deploy/schain/lockAndDataForSchainERC20";
+import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
+import { deployLockAndDataForSchainERC721 } from "./utils/deploy/schain/lockAndDataForSchainERC721";
+import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
+import { deployERC20ModuleForSchain } from "./utils/deploy/schain/erc20ModuleForSchain";
+import { deployERC721ModuleForSchain } from "./utils/deploy/schain/erc721ModuleForSchain";
+import { deployTokenFactory } from "./utils/deploy/schain/tokenFactory";
+import { deployTokenManager } from "./utils/deploy/schain/tokenManager";
+import { deployMessageProxyForSchain } from "./utils/deploy/schain/messageProxyForSchain";
+import { deployEthERC20 } from "./utils/deploy/schain/ethERC20";
+import { deployMessages } from "./utils/deploy/messages";
+
+const ABIERC721MintAndBurn = require("../artifacts/contracts/schain/LockAndDataForSchainERC721.sol/ERC721MintAndBurn.json");
+const ABIERC20MintAndBurn = require("../artifacts/contracts/schain/LockAndDataForSchainERC20.sol/ERC20MintAndBurn.json");
 
 describe("TokenManager", () => {
     let deployer: SignerWithAddress;
@@ -44,7 +60,7 @@ describe("TokenManager", () => {
     let tokenManager: TokenManager;
     let messageProxyForSchain: MessageProxyForSchain;
     let ethERC20: EthERC20;
-    let lockAndDataForSchain: LockAndDataForSchain;
+    let lockAndDataForSchain: LockAndDataForSchainWorkaround;
     let lockAndDataForSchainERC20: LockAndDataForSchainERC20;
     let eRC20ModuleForSchain: ERC20ModuleForSchain;
     let eRC20OnChain: ERC20OnChain;
@@ -70,23 +86,21 @@ describe("TokenManager", () => {
     })
 
     beforeEach(async () => {
-        messageProxyForSchain = await (await ethers.getContractFactory("MessageProxyForSchain")).deploy(chainID) as MessageProxyForSchain;
-        lockAndDataForSchain = await (await ethers.getContractFactory("LockAndDataForSchain")).deploy() as LockAndDataForSchain;
+        messageProxyForSchain = await deployMessageProxyForSchain(chainID);
+        lockAndDataForSchain = await deployLockAndDataForSchainWorkaround();
         await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address);
-        tokenManager = await (await ethers.getContractFactory("TokenManager")).deploy(chainID, lockAndDataForSchain.address) as TokenManager;
-        ethERC20 = await (await ethers.getContractFactory("EthERC20")).deploy() as EthERC20;
-        lockAndDataForSchainERC20 = await (await ethers.getContractFactory("LockAndDataForSchainERC20"))
-            .deploy(lockAndDataForSchain.address) as LockAndDataForSchainERC20;
-        eRC20ModuleForSchain = await (await ethers.getContractFactory("ERC20ModuleForSchain"))
-            .deploy(lockAndDataForSchain.address) as ERC20ModuleForSchain;
-        eRC20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).deploy("ERC20", "ERC20") as ERC20OnChain;
-        eRC20 = await (await ethers.getContractFactory("ERC20OnChain")).deploy("SKALE", "SKL") as ERC20OnChain;
-        eRC721OnChain = await (await ethers.getContractFactory("ERC721OnChain")).deploy("ERC721OnChain", "ERC721") as ERC721OnChain;
-        eRC721 = await (await ethers.getContractFactory("ERC721OnChain")).deploy("eRC721", "ERC721") as ERC721OnChain;
-        eRC721ModuleForSchain = await (await ethers.getContractFactory("ERC721ModuleForSchain")).deploy(lockAndDataForSchain.address) as ERC721ModuleForSchain;
-        lockAndDataForSchainERC721 = await (await ethers.getContractFactory("LockAndDataForSchainERC721")).deploy(lockAndDataForSchain.address) as LockAndDataForSchainERC721;
-        tokenFactory = await (await ethers.getContractFactory("TokenFactory")).deploy(lockAndDataForSchain.address) as TokenFactory;
-        messages = await (await ethers.getContractFactory("MessagesTester")).deploy() as MessagesTester;
+        tokenManager = await deployTokenManager(chainID, lockAndDataForSchain);
+        ethERC20 = await deployEthERC20();
+        lockAndDataForSchainERC20 = await deployLockAndDataForSchainERC20(lockAndDataForSchain);
+        eRC20ModuleForSchain = await deployERC20ModuleForSchain(lockAndDataForSchain);
+        eRC20OnChain = await deployERC20OnChain("ERC20", "ERC20");
+        eRC20 = await deployERC20OnChain("SKALE", "SKL");
+        eRC721OnChain = await deployERC721OnChain("ERC721OnChain", "ERC721");
+        eRC721 = await deployERC721OnChain("eRC721", "ERC721");
+        eRC721ModuleForSchain = await deployERC721ModuleForSchain(lockAndDataForSchain);
+        lockAndDataForSchainERC721 = await deployLockAndDataForSchainERC721(lockAndDataForSchain);
+        tokenFactory = await deployTokenFactory(lockAndDataForSchain);
+        messages = await deployMessages();
         await lockAndDataForSchainERC20.enableAutomaticDeploy("Mainnet");
         await lockAndDataForSchainERC721.enableAutomaticDeploy("Mainnet");
     });
@@ -239,7 +253,7 @@ describe("TokenManager", () => {
     });
 
     it("should not receive ETH", async () => {
-        await web3.eth.sendTransaction({from: deployer, to: tokenManager.address, value: "1000000000000000000"})
+        await web3.eth.sendTransaction({from: deployer.address, to: tokenManager.address, value: "1000000000000000000"})
             .should.be.eventually.rejected;
     });
 
@@ -270,7 +284,7 @@ describe("TokenManager", () => {
         // invoke `setTotalSupplyOnMainnet` before `mint` to avoid `SafeMath: subtraction overflow` exception:
         // await eRC20OnChain.setTotalSupplyOnMainnet(amount);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
-        await eRC20OnChain.mint(deployer, amountMint);
+        await eRC20OnChain.mint(deployer.address, amountMint);
 
         await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID);
 
@@ -281,7 +295,7 @@ describe("TokenManager", () => {
 
         // execution:
         await tokenManager
-            .transferToSchainERC20(schainID, eRC20.address, client, amountReduceCost)
+            .transferToSchainERC20(schainID, eRC20.address, client.address, amountReduceCost)
             .should.be.eventually.rejectedWith(error);
     });
 
@@ -305,7 +319,7 @@ describe("TokenManager", () => {
         // invoke `setTotalSupplyOnMainnet` before `mint` to avoid `SafeMath: subtraction overflow` exception:
         // await eRC20OnChain.setTotalSupplyOnMainnet(amount);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
-        await eRC20OnChain.mint(deployer, amountMint);
+        await eRC20OnChain.mint(deployer.address, amountMint);
 
         await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID);
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
@@ -315,7 +329,7 @@ describe("TokenManager", () => {
 
         // execution:
         await tokenManager
-            .transferToSchainERC20(schainID, eRC20.address, client, amountReduceCost);
+            .transferToSchainERC20(schainID, eRC20.address, client.address, amountReduceCost);
         // expectation:
         const outgoingMessagesCounterMainnet = BigNumber.from(
             await messageProxyForSchain.getOutgoingMessagesCounter(schainID));
@@ -344,8 +358,8 @@ describe("TokenManager", () => {
         const minterRole = await eRC721OnChain.MINTER_ROLE();
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
-        await eRC721OnChain.mint(deployer, tokenId);
-        await eRC721OnChain.mint(deployer, tokenId2);
+        await eRC721OnChain.mint(deployer.address, tokenId);
+        await eRC721OnChain.mint(deployer.address, tokenId2);
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
         await lockAndDataForSchainERC721.addERC721ForSchain("Mainnet", eRC721.address, eRC721OnChain.address);
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
@@ -353,7 +367,7 @@ describe("TokenManager", () => {
 
         // execution:
         await tokenManager
-            .exitToMainERC721(eRC721.address, client, tokenId2)
+            .exitToMainERC721(eRC721.address, client.address, tokenId2)
             .should.be.eventually.rejectedWith(error);
     });
 
@@ -362,7 +376,7 @@ describe("TokenManager", () => {
         const tokenId = 10;
         const contractHere = eRC721OnChain.address;
         const contractThere = eRC721.address;
-        const to = user;
+        const to = user.address;
         const amountEth = BigNumber.from("60000000000000000");
         // set EthERC20 address:
         await lockAndDataForSchain.setEthErc20Address(ethERC20.address);
@@ -383,9 +397,9 @@ describe("TokenManager", () => {
         const minterRole = await eRC721OnChain.MINTER_ROLE();
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
-        await eRC721OnChain.mint(user, tokenId);
+        await eRC721OnChain.mint(user.address, tokenId);
         // invoke `addExit` to avoid `Does not allow to exit` exception on `exitToMainERC20` function:
-        await lockAndDataForSchain.sendEth(user, amountEth);
+        await lockAndDataForSchain.sendEth(user.address, amountEth);
         await eRC721OnChain.connect(user).approve(tokenManager.address, tokenId);
 
         // execution:
@@ -401,7 +415,7 @@ describe("TokenManager", () => {
         const tokenId = 10;
         const contractHere = eRC721OnChain.address;
         const contractThere = eRC721.address;
-        const to = user;
+        const to = user.address;
         const schainID = randomString(10);
         await lockAndDataForSchain.addSchain(schainID, tokenManager.address);
         // set contract TokenManager to avoid `Not allowed` exception on `exitToMainERC20` function:
@@ -423,7 +437,7 @@ describe("TokenManager", () => {
         const minterRole = await eRC721OnChain.MINTER_ROLE();
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
-        await eRC721OnChain.mint(deployer, tokenId);
+        await eRC721OnChain.mint(deployer.address, tokenId);
 
         await eRC721OnChain.approve(tokenManager.address, tokenId);
 
@@ -443,7 +457,7 @@ describe("TokenManager", () => {
         const tokenId2 = 11;
         const contractHere = eRC721OnChain.address;
         const contractThere = eRC721.address;
-        const to = user;
+        const to = user.address;
         const schainID = randomString(10);
         await lockAndDataForSchain.addSchain(schainID, tokenManager.address);
         await messageProxyForSchain.addConnectedChain(schainID)
@@ -465,8 +479,8 @@ describe("TokenManager", () => {
         const minterRole = await eRC721OnChain.MINTER_ROLE();
         await eRC721OnChain.grantRole(minterRole, lockAndDataForSchainERC721.address);
         // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
-        await eRC721OnChain.mint(deployer, tokenId);
-        await eRC721OnChain.mint(deployer, tokenId2);
+        await eRC721OnChain.mint(deployer.address, tokenId);
+        await eRC721OnChain.mint(deployer.address, tokenId2);
         // invoke `addERC20ForSchain` to avoid `Not existing ERC-20 contract` exception on `exitToMainERC20` function:
         await lockAndDataForSchainERC721.addERC721ForSchain(schainID, eRC721.address, eRC721OnChain.address);
         // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
@@ -485,9 +499,9 @@ describe("TokenManager", () => {
           const error = "Not a sender";
           const schainID = randomString(10);
           const amount = 10;
-          const bytesData = await messages.encodeTransferEthMessage(user, amount);
+          const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
 
-          const sender = deployer;
+          const sender = deployer.address;
           // execution/expectation
           await tokenManager
             .postMessage(chainID, sender, bytesData)
@@ -500,12 +514,12 @@ describe("TokenManager", () => {
             // for `Receiver chain is incorrect` message schainID should be `Mainnet`
             const schainID = randomString(10);
             const amount = 10;
-            const bytesData = await messages.encodeTransferEthMessage(user, amount);
-            const sender = deployer;
+            const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
+            const sender = deployer.address;
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
-            tokenManager = await TokenManager.new(schainID, lockAndDataForSchain.address);
-            await lockAndDataForSchain.setContract("MessageProxy", deployer);
+            tokenManager = await deployTokenManager(schainID, lockAndDataForSchain);
+            await lockAndDataForSchain.setContract("MessageProxy", deployer.address);
             // execution
             await tokenManager
                 .postMessage(chainID, sender, bytesData)
@@ -519,16 +533,16 @@ describe("TokenManager", () => {
             const amount = 10;
             // for `Invalid data` message bytesData should be `0x`
             const bytesData = "0x";
-            const sender = deployer;
+            const sender = deployer.address;
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
-            tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address);
+            tokenManager = await deployTokenManager(chainID, lockAndDataForSchain);
             // set `tokenManager` contract to avoid the `Not allowed` error in lockAndDataForSchain.sol
             await lockAndDataForSchain
                 .setContract("TokenManager", tokenManager.address);
             // add schain to avoid the `Receiver chain is incorrect` error
             await lockAndDataForSchain
-                .addSchain(schainID, deployer);
+                .addSchain(schainID, deployer.address);
             // execution
             await tokenManager
                 .postMessage(schainID, sender, bytesData)
@@ -539,24 +553,24 @@ describe("TokenManager", () => {
             //  preparation
             const schainID = randomString(10);
             const amount = "30000000000000000";
-            const sender = deployer;
-            const to = user;
+            const sender = deployer.address;
+            const to = user.address;
             // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
             const bytesData = await messages.encodeTransferEthMessage(to, amount);
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
-            tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address);
+            tokenManager = await deployTokenManager(chainID, lockAndDataForSchain);
             // set `tokenManager` contract to avoid the `Not allowed` error in lockAndDataForSchain.sol
             await lockAndDataForSchain
                 .setContract("TokenManager", tokenManager.address);
             // add schain to avoid the `Receiver chain is incorrect` error
             await lockAndDataForSchain
-                .addSchain(schainID, deployer);
+                .addSchain(schainID, deployer.address);
             // set EthERC20 address:
             await lockAndDataForSchain.setEthErc20Address(ethERC20.address);
             // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
             await ethERC20.transferOwnership(lockAndDataForSchain.address);
-            await lockAndDataForSchain.setContract("MessageProxy", deployer);
+            await lockAndDataForSchain.setContract("MessageProxy", deployer.address);
             // execution
             await tokenManager
                 .postMessage(schainID, sender, bytesData);
@@ -574,23 +588,23 @@ describe("TokenManager", () => {
             // for transfer `eth` bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
             const to = "0x0000000000000000000000000000000000000000";
             const bytesData = await messages.encodeTransferEthMessage(to, amount);;
-            const sender = deployer;
+            const sender = deployer.address;
             // const communityPoolBefore = BigNumber.from(await lockAndDataForSchain.communityPool());
             // communityPoolBefore.should.be.deep.equal(BigNumber.from(0));
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
-            tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address);
+            tokenManager = await deployTokenManager(chainID, lockAndDataForSchain);
             // set `tokenManager` contract to avoid the `Not allowed` error in lockAndDataForSchain.sol
             await lockAndDataForSchain
                 .setContract("TokenManager", tokenManager.address);
             // add schain to avoid the `Receiver chain is incorrect` error
             await lockAndDataForSchain
-                .addSchain(schainID, deployer);
+                .addSchain(schainID, deployer.address);
             // set EthERC20 address:
             await lockAndDataForSchain.setEthErc20Address(ethERC20.address);
             // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
             await ethERC20.transferOwnership(lockAndDataForSchain.address);
-            await lockAndDataForSchain.setContract("MessageProxy", deployer);
+            await lockAndDataForSchain.setContract("MessageProxy", deployer.address);
             // execution
             await tokenManager
                 .postMessage(schainID, sender, bytesData)
@@ -603,9 +617,9 @@ describe("TokenManager", () => {
             //  preparation
             const schainID = randomString(10);
             const amount = 10;
-            const to = user;
-            const sender = deployer;
-            await eRC20.mint(deployer, amount);
+            const to = user.address;
+            const sender = deployer.address;
+            await eRC20.mint(deployer.address, amount);
             const data = await messages.encodeTransferErc20AndTokenInfoMessage(
                 eRC20.address,
                 to,
@@ -614,12 +628,12 @@ describe("TokenManager", () => {
                 {
                     name: await eRC20.name(),
                     symbol: await eRC20.symbol(),
-                    decimals: (await eRC20.decimals()).toNumber()
+                    decimals: BigNumber.from(await eRC20.decimals()).toNumber()
                 }
             );
             // add schain to avoid the `Unconnected chain` error
             await lockAndDataForSchain
-                .addSchain(schainID, deployer);
+                .addSchain(schainID, deployer.address);
             // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
             await messageProxyForSchain
               .addConnectedChain(schainID);
@@ -634,7 +648,7 @@ describe("TokenManager", () => {
                 .setContract("TokenFactory", tokenFactory.address);
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
-            tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address);
+            tokenManager = await deployTokenManager(chainID, lockAndDataForSchain);
             // set `tokenManager` contract before invoke `postMessage`
             await lockAndDataForSchain
               .setContract("TokenManager", tokenManager.address);
@@ -642,14 +656,14 @@ describe("TokenManager", () => {
             await lockAndDataForSchain.setEthErc20Address(ethERC20.address);
             // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
             await ethERC20.transferOwnership(lockAndDataForSchain.address);
-            await lockAndDataForSchain.setContract("MessageProxy", deployer);
+            await lockAndDataForSchain.setContract("MessageProxy", deployer.address);
 
             await lockAndDataForSchainERC20.enableAutomaticDeploy(schainID);
             // execution
             await tokenManager.postMessage(schainID, sender, data);
             // expectation
             const addressERC20OnSchain = await lockAndDataForSchainERC20.getERC20OnSchain(schainID, eRC20.address);
-            const erc20OnChain = new web3.eth.Contract(artifacts.require("./ERC20MintAndBurn").abi, addressERC20OnSchain);
+            const erc20OnChain = new web3.eth.Contract(ABIERC20MintAndBurn.abi, addressERC20OnSchain);
             expect(parseInt((BigNumber.from(await erc20OnChain.methods.balanceOf(to).call())).toString(), 10))
                 .to.be.equal(amount);
         });
@@ -658,9 +672,9 @@ describe("TokenManager", () => {
             //  preparation
             const schainID = randomString(10);
             const amount = 10;
-            const to = user;
+            const to = user.address;
             const to0 = "0x0000000000000000000000000000000000000000"; // ERC20 address
-            const sender = deployer;
+            const sender = deployer.address;
             const tokenId = 2;
             const data = await messages.encodeTransferErc721AndTokenInfoMessage(
                 eRC721.address,
@@ -673,7 +687,7 @@ describe("TokenManager", () => {
             );
             // add schain to avoid the `Unconnected chain` error
             await lockAndDataForSchain
-                .addSchain(schainID, deployer);
+                .addSchain(schainID, deployer.address);
             // add connected chain to avoid the `Destination chain is not initialized` error in MessageProxy.sol
             await messageProxyForSchain
                 .addConnectedChain(schainID);
@@ -688,7 +702,7 @@ describe("TokenManager", () => {
             .setContract("TokenFactory", tokenFactory.address);
             // redeploy tokenManager with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
-            tokenManager = await TokenManager.new(chainID, lockAndDataForSchain.address);
+            tokenManager = await deployTokenManager(chainID, lockAndDataForSchain);
             // set `tokenManager` contract before invoke `postMessage`
             await lockAndDataForSchain
               .setContract("TokenManager", tokenManager.address);
@@ -696,13 +710,13 @@ describe("TokenManager", () => {
             await lockAndDataForSchain.setEthErc20Address(ethERC20.address);
             // transfer ownership of using ethERC20 contract method to lockAndDataForSchain contract address:
             await ethERC20.transferOwnership(lockAndDataForSchain.address);
-            await lockAndDataForSchain.setContract("MessageProxy", deployer);
+            await lockAndDataForSchain.setContract("MessageProxy", deployer.address);
             await lockAndDataForSchainERC721.enableAutomaticDeploy(schainID);
             // execution
             await tokenManager.postMessage(schainID, sender, data);
             // expectation
             const addressERC721OnSchain = await lockAndDataForSchainERC721.getERC721OnSchain(schainID, eRC721.address);
-            const erc721OnChain = new web3.eth.Contract(artifacts.require("./ERC721MintAndBurn").abi, addressERC721OnSchain);
+            const erc721OnChain = new web3.eth.Contract(ABIERC721MintAndBurn.abi, addressERC721OnSchain);
             expect(await erc721OnChain.methods.ownerOf(tokenId).call()).to.be.equal(to);
         });
     });
