@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { ContractManager, MessageProxyForMainnet } from "../../../typechain";
+import { ContractManager, MessageProxyForMainnet } from "../../../../typechain";
 
 const name = "MessageProxyForMainnet";
 

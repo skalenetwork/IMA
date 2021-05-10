@@ -63,7 +63,7 @@ export function stringFromHex(hex: string, str: string) {
     return str;
 }
 
-export function stringValue(value: string | null) {
+export function stringValue(value: string | null | undefined) {
   if (value) {
       return value;
   } else {
