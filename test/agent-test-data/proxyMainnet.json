@@ -1,5 +1,5 @@
 {
-    "message_proxy_mainnet_address": "0x4CBD5879D24910ADE80d229B524d3e56f4d83197",
+    "message_proxy_mainnet_address": "0x187B70FC423f90f7c0bD550B76c0e60464B840f1",
     "message_proxy_mainnet_abi": [
         {
             "anonymous": false,
@@ -27,18 +27,6 @@
                     "internalType": "address",
                     "name": "dstContract",
                     "type": "address"
-                },
-                {
-                    "indexed": false,
-                    "internalType": "address",
-                    "name": "to",
-                    "type": "address"
-                },
-                {
-                    "indexed": false,
-                    "internalType": "uint256",
-                    "name": "amount",
-                    "type": "uint256"
                 },
                 {
                     "indexed": false,
@@ -159,6 +147,19 @@
         },
         {
             "inputs": [],
+            "name": "DEBUGGER_ROLE",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
             "name": "DEFAULT_ADMIN_ROLE",
             "outputs": [
                 {
@@ -172,12 +173,38 @@
         },
         {
             "inputs": [],
-            "name": "chainID",
+            "name": "MAINNET_CHAIN_ID",
             "outputs": [
                 {
-                    "internalType": "string",
+                    "internalType": "bytes32",
                     "name": "",
-                    "type": "string"
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "MESSAGE_GAS_COST",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "communityPoolAddress",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
                 }
             ],
             "stateMutability": "view",
@@ -217,21 +244,8 @@
             "name": "contractManagerOfSkaleManager",
             "outputs": [
                 {
-                    "internalType": "address",
+                    "internalType": "contract IContractManager",
                     "name": "",
-                    "type": "address"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "getOwner",
-            "outputs": [
-                {
-                    "internalType": "address",
-                    "name": "ow",
                     "type": "address"
                 }
             ],
@@ -345,35 +359,22 @@
         {
             "inputs": [
                 {
-                    "internalType": "bytes32",
-                    "name": "chainId",
-                    "type": "bytes32"
-                },
-                {
                     "internalType": "address",
                     "name": "sender",
                     "type": "address"
+                },
+                {
+                    "internalType": "bytes32",
+                    "name": "schainId",
+                    "type": "bytes32"
                 }
             ],
-            "name": "isAuthorizedCaller",
+            "name": "isSchainOwner",
             "outputs": [
                 {
                     "internalType": "bool",
                     "name": "",
                     "type": "bool"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "owner",
-            "outputs": [
-                {
-                    "internalType": "address",
-                    "name": "",
-                    "type": "address"
                 }
             ],
             "stateMutability": "view",
@@ -444,23 +445,26 @@
         {
             "inputs": [
                 {
-                    "internalType": "string",
-                    "name": "dstChainID",
-                    "type": "string"
+                    "internalType": "address",
+                    "name": "newCommunityPoolAddress",
+                    "type": "address"
+                }
+            ],
+            "name": "setCommunityPool",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "dstChainHash",
+                    "type": "bytes32"
                 },
                 {
                     "internalType": "address",
                     "name": "dstContract",
-                    "type": "address"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "amount",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "address",
-                    "name": "to",
                     "type": "address"
                 },
                 {
@@ -497,16 +501,6 @@
                             "internalType": "address",
                             "name": "destinationContract",
                             "type": "address"
-                        },
-                        {
-                            "internalType": "address",
-                            "name": "to",
-                            "type": "address"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "amount",
-                            "type": "uint256"
                         },
                         {
                             "internalType": "bytes",
@@ -564,7 +558,7 @@
                     "type": "string"
                 }
             ],
-            "name": "moveIncomingCounter",
+            "name": "incrementIncomingCounter",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -642,8 +636,8 @@
         {
             "inputs": [
                 {
-                    "internalType": "address",
-                    "name": "newContractManagerOfSkaleManager",
+                    "internalType": "contract IContractManager",
+                    "name": "contractManagerOfSkaleManager",
                     "type": "address"
                 }
             ],
@@ -653,7 +647,7 @@
             "type": "function"
         }
     ],
-    "linker_address": "0xD46e627E0E198bB532Ef0ff709f435f37c20d1D8",
+    "linker_address": "0x4B85B4567F11a5c660037A135d7Cf9f60763785f",
     "linker_abi": [
         {
             "anonymous": false,
@@ -745,25 +739,12 @@
         },
         {
             "inputs": [],
-            "name": "contractManagerOfSkaleManager",
+            "name": "LINKER_ROLE",
             "outputs": [
                 {
-                    "internalType": "address",
+                    "internalType": "bytes32",
                     "name": "",
-                    "type": "address"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "getOwner",
-            "outputs": [
-                {
-                    "internalType": "address",
-                    "name": "ow",
-                    "type": "address"
+                    "type": "bytes32"
                 }
             ],
             "stateMutability": "view",
@@ -926,11 +907,11 @@
             "inputs": [
                 {
                     "internalType": "address",
-                    "name": "newDepositBoxAddress",
+                    "name": "newMainnetContract",
                     "type": "address"
                 }
             ],
-            "name": "registerDepositBox",
+            "name": "registerMainnetContract",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -939,11 +920,11 @@
             "inputs": [
                 {
                     "internalType": "address",
-                    "name": "depositBoxAddress",
+                    "name": "mainnetContract",
                     "type": "address"
                 }
             ],
-            "name": "removeDepositBox",
+            "name": "removeMainnetContract",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -957,7 +938,7 @@
                 },
                 {
                     "internalType": "address[]",
-                    "name": "tokenManagerAddresses",
+                    "name": "schainContracts",
                     "type": "address[]"
                 }
             ],
@@ -983,11 +964,11 @@
             "inputs": [
                 {
                     "internalType": "address",
-                    "name": "depositBoxAddress",
+                    "name": "mainnetContract",
                     "type": "address"
                 }
             ],
-            "name": "hasDepositBox",
+            "name": "hasMainnetContract",
             "outputs": [
                 {
                     "internalType": "bool",
@@ -1021,25 +1002,7 @@
             "inputs": [
                 {
                     "internalType": "address",
-                    "name": "newContractManagerOfSkaleManager",
-                    "type": "address"
-                },
-                {
-                    "internalType": "address",
-                    "name": "newMessageProxyAddress",
-                    "type": "address"
-                }
-            ],
-            "name": "initialize",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "newContractManagerOfSkaleManager",
+                    "name": "messageProxyAddress",
                     "type": "address"
                 }
             ],
@@ -1049,7 +1012,7 @@
             "type": "function"
         }
     ],
-    "deposit_box_eth_address": "0x26228eea6Dd6b4504e772497574CdBf4673A52Ef",
+    "deposit_box_eth_address": "0xA9c7aE7d863d68731a51C510f8A6cc4563Fb5dFD",
     "deposit_box_eth_abi": [
         {
             "anonymous": false,
@@ -1140,6 +1103,19 @@
             "type": "function"
         },
         {
+            "inputs": [],
+            "name": "DEPOSIT_BOX_MANAGER_ROLE",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
             "inputs": [
                 {
                     "internalType": "address",
@@ -1163,21 +1139,8 @@
             "name": "contractManagerOfSkaleManager",
             "outputs": [
                 {
-                    "internalType": "address",
+                    "internalType": "contract IContractManager",
                     "name": "",
-                    "type": "address"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "getOwner",
-            "outputs": [
-                {
-                    "internalType": "address",
-                    "name": "ow",
                     "type": "address"
                 }
             ],
@@ -1283,19 +1246,6 @@
                     "internalType": "bool",
                     "name": "",
                     "type": "bool"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "imaLinker",
-            "outputs": [
-                {
-                    "internalType": "address",
-                    "name": "",
-                    "type": "address"
                 }
             ],
             "stateMutability": "view",
@@ -1401,7 +1351,7 @@
             "inputs": [
                 {
                     "internalType": "string",
-                    "name": "schainID",
+                    "name": "schainName",
                     "type": "string"
                 },
                 {
@@ -1410,7 +1360,7 @@
                     "type": "address"
                 }
             ],
-            "name": "addTokenManager",
+            "name": "addSchainContract",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -1419,112 +1369,11 @@
             "inputs": [
                 {
                     "internalType": "string",
-                    "name": "schainID",
+                    "name": "schainName",
                     "type": "string"
                 }
             ],
-            "name": "removeTokenManager",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "string",
-                    "name": "fromSchainID",
-                    "type": "string"
-                },
-                {
-                    "internalType": "address",
-                    "name": "sender",
-                    "type": "address"
-                },
-                {
-                    "internalType": "address",
-                    "name": "to",
-                    "type": "address"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "amount",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "bytes",
-                    "name": "data",
-                    "type": "bytes"
-                }
-            ],
-            "name": "postMessage",
-            "outputs": [
-                {
-                    "internalType": "bool",
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "getMyEth",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "string",
-                    "name": "schainID",
-                    "type": "string"
-                }
-            ],
-            "name": "hasTokenManager",
-            "outputs": [
-                {
-                    "internalType": "bool",
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "newContractManagerOfSkaleManager",
-                    "type": "address"
-                },
-                {
-                    "internalType": "address",
-                    "name": "newMessageProxyAddress",
-                    "type": "address"
-                },
-                {
-                    "internalType": "address",
-                    "name": "newIMALinkerAddress",
-                    "type": "address"
-                }
-            ],
-            "name": "initialize",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "newContractManagerOfSkaleManager",
-                    "type": "address"
-                }
-            ],
-            "name": "initialize",
+            "name": "removeSchainContract",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -1546,9 +1395,100 @@
             "outputs": [],
             "stateMutability": "payable",
             "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "schainHash",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                },
+                {
+                    "internalType": "bytes",
+                    "name": "data",
+                    "type": "bytes"
+                }
+            ],
+            "name": "postMessage",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getMyEth",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "schainID",
+                    "type": "string"
+                }
+            ],
+            "name": "hasSchainContract",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "contract IContractManager",
+                    "name": "contractManagerOfSkaleManager",
+                    "type": "address"
+                },
+                {
+                    "internalType": "contract Linker",
+                    "name": "linker",
+                    "type": "address"
+                },
+                {
+                    "internalType": "contract MessageProxyForMainnet",
+                    "name": "messageProxy",
+                    "type": "address"
+                }
+            ],
+            "name": "initialize",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "contract IContractManager",
+                    "name": "newContractManagerOfSkaleManager",
+                    "type": "address"
+                }
+            ],
+            "name": "initialize",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
         }
     ],
-    "deposit_box_erc20_address": "0xeebB0C51CCa20A95792A5bE86EA3F53F8665757B",
+    "deposit_box_erc20_address": "0x537070d5979CC633f077C28dF1A4886067c0890b",
     "deposit_box_erc20_abi": [
         {
             "anonymous": false,
@@ -1678,12 +1618,12 @@
         },
         {
             "inputs": [],
-            "name": "contractManagerOfSkaleManager",
+            "name": "DEPOSIT_BOX_MANAGER_ROLE",
             "outputs": [
                 {
-                    "internalType": "address",
+                    "internalType": "bytes32",
                     "name": "",
-                    "type": "address"
+                    "type": "bytes32"
                 }
             ],
             "stateMutability": "view",
@@ -1691,11 +1631,11 @@
         },
         {
             "inputs": [],
-            "name": "getOwner",
+            "name": "contractManagerOfSkaleManager",
             "outputs": [
                 {
-                    "internalType": "address",
-                    "name": "ow",
+                    "internalType": "contract IContractManager",
+                    "name": "",
                     "type": "address"
                 }
             ],
@@ -1801,19 +1741,6 @@
                     "internalType": "bool",
                     "name": "",
                     "type": "bool"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "imaLinker",
-            "outputs": [
-                {
-                    "internalType": "address",
-                    "name": "",
-                    "type": "address"
                 }
             ],
             "stateMutability": "view",
@@ -1986,7 +1913,7 @@
             "inputs": [
                 {
                     "internalType": "string",
-                    "name": "schainID",
+                    "name": "schainName",
                     "type": "string"
                 },
                 {
@@ -1995,7 +1922,7 @@
                     "type": "address"
                 }
             ],
-            "name": "addTokenManager",
+            "name": "addSchainContract",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -2004,11 +1931,11 @@
             "inputs": [
                 {
                     "internalType": "string",
-                    "name": "schainID",
+                    "name": "schainName",
                     "type": "string"
                 }
             ],
-            "name": "removeTokenManager",
+            "name": "removeSchainContract",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -2016,24 +1943,14 @@
         {
             "inputs": [
                 {
-                    "internalType": "string",
-                    "name": "fromSchainID",
-                    "type": "string"
+                    "internalType": "bytes32",
+                    "name": "schainHash",
+                    "type": "bytes32"
                 },
                 {
                     "internalType": "address",
                     "name": "sender",
                     "type": "address"
-                },
-                {
-                    "internalType": "address",
-                    "name": "",
-                    "type": "address"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
                 },
                 {
                     "internalType": "bytes",
@@ -2044,9 +1961,9 @@
             "name": "postMessage",
             "outputs": [
                 {
-                    "internalType": "bool",
+                    "internalType": "address",
                     "name": "",
-                    "type": "bool"
+                    "type": "address"
                 }
             ],
             "stateMutability": "nonpayable",
@@ -2128,7 +2045,7 @@
                     "type": "string"
                 }
             ],
-            "name": "hasTokenManager",
+            "name": "hasSchainContract",
             "outputs": [
                 {
                     "internalType": "bool",
@@ -2142,18 +2059,18 @@
         {
             "inputs": [
                 {
-                    "internalType": "address",
-                    "name": "newContractManagerOfSkaleManager",
+                    "internalType": "contract IContractManager",
+                    "name": "contractManagerOfSkaleManager",
                     "type": "address"
                 },
                 {
-                    "internalType": "address",
-                    "name": "newMessageProxyAddress",
+                    "internalType": "contract Linker",
+                    "name": "linker",
                     "type": "address"
                 },
                 {
-                    "internalType": "address",
-                    "name": "newIMALinkerAddress",
+                    "internalType": "contract MessageProxyForMainnet",
+                    "name": "messageProxy",
                     "type": "address"
                 }
             ],
@@ -2165,7 +2082,7 @@
         {
             "inputs": [
                 {
-                    "internalType": "address",
+                    "internalType": "contract IContractManager",
                     "name": "newContractManagerOfSkaleManager",
                     "type": "address"
                 }
@@ -2176,7 +2093,7 @@
             "type": "function"
         }
     ],
-    "deposit_box_erc721_address": "0xCc5eF40cA8f069be511088B8d15B0f78CA18dC0A",
+    "deposit_box_erc721_address": "0x6d0Ed6C93D45273004E4Fe7fE9A85e0057Ab648f",
     "deposit_box_erc721_abi": [
         {
             "anonymous": false,
@@ -2306,12 +2223,12 @@
         },
         {
             "inputs": [],
-            "name": "contractManagerOfSkaleManager",
+            "name": "DEPOSIT_BOX_MANAGER_ROLE",
             "outputs": [
                 {
-                    "internalType": "address",
+                    "internalType": "bytes32",
                     "name": "",
-                    "type": "address"
+                    "type": "bytes32"
                 }
             ],
             "stateMutability": "view",
@@ -2319,11 +2236,11 @@
         },
         {
             "inputs": [],
-            "name": "getOwner",
+            "name": "contractManagerOfSkaleManager",
             "outputs": [
                 {
-                    "internalType": "address",
-                    "name": "ow",
+                    "internalType": "contract IContractManager",
+                    "name": "",
                     "type": "address"
                 }
             ],
@@ -2429,19 +2346,6 @@
                     "internalType": "bool",
                     "name": "",
                     "type": "bool"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "imaLinker",
-            "outputs": [
-                {
-                    "internalType": "address",
-                    "name": "",
-                    "type": "address"
                 }
             ],
             "stateMutability": "view",
@@ -2614,7 +2518,7 @@
             "inputs": [
                 {
                     "internalType": "string",
-                    "name": "schainID",
+                    "name": "schainName",
                     "type": "string"
                 },
                 {
@@ -2623,7 +2527,7 @@
                     "type": "address"
                 }
             ],
-            "name": "addTokenManager",
+            "name": "addSchainContract",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -2632,11 +2536,11 @@
             "inputs": [
                 {
                     "internalType": "string",
-                    "name": "schainID",
+                    "name": "schainName",
                     "type": "string"
                 }
             ],
-            "name": "removeTokenManager",
+            "name": "removeSchainContract",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -2644,24 +2548,14 @@
         {
             "inputs": [
                 {
-                    "internalType": "string",
-                    "name": "fromSchainID",
-                    "type": "string"
+                    "internalType": "bytes32",
+                    "name": "schainHash",
+                    "type": "bytes32"
                 },
                 {
                     "internalType": "address",
                     "name": "sender",
                     "type": "address"
-                },
-                {
-                    "internalType": "address",
-                    "name": "",
-                    "type": "address"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
                 },
                 {
                     "internalType": "bytes",
@@ -2672,9 +2566,9 @@
             "name": "postMessage",
             "outputs": [
                 {
-                    "internalType": "bool",
+                    "internalType": "address",
                     "name": "",
-                    "type": "bool"
+                    "type": "address"
                 }
             ],
             "stateMutability": "nonpayable",
@@ -2756,7 +2650,264 @@
                     "type": "string"
                 }
             ],
-            "name": "hasTokenManager",
+            "name": "hasSchainContract",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "contract IContractManager",
+                    "name": "contractManagerOfSkaleManager",
+                    "type": "address"
+                },
+                {
+                    "internalType": "contract Linker",
+                    "name": "linker",
+                    "type": "address"
+                },
+                {
+                    "internalType": "contract MessageProxyForMainnet",
+                    "name": "messageProxy",
+                    "type": "address"
+                }
+            ],
+            "name": "initialize",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "contract IContractManager",
+                    "name": "newContractManagerOfSkaleManager",
+                    "type": "address"
+                }
+            ],
+            "name": "initialize",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }
+    ],
+    "community_pool_address": "0x03741E8302bAE581730CDFfeE0d3c9f631f59C0A",
+    "community_pool_abi": [
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "previousAdminRole",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "newAdminRole",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "RoleAdminChanged",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "RoleGranted",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "RoleRevoked",
+            "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "DEFAULT_ADMIN_ROLE",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "LINKER_ROLE",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "contractManagerOfSkaleManager",
+            "outputs": [
+                {
+                    "internalType": "contract IContractManager",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "getRoleAdmin",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "index",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getRoleMember",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "getRoleMemberCount",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "grantRole",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "hasRole",
             "outputs": [
                 {
                     "internalType": "bool",
@@ -2771,17 +2922,250 @@
             "inputs": [
                 {
                     "internalType": "address",
-                    "name": "newContractManagerOfSkaleManager",
+                    "name": "sender",
+                    "type": "address"
+                },
+                {
+                    "internalType": "bytes32",
+                    "name": "schainId",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "isSchainOwner",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "messageProxy",
+            "outputs": [
+                {
+                    "internalType": "contract MessageProxyForMainnet",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "minTransactionGas",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "renounceRole",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "revokeRole",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "schainLinks",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "schainHash",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address payable",
+                    "name": "node",
                     "type": "address"
                 },
                 {
                     "internalType": "address",
-                    "name": "newMessageProxyAddress",
+                    "name": "user",
                     "type": "address"
                 },
                 {
+                    "internalType": "uint256",
+                    "name": "gas",
+                    "type": "uint256"
+                }
+            ],
+            "name": "refundGasByUser",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "schainName",
+                    "type": "string"
+                }
+            ],
+            "name": "rechargeUserWallet",
+            "outputs": [],
+            "stateMutability": "payable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "schainName",
+                    "type": "string"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "withdrawFunds",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "schainName",
+                    "type": "string"
+                },
+                {
                     "internalType": "address",
-                    "name": "newIMALinkerAddress",
+                    "name": "contractOnSchain",
+                    "type": "address"
+                }
+            ],
+            "name": "addSchainContract",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "schainName",
+                    "type": "string"
+                }
+            ],
+            "name": "removeSchainContract",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "schainName",
+                    "type": "string"
+                }
+            ],
+            "name": "hasSchainContract",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "schainName",
+                    "type": "string"
+                }
+            ],
+            "name": "getBalance",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "contract IContractManager",
+                    "name": "contractManagerOfSkaleManager",
+                    "type": "address"
+                },
+                {
+                    "internalType": "contract Linker",
+                    "name": "linker",
+                    "type": "address"
+                },
+                {
+                    "internalType": "contract MessageProxyForMainnet",
+                    "name": "newMessageProxy",
                     "type": "address"
                 }
             ],
@@ -2793,7 +3177,7 @@
         {
             "inputs": [
                 {
-                    "internalType": "address",
+                    "internalType": "contract IContractManager",
                     "name": "newContractManagerOfSkaleManager",
                     "type": "address"
                 }

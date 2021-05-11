@@ -13,5 +13,6 @@ export async function deployCommunityPool(
 ) {
     const instance = await CommunityPool.new();
     await instance.initialize(contractManager.address, linker.address, messageProxy.address);
+    await linker.registerMainnetContract(instance.address);
     return instance;
 }
