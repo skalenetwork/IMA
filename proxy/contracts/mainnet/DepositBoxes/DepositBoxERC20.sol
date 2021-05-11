@@ -211,13 +211,13 @@ contract DepositBoxERC20 is DepositBox {
     function initialize(
         IContractManager contractManagerOfSkaleManager,
         Linker linker,
-        MessageProxyForMainnet newMessageProxyAddress
+        MessageProxyForMainnet messageProxy
     )
         public
         override
         initializer
     {
-        DepositBox.initialize(contractManagerOfSkaleManager, linker, newMessageProxyAddress);
+        DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
     }
 
     /**

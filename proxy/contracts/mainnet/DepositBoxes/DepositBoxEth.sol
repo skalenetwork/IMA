@@ -162,14 +162,14 @@ contract DepositBoxEth is DepositBox {
 
     /// Create a new deposit box
     function initialize(
-        IContractManager newContractManagerOfSkaleManager,        
-        Linker newLinkerAddress,
-        MessageProxyForMainnet newMessageProxyAddress
+        IContractManager contractManagerOfSkaleManager,        
+        Linker linker,
+        MessageProxyForMainnet messageProxy
     )
         public
         override
         initializer
     {
-        DepositBox.initialize(newContractManagerOfSkaleManager, newLinkerAddress, newMessageProxyAddress);
+        DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
     }
 }

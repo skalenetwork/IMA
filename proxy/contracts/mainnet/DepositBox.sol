@@ -46,8 +46,8 @@ abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, IM
     
     function initialize(
         IContractManager contractManagerOfSkaleManager,
-        Linker linkerAddress,
-        MessageProxyForMainnet messageProxyAddress
+        Linker linker,
+        MessageProxyForMainnet newMessageProxy
     )
         public
         virtual
@@ -55,7 +55,7 @@ abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, IM
     {
         SkaleManagerClient.initialize(contractManagerOfSkaleManager);
         AccessControlUpgradeable.__AccessControl_init();
-        _setupRole(DEPOSIT_BOX_MANAGER_ROLE, address(linkerAddress));
-        messageProxy = messageProxyAddress;
+        _setupRole(DEPOSIT_BOX_MANAGER_ROLE, address(linker));
+        messageProxy = newMessageProxy;
     }
 }

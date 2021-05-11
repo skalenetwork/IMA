@@ -29,6 +29,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "../Messages.sol";
 import "./MessageProxyForMainnet.sol";
 import "../interfaces/IMainnetContract.sol";
+import "./Linker.sol";
 
 /**
  * @title CommunityPool
@@ -134,14 +135,16 @@ contract CommunityPool is SkaleManagerClient, AccessControlUpgradeable {
 
     function initialize(
         IContractManager contractManagerOfSkaleManager,
-        address messageProxyAddress
+        Linker linker,
+        MessageProxyForMainnet newMessageProxy
     )
         public
         initializer
     {
         SkaleManagerClient.initialize(contractManagerOfSkaleManager);
         AccessControlUpgradeable.__AccessControl_init();
-        messageProxy = MessageProxyForMainnet(messageProxyAddress);
+        _setupRole(LINKER_ROLE, address(linker));
+        messageProxy = newMessageProxy;
         minTransactionGas = 1000000;
     }
 }
