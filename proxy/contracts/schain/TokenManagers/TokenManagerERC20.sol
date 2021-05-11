@@ -22,6 +22,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "@nomiclabs/buidler/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../../Messages.sol";
@@ -43,13 +44,16 @@ import "../TokenManager.sol";
  */
 contract TokenManagerERC20 is TokenManager {
 
+    string constant public MAINNET_NAME = "Mainnet";
+    bytes32 constant public MAINNET_ID = keccak256(abi.encodePacked(MAINNET_NAME));
+
     address public depositBoxERC20;
 
     TokenFactory private _tokenFactory;
 
     mapping(bytes32 => address) public tokenManagerERC20Addresses;
 
-    // address of ERC20 on Mainnet => address of ERC20 on Schain
+    // schain id => address of ERC20 on Mainnet => address of ERC20 on Schain
     mapping(bytes32 => mapping(address => ERC20OnChain)) public schainToERC20OnSchain;
     //     schainId => bool 
     mapping(bytes32 => bool) public automaticDeploy;
@@ -77,7 +81,7 @@ contract TokenManagerERC20 is TokenManager {
     modifier rightTransaction(string memory schainID) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(
-            schainHash != keccak256(abi.encodePacked("Mainnet")),
+            schainHash != MAINNET_ID,
             "This function is not for transferring to Mainnet"
         );
         require(tokenManagerERC20Addresses[schainHash] != address(0), "Incorrect Token Manager address");
@@ -212,7 +216,8 @@ contract TokenManagerERC20 is TokenManager {
     )
         external
     {
-        IERC20 contractOnSchain = schainToERC20OnSchain[keccak256(abi.encodePacked("Mainnet"))][contractOnMainnet];
+        IERC20 contractOnSchain = schainToERC20OnSchain[schainId][contractOnMainnet];
+        require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(
             IERC20(contractOnSchain).allowance(
                 msg.sender,
@@ -228,19 +233,14 @@ contract TokenManagerERC20 is TokenManager {
             ),
             "Could not transfer ERC20 Token"
         );
-        // require(amountOfEth >= TX_FEE, "Not enough funds to exit");
-        // uint amountOfEthToSend = amountOfEth >= TX_FEE ?
-        //     amountOfEth :
-        //     ILockAndDataTM(getLockAndDataAddress()).reduceCommunityPool(TX_FEE) ? TX_FEE : 0;
-        // require(amountOfEthToSend != 0, "Community pool is empty");
         bytes memory data = _receiveERC20(
-            "Mainnet",
+            MAINNET_NAME,
             contractOnMainnet,
             to,
             amount
         );
         messageProxy.postOutgoingMessage(
-            "Mainnet",
+            MAINNET_NAME,
             depositBoxERC20,
             data
         );
@@ -309,7 +309,7 @@ contract TokenManagerERC20 is TokenManager {
         require(
             schainHash != schainId && 
             (
-                schainHash == keccak256(abi.encodePacked("Mainnet")) ?
+                schainHash == MAINNET_ID ?
                 sender == depositBoxERC20 :
                 sender == tokenManagerERC20Addresses[schainHash]
             ),
@@ -353,6 +353,10 @@ contract TokenManagerERC20 is TokenManager {
      */
     function hasDepositBox() external view override returns (bool) {
         return depositBoxERC20 != address(0);
+    }
+
+    function getErc20OnSchain(string memory schainName, IERC20 tokenOnMainnetAddress) external view returns (IERC20) {
+        return schainToERC20OnSchain[keccak256(abi.encodePacked(schainName))][address(tokenOnMainnetAddress)];
     }
 
     /**
@@ -400,8 +404,8 @@ contract TokenManagerERC20 is TokenManager {
     {
         ERC20Burnable contractOnSchain = 
             schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
-        require(address(contractOnSchain) != address(0), "ERC20 contract does not exist on SKALE chain.");
-        require(contractOnSchain.balanceOf(address(this)) >= amount, "Amount not transferred");
+        assert(address(contractOnSchain).isContract());
+        require(contractOnSchain.balanceOf(address(this)) >= amount, "Insufficient funds");
         contractOnSchain.burn(amount);
         data = Messages.encodeTransferErc20Message(contractOnMainnet, receiver, amount);
     }

@@ -81,7 +81,7 @@ contract SkaleFeatures {
         rv = logTextMessage(5, strMessage);
     }
 
-    function getConfigVariableUint256( string memory strConfigVariableName ) public view returns ( uint256 rv ) {
+    function getConfigVariableUint256( string memory strConfigVariableName ) external view virtual returns ( uint256 rv ) {
         uint256 fmp = FREE_MEM_PTR;
         uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
         bool success;
@@ -99,7 +99,7 @@ contract SkaleFeatures {
         require(success, "Get config uint256 failed");
     }
 
-    function getConfigVariableAddress( string memory strConfigVariableName ) public view returns ( address rv ) {
+    function getConfigVariableAddress( string memory strConfigVariableName ) external view virtual returns ( address rv ) {
         uint256 fmp = FREE_MEM_PTR;
         uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
         bool success;

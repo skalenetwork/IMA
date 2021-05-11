@@ -47,6 +47,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
     )
         public
     {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         schainId = keccak256(abi.encodePacked(newSchainName));
         messageProxy = MessageProxyForSchain(newMessageProxyAddress);
         tokenManagerLinker = TokenManagerLinker(newIMALinker);
