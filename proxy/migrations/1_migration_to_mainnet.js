@@ -87,7 +87,7 @@ async function deploy( deployer, networkName, accounts ) {
     }
 
     const deployed = new Map();
-    let imaLinker;
+    let linker;
     let messageProxy;
     for( const contractName of contracts ) {
         let contract;
@@ -97,7 +97,7 @@ async function deploy( deployer, networkName, accounts ) {
             console.log( "MessageProxyForMainnet address:", contract.address );
         } else if( contractName == "Linker" ) {
             contract = await create( Object.assign( { contractAlias: contractName, methodName: "initialize", methodArgs: [ deployed.get( "MessageProxyForMainnet" ).address ] }, options ) );
-            imaLinker = contract;
+            linker = contract;
             console.log( "Linker address:", contract.address );
         } else { // Mainnet Contracts
             contract = await create(
@@ -115,7 +115,7 @@ async function deploy( deployer, networkName, accounts ) {
                 )
             );
             console.log( contractName, "address:", contract.address );
-            await imaLinker.methods.registerDepositBox( contract.address ).send( { from: deployAccount } ).then( function( res ) {
+            await linker.methods.registerMainnetContract( contract.address ).send( { from: deployAccount } ).then( function( res ) {
                 console.log( "Contract", contractName, "with address", contract.address, "is registered as Mainnet Contract in Linker" );
             } );
             if (contractName == "CommunityPool") {
