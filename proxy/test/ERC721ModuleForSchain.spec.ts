@@ -161,7 +161,7 @@ describe("ERC721ModuleForSchain", () => {
     // expectation
     // get new token address
     let newAddress = null;
-    if (res.events) 
+    if (res.events)
       newAddress = res.events[5].args?.contractOnSchain;
     else
       assert(false, "No events were emitted");

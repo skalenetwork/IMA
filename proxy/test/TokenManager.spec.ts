@@ -49,8 +49,8 @@ import { deployMessageProxyForSchain } from "./utils/deploy/schain/messageProxyF
 import { deployEthERC20 } from "./utils/deploy/schain/ethERC20";
 import { deployMessages } from "./utils/deploy/messages";
 
-const ABIERC721MintAndBurn = require("../artifacts/contracts/schain/LockAndDataForSchainERC721.sol/ERC721MintAndBurn.json");
-const ABIERC20MintAndBurn = require("../artifacts/contracts/schain/LockAndDataForSchainERC20.sol/ERC20MintAndBurn.json");
+import ABIERC721MintAndBurn = require("../artifacts/contracts/schain/LockAndDataForSchainERC721.sol/ERC721MintAndBurn.json");
+import ABIERC20MintAndBurn = require("../artifacts/contracts/schain/LockAndDataForSchainERC20.sol/ERC20MintAndBurn.json");
 
 describe("TokenManager", () => {
     let deployer: SignerWithAddress;

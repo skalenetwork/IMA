@@ -24,7 +24,7 @@
  */
 import chaiAsPromised from "chai-as-promised";
 import chai = require("chai");
-import { 
+import {
   EthERC20,
   LockAndDataForSchain,
   } from "../typechain";

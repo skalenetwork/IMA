@@ -203,7 +203,7 @@ describe("ERC20ModuleForSchain", () => {
     // execution
     const res = await (await eRC20ModuleForSchain.connect(deployer).sendERC20(schainID, data)).wait();
     let newAddress = null;
-    if (res.events) 
+    if (res.events)
       newAddress = res.events[5].args?.contractOnSchain;
     else
       assert(false, "No events were emitted");

@@ -41,7 +41,7 @@ import { randomString, stringValue } from "./utils/helper";
 chai.should();
 chai.use((chaiAsPromised));
 
-const ABIReceiverMock = require("../artifacts/contracts/test/ReceiverMock.sol/ReceiverMock.json");
+import ABIReceiverMock = require("../artifacts/contracts/test/ReceiverMock.sol/ReceiverMock.json");
 
 import { deployIMALinker } from "./utils/deploy/mainnet/imaLinker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";

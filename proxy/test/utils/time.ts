@@ -29,7 +29,6 @@ import { IpcProvider } from "web3-core";
 let requestId = 0xd2;
 
 function responseCallback(error: Error | null, val?: any) {
-    
     if (error !== null) {
         console.log(error, val);
     }

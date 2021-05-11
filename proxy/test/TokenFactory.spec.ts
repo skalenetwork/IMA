@@ -148,7 +148,7 @@ describe("ERC20OnChain", () => {
     [deployer, user] = await ethers.getSigners();
   });
 
-  beforeEach(async () => {  
+  beforeEach(async () => {
     lockAndDataForSchain = await deployLockAndDataForSchainWorkaround();
     eRC20ModuleForSchain = await deployERC20ModuleForSchain(lockAndDataForSchain);
     messageProxy = await deployMessageProxyForSchain("Mainnet");
