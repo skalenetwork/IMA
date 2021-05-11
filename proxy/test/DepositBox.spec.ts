@@ -47,7 +47,7 @@ import { deployDepositBoxEth } from "./utils/deploy/mainnet/depositBoxEth";
 import { deployDepositBoxERC20 } from "./utils/deploy/mainnet/depositBoxERC20";
 import { deployDepositBoxERC721 } from "./utils/deploy/mainnet/depositBoxERC721";
 import { deployIMALinker } from "./utils/deploy/mainnet/imaLinker";
-import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
+import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
 import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
 import { deployMessages } from "./utils/deploy/messages";
 import { deployEthERC20 } from "./utils/deploy/schain/ethERC20";
