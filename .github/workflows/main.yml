@@ -42,7 +42,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.6.5
+        python-version: 3.8
 
     - name: Install project
       working-directory: ${{env.working-directory}}
