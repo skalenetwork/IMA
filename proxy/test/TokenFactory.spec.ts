@@ -23,8 +23,8 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import * as chaiAsPromised from "chai-as-promised";
-import * as chai from "chai";
+import chaiAsPromised from "chai-as-promised";
+import chai = require("chai");
 import {
     ERC20ModuleForSchain,
     ERC20OnChain,
@@ -38,7 +38,7 @@ import {
   } from "../typechain";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use((chaiAsPromised));
 
 import { deployLockAndDataForSchainWorkaround } from "./utils/deploy/test/lockAndDataForSchainWorkaround";
 import { deployLockAndDataForSchainERC20 } from "./utils/deploy/schain/lockAndDataForSchainERC20";

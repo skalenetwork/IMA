@@ -22,8 +22,8 @@
  * @file LockAndDataForSchain.ts
  * @copyright SKALE Labs 2019-Present
  */
-import * as chaiAsPromised from "chai-as-promised";
-import * as chai from "chai";
+import chaiAsPromised from "chai-as-promised";
+import chai = require("chai");
 import { 
   EthERC20,
   LockAndDataForSchain,
@@ -32,7 +32,7 @@ import { gasMultiplier } from "./utils/command_line";
 import { randomString, stringValue } from "./utils/helper";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use((chaiAsPromised));
 
 import { deployLockAndDataForSchain } from "./utils/deploy/schain/lockAndDataForSchain";
 import { deployEthERC20 } from "./utils/deploy/schain/ethERC20";

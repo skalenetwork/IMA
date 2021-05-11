@@ -23,8 +23,8 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import * as chaiAsPromised from "chai-as-promised";
-import * as chai from "chai";
+import chaiAsPromised from "chai-as-promised";
+import chai = require("chai");
 import {
     DepositBoxEth,
     ContractManager,
@@ -39,7 +39,7 @@ import {
 import { randomString, stringValue } from "./utils/helper";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use((chaiAsPromised));
 
 const ABIReceiverMock = require("../artifacts/contracts/test/ReceiverMock.sol/ReceiverMock.json");
 

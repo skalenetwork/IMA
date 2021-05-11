@@ -24,8 +24,8 @@
  */
 
 import { BigNumber } from "ethers";
-import * as chaiAsPromised from "chai-as-promised";
-import * as chai from "chai";
+import chaiAsPromised from "chai-as-promised";
+import chai = require("chai");
 import { expect } from "chai";
 import { randomString } from "./utils/helper";
 import { artifacts } from "hardhat";
@@ -34,7 +34,7 @@ import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use((chaiAsPromised));
 
 import { deployLockAndDataForSchainWorkaround } from "./utils/deploy/test/lockAndDataForSchainWorkaround";
 import { deployLockAndDataForSchainERC20 } from "./utils/deploy/schain/lockAndDataForSchainERC20";

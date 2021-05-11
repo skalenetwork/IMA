@@ -23,9 +23,9 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import * as chaiAsPromised from "chai-as-promised";
+import chaiAsPromised from "chai-as-promised";
 // import chaiAlmost from "chai-almost";
-import * as chai from "chai";
+import chai = require("chai");
 import {
   ContractManager,
   DepositBoxEth,
@@ -41,7 +41,7 @@ import { randomString, stringValue } from "./utils/helper";
 
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use((chaiAsPromised));
 
 import { deployDepositBoxEth } from "./utils/deploy/mainnet/depositBoxEth";
 import { deployDepositBoxERC20 } from "./utils/deploy/mainnet/depositBoxERC20";

@@ -14,8 +14,8 @@
         "sourceMap": true,
         "typeRoots": ["./node_modules/@types", "./typechain"],
         "types": ["node"],
-        "esModuleInterop": false
+        "esModuleInterop": true
     },
     "include": ["**/*.ts"],
-    "exclude": ["node_modules", "example", "build"]
+    "exclude": ["node_modules", "example", "build", "test-tokens"]
 }

@@ -23,8 +23,8 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import * as chaiAsPromised from "chai-as-promised";
-import * as chai from "chai";
+import chaiAsPromised from "chai-as-promised";
+import chai = require("chai");
 import {
     ERC20ModuleForSchain,
     ERC20OnChain,
@@ -38,7 +38,7 @@ import {
 import { randomString, stringValue } from "./utils/helper";
 
 chai.should();
-chai.use((chaiAsPromised as any));
+chai.use((chaiAsPromised));
 
 // tslint:disable-next-line: no-var-requires
 const ABIERC20OnChain = require("../artifacts/contracts/schain/TokenFactory.sol/ERC20OnChain.json");
