@@ -41,6 +41,7 @@ contract("CommunityPool", ([deployer, user]) => {
 
   it("should revert if user recharged not enough money for most costly transaction", async () => {
     const schainID = randomString(10);
+    await messageProxy.addConnectedChain(schainID);
     const minTransactionGas =  (await communityPool.minTransactionGas()).toNumber();
     const wei = minTransactionGas * 8e9 - 1;
     await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user})
