@@ -2,7 +2,7 @@ import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 import {
   ContractManagerInstance,
-  IMALinkerInstance,
+  LinkerInstance,
   MessageProxyForMainnetInstance,
   CommunityPoolInstance
   } from "../types/truffle-contracts";
@@ -15,7 +15,7 @@ chai.should();
 chai.use((chaiAsPromised as any));
 chai.use(chaiAlmost(0.000000000002));
 
-import { deployIMALinker } from "./utils/deploy/imaLinker";
+import { deployLinker } from "./utils/deploy/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
 import { deployContractManager } from "./utils/deploy/contractManager";
 import { deployCommunityPool } from "./utils/deploy/communityPool";
@@ -27,22 +27,22 @@ async function getBalance(address: string) {
 contract("CommunityPool", ([deployer, user]) => {
   let contractManager: ContractManagerInstance;
   let messageProxy: MessageProxyForMainnetInstance;
-  let imaLinker: IMALinkerInstance;
+  let linker: LinkerInstance;
   let communityPool: CommunityPoolInstance;
   const contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
   beforeEach(async () => {
     contractManager = await deployContractManager(contractManagerAddress);
     messageProxy = await deployMessageProxyForMainnet(contractManager);
-    imaLinker = await deployIMALinker(contractManager, messageProxy);
-    communityPool = await deployCommunityPool(contractManager, messageProxy, imaLinker);
+    linker = await deployLinker(messageProxy);
+    communityPool = await deployCommunityPool(contractManager, messageProxy);
 
   });
 
   it("should revert if user recharged not enough money for most costly transaction", async () => {
     const schainID = randomString(10);
-    const MIN_TRANSACTION_GAS =  (await communityPool.MIN_TRANSACTION_GAS()).toNumber();
-    const wei = MIN_TRANSACTION_GAS * 8e9 - 1;
+    const minTransactionGas =  (await communityPool.minTransactionGas()).toNumber();
+    const wei = minTransactionGas * 8e9 - 1;
     await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user})
         .should.be.eventually.rejectedWith("Not enough money for transaction");
   });
@@ -50,8 +50,8 @@ contract("CommunityPool", ([deployer, user]) => {
   it("should recharge wallet if user passed enough money", async () => {
     const schainID = randomString(10);
     await messageProxy.addConnectedChain(schainID);
-    const MIN_TRANSACTION_GAS =  (await communityPool.MIN_TRANSACTION_GAS()).toNumber();
-    const wei = MIN_TRANSACTION_GAS * 8e9;
+    const minTransactionGas =  (await communityPool.minTransactionGas()).toNumber();
+    const wei = minTransactionGas * 8e9;
     await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user});
     const userBalance = (await communityPool.getBalance(schainID, {from: user})).toNumber();
     userBalance.should.be.equal(wei);
@@ -61,8 +61,8 @@ contract("CommunityPool", ([deployer, user]) => {
     const schainID = randomString(10);
     const gasPrice = 8e9;
     await messageProxy.addConnectedChain(schainID);
-    const MIN_TRANSACTION_GAS =  (await communityPool.MIN_TRANSACTION_GAS()).toNumber();
-    const wei = MIN_TRANSACTION_GAS * gasPrice;
+    const minTransactionGas =  (await communityPool.minTransactionGas()).toNumber();
+    const wei = minTransactionGas * gasPrice;
     await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user});
 
     await communityPool.withdrawFunds(schainID, wei + 1, {from: user})

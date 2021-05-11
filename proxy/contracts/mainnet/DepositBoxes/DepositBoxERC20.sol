@@ -22,9 +22,8 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/IMainnetContract.sol";
-import "../thirdparty/openzeppelin/IERC20Metadata.sol";
-import "../Messages.sol";
+import "../../thirdparty/openzeppelin/IERC20Metadata.sol";
+import "../../Messages.sol";
 import "../DepositBox.sol";
 
 

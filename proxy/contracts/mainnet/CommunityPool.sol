@@ -24,20 +24,26 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+
 import "../Messages.sol";
-import "./IMAConnected.sol";
+import "./MessageProxyForMainnet.sol";
 import "../interfaces/IMainnetContract.sol";
 
 /**
  * @title CommunityPool
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract CommunityPool is IMAConnected {
+contract CommunityPool is SkaleManagerClient, AccessControlUpgradeable {
+
+    MessageProxyForMainnet public messageProxy;
+
     mapping(address => mapping(bytes32 => uint)) private _userWallets;
     mapping(address => bool) private _unfrozenUsers;
     mapping(bytes32 => address) public schainLinks;
 
-    uint public constant MIN_TRANSACTION_GAS = 500000;
+    uint public minTransactionGas;
+    bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
 
     function refundGasByUser(
         bytes32 schainHash,
@@ -46,12 +52,12 @@ contract CommunityPool is IMAConnected {
         uint gas
     ) 
         external
-        onlyMessageProxy
     {
+        require(msg.sender == address(messageProxy),  "Sender is not a MessageProxy");
         require(_unfrozenUsers[user], "User should be unfrozen");
         uint amount = tx.gasprice * gas;
         _userWallets[user][schainHash] = _userWallets[user][schainHash].sub(amount);
-        if (_userWallets[user][schainHash] < MIN_TRANSACTION_GAS * tx.gasprice) {
+        if (_userWallets[user][schainHash] < minTransactionGas * tx.gasprice) {
             _unfrozenUsers[user] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
@@ -66,7 +72,7 @@ contract CommunityPool is IMAConnected {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             msg.value.add(_userWallets[msg.sender][schainHash]) >=
-                MIN_TRANSACTION_GAS * tx.gasprice,
+                minTransactionGas * tx.gasprice,
             "Not enough money for transaction"
         );
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].add(msg.value);
@@ -84,7 +90,7 @@ contract CommunityPool is IMAConnected {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].sub(amount);
-        if (_userWallets[msg.sender][schainHash] < MIN_TRANSACTION_GAS * tx.gasprice 
+        if (_userWallets[msg.sender][schainHash] < minTransactionGas * tx.gasprice 
             && _unfrozenUsers[msg.sender]) {
             messageProxy.postOutgoingMessage(
                 schainHash,
@@ -98,9 +104,9 @@ contract CommunityPool is IMAConnected {
     function addSchainContract(string calldata schainName, address contractOnSchain) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
-            msg.sender == imaLinker ||
+            hasRole(LINKER_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash) ||
-            _isOwner(), "Not authorized caller"
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         require(schainLinks[schainHash] == address(0), "SKALE chain is already set");
         require(contractOnSchain != address(0), "Incorrect address for contract on Schain");
@@ -110,9 +116,9 @@ contract CommunityPool is IMAConnected {
     function removeSchainContract(string calldata schainName) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
-            msg.sender == imaLinker ||
+            hasRole(LINKER_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash) ||
-            _isOwner(), "Not authorized caller"
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         require(schainLinks[schainHash] != address(0), "SKALE chain is not set");
         delete schainLinks[schainHash];
@@ -127,14 +133,15 @@ contract CommunityPool is IMAConnected {
     }
 
     function initialize(
-        address newContractManagerOfSkaleManager,
-        address newMessageProxyAddress,
-        address newIMALinkerAddress
+        IContractManager contractManagerOfSkaleManager,
+        address messageProxyAddress
     )
         public
-        override
         initializer
     {
-        IMAConnected.initialize(newIMALinkerAddress, newContractManagerOfSkaleManager, newMessageProxyAddress);
+        SkaleManagerClient.initialize(contractManagerOfSkaleManager);
+        AccessControlUpgradeable.__AccessControl_init();
+        messageProxy = MessageProxyForMainnet(messageProxyAddress);
+        minTransactionGas = 1000000;
     }
 }

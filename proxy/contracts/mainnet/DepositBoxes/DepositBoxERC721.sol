@@ -25,7 +25,6 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721MetadataUpgradeable.sol";
 import "../DepositBox.sol";
 import "../../Messages.sol";
-import "../interfaces/IMainnetContract.sol";
 
 
 // This contract runs on the main net and accepts deposits

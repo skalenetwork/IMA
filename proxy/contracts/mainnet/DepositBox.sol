@@ -24,16 +24,16 @@ pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
-import "../interfaces/IDepositBox.sol";
-import "./Linker.sol";
+import "../interfaces/IMainnetContract.sol";
 import "./MessageProxyForMainnet.sol";
+import "./Linker.sol";
 
 
 /**
  * @title IMAConnected - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, IDepositBox {
+abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, IMainnetContract {
 
     bytes32 public constant DEPOSIT_BOX_MANAGER_ROLE = keccak256("DEPOSIT_BOX_MANAGER_ROLE");
 

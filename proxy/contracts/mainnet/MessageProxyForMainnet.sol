@@ -160,7 +160,10 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
         delete connectedChains[keccak256(abi.encodePacked(newChainID))];
     }
 
-    function setCommunityPool(address newCommunityPoolAddress) external onlyOwner {
+    function setCommunityPool(address newCommunityPoolAddress) external {
+        require(
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
+        );  
         communityPoolAddress = newCommunityPoolAddress;
     }
 
@@ -238,7 +241,6 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
         }
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
-        // _refundGasBySchain(srcChainHash, gasTotal + BASIC_POST_INCOMING_MESSAGES_TX);
     }
 
     /**
@@ -381,11 +383,6 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
             );
             return address(0);
         }
-    }
-
-    function _refundGasBySchain(bytes32 schainId, uint gasTotal) internal {
-        address walletsAddress = IContractManager(contractManagerOfSkaleManager).getContract("Wallets");
-        IWallets(payable(walletsAddress)).refundGasBySchain(schainId, msg.sender, gasTotal.sub(gasleft()), false);
     }
 
     /**

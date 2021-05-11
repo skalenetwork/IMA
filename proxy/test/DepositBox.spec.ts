@@ -93,7 +93,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
     depositBoxEth = await deployDepositBoxEth(contractManager, messageProxy, linker);
     depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxy, linker);
     depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxy, linker);
-    communityPool = await deployCommunityPool(contractManager, messageProxy, linker);
+    communityPool = await deployCommunityPool(contractManager, messageProxy);
   });
 
   describe("tests for `deposit` function", async () => {
@@ -480,8 +480,8 @@ contract("DepositBox", ([deployer, user, user2]) => {
       const schainID = randomString(10);
       // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
       const senderFromSchain = deployer;
-      const MIN_TRANSACTION_GAS =  (await communityPool.MIN_TRANSACTION_GAS()).toNumber();
-      const wei = (MIN_TRANSACTION_GAS * 8e9).toString();
+      const minTransactionGas =  (await communityPool.minTransactionGas()).toNumber();
+      const wei = (minTransactionGas * 8e9).toString();
       const bytesData = await messages.encodeTransferEthMessage(user, wei);
 
       await setCommonPublicKey(contractManager, schainID);

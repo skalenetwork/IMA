@@ -59,18 +59,18 @@ contract Linker is AccessControlUpgradeable {
         _mainnetContracts.remove(mainnetContract);
     }
 
-    function connectSchain(string calldata schainName, address[] calldata schainContracts) external onlyOwner {
-        require(schainContracts.length == _mainnetContracts.length, "Incorrect number of addresses");
+    function connectSchain(string calldata schainName, address[] calldata schainContracts) external onlyLinker {
+        require(schainContracts.length == _mainnetContracts.length(), "Incorrect number of addresses");
         for (uint i = 0; i < schainContracts.length; i++) {
-            IMainnetContract(_mainnetContracts[i]).addSchainContract(schainName, schainContracts[i]);
+            IMainnetContract(_mainnetContracts.at(i)).addSchainContract(schainName, schainContracts[i]);
         }
         messageProxy.addConnectedChain(schainName);
     }
 
-    function unconnectSchain(string calldata schainName) external onlyOwner {
-        uint length = _mainnetContracts.length;
+    function unconnectSchain(string calldata schainName) external onlyLinker {
+        uint length = _mainnetContracts.length();
         for (uint i = 0; i < length; i++) {
-            IMainnetContract(_mainnetContracts[i]).removeSchainContract(schainName);
+            IMainnetContract(_mainnetContracts.at(i)).removeSchainContract(schainName);
         }
         messageProxy.removeConnectedChain(schainName);
     }
@@ -80,7 +80,7 @@ contract Linker is AccessControlUpgradeable {
     }
 
     function hasSchain(string calldata schainName) external view returns (bool connected) {
-        uint length = _mainnetContracts.length;
+        uint length = _mainnetContracts.length();
         connected = messageProxy.isConnectedChain(schainName);
         for (uint i = 0; connected && i < length; i++) {
             connected = connected && IMainnetContract(_mainnetContracts.at(i)).hasSchainContract(schainName);

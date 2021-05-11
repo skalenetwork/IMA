@@ -29,5 +29,5 @@ interface IMessageReceiver {
         bytes calldata data
     )
         external
-        returns (bool);
+        returns (address);
 }
