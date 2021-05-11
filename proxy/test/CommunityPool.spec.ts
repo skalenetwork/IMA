@@ -35,7 +35,7 @@ contract("CommunityPool", ([deployer, user]) => {
     contractManager = await deployContractManager(contractManagerAddress);
     messageProxy = await deployMessageProxyForMainnet(contractManager);
     linker = await deployLinker(messageProxy);
-    communityPool = await deployCommunityPool(contractManager, messageProxy);
+    communityPool = await deployCommunityPool(contractManager, messageProxy, linker);
 
   });
 

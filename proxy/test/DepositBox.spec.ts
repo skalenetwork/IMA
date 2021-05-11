@@ -93,7 +93,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
     depositBoxEth = await deployDepositBoxEth(contractManager, messageProxy, linker);
     depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxy, linker);
     depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxy, linker);
-    communityPool = await deployCommunityPool(contractManager, messageProxy);
+    communityPool = await deployCommunityPool(contractManager, messageProxy, linker);
   });
 
   describe("tests for `deposit` function", async () => {
