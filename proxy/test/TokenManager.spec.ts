@@ -27,7 +27,7 @@ import { BigNumber } from "ethers";
 import chaiAsPromised from "chai-as-promised";
 import chai = require("chai");
 import { expect } from "chai";
-import { randomString } from "./utils/helper";
+import { randomString, stringValue } from "./utils/helper";
 import { artifacts } from "hardhat";
 import { TokenManager, MessageProxyForSchain, EthERC20, LockAndDataForSchainWorkaround, LockAndDataForSchainERC20, ERC20ModuleForSchain, ERC20OnChain, ERC721OnChain, ERC721ModuleForSchain, LockAndDataForSchainERC721, TokenFactory, MessagesTester } from "../typechain";
 import { ethers, web3 } from "hardhat";
@@ -48,9 +48,6 @@ import { deployTokenManager } from "./utils/deploy/schain/tokenManager";
 import { deployMessageProxyForSchain } from "./utils/deploy/schain/messageProxyForSchain";
 import { deployEthERC20 } from "./utils/deploy/schain/ethERC20";
 import { deployMessages } from "./utils/deploy/messages";
-
-import ABIERC721MintAndBurn = require("../artifacts/contracts/schain/LockAndDataForSchainERC721.sol/ERC721MintAndBurn.json");
-import ABIERC20MintAndBurn = require("../artifacts/contracts/schain/LockAndDataForSchainERC20.sol/ERC20MintAndBurn.json");
 
 describe("TokenManager", () => {
     let deployer: SignerWithAddress;
@@ -663,8 +660,9 @@ describe("TokenManager", () => {
             await tokenManager.postMessage(schainID, sender, data);
             // expectation
             const addressERC20OnSchain = await lockAndDataForSchainERC20.getERC20OnSchain(schainID, eRC20.address);
-            const erc20OnChain = new web3.eth.Contract(ABIERC20MintAndBurn.abi, addressERC20OnSchain);
-            expect(parseInt((BigNumber.from(await erc20OnChain.methods.balanceOf(to).call())).toString(), 10))
+            const erc20OnChainFactory = await ethers.getContractFactory("ERC20OnChain");
+            const erc20OnChain = await erc20OnChainFactory.attach(addressERC20OnSchain);
+            expect(parseInt((BigNumber.from(await erc20OnChain.balanceOf(to))).toString(), 10))
                 .to.be.equal(amount);
         });
 
@@ -716,8 +714,9 @@ describe("TokenManager", () => {
             await tokenManager.postMessage(schainID, sender, data);
             // expectation
             const addressERC721OnSchain = await lockAndDataForSchainERC721.getERC721OnSchain(schainID, eRC721.address);
-            const erc721OnChain = new web3.eth.Contract(ABIERC721MintAndBurn.abi, addressERC721OnSchain);
-            expect(await erc721OnChain.methods.ownerOf(tokenId).call()).to.be.equal(to);
+            const erc721OnChainFactory = await ethers.getContractFactory("ERC721OnChain");
+            const erc721OnChain = await erc721OnChainFactory.attach(addressERC721OnSchain);
+            expect(await erc721OnChain.ownerOf(tokenId)).to.be.equal(to);
         });
     });
 
