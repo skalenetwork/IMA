@@ -127,7 +127,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       const wei = "20000000000000000";
       // add schain to avoid the `Unconnected chain` error
       const chain = await linker
-        .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+        .connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
       // execution
       const tx = await depositBoxEth
         .deposit(schainID, deployer, {value: wei, from: deployer});
@@ -162,7 +162,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
         const schainID = randomString(10);
         // add schain to avoid the `Unconnected chain` error
         const chain = await linker
-          .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+          .connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
 
         await ethERC20.mint(user, "1000000000", {from: deployer});
         await ethERC20.approve(depositBoxERC20.address, "1000000", {from: deployer});
@@ -179,7 +179,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
         const schainID = randomString(10);
         // add schain to avoid the `Unconnected chain` error
         const chain = await linker
-          .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+          .connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
 
         await ethERC20.mint(user, "1000000000", {from: deployer});
         await depositBoxERC20.disableWhitelist(schainID);
@@ -195,7 +195,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
         const schainID = randomString(10);
         // add schain to avoid the `Unconnected chain` error
         const chain = await linker
-          .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+          .connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
         // mint some quantity of ERC20 tokens for `deployer` address
         await ethERC20.mint(deployer, "1000000000", {from: deployer});
         // approve some quantity of ERC20 tokens for `depositBoxEth` address
@@ -240,7 +240,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
         const wei = "20000000000000000";
         // add schain to avoid the `Unconnected chain` error
         await linker
-          .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+          .connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
 
         // execution/expectation
         await depositBoxERC721
@@ -259,7 +259,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
         // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
         // add schain to avoid the `Unconnected chain` error
         await linker
-          .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+          .connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
         // transfer tokenId from `deployer` to `depositBoxERC721`
         await eRC721OnChain.approve(depositBoxERC721.address, tokenId, {from: deployer});
         await eRC721OnChain.approve(depositBoxERC721.address, tokenId2, {from: deployer});
@@ -377,7 +377,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
       // to avoid `Incorrect sender` error
       const chain = await linker
-        .connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+        .connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
       await messageProxy.setCommunityPool(communityPool.address);
@@ -404,7 +404,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
       // add schain to avoid the `Receiver chain is incorrect` error
-      await linker.connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+      await linker.connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
       await messageProxy.setCommunityPool(communityPool.address);
       await communityPool.rechargeUserWallet(schainID, {value: wei, from: user});
       const sign = {
@@ -445,7 +445,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
       // add schain to avoid the `Receiver chain is incorrect` error
-      await linker.connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+      await linker.connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
       await messageProxy.setCommunityPool(communityPool.address);
       await communityPool.rechargeUserWallet(schainID, {value: wei, from: user});
 
@@ -504,7 +504,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       // add schain to avoid the `Receiver chain is incorrect` error
 
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
-      await linker.connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+      await linker.connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
       await messageProxy.setCommunityPool(communityPool.address);
       await communityPool.rechargeUserWallet(schainID, {value: wei, from: user});
       // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
@@ -547,7 +547,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       await initializeSchain(contractManager, schainID, deployer, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
       // add schain to avoid the `Receiver chain is incorrect` error
-      await linker.connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+      await linker.connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
       await messageProxy.setCommunityPool(communityPool.address);
       await communityPool.rechargeUserWallet(schainID, {value: wei, from: user});
 
@@ -600,7 +600,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       await initializeSchain(contractManager, schainID, user2, 1, 1);
       await setCommonPublicKey(contractManager, schainID);
       // add schain to avoid the `Receiver chain is incorrect` error
-      await linker.connectSchain(schainID, [deployer, deployer, deployer], {from: deployer});
+      await linker.connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
       await messageProxy.setCommunityPool(communityPool.address);
       await communityPool.rechargeUserWallet(schainID, {value: wei, from: user});
 
