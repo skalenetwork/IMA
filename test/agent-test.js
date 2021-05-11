@@ -135,7 +135,7 @@ global.imaState = {
     "jo_token_manager": null, // only s-chain
     "jo_message_proxy_main_net": null,
     "jo_message_proxy_s_chain": null,
-    "jo_ima_linker": null,
+    "jo_linker": null,
     "jo_lock_and_data_s_chain": null,
     // "eth_erc721": null, // only s-chain
     "eth_erc20": null, // only s-chain

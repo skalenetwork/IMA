@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   IMALinker.sol - SKALE Interchain Messaging Agent
+ *   Linker.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -21,46 +21,42 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "../interfaces/IMainnetContract.sol";
 
-import "./connectors/BasicConnector.sol";
 import "./MessageProxyForMainnet.sol";
 
 
 /**
- * @title IMALinker For Mainnet
+ * @title Linker For Mainnet
  * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
  * balances of ETH tokens received through DepositBox.
  */
-contract IMALinker is BasicConnector {
+contract Linker is AccessControlUpgradeable {
     using AddressUpgradeable for address;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     using SafeMathUpgradeable for uint;
 
-    address[] private _mainnetContracts;
+    bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
+
+    EnumerableSetUpgradeable.AddressSet private _mainnetContracts;
     MessageProxyForMainnet public messageProxy;
 
-    function registerMainnetContract(address newMainnetContract) external onlyOwner {
-        _mainnetContracts.push(newMainnetContract);
+    modifier onlyLinker() {
+        require(hasRole(LINKER_ROLE, msg.sender), "Linker role is required");
+        _;
     }
 
-    function removeMainnetContract(address mainnetContract) external onlyOwner {
-        uint index;
-        uint length = _mainnetContracts.length;
-        for (index = 0; index < length; index++) {
-            if (_mainnetContracts[index] == mainnetContract) {
-                break;
-            }
-        }
-        if (index < length) {
-            if (index < length.sub(1)) {
-                _mainnetContracts[index] = _mainnetContracts[length.sub(1)];
-            }
-            _mainnetContracts.pop();
-        }
+    function registerMainnetContract(address newMainnetContract) external onlyLinker {
+        _mainnetContracts.add(newMainnetContract);
+    }
+
+    function removeMainnetContract(address mainnetContract) external onlyLinker {
+        _mainnetContracts.remove(mainnetContract);
     }
 
     function connectSchain(string calldata schainName, address[] calldata schainContracts) external onlyOwner {
@@ -80,27 +76,20 @@ contract IMALinker is BasicConnector {
     }
 
     function hasMainnetContract(address mainnetContract) external view returns (bool) {
-        uint index;
-        uint length = _mainnetContracts.length;
-        for (index = 0; index < length; index++) {
-            if (_mainnetContracts[index] == mainnetContract) {
-                return true;
-            }
-        }
-        return false;
+        return _mainnetContracts.contains(mainnetContract);
     }
 
     function hasSchain(string calldata schainName) external view returns (bool connected) {
         uint length = _mainnetContracts.length;
-        connected = true;
-        for (uint i = 0; i < length; i++) {
-            connected = connected && IMainnetContract(_mainnetContracts[i]).hasSchainContract(schainName);
+        connected = messageProxy.isConnectedChain(schainName);
+        for (uint i = 0; connected && i < length; i++) {
+            connected = connected && IMainnetContract(_mainnetContracts.at(i)).hasSchainContract(schainName);
         }
-        connected = connected && messageProxy.isConnectedChain(schainName);
     }
 
-    function initialize(address newContractManagerOfSkaleManager, address newMessageProxyAddress) public initializer {
-        BasicConnector.initialize(newContractManagerOfSkaleManager);
-        messageProxy = MessageProxyForMainnet(newMessageProxyAddress);
+    function initialize(address messageProxyAddress) public initializer {
+        AccessControlUpgradeable.__AccessControl_init();
+        _setupRole(LINKER_ROLE, msg.sender);
+        messageProxy = MessageProxyForMainnet(messageProxyAddress);
     }
 }
