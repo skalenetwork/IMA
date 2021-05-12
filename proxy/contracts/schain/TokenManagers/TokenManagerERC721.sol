@@ -183,7 +183,7 @@ contract TokenManagerERC721 is TokenManager {
      * @dev Allows Schain owner turn on automatic deploy on schain.
      */
     function enableAutomaticDeploy(string calldata schainName) external {
-        require(_isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = true;
     }
 
@@ -191,7 +191,7 @@ contract TokenManagerERC721 is TokenManager {
      * @dev Allows Schain owner turn off automatic deploy on schain.
      */
     function disableAutomaticDeploy(string calldata schainName) external {
-        require(_isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
     }
 
@@ -304,7 +304,7 @@ contract TokenManagerERC721 is TokenManager {
     )
         external
     {
-        require(_isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
         require(address(erc721OnSchain).isContract(), "Given address is not a contract");
         // require(!automaticDeploy[keccak256(abi.encodePacked(schainName))], "Custom deploy is enabled");
         schainToERC721OnSchain[keccak256(abi.encodePacked(schainName))][erc721OnMainnet] = erc721OnSchain;
@@ -399,7 +399,7 @@ contract TokenManagerERC721 is TokenManager {
                 emit ERC721TokenCreated(schainID, token, address(contractOnSchainTmp));
             }
         }
-        ERC721OnChain contractOnSchain= schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token];
+        ERC721OnChain contractOnSchain = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token];
         require(contractOnSchain.mint(receiver, tokenId), "Could not mint ERC721 Token");
         return true;
     }

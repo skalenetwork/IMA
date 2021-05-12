@@ -159,7 +159,7 @@ contract DepositBoxERC721 is DepositBox {
         bytes32 schainId = keccak256(abi.encodePacked(schainName));
         require(
             isSchainOwner(msg.sender, schainId) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "Sender is not a Schain owner"
+            "Sender is not an Schain owner"
         );
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
         // require(!withoutWhitelist[schainId], "Whitelist is enabled");
@@ -171,7 +171,7 @@ contract DepositBoxERC721 is DepositBox {
      * @dev Allows Schain owner turn on whitelist of tokens.
      */
     function enableWhitelist(string memory schainName) external {
-        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not a Schain owner");
+        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not an Schain owner");
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = false;
     }
 
@@ -179,7 +179,7 @@ contract DepositBoxERC721 is DepositBox {
      * @dev Allows Schain owner turn off whitelist of tokens.
      */
     function disableWhitelist(string memory schainName) external {
-        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not a Schain owner");
+        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not an Schain owner");
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
     }
 

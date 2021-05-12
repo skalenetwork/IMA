@@ -197,7 +197,7 @@ contract TokenManagerERC20 is TokenManager {
      * @dev Allows Schain owner turn on automatic deploy on schain.
      */
     function enableAutomaticDeploy(string calldata schainName) external {
-        require(_isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = true;
     }
 
@@ -205,7 +205,7 @@ contract TokenManagerERC20 is TokenManager {
      * @dev Allows Schain owner turn off automatic deploy on schain.
      */
     function disableAutomaticDeploy(string calldata schainName) external {
-        require(_isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
         automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
     }
 
@@ -333,7 +333,7 @@ contract TokenManagerERC20 is TokenManager {
      * @dev Allows Schain owner to add an ERC20 token to LockAndDataForSchainERC20.
      */
     function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet, ERC20OnChain erc20OnSchain) external {
-        require(_isSchainOwner(msg.sender), "Sender is not a Schain owner");
+        require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
         require(address(erc20OnSchain).isContract(), "Given address is not a contract");
         require(erc20OnSchain.totalSupply() == 0, "TotalSupply is not zero");
         // require(!automaticDeploy[keccak256(abi.encodePacked(schainName))], "Custom deploy is enabled");
