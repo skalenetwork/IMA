@@ -135,26 +135,26 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
     const addressERC20 = erc20OnChain.address;
     const addressERC201 = erc20OnMainnet.address;
     const automaticDeploy = await tokenManagerErc20.automaticDeploy();
-    await tokenManagerErc20.addERC20TokenByOwner(schainID, addressERC201, addressERC20);
+    await tokenManagerErc20.addERC20TokenByOwner(schainID, addressERC201, addressERC20, {from: schainOwner});
     // automaticDeploy == true - enabled automaticDeploy = false - disabled
     if (automaticDeploy) {
-      await tokenManagerErc20.disableAutomaticDeploy(schainID);
+      await tokenManagerErc20.disableAutomaticDeploy({from: schainOwner});
     } else {
-      await tokenManagerErc20.enableAutomaticDeploy(schainID);
+      await tokenManagerErc20.enableAutomaticDeploy({from: schainOwner});
     }
 
-    await tokenManagerErc20.addERC20TokenByOwner(schainID, addressERC201, addressERC20);
+    await tokenManagerErc20.addERC20TokenByOwner(schainID, addressERC201, addressERC20, {from: schainOwner});
 
     eRC20OnChain2 = await ERC20OnChain.new("NewToken", "NTN");
     eRC20OnMainnet2 = await ERC20OnChain.new("NewToken", "NTN");
 
     if (automaticDeploy) {
-      await tokenManagerErc20.enableAutomaticDeploy(schainID);
+      await tokenManagerErc20.enableAutomaticDeploy({from: schainOwner});
     } else {
-      await tokenManagerErc20.disableAutomaticDeploy(schainID);
+      await tokenManagerErc20.disableAutomaticDeploy({from: schainOwner});
     }
 
-    await tokenManagerErc20.addERC20TokenByOwner(schainID, eRC20OnMainnet2.address, eRC20OnChain2.address);
+    await tokenManagerErc20.addERC20TokenByOwner(schainID, eRC20OnMainnet2.address, eRC20OnChain2.address, {from: schainOwner});
 
   });
 
