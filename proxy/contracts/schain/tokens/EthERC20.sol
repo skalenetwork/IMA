@@ -24,10 +24,10 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../ContractsRegistry.sol";
+import "../SkaleFeaturesClient.sol";
 
 
-contract EthERC20 is IERC20, ContractsRegistry {
+contract EthERC20 is IERC20, SkaleFeaturesClient {
 
     using SafeMath for uint;
 
@@ -43,11 +43,19 @@ contract EthERC20 is IERC20, ContractsRegistry {
 
     bool private _initialized = false;
 
-    constructor() public {
-        _delayedInit();
+    address public tokenManagerEth;
+
+    modifier onlyTokenManagerEth() {
+        require(msg.sender == getTokenManagerEthAddress(), "Sender is not TokenManagerEth");
+        _;
     }
 
-    function mint(address account, uint256 amount) external allow("TokenManagerEth") returns (bool) {
+    constructor(address tokenManagerEthAddress) public {
+        _delayedInit();
+        tokenManagerEth = tokenManagerEthAddress;
+    }
+
+    function mint(address account, uint256 amount) external onlyTokenManagerEth returns (bool) {
         _delayedInit();
         _mint(account, amount);
         return true;
@@ -58,7 +66,7 @@ contract EthERC20 is IERC20, ContractsRegistry {
         _burn(msg.sender, amount);
     }
 
-    function burnFrom(address account, uint256 amount) external allow("TokenManagerEth") {
+    function burnFrom(address account, uint256 amount) external onlyTokenManagerEth {
         _delayedInit();
         _burn(account, amount);
     }
@@ -117,6 +125,15 @@ contract EthERC20 is IERC20, ContractsRegistry {
      */
     function balanceOf(address account) public view override returns (uint256) {
         return _balances[account];
+    }
+
+    function getTokenManagerEthAddress() public view returns (address) {
+        if (tokenManagerEth == address(0)) {
+            return getSkaleFeatures().getConfigVariableAddress(
+                "skaleConfig.contractSettings.IMA.TokenManagerEth"
+            );
+        }
+        return tokenManagerEth;
     }
 
     /**
