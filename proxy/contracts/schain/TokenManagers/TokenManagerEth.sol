@@ -88,6 +88,12 @@ contract TokenManagerEth is TokenManager {
         // solhint-disable-next-line no-empty-blocks
     { }
 
+    function setEthErc20Address(address newEthERC20Address) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
+        require(address(_ethErc20) != newEthERC20Address, "The same address");
+        _ethErc20 = EthERC20(newEthERC20Address);
+    }
+
     /**
      * @dev Adds a depositBox address to
      * TokenManagerEth.
@@ -105,7 +111,7 @@ contract TokenManagerEth is TokenManager {
             _isSchainOwner(msg.sender) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        require(depositBox == address(0), "depositBox is already set");
+        require(depositBox == address(0), "DepositBox is already set");
         require(newdepositBoxAddress != address(0), "Incorrect DepositBoxEth address");
         depositBox = newdepositBoxAddress;
     }
@@ -126,7 +132,7 @@ contract TokenManagerEth is TokenManager {
             _isSchainOwner(msg.sender) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        require(depositBox != address(0), "depositBox is not set");
+        require(depositBox != address(0), "DepositBox is not set");
         delete depositBox;
     }
 
@@ -241,10 +247,6 @@ contract TokenManagerEth is TokenManager {
             "Receiver chain is incorrect"
         );
         Messages.TransferEthMessage memory decodedMessage = Messages.decodeTransferEthMessage(data);
-        require(
-            decodedMessage.amount <= address(this).balance,
-            "Not enough money to finish this transaction"
-        );
         address receiver = decodedMessage.receiver;
         require(receiver != address(0), "Incorrect receiver");
         require(EthERC20(getEthErc20Address()).mint(receiver, decodedMessage.amount), "Mint error");
