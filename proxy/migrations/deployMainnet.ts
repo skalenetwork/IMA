@@ -105,6 +105,7 @@ async function main() {
     const messageProxyForMainnetFactory = await getContractFactory(messageProxyForMainnetName);
     const messageProxyForMainnet = (await upgrades.deployProxy(messageProxyForMainnetFactory, [jsonData.contract_manager_address], { initializer: 'initialize(address)' })) as MessageProxyForMainnet;
     await messageProxyForMainnet.deployTransaction.wait();
+    console.log("Proxy Contract", messageProxyForMainnetName, "deployed to", messageProxyForMainnet.address);
     deployed.set(messageProxyForMainnetName, {address: messageProxyForMainnet.address, interface: messageProxyForMainnet.interface, contract: messageProxyForMainnetName})
     contractArtifacts.push({address: messageProxyForMainnet.address, interface: messageProxyForMainnet.interface, contract: messageProxyForMainnetName})
     await verifyProxy(messageProxyForMainnetName, messageProxyForMainnet.address);
@@ -114,6 +115,7 @@ async function main() {
     const imaLinkerFactory = await getContractFactory(imaLinkerName);
     const imaLinker = (await upgrades.deployProxy(imaLinkerFactory, [jsonData.contract_manager_address, deployed.get(messageProxyForMainnetName)?.address], { initializer: 'initialize(address,address)' })) as IMALinker;
     await imaLinker.deployTransaction.wait();
+    console.log("Proxy Contract", imaLinkerName, "deployed to", imaLinker.address);
     deployed.set(imaLinkerName, {address: imaLinker.address, interface: imaLinker.interface, contract: imaLinkerName});
     contractArtifacts.push({address: imaLinker.address, interface: imaLinker.interface, contract: imaLinkerName})
     await verifyProxy(imaLinkerName, imaLinker.address);
