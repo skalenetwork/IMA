@@ -398,6 +398,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
         beforeEach(async () => {
             messageProxyForSchain = await MessageProxyForSchain.new("MyChain", {from: deployer});
+            const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
+            await messageProxyForSchain.grantRole(chainConnectorRole, deployer, {from: deployer});
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -521,7 +523,9 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             }
             const skaleFeatures = await SkaleFeaturesMock.new();
             await skaleFeatures.setBlsCommonPublicKey(blsCommonPublicKey);
-            messageProxyForSchain.setSkaleFeaturesAddress(skaleFeatures.address);
+            const skaleFeaturesSetterRole = await messageProxyForSchain.SKALE_FEATURES_SETTER_ROLE();
+            await messageProxyForSchain.grantRole(skaleFeaturesSetterRole, deployer, {from: deployer});
+            await messageProxyForSchain.setSkaleFeaturesAddress(skaleFeatures.address);
 
             const sign = {
                 blsSignature: [
