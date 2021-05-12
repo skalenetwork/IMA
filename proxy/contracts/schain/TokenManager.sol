@@ -24,6 +24,7 @@ pragma experimental ABIEncoderV2;
 
 import "./MessageProxyForSchain.sol";
 import "./SkaleFeaturesClient.sol";
+import "./TokenFactory.sol";
 import "./TokenManagerLinker.sol";
 
 
@@ -39,18 +40,30 @@ abstract contract TokenManager is SkaleFeaturesClient {
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
     bytes32 public schainId;
+    address public depositBox;
+    TokenFactory public tokenFactory;
+    bool public automaticDeploy;
+
+    modifier onlySchainOwner() {
+        require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
+        _;
+    }
 
     constructor(
         string memory newSchainName,
-        address newMessageProxyAddress,
-        address newIMALinker
+        MessageProxyForSchain newMessageProxyAddress,
+        TokenManagerLinker newIMALinker,
+        address newDepositBox,
+        TokenFactory newTokenFactory
     )
         public
     {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         schainId = keccak256(abi.encodePacked(newSchainName));
-        messageProxy = MessageProxyForSchain(newMessageProxyAddress);
-        tokenManagerLinker = TokenManagerLinker(newIMALinker);
+        messageProxy = newMessageProxyAddress;
+        tokenManagerLinker = newIMALinker;
+        depositBox = newDepositBox;
+        tokenFactory = newTokenFactory;
     }
 
     function postMessage(
@@ -61,6 +74,20 @@ abstract contract TokenManager is SkaleFeaturesClient {
         external
         virtual
         returns (bool);
+
+    /**
+     * @dev Allows Schain owner turn on automatic deploy on schain.
+     */
+    function enableAutomaticDeploy() external onlySchainOwner {
+        automaticDeploy = true;
+    }
+
+    /**
+     * @dev Allows Schain owner turn off automatic deploy on schain.
+     */
+    function disableAutomaticDeploy() external onlySchainOwner {
+        automaticDeploy = false;
+    }
 
     function addTokenManager(string calldata schainID, address newTokenManagerAddress) external virtual;
 

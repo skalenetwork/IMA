@@ -30,6 +30,7 @@ contract TokenFactory is ContractsRegistry {
 
     constructor() public {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(REGISTRAR_ROLE, msg.sender);
     }
 
     function createERC20(string memory name, string memory symbol)

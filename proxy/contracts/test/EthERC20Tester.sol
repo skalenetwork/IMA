@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxyForSchainWithoutSignature.sol - SKALE Interchain Messaging Agent
+ *   EthERC20Tester.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Dmytro Stebaiev
  *
@@ -19,26 +19,20 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../schain/MessageProxyForSchain.sol";
+import "../schain/tokens/EthERC20.sol";
 
-contract MessageProxyForSchainWithoutSignature is MessageProxyForSchain {
 
-    constructor(string memory newChainID) public MessageProxyForSchain(newChainID)
-    // solhint-disable-next-line no-empty-blocks
-    { }
+contract EthERC20Tester is EthERC20 {
 
-    function _verifyMessages(
-        bytes32,
-        Signature calldata
-    )
-        internal
-        view
-        override
-        returns (bool)
-    {
-        return true;
+    constructor(address tokenManagerEthAddress) EthERC20(tokenManagerEthAddress) public {
+
+    }
+
+    function setTokenManagerEthAddress(address newTokenManagerEthAddress) public {
+        tokenManagerEth = newTokenManagerEthAddress;
     }
 }

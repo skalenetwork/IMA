@@ -41,8 +41,6 @@ import "../TokenManager.sol";
  */
 contract TokenManagerEth is TokenManager {
 
-    address public depositBoxEth;
-
     EthERC20 private _ethErc20;
 
     mapping(bytes32 => address) public tokenManagerEthAddresses;
@@ -80,45 +78,53 @@ contract TokenManagerEth is TokenManager {
 
     constructor(
         string memory newChainID,
-        address newMessageProxyAddress,
-        address newIMALinker
+        MessageProxyForSchain newMessageProxyAddress,
+        TokenManagerLinker newIMALinker,
+        address newDepositBox,
+        TokenFactory newTokenFactory
     )
         public
-        TokenManager(newChainID, newMessageProxyAddress, newIMALinker)
+        TokenManager(newChainID, newMessageProxyAddress, newIMALinker, depositBox, newTokenFactory)
         // solhint-disable-next-line no-empty-blocks
     { }
 
+    function setEthErc20Address(address newEthERC20Address) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
+        require(address(_ethErc20) != newEthERC20Address, "The same address");
+        _ethErc20 = EthERC20(newEthERC20Address);
+    }
+
     /**
-     * @dev Adds a DepositBoxEth address to
+     * @dev Adds a depositBox address to
      * TokenManagerEth.
      *
      * Requirements:
      *
      * - `msg.sender` must be schain owner or contract owner
      * = or imaLinker contract.
-     * - DepositBoxEth must not already be added.
-     * - DepositBoxEth address must be non-zero.
+     * - depositBox must not already be added.
+     * - depositBox address must be non-zero.
      */
-    function addDepositBox(address newDepositBoxEthAddress) external override {
+    function addDepositBox(address newdepositBoxAddress) external override {
         require(
             msg.sender == address(tokenManagerLinker) ||
             _isSchainOwner(msg.sender) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        require(depositBoxEth == address(0), "DepositBoxEth is already set");
-        require(newDepositBoxEthAddress != address(0), "Incorrect DepoositBoxEth address");
-        depositBoxEth = newDepositBoxEthAddress;
+        require(depositBox == address(0), "DepositBox is already set");
+        require(newdepositBoxAddress != address(0), "Incorrect DepositBoxEth address");
+        depositBox = newdepositBoxAddress;
     }
 
     /**
-     * @dev Allows Owner to remove a DepositBoxEth on SKALE chain
+     * @dev Allows Owner to remove a depositBox on SKALE chain
      * from TokenManagerEth.
      *
      * Requirements:
      *
      * - `msg.sender` must be schain owner or contract owner
      * = or imaLinker contract.
-     * - DepositBoxEth must already be set.
+     * - depositBox must already be set.
      */
     function removeDepositBox() external override {
         require(
@@ -126,13 +132,13 @@ contract TokenManagerEth is TokenManager {
             _isSchainOwner(msg.sender) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        require(depositBoxEth != address(0), "DepositBoxEth is not set");
-        delete depositBoxEth;
+        require(depositBox != address(0), "DepositBox is not set");
+        delete depositBox;
     }
 
     /**
      * @dev Adds a TokenManagerEth address to
-     * DepositBoxEth.
+     * depositBox.
      *
      * Requirements:
      *
@@ -155,7 +161,7 @@ contract TokenManagerEth is TokenManager {
 
     /**
      * @dev Allows Owner to remove a TokenManagerEth on SKALE chain
-     * from DepositBoxEth.
+     * from depositBox.
      *
      * Requirements:
      *
@@ -185,7 +191,7 @@ contract TokenManagerEth is TokenManager {
         // require(amountOfEthToSend != 0, "Community pool is empty");
         messageProxy.postOutgoingMessage(
             "Mainnet",
-            depositBoxEth,
+            depositBox,
             Messages.encodeTransferEthMessage(to, amount)
         );
     }
@@ -235,16 +241,12 @@ contract TokenManagerEth is TokenManager {
             schainHash != schainId && 
             (
                 schainHash == keccak256(abi.encodePacked("Mainnet")) ?
-                sender == depositBoxEth :
+                sender == depositBox :
                 sender == tokenManagerEthAddresses[schainHash]
             ),
             "Receiver chain is incorrect"
         );
         Messages.TransferEthMessage memory decodedMessage = Messages.decodeTransferEthMessage(data);
-        require(
-            decodedMessage.amount <= address(this).balance,
-            "Not enough money to finish this transaction"
-        );
         address receiver = decodedMessage.receiver;
         require(receiver != address(0), "Incorrect receiver");
         require(EthERC20(getEthErc20Address()).mint(receiver, decodedMessage.amount), "Mint error");
@@ -259,10 +261,10 @@ contract TokenManagerEth is TokenManager {
     }
 
     /**
-     * @dev Checks whether TokenManagerEth is connected to a mainnet DepositBoxEth.
+     * @dev Checks whether TokenManagerEth is connected to a mainnet depositBox.
      */
     function hasDepositBox() external view override returns (bool) {
-        return depositBoxEth != address(0);
+        return depositBox != address(0);
     }
 
     function getEthErc20Address() public view returns (EthERC20) {
