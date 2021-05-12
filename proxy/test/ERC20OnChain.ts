@@ -1,5 +1,6 @@
 import BigNumber from "bignumber.js";
-import chaiAsPromised = require("chai-as-promised");
+import * as chaiAsPromised from "chai-as-promised";
+import chai = require("chai");
 import {
     MessageProxyForSchainInstance,
     ERC20OnChainInstance,
@@ -20,13 +21,13 @@ const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain"
 contract("ERC20OnChain", ([deployer, user]) => {
     let messageProxy: MessageProxyForSchainInstance;
     let eRC20OnChain: ERC20OnChainInstance;
-  
+
     beforeEach(async () => {
       messageProxy = await MessageProxyForSchain.new(
         "Mainnet", {from: deployer});
       eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20", {from: deployer});
     });
-  
+
     it("should invoke `_mint` as internal", async () => {
       // preparation
       const account = user;
@@ -37,7 +38,7 @@ contract("ERC20OnChain", ([deployer, user]) => {
       const balance = await eRC20OnChain.balanceOf(account);
       parseInt(new BigNumber(balance).toString(), 10).should.be.equal(value);
     });
-  
+
     it("should invoke `burn`", async () => {
       // preparation
       const amount = 500;
@@ -50,7 +51,7 @@ contract("ERC20OnChain", ([deployer, user]) => {
       const balance = await eRC20OnChain.balanceOf(deployer);
       parseInt(new BigNumber(balance).toString(), 10).should.be.equal(mintAmount - amount);
     });
-  
+
     it("should invoke `burnFrom`", async () => {
       // preparation
       const account = user;

@@ -1,4 +1,5 @@
-import chaiAsPromised = require("chai-as-promised");
+import * as chaiAsPromised from "chai-as-promised";
+import chai = require("chai");
 import {
     MessageProxyForSchainContract,
     TokenFactoryContract,
@@ -19,13 +20,13 @@ const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain"
 contract("ERC721OnChain", ([user, deployer]) => {
     let messageProxy: MessageProxyForSchainInstance;
     let eRC721OnChain: ERC721OnChainInstance;
-  
+
     beforeEach(async () => {
       messageProxy = await MessageProxyForSchain.new(
         "Mainnet", {from: deployer});
       eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721", {from: deployer});
     });
-  
+
     it("should invoke `mint`", async () => {
       // preparation
       const account = user;
@@ -35,7 +36,7 @@ contract("ERC721OnChain", ([user, deployer]) => {
       // expectation
       expect(await eRC721OnChain.ownerOf(tokenId)).to.be.equal(account);
     });
-  
+
     it("should invoke `burn`", async () => {
       // preparation
       const error = "ERC721: owner query for nonexistent token";
@@ -47,7 +48,7 @@ contract("ERC721OnChain", ([user, deployer]) => {
       // expectation
       await eRC721OnChain.ownerOf(tokenId).should.be.eventually.rejectedWith(error);
     });
-  
+
     it("should reject with `ERC721Burnable: caller is not owner nor approved` when invoke `burn`", async () => {
       // preparation
       const error = "ERC721Burnable: caller is not owner nor approved";
@@ -58,7 +59,7 @@ contract("ERC721OnChain", ([user, deployer]) => {
       // execution/expectation
       await eRC721OnChain.burn(tokenId, {from: account}).should.be.eventually.rejectedWith(error);
     });
-  
+
     it("should invoke `setTokenURI`", async () => {
       // preparation
       const tokenURI = "Some string with describe token";
@@ -70,5 +71,5 @@ contract("ERC721OnChain", ([user, deployer]) => {
       // expectation
       expect(res.receipt.status).to.be.true;
     });
-  
+
 });

@@ -28,33 +28,25 @@ import * as chaiAsPromised from "chai-as-promised";
 
 import chai = require("chai");
 import {
-    ERC20OnChainContract,
-    ERC20OnChainInstance,
-    ERC721OnChainContract,
-    ERC721OnChainInstance,
-    MessageProxyForSchainContract,
-    MessageProxyForSchainInstance,
-    TokenFactoryContract,
-    TokenFactoryInstance,
+    TokenFactoryERC20Contract,
+    TokenFactoryERC20Instance,
+    TokenFactoryERC721Contract,
+    TokenFactoryERC721Instance,
   } from "../types/truffle-contracts";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
-const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
-const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
-const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
+const TokenFactoryERC20: TokenFactoryERC20Contract = artifacts.require("./TokenFactoryERC20");
+const TokenFactoryERC721: TokenFactoryERC721Contract = artifacts.require("./TokenFactoryERC721");
 
 contract("TokenFactory", ([deployer, user]) => {
-  let messageProxy: MessageProxyForSchainInstance;
-  let tokenFactory: TokenFactoryInstance;
+  let tokenFactoryERC20: TokenFactoryERC20Instance;
+  let tokenFactoryERC721: TokenFactoryERC721Instance;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxyForSchain.new(
-      "Mainnet", {from: deployer});
-    
-    tokenFactory = await TokenFactory.new();
+    tokenFactoryERC20 = await TokenFactoryERC20.new("TokenManagerERC20", deployer);
+    tokenFactoryERC721 = await TokenFactoryERC721.new("TokenManagerERC721", deployer);
   });
 
   it("should createERC20", async () => {
@@ -70,7 +62,7 @@ contract("TokenFactory", ([deployer, user]) => {
     "455243323012" + // token symbol
     "000000000000000000000000000000000000000000000000000000003b9ac9f6"; // total supply
     // execution
-    const res = await tokenFactory.createERC20.call("elvis", "ELV", {from: deployer});
+    const res = await tokenFactoryERC20.createERC20.call("elvis", "ELV", {from: deployer});
     // expectation
     expect(res).to.include("0x");
   });
@@ -87,7 +79,7 @@ contract("TokenFactory", ([deployer, user]) => {
     "0000000000000000000000000000000000000000000000000000000000000006" + // token symbol
     "455243373231"; // token symbol
     // execution
-    const res = await tokenFactory.createERC721.call("elvis", "ELV", {from: deployer});
+    const res = await tokenFactoryERC721.createERC721.call("elvis", "ELV", {from: deployer});
     // expectation
     expect(res).to.include("0x");
   });

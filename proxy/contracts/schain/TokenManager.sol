@@ -24,7 +24,6 @@ pragma experimental ABIEncoderV2;
 
 import "./MessageProxyForSchain.sol";
 import "./SkaleFeaturesClient.sol";
-import "./TokenFactory.sol";
 import "./TokenManagerLinker.sol";
 
 
@@ -41,7 +40,6 @@ abstract contract TokenManager is SkaleFeaturesClient {
     TokenManagerLinker public tokenManagerLinker;
     bytes32 public schainId;
     address public depositBox;
-    TokenFactory public tokenFactory;
     bool public automaticDeploy;
 
     modifier onlySchainOwner() {
@@ -53,8 +51,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
         string memory newSchainName,
         MessageProxyForSchain newMessageProxyAddress,
         TokenManagerLinker newIMALinker,
-        address newDepositBox,
-        TokenFactory newTokenFactory
+        address newDepositBox
     )
         public
     {
@@ -63,7 +60,6 @@ abstract contract TokenManager is SkaleFeaturesClient {
         messageProxy = newMessageProxyAddress;
         tokenManagerLinker = newIMALinker;
         depositBox = newDepositBox;
-        tokenFactory = newTokenFactory;
     }
 
     function postMessage(
