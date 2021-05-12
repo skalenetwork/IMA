@@ -202,13 +202,13 @@ contract TokenManagerERC20 is TokenManager {
         ERC20Burnable contractOnSchain = schainToERC20OnSchain[schainId][contractOnMainnet];
         
         require(address(contractOnSchain).isContract(), "No token clone on schain");
-        require(contractOnSchain.balanceOf(address(this)) >= amount, "Insufficient funds");
+        require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
         require(
             IERC20(contractOnSchain).allowance(
                 msg.sender,
                 address(this)
             ) >= amount,
-            "Transfer is not allowed by token holder"
+            "Transfer is not approved by token holder"
         );
         require(
             IERC20(contractOnSchain).transferFrom(
@@ -239,13 +239,13 @@ contract TokenManagerERC20 is TokenManager {
     {
         ERC20Burnable contractOnSchain = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
-        require(contractOnSchain.balanceOf(address(this)) >= amount, "Insufficient funds");
+        require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
         require(
             IERC20(contractOnSchain).allowance(
                 msg.sender,
                 address(this)
             ) >= amount,
-            "Not allowed ERC20 Token"
+            "Transfer is not approved by token holder"
         );
         require(
             IERC20(contractOnSchain).transferFrom(

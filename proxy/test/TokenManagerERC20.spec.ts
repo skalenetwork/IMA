@@ -158,19 +158,18 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
 
   });
 
-  it("should reject with `Not allowed ERC20 Token` when invoke `exitToMainERC20`", async () => {
-    const error = "Not allowed ERC20 Token";
-    const amount = new BigNumber(200);
-    const amountTo = new BigNumber(20);
-    const amountEth = new BigNumber("60000000000000000");
+  it("should reject with `Transfer is not approved by token holder` when invoke `exitToMainERC20`", async () => {
+    const error = "Transfer is not approved by token holder";
+    const amount = 20;
     
     // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
     const minterRole = await erc20OnChain.MINTER_ROLE();
+    await erc20OnChain.mint(user, amount * 2);
     await erc20OnChain.grantRole(minterRole, tokenManagerErc20.address, {from: deployer});
     //
-    await erc20OnChain.approve(tokenManagerErc20.address, amountTo, {from: user});
-    // // execution/expectation
-    await tokenManagerErc20.exitToMainERC20(erc20OnMainnet.address, deployer, amountTo, {from: deployer})
+    await erc20OnChain.approve(tokenManagerErc20.address, amount / 2, {from: user});
+    // execution/expectation
+    await tokenManagerErc20.exitToMainERC20(erc20OnMainnet.address, user, amount, {from: user})
         .should.be.eventually.rejectedWith(error);
   });
 
