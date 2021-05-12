@@ -145,7 +145,7 @@ contract TokenManagerERC721 is TokenManager {
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addTokenManager(string calldata schainID, address newTokenManagerERC20Address) external override {
+    function addTokenManager(string calldata schainID, address newTokenManagerERC721Address) external override {
         require(
             msg.sender == address(tokenManagerLinker) ||
             _isSchainOwner(msg.sender) ||
@@ -153,8 +153,8 @@ contract TokenManagerERC721 is TokenManager {
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerERC721Addresses[schainHash] == address(0), "SKALE chain is already set");
-        require(newTokenManagerERC20Address != address(0), "Incorrect Token Manager address");
-        tokenManagerERC721Addresses[schainHash] = newTokenManagerERC20Address;
+        require(newTokenManagerERC721Address != address(0), "Incorrect Token Manager address");
+        tokenManagerERC721Addresses[schainHash] = newTokenManagerERC721Address;
     }
 
     /**
@@ -268,8 +268,6 @@ contract TokenManagerERC721 is TokenManager {
             operation == Messages.MessageType.TRANSFER_ERC721
         ) {
             require(_sendERC721(fromSchainID, data), "Failed to send ERC721");
-            // address receiver = ERC721ModuleForSchain(erc721Module).getReceiver(data);
-            // require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else {
             revert("MessageType is unknown");
         }
@@ -288,7 +286,6 @@ contract TokenManagerERC721 is TokenManager {
     {
         require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
         require(address(erc721OnSchain).isContract(), "Given address is not a contract");
-        // require(!automaticDeploy[keccak256(abi.encodePacked(schainName))], "Custom deploy is enabled");
         schainToERC721OnSchain[keccak256(abi.encodePacked(schainName))][erc721OnMainnet] = erc721OnSchain;
         emit ERC721TokenAdded(schainName, erc721OnMainnet, address(erc721OnSchain));
     }
@@ -363,7 +360,6 @@ contract TokenManagerERC721 is TokenManager {
                 require(address(contractOnSchainTmp).isContract(), "Given address is not a contract");
                 require(automaticDeploy, "Automatic deploy is disabled");
                 schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchainTmp;
-                emit ERC721TokenAdded(schainID, token, address(contractOnSchainTmp));
                 emit ERC721TokenCreated(schainID, token, address(contractOnSchainTmp));
             }
         }

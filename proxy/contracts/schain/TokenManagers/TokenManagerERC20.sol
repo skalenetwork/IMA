@@ -317,7 +317,6 @@ contract TokenManagerERC20 is TokenManager {
         require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
         require(address(erc20OnSchain).isContract(), "Given address is not a contract");
         require(erc20OnSchain.totalSupply() == 0, "TotalSupply is not zero");
-        // require(!automaticDeploy[keccak256(abi.encodePacked(schainName))], "Custom deploy is enabled");
         schainToERC20OnSchain[keccak256(abi.encodePacked(schainName))][erc20OnMainnet] = erc20OnSchain;
         emit ERC20TokenAdded(schainName, erc20OnMainnet, address(erc20OnSchain));
     }
@@ -372,7 +371,6 @@ contract TokenManagerERC20 is TokenManager {
                 require(address(contractOnSchainTmp).isContract(), "Given address is not a contract");
                 require(automaticDeploy, "Automatic deploy is disabled");
                 schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchainTmp;
-                emit ERC20TokenAdded(schainID, token, address(contractOnSchainTmp));
                 emit ERC20TokenCreated(schainID, token, address(contractOnSchainTmp));
             }
         }
