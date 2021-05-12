@@ -42,9 +42,10 @@ contract("CommunityPool", ([deployer, user]) => {
   it("should revert if user recharged not enough money for most costly transaction", async () => {
     const schainID = randomString(10);
     await messageProxy.addConnectedChain(schainID);
+    const gasPrice = await web3.eth.getGasPrice();
     const minTransactionGas =  (await communityPool.minTransactionGas()).toNumber();
-    const wei = minTransactionGas * 8e9 - 1;
-    await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user})
+    const wei = minTransactionGas * gasPrice - 1;
+    await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user, gasPrice: gasPrice})
         .should.be.eventually.rejectedWith("Not enough money for transaction");
   });
 
@@ -52,25 +53,26 @@ contract("CommunityPool", ([deployer, user]) => {
     const schainID = randomString(10);
     await messageProxy.addConnectedChain(schainID);
     const minTransactionGas =  (await communityPool.minTransactionGas()).toNumber();
-    const wei = minTransactionGas * 8e9;
-    await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user});
+    const gasPrice = await web3.eth.getGasPrice();
+    const wei = minTransactionGas * gasPrice;
+    await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user, gasPrice: gasPrice});
     const userBalance = (await communityPool.getBalance(schainID, {from: user})).toNumber();
     userBalance.should.be.equal(wei);
   });
 
   it("should allow to withdraw money", async () => {
     const schainID = randomString(10);
-    const gasPrice = 8e9;
+    const gasPrice = await web3.eth.getGasPrice();
     await messageProxy.addConnectedChain(schainID);
     const minTransactionGas =  (await communityPool.minTransactionGas()).toNumber();
     const wei = minTransactionGas * gasPrice;
-    await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user});
+    await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user, gasPrice: gasPrice});
 
     await communityPool.withdrawFunds(schainID, wei + 1, {from: user})
         .should.be.eventually.rejectedWith("Balance is too low");
 
     const balanceBefore = await getBalance(user);
-    const tx = await communityPool.withdrawFunds(schainID, wei, {from: user});
+    const tx = await communityPool.withdrawFunds(schainID, wei, {from: user, gasPrice: gasPrice});
     const balanceAfter = await getBalance(user);
     const transactionFee = (tx.receipt.gasUsed * gasPrice);
     (balanceAfter + transactionFee / 1e18).should.be.almost(balanceBefore + wei / 1e18);
