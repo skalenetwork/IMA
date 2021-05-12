@@ -121,11 +121,11 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
   it("should reject with `Insufficient funds` if token balance is too low", async () => {
     // preparation
     const error = "Insufficient funds";
-    const contractHere = erc20OnChain.address;
     const amount = 10;
     // execution/expectation
+    await erc20OnChain.approve(tokenManagerErc20.address, amount, {from: user});
     const res = await tokenManagerErc20
-        .exitToMainERC20(erc20OnMainnet.address, deployer, amount, {from: deployer})
+        .exitToMainERC20(erc20OnMainnet.address, user, amount, {from: user})
         .should.be.eventually.rejectedWith(error);
   });
 

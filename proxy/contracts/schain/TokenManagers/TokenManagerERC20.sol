@@ -199,14 +199,16 @@ contract TokenManagerERC20 is TokenManager {
     )
         external
     {
-        IERC20 contractOnSchain = schainToERC20OnSchain[schainId][contractOnMainnet];
+        ERC20Burnable contractOnSchain = schainToERC20OnSchain[schainId][contractOnMainnet];
+        
         require(address(contractOnSchain).isContract(), "No token clone on schain");
+        require(contractOnSchain.balanceOf(address(this)) >= amount, "Insufficient funds");
         require(
             IERC20(contractOnSchain).allowance(
                 msg.sender,
                 address(this)
             ) >= amount,
-            "Not allowed ERC20 Token"
+            "Transfer is not allowed by token holder"
         );
         require(
             IERC20(contractOnSchain).transferFrom(
@@ -216,16 +218,13 @@ contract TokenManagerERC20 is TokenManager {
             ),
             "Could not transfer ERC20 Token"
         );
-        bytes memory data = _receiveERC20(
-            MAINNET_NAME,
-            contractOnMainnet,
-            to,
-            amount
-        );
+        
+        contractOnSchain.burn(amount);
+        
         messageProxy.postOutgoingMessage(
             MAINNET_NAME,
             depositBox,
-            data
+            Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
         );
     }
 
@@ -238,7 +237,9 @@ contract TokenManagerERC20 is TokenManager {
         external
         // receivedEth(amountOfEth)
     {
-        IERC20 contractOnSchain = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
+        ERC20Burnable contractOnSchain = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
+        require(address(contractOnSchain).isContract(), "No token clone on schain");
+        require(contractOnSchain.balanceOf(address(this)) >= amount, "Insufficient funds");
         require(
             IERC20(contractOnSchain).allowance(
                 msg.sender,
@@ -254,16 +255,13 @@ contract TokenManagerERC20 is TokenManager {
             ),
             "Could not transfer ERC20 Token"
         );
-        bytes memory data = _receiveERC20(
-            schainID,
-            contractOnMainnet,
-            to,
-            amount
-        );
+
+        contractOnSchain.burn(amount);
+
         messageProxy.postOutgoingMessage(
             schainID,
             tokenManagerERC20Addresses[keccak256(abi.encodePacked(schainID))],
-            data
+            Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
         );
     }
 
@@ -342,43 +340,6 @@ contract TokenManagerERC20 is TokenManager {
         return schainToERC20OnSchain[keccak256(abi.encodePacked(schainName))][address(tokenOnMainnetAddress)];
     }
 
-    function _sendCreateERC20Request(
-        Messages.Erc20TokenInfo memory erc20TokenInfo
-    )
-        internal
-        returns (ERC20OnChain)
-    {
-        return tokenFactory.createERC20(
-            erc20TokenInfo.name,
-            erc20TokenInfo.symbol
-        );
-    }
-
-    /**
-     * @dev Allows TokenManager to receive ERC20 tokens.
-     * 
-     * Requirements:
-     * 
-     * - ERC20 token contract must exist in LockAndDataForSchainERC20.
-     * - ERC20 token must be received by LockAndDataForSchainERC20.
-     */
-    function _receiveERC20(
-        string memory schainID,
-        address contractOnMainnet,
-        address receiver,
-        uint256 amount
-    ) 
-        private
-        returns (bytes memory data)
-    {
-        ERC20Burnable contractOnSchain = 
-            schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
-        assert(address(contractOnSchain).isContract());
-        require(contractOnSchain.balanceOf(address(this)) >= amount, "Insufficient funds");
-        contractOnSchain.burn(amount);
-        data = Messages.encodeTransferErc20Message(contractOnMainnet, receiver, amount);
-    }
-
     /**
      * @dev Allows TokenManager to send ERC20 tokens.
      *  
@@ -407,7 +368,7 @@ contract TokenManagerERC20 is TokenManager {
             totalSupply = message.totalSupply;
             ERC20OnChain contractOnSchainTmp = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token];
             if (address(contractOnSchainTmp) == address(0)) {
-                contractOnSchainTmp = _sendCreateERC20Request(message.tokenInfo);
+                contractOnSchainTmp = tokenFactory.createERC20(message.tokenInfo.name, message.tokenInfo.symbol);
                 require(address(contractOnSchainTmp).isContract(), "Given address is not a contract");
                 require(automaticDeploy, "Automatic deploy is disabled");
                 schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchainTmp;
