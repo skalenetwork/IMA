@@ -26,7 +26,7 @@ import "@nomiclabs/buidler/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../../Messages.sol";
-import "../TokenFactory.sol";
+import "../TokenFactories/TokenFactoryERC20.sol";
 import "../TokenManager.sol";
 
 
@@ -47,7 +47,7 @@ contract TokenManagerERC20 is TokenManager {
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_ID = keccak256(abi.encodePacked(MAINNET_NAME));
 
-    TokenFactory private _tokenFactory;
+    TokenFactoryERC20 private _tokenFactory;
 
     mapping(bytes32 => address) public tokenManagerERC20Addresses;
 
@@ -99,11 +99,10 @@ contract TokenManagerERC20 is TokenManager {
         string memory newChainID,
         MessageProxyForSchain newMessageProxyAddress,
         TokenManagerLinker newIMALinker,
-        address newDepositBox,
-        TokenFactory newTokenFactory
+        address newDepositBox
     )
         public
-        TokenManager(newChainID, newMessageProxyAddress, newIMALinker, newDepositBox, newTokenFactory)
+        TokenManager(newChainID, newMessageProxyAddress, newIMALinker, newDepositBox)
         // solhint-disable-next-line no-empty-blocks
     { }
 
@@ -368,7 +367,7 @@ contract TokenManagerERC20 is TokenManager {
             totalSupply = message.totalSupply;
             ERC20OnChain contractOnSchainTmp = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token];
             if (address(contractOnSchainTmp) == address(0)) {
-                contractOnSchainTmp = tokenFactory.createERC20(message.tokenInfo.name, message.tokenInfo.symbol);
+                contractOnSchainTmp = _tokenFactory.createERC20(message.tokenInfo.name, message.tokenInfo.symbol);
                 require(address(contractOnSchainTmp).isContract(), "Given address is not a contract");
                 require(automaticDeploy, "Automatic deploy is disabled");
                 schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchainTmp;

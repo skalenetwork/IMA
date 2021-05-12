@@ -25,7 +25,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import "../../Messages.sol";
-import "../TokenFactory.sol";
+import "../TokenFactories/TokenFactoryERC721.sol";
 import "../TokenManager.sol";
 
 
@@ -38,7 +38,7 @@ import "../TokenManager.sol";
  */
 contract TokenManagerERC721 is TokenManager {
 
-    TokenFactory private _tokenFactory;
+    TokenFactoryERC721 private _tokenFactory;
 
     mapping(bytes32 => address) public tokenManagerERC721Addresses;
     // address of ERC721 on Mainnet => address of ERC721 on Schain
@@ -84,11 +84,10 @@ contract TokenManagerERC721 is TokenManager {
         string memory newChainID,
         MessageProxyForSchain newMessageProxyAddress,
         TokenManagerLinker newIMALinker,
-        address newDepositBox,
-        TokenFactory newTokenFactory
+        address newDepositBox
     )
         public
-        TokenManager(newChainID, newMessageProxyAddress, newIMALinker, newDepositBox, newTokenFactory)
+        TokenManager(newChainID, newMessageProxyAddress, newIMALinker, newDepositBox)
         // solhint-disable-next-line no-empty-blocks
     { }
 
@@ -308,7 +307,7 @@ contract TokenManagerERC721 is TokenManager {
     }
 
     function _sendCreateERC721Request(Messages.Erc721TokenInfo memory tokenInfo) internal returns (ERC721OnChain) {
-        return tokenFactory.createERC721(tokenInfo.name, tokenInfo.symbol);
+        return _tokenFactory.createERC721(tokenInfo.name, tokenInfo.symbol);
     }
 
     /**

@@ -80,11 +80,10 @@ contract TokenManagerEth is TokenManager {
         string memory newChainID,
         MessageProxyForSchain newMessageProxyAddress,
         TokenManagerLinker newIMALinker,
-        address newDepositBox,
-        TokenFactory newTokenFactory
+        address newDepositBox
     )
         public
-        TokenManager(newChainID, newMessageProxyAddress, newIMALinker, depositBox, newTokenFactory)
+        TokenManager(newChainID, newMessageProxyAddress, newIMALinker, depositBox)
         // solhint-disable-next-line no-empty-blocks
     { }
 

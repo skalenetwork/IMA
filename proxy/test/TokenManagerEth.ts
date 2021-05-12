@@ -83,7 +83,6 @@ contract("TokenManagerEth", ([user, deployer]) => {
       messageProxyForSchain.address,
       tokenManagerLinker.address,
       deployer,
-      deployer,
       {
         from: deployer,
         gas: 8000000 * gasMultiplier
@@ -347,7 +346,7 @@ contract("TokenManagerEth", ([user, deployer]) => {
       const sender = deployer;
       // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
       // to avoid `Not a sender` error
-      tokenManagerEth = await TokenManagerEth.new(schainID, deployer, tokenManagerLinker.address, deployer, deployer, {from: deployer});
+      tokenManagerEth = await TokenManagerEth.new(schainID, deployer, tokenManagerLinker.address, deployer, {from: deployer});
       // await tokenManagerEth.setContract("MessageProxy", deployer, {from: deployer});
       // execution
       await tokenManagerEth
@@ -365,7 +364,7 @@ contract("TokenManagerEth", ([user, deployer]) => {
         const sender = deployer;
         // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
         // to avoid `Not a sender` error
-        tokenManagerEth = await TokenManagerEth.new(schainName, deployer, tokenManagerLinker.address, deployer, deployer, {from: deployer});
+        tokenManagerEth = await TokenManagerEth.new(schainName, deployer, tokenManagerLinker.address, deployer, {from: deployer});
         // set `tokenManagerEth` contract to avoid the `Not allowed` error in tokenManagerEth.sol
         const skaleFeaturesSetterRole = await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE();
         await tokenManagerEth.grantRole(skaleFeaturesSetterRole, deployer, {from: deployer});
@@ -389,7 +388,7 @@ contract("TokenManagerEth", ([user, deployer]) => {
         const bytesData = await messages.encodeTransferEthMessage(to, amount);
         // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
         // to avoid `Not a sender` error
-        tokenManagerEth = await TokenManagerEth.new(schainName, deployer, tokenManagerLinker.address, deployer ,deployer, {from: deployer});
+        tokenManagerEth = await TokenManagerEth.new(schainName, deployer, tokenManagerLinker.address, deployer, {from: deployer});
         // set `tokenManagerEth` contract to avoid the `Not allowed` error in tokenManagerEth.sol
         const skaleFeaturesSetterRole = await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE();
         await tokenManagerEth.grantRole(skaleFeaturesSetterRole, deployer, {from: deployer});

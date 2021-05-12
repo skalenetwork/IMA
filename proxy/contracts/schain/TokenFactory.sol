@@ -21,40 +21,32 @@
 
 pragma solidity 0.6.12;
 
-import "./tokens/ERC20OnChain.sol";
-import "./tokens/ERC721OnChain.sol";
-import "./ContractsRegistry.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./SkaleFeaturesClient.sol";
 
 
-contract TokenFactory is ContractsRegistry {
+contract TokenFactory is AccessControl, SkaleFeaturesClient {
 
-    constructor() public {
+    address public tokenManagerAddress;
+    string public tokenManagerName;
+
+    modifier onlyTokenManager() {
+        require(getTokenManager() == msg.sender, "Sender is not TokenManager");
+        _;
+    }
+
+    constructor(string memory newTokenManagerName, address newTokenManagerAddress) public {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(REGISTRAR_ROLE, msg.sender);
+        tokenManagerName = newTokenManagerName;
+        tokenManagerAddress = newTokenManagerAddress;
     }
 
-    function createERC20(string memory name, string memory symbol)
-        external
-        allow("TokenManagerERC20")
-        returns (ERC20OnChain)
-    {
-        ERC20OnChain newERC20 = new ERC20OnChain(
-            name,
-            symbol
-        );
-        newERC20.grantRole(newERC20.MINTER_ROLE(), getContract("TokenManagerERC20"));
-        newERC20.revokeRole(newERC20.MINTER_ROLE(), address(this));
-        return newERC20;
-    }
-
-    function createERC721(string memory name, string memory symbol)
-        external
-        allow("TokenManagerERC721")
-        returns (ERC721OnChain)
-    {
-        ERC721OnChain newERC721 = new ERC721OnChain(name, symbol);
-        newERC721.grantRole(newERC721.MINTER_ROLE(), getContract("TokenManagerERC721"));
-        newERC721.revokeRole(newERC721.MINTER_ROLE(), address(this));
-        return newERC721;
+    function getTokenManager() public view returns (address) {
+        if (tokenManagerAddress == address(0)) {
+            return getSkaleFeatures().getConfigVariableAddress(
+                string(abi.encodePacked("skaleConfig.contractSettings.IMA", tokenManagerName))
+            );
+        }
+        return tokenManagerAddress;
     }
 }
