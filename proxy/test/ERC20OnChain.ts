@@ -1,5 +1,6 @@
 import BigNumber from "bignumber.js";
-import chaiAsPromised = require("chai-as-promised");
+import * as chaiAsPromised from "chai-as-promised";
+import chai = require("chai");
 import {
     MessageProxyForSchainInstance,
     ERC20OnChainInstance,

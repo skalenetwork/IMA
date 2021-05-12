@@ -1,4 +1,5 @@
-import chaiAsPromised = require("chai-as-promised");
+import * as chaiAsPromised from "chai-as-promised";
+import chai = require("chai");
 import {
     MessageProxyForSchainContract,
     TokenFactoryContract,
