@@ -112,11 +112,9 @@ contract("TokenManagerEth", ([user, deployer]) => {
     const skaleFeaturesSetterRole = await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE();
     await tokenManagerEth.grantRole(skaleFeaturesSetterRole, deployer, {from: deployer});
     await tokenManagerEth.setSkaleFeaturesAddress(skaleFeatures.address, {from: deployer});
-    
   });
 
   it("should set EthERC20 address", async () => {
-
     // only owner can set EthERC20 address:
     await tokenManagerEth.setEthErc20Address(ethERC20.address, {from: user}).should.be.rejected;
     await tokenManagerEth.setEthErc20Address(ethERC20.address, {from: deployer});
