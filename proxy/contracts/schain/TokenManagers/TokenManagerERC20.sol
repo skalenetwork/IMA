@@ -47,16 +47,13 @@ contract TokenManagerERC20 is TokenManager {
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_ID = keccak256(abi.encodePacked(MAINNET_NAME));
 
-    address public depositBoxERC20;
-
     TokenFactory private _tokenFactory;
 
     mapping(bytes32 => address) public tokenManagerERC20Addresses;
 
     // schain id => address of ERC20 on Mainnet => address of ERC20 on Schain
     mapping(bytes32 => mapping(address => ERC20OnChain)) public schainToERC20OnSchain;
-    //     schainId => bool 
-    mapping(bytes32 => bool) public automaticDeploy;
+    
     // address of clone on schain => totalSupplyOnMainnet
     mapping(IERC20 => uint) public totalSupplyOnMainnet;
 
@@ -100,45 +97,47 @@ contract TokenManagerERC20 is TokenManager {
 
     constructor(
         string memory newChainID,
-        address newMessageProxyAddress,
-        address newIMALinker
+        MessageProxyForSchain newMessageProxyAddress,
+        TokenManagerLinker newIMALinker,
+        address newDepositBox,
+        TokenFactory newTokenFactory
     )
         public
-        TokenManager(newChainID, newMessageProxyAddress, newIMALinker)
+        TokenManager(newChainID, newMessageProxyAddress, newIMALinker, newDepositBox, newTokenFactory)
         // solhint-disable-next-line no-empty-blocks
     { }
 
     /**
-     * @dev Adds a DepositBoxERC20 address to
+     * @dev Adds a depositBox address to
      * TokenManagerEth.
      *
      * Requirements:
      *
      * - `msg.sender` must be schain owner or contract owner
      * = or imaLinker contract.
-     * - DepositBoxERC20 must not already be added.
-     * - DepositBoxERC20 address must be non-zero.
+     * - depositBox must not already be added.
+     * - depositBox address must be non-zero.
      */
-    function addDepositBox(address newDepositBoxERC20Address) external override {
+    function addDepositBox(address newdepositBoxAddress) external override {
         require(
             msg.sender == address(tokenManagerLinker) ||
             _isSchainOwner(msg.sender) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        require(depositBoxERC20 == address(0), "DepositBoxERC20 is already set");
-        require(newDepositBoxERC20Address != address(0), "Incorrect DepoositBoxEth address");
-        depositBoxERC20 = newDepositBoxERC20Address;
+        require(depositBox == address(0), "depositBox is already set");
+        require(newdepositBoxAddress != address(0), "Incorrect DepositBoxEth address");
+        depositBox = newdepositBoxAddress;
     }
 
     /**
-     * @dev Allows Owner to remove a DepositBoxERC20 on SKALE chain
+     * @dev Allows Owner to remove a depositBox on SKALE chain
      * from TokenManagerEth.
      *
      * Requirements:
      *
      * - `msg.sender` must be schain owner or contract owner
      * = or imaLinker contract.
-     * - DepositBoxERC20 must already be set.
+     * - depositBox must already be set.
      */
     function removeDepositBox() external override {
         require(
@@ -146,13 +145,13 @@ contract TokenManagerERC20 is TokenManager {
             _isSchainOwner(msg.sender) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        require(depositBoxERC20 != address(0), "DepositBoxERC20 is not set");
-        delete depositBoxERC20;
+        require(depositBox != address(0), "depositBox is not set");
+        delete depositBox;
     }
 
     /**
      * @dev Adds a TokenManagerEth address to
-     * DepositBoxERC20.
+     * depositBox.
      *
      * Requirements:
      *
@@ -175,7 +174,7 @@ contract TokenManagerERC20 is TokenManager {
 
     /**
      * @dev Allows Owner to remove a TokenManagerEth on SKALE chain
-     * from DepositBoxERC20.
+     * from depositBox.
      *
      * Requirements:
      *
@@ -191,22 +190,6 @@ contract TokenManagerERC20 is TokenManager {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerERC20Addresses[schainHash] != address(0), "SKALE chain is not set");
         delete tokenManagerERC20Addresses[schainHash];
-    }
-
-    /**
-     * @dev Allows Schain owner turn on automatic deploy on schain.
-     */
-    function enableAutomaticDeploy(string calldata schainName) external {
-        require(_isSchainOwner(msg.sender), "Sender is not a Schain owner");
-        automaticDeploy[keccak256(abi.encodePacked(schainName))] = true;
-    }
-
-    /**
-     * @dev Allows Schain owner turn off automatic deploy on schain.
-     */
-    function disableAutomaticDeploy(string calldata schainName) external {
-        require(_isSchainOwner(msg.sender), "Sender is not a Schain owner");
-        automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
     }
 
     function exitToMainERC20(
@@ -241,7 +224,7 @@ contract TokenManagerERC20 is TokenManager {
         );
         messageProxy.postOutgoingMessage(
             MAINNET_NAME,
-            depositBoxERC20,
+            depositBox,
             data
         );
     }
@@ -304,15 +287,15 @@ contract TokenManagerERC20 is TokenManager {
         override
         returns (bool)
     {
-        require(msg.sender == address(messageProxy), "Not a sender");
+        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
         require(
             schainHash != schainId && 
-            (
-                schainHash == MAINNET_ID ?
-                sender == depositBoxERC20 :
-                sender == tokenManagerERC20Addresses[schainHash]
-            ),
+                (
+                    schainHash == MAINNET_ID ?
+                    sender == depositBox :
+                    sender == tokenManagerERC20Addresses[schainHash]
+                ),
             "Receiver chain is incorrect"
         );
         Messages.MessageType operation = Messages.getMessageType(data);
@@ -349,28 +332,14 @@ contract TokenManagerERC20 is TokenManager {
     }
 
     /**
-     * @dev Checks whether TokenManagerERC20 is connected to a mainnet DepositBoxERC20.
+     * @dev Checks whether TokenManagerERC20 is connected to a mainnet depositBox.
      */
     function hasDepositBox() external view override returns (bool) {
-        return depositBoxERC20 != address(0);
+        return depositBox != address(0);
     }
 
     function getErc20OnSchain(string memory schainName, IERC20 tokenOnMainnetAddress) external view returns (IERC20) {
         return schainToERC20OnSchain[keccak256(abi.encodePacked(schainName))][address(tokenOnMainnetAddress)];
-    }
-
-    /**
-     * @dev Returns TokenFactory address
-     */
-    function getTokenFactory() public view returns (TokenFactory) {
-        if (address(_tokenFactory) == address(0)) {
-            return TokenFactory(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.TokenFactory"
-                )
-            );
-        }
-        return _tokenFactory;
     }
 
     function _sendCreateERC20Request(
@@ -379,7 +348,7 @@ contract TokenManagerERC20 is TokenManager {
         internal
         returns (ERC20OnChain)
     {
-        return getTokenFactory().createERC20(
+        return tokenFactory.createERC20(
             erc20TokenInfo.name,
             erc20TokenInfo.symbol
         );
@@ -438,11 +407,9 @@ contract TokenManagerERC20 is TokenManager {
             totalSupply = message.totalSupply;
             ERC20OnChain contractOnSchainTmp = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token];
             if (address(contractOnSchainTmp) == address(0)) {
-                contractOnSchainTmp = _sendCreateERC20Request(
-                    Messages.decodeTransferErc20AndTokenInfoMessage(data).tokenInfo
-                );
+                contractOnSchainTmp = _sendCreateERC20Request(message.tokenInfo);
                 require(address(contractOnSchainTmp).isContract(), "Given address is not a contract");
-                require(automaticDeploy[keccak256(abi.encodePacked(schainID))], "Automatic deploy is disabled");
+                require(automaticDeploy, "Automatic deploy is disabled");
                 schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchainTmp;
                 emit ERC20TokenAdded(schainID, token, address(contractOnSchainTmp));
                 emit ERC20TokenCreated(schainID, token, address(contractOnSchainTmp));

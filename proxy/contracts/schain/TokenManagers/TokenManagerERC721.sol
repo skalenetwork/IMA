@@ -38,15 +38,11 @@ import "../TokenManager.sol";
  */
 contract TokenManagerERC721 is TokenManager {
 
-    address public depositBoxERC721;
-
     TokenFactory private _tokenFactory;
 
     mapping(bytes32 => address) public tokenManagerERC721Addresses;
     // address of ERC721 on Mainnet => address of ERC721 on Schain
     mapping(bytes32 => mapping(address => ERC721OnChain)) public schainToERC721OnSchain;
-    //     schainId => bool 
-    mapping(bytes32 => bool) public automaticDeploy;
 
     /**
      * TX_FEE - equals "Eth exit" operation gas consumption (300 000 gas) multiplied by
@@ -86,45 +82,47 @@ contract TokenManagerERC721 is TokenManager {
 
     constructor(
         string memory newChainID,
-        address newMessageProxyAddress,
-        address newIMALinker
+        MessageProxyForSchain newMessageProxyAddress,
+        TokenManagerLinker newIMALinker,
+        address newDepositBox,
+        TokenFactory newTokenFactory
     )
         public
-        TokenManager(newChainID, newMessageProxyAddress, newIMALinker)
+        TokenManager(newChainID, newMessageProxyAddress, newIMALinker, newDepositBox, newTokenFactory)
         // solhint-disable-next-line no-empty-blocks
     { }
 
     /**
-     * @dev Adds a DepositBoxERC721 address to
+     * @dev Adds a depositBox address to
      * TokenManagerEth.
      *
      * Requirements:
      *
      * - `msg.sender` must be schain owner or contract owner
      * = or imaLinker contract.
-     * - DepositBoxERC721 must not already be added.
-     * - DepositBoxERC721 address must be non-zero.
+     * - depositBox must not already be added.
+     * - depositBox address must be non-zero.
      */
-    function addDepositBox(address newDepositBoxERC721Address) external override {
+    function addDepositBox(address newdepositBoxAddress) external override {
         require(
             msg.sender == address(tokenManagerLinker) ||
             _isSchainOwner(msg.sender) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        require(depositBoxERC721 == address(0), "DepositBoxERC721 is already set");
-        require(newDepositBoxERC721Address != address(0), "Incorrect DepoositBoxEth address");
-        depositBoxERC721 = newDepositBoxERC721Address;
+        require(depositBox == address(0), "depositBox is already set");
+        require(newdepositBoxAddress != address(0), "Incorrect DepositBoxEth address");
+        depositBox = newdepositBoxAddress;
     }
 
     /**
-     * @dev Allows Owner to remove a DepositBoxERC721 on SKALE chain
+     * @dev Allows Owner to remove a depositBox on SKALE chain
      * from TokenManagerEth.
      *
      * Requirements:
      *
      * - `msg.sender` must be schain owner or contract owner
      * = or imaLinker contract.
-     * - DepositBoxERC721 must already be set.
+     * - depositBox must already be set.
      */
     function removeDepositBox() external override {
         require(
@@ -132,13 +130,13 @@ contract TokenManagerERC721 is TokenManager {
             _isSchainOwner(msg.sender) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        require(depositBoxERC721 != address(0), "DepositBoxERC721 is not set");
-        delete depositBoxERC721;
+        require(depositBox != address(0), "depositBox is not set");
+        delete depositBox;
     }
 
     /**
      * @dev Adds a TokenManagerEth address to
-     * DepositBoxERC721.
+     * depositBox.
      *
      * Requirements:
      *
@@ -161,7 +159,7 @@ contract TokenManagerERC721 is TokenManager {
 
     /**
      * @dev Allows Owner to remove a TokenManagerEth on SKALE chain
-     * from DepositBoxERC721.
+     * from depositBox.
      *
      * Requirements:
      *
@@ -177,22 +175,6 @@ contract TokenManagerERC721 is TokenManager {
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
         require(tokenManagerERC721Addresses[schainHash] != address(0), "SKALE chain is not set");
         delete tokenManagerERC721Addresses[schainHash];
-    }
-
-    /**
-     * @dev Allows Schain owner turn on automatic deploy on schain.
-     */
-    function enableAutomaticDeploy(string calldata schainName) external {
-        require(_isSchainOwner(msg.sender), "Sender is not a Schain owner");
-        automaticDeploy[keccak256(abi.encodePacked(schainName))] = true;
-    }
-
-    /**
-     * @dev Allows Schain owner turn off automatic deploy on schain.
-     */
-    function disableAutomaticDeploy(string calldata schainName) external {
-        require(_isSchainOwner(msg.sender), "Sender is not a Schain owner");
-        automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
     }
 
     function exitToMainERC721(
@@ -219,7 +201,7 @@ contract TokenManagerERC721 is TokenManager {
         );
         messageProxy.postOutgoingMessage(
             "Mainnet",
-            depositBoxERC721,
+            depositBox,
             data
         );
     }
@@ -275,7 +257,7 @@ contract TokenManagerERC721 is TokenManager {
             schainHash != schainId && 
             (
                 schainHash == keccak256(abi.encodePacked("Mainnet")) ?
-                sender == depositBoxERC721 :
+                sender == depositBox :
                 sender == tokenManagerERC721Addresses[schainHash]
             ),
             "Receiver chain is incorrect"
@@ -319,28 +301,14 @@ contract TokenManagerERC721 is TokenManager {
     }
 
     /**
-     * @dev Checks whether TokenManagerERC721 is connected to a mainnet DepositBoxERC721.
+     * @dev Checks whether TokenManagerERC721 is connected to a mainnet depositBox.
      */
     function hasDepositBox() external view override returns (bool) {
-        return depositBoxERC721 != address(0);
-    }
-
-    /**
-     * @dev Returns TokenFactory address
-     */
-    function getTokenFactory() public view returns (TokenFactory) {
-        if (address(_tokenFactory) == address(0)) {
-            return TokenFactory(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.TokenFactory"
-                )
-            );
-        }
-        return _tokenFactory;
+        return depositBox != address(0);
     }
 
     function _sendCreateERC721Request(Messages.Erc721TokenInfo memory tokenInfo) internal returns (ERC721OnChain) {
-        return getTokenFactory().createERC721(tokenInfo.name, tokenInfo.symbol);
+        return tokenFactory.createERC721(tokenInfo.name, tokenInfo.symbol);
     }
 
     /**
@@ -393,7 +361,7 @@ contract TokenManagerERC721 is TokenManager {
             if (address(contractOnSchainTmp) == address(0)) {
                 contractOnSchainTmp = _sendCreateERC721Request(message.tokenInfo);
                 require(address(contractOnSchainTmp).isContract(), "Given address is not a contract");
-                require(automaticDeploy[keccak256(abi.encodePacked(schainID))], "Automatic deploy is disabled");
+                require(automaticDeploy, "Automatic deploy is disabled");
                 schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchainTmp;
                 emit ERC721TokenAdded(schainID, token, address(contractOnSchainTmp));
                 emit ERC721TokenCreated(schainID, token, address(contractOnSchainTmp));
