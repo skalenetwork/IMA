@@ -57,18 +57,6 @@ contract TokenManagerERC20 is TokenManager {
     // address of clone on schain => totalSupplyOnMainnet
     mapping(IERC20 => uint) public totalSupplyOnMainnet;
 
-    /**
-     * TX_FEE - equals "Eth exit" operation gas consumption (300 000 gas) multiplied by
-     * max gas price of "Eth exit" (200 Gwei) = 60 000 000 Gwei = 0.06 Eth
-     *
-     * !!! IMPORTANT !!!
-     * It is a max estimation, of "Eth exit" operation.
-     * If it would take less eth - it would be returned to the mainnet DepositBox.
-     * And you could take it back or send back to SKALE-chain.
-     * !!! IMPORTANT !!!
-     */
-    uint256 public constant TX_FEE = 60000000000000000;
-
     event ERC20TokenAdded(string chainID, address indexed erc20OnMainnet, address indexed erc20OnSchain);
 
     event ERC20TokenCreated(string chainID, address indexed erc20OnMainnet, address indexed erc20OnSchain);
@@ -85,26 +73,21 @@ contract TokenManagerERC20 is TokenManager {
         _;
     }
 
-    // modifier receivedEth(uint256 amount) {
-    // if (amount > 0) {
-    //     require(LockAndDataForSchain(getLockAndDataAddress())
-    //         .receiveEth(msg.sender, amount), "Could not receive ETH Clone");
-    // }
-    //     _;
-    // }
-
-    /// Create a new token manager
-
     constructor(
         string memory newChainID,
-        MessageProxyForSchain newMessageProxyAddress,
+        MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newIMALinker,
         address newDepositBox
     )
         public
-        TokenManager(newChainID, newMessageProxyAddress, newIMALinker, newDepositBox)
+        TokenManager(newChainID, newMessageProxy, newIMALinker, newDepositBox)
         // solhint-disable-next-line no-empty-blocks
     { }
+
+    function setTokenFactory(TokenFactoryERC20 newTokenFactory) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
+        _tokenFactory = newTokenFactory;
+    }
 
     /**
      * @dev Adds a depositBox address to
@@ -301,8 +284,6 @@ contract TokenManagerERC20 is TokenManager {
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY
         ) {
             require(_sendERC20(fromSchainID, data), "Failed to send ERC20");
-            // address receiver = ERC20ModuleForSchain(erc20Module).getReceiver(data);
-            // require(LockAndDataForSchain(getLockAndDataAddress()).sendEth(receiver, amount), "Not Sent");
         } else {
             revert("MessageType is unknown");
         }
@@ -366,7 +347,7 @@ contract TokenManagerERC20 is TokenManager {
             totalSupply = message.totalSupply;
             ERC20OnChain contractOnSchainTmp = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token];
             if (address(contractOnSchainTmp) == address(0)) {
-                contractOnSchainTmp = _tokenFactory.createERC20(message.tokenInfo.name, message.tokenInfo.symbol);
+                contractOnSchainTmp = getTokenFactoryERC20().createERC20(message.tokenInfo.name, message.tokenInfo.symbol);
                 require(address(contractOnSchainTmp).isContract(), "Given address is not a contract");
                 require(automaticDeploy, "Automatic deploy is disabled");
                 schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchainTmp;
@@ -385,5 +366,16 @@ contract TokenManagerERC20 is TokenManager {
         );
         contractOnSchain.mint(receiver, amount);
         return true;
+    }
+
+    function getTokenFactoryERC20() public view returns (TokenFactoryERC20) {
+        if (address(_tokenFactory) == address(0)) {
+            return TokenFactoryERC20(
+                getSkaleFeatures().getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.TokenFactoryERC20"
+                )
+            );
+        }
+        return _tokenFactory;
     }
 }

@@ -28,6 +28,7 @@ import "../Messages.sol";
 import "@nomiclabs/buidler/console.sol";
 
 contract TokenManagerERC721Mock is TokenManagerERC721 {
+    TokenFactoryERC721 private _tokenFactory;
 
     event ERC721TokenCreated(string chainID, address indexed erc721OnMainnet, address indexed erc721OnSchain);
 
@@ -35,11 +36,10 @@ contract TokenManagerERC721Mock is TokenManagerERC721 {
         string memory newChainID,
         MessageProxyForSchain newMessageProxyAddress,
         TokenManagerLinker newIMALinker,
-        address newDepositBox,
-        TokenFactory newTokenFactory
+        address newDepositBox
     )
         public
-        TokenManagerERC721(newChainID, newMessageProxyAddress, newIMALinker, newDepositBox, newTokenFactory)
+        TokenManagerERC721(newChainID, newMessageProxyAddress, newIMALinker, newDepositBox)
         // solhint-disable-next-line no-empty-blocks
     { }
 
@@ -91,7 +91,7 @@ contract TokenManagerERC721Mock is TokenManagerERC721 {
             tokenId = message.baseErc721transfer.tokenId;
             ERC721OnChain contractOnSchainTmp = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token];
             if (address(contractOnSchainTmp) == address(0)) {
-                contractOnSchainTmp = _sendCreateERC721Request(message.tokenInfo);
+                contractOnSchainTmp = getTokenFactoryERC721().createERC721(message.tokenInfo.name, message.tokenInfo.symbol);
                 require(address(contractOnSchainTmp).isContract(), "Given address is not a contract");
                 require(automaticDeploy, "Automatic deploy is disabled");
                 schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchainTmp;

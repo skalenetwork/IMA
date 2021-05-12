@@ -41,20 +41,8 @@ contract TokenManagerERC721 is TokenManager {
     TokenFactoryERC721 private _tokenFactory;
 
     mapping(bytes32 => address) public tokenManagerERC721Addresses;
-    // address of ERC721 on Mainnet => address of ERC721 on Schain
+    // address of ERC721 on Mainnet => ERC721 on Schain
     mapping(bytes32 => mapping(address => ERC721OnChain)) public schainToERC721OnSchain;
-
-    /**
-     * TX_FEE - equals "Eth exit" operation gas consumption (300 000 gas) multiplied by
-     * max gas price of "Eth exit" (200 Gwei) = 60 000 000 Gwei = 0.06 Eth
-     *
-     * !!! IMPORTANT !!!
-     * It is a max estimation, of "Eth exit" operation.
-     * If it would take less eth - it would be returned to the mainnet DepositBox.
-     * And you could take it back or send back to SKALE-chain.
-     * !!! IMPORTANT !!!
-     */
-    uint256 public constant TX_FEE = 60000000000000000;
 
     event ERC721TokenAdded(string chainID, address indexed erc721OnMainnet, address indexed erc721OnSchain);
 
@@ -70,26 +58,21 @@ contract TokenManagerERC721 is TokenManager {
         _;
     }
 
-    // modifier receivedEth(uint256 amount) {
-    // if (amount > 0) {
-    //     require(LockAndDataForSchain(getLockAndDataAddress())
-    //         .receiveEth(msg.sender, amount), "Could not receive ETH Clone");
-    // }
-    //     _;
-    // }
-
-    /// Create a new token manager
-
     constructor(
         string memory newChainID,
-        MessageProxyForSchain newMessageProxyAddress,
+        MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newIMALinker,
         address newDepositBox
     )
         public
-        TokenManager(newChainID, newMessageProxyAddress, newIMALinker, newDepositBox)
+        TokenManager(newChainID, newMessageProxy, newIMALinker, newDepositBox)
         // solhint-disable-next-line no-empty-blocks
     { }
+
+    function setTokenFactory(TokenFactoryERC721 newTokenFactory) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
+        _tokenFactory = newTokenFactory;
+    }
 
     /**
      * @dev Adds a depositBox address to
@@ -303,10 +286,6 @@ contract TokenManagerERC721 is TokenManager {
         return depositBox != address(0);
     }
 
-    function _sendCreateERC721Request(Messages.Erc721TokenInfo memory tokenInfo) internal returns (ERC721OnChain) {
-        return _tokenFactory.createERC721(tokenInfo.name, tokenInfo.symbol);
-    }
-
     /**
      * @dev Allows TokenManager to receive ERC721 tokens.
      * 
@@ -355,7 +334,7 @@ contract TokenManagerERC721 is TokenManager {
             tokenId = message.baseErc721transfer.tokenId;
             ERC721OnChain contractOnSchainTmp = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token];
             if (address(contractOnSchainTmp) == address(0)) {
-                contractOnSchainTmp = _sendCreateERC721Request(message.tokenInfo);
+                contractOnSchainTmp = getTokenFactoryERC721().createERC721(message.tokenInfo.name, message.tokenInfo.symbol);
                 require(address(contractOnSchainTmp).isContract(), "Given address is not a contract");
                 require(automaticDeploy, "Automatic deploy is disabled");
                 schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchainTmp;
@@ -365,5 +344,16 @@ contract TokenManagerERC721 is TokenManager {
         ERC721OnChain contractOnSchain = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token];
         require(contractOnSchain.mint(receiver, tokenId), "Could not mint ERC721 Token");
         return true;
+    }
+
+    function getTokenFactoryERC721() public view returns (TokenFactoryERC721) {
+        if (address(_tokenFactory) == address(0)) {
+            return TokenFactoryERC721(
+                getSkaleFeatures().getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.TokenFactoryERC721"
+                )
+            );
+        }
+        return _tokenFactory;
     }
 }
