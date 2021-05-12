@@ -154,8 +154,8 @@ contract TokenManagerEth is TokenManager {
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerEthAddresses[schainHash] == address(0), "SKALE chain is already set");
-        require(newTokenManagerEthAddress != address(0), "Incorrect Token Manager address");
+        require(tokenManagerEthAddresses[schainHash] == address(0), "TokenManager is already set");
+        require(newTokenManagerEthAddress != address(0), "Incorrect TokenManager address");
         tokenManagerEthAddresses[schainHash] = newTokenManagerEthAddress;
     }
 
@@ -175,7 +175,7 @@ contract TokenManagerEth is TokenManager {
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerEthAddresses[schainHash] != address(0), "SKALE chain is not set");
+        require(tokenManagerEthAddresses[schainHash] != address(0), "TokenManager is not set");
         delete tokenManagerEthAddresses[schainHash];
     }
 
