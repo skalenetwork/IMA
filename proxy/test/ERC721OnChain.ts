@@ -2,7 +2,6 @@ import * as chaiAsPromised from "chai-as-promised";
 import chai = require("chai");
 import {
     MessageProxyForSchainContract,
-    TokenFactoryContract,
     ERC20OnChainContract,
     ERC721OnChainContract,
     MessageProxyForSchainInstance,
@@ -13,7 +12,6 @@ chai.should();
 chai.use((chaiAsPromised as any));
 
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
-const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 

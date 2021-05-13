@@ -28,7 +28,6 @@ import * as chaiAsPromised from "chai-as-promised";
 import {
     ERC721OnChainContract,
     ERC721OnChainInstance,
-    TokenFactoryERC721Contract,
     TokenManagerERC721Contract,
     TokenManagerERC721Instance,
     TokenManagerLinkerInstance,
@@ -57,7 +56,6 @@ const TokenManagerLinker: TokenManagerLinkerContract = artifacts.require("./Toke
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const SkaleFeaturesMock: SkaleFeaturesMockContract = artifacts.require("./SkaleFeaturesMock");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
-const TokenFactoryERC721: TokenFactoryERC721Contract = artifacts.require("./TokenFactoryERC721");
 
 contract("TokenManagerERC721", ([deployer, user, schainOwner, depositBox]) => {
     const schainName = "V-chain";
@@ -81,15 +79,11 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner, depositBox]) => {
             await TokenManagerERC721.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBox);
         await tokenManagerERC721.grantRole(await tokenManagerERC721.SKALE_FEATURES_SETTER_ROLE(), deployer);
         await tokenManagerERC721.setSkaleFeaturesAddress(skaleFeatures.address);
-        let tokenFactory = await TokenFactoryERC721.new("TokenManagerERC721", tokenManagerERC721.address);
-        await tokenManagerERC721.setTokenFactory(tokenFactory.address);
 
         tokenManagerERC721Mock =
             await TokenManagerERC721Mock.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBox);
         await tokenManagerERC721Mock.grantRole(await tokenManagerERC721Mock.SKALE_FEATURES_SETTER_ROLE(), deployer);
         await tokenManagerERC721Mock.setSkaleFeaturesAddress(skaleFeatures.address);
-        tokenFactory = await TokenFactoryERC721.new("TokenManagerERC721", tokenManagerERC721Mock.address);
-        await tokenManagerERC721Mock.setTokenFactory(tokenFactory.address);
 
         eRC721OnChain = await ERC721OnChain.new("ELVIS", "ELV", {from: deployer});
         eRC721OnMainnet = await ERC721OnChain.new("SKALE", "SKL", {from: deployer});
@@ -127,32 +121,6 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner, depositBox]) => {
         const res = await tokenManagerERC721Mock.receiveERC721.call(schainID, contractThere , to, tokenId, {from: deployer});
         // expectation
         (res).should.include("0x");
-    });
-
-    it("should return `true` for `sendERC721`", async () => {
-        // preparation
-        const to = user;
-        const schainID = randomString(10);
-        const tokenId = 2;
-
-        // mint ERC721 to avoid "ERC721: owner query for nonexistent token" error
-        await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
-        const data = await messages.encodeTransferErc721AndTokenInfoMessage(
-        eRC721OnMainnet.address,
-        to,
-        tokenId,
-        {
-            name: await eRC721OnMainnet.name(),
-            symbol: await eRC721OnMainnet.symbol()
-        });
-        await tokenManagerERC721Mock.enableAutomaticDeploy({from: schainOwner});
-        // execution
-        const res = await tokenManagerERC721Mock.sendERC721(schainID, data, {from: deployer});
-        // expectation
-        // get new token address
-        const addressERC721OnSchain = res.logs[res.logs.length-1].args.erc721OnSchain;
-        const newERC721Contract = new web3.eth.Contract(artifactERC721OnChain.abi, addressERC721OnSchain);
-        expect(await newERC721Contract.methods.ownerOf(tokenId).call()).to.be.equal(to);
     });
 
     it("should return `true` when invoke `sendERC721`", async () => {
@@ -285,8 +253,6 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner, depositBox]) => {
         await tokenManagerERC721Tester.setSkaleFeaturesAddress(skaleFeatures.address);
         await tokenManagerERC721Tester.enableAutomaticDeploy({from: schainOwner});
         await tokenManagerERC721Tester.addTokenManager(schainID, deployer);
-        const tokenFactory = await TokenFactoryERC721.new("TokenManagerERC721", tokenManagerERC721Tester.address);
-        await tokenManagerERC721Tester.setTokenFactory(tokenFactory.address);
 
         // execution
         const res = await tokenManagerERC721Tester.postMessage(schainID, sender, data, {from: deployer});

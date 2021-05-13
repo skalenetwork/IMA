@@ -17,7 +17,7 @@
         "tslint": "npx tslint --project .",
         "slither": "slither .",
         "postinstall": "cd ./test-tokens && yarn install && cd ..",
-        "fullcheck": "yarn lint && yarn tsc && yarn tslint && yarn slither",
+        "fullcheck": "yarn generate && yarn lint && yarn tsc && yarn tslint && yarn slither",
         "hooks": "git config core.hooksPath proxy/.githooks",
         "no-hooks": "git config core.hooksPath .git/hooks"
     },

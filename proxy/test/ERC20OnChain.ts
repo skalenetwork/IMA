@@ -6,15 +6,13 @@ import {
     ERC20OnChainInstance,
     ERC20OnChainContract,
     ERC721OnChainContract,
-    MessageProxyForSchainContract,
-    TokenFactoryContract
+    MessageProxyForSchainContract
 } from "../types/truffle-contracts";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
-const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
 const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 

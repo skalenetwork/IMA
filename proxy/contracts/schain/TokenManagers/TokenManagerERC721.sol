@@ -25,7 +25,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import "../../Messages.sol";
-import "../TokenFactories/TokenFactoryERC721.sol";
+import "../tokens/ERC721OnChain.sol";
 import "../TokenManager.sol";
 
 
@@ -37,8 +37,6 @@ import "../TokenManager.sol";
  * burns tokens.
  */
 contract TokenManagerERC721 is TokenManager {
-
-    TokenFactoryERC721 private _tokenFactory;
 
     mapping(bytes32 => address) public tokenManagerERC721Addresses;
     // address of ERC721 on Mainnet => ERC721 on Schain
@@ -67,12 +65,7 @@ contract TokenManagerERC721 is TokenManager {
         public
         TokenManager(newChainID, newMessageProxy, newIMALinker, newDepositBox)
         // solhint-disable-next-line no-empty-blocks
-    { }
-
-    function setTokenFactory(TokenFactoryERC721 newTokenFactory) external {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
-        _tokenFactory = newTokenFactory;
-    }
+    { }    
 
     /**
      * @dev Adds a depositBox address to
@@ -334,27 +327,27 @@ contract TokenManagerERC721 is TokenManager {
             tokenId = message.baseErc721transfer.tokenId;
             ERC721OnChain contractOnSchainTmp = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token];
             if (address(contractOnSchainTmp) == address(0)) {
-                contractOnSchainTmp = getTokenFactoryERC721()
-                    .createERC721(message.tokenInfo.name, message.tokenInfo.symbol);
-                require(address(contractOnSchainTmp).isContract(), "Given address is not a contract");
+                contractOnSchainTmp = _createERC721(message.tokenInfo.name, message.tokenInfo.symbol);                
                 require(automaticDeploy, "Automatic deploy is disabled");
-                schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchainTmp;
+                schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token] = 
+                    contractOnSchainTmp;
                 emit ERC721TokenCreated(schainID, token, address(contractOnSchainTmp));
+                contractOnSchainTmp.grantRole(contractOnSchainTmp.MINTER_ROLE(), address(this));
             }
         }
         ERC721OnChain contractOnSchain = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token];
+        require(address(contractOnSchain).isContract(), "Given address is not a contract");
         require(contractOnSchain.mint(receiver, tokenId), "Could not mint ERC721 Token");
         return true;
-    }
+    }    
 
-    function getTokenFactoryERC721() public view returns (TokenFactoryERC721) {
-        if (address(_tokenFactory) == address(0)) {
-            return TokenFactoryERC721(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.TokenFactoryERC721"
-                )
-            );
-        }
-        return _tokenFactory;
+    // private
+
+    function _createERC721(string memory name, string memory symbol)
+        private
+        returns (ERC721OnChain)
+    {
+        ERC721OnChain newERC721 = new ERC721OnChain(name, symbol);
+        return newERC721;
     }
 }

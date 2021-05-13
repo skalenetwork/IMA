@@ -62,9 +62,7 @@ import {
     TokenManagerLinkerInstance,
     WalletsContract,
     WalletsInstance,
-    LinkerInstance,
-    TokenFactoryERC721Contract,
-    TokenFactoryERC721Instance,
+    LinkerInstance
 } from "../types/truffle-contracts";
 
 import chai = require("chai");
@@ -95,7 +93,6 @@ const TokenManagerErc721: TokenManagerERC721Contract = artifacts.require("./Toke
 const TokenManagerEth: TokenManagerEthContract = artifacts.require("./TokenManagerEth");
 const TokenManagerLinker: TokenManagerLinkerContract = artifacts.require("./TokenManagerLinker");
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
-const TokenFactoryERC721: TokenFactoryERC721Contract = artifacts.require("./TokenFactoryERC721");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 
 contract("Gas calculation", ([deployer, schainOwner, user]) => {
@@ -117,7 +114,6 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     let tokenManagerErc721: TokenManagerERC721Instance;
     let tokenManagerEth: TokenManagerEthInstance;
     let tokenManagerLinker: TokenManagerLinkerInstance;
-    let tokenFactoryErc721: TokenFactoryERC721Instance;
     let ethERC20: EthERC20Instance;
     let messageProxyForSchain: MessageProxyForSchainInstance;
     let messages: MessagesTesterInstance;
@@ -215,7 +211,6 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         tokenManagerErc20 = await TokenManagerErc20.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBoxERC20.address);
         tokenManagerErc721 = await TokenManagerErc721.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBoxERC721.address);
         tokenManagerEth = await TokenManagerEth.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBoxEth.address);
-        tokenFactoryErc721 = await TokenFactoryERC721.new("TokenManagerERC721", tokenManagerErc721.address, {from: deployer});
         ethERC20 = await EthERC20.new(tokenManagerEth.address, {from: deployer});
 
         // IMA schain part registration

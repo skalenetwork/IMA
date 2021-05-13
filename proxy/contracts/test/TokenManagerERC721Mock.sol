@@ -23,12 +23,10 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../schain/TokenManagers/TokenManagerERC721.sol";
-import "../schain/TokenFactory.sol";
 import "../Messages.sol";
 import "@nomiclabs/buidler/console.sol";
 
 contract TokenManagerERC721Mock is TokenManagerERC721 {
-    TokenFactoryERC721 private _tokenFactory;
 
     event ERC721TokenCreated(string chainID, address indexed erc721OnMainnet, address indexed erc721OnSchain);
 
@@ -73,34 +71,7 @@ contract TokenManagerERC721Mock is TokenManagerERC721 {
      *  
      * Emits a {ERC721TokenCreated} event if to address = 0.
      */
-    function sendERC721(string calldata schainID, bytes calldata data) external returns (bool) {
-        Messages.MessageType messageType = Messages.getMessageType(data);
-        address receiver;
-        address token;
-        uint256 tokenId;
-        if (messageType == Messages.MessageType.TRANSFER_ERC721){
-            Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
-            receiver = message.receiver;
-            token = message.token;
-            tokenId = message.tokenId;
-        } else {
-            Messages.TransferErc721AndTokenInfoMessage memory message =
-                Messages.decodeTransferErc721AndTokenInfoMessage(data);
-            receiver = message.baseErc721transfer.receiver;
-            token = message.baseErc721transfer.token;
-            tokenId = message.baseErc721transfer.tokenId;
-            ERC721OnChain contractOnSchainTmp = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token];
-            if (address(contractOnSchainTmp) == address(0)) {
-                contractOnSchainTmp = getTokenFactoryERC721()
-                    .createERC721(message.tokenInfo.name, message.tokenInfo.symbol);
-                require(address(contractOnSchainTmp).isContract(), "Given address is not a contract");
-                require(automaticDeploy, "Automatic deploy is disabled");
-                schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchainTmp;
-                emit ERC721TokenCreated(schainID, token, address(contractOnSchainTmp));
-            }
-        }
-        ERC721OnChain contractOnSchain = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token];
-        require(contractOnSchain.mint(receiver, tokenId), "Could not mint ERC721 Token");
+    function sendERC721(string calldata, bytes calldata) external pure returns (bool) {
         return true;
     }
 }
