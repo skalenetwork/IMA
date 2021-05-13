@@ -22,7 +22,6 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@nomiclabs/buidler/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../../Messages.sol";
@@ -74,6 +73,7 @@ contract TokenManagerERC20 is TokenManager {
     )
         external
     {
+        require(to != address(0), "Incorrect receiver address");
         ERC20Burnable contractOnSchain = clonesErc20[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
@@ -110,6 +110,7 @@ contract TokenManagerERC20 is TokenManager {
     )
         external
     {
+        require(to != address(0), "Incorrect receiver address");
         bytes32 targetSchainId = keccak256(abi.encodePacked(targetSchainName));
         require(
             targetSchainId != MAINNET_ID,
@@ -197,7 +198,11 @@ contract TokenManagerERC20 is TokenManager {
         external 
     {
         require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
-        require(address(erc20OnSchain).isContract(), "Given address is not a contract");
+        require(
+            erc20OnMainnet.isContract() &&
+            address(erc20OnSchain).isContract(),
+            "Given address is not a contract"
+        );
         require(erc20OnSchain.totalSupply() == 0, "TotalSupply is not zero");
         clonesErc20[erc20OnMainnet] = erc20OnSchain;
         emit ERC20TokenAdded(erc20OnMainnet, address(erc20OnSchain));

@@ -65,6 +65,7 @@ contract TokenManagerERC721 is TokenManager {
     )
         external
     {
+        require(to != address(0), "Incorrect receiver address");
         ERC721Burnable contractOnSchain = clonesErc721[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
@@ -82,13 +83,13 @@ contract TokenManagerERC721 is TokenManager {
     ) 
         external
     {
+        require(to != address(0), "Incorrect receiver address");
         bytes32 targetSchainId = keccak256(abi.encodePacked(targetSchainName));
         require(
             targetSchainId != MAINNET_ID,
             "This function is not for transferring to Mainnet"
         );
         require(tokenManagers[targetSchainId] != address(0), "Incorrect Token Manager address");
-
         ERC721Burnable contractOnSchain = clonesErc721[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
@@ -118,7 +119,7 @@ contract TokenManagerERC721 is TokenManager {
         override
         returns (bool)
     {
-        require(msg.sender == address(messageProxy), "Not a sender");
+        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainName));
         require(
             schainHash != schainId && 
@@ -151,7 +152,11 @@ contract TokenManagerERC721 is TokenManager {
         external
     {
         require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
-        require(address(erc721OnSchain).isContract(), "Given address is not a contract");
+        require(
+            erc721OnMainnet.isContract() &&
+            address(erc721OnSchain).isContract(),
+            "Given address is not a contract"
+        );
         clonesErc721[erc721OnMainnet] = erc721OnSchain;
         emit ERC721TokenAdded(erc721OnMainnet, address(erc721OnSchain));
     }

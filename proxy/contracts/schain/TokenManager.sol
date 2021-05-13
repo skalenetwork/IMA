@@ -64,7 +64,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
         schainId = keccak256(abi.encodePacked(newSchainName));
         messageProxy = newMessageProxy;
         tokenManagerLinker = newIMALinker;
-        require(depositBox != address(0), "Address of DepositBox should not be null");
+        require(newDepositBox.isContract(), "Given address is not a contract");
         depositBox = newDepositBox;
     }
 
@@ -102,7 +102,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addTokenManager(string calldata schainName, address newTokenManagerERC20Address) external {
+    function addTokenManager(string calldata schainName, address newTokenManager) external {
         require(
             msg.sender == address(tokenManagerLinker) ||
             _isSchainOwner(msg.sender) ||
@@ -110,8 +110,8 @@ abstract contract TokenManager is SkaleFeaturesClient {
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(tokenManagers[schainHash] == address(0), "SKALE chain is already set");
-        require(newTokenManagerERC20Address != address(0), "Incorrect Token Manager address");
-        tokenManagers[schainHash] = newTokenManagerERC20Address;
+        require(newTokenManager != address(0), "Incorrect Token Manager address");
+        tokenManagers[schainHash] = newTokenManager;
     }
 
     /**
@@ -135,7 +135,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
     }
 
     /**
-     * @dev Checks whether TokenManagerERC20 is connected to a {schainName} SKALE chain TokenManagerERC20.
+     * @dev Checks whether TokenManager is connected to a {schainName} SKALE chain TokenManager.
      */
     function hasTokenManager(string calldata schainName) external view returns (bool) {
         return tokenManagers[keccak256(abi.encodePacked(schainName))] != address(0);

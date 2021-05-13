@@ -43,28 +43,6 @@ contract TokenManagerEth is TokenManager {
 
     EthERC20 private _ethErc20;
 
-    /**
-     * TX_FEE - equals "Eth exit" operation gas consumption (300 000 gas) multiplied by
-     * max gas price of "Eth exit" (200 Gwei) = 60 000 000 Gwei = 0.06 Eth
-     *
-     * !!! IMPORTANT !!!
-     * It is a max estimation, of "Eth exit" operation.
-     * If it would take less eth - it would be returned to the mainnet DepositBox.
-     * And you could take it back or send back to SKALE-chain.
-     * !!! IMPORTANT !!!
-     */
-    uint256 public constant TX_FEE = 60000000000000000;
-
-    modifier rightTransaction(string memory schainID) {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(
-            schainHash != keccak256(abi.encodePacked("Mainnet")),
-            "This function is not for transferring to Mainnet"
-        );
-        require(tokenManagers[schainHash] != address(0), "Incorrect Token Manager address");
-        _;
-    }
-
     modifier receivedEth(uint256 amount) {
         if (amount > 0) {
             EthERC20(getEthErc20Address()).burnFrom(msg.sender, amount);
@@ -75,13 +53,13 @@ contract TokenManagerEth is TokenManager {
     /// Create a new token manager
 
     constructor(
-        string memory newChainID,
-        MessageProxyForSchain newMessageProxyAddress,
+        string memory newChainName,
+        MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newIMALinker,
         address newDepositBox
     )
         public
-        TokenManager(newChainID, newMessageProxyAddress, newIMALinker, depositBox)
+        TokenManager(newChainName, newMessageProxy, newIMALinker, newDepositBox)
         // solhint-disable-next-line no-empty-blocks
     { }
 
@@ -96,7 +74,6 @@ contract TokenManagerEth is TokenManager {
      */
     function exitToMain(address to, uint256 amount) external receivedEth(amount) {
         require(to != address(0), "Incorrect receiver address");
-        require(amount >= TX_FEE, "Not enough funds to exit");
         messageProxy.postOutgoingMessage(
             "Mainnet",
             depositBox,
@@ -105,20 +82,23 @@ contract TokenManagerEth is TokenManager {
     }
 
     function transferToSchain(
-        string memory schainID,
+        string memory targetSchainName,
         address to,
         uint256 amount
     )
         external
-        rightTransaction(schainID)
         receivedEth(amount)
     {
+        bytes32 targetSchainId = keccak256(abi.encodePacked(targetSchainName));
+        require(
+            targetSchainId != MAINNET_ID,
+            "This function is not for transferring to Mainnet"
+        );
+        require(tokenManagers[targetSchainId] != address(0), "Incorrect Token Manager address");
         require(to != address(0), "Incorrect receiver address");
-        address tokenManagerAddress = tokenManagers[keccak256(abi.encodePacked(schainID))];
-        require(tokenManagerAddress != address(0), "Unconnected chain");
         messageProxy.postOutgoingMessage(
-            schainID,
-            tokenManagerAddress,
+            targetSchainName,
+            tokenManagers[targetSchainId],
             Messages.encodeTransferEthMessage(to, amount)
         );
     }
@@ -135,7 +115,7 @@ contract TokenManagerEth is TokenManager {
      * - `fromSchainID` must exist in TokenManager addresses.
      */
     function postMessage(
-        string calldata fromSchainID,
+        string calldata fromSchainName,
         address sender,
         bytes calldata data
     )
@@ -143,15 +123,15 @@ contract TokenManagerEth is TokenManager {
         override
         returns (bool)
     {
-        require(msg.sender == address(messageProxy), "Not a sender");
-        bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
+        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
+        bytes32 fromSchainId = keccak256(abi.encodePacked(fromSchainName));
         require(
-            schainHash != schainId && 
-            (
-                schainHash == keccak256(abi.encodePacked("Mainnet")) ?
-                sender == depositBox :
-                sender == tokenManagers[schainHash]
-            ),
+            fromSchainId != schainId && 
+                (
+                    fromSchainId == MAINNET_ID ?
+                    sender == depositBox :
+                    sender == tokenManagers[fromSchainId]
+                ),
             "Receiver chain is incorrect"
         );
         Messages.TransferEthMessage memory decodedMessage = Messages.decodeTransferEthMessage(data);
