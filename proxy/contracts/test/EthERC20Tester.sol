@@ -28,11 +28,11 @@ import "../schain/tokens/EthERC20.sol";
 
 contract EthERC20Tester is EthERC20 {
 
-    constructor(address tokenManagerEthAddress) EthERC20(tokenManagerEthAddress) public {
+    constructor(address tokenManagerEthAddress) public EthERC20(tokenManagerEthAddress) 
+        // solhint-disable-next-line no-empty-blocks
+    { }
 
-    }
-
-    function setTokenManagerEthAddress(address newTokenManagerEthAddress) public {
+    function setTokenManagerEthAddress(address newTokenManagerEthAddress) external {
         tokenManagerEth = newTokenManagerEthAddress;
     }
 }

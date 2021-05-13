@@ -28,11 +28,10 @@ import "../TokenFactory.sol";
 contract TokenFactoryERC20 is TokenFactory {
 
     constructor(string memory newTokenManagerERC20Name, address newTokenManagerERC20Address)
-        TokenFactory(newTokenManagerERC20Name, newTokenManagerERC20Address)
         public
-    {
-        
-    }
+        TokenFactory(newTokenManagerERC20Name, newTokenManagerERC20Address)
+        // solhint-disable-next-line no-empty-blocks
+    { }
 
     function createERC20(string memory name, string memory symbol)
         external

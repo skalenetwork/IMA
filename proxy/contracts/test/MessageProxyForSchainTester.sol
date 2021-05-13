@@ -24,7 +24,12 @@ pragma experimental ABIEncoderV2;
 
 import "../schain/MessageProxyForSchain.sol";
 
-contract MessageProxyForSchainTester is MessageProxyForSchain {
+contract MessageProxyForSchainTester is MessageProxyForSchain {    
+
+    constructor(string memory newChainName) public MessageProxyForSchain(newChainName)
+        // solhint-disable-next-line no-empty-blocks 
+    { }
+
     function postMessage(
         IContractReceiverForSchain targetContract,
         string calldata fromSchainName,
@@ -35,6 +40,4 @@ contract MessageProxyForSchainTester is MessageProxyForSchain {
     {
         targetContract.postMessage(fromSchainName, sender, data);
     }
-
-    constructor(string memory newChainName) public MessageProxyForSchain(newChainName) { }
 }

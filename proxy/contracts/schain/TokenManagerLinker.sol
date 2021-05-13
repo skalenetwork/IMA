@@ -76,7 +76,13 @@ contract TokenManagerLinker is AccessControl {
         }
     }
 
-    function connectSchain(string calldata schainName, address[] calldata tokenManagerAddresses) external onlyRegistrar {
+    function connectSchain(
+        string calldata schainName,
+        address[] calldata tokenManagerAddresses
+    )
+        external
+        onlyRegistrar
+    {
         require(tokenManagerAddresses.length == _tokenManagers.length, "Incorrect number of addresses");
         for (uint i = 0; i < tokenManagerAddresses.length; i++) {
             _tokenManagers[i].addTokenManager(schainName, tokenManagerAddresses[i]);

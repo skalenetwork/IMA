@@ -334,7 +334,8 @@ contract TokenManagerERC721 is TokenManager {
             tokenId = message.baseErc721transfer.tokenId;
             ERC721OnChain contractOnSchainTmp = schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token];
             if (address(contractOnSchainTmp) == address(0)) {
-                contractOnSchainTmp = getTokenFactoryERC721().createERC721(message.tokenInfo.name, message.tokenInfo.symbol);
+                contractOnSchainTmp = getTokenFactoryERC721()
+                    .createERC721(message.tokenInfo.name, message.tokenInfo.symbol);
                 require(address(contractOnSchainTmp).isContract(), "Given address is not a contract");
                 require(automaticDeploy, "Automatic deploy is disabled");
                 schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchainTmp;

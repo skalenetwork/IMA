@@ -293,7 +293,13 @@ contract TokenManagerERC20 is TokenManager {
     /**
      * @dev Allows Schain owner to add an ERC20 token to LockAndDataForSchainERC20.
      */
-    function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet, ERC20OnChain erc20OnSchain) external {
+    function addERC20TokenByOwner(
+        string calldata schainName,
+        address erc20OnMainnet,
+        ERC20OnChain erc20OnSchain
+     )
+        external 
+    {
         require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
         require(address(erc20OnSchain).isContract(), "Given address is not a contract");
         require(erc20OnSchain.totalSupply() == 0, "TotalSupply is not zero");
@@ -325,12 +331,13 @@ contract TokenManagerERC20 is TokenManager {
      * Emits a {ERC20TokenCreated} event if token does not exist.
      * Emits a {ERC20TokenReceived} event on success.
      */
-    function _sendERC20(string calldata schainID, bytes calldata data) private returns (bool) {
+    function _sendERC20(string calldata schainID, bytes calldata data) private returns (bool) {        
         Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
         address token;
         uint256 amount;
-        uint256 totalSupply;
+        uint256 totalSupply;                
+        ERC20OnChain contractOnSchain;
         if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY) {
             Messages.TransferErc20AndTotalSupplyMessage memory message =
                 Messages.decodeTransferErc20AndTotalSupplyMessage(data);
@@ -338,6 +345,7 @@ contract TokenManagerERC20 is TokenManager {
             token = message.baseErc20transfer.token;
             amount = message.baseErc20transfer.amount;
             totalSupply = message.totalSupply;
+            contractOnSchain = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token];
         } else {
             Messages.TransferErc20AndTokenInfoMessage memory message =
                 Messages.decodeTransferErc20AndTokenInfoMessage(data);
@@ -345,16 +353,16 @@ contract TokenManagerERC20 is TokenManager {
             token = message.baseErc20transfer.token;
             amount = message.baseErc20transfer.amount;
             totalSupply = message.totalSupply;
-            ERC20OnChain contractOnSchainTmp = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token];
-            if (address(contractOnSchainTmp) == address(0)) {
-                contractOnSchainTmp = getTokenFactoryERC20().createERC20(message.tokenInfo.name, message.tokenInfo.symbol);
-                require(address(contractOnSchainTmp).isContract(), "Given address is not a contract");
+            contractOnSchain = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token];
+            if (address(contractOnSchain) == address(0)) {
                 require(automaticDeploy, "Automatic deploy is disabled");
-                schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchainTmp;
-                emit ERC20TokenCreated(schainID, token, address(contractOnSchainTmp));
+                contractOnSchain = getTokenFactoryERC20()
+                    .createERC20(message.tokenInfo.name, message.tokenInfo.symbol);
+                schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchain;
+                emit ERC20TokenCreated(schainID, token, address(contractOnSchain));
             }
         }
-        ERC20OnChain contractOnSchain = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token];
+        require(address(contractOnSchain).isContract(), "Given address is not a contract");
         if (totalSupply != totalSupplyOnMainnet[contractOnSchain])
         {
             totalSupplyOnMainnet[contractOnSchain] = totalSupply;

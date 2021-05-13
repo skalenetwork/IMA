@@ -31,8 +31,8 @@ import "../schain/SkaleFeatures.sol";
 contract SkaleFeaturesMock is SkaleFeatures {
     
     G2Operations.G2Point public blsCommonPublicKey;
-    address schainOwner;
-    address tokenFactoryErc20;
+    address public schainOwner;
+    address public tokenFactoryErc20;
 
     function setBlsCommonPublicKey(G2Operations.G2Point calldata key) external {
         G2Operations.G2Point memory _key = key;
@@ -47,17 +47,6 @@ contract SkaleFeaturesMock is SkaleFeatures {
         tokenFactoryErc20 = _tokenFactoryErc20;
     }
 
-    function getConfigVariableAddress( string memory key ) public view override returns ( address ) {
-        if (_equal(key, "skaleConfig.contractSettings.IMA.ownerAddress")) {
-            return schainOwner;
-        } else if (_equal(key, "skaleConfig.contractSettings.IMA.TokenFactoryERC20")) {
-            return tokenFactoryErc20;
-        } else {
-            console.log(key);
-            revert("The key is not implemented in the mock");
-        }
-    }
-
     function getConfigVariableUint256(string calldata key) external view override returns (uint) {
         if (_equal(key, "skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey0")) {
             return blsCommonPublicKey.x.a;
@@ -68,6 +57,17 @@ contract SkaleFeaturesMock is SkaleFeatures {
         } else if (_equal(key, "skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey3")) {
             return blsCommonPublicKey.y.b;
         } else {
+            revert("The key is not implemented in the mock");
+        }
+    }
+
+    function getConfigVariableAddress( string memory key ) public view override returns ( address ) {
+        if (_equal(key, "skaleConfig.contractSettings.IMA.ownerAddress")) {
+            return schainOwner;
+        } else if (_equal(key, "skaleConfig.contractSettings.IMA.TokenFactoryERC20")) {
+            return tokenFactoryErc20;
+        } else {
+            console.log(key);
             revert("The key is not implemented in the mock");
         }
     }

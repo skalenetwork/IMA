@@ -27,12 +27,11 @@ import "../TokenFactory.sol";
 
 contract TokenFactoryERC721 is TokenFactory {
 
-    constructor(string memory newTokenManagerERC721Name, address newTokenManagerERC721Address)
-        TokenFactory(newTokenManagerERC721Name, newTokenManagerERC721Address)
+    constructor(string memory newTokenManagerERC721Name, address newTokenManagerERC721Address)        
         public
-    {
-        
-    }
+        TokenFactory(newTokenManagerERC721Name, newTokenManagerERC721Address)
+        // solhint-disable-next-line no-empty-blocks
+    { }
 
     function createERC721(string memory name, string memory symbol)
         external
