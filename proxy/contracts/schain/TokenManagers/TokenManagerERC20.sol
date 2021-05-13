@@ -259,7 +259,7 @@ contract TokenManagerERC20 is TokenManager {
      * - `fromSchainID` must exist in TokenManager addresses.
      */
     function postMessage(
-        string calldata fromSchainID,
+        string calldata fromSchainName,
         address sender,
         bytes calldata data
     )
@@ -268,13 +268,13 @@ contract TokenManagerERC20 is TokenManager {
         returns (bool)
     {
         require(msg.sender == address(messageProxy), "Sender is not a message proxy");
-        bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
+        bytes32 fromSchainId = keccak256(abi.encodePacked(fromSchainName));
         require(
-            schainHash != schainId && 
+            fromSchainId != schainId && 
                 (
-                    schainHash == MAINNET_ID ?
+                    fromSchainId == MAINNET_ID ?
                     sender == depositBox :
-                    sender == tokenManagerERC20Addresses[schainHash]
+                    sender == tokenManagerERC20Addresses[fromSchainId]
                 ),
             "Receiver chain is incorrect"
         );
@@ -283,7 +283,7 @@ contract TokenManagerERC20 is TokenManager {
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOKEN_INFO ||
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY
         ) {
-            require(_sendERC20(fromSchainID, data), "Failed to send ERC20");
+            require(_sendERC20(fromSchainName, data), "Failed to send ERC20");
         } else {
             revert("MessageType is unknown");
         }

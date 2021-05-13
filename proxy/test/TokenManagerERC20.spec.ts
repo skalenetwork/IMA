@@ -230,6 +230,9 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
     it("should transfer ERC20 token", async () => {
       //  preparation
       const schainID = randomString(10);
+      const remoteTokenManagerAddress = depositBox;
+      await tokenManagerErc20.addTokenManager(schainID, remoteTokenManagerAddress);
+
       const amount = 10;
       const to = user;
       const sender = deployer;
@@ -245,12 +248,13 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
               decimals: (await erc20OnMainnet.decimals()).toNumber()
           }
       );
+      await tokenManagerErc20.enableAutomaticDeploy({from: schainOwner});
 
       // execution
-      await tokenManagerErc20.postMessage(schainID, sender, data, {from: deployer});
+      await messageProxyForSchain.postMessage(tokenManagerErc20.address, schainID, remoteTokenManagerAddress, data);
       // expectation
       const addressERC20OnSchain = await tokenManagerErc20.getErc20OnSchain(schainID, erc20OnMainnet.address);
-      const erc20OnChain = new web3.eth.Contract(artifacts.require("./ERC20MintAndBurn").abi, addressERC20OnSchain);
+      const erc20OnChain = new web3.eth.Contract(artifacts.require("./ERC20OnChain").abi, addressERC20OnSchain);
       expect(parseInt((new BigNumber(await erc20OnChain.methods.balanceOf(to).call())).toString(), 10))
           .to.be.equal(amount);
     });
