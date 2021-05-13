@@ -52,8 +52,6 @@ import {
     SchainsInternalInstance,
     SkaleVerifierMockContract,
     SkaleVerifierMockInstance,
-    TokenFactoryContract,
-    TokenFactoryInstance,
     TokenManagerERC20Contract,
     TokenManagerERC20Instance,
     TokenManagerERC721Contract,
@@ -65,6 +63,10 @@ import {
     WalletsContract,
     WalletsInstance,
     LinkerInstance,
+    TokenFactoryERC20Contract,
+    TokenFactoryERC20Instance,
+    TokenFactoryERC721Contract,
+    TokenFactoryERC721Instance,
 } from "../types/truffle-contracts";
 
 import chai = require("chai");
@@ -95,7 +97,8 @@ const TokenManagerErc721: TokenManagerERC721Contract = artifacts.require("./Toke
 const TokenManagerEth: TokenManagerEthContract = artifacts.require("./TokenManagerEth");
 const TokenManagerLinker: TokenManagerLinkerContract = artifacts.require("./TokenManagerLinker");
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
-const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
+const TokenFactoryERC20: TokenFactoryERC20Contract = artifacts.require("./TokenFactoryERC20");
+const TokenFactoryERC721: TokenFactoryERC721Contract = artifacts.require("./TokenFactoryERC721");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 
 contract("Gas calculation", ([deployer, schainOwner, user]) => {
@@ -117,7 +120,8 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     let tokenManagerErc721: TokenManagerERC721Instance;
     let tokenManagerEth: TokenManagerEthInstance;
     let tokenManagerLinker: TokenManagerLinkerInstance;
-    let tokenFactory: TokenFactoryInstance;
+    let tokenFactoryErc20: TokenFactoryERC20Instance;
+    let tokenFactoryErc721: TokenFactoryERC721Instance;
     let ethERC20: EthERC20Instance;
     let messageProxyForSchain: MessageProxyForSchainInstance;
     let messages: MessagesTesterInstance;
@@ -210,13 +214,13 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         messages = await MessagesTester.new();
 
         // IMA schain part deployment
-        messageProxyForSchain = await MessageProxyForSchain.new(schainName, {from: deployer});
-        tokenFactory = await TokenFactory.new({from: deployer});
-        ethERC20 = await EthERC20.new({from: deployer});
+        messageProxyForSchain = await MessageProxyForSchain.new(schainName, {from: deployer});        
         tokenManagerLinker = await TokenManagerLinker.new(messageProxyForSchain.address);
-        tokenManagerErc20 = await TokenManagerErc20.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address);
-        tokenManagerErc721 = await TokenManagerErc721.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address);
-        tokenManagerEth = await TokenManagerEth.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address);
+        tokenManagerErc20 = await TokenManagerErc20.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBoxERC20.address);
+        tokenManagerErc721 = await TokenManagerErc721.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBoxERC721.address);
+        tokenManagerEth = await TokenManagerEth.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBoxEth.address);
+        tokenFactoryErc20 = await TokenFactoryERC20.new("TokenManagerERC20", tokenManagerErc20.address, {from: deployer});
+        ethERC20 = await EthERC20.new(tokenManagerEth.address, {from: deployer});
 
         // IMA schain part registration
         // TODO: register schain here
