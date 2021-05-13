@@ -81,7 +81,7 @@ contract TokenManagerEth is TokenManager {
         address newDepositBox
     )
         public
-        TokenManager(newChainID, newMessageProxyAddress, newIMALinker, depositBox)
+        TokenManager(newChainID, newMessageProxyAddress, newIMALinker, newDepositBox)
         // solhint-disable-next-line no-empty-blocks
     { }
 
