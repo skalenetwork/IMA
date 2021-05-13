@@ -42,6 +42,11 @@ abstract contract TokenManager is SkaleFeaturesClient {
     address public depositBox;
     bool public automaticDeploy;
 
+    mapping(bytes32 => address) public tokenManagers;
+
+    string constant public MAINNET_NAME = "Mainnet";
+    bytes32 constant public MAINNET_ID = keccak256(abi.encodePacked(MAINNET_NAME));
+
     modifier onlySchainOwner() {
         require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
         _;
@@ -49,7 +54,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
 
     constructor(
         string memory newSchainName,
-        MessageProxyForSchain newMessageProxyAddress,
+        MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newIMALinker,
         address newDepositBox
     )
@@ -57,8 +62,9 @@ abstract contract TokenManager is SkaleFeaturesClient {
     {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         schainId = keccak256(abi.encodePacked(newSchainName));
-        messageProxy = newMessageProxyAddress;
+        messageProxy = newMessageProxy;
         tokenManagerLinker = newIMALinker;
+        require(depositBox != address(0), "Address of DepositBox should not be null");
         depositBox = newDepositBox;
     }
 
@@ -85,17 +91,55 @@ abstract contract TokenManager is SkaleFeaturesClient {
         automaticDeploy = false;
     }
 
-    function addTokenManager(string calldata schainID, address newTokenManagerAddress) external virtual;
+    /**
+     * @dev Adds a TokenManagerEth address to
+     * depositBox.
+     *
+     * Requirements:
+     *
+     * - `msg.sender` must be schain owner or contract owner
+     * = or imaLinker contract.
+     * - SKALE chain must not already be added.
+     * - TokenManager address must be non-zero.
+     */
+    function addTokenManager(string calldata schainName, address newTokenManagerERC20Address) external {
+        require(
+            msg.sender == address(tokenManagerLinker) ||
+            _isSchainOwner(msg.sender) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
+        );
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(tokenManagers[schainHash] == address(0), "SKALE chain is already set");
+        require(newTokenManagerERC20Address != address(0), "Incorrect Token Manager address");
+        tokenManagers[schainHash] = newTokenManagerERC20Address;
+    }
 
-    function removeTokenManager(string calldata schainID) external virtual;
+    /**
+     * @dev Allows Owner to remove a TokenManagerEth on SKALE chain
+     * from depositBox.
+     *
+     * Requirements:
+     *
+     * - `msg.sender` must be schain owner or contract owner
+     * - SKALE chain must already be set.
+     */
+    function removeTokenManager(string calldata schainName) external {
+        require(
+            msg.sender == address(tokenManagerLinker) ||
+            _isSchainOwner(msg.sender) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
+        );
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(tokenManagers[schainHash] != address(0), "SKALE chain is not set");
+        delete tokenManagers[schainHash];
+    }
 
-    function addDepositBox(address newDepositBoxAddress) external virtual;
-
-    function removeDepositBox() external virtual;
-
-    function hasTokenManager(string calldata schainID) external view virtual returns (bool);
-
-    function hasDepositBox() external view virtual returns (bool);
+    /**
+     * @dev Checks whether TokenManagerERC20 is connected to a {schainName} SKALE chain TokenManagerERC20.
+     */
+    function hasTokenManager(string calldata schainName) external view returns (bool) {
+        return tokenManagers[keccak256(abi.encodePacked(schainName))] != address(0);
+    }
 
     // private
 

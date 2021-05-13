@@ -44,128 +44,28 @@ import "../TokenManager.sol";
  */
 contract TokenManagerERC20 is TokenManager {
 
-    string constant public MAINNET_NAME = "Mainnet";
-    bytes32 constant public MAINNET_ID = keccak256(abi.encodePacked(MAINNET_NAME));
-
-    mapping(bytes32 => address) public tokenManagerERC20Addresses;
-
-    // schain id => address of ERC20 on Mainnet => address of ERC20 on Schain
-    mapping(bytes32 => mapping(address => ERC20OnChain)) public schainToERC20OnSchain;
+    // address of ERC20 on Mainnet => ERC20 on Schain
+    mapping(address => ERC20OnChain) public clonesErc20;
     
     // address of clone on schain => totalSupplyOnMainnet
     mapping(IERC20 => uint) public totalSupplyOnMainnet;
 
-    event ERC20TokenAdded(string chainID, address indexed erc20OnMainnet, address indexed erc20OnSchain);
+    event ERC20TokenAdded(address indexed erc20OnMainnet, address indexed erc20OnSchain);
 
-    event ERC20TokenCreated(string chainID, address indexed erc20OnMainnet, address indexed erc20OnSchain);
+    event ERC20TokenCreated(address indexed erc20OnMainnet, address indexed erc20OnSchain);
 
     event ERC20TokenReceived(address indexed erc20OnMainnet, address indexed erc20OnSchain, uint256 amount);
 
-    modifier rightTransaction(string memory schainID) {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(
-            schainHash != MAINNET_ID,
-            "This function is not for transferring to Mainnet"
-        );
-        require(tokenManagerERC20Addresses[schainHash] != address(0), "Incorrect Token Manager address");
-        _;
-    }
-
     constructor(
-        string memory newChainID,
+        string memory newChainName,
         MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newIMALinker,
         address newDepositBox
     )
         public
-        TokenManager(newChainID, newMessageProxy, newIMALinker, newDepositBox)
+        TokenManager(newChainName, newMessageProxy, newIMALinker, newDepositBox)
         // solhint-disable-next-line no-empty-blocks
     { }
-
-    /**
-     * @dev Adds a depositBox address to
-     * TokenManagerEth.
-     *
-     * Requirements:
-     *
-     * - `msg.sender` must be schain owner or contract owner
-     * = or imaLinker contract.
-     * - depositBox must not already be added.
-     * - depositBox address must be non-zero.
-     */
-    function addDepositBox(address newdepositBoxAddress) external override {
-        require(
-            msg.sender == address(tokenManagerLinker) ||
-            _isSchainOwner(msg.sender) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(depositBox == address(0), "depositBox is already set");
-        require(newdepositBoxAddress != address(0), "Incorrect DepositBoxEth address");
-        depositBox = newdepositBoxAddress;
-    }
-
-    /**
-     * @dev Allows Owner to remove a depositBox on SKALE chain
-     * from TokenManagerEth.
-     *
-     * Requirements:
-     *
-     * - `msg.sender` must be schain owner or contract owner
-     * = or imaLinker contract.
-     * - depositBox must already be set.
-     */
-    function removeDepositBox() external override {
-        require(
-            msg.sender == address(tokenManagerLinker) ||
-            _isSchainOwner(msg.sender) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(depositBox != address(0), "depositBox is not set");
-        delete depositBox;
-    }
-
-    /**
-     * @dev Adds a TokenManagerEth address to
-     * depositBox.
-     *
-     * Requirements:
-     *
-     * - `msg.sender` must be schain owner or contract owner
-     * = or imaLinker contract.
-     * - SKALE chain must not already be added.
-     * - TokenManager address must be non-zero.
-     */
-    function addTokenManager(string calldata schainID, address newTokenManagerERC20Address) external override {
-        require(
-            msg.sender == address(tokenManagerLinker) ||
-            _isSchainOwner(msg.sender) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerERC20Addresses[schainHash] == address(0), "SKALE chain is already set");
-        require(newTokenManagerERC20Address != address(0), "Incorrect Token Manager address");
-        tokenManagerERC20Addresses[schainHash] = newTokenManagerERC20Address;
-    }
-
-    /**
-     * @dev Allows Owner to remove a TokenManagerEth on SKALE chain
-     * from depositBox.
-     *
-     * Requirements:
-     *
-     * - `msg.sender` must be schain owner or contract owner
-     * - SKALE chain must already be set.
-     */
-    function removeTokenManager(string calldata schainID) external override {
-        require(
-            msg.sender == address(tokenManagerLinker) ||
-            _isSchainOwner(msg.sender) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerERC20Addresses[schainHash] != address(0), "SKALE chain is not set");
-        delete tokenManagerERC20Addresses[schainHash];
-    }
 
     function exitToMainERC20(
         address contractOnMainnet,
@@ -174,19 +74,18 @@ contract TokenManagerERC20 is TokenManager {
     )
         external
     {
-        ERC20Burnable contractOnSchain = schainToERC20OnSchain[schainId][contractOnMainnet];
-        
+        ERC20Burnable contractOnSchain = clonesErc20[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
         require(
-            IERC20(contractOnSchain).allowance(
+            contractOnSchain.allowance(
                 msg.sender,
                 address(this)
             ) >= amount,
             "Transfer is not approved by token holder"
         );
         require(
-            IERC20(contractOnSchain).transferFrom(
+            contractOnSchain.transferFrom(
                 msg.sender,
                 address(this),
                 amount
@@ -210,20 +109,25 @@ contract TokenManagerERC20 is TokenManager {
         uint256 amount
     )
         external
-        // receivedEth(amountOfEth)
     {
-        ERC20Burnable contractOnSchain = schainToERC20OnSchain[schainId][contractOnMainnet];
+        bytes32 targetSchainId = keccak256(abi.encodePacked(targetSchainName));
+        require(
+            targetSchainId != MAINNET_ID,
+            "This function is not for transferring to Mainnet"
+        );
+        require(tokenManagers[targetSchainId] != address(0), "Incorrect Token Manager address");
+        ERC20Burnable contractOnSchain = clonesErc20[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
         require(
-            IERC20(contractOnSchain).allowance(
+            contractOnSchain.allowance(
                 msg.sender,
                 address(this)
             ) >= amount,
             "Transfer is not approved by token holder"
         );
         require(
-            IERC20(contractOnSchain).transferFrom(
+            contractOnSchain.transferFrom(
                 msg.sender,
                 address(this),
                 amount
@@ -235,7 +139,7 @@ contract TokenManagerERC20 is TokenManager {
 
         messageProxy.postOutgoingMessage(
             targetSchainName,
-            tokenManagerERC20Addresses[keccak256(abi.encodePacked(targetSchainName))],
+            tokenManagers[targetSchainId],
             Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
         );
     }
@@ -267,7 +171,7 @@ contract TokenManagerERC20 is TokenManager {
                 (
                     fromSchainId == MAINNET_ID ?
                     sender == depositBox :
-                    sender == tokenManagerERC20Addresses[fromSchainId]
+                    sender == tokenManagers[fromSchainId]
                 ),
             "Receiver chain is incorrect"
         );
@@ -276,7 +180,7 @@ contract TokenManagerERC20 is TokenManager {
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOKEN_INFO ||
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY
         ) {
-            require(_sendERC20(fromSchainName, data), "Failed to send ERC20");
+            require(_sendERC20(data), "Failed to send ERC20");
         } else {
             revert("MessageType is unknown");
         }
@@ -287,7 +191,6 @@ contract TokenManagerERC20 is TokenManager {
      * @dev Allows Schain owner to add an ERC20 token to LockAndDataForSchainERC20.
      */
     function addERC20TokenByOwner(
-        string calldata schainName,
         address erc20OnMainnet,
         ERC20OnChain erc20OnSchain
      )
@@ -296,26 +199,8 @@ contract TokenManagerERC20 is TokenManager {
         require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
         require(address(erc20OnSchain).isContract(), "Given address is not a contract");
         require(erc20OnSchain.totalSupply() == 0, "TotalSupply is not zero");
-        schainToERC20OnSchain[keccak256(abi.encodePacked(schainName))][erc20OnMainnet] = erc20OnSchain;
-        emit ERC20TokenAdded(schainName, erc20OnMainnet, address(erc20OnSchain));
-    }
-
-    /**
-     * @dev Checks whether TokenManagerERC20 is connected to a {schainID} SKALE chain TokenManagerERC20.
-     */
-    function hasTokenManager(string calldata schainID) external view override returns (bool) {
-        return tokenManagerERC20Addresses[keccak256(abi.encodePacked(schainID))] != address(0);
-    }
-
-    /**
-     * @dev Checks whether TokenManagerERC20 is connected to a mainnet depositBox.
-     */
-    function hasDepositBox() external view override returns (bool) {
-        return depositBox != address(0);
-    }
-
-    function getErc20OnSchain(string memory schainName, IERC20 tokenOnMainnetAddress) external view returns (IERC20) {
-        return schainToERC20OnSchain[keccak256(abi.encodePacked(schainName))][address(tokenOnMainnetAddress)];
+        clonesErc20[erc20OnMainnet] = erc20OnSchain;
+        emit ERC20TokenAdded(erc20OnMainnet, address(erc20OnSchain));
     }
 
     /**
@@ -324,7 +209,7 @@ contract TokenManagerERC20 is TokenManager {
      * Emits a {ERC20TokenCreated} event if token does not exist.
      * Emits a {ERC20TokenReceived} event on success.
      */
-    function _sendERC20(string calldata fromSchainName, bytes calldata data) private returns (bool) {        
+    function _sendERC20(bytes calldata data) private returns (bool) {        
         Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
         address token;
@@ -339,7 +224,7 @@ contract TokenManagerERC20 is TokenManager {
             token = message.baseErc20transfer.token;
             amount = message.baseErc20transfer.amount;
             totalSupply = message.totalSupply;
-            contractOnSchain = schainToERC20OnSchain[schainId][token];
+            contractOnSchain = clonesErc20[token];
         } else {
             Messages.TransferErc20AndTokenInfoMessage memory message =
                 Messages.decodeTransferErc20AndTokenInfoMessage(data);
@@ -347,21 +232,19 @@ contract TokenManagerERC20 is TokenManager {
             token = message.baseErc20transfer.token;
             amount = message.baseErc20transfer.amount;
             totalSupply = message.totalSupply;
-            contractOnSchain = schainToERC20OnSchain[schainId][token];
+            contractOnSchain = clonesErc20[token];
             if (address(contractOnSchain) == address(0)) {
                 require(automaticDeploy, "Automatic deploy is disabled");
                 contractOnSchain = _createERC20(message.tokenInfo.name, message.tokenInfo.symbol);
-                schainToERC20OnSchain[schainId][token] = contractOnSchain;
+                clonesErc20[token] = contractOnSchain;
                 newClone = true;
-                emit ERC20TokenCreated(fromSchainName, token, address(contractOnSchain));
+                emit ERC20TokenCreated(token, address(contractOnSchain));
             }
         }
         require(address(contractOnSchain).isContract(), "Given address is not a contract");
-        if (totalSupply != totalSupplyOnMainnet[contractOnSchain])
-        {
+        if (totalSupply != totalSupplyOnMainnet[contractOnSchain]) {
             totalSupplyOnMainnet[contractOnSchain] = totalSupply;
         }
-        emit ERC20TokenReceived(token, address(contractOnSchain), amount);
         require(
             contractOnSchain.totalSupply() + amount <= totalSupplyOnMainnet[contractOnSchain],
             "Total supply exceeded"
@@ -371,6 +254,7 @@ contract TokenManagerERC20 is TokenManager {
             contractOnSchain.grantRole(contractOnSchain.MINTER_ROLE(), address(this));
         }
         contractOnSchain.mint(receiver, amount);
+        emit ERC20TokenReceived(token, address(contractOnSchain), amount);
         return true;
     }
 

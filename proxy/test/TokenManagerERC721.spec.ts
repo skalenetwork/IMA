@@ -80,25 +80,30 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner, depositBox]) => {
         await tokenManagerERC721.grantRole(await tokenManagerERC721.SKALE_FEATURES_SETTER_ROLE(), deployer);
         await tokenManagerERC721.setSkaleFeaturesAddress(skaleFeatures.address);
 
-        tokenManagerERC721Mock =
-            await TokenManagerERC721Mock.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBox);
-        await tokenManagerERC721Mock.grantRole(await tokenManagerERC721Mock.SKALE_FEATURES_SETTER_ROLE(), deployer);
-        await tokenManagerERC721Mock.setSkaleFeaturesAddress(skaleFeatures.address);
+        // tokenManagerERC721Mock =
+        //     await TokenManagerERC721Mock.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBox);
+        // await tokenManagerERC721Mock.grantRole(await tokenManagerERC721Mock.SKALE_FEATURES_SETTER_ROLE(), deployer);
+        // await tokenManagerERC721Mock.setSkaleFeaturesAddress(skaleFeatures.address);
 
         eRC721OnChain = await ERC721OnChain.new("ELVIS", "ELV", {from: deployer});
         eRC721OnMainnet = await ERC721OnChain.new("SKALE", "SKL", {from: deployer});
     });
 
-    it("should rejected with `ERC721 contract does not exist on SKALE chain`", async () => {
+    it.only("should rejected with `ERC721 contract does not exist on SKALE chain`", async () => {
         // preparation
         const error = "ERC721 contract does not exist on SKALE chain";
+        const contractThere = eRC721OnMainnet.address;
         const contractHere = eRC721OnChain.address;
         const schainID = randomString(10);
         const to = user;
         const tokenId = 1;
+
+        await tokenManagerERC721.addERC721TokenByOwner(contractThere, contractHere, {from: schainOwner});
+        await eRC721OnChain.mint(user, tokenId, {from: deployer});
+        await eRC721OnChain.approve(tokenManagerERC721.address, tokenId, {from: user});
         // execution/expectation
-        await tokenManagerERC721Mock.receiveERC721(schainID, contractHere , to, tokenId, {from: deployer})
-        .should.be.eventually.rejectedWith(error);
+        await tokenManagerERC721.exitToMainERC721(contractThere , to, tokenId, {from: user})
+            .should.be.eventually.rejectedWith(error);
     });
 
     it("should invoke `receiveERC721`", async () => {
@@ -112,7 +117,7 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner, depositBox]) => {
         // await tokenManagerERC721Mock.enableAutomaticDeploy(schainID, {from: schainOwner});
         // add ERC721 token to avoid "ERC721 contract does not exist on SKALE chain" error
         await tokenManagerERC721Mock
-        .addERC721TokenByOwner(schainID, contractThere, contractHere, {from: schainOwner});
+            .addERC721TokenByOwner(schainID, contractThere, contractHere, {from: schainOwner});
         // mint ERC721 to avoid "ERC721: owner query for nonexistent token" error
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
         // transfer ERC721 token to `lockAndDataForMainnetERC721` to avoid "Token not transferred" error
@@ -182,7 +187,7 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner, depositBox]) => {
         const to = user;
 
         await eRC721OnChain.mint(user, tokenId, {from: deployer});
-        await tokenManagerERC721.addERC721TokenByOwner("Mainnet", contractThere, contractHere, {from: schainOwner});
+        await tokenManagerERC721.addERC721TokenByOwner(contractThere, contractHere, {from: schainOwner});
 
         await tokenManagerERC721
             .exitToMainERC721(contractThere, to, tokenId, {from: deployer})
@@ -210,7 +215,7 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner, depositBox]) => {
         await messageProxyForSchain.grantRole(chainConnectorRole, deployer);
 
         await messageProxyForSchain.addConnectedChain(schainID, {from: deployer});
-        await tokenManagerERC721.addERC721TokenByOwner(schainID, contractThere, contractHere, {from: schainOwner});
+        await tokenManagerERC721.addERC721TokenByOwner(contractThere, contractHere, {from: schainOwner});
         await eRC721OnChain.mint(deployer, tokenId, {from: deployer});
 
         await tokenManagerERC721

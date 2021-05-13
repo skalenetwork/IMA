@@ -20,58 +20,58 @@
  */
 
 pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+// pragma experimental ABIEncoderV2;
 
-import "../schain/TokenManagers/TokenManagerERC721.sol";
-import "../Messages.sol";
-import "@nomiclabs/buidler/console.sol";
+// import "../schain/TokenManagers/TokenManagerERC721.sol";
+// import "../Messages.sol";
+// import "@nomiclabs/buidler/console.sol";
 
-contract TokenManagerERC721Mock is TokenManagerERC721 {
+// contract TokenManagerERC721Mock is TokenManagerERC721 {
 
-    event ERC721TokenCreated(string chainID, address indexed erc721OnMainnet, address indexed erc721OnSchain);
+//     event ERC721TokenCreated(string chainID, address indexed erc721OnMainnet, address indexed erc721OnSchain);
 
-    constructor(
-        string memory newChainID,
-        MessageProxyForSchain newMessageProxyAddress,
-        TokenManagerLinker newIMALinker,
-        address newDepositBox
-    )
-        public
-        TokenManagerERC721(newChainID, newMessageProxyAddress, newIMALinker, newDepositBox)
-        // solhint-disable-next-line no-empty-blocks
-    { }
+//     constructor(
+//         string memory newChainID,
+//         MessageProxyForSchain newMessageProxyAddress,
+//         TokenManagerLinker newIMALinker,
+//         address newDepositBox
+//     )
+//         public
+//         TokenManagerERC721(newChainID, newMessageProxyAddress, newIMALinker, newDepositBox)
+//         // solhint-disable-next-line no-empty-blocks
+//     { }
 
-   /**
-     * @dev Allows TokenManager to receive ERC721 tokens.
-     * 
-     * Requirements:
-     * 
-     * - ERC721 token contract must exist in LockAndDataForSchainERC721.
-     * - ERC721 token must be received by LockAndDataForSchainERC721.
-     */
-    function receiveERC721(
-        string memory schainID,
-        address contractOnMainnet,
-        address receiver,
-        uint256 tokenId
-    ) 
-        external
-        returns (bytes memory data)
-    {
-        ERC721Burnable contractOnSchain = 
-            schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
-        require(address(contractOnSchain) != address(0), "ERC721 contract does not exist on SKALE chain");
-        require(contractOnSchain.ownerOf(tokenId) == address(this), "Token not transferred");
-        contractOnSchain.burn(tokenId);
-        data = Messages.encodeTransferErc721Message(contractOnMainnet, receiver, tokenId);
-    }
+//    /**
+//      * @dev Allows TokenManager to receive ERC721 tokens.
+//      * 
+//      * Requirements:
+//      * 
+//      * - ERC721 token contract must exist in LockAndDataForSchainERC721.
+//      * - ERC721 token must be received by LockAndDataForSchainERC721.
+//      */
+//     function receiveERC721(
+//         string memory schainID,
+//         address contractOnMainnet,
+//         address receiver,
+//         uint256 tokenId
+//     ) 
+//         external
+//         returns (bytes memory data)
+//     {
+//         ERC721Burnable contractOnSchain = 
+//             schainToERC721OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
+//         require(address(contractOnSchain) != address(0), "ERC721 contract does not exist on SKALE chain");
+//         require(contractOnSchain.ownerOf(tokenId) == address(this), "Token not transferred");
+//         contractOnSchain.burn(tokenId);
+//         data = Messages.encodeTransferErc721Message(contractOnMainnet, receiver, tokenId);
+//     }
 
-    /**
-     * @dev Allows TokenManager to send ERC721 tokens.
-     *  
-     * Emits a {ERC721TokenCreated} event if to address = 0.
-     */
-    function sendERC721(string calldata, bytes calldata) external pure returns (bool) {
-        return true;
-    }
-}
+//     /**
+//      * @dev Allows TokenManager to send ERC721 tokens.
+//      *  
+//      * Emits a {ERC721TokenCreated} event if to address = 0.
+//      */
+//     function sendERC721(string calldata, bytes calldata) external pure returns (bool) {
+//         return true;
+//     }
+// }
