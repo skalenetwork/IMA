@@ -49,7 +49,7 @@ import { randomString } from "./utils/helper";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const artifactERC721OnChain = require("../build/contracts/ERC721OnChain.json");
+import artifactERC721OnChain = require("../build/contracts/ERC721OnChain.json");
 const TokenManagerERC721: TokenManagerERC721Contract = artifacts.require("./TokenManagerERC721");
 const TokenManagerERC721Mock: TokenManagerERC721MockContract = artifacts.require("./TokenManagerERC721Mock");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
@@ -73,10 +73,10 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner, depositBox]) => {
         messageProxyForSchain = await MessageProxyForSchain.new(schainName);
         tokenManagerLinker = await TokenManagerLinker.new(messageProxyForSchain.address);
         messages = await MessagesTester.new();
-        
+
         const skaleFeatures = await SkaleFeaturesMock.new();
         await skaleFeatures.setSchainOwner(schainOwner);
-        
+
         tokenManagerERC721 =
             await TokenManagerERC721.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBox);
         await tokenManagerERC721.grantRole(await tokenManagerERC721.SKALE_FEATURES_SETTER_ROLE(), deployer);
@@ -248,7 +248,7 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner, depositBox]) => {
         await tokenManagerERC721
             .transferToSchainERC721(schainID, contractThere, to, tokenId, {from: deployer})
             .should.be.eventually.rejectedWith(error);
-    
+
         await eRC721OnChain.approve(tokenManagerERC721.address, tokenId, {from: deployer});
 
         // execution:
@@ -278,7 +278,7 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner, depositBox]) => {
 
         const skaleFeatures = await SkaleFeaturesMock.new();
         await skaleFeatures.setSchainOwner(schainOwner);
-        
+
         const tokenManagerERC721Tester =
             await TokenManagerERC721.new(schainName, deployer, tokenManagerLinker.address, depositBox);
         await tokenManagerERC721Tester.grantRole(await tokenManagerERC721Tester.SKALE_FEATURES_SETTER_ROLE(), deployer);
@@ -287,7 +287,7 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner, depositBox]) => {
         await tokenManagerERC721Tester.addTokenManager(schainID, deployer);
         const tokenFactory = await TokenFactoryERC721.new("TokenManagerERC721", tokenManagerERC721Tester.address);
         await tokenManagerERC721Tester.setTokenFactory(tokenFactory.address);
-        
+
         // execution
         const res = await tokenManagerERC721Tester.postMessage(schainID, sender, data, {from: deployer});
         // expectation

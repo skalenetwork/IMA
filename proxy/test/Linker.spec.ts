@@ -19,71 +19,56 @@
 //  */
 
 // /**
-//  * @file DepositBox.spec.ts
+//  * @file Linker.spec.ts
 //  * @copyright SKALE Labs 2019-Present
 //  */
 
- import { BigNumber } from "bignumber.js";
- import * as chaiAsPromised from "chai-as-promised";
- import {
-   ContractManagerInstance,
-   DepositBoxEthInstance,
-   DepositBoxERC20Instance,
-   DepositBoxERC721Instance,
-   LinkerInstance,
-   MessageProxyForMainnetInstance,
-   MessagesTesterContract,
-   MessagesTesterInstance
-   } from "../types/truffle-contracts";
- import { randomString } from "./utils/helper";
- 
- import chai = require("chai");
- 
- chai.should();
- chai.use((chaiAsPromised as any));
- 
- import { deployDepositBoxEth } from "./utils/deploy/depositBoxEth";
- import { deployDepositBoxERC20 } from "./utils/deploy/depositBoxERC20";
- import { deployDepositBoxERC721 } from "./utils/deploy/depositBoxERC721";
- import { deployLinker } from "./utils/deploy/linker";
- import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
- import { deployContractManager } from "./utils/deploy/contractManager";
- import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
- import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
- import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
- const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
- 
- const BlsSignature = [
-   "178325537405109593276798394634841698946852714038246117383766698579865918287",
-   "493565443574555904019191451171395204672818649274520396086461475162723833781",
- ];
- const HashA = "3080491942974172654518861600747466851589809241462384879086673256057179400078";
- const HashB = "15163860114293529009901628456926790077787470245128337652112878212941459329347";
- const Counter = 0;
- 
- contract("Linker", ([deployer, user, user2]) => {
-   let depositBoxEth: DepositBoxEthInstance;
-   let depositBoxERC20: DepositBoxERC20Instance;
-   let depositBoxERC721: DepositBoxERC721Instance;
-   let contractManager: ContractManagerInstance;
-   let messageProxy: MessageProxyForMainnetInstance;
-   let linker: LinkerInstance;
-   let contractManagerAddress = "0x0000000000000000000000000000000000000000";
- 
-   beforeEach(async () => {
-     contractManager = await deployContractManager(contractManagerAddress);
-     contractManagerAddress = contractManager.address;
-     messageProxy = await deployMessageProxyForMainnet(contractManager);
-     linker = await deployLinker(messageProxy);
-     depositBoxEth = await deployDepositBoxEth(contractManager, messageProxy, linker);
-     depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxy, linker);
-     depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxy, linker);
-     await linker.removeDepositBox(depositBoxEth.address);
-     await linker.removeDepositBox(depositBoxERC20.address);
-     await linker.removeDepositBox(depositBoxERC721.address);
-   });
+import * as chaiAsPromised from "chai-as-promised";
+import {
+  ContractManagerInstance,
+  DepositBoxEthInstance,
+  DepositBoxERC20Instance,
+  DepositBoxERC721Instance,
+  LinkerInstance,
+  MessageProxyForMainnetInstance,
+  } from "../types/truffle-contracts";
+import { randomString } from "./utils/helper";
 
-it("should connect schain", async () => {
+import chai = require("chai");
+
+chai.should();
+chai.use((chaiAsPromised as any));
+
+import { deployDepositBoxEth } from "./utils/deploy/depositBoxEth";
+import { deployDepositBoxERC20 } from "./utils/deploy/depositBoxERC20";
+import { deployDepositBoxERC721 } from "./utils/deploy/depositBoxERC721";
+import { deployLinker } from "./utils/deploy/linker";
+import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
+import { deployContractManager } from "./utils/deploy/contractManager";
+
+contract("Linker", ([deployer, user, user2]) => {
+  let depositBoxEth: DepositBoxEthInstance;
+  let depositBoxERC20: DepositBoxERC20Instance;
+  let depositBoxERC721: DepositBoxERC721Instance;
+  let contractManager: ContractManagerInstance;
+  let messageProxy: MessageProxyForMainnetInstance;
+  let linker: LinkerInstance;
+  let contractManagerAddress = "0x0000000000000000000000000000000000000000";
+
+  beforeEach(async () => {
+    contractManager = await deployContractManager(contractManagerAddress);
+    contractManagerAddress = contractManager.address;
+    messageProxy = await deployMessageProxyForMainnet(contractManager);
+    linker = await deployLinker(messageProxy);
+    depositBoxEth = await deployDepositBoxEth(contractManager, messageProxy, linker);
+    depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxy, linker);
+    depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxy, linker);
+    await linker.removeDepositBox(depositBoxEth.address);
+    await linker.removeDepositBox(depositBoxERC20.address);
+    await linker.removeDepositBox(depositBoxERC721.address);
+  });
+
+  it("should connect schain", async () => {
     const schainID = randomString(10);
     const nullAddress = "0x0000000000000000000000000000000000000000";
 
@@ -95,9 +80,9 @@ it("should connect schain", async () => {
         .should.be.eventually.rejectedWith("Incorrect number of addresses");
 
     await linker.connectSchain(schainID, [], {from: deployer});
-});
+  });
 
-it("should connect schain with 1 tokenManager", async() => {
+  it("should connect schain with 1 tokenManager", async() => {
     const schainID = randomString(10);
     const nullAddress = "0x0000000000000000000000000000000000000000";
     const tokenManagerAddress = user;
@@ -123,9 +108,9 @@ it("should connect schain with 1 tokenManager", async() => {
 
     expect(await linker.hasSchain(schainID)).to.equal(true);
 
-});
+  });
 
-it("should connect schain with 3 tokenManager", async() => {
+  it("should connect schain with 3 tokenManager", async() => {
     const schainID = randomString(10);
     const nullAddress = "0x0000000000000000000000000000000000000000";
     const tokenManagerAddress = user;
@@ -226,6 +211,5 @@ it("should connect schain with 3 tokenManager", async() => {
     expect(await linker.hasDepositBox(depositBoxERC20.address)).to.equal(false);
     expect(await linker.hasDepositBox(depositBoxERC721.address)).to.equal(false);
   });
- 
- });
- 
+
+});

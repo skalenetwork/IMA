@@ -76,21 +76,13 @@ contract TokenManagerLinker is AccessControl {
         }
     }
 
-    // function connectSchain(string calldata schainName, address[] calldata tokenManagerAddresses) external onlyOwner {
-    //     require(tokenManagerAddresses.length == _tokenManagers.length, "Incorrect number of addresses");
-    //     for (uint i = 0; i < tokenManagerAddresses.length; i++) {
-    //         ITokenManager(_tokenManagers[i]).addTokenManager(schainName, tokenManagerAddresses[i]);
-    //     }
-    //     IMessageProxy(getProxyForSchainAddress()).addConnectedChain(schainName);
-    // }
-
-    // function connectMainnet(address[] calldata depositBoxAddresses) external onlyOwner {
-    //     require(depositBoxAddresses.length == _tokenManagers.length, "Incorrect number of addresses");
-    //     for (uint i = 0; i < depositBoxAddresses.length; i++) {
-    //         ITokenManager(_tokenManagers[i]).addDepositBox(depositBoxAddresses[i]);
-    //     }
-    //     IMessageProxy(getProxyForSchainAddress()).addConnectedChain("Mainnet");
-    // }
+    function connectSchain(string calldata schainName, address[] calldata tokenManagerAddresses) external onlyRegistrar {
+        require(tokenManagerAddresses.length == _tokenManagers.length, "Incorrect number of addresses");
+        for (uint i = 0; i < tokenManagerAddresses.length; i++) {
+            _tokenManagers[i].addTokenManager(schainName, tokenManagerAddresses[i]);
+        }
+        messageProxy.addConnectedChain(schainName);
+    }
 
     function disconnectSchain(string calldata schainName) external onlyRegistrar {
         uint length = _tokenManagers.length;
@@ -99,19 +91,6 @@ contract TokenManagerLinker is AccessControl {
         }
         messageProxy.removeConnectedChain(schainName);
     }
-
-    function disconnectMainnet() external onlyRegistrar {
-        uint length = _tokenManagers.length;
-        for (uint i = 0; i < length; i++) {
-            _tokenManagers[i].removeDepositBox();
-        }
-    }
-
-    // function rechargeSchainWallet(bytes32 schainId, uint256 amount) external {
-    //     require(address(this).balance >= amount, "Not enough ETH to rechargeSchainWallet");
-    //     address walletsAddress = IContractManager(contractManagerOfSkaleManager).getContract("Wallets");
-    //     IWallets(payable(walletsAddress)).rechargeSchainWallet{value: amount}(schainId);
-    // }
 
     function hasTokenManager(TokenManager tokenManagerAddress) external view returns (bool) {
         uint index;
@@ -131,14 +110,5 @@ contract TokenManagerLinker is AccessControl {
             connected = connected && _tokenManagers[i].hasTokenManager(schainName);
         }
         connected = connected && messageProxy.isConnectedChain(schainName);
-    }
-
-    function hasMainnet() external view returns (bool connected) {
-        uint length = _tokenManagers.length;
-        connected = true;
-        for (uint i = 0; i < length; i++) {
-            connected = connected && _tokenManagers[i].hasDepositBox();
-        }
-        connected = connected && messageProxy.isConnectedChain("Mainnet");
     }
 }
