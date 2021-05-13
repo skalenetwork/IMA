@@ -51,7 +51,7 @@ const TokenManagerERC721: TokenManagerERC721Contract = artifacts.require("./Toke
 const TokenManagerLinker: TokenManagerLinkerContract = artifacts.require("./TokenManagerLinker");
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 
-contract("Linker", ([deployer, user, user2]) => {
+contract("TokenManagerLinker", ([deployer, user, user2]) => {
   let tokenManagerEth: TokenManagerEthInstance;
   let tokenManagerERC20: TokenManagerERC20Instance;
   let tokenManagerERC721: TokenManagerERC721Instance;
@@ -142,7 +142,7 @@ it("should connect schain with 1 tokenManager", async() => {
   expect(await linker.hasSchain(schainID)).to.equal(false);
 
   await linker.connectSchain(schainID, [nullAddress], {from: deployer})
-    .should.be.eventually.rejectedWith("Incorrect TokenManager address");
+    .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
   await linker.connectSchain(schainID, [tokenManagerAddress], {from: deployer})
 
@@ -179,7 +179,7 @@ it("should connect schain with 3 tokenManager", async() => {
   expect(await linker.hasSchain(schainID)).to.equal(false);
 
   await linker.connectSchain(schainID, [nullAddress, tokenManagerAddress, nullAddress], {from: deployer})
-    .should.be.eventually.rejectedWith("Incorrect TokenManager address");
+    .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
   await linker.connectSchain(schainID, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress], {from: deployer})
 
