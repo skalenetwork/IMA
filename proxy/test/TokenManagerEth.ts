@@ -62,6 +62,7 @@ contract("TokenManagerEth", ([user, deployer]) => {
   let messages: MessagesTesterInstance;
   let ethERC20: EthERC20TesterInstance;
   let skaleFeatures: SkaleFeaturesMockInstance;
+  let fakeDepositBox: any;
 
   beforeEach(async () => {
     messageProxyForSchain = await MessageProxyForSchain.new(
@@ -78,11 +79,12 @@ contract("TokenManagerEth", ([user, deployer]) => {
         gas: 8000000 * gasMultiplier
       }
     );
+    fakeDepositBox = tokenManagerLinker.address;
     tokenManagerEth = await TokenManagerEth.new(
       schainName,
       messageProxyForSchain.address,
       tokenManagerLinker.address,
-      deployer,
+      fakeDepositBox,
       {
         from: deployer,
         gas: 8000000 * gasMultiplier
@@ -279,7 +281,6 @@ contract("TokenManagerEth", ([user, deployer]) => {
     // await tokenManagerEth.sendEth(user, amount, {from: deployer});
 
     // send Eth to a client on Mainnet:
-    await tokenManagerEth.exitToMain(to, amountTo, {from: user}).should.be.eventually.rejectedWith("Not enough funds to exit");
     await tokenManagerEth.exitToMain(to, amountTo2, {from: user});
     const balanceAfter = new BigNumber(await ethERC20.balanceOf(user));
     balanceAfter.should.be.deep.equal(amountAfter);
@@ -322,9 +323,9 @@ contract("TokenManagerEth", ([user, deployer]) => {
   });
 
   describe("tests for `postMessage` function", async () => {
-    it("should rejected with `Not a sender`", async () => {
+    it("should rejected with `Sender is not a message proxy`", async () => {
       //  preparation
-      const error = "Not a sender";
+      const error = "Sender is not a message proxy";
       const schainID = randomString(10);
       const amount = 10;
       const bytesData = await messages.encodeTransferEthMessage(user, amount);
@@ -346,7 +347,7 @@ contract("TokenManagerEth", ([user, deployer]) => {
       const sender = deployer;
       // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
       // to avoid `Not a sender` error
-      tokenManagerEth = await TokenManagerEth.new(schainID, deployer, tokenManagerLinker.address, deployer, {from: deployer});
+      tokenManagerEth = await TokenManagerEth.new(schainID, deployer, tokenManagerLinker.address, fakeDepositBox, {from: deployer});
       // await tokenManagerEth.setContract("MessageProxy", deployer, {from: deployer});
       // execution
       await tokenManagerEth
@@ -364,7 +365,7 @@ contract("TokenManagerEth", ([user, deployer]) => {
         const sender = deployer;
         // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
         // to avoid `Not a sender` error
-        tokenManagerEth = await TokenManagerEth.new(schainName, deployer, tokenManagerLinker.address, deployer, {from: deployer});
+        tokenManagerEth = await TokenManagerEth.new(schainName, deployer, tokenManagerLinker.address, fakeDepositBox, {from: deployer});
         // set `tokenManagerEth` contract to avoid the `Not allowed` error in tokenManagerEth.sol
         const skaleFeaturesSetterRole = await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE();
         await tokenManagerEth.grantRole(skaleFeaturesSetterRole, deployer, {from: deployer});
@@ -388,7 +389,7 @@ contract("TokenManagerEth", ([user, deployer]) => {
         const bytesData = await messages.encodeTransferEthMessage(to, amount);
         // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
         // to avoid `Not a sender` error
-        tokenManagerEth = await TokenManagerEth.new(schainName, deployer, tokenManagerLinker.address, deployer, {from: deployer});
+        tokenManagerEth = await TokenManagerEth.new(schainName, deployer, tokenManagerLinker.address, fakeDepositBox, {from: deployer});
         // set `tokenManagerEth` contract to avoid the `Not allowed` error in tokenManagerEth.sol
         const skaleFeaturesSetterRole = await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE();
         await tokenManagerEth.grantRole(skaleFeaturesSetterRole, deployer, {from: deployer});

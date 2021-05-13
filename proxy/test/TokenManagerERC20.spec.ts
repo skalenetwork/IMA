@@ -52,9 +52,10 @@ const TokenManagerLinker: TokenManagerLinkerContract = artifacts.require("./Toke
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 const SkaleFeaturesMock: SkaleFeaturesMockContract = artifacts.require("./SkaleFeaturesMock");
 
-contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
+contract("TokenManagerERC20", ([deployer, user, schainOwner]) => {
   const mainnetName = "Mainnet";
   const schainName = "D2-chain";
+  let fakeDepositBox: any;
   let erc20OnChain: ERC20OnChainInstance;
   let eRC20OnChain2: ERC20OnChainInstance;
   let erc20OnMainnet: ERC20OnChainInstance;
@@ -68,9 +69,11 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
     erc20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20", {from: deployer});
     erc20OnMainnet = await ERC20OnChain.new("SKALE", "SKL", {from: deployer});
     messages = await MessagesTester.new();
+    fakeDepositBox = messages.address;
+
     messageProxyForSchain = await MessageProxyForSchainTester.new(schainName);
     tokenManagerLinker = await TokenManagerLinker.new(messageProxyForSchain.address);
-    tokenManagerErc20 = await TokenManagerErc20.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBox);
+    tokenManagerErc20 = await TokenManagerErc20.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, fakeDepositBox);
     await erc20OnChain.grantRole(await erc20OnChain.MINTER_ROLE(), tokenManagerErc20.address);
 
     const skaleFeatures = await SkaleFeaturesMock.new();
@@ -105,7 +108,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
 
     await tokenManagerErc20.enableAutomaticDeploy({from: schainOwner});
     // execution
-    const res = await messageProxyForSchain.postMessage(tokenManagerErc20.address, mainnetName, depositBox, data);
+    const res = await messageProxyForSchain.postMessage(tokenManagerErc20.address, mainnetName, fakeDepositBox, data);
 
     // TODO: use waffle
     const newAddress = "0x" + res.receipt.rawLogs[res.receipt.rawLogs.length - 1].topics[2].slice(-40);
@@ -113,7 +116,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
     let balance = await newERC20Contract.methods.balanceOf(to).call();
     parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount);
     // expectation
-    await messageProxyForSchain.postMessage(tokenManagerErc20.address, mainnetName, depositBox, data2);
+    await messageProxyForSchain.postMessage(tokenManagerErc20.address, mainnetName, fakeDepositBox, data2);
     balance = await newERC20Contract.methods.balanceOf(to).call();
     parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount * 2);
   });
@@ -236,7 +239,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
     it("should transfer ERC20 token", async () => {
       //  preparation
       const schainID = randomString(10);
-      const remoteTokenManagerAddress = depositBox;
+      const remoteTokenManagerAddress = fakeDepositBox;
       await tokenManagerErc20.addTokenManager(schainID, remoteTokenManagerAddress);
 
       const amount = 10;

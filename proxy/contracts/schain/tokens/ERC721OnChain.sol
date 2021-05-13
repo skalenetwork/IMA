@@ -41,13 +41,6 @@ contract ERC721OnChain is AccessControl, ERC721Burnable {
         _setupRole(MINTER_ROLE, _msgSender());
     }
 
-    function mint(address account, uint256 tokenId)
-        public
-    {
-        require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
-        _mint(account, tokenId);
-    }
-
     function setTokenURI(uint256 tokenId, string calldata tokenUri)
         external
         returns (bool)
@@ -56,5 +49,12 @@ contract ERC721OnChain is AccessControl, ERC721Burnable {
         require(_isApprovedOrOwner(msg.sender, tokenId), "Sender can not set token URI");
         _setTokenURI(tokenId, tokenUri);
         return true;
+    }
+
+    function mint(address account, uint256 tokenId)
+        public
+    {
+        require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
+        _mint(account, tokenId);
     }
 }

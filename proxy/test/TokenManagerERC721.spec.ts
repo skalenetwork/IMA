@@ -107,13 +107,13 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner]) => {
     it("should successfully call addERC721TokenByOwner", async () => {
         await tokenManagerERC721.addERC721TokenByOwner(token.address, tokenClone.address, {from: deployer})
             .should.be.eventually.rejectedWith("Sender is not an Schain owner");
-    
+
         await tokenManagerERC721.addERC721TokenByOwner(deployer, tokenClone.address, {from: schainOwner})
             .should.be.eventually.rejectedWith("Given address is not a contract");
 
         await tokenManagerERC721.addERC721TokenByOwner(token.address, deployer, {from: schainOwner})
             .should.be.eventually.rejectedWith("Given address is not a contract");
-        
+
         await tokenManagerERC721.addERC721TokenByOwner(token.address, tokenClone.address, {from: schainOwner});
     });
 
@@ -162,9 +162,7 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner]) => {
         );
 
         await tokenManagerERC721.enableAutomaticDeploy({from: schainOwner});
-        
         await messageProxyForSchain.postMessage(tokenManagerERC721.address, chainName, fakeDepositBox.address, data);
-        
         const addressERC721OnSchain = await tokenManagerERC721.clonesErc721(token.address);
         const erc721OnChain = new web3.eth.Contract(artifacts.require("./ERC721MintAndBurn").abi, addressERC721OnSchain);
         expect(await erc721OnChain.methods.ownerOf(tokenId).call()).to.be.equal(to);

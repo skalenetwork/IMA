@@ -258,7 +258,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate registration and approve ERC20", async () => {
         // register tokens
-        await tokenManagerErc20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
         let res = await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
         console.log("Registration of ERC20 token cost:", res.receipt.gasUsed);
         res = await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
@@ -269,7 +269,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate erc20 deposits without eth without automatic deploy", async () => {
         // register tokens
-        await tokenManagerErc20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
         await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
         await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 6, {from: user});
 
@@ -289,7 +289,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate erc20 deposits of all approved tokens without eth without automatic deploy", async () => {
         // register tokens
-        await tokenManagerErc20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
         await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
         await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
@@ -299,7 +299,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate registration and approve ERC721", async () => {
         // register tokens
-        await tokenManagerErc721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
         let res = await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
         console.log("Registration of ERC721 token cost:", res.receipt.gasUsed);
         res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
@@ -326,7 +326,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate erc721 deposits without eth without automatic deploy", async () => {
         // register tokens
-        await tokenManagerErc721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
         await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
@@ -363,7 +363,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate erc721 deposits without eth without automatic deploy and transfer each time", async () => {
         // register tokens
-        await tokenManagerErc721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
         await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
 
         let res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
@@ -1492,7 +1492,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 1 exit erc20 cost per one message", async () => {
         // make erc20 deposits
-        await tokenManagerErc20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
         await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
         await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
@@ -1574,7 +1574,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 1 exit erc20 cost per one message deposit each time", async () => {
         // register erc20
-        await tokenManagerErc20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
         await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
         await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
@@ -1659,7 +1659,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 2 exit erc20 cost per one message", async () => {
         // make erc20 deposits
-        await tokenManagerErc20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
         await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
         await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
@@ -1723,7 +1723,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 2 exit erc20 cost per one message deposit each time", async () => {
         // register erc20
-        await tokenManagerErc20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
         await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
         await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
@@ -1790,7 +1790,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 3 exit erc20 cost per one message", async () => {
         // make erc20 deposits
-        await tokenManagerErc20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
         await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
         await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
@@ -1845,7 +1845,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 3 exit erc20 cost per one message deposit each time", async () => {
         // register erc20
-        await tokenManagerErc20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
         await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
         await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
@@ -1903,7 +1903,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 4 exit erc20 cost per one message", async () => {
         // make erc20 deposits
-        await tokenManagerErc20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
         await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
         await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
@@ -1958,7 +1958,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 4 exit erc20 cost per one message deposit each time", async () => {
         // register erc20
-        await tokenManagerErc20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
         await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
         await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
@@ -2016,7 +2016,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 5 exit erc20 cost per one message", async () => {
         // make erc20 deposits
-        await tokenManagerErc20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
         await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
         await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
@@ -2064,7 +2064,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 1 exit erc721 cost per one message", async () => {
         // register ERC721 tokens
-        await tokenManagerErc721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
         await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
@@ -2190,7 +2190,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 1 exit erc721 cost per one message deposit each time", async () => {
         // register ERC721 tokens
-        await tokenManagerErc721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
         await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
@@ -2315,7 +2315,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 2 exit erc721 cost per one message", async () => {
         // register ERC721 tokens
-        await tokenManagerErc721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
         await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
@@ -2423,7 +2423,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 2 exit erc721 cost per one message deposit each time", async () => {
         // register ERC721 tokens
-        await tokenManagerErc721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
         await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
@@ -2530,7 +2530,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 3 exit erc721 cost per one message", async () => {
         // register ERC721 tokens
-        await tokenManagerErc721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
         await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
@@ -2629,7 +2629,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 3 exit erc721 cost per one message deposit each time", async () => {
         // register ERC721 tokens
-        await tokenManagerErc721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
         await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
@@ -2727,7 +2727,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 4 exit erc721 cost per one message", async () => {
         // register ERC721 tokens
-        await tokenManagerErc721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
         await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
@@ -2826,7 +2826,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 4 exit erc721 cost per one message deposit each time", async () => {
         // register ERC721 tokens
-        await tokenManagerErc721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
         await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
@@ -2924,7 +2924,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
 
     it("calculate 5 exit erc721 cost per one message", async () => {
         // register ERC721 tokens
-        await tokenManagerErc721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
         await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
         await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});

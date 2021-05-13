@@ -58,6 +58,7 @@ contract("TokenManagerLinker", ([deployer, user, user2]) => {
   let messageProxy: MessageProxyForSchainInstance;
   let linker: TokenManagerLinkerInstance;
   const schainName = "TestSchain";
+  let fakeDepositBox: any;
 
   beforeEach(async () => {
     messageProxy = await MessageProxyForSchain.new(
@@ -74,11 +75,12 @@ contract("TokenManagerLinker", ([deployer, user, user2]) => {
         gas: 8000000 * gasMultiplier
       }
     );
+    fakeDepositBox = linker.address;
     tokenManagerEth = await TokenManagerEth.new(
       schainName,
       messageProxy.address,
       linker.address,
-      deployer,
+      fakeDepositBox,
       {
         from: deployer,
         gas: 8000000 * gasMultiplier
@@ -88,7 +90,7 @@ contract("TokenManagerLinker", ([deployer, user, user2]) => {
       schainName,
       messageProxy.address,
       linker.address,
-      deployer,
+      fakeDepositBox,
       {
         from: deployer,
         gas: 8000000 * gasMultiplier
@@ -98,7 +100,7 @@ contract("TokenManagerLinker", ([deployer, user, user2]) => {
       schainName,
       messageProxy.address,
       linker.address,
-      deployer,
+      fakeDepositBox,
       {
         from: deployer,
         gas: 8000000 * gasMultiplier
