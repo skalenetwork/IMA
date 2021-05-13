@@ -914,17 +914,17 @@ function ima_common_init() {
     // imaState.eth_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.eth_erc721_abi, imaState.joTrufflePublishResult_s_chain.eth_erc721_address ); // only s-chain
     imaState.eth_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.eth_erc20_abi, imaState.joTrufflePublishResult_s_chain.eth_erc20_address ); // only s-chain
 
-    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxEth" ) + cc.info( "    address is....." ) + cc.bright( imaState.jo_deposit_box_eth.options.address ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC20" ) + cc.info( "  address is....." ) + cc.bright( imaState.jo_deposit_box_erc20.options.address ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC721" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_deposit_box_erc721.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerEth" ) + cc.info( "     address is....." ) + cc.bright( imaState.jo_token_manager_eth.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerERC20" ) + cc.info( "     address is....." ) + cc.bright( imaState.jo_token_manager_erc20.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerERC721" ) + cc.info( "     address is....." ) + cc.bright( imaState.jo_token_manager_erc721.options.address ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( "     address is....." ) + cc.bright( imaState.jo_message_proxy_main_net.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( "     address is....." ) + cc.bright( imaState.jo_message_proxy_s_chain.options.address ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "        address is....." ) + cc.bright( imaState.jo_linker.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerLinker" ) + cc.info( "      address is....." ) + cc.bright( imaState.jo_token_manager_linker.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "ERC20" ) + cc.info( "            address is....." ) + cc.bright( imaState.eth_erc20.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxEth" ) + cc.info( "                address is....." ) + cc.bright( imaState.jo_deposit_box_eth.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC20" ) + cc.info( "              address is....." ) + cc.bright( imaState.jo_deposit_box_erc20.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC721" ) + cc.info( "             address is....." ) + cc.bright( imaState.jo_deposit_box_erc721.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerEth" ) + cc.info( "              address is....." ) + cc.bright( imaState.jo_token_manager_eth.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerERC20" ) + cc.info( "            address is....." ) + cc.bright( imaState.jo_token_manager_erc20.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerERC721" ) + cc.info( "           address is....." ) + cc.bright( imaState.jo_token_manager_erc721.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( "                 address is....." ) + cc.bright( imaState.jo_message_proxy_main_net.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( "                 address is....." ) + cc.bright( imaState.jo_message_proxy_s_chain.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "                       address is....." ) + cc.bright( imaState.jo_linker.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerLinker" ) + cc.info( "           address is....." ) + cc.bright( imaState.jo_token_manager_linker.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "ERC20" ) + cc.info( "                        address is....." ) + cc.bright( imaState.eth_erc20.options.address ) + "\n" );
 
     //
     //
