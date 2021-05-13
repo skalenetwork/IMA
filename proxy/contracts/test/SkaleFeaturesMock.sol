@@ -32,7 +32,6 @@ contract SkaleFeaturesMock is SkaleFeatures {
     
     G2Operations.G2Point public blsCommonPublicKey;
     address public schainOwner;
-    address public tokenFactoryErc20;
 
     function setBlsCommonPublicKey(G2Operations.G2Point calldata key) external {
         G2Operations.G2Point memory _key = key;
@@ -41,10 +40,6 @@ contract SkaleFeaturesMock is SkaleFeatures {
 
     function setSchainOwner(address _schainOwner) external {
         schainOwner = _schainOwner;
-    }
-
-    function setTokenFactoryErc20Address(address _tokenFactoryErc20) external {
-        tokenFactoryErc20 = _tokenFactoryErc20;
     }
 
     function getConfigVariableUint256(string calldata key) external view override returns (uint) {
@@ -64,8 +59,6 @@ contract SkaleFeaturesMock is SkaleFeatures {
     function getConfigVariableAddress( string memory key ) public view override returns ( address ) {
         if (_equal(key, "skaleConfig.contractSettings.IMA.ownerAddress")) {
             return schainOwner;
-        } else if (_equal(key, "skaleConfig.contractSettings.IMA.TokenFactoryERC20")) {
-            return tokenFactoryErc20;
         } else {
             console.log(key);
             revert("The key is not implemented in the mock");

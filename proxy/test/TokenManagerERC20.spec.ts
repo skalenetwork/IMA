@@ -36,8 +36,7 @@ import {
     TokenManagerLinkerInstance,
     SkaleFeaturesMockContract,
     MessageProxyForSchainTesterContract,
-    MessageProxyForSchainTesterInstance,
-    TokenFactoryERC20Contract
+    MessageProxyForSchainTesterInstance
 } from "../types/truffle-contracts";
 
 import chai = require("chai");
@@ -52,7 +51,6 @@ const MessageProxyForSchainTester: MessageProxyForSchainTesterContract = artifac
 const TokenManagerLinker: TokenManagerLinkerContract = artifacts.require("./TokenManagerLinker");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 const SkaleFeaturesMock: SkaleFeaturesMockContract = artifacts.require("./SkaleFeaturesMock");
-const TokenFactoryERC20: TokenFactoryERC20Contract = artifacts.require("./TokenFactoryERC20");
 
 contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
   const mainnetName = "Mainnet";
@@ -73,11 +71,10 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
     messageProxyForSchain = await MessageProxyForSchainTester.new(schainName);
     tokenManagerLinker = await TokenManagerLinker.new(messageProxyForSchain.address);
     tokenManagerErc20 = await TokenManagerErc20.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBox);
-    const tokenFactoryErc20 = await TokenFactoryERC20.new("TokenManagerERC20", tokenManagerErc20.address);
+    await erc20OnChain.grantRole(await erc20OnChain.MINTER_ROLE(), tokenManagerErc20.address);
 
     const skaleFeatures = await SkaleFeaturesMock.new();
     await skaleFeatures.setSchainOwner(schainOwner);
-    await skaleFeatures.setTokenFactoryErc20Address(tokenFactoryErc20.address);
 
     await tokenManagerErc20.grantRole(await tokenManagerErc20.SKALE_FEATURES_SETTER_ROLE(), deployer);
     await tokenManagerErc20.setSkaleFeaturesAddress(skaleFeatures.address);
@@ -253,7 +250,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
       // execution
       await messageProxyForSchain.postMessage(tokenManagerErc20.address, schainID, remoteTokenManagerAddress, data);
       // expectation
-      const addressERC20OnSchain = await tokenManagerErc20.getErc20OnSchain(schainID, erc20OnMainnet.address);
+      const addressERC20OnSchain = await tokenManagerErc20.getErc20OnSchain(schainName, erc20OnMainnet.address);
       const targetErc20OnChain = new web3.eth.Contract(artifacts.require("./ERC20OnChain").abi, addressERC20OnSchain);
       expect(parseInt((new BigNumber(await targetErc20OnChain.methods.balanceOf(to).call())).toString(), 10))
           .to.be.equal(amount);

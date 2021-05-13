@@ -26,7 +26,7 @@ import "@nomiclabs/buidler/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../../Messages.sol";
-import "../TokenFactories/TokenFactoryERC20.sol";
+import "../tokens/ERC20OnChain.sol";
 import "../TokenManager.sol";
 
 
@@ -46,8 +46,6 @@ contract TokenManagerERC20 is TokenManager {
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_ID = keccak256(abi.encodePacked(MAINNET_NAME));
-
-    TokenFactoryERC20 private _tokenFactory;
 
     mapping(bytes32 => address) public tokenManagerERC20Addresses;
 
@@ -83,11 +81,6 @@ contract TokenManagerERC20 is TokenManager {
         TokenManager(newChainID, newMessageProxy, newIMALinker, newDepositBox)
         // solhint-disable-next-line no-empty-blocks
     { }
-
-    function setTokenFactory(TokenFactoryERC20 newTokenFactory) external {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
-        _tokenFactory = newTokenFactory;
-    }
 
     /**
      * @dev Adds a depositBox address to
@@ -331,13 +324,14 @@ contract TokenManagerERC20 is TokenManager {
      * Emits a {ERC20TokenCreated} event if token does not exist.
      * Emits a {ERC20TokenReceived} event on success.
      */
-    function _sendERC20(string calldata schainID, bytes calldata data) private returns (bool) {        
+    function _sendERC20(string calldata fromSchainName, bytes calldata data) private returns (bool) {        
         Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
         address token;
         uint256 amount;
         uint256 totalSupply;                
         ERC20OnChain contractOnSchain;
+        bool newClone = false;
         if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY) {
             Messages.TransferErc20AndTotalSupplyMessage memory message =
                 Messages.decodeTransferErc20AndTotalSupplyMessage(data);
@@ -345,7 +339,7 @@ contract TokenManagerERC20 is TokenManager {
             token = message.baseErc20transfer.token;
             amount = message.baseErc20transfer.amount;
             totalSupply = message.totalSupply;
-            contractOnSchain = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token];
+            contractOnSchain = schainToERC20OnSchain[schainId][token];
         } else {
             Messages.TransferErc20AndTokenInfoMessage memory message =
                 Messages.decodeTransferErc20AndTokenInfoMessage(data);
@@ -353,13 +347,13 @@ contract TokenManagerERC20 is TokenManager {
             token = message.baseErc20transfer.token;
             amount = message.baseErc20transfer.amount;
             totalSupply = message.totalSupply;
-            contractOnSchain = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token];
+            contractOnSchain = schainToERC20OnSchain[schainId][token];
             if (address(contractOnSchain) == address(0)) {
                 require(automaticDeploy, "Automatic deploy is disabled");
-                contractOnSchain = getTokenFactoryERC20()
-                    .createERC20(message.tokenInfo.name, message.tokenInfo.symbol);
-                schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][token] = contractOnSchain;
-                emit ERC20TokenCreated(schainID, token, address(contractOnSchain));
+                contractOnSchain = _createERC20(message.tokenInfo.name, message.tokenInfo.symbol);
+                schainToERC20OnSchain[schainId][token] = contractOnSchain;
+                newClone = true;
+                emit ERC20TokenCreated(fromSchainName, token, address(contractOnSchain));
             }
         }
         require(address(contractOnSchain).isContract(), "Given address is not a contract");
@@ -372,18 +366,24 @@ contract TokenManagerERC20 is TokenManager {
             contractOnSchain.totalSupply() + amount <= totalSupplyOnMainnet[contractOnSchain],
             "Total supply exceeded"
         );
+
+        if (newClone) {
+            contractOnSchain.grantRole(contractOnSchain.MINTER_ROLE(), address(this));
+        }
         contractOnSchain.mint(receiver, amount);
         return true;
     }
 
-    function getTokenFactoryERC20() public view returns (TokenFactoryERC20) {
-        if (address(_tokenFactory) == address(0)) {
-            return TokenFactoryERC20(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.TokenFactoryERC20"
-                )
-            );
-        }
-        return _tokenFactory;
+    // private
+
+    function _createERC20(string memory name, string memory symbol)
+        private
+        returns (ERC20OnChain)
+    {
+        ERC20OnChain newERC20 = new ERC20OnChain(
+            name,
+            symbol
+        );
+        return newERC20;
     }
 }
