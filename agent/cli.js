@@ -876,7 +876,7 @@ function ima_common_init() {
     imaState.joTrufflePublishResult_s_chain = imaUtils.jsonFileLoad( imaState.strPathAbiJson_s_chain, null );
 
     imaUtils.check_keys_exist_in_abi( "main-net", imaState.strPathAbiJson_main_net, imaState.joTrufflePublishResult_main_net, [ "deposit_box_eth_abi", "deposit_box_eth_address", "message_proxy_mainnet_abi", "message_proxy_mainnet_address", "linker_abi", "linker_address", "deposit_box_erc20_abi", "deposit_box_erc20_address", "deposit_box_erc721_abi", "deposit_box_erc721_address" ] );
-    imaUtils.check_keys_exist_in_abi( "S-Chain", imaState.strPathAbiJson_s_chain, imaState.joTrufflePublishResult_s_chain, [ "token_manager_eth_abi", "token_manager_eth_address", "token_manager_erc20_abi", "token_manager_erc20_address", "token_manager_erc721_abi", "token_manager_erc721_address", "message_proxy_chain_abi", "message_proxy_chain_address", "token_manager_linker_abi", "token_manager_linker_address", ] );
+    imaUtils.check_keys_exist_in_abi( "S-Chain", imaState.strPathAbiJson_s_chain, imaState.joTrufflePublishResult_s_chain, [ "token_manager_eth_abi", "token_manager_eth_address", "token_manager_erc20_abi", "token_manager_erc20_address", "token_manager_erc721_abi", "token_manager_erc721_address", "message_proxy_chain_abi", "message_proxy_chain_address", "token_manager_linker_abi", "token_manager_linker_address" ] );
 
     // deposit_box_eth_address       --> deposit_box_eth_abi
     // deposit_box_erc20_address     --> deposit_box_erc20_abi

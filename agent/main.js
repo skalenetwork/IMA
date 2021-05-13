@@ -1111,7 +1111,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
 //     // if( bSuccess2A && ( !bRetVal2A ) )
 //     //     g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts2A );
 //     let jarrReceipts = "true";
-//     const bRetVal = await IMA.check_is_registered_main_net_on_s_chain( // step 
+//     const bRetVal = await IMA.check_is_registered_main_net_on_s_chain( // step
 //         imaState.w3_s_chain,
 //         imaState.jo_message_proxy_s_chain,
 //         imaState.joAccount_s_chain,
@@ -1119,7 +1119,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
 //     );
 //     //console.log( "----------- bRetVal is", bRetVal );
 //     if( !bRetVal ) {
-//         jarrReceipts = await IMA.register_main_net_on_s_chain( // step 
+//         jarrReceipts = await IMA.register_main_net_on_s_chain( // step
 //             imaState.w3_s_chain,
 //             imaState.jo_message_proxy_s_chain,
 //             imaState.joAccount_s_chain,
