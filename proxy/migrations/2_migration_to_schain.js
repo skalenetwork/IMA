@@ -34,8 +34,8 @@ const TokenManagerERC20 = artifacts.require( "./TokenManagerERC20.sol" );
 const TokenManagerERC721 = artifacts.require( "./TokenManagerERC721.sol" );
 const EthERC20 = artifacts.require( "./EthERC20.sol" );
 const TokenManagerLinker = artifacts.require( "./TokenManagerLinker.sol" );
-const TokenFactoryERC20 = artifacts.require( "./TokenFactoryERC20.sol" );
-const TokenFactoryERC721 = artifacts.require( "./TokenFactoryERC721.sol" );
+// const TokenFactoryERC20 = artifacts.require( "./TokenFactoryERC20.sol" );
+// const TokenFactoryERC721 = artifacts.require( "./TokenFactoryERC721.sol" );
 const ERC20OnChain = artifacts.require("./ERC20OnChain.sol");
 const ERC721OnChain = artifacts.require("./ERC721OnChain.sol");
 
@@ -45,10 +45,10 @@ const gasLimit = 8000000;
 
 async function deploy( deployer, network ) {
 
-    if( network == "test" || network == "coverage" ) {
-        // skip this part of deployment if we run tests
-        return;
-    }
+    // if( network == "test" || network == "coverage" ) {
+    //     // skip this part of deployment if we run tests
+    //     return;
+    // }
 
     if( process.env.CHAIN_NAME_SCHAIN == undefined || process.env.CHAIN_NAME_SCHAIN == "" ) {
         console.log( network );
@@ -68,9 +68,9 @@ async function deploy( deployer, network ) {
         "TokenManagerEth",
         "TokenManagerERC20",
         "TokenManagerERC721",
-        "EthERC20",
-        "TokenFactoryERC20",
-        "TokenFactoryERC721"
+        "EthERC20"
+        // "TokenFactoryERC20",
+        // "TokenFactoryERC721"
     ];
     const deployed = new Map();
     // check proxyMainnet file (depositBoxEth, depositBoxERC20, depositBoxERC721)
@@ -127,19 +127,19 @@ async function deploy( deployer, network ) {
 
     await deployer.deploy( EthERC20, TokenManagerEth.address, { gas: gasLimit } );
     deployed.set("EthERC20", EthERC20.address);
-    await deployer.deploy( TokenFactoryERC20, "TokenManagerERC20", TokenManagerERC20.address, { gas: gasLimit } );
-    deployed.set("TokenFactoryERC20", TokenFactoryERC20.address);
-    await deployer.deploy( TokenFactoryERC721, "TokenManagerERC721", TokenManagerERC721.address, { gas: gasLimit } );
-    deployed.set("TokenFactoryERC721", TokenFactoryERC721.address);
+    // await deployer.deploy( TokenFactoryERC20, "TokenManagerERC20", TokenManagerERC20.address, { gas: gasLimit } );
+    // deployed.set("TokenFactoryERC20", TokenFactoryERC20.address);
+    // await deployer.deploy( TokenFactoryERC721, "TokenManagerERC721", TokenManagerERC721.address, { gas: gasLimit } );
+    // deployed.set("TokenFactoryERC721", TokenFactoryERC721.address);
 
     console.log("\nWill set dependencies!\n");
 
     await tokenManagerEth.setEthErc20Address(EthERC20.address);
     console.log("Set EthERC20 address", EthERC20.address, "in TokenManagerEth", TokenManagerEth.address, "completed!\n");
-    await tokenManagerERC20.setTokenFactory(TokenFactoryERC20.address);
-    console.log("Set TokenFactoryERC20 address", TokenFactoryERC20.address, "in TokenManagerERC20", TokenManagerERC20.address, "completed!\n");
-    await tokenManagerERC721.setTokenFactory(TokenFactoryERC721.address);
-    console.log("Set TokenFactoryERC721 address", TokenFactoryERC721.address, "in TokenManagerERC721", TokenManagerERC721.address, "completed!\n");
+    // await tokenManagerERC20.setTokenFactory(TokenFactoryERC20.address);
+    // console.log("Set TokenFactoryERC20 address", TokenFactoryERC20.address, "in TokenManagerERC20", TokenManagerERC20.address, "completed!\n");
+    // await tokenManagerERC721.setTokenFactory(TokenFactoryERC721.address);
+    // console.log("Set TokenFactoryERC721 address", TokenFactoryERC721.address, "in TokenManagerERC721", TokenManagerERC721.address, "completed!\n");
     const messageProxyDeployed = await messageProxy.deployed();
     const chainConnectorRole = await messageProxyDeployed.CHAIN_CONNECTOR_ROLE();
     await messageProxyDeployed.grantRole(chainConnectorRole, TokenManagerLinker.address);
