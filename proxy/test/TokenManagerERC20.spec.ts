@@ -71,7 +71,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
     erc20OnMainnet = await ERC20OnChain.new("SKALE", "SKL", {from: deployer});
     messages = await MessagesTester.new();
     messageProxyForSchain = await MessageProxyForSchainTester.new(schainName);
-    tokenManagerLinker = await TokenManagerLinker.new(messageProxyForSchain.address);    
+    tokenManagerLinker = await TokenManagerLinker.new(messageProxyForSchain.address);
     tokenManagerErc20 = await TokenManagerErc20.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBox);
     const tokenFactoryErc20 = await TokenFactoryERC20.new("TokenManagerERC20", tokenManagerErc20.address);
 
@@ -87,7 +87,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
 
   it("should reject on exit if there is no mainnet token clone on schain", async () => {
     // preparation
-    const error = "No token clone on schain";    
+    const error = "No token clone on schain";
     const to = user;
     const amount = 10;
     // execution/expectation
@@ -104,10 +104,10 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
     const totalSupply = 1e9;
 
     const data = await messages.encodeTransferErc20AndTokenInfoMessage(erc20OnMainnet.address, to, amount, totalSupply, {name, symbol, decimals: 18});
-    const data2 = await messages.encodeTransferErc20AndTokenInfoMessage(erc20OnMainnet.address, to, amount, totalSupply, {name, symbol, decimals: 18});    
-    
+    const data2 = await messages.encodeTransferErc20AndTokenInfoMessage(erc20OnMainnet.address, to, amount, totalSupply, {name, symbol, decimals: 18});
+
     await tokenManagerErc20.enableAutomaticDeploy({from: schainOwner});
-    // execution    
+    // execution
     const res = await messageProxyForSchain.postMessage(tokenManagerErc20.address, mainnetName, depositBox, data);
     // TODO: use waffle
     const newAddress = "0x" + res.receipt.rawLogs[res.receipt.rawLogs.length - 2].topics[2].slice(-40);
@@ -161,7 +161,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
   it("should reject with `Transfer is not approved by token holder` when invoke `exitToMainERC20`", async () => {
     const error = "Transfer is not approved by token holder";
     const amount = 20;
-    
+
     // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
     const minterRole = await erc20OnChain.MINTER_ROLE();
     await erc20OnChain.mint(user, amount * 2);
@@ -205,7 +205,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
     const amount = "20000000000000000";
     const amountReduceCost = "8000000000000000";
     const schainID = randomString(10);
-    
+
     // add connected chain:
     await messageProxyForSchain.grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer, {from: deployer});
     await messageProxyForSchain.addConnectedChain(schainID, {from: deployer});
@@ -213,7 +213,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
     // await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
     // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
     await erc20OnChain.mint(user, amount, {from: deployer});
-    
+
     // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
     await erc20OnChain.approve(tokenManagerErc20.address, amount, {from: user});
 
@@ -254,8 +254,8 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
       await messageProxyForSchain.postMessage(tokenManagerErc20.address, schainID, remoteTokenManagerAddress, data);
       // expectation
       const addressERC20OnSchain = await tokenManagerErc20.getErc20OnSchain(schainID, erc20OnMainnet.address);
-      const erc20OnChain = new web3.eth.Contract(artifacts.require("./ERC20OnChain").abi, addressERC20OnSchain);
-      expect(parseInt((new BigNumber(await erc20OnChain.methods.balanceOf(to).call())).toString(), 10))
+      const targetErc20OnChain = new web3.eth.Contract(artifacts.require("./ERC20OnChain").abi, addressERC20OnSchain);
+      expect(parseInt((new BigNumber(await targetErc20OnChain.methods.balanceOf(to).call())).toString(), 10))
           .to.be.equal(amount);
     });
   });
