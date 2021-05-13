@@ -130,10 +130,12 @@ global.imaState = {
     "jo_deposit_box_erc20": null, // only main net
     "jo_deposit_box_erc721": null, // only main net
     "jo_linker": null, // only main net
-    "jo_token_manager": null, // only s-chain
+    "jo_token_manager_eth": null, // only s-chain
+    "jo_token_manager_erc20": null, // only s-chain
+    "jo_token_manager_erc721": null, // only s-chain
     "jo_message_proxy_main_net": null,
     "jo_message_proxy_s_chain": null,
-    "jo_lock_and_data_s_chain": null,
+    "jo_token_manager_linker": null,
     "eth_erc20": null, // only s-chain
     // "eth_erc721": null, // only s-chain
 
@@ -223,16 +225,16 @@ imaCLI.parse( {
             }
         } );
     },
-    "register2": function() {
-        imaState.arrActions.push( {
-            "name": "Registration step 2, register Main-net deposit box on S-Chain",
-            "fn": async function() {
-                if( ! imaState.bNoWaitSChainStarted )
-                    await wait_until_s_chain_started(); // register_step2
-                return await register_step2( true );
-            }
-        } );
-    },
+    // "register2": function() {
+    //     imaState.arrActions.push( {
+    //         "name": "Registration step 2, register Main-net deposit box on S-Chain",
+    //         "fn": async function() {
+    //             if( ! imaState.bNoWaitSChainStarted )
+    //                 await wait_until_s_chain_started(); // register_step2
+    //             return await register_step2( true );
+    //         }
+    //     } );
+    // },
     "check-registration": function() {
         imaState.arrActions.push( {
             "name": "Full registration status check(all steps)",
@@ -259,19 +261,19 @@ imaCLI.parse( {
             }
         } );
     },
-    "check-registration2": function() {
-        imaState.arrActions.push( {
-            "name": "Registration status check step 2, register Main-net deposit box on S-Chain",
-            "fn": async function() {
-                if( ! imaState.bNoWaitSChainStarted )
-                    await wait_until_s_chain_started(); // check_registration_step2
-                const b = await check_registration_step2();
-                const nExitCode = b ? 0 : 153; // 0 - OKay - registered; non-zero -  not registered or error
-                log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-                process.exit( nExitCode ); // 153
-            }
-        } );
-    },
+    // "check-registration2": function() {
+    //     imaState.arrActions.push( {
+    //         "name": "Registration status check step 2, register Main-net deposit box on S-Chain",
+    //         "fn": async function() {
+    //             if( ! imaState.bNoWaitSChainStarted )
+    //                 await wait_until_s_chain_started(); // check_registration_step2
+    //             const b = await check_registration_step2();
+    //             const nExitCode = b ? 0 : 153; // 0 - OKay - registered; non-zero -  not registered or error
+    //             log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
+    //             process.exit( nExitCode ); // 153
+    //         }
+    //     } );
+    // },
     "m2s-payment": function() {
         imaState.arrActions.push( {
             "name": "one M->S single payment",
@@ -293,7 +295,7 @@ imaCLI.parse( {
                         imaState.strChainID_s_chain,
                         imaState.idToken, // which ERC721 token id to send
                         imaState.nAmountOfWei, // how much WEI money to send
-                        imaState.jo_token_manager, // only s-chain
+                        imaState.jo_token_manager_erc721, // only s-chain
                         imaState.strCoinNameErc721_main_net,
                         imaState.joErc721_main_net,
                         imaState.strCoinNameErc721_s_chain,
@@ -318,7 +320,7 @@ imaCLI.parse( {
                         imaState.strChainID_s_chain,
                         imaState.nAmountOfToken, // how much ERC20 tokens to send
                         imaState.nAmountOfWei, // how much WEI money to send
-                        imaState.jo_token_manager, // only s-chain
+                        imaState.jo_token_manager_erc20, // only s-chain
                         imaState.strCoinNameErc20_main_net,
                         imaState.joErc20_main_net,
                         imaState.strCoinNameErc20_s_chain,
@@ -356,8 +358,7 @@ imaCLI.parse( {
                         imaState.cid_s_chain,
                         imaState.joAccount_s_chain,
                         imaState.joAccount_main_net,
-                        imaState.jo_token_manager, // only s-chain
-                        imaState.jo_lock_and_data_s_chain,
+                        imaState.jo_token_manager_erc721, // only s-chain
                         imaState.jo_message_proxy_s_chain, // for checking logs
                         imaState.jo_deposit_box_erc721, // only main net
                         imaState.idToken, // which ERC721 token id to send
@@ -379,8 +380,7 @@ imaCLI.parse( {
                         imaState.cid_s_chain,
                         imaState.joAccount_s_chain,
                         imaState.joAccount_main_net,
-                        imaState.jo_token_manager, // only s-chain
-                        imaState.jo_lock_and_data_s_chain,
+                        imaState.jo_token_manager_erc20, // only s-chain
                         imaState.jo_message_proxy_s_chain, // for checking logs
                         imaState.jo_deposit_box_erc20, // only main net
                         imaState.nAmountOfToken, // how ERC20 tokens money to send
@@ -399,8 +399,7 @@ imaCLI.parse( {
                     imaState.cid_s_chain,
                     imaState.joAccount_s_chain,
                     imaState.joAccount_main_net,
-                    imaState.jo_token_manager, // only s-chain
-                    imaState.jo_lock_and_data_s_chain,
+                    imaState.jo_token_manager_eth, // only s-chain
                     imaState.jo_message_proxy_s_chain, // for checking logs
                     imaState.nAmountOfWei, // how much WEI money to send
                     imaState.tc_s_chain
@@ -462,7 +461,7 @@ imaCLI.parse( {
                     imaState.cid_main_net,
                     imaState.cid_s_chain,
                     null, // imaState.jo_deposit_box, // for logs validation on mainnet
-                    imaState.jo_token_manager, // for logs validation on s-chain
+                    imaState.jo_token_manager_eth, // for logs validation on s-chain
                     imaState.nTransferBlockSizeM2S,
                     imaState.nMaxTransactionsM2S,
                     imaState.nBlockAwaitDepthM2S,
@@ -529,11 +528,11 @@ imaCLI.parse( {
                         return false;
                     isPrintSummaryRegistrationCosts = true;
                 }
-                if( !await check_registration_step2() ) {
-                    if( !await register_step2( false ) )
-                        return false;
-                    isPrintSummaryRegistrationCosts = true;
-                }
+                // if( !await check_registration_step2() ) {
+                //     if( !await register_step2( false ) )
+                //         return false;
+                //     isPrintSummaryRegistrationCosts = true;
+                // }
                 if( isPrintSummaryRegistrationCosts )
                     print_summary_registration_costs();
                 return await run_transfer_loop();
@@ -1059,7 +1058,9 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
             // imaState.jo_deposit_box_erc721, // only main net
             imaState.jo_linker,
             imaState.joAccount_main_net,
-            imaState.jo_token_manager, // only s-chain
+            imaState.jo_token_manager_eth, // only s-chain
+            imaState.jo_token_manager_erc20, // only s-chain
+            imaState.jo_token_manager_erc721, // only s-chain
             imaState.strChainID_s_chain,
             imaState.cid_main_net,
             imaState.tc_main_net //,
@@ -1079,74 +1080,74 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
     }
     return true;
 }
-async function register_step2( isPrintSummaryRegistrationCosts ) {
-    const strLogPrefix = cc.info( "Reg 2:" ) + " ";
-    let jarrReceipts2A = "true";
-    const bRetVal2A = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 2A
-        imaState.w3_s_chain,
-        imaState.jo_deposit_box_eth, // only main net
-        imaState.jo_deposit_box_erc20, // only main net
-        imaState.jo_deposit_box_erc721, // only main net
-        imaState.jo_lock_and_data_s_chain,
-        imaState.joAccount_s_chain
-    );
-    //console.log( "----------- bRetVal2A is", bRetVal2A );
-    if( !bRetVal2A ) {
-        jarrReceipts2A = await IMA.register_main_net_depositBox_on_s_chain( // step 2A
-            imaState.w3_s_chain,
-            // imaState.jo_token_manager - only s-chain
-            imaState.jo_deposit_box_eth, // only main net
-            imaState.jo_deposit_box_erc20, // only main net
-            imaState.jo_deposit_box_erc721, // only main net
-            imaState.jo_lock_and_data_s_chain,
-            imaState.joAccount_s_chain,
-            imaState.cid_s_chain,
-            imaState.tc_s_chain
-        );
-    }
-    //console.log( "----------- jarrReceipts2A is", jarrReceipts2A );
-    const bSuccess2A = ( jarrReceipts2A != null && jarrReceipts2A.length > 0 ) ? true : false;
-    //console.log( "----------- bSuccess2A is", bSuccess2A );
-    if( bSuccess2A && ( !bRetVal2A ) )
-        g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts2A );
-    let jarrReceipts2B = "true";
-    const bRetVal2B = await IMA.check_is_registered_main_net_on_s_chain( // step 2B
-        imaState.w3_s_chain,
-        imaState.jo_message_proxy_s_chain,
-        imaState.joAccount_s_chain,
-        imaState.strChainID_main_net
-    );
-    //console.log( "----------- bRetVal2B is", bRetVal2B );
-    if( !bRetVal2B ) {
-        jarrReceipts2B = await IMA.register_main_net_on_s_chain( // step 2B
-            imaState.w3_s_chain,
-            imaState.jo_message_proxy_s_chain,
-            imaState.joAccount_s_chain,
-            imaState.strChainID_main_net,
-            imaState.cid_s_chain,
-            imaState.tc_s_chain
-        );
-    }
-    //console.log( "----------- jarrReceipts2B is", jarrReceipts2B );
-    const bSuccess2B = ( jarrReceipts2B != null && jarrReceipts2B.length > 0 ) ? true : false;
-    //console.log( "----------- bSuccess2B is", bSuccess2B );
-    if( bSuccess2B && ( !bRetVal2B ) )
-        g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts2B );
-    const bSuccess = ( bSuccess2A && bSuccess2B ) ? true : false;
-    if( isPrintSummaryRegistrationCosts )
-        print_summary_registration_costs();
-    if( !bSuccess ) {
-        const nRetCode = 164;
-        log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register Main-net deposit box on S-Chain, will return code " ) + cc.warning( nRetCode ) + "\n" );
-        process.exit( nRetCode ); // 164
-    }
-    return true;
-}
+// async function register_step2( isPrintSummaryRegistrationCosts ) {
+//     const strLogPrefix = cc.info( "Reg 2:" ) + " ";
+//     // let jarrReceipts2A = "true";
+//     // const bRetVal2A = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 2A
+//     //     imaState.w3_s_chain,
+//     //     imaState.jo_deposit_box_eth, // only main net
+//     //     imaState.jo_deposit_box_erc20, // only main net
+//     //     imaState.jo_deposit_box_erc721, // only main net
+//     //     imaState.jo_token_manager_linker,
+//     //     imaState.joAccount_s_chain
+//     // );
+//     //console.log( "----------- bRetVal2A is", bRetVal2A );
+//     // if( !bRetVal2A ) {
+//     //     jarrReceipts2A = await IMA.register_main_net_depositBox_on_s_chain( // step 2A
+//     //         imaState.w3_s_chain,
+//     //         // imaState.jo_token_manager - only s-chain
+//     //         imaState.jo_deposit_box_eth, // only main net
+//     //         imaState.jo_deposit_box_erc20, // only main net
+//     //         imaState.jo_deposit_box_erc721, // only main net
+//     //         imaState.jo_token_manager_linker,
+//     //         imaState.joAccount_s_chain,
+//     //         imaState.cid_s_chain,
+//     //         imaState.tc_s_chain
+//     //     );
+//     // }
+//     //console.log( "----------- jarrReceipts2A is", jarrReceipts2A );
+//     // const bSuccess2A = ( jarrReceipts2A != null && jarrReceipts2A.length > 0 ) ? true : false;
+//     //console.log( "----------- bSuccess2A is", bSuccess2A );
+//     // if( bSuccess2A && ( !bRetVal2A ) )
+//     //     g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts2A );
+//     let jarrReceipts = "true";
+//     const bRetVal = await IMA.check_is_registered_main_net_on_s_chain( // step
+//         imaState.w3_s_chain,
+//         imaState.jo_message_proxy_s_chain,
+//         imaState.joAccount_s_chain,
+//         imaState.strChainID_main_net
+//     );
+//     //console.log( "----------- bRetVal is", bRetVal );
+//     if( !bRetVal ) {
+//         jarrReceipts = await IMA.register_main_net_on_s_chain( // step
+//             imaState.w3_s_chain,
+//             imaState.jo_message_proxy_s_chain,
+//             imaState.joAccount_s_chain,
+//             imaState.strChainID_main_net,
+//             imaState.cid_s_chain,
+//             imaState.tc_s_chain
+//         );
+//     }
+//     //console.log( "----------- jarrReceipts is", jarrReceipts );
+//     const bSuccess = ( jarrReceipts != null && jarrReceipts.length > 0 ) ? true : false;
+//     //console.log( "----------- bSuccess is", bSuccess );
+//     if( bSuccess && ( !bRetVal ) )
+//         g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts );
+//     // const bSuccess = ( bSuccess2A && bSuccess2B ) ? true : false;
+//     if( isPrintSummaryRegistrationCosts )
+//         print_summary_registration_costs();
+//     if( !bSuccess ) {
+//         const nRetCode = 164;
+//         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register Main-net deposit box on S-Chain, will return code " ) + cc.warning( nRetCode ) + "\n" );
+//         process.exit( nRetCode ); // 164
+//     }
+//     return true;
+// }
 async function register_all( isPrintSummaryRegistrationCosts ) {
     if( !await register_step1( false ) )
         return false;
-    if( !await register_step2( false ) )
-        return false;
+    // if( !await register_step2( false ) )
+    //     return false;
     if( isPrintSummaryRegistrationCosts )
         print_summary_registration_costs();
     return true;
@@ -1154,11 +1155,12 @@ async function register_all( isPrintSummaryRegistrationCosts ) {
 
 async function check_registration_all() {
     const b1 = await check_registration_step1();
-    const b2 = await check_registration_step2();
-    if( !( b1 && b2 ) )
-        return false;
+    // const b2 = await check_registration_step2()ж
+    // if( !( b1 && b2 ) )
+    //     return false;
 
-    return true;
+    // return true;
+    return b1;
 }
 async function check_registration_step1() {
     const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_boxes( // step 1
@@ -1169,24 +1171,24 @@ async function check_registration_step1() {
     );
     return bRetVal;
 }
-async function check_registration_step2() {
-    const bRetVal2A = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 2A
-        imaState.w3_s_chain,
-        imaState.jo_deposit_box_eth, // only main net
-        imaState.jo_deposit_box_erc20, // only main net
-        imaState.jo_deposit_box_erc721, // only main net
-        imaState.jo_lock_and_data_s_chain,
-        imaState.joAccount_s_chain
-    );
-    const bRetVal2B = await IMA.check_is_registered_main_net_on_s_chain( // step 2B
-        imaState.w3_s_chain,
-        imaState.jo_message_proxy_s_chain,
-        imaState.joAccount_s_chain,
-        imaState.strChainID_main_net
-    );
-    const bRetVal = ( bRetVal2A && bRetVal2B ) ? true : false;
-    return bRetVal;
-}
+// async function check_registration_step2() {
+//     // const bRetVal2A = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 2A
+//     //     imaState.w3_s_chain,
+//     //     imaState.jo_deposit_box_eth, // only main net
+//     //     imaState.jo_deposit_box_erc20, // only main net
+//     //     imaState.jo_deposit_box_erc721, // only main net
+//     //     imaState.jo_token_manager_linker,
+//     //     imaState.joAccount_s_chain
+//     // );
+//     const bRetVal = await IMA.check_is_registered_main_net_on_s_chain( // step 2B
+//         imaState.w3_s_chain,
+//         imaState.jo_message_proxy_s_chain,
+//         imaState.joAccount_s_chain,
+//         imaState.strChainID_main_net
+//     );
+//     // const bRetVal = ( bRetVal2A && bRetVal2B ) ? true : false;
+//     return bRetVal;
+// }
 
 function print_summary_registration_costs() {
     IMA.print_gas_usage_report_from_array( "Main Net REGISTRATION", g_registrationCostInfo.mn );
@@ -1277,7 +1279,7 @@ async function single_transfer_loop() {
         imaState.cid_main_net,
         imaState.cid_s_chain,
         null, // imaState.jo_deposit_box - for logs validation on mainnet
-        imaState.jo_token_manager, // for logs validation on s-chain
+        imaState.jo_token_manager_eth, // for logs validation on s-chain
         imaState.nTransferBlockSizeM2S,
         imaState.nMaxTransactionsM2S,
         imaState.nBlockAwaitDepthM2S,
@@ -1305,7 +1307,7 @@ async function single_transfer_loop() {
         imaState.strChainID_main_net,
         imaState.cid_s_chain,
         imaState.cid_main_net,
-        imaState.jo_deposit_box, // for logs validation on mainnet
+        imaState.jo_deposit_box_eth, // for logs validation on mainnet
         null, // imaState.jo_token_manager, // for logs validation on s-chain
         imaState.nTransferBlockSizeS2M,
         imaState.nMaxTransactionsS2M,
