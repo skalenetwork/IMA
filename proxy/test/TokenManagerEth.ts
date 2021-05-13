@@ -123,69 +123,69 @@ contract("TokenManagerEth", ([user, deployer]) => {
     expect(address).to.equal(ethERC20.address);
   });
 
-  it("should add deposit box", async () => {
-    const depositBoxAddress = user;
-    const nullAddress = "0x0000000000000000000000000000000000000000";
+  // it("should add deposit box", async () => {
+  //   const depositBoxAddress = user;
+  //   const nullAddress = "0x0000000000000000000000000000000000000000";
 
-    // only owner can add deposit box:
-    await tokenManagerEth.addDepositBox(depositBoxAddress, {from: user}).should.be.rejected;
+  //   // only owner can add deposit box:
+  //   await tokenManagerEth.addDepositBox(depositBoxAddress, {from: user}).should.be.rejected;
 
-    // deposit box address shouldn't be equal zero:
-    await tokenManagerEth.addDepositBox(nullAddress, {from: deployer})
-      .should.be.rejectedWith("Incorrect DepositBoxEth address");
+  //   // deposit box address shouldn't be equal zero:
+  //   await tokenManagerEth.addDepositBox(nullAddress, {from: deployer})
+  //     .should.be.rejectedWith("Incorrect DepositBoxEth address");
 
-    // add deposit box:
-    await tokenManagerEth.addDepositBox(depositBoxAddress, {from: deployer});
+  //   // add deposit box:
+  //   await tokenManagerEth.addDepositBox(depositBoxAddress, {from: deployer});
 
-    // deposit box can't be added twice:
-    await tokenManagerEth.addDepositBox(depositBoxAddress, {from: deployer}).
-    should.be.rejectedWith("DepositBox is already set");
+  //   // deposit box can't be added twice:
+  //   await tokenManagerEth.addDepositBox(depositBoxAddress, {from: deployer}).
+  //   should.be.rejectedWith("DepositBox is already set");
 
-    const storedDepositBox = await tokenManagerEth.depositBox();
-    expect(storedDepositBox).to.equal(depositBoxAddress);
-  });
+  //   const storedDepositBox = await tokenManagerEth.depositBox();
+  //   expect(storedDepositBox).to.equal(depositBoxAddress);
+  // });
 
-  it("should return true when invoke `hasDepositBox`", async () => {
-    // preparation
-    const depositBoxAddress = user;
-    // add schain for return `true` after `hasDepositBox` invoke
-    await tokenManagerEth.addDepositBox(depositBoxAddress, {from: deployer});
-    // execution
-    const res = await tokenManagerEth
-      .hasDepositBox({from: deployer});
-    // expectation
-    expect(res).to.be.true;
-  });
+  // it("should return true when invoke `hasDepositBox`", async () => {
+  //   // preparation
+  //   const depositBoxAddress = user;
+  //   // add schain for return `true` after `hasDepositBox` invoke
+  //   await tokenManagerEth.addDepositBox(depositBoxAddress, {from: deployer});
+  //   // execution
+  //   const res = await tokenManagerEth
+  //     .hasDepositBox({from: deployer});
+  //   // expectation
+  //   expect(res).to.be.true;
+  // });
 
-  it("should return false when invoke `hasDepositBox`", async () => {
-    // preparation
-    const depositBoxAddress = user;
-    // execution
-    const res = await tokenManagerEth
-      .hasDepositBox({from: deployer});
-    // expectation
-    expect(res).to.be.false;
-  });
+  // it("should return false when invoke `hasDepositBox`", async () => {
+  //   // preparation
+  //   const depositBoxAddress = user;
+  //   // execution
+  //   const res = await tokenManagerEth
+  //     .hasDepositBox({from: deployer});
+  //   // expectation
+  //   expect(res).to.be.false;
+  // });
 
-  it("should invoke `removeDepositBox` without mistakes", async () => {
-    // preparation
-    const depositBoxAddress = user;
-    const nullAddress = "0x0000000000000000000000000000000000000000";
-    // add deposit box:
-    await tokenManagerEth.addDepositBox(depositBoxAddress, {from: deployer});
-    // execution
-    await tokenManagerEth.removeDepositBox({from: deployer});
-    // expectation
-    const getMapping = await tokenManagerEth.depositBox();
-    expect(getMapping).to.equal(nullAddress);
-  });
+  // it("should invoke `removeDepositBox` without mistakes", async () => {
+  //   // preparation
+  //   const depositBoxAddress = user;
+  //   const nullAddress = "0x0000000000000000000000000000000000000000";
+  //   // add deposit box:
+  //   await tokenManagerEth.addDepositBox(depositBoxAddress, {from: deployer});
+  //   // execution
+  //   await tokenManagerEth.removeDepositBox({from: deployer});
+  //   // expectation
+  //   const getMapping = await tokenManagerEth.depositBox();
+  //   expect(getMapping).to.equal(nullAddress);
+  // });
 
-  it("should invoke `removeDepositBox` with 0 depositBoxes", async () => {
-    // preparation
-    const error = "Deposit Box is not set";
-    // execution/expectation
-    await tokenManagerEth.removeDepositBox({from: deployer}).should.be.rejectedWith("DepositBox is not set");
-  });
+  // it("should invoke `removeDepositBox` with 0 depositBoxes", async () => {
+  //   // preparation
+  //   const error = "Deposit Box is not set";
+  //   // execution/expectation
+  //   await tokenManagerEth.removeDepositBox({from: deployer}).should.be.rejectedWith("DepositBox is not set");
+  // });
 
   it("should add tokenManager", async () => {
     const tokenManagerAddress = user;
@@ -197,16 +197,16 @@ contract("TokenManagerEth", ([user, deployer]) => {
 
     // deposit box address shouldn't be equal zero:
     await tokenManagerEth.addTokenManager(schainName2, nullAddress, {from: deployer})
-      .should.be.rejectedWith("Incorrect TokenManager address");
+      .should.be.rejectedWith("Incorrect Token Manager address");
 
     // add deposit box:
     await tokenManagerEth.addTokenManager(schainName2, tokenManagerAddress, {from: deployer});
 
     // deposit box can't be added twice:
     await tokenManagerEth.addTokenManager(schainName2, tokenManagerAddress, {from: deployer}).
-    should.be.rejectedWith("TokenManager is already set");
+    should.be.rejectedWith("Token Manager is already set");
 
-    const storedDepositBox = await tokenManagerEth.tokenManagerEthAddresses(web3.utils.soliditySha3(schainName2));
+    const storedDepositBox = await tokenManagerEth.tokenManagers(web3.utils.soliditySha3(schainName2));
     expect(storedDepositBox).to.equal(tokenManagerAddress);
   });
 
@@ -243,13 +243,13 @@ contract("TokenManagerEth", ([user, deployer]) => {
     // execution
     await tokenManagerEth.removeTokenManager(schainName2, {from: deployer});
     // expectation
-    const getMapping = await tokenManagerEth.tokenManagerEthAddresses(web3.utils.soliditySha3(schainName2));
+    const getMapping = await tokenManagerEth.tokenManagers(web3.utils.soliditySha3(schainName2));
     expect(getMapping).to.equal(nullAddress);
   });
 
   it("should invoke `removeTokenManager` with 0 depositBoxes", async () => {
     // preparation
-    const error = "TokenManager is not set";
+    const error = "Token Manager is not set";
     const schainName2 = "TestSchain2";
     // execution/expectation
     await tokenManagerEth.removeTokenManager(schainName2, {from: deployer}).should.be.rejectedWith(error);
