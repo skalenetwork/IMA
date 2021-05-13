@@ -37,7 +37,7 @@ import {
     SkaleFeaturesMockContract,
     MessageProxyForSchainTesterContract,
     MessageProxyForSchainTesterInstance,
-    TokenFactoryContract
+    TokenFactoryERC20Contract
 } from "../types/truffle-contracts";
 
 import chai = require("chai");
@@ -52,7 +52,7 @@ const MessageProxyForSchainTester: MessageProxyForSchainTesterContract = artifac
 const TokenManagerLinker: TokenManagerLinkerContract = artifacts.require("./TokenManagerLinker");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 const SkaleFeaturesMock: SkaleFeaturesMockContract = artifacts.require("./SkaleFeaturesMock");
-const TokenFactory: TokenFactoryContract = artifacts.require("./TokenFactory");
+const TokenFactoryERC20: TokenFactoryERC20Contract = artifacts.require("./TokenFactoryERC20");
 
 contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
   const mainnetName = "Mainnet";
@@ -71,13 +71,13 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
     erc20OnMainnet = await ERC20OnChain.new("SKALE", "SKL", {from: deployer});
     messages = await MessagesTester.new();
     messageProxyForSchain = await MessageProxyForSchainTester.new(schainName);
-    tokenManagerLinker = await TokenManagerLinker.new(messageProxyForSchain.address);
-    const tokenFactory = await TokenFactory.new();
-    tokenManagerErc20 = await TokenManagerErc20.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBox, tokenFactory.address);
-    await tokenFactory.setContract("TokenManagerERC20", tokenManagerErc20.address);
+    tokenManagerLinker = await TokenManagerLinker.new(messageProxyForSchain.address);    
+    tokenManagerErc20 = await TokenManagerErc20.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBox);
+    const tokenFactoryErc20 = await TokenFactoryERC20.new("TokenManagerERC20", tokenManagerErc20.address);
 
     const skaleFeatures = await SkaleFeaturesMock.new();
     await skaleFeatures.setSchainOwner(schainOwner);
+    await skaleFeatures.setTokenFactoryErc20Address(tokenFactoryErc20.address);
 
     await tokenManagerErc20.grantRole(await tokenManagerErc20.SKALE_FEATURES_SETTER_ROLE(), deployer);
     await tokenManagerErc20.setSkaleFeaturesAddress(skaleFeatures.address);
@@ -202,29 +202,28 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
   });
 
   it("should invoke `transferToSchainERC20` without mistakes", async () => {
-    const amount =            "20000000000000000";
-    const amountMint =        "10000000000000000";
-    const amountToCost =      "9000000000000000";
+    const amount = "20000000000000000";
     const amountReduceCost = "8000000000000000";
     const schainID = randomString(10);
     
     // add connected chain:
+    await messageProxyForSchain.grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer, {from: deployer});
     await messageProxyForSchain.addConnectedChain(schainID, {from: deployer});
     // invoke `setTotalSupplyOnMainnet` before `mint` to avoid `SafeMath: subtraction overflow` exception:
     // await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
     // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
-    await erc20OnChain.mint(deployer, amountMint, {from: deployer});
+    await erc20OnChain.mint(user, amount, {from: deployer});
     
     // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
-    await erc20OnChain.approve(tokenManagerErc20.address, amountMint, {from: deployer});
+    await erc20OnChain.approve(tokenManagerErc20.address, amount, {from: user});
 
     // execution:
     await tokenManagerErc20
-        .transferToSchainERC20(schainID, erc20OnMainnet.address, user, amountReduceCost, {from: deployer});
+        .transferToSchainERC20(schainID, erc20OnMainnet.address, user, amountReduceCost, {from: user});
     // expectation:
-    const outgoingMessagesCounterMainnet = new BigNumber(
+    const outgoingMessagesCounter = new BigNumber(
         await messageProxyForSchain.getOutgoingMessagesCounter(schainID));
-    outgoingMessagesCounterMainnet.should.be.deep.equal(new BigNumber(1));
+    outgoingMessagesCounter.should.be.deep.equal(new BigNumber(1));
   });
 
   describe("tests for `postMessage` function", async () => {

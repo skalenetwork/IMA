@@ -22,28 +22,38 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "@nomiclabs/buidler/console.sol";
+
 import "../schain/bls/FieldOperations.sol";
 import "../schain/SkaleFeatures.sol";
 
 
 contract SkaleFeaturesMock is SkaleFeatures {
-
-    address schainOwner;
+    
     G2Operations.G2Point public blsCommonPublicKey;
+    address schainOwner;
+    address tokenFactoryErc20;
 
     function setBlsCommonPublicKey(G2Operations.G2Point calldata key) external {
         G2Operations.G2Point memory _key = key;
-        blsCommonPublicKey = _key;
+        blsCommonPublicKey = _key;        
     }
 
     function setSchainOwner(address _schainOwner) external {
         schainOwner = _schainOwner;
     }
 
+    function setTokenFactoryErc20Address(address _tokenFactoryErc20) external {
+        tokenFactoryErc20 = _tokenFactoryErc20;
+    }
+
     function getConfigVariableAddress( string memory key ) public view override returns ( address ) {
         if (_equal(key, "skaleConfig.contractSettings.IMA.ownerAddress")) {
             return schainOwner;
+        } else if (_equal(key, "skaleConfig.contractSettings.IMA.TokenFactoryERC20")) {
+            return tokenFactoryErc20;
         } else {
+            console.log(key);
             revert("The key is not implemented in the mock");
         }
     }

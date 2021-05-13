@@ -211,7 +211,7 @@ contract TokenManagerERC20 is TokenManager {
     }
 
     function transferToSchainERC20(
-        string calldata schainID,
+        string calldata targetSchainName,
         address contractOnMainnet,
         address to,
         uint256 amount
@@ -219,7 +219,7 @@ contract TokenManagerERC20 is TokenManager {
         external
         // receivedEth(amountOfEth)
     {
-        ERC20Burnable contractOnSchain = schainToERC20OnSchain[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
+        ERC20Burnable contractOnSchain = schainToERC20OnSchain[schainId][contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
         require(
@@ -241,8 +241,8 @@ contract TokenManagerERC20 is TokenManager {
         contractOnSchain.burn(amount);
 
         messageProxy.postOutgoingMessage(
-            schainID,
-            tokenManagerERC20Addresses[keccak256(abi.encodePacked(schainID))],
+            targetSchainName,
+            tokenManagerERC20Addresses[keccak256(abi.encodePacked(targetSchainName))],
             Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
         );
     }

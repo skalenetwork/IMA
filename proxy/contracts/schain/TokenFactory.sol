@@ -25,7 +25,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./SkaleFeaturesClient.sol";
 
 
-contract TokenFactory is AccessControl, SkaleFeaturesClient {
+contract TokenFactory is SkaleFeaturesClient {
 
     address public tokenManagerAddress;
     string public tokenManagerName;
