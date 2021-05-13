@@ -38,12 +38,13 @@ const TokenManagerLinker = artifacts.require( "./TokenManagerLinker.sol" );
 // const TokenFactoryERC721 = artifacts.require( "./TokenFactoryERC721.sol" );
 const ERC20OnChain = artifacts.require("./ERC20OnChain.sol");
 const ERC721OnChain = artifacts.require("./ERC721OnChain.sol");
+const SkaleFeatures = artifacts.require("./SkaleFeaturesMock.sol");
 
 const networks = require( "../truffle-config.js" );
 const proxyMainnet = require( "../data/proxyMainnet.json" );
 const gasLimit = 8000000;
 
-async function deploy( deployer, network ) {
+async function deploy( deployer, network, accounts ) {
 
     // if( network == "test" || network == "coverage" ) {
     //     // skip this part of deployment if we run tests
@@ -52,8 +53,12 @@ async function deploy( deployer, network ) {
 
     if( process.env.CHAIN_NAME_SCHAIN == undefined || process.env.CHAIN_NAME_SCHAIN == "" ) {
         console.log( network );
-        console.log( networks.networks[network] );
+        console.log( deployer.networks[network] );
         console.log( "Please set CHAIN_NAME_SCHAIN to .env file" );
+        process.exit( 126 );
+    }
+    if( process.env.PRIVATE_KEY_FOR_SCHAIN == undefined || process.env.PRIVATE_KEY_FOR_SCHAIN == "" ) {
+        console.log( "Please set PRIVATE_KEY_FOR_SCHAIN to .env file" );
         process.exit( 126 );
     }
     const schainName = process.env.CHAIN_NAME_SCHAIN;
@@ -68,7 +73,8 @@ async function deploy( deployer, network ) {
         "TokenManagerEth",
         "TokenManagerERC20",
         "TokenManagerERC721",
-        "EthERC20"
+        "EthERC20",
+        "SkaleFeatures"
         // "TokenFactoryERC20",
         // "TokenFactoryERC721"
     ];
@@ -94,6 +100,8 @@ async function deploy( deployer, network ) {
 
     await deployer.deploy( TokenManagerLinker, messageProxy.address, { gas: gasLimit } );
     deployed.set("TokenManagerLinker", TokenManagerLinker.address);
+
+    console.log(depositBoxEthAddress);
 
     const tokenManagerEth = await deployer.deploy(
         TokenManagerEth,
@@ -126,6 +134,7 @@ async function deploy( deployer, network ) {
     deployed.set("TokenManagerERC721", TokenManagerERC721.address);
 
     await deployer.deploy( EthERC20, TokenManagerEth.address, { gas: gasLimit } );
+    const skaleFeatures = await deployer.deploy( SkaleFeatures, { gas: gasLimit } );
     deployed.set("EthERC20", EthERC20.address);
     // await deployer.deploy( TokenFactoryERC20, "TokenManagerERC20", TokenManagerERC20.address, { gas: gasLimit } );
     // deployed.set("TokenFactoryERC20", TokenFactoryERC20.address);
@@ -144,6 +153,28 @@ async function deploy( deployer, network ) {
     const chainConnectorRole = await messageProxyDeployed.CHAIN_CONNECTOR_ROLE();
     await messageProxyDeployed.grantRole(chainConnectorRole, TokenManagerLinker.address);
     console.log("Grant CHAIN_CONNECTOR_ROLE to TokenManagerLinker", TokenManagerLinker.address, "in MessageProxyForSchain", messageProxy.address, "completed!\n");
+
+    const schainOwner = web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY_FOR_SCHAIN);
+    await skaleFeatures.setSchainOwner(schainOwner.address);
+    console.log("Set Schain owner address", schainOwner.address, "in SkaleFeatures", SkaleFeatures.address, "completed!\n");
+
+    let skaleFeaturesSetterRole = await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE();
+    await tokenManagerEth.grantRole(skaleFeaturesSetterRole, accounts[0]);
+    console.log("Grant SKALE_FEATURES_SETTER_ROLE to deployer", accounts[0], "in TokenManagerEth", TokenManagerEth.address, "completed!\n");
+    await tokenManagerEth.setSkaleFeaturesAddress(SkaleFeatures.address);
+    console.log("Set SkaleFeatures address", SkaleFeatures.address, "in TokenManagerEth", TokenManagerEth.address, "completed!\n");
+
+    skaleFeaturesSetterRole = await tokenManagerERC20.SKALE_FEATURES_SETTER_ROLE();
+    await tokenManagerERC20.grantRole(skaleFeaturesSetterRole, accounts[0]);
+    console.log("Grant SKALE_FEATURES_SETTER_ROLE to deployer", accounts[0], "in TokenManagerERC20", TokenManagerERC20.address, "completed!\n");
+    await tokenManagerERC20.setSkaleFeaturesAddress(SkaleFeatures.address);
+    console.log("Set SkaleFeatures address", SkaleFeatures.address, "in TokenManagerERC20", TokenManagerERC20.address, "completed!\n");
+
+    skaleFeaturesSetterRole = await tokenManagerERC721.SKALE_FEATURES_SETTER_ROLE();
+    await tokenManagerERC721.grantRole(skaleFeaturesSetterRole, accounts[0]);
+    console.log("Grant SKALE_FEATURES_SETTER_ROLE to deployer", accounts[0], "in TokenManagerERC721", TokenManagerERC721.address, "completed!\n");
+    await tokenManagerERC721.setSkaleFeaturesAddress(SkaleFeatures.address);
+    console.log("Set SkaleFeatures address", SkaleFeatures.address, "in TokenManagerERC721", TokenManagerERC721.address, "completed!\n");
 
     const jsonObjectABI = { };
     const jsonObjectBytecode = { };

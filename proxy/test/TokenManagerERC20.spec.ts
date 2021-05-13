@@ -79,7 +79,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
     await tokenManagerErc20.grantRole(await tokenManagerErc20.SKALE_FEATURES_SETTER_ROLE(), deployer);
     await tokenManagerErc20.setSkaleFeaturesAddress(skaleFeatures.address);
 
-    await tokenManagerErc20.addERC20TokenByOwner(schainName, erc20OnMainnet.address, erc20OnChain.address, {from: schainOwner});
+    await tokenManagerErc20.addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address, {from: schainOwner});
   });
 
   it("should reject on exit if there is no mainnet token clone on schain", async () => {
@@ -106,12 +106,15 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
     await tokenManagerErc20.enableAutomaticDeploy({from: schainOwner});
     // execution
     const res = await messageProxyForSchain.postMessage(tokenManagerErc20.address, mainnetName, depositBox, data);
+
     // TODO: use waffle
-    const newAddress = "0x" + res.receipt.rawLogs[res.receipt.rawLogs.length - 2].topics[2].slice(-40);
-    // expectation
+    const newAddress = "0x" + res.receipt.rawLogs[res.receipt.rawLogs.length - 1].topics[2].slice(-40);
     const newERC20Contract = new web3.eth.Contract(artifacts.require("./ERC20OnChain").abi, newAddress);
+    let balance = await newERC20Contract.methods.balanceOf(to).call();
+    parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount);
+    // expectation
     await messageProxyForSchain.postMessage(tokenManagerErc20.address, mainnetName, depositBox, data2);
-    const balance = await newERC20Contract.methods.balanceOf(to).call();
+    balance = await newERC20Contract.methods.balanceOf(to).call();
     parseInt(new BigNumber(balance).toString(), 10).should.be.equal(amount * 2);
   });
 
@@ -132,7 +135,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
     const addressERC20 = erc20OnChain.address;
     const addressERC201 = erc20OnMainnet.address;
     const automaticDeploy = await tokenManagerErc20.automaticDeploy();
-    await tokenManagerErc20.addERC20TokenByOwner(schainID, addressERC201, addressERC20, {from: schainOwner});
+    await tokenManagerErc20.addERC20TokenByOwner(addressERC201, addressERC20, {from: schainOwner});
     // automaticDeploy == true - enabled automaticDeploy = false - disabled
     if (automaticDeploy) {
       await tokenManagerErc20.disableAutomaticDeploy({from: schainOwner});
@@ -140,7 +143,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
       await tokenManagerErc20.enableAutomaticDeploy({from: schainOwner});
     }
 
-    await tokenManagerErc20.addERC20TokenByOwner(schainID, addressERC201, addressERC20, {from: schainOwner});
+    await tokenManagerErc20.addERC20TokenByOwner(addressERC201, addressERC20, {from: schainOwner});
 
     eRC20OnChain2 = await ERC20OnChain.new("NewToken", "NTN");
     eRC20OnMainnet2 = await ERC20OnChain.new("NewToken", "NTN");
@@ -151,7 +154,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
       await tokenManagerErc20.disableAutomaticDeploy({from: schainOwner});
     }
 
-    await tokenManagerErc20.addERC20TokenByOwner(schainID, eRC20OnMainnet2.address, eRC20OnChain2.address, {from: schainOwner});
+    await tokenManagerErc20.addERC20TokenByOwner(eRC20OnMainnet2.address, eRC20OnChain2.address, {from: schainOwner});
 
   });
 
@@ -216,6 +219,12 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
 
     // execution:
     await tokenManagerErc20
+        .transferToSchainERC20(schainID, erc20OnMainnet.address, user, amountReduceCost, {from: user})
+        .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+    await tokenManagerErc20.addTokenManager(schainID, tokenManagerErc20.address, { from: deployer} );
+
+    await tokenManagerErc20
         .transferToSchainERC20(schainID, erc20OnMainnet.address, user, amountReduceCost, {from: user});
     // expectation:
     const outgoingMessagesCounter = new BigNumber(
@@ -250,7 +259,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner, depositBox]) => {
       // execution
       await messageProxyForSchain.postMessage(tokenManagerErc20.address, schainID, remoteTokenManagerAddress, data);
       // expectation
-      const addressERC20OnSchain = await tokenManagerErc20.getErc20OnSchain(schainName, erc20OnMainnet.address);
+      const addressERC20OnSchain = await tokenManagerErc20.clonesErc20(erc20OnMainnet.address);
       const targetErc20OnChain = new web3.eth.Contract(artifacts.require("./ERC20OnChain").abi, addressERC20OnSchain);
       expect(parseInt((new BigNumber(await targetErc20OnChain.methods.balanceOf(to).call())).toString(), 10))
           .to.be.equal(amount);

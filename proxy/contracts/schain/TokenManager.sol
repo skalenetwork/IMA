@@ -109,7 +109,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(tokenManagers[schainHash] == address(0), "SKALE chain is already set");
+        require(tokenManagers[schainHash] == address(0), "Token Manager is already set");
         require(newTokenManager != address(0), "Incorrect Token Manager address");
         tokenManagers[schainHash] = newTokenManager;
     }
@@ -130,7 +130,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(tokenManagers[schainHash] != address(0), "SKALE chain is not set");
+        require(tokenManagers[schainHash] != address(0), "Token Manager is not set");
         delete tokenManagers[schainHash];
     }
 
