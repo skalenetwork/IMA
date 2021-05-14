@@ -64,7 +64,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
         schainId = keccak256(abi.encodePacked(newSchainName));
         messageProxy = newMessageProxy;
         tokenManagerLinker = newIMALinker;
-        require(newDepositBox.isContract(), "Given address is not a contract");
+        // require(newDepositBox.isContract(), "Given address is not a contract"); // l_sergiy: TO-FIX later
         depositBox = newDepositBox;
     }
 
