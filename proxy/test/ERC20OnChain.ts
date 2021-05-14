@@ -1,40 +1,43 @@
-import BigNumber from "bignumber.js";
-import * as chaiAsPromised from "chai-as-promised";
+import chaiAsPromised from "chai-as-promised";
 import chai = require("chai");
 import {
-    MessageProxyForSchainInstance,
-    ERC20OnChainInstance,
-    ERC20OnChainContract,
-    ERC721OnChainContract,
-    MessageProxyForSchainContract
-} from "../types/truffle-contracts";
+    ERC20OnChain
+} from "../typechain";
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
-const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
-const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
+import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
 
-contract("ERC20OnChain", ([deployer, user]) => {
-    let messageProxy: MessageProxyForSchainInstance;
-    let eRC20OnChain: ERC20OnChainInstance;
+import { ethers, web3 } from "hardhat";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { BigNumber } from "ethers";
+
+import { assert, expect } from "chai";
+
+describe("ERC20OnChain", () => {
+    let deployer: SignerWithAddress;
+    let user: SignerWithAddress;
+
+    let eRC20OnChain: ERC20OnChain;
+
+    before(async () => {
+      [deployer, user] = await ethers.getSigners();
+    });
 
     beforeEach(async () => {
-      messageProxy = await MessageProxyForSchain.new(
-        "Mainnet", {from: deployer});
-      eRC20OnChain = await ERC20OnChain.new("ERC20OnChain", "ERC20", {from: deployer});
+      eRC20OnChain = await deployERC20OnChain("ERC20OnChain", "ERC20");
     });
 
     it("should invoke `_mint` as internal", async () => {
       // preparation
-      const account = user;
+      const account = user.address;
       const value = 500;
       // execution
-      await eRC20OnChain.mint(account, value, {from: deployer});
+      await eRC20OnChain.connect(deployer).mint(account, value);
       // expectation
       const balance = await eRC20OnChain.balanceOf(account);
-      parseInt(new BigNumber(balance).toString(), 10).should.be.equal(value);
+      parseInt(BigNumber.from(balance).toString(), 10).should.be.equal(value);
     });
 
     it("should invoke `burn`", async () => {
@@ -42,27 +45,27 @@ contract("ERC20OnChain", ([deployer, user]) => {
       const amount = 500;
       const mintAmount = 1500;
       // mint to avoid `SafeMath: subtraction overflow` error
-      await eRC20OnChain.mint(deployer, mintAmount, {from: deployer});
+      await eRC20OnChain.connect(deployer).mint(deployer.address, mintAmount);
       // execution
-      await eRC20OnChain.burn(amount, {from: deployer});
+      await eRC20OnChain.connect(deployer).burn(amount);
       // expectation
-      const balance = await eRC20OnChain.balanceOf(deployer);
-      parseInt(new BigNumber(balance).toString(), 10).should.be.equal(mintAmount - amount);
+      const balance = await eRC20OnChain.balanceOf(deployer.address);
+      parseInt(BigNumber.from(balance).toString(), 10).should.be.equal(mintAmount - amount);
     });
 
     it("should invoke `burnFrom`", async () => {
       // preparation
-      const account = user;
+      const account = user.address;
       const amount = 100;
       const mintAmount = 200;
       // mint to avoid `SafeMath: subtraction overflow` error
-      await eRC20OnChain.mint(account, mintAmount, {from: deployer});
+      await eRC20OnChain.connect(deployer).mint(account, mintAmount);
       // approve to avoid `SafeMath: subtraction overflow` error
-      await eRC20OnChain.approve(deployer, 100, {from: account});
+      await eRC20OnChain.connect(user).approve(deployer.address, 100);
       // execution
-      await eRC20OnChain.burnFrom(account, amount, {from: deployer});
+      await eRC20OnChain.connect(deployer).burnFrom(account, amount);
       // expectation
       const balance = await eRC20OnChain.balanceOf(account);
-      parseInt(new BigNumber(balance).toString(), 10).should.be.equal(mintAmount - amount);
+      parseInt(BigNumber.from(balance).toString(), 10).should.be.equal(mintAmount - amount);
     });
   });
