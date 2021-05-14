@@ -3,6 +3,7 @@ from ima_predeployed.generator import generate_contracts
 import json
 import sys
 
+
 def main():
     if len(sys.argv) < 3:
         print("Usage:")

@@ -10,6 +10,13 @@ def to_even_length(hex_string: str) -> str:
         return hex_string
 
 
+def add_0x(bytes_string: str) -> str:
+    if bytes_string.startswith('0x'):
+        return bytes_string
+    else:
+        return '0x' + bytes_string
+
+
 class ContractGenerator:
     bytecode = None
     storage = {}
@@ -38,5 +45,9 @@ class ContractGenerator:
 
     def _write_address(self, slot: int, address: str) -> None:
         self.storage[to_even_length(hex(slot))] = address.lower()
+
+    def _write_bytes32(self, slot: int, data: bytes) -> None:
+        assert len(data) <= 32
+        self.storage[to_even_length(hex(slot))] = to_even_length(add_0x(data.hex()))
 
 

@@ -75,8 +75,6 @@ async function deploy( deployer, network, accounts ) {
         "TokenManagerERC721",
         "EthERC20",
         "SkaleFeatures"
-        // "TokenFactoryERC20",
-        // "TokenFactoryERC721"
     ];
     const deployed = new Map();
     // check proxyMainnet file (depositBoxEth, depositBoxERC20, depositBoxERC721)
