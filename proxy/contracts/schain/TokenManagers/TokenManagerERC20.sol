@@ -221,7 +221,6 @@ contract TokenManagerERC20 is TokenManager {
         uint256 amount;
         uint256 totalSupply;                
         ERC20OnChain contractOnSchain;
-        bool newClone = false;
         if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY) {
             Messages.TransferErc20AndTotalSupplyMessage memory message =
                 Messages.decodeTransferErc20AndTotalSupplyMessage(data);
@@ -240,9 +239,8 @@ contract TokenManagerERC20 is TokenManager {
             contractOnSchain = clonesErc20[token];
             if (address(contractOnSchain) == address(0)) {
                 require(automaticDeploy, "Automatic deploy is disabled");
-                contractOnSchain = _createERC20(message.tokenInfo.name, message.tokenInfo.symbol);
+                contractOnSchain = new ERC20OnChain(message.tokenInfo.name, message.tokenInfo.symbol);
                 clonesErc20[token] = contractOnSchain;
-                newClone = true;
                 emit ERC20TokenCreated(token, address(contractOnSchain));
             }
         }
@@ -254,25 +252,9 @@ contract TokenManagerERC20 is TokenManager {
             contractOnSchain.totalSupply() + amount <= totalSupplyOnMainnet[contractOnSchain],
             "Total supply exceeded"
         );
-
-        if (newClone) {
-            contractOnSchain.grantRole(contractOnSchain.MINTER_ROLE(), address(this));
-        }
         contractOnSchain.mint(receiver, amount);
         emit ERC20TokenReceived(token, address(contractOnSchain), amount);
         return true;
     }
 
-    // private
-
-    function _createERC20(string memory name, string memory symbol)
-        private
-        returns (ERC20OnChain)
-    {
-        ERC20OnChain newERC20 = new ERC20OnChain(
-            name,
-            symbol
-        );
-        return newERC20;
-    }
 }
