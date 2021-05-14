@@ -22,8 +22,6 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@nomiclabs/buidler/console.sol";
-
 import "../schain/bls/FieldOperations.sol";
 import "../schain/SkaleFeatures.sol";
 
@@ -60,7 +58,6 @@ contract SkaleFeaturesMock is SkaleFeatures {
         if (_equal(key, "skaleConfig.contractSettings.IMA.ownerAddress")) {
             return schainOwner;
         } else {
-            console.log(key);
             revert("The key is not implemented in the mock");
         }
     }
