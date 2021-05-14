@@ -199,41 +199,29 @@ const g_arrContracts = [
         address: "0xc033b369416c9ecd8e4a07aafa8b06b4107419e2",
         referenceVariableName: "SkaleFeatures"
     } , {
-        fileName: "LockAndDataForSchain.json",
+        fileName: "TokenManagerEth.json",
         address: "0x47cf4c2d6891377952a7e0e08a6f17180a91a0f9",
-        referenceVariableName: "LockAndData"
+        referenceVariableName: "TokenManagerEth"
+    }, {
+        fileName: "TokenManagerERC20.json",
+        address: "0xc7085eb0ba5c2d449e80c22d6da8f0edbb86dd82",
+        referenceVariableName: "TokenManagerERC20"
+    }, {
+        fileName: "TokenManagerERC721.json",
+        address: "0x97438fdfbdcc4ccc533ea874bfeb71f4098585ab",
+        referenceVariableName: "TokenManagerERC721"
     }, {
         fileName: "MessageProxyForSchain.json",
         address: "0x427c74e358eb1f620e71f64afc9b1b5d2309dd01",
         referenceVariableName: "MessageProxy"
     }, {
-        fileName: "TokenManager.json",
+        fileName: "TokenManagerLinker.json",
         address: "0x57ad607c6e90df7d7f158985c3e436007a15d744",
-        referenceVariableName: "TokenManager"
+        referenceVariableName: "TokenManagerLinker"
     }, {
         fileName: "EthERC20.json",
         address: "0xd3cdbc1b727b2ed91b8ad21333841d2e96f255af",
         referenceVariableName: "EthERC20"
-    }, {
-        fileName: "ERC20ModuleForSchain.json",
-        address: "0xc30516c1dedfa91a948349209da6d6b1c8868ed7",
-        referenceVariableName: "ERC20Module"
-    }, {
-        fileName: "ERC721ModuleForSchain.json",
-        address: "0xc1b336da9058efd1e9f5636a70bfe2ec17e15abb",
-        referenceVariableName: "ERC721Module"
-    }, {
-        fileName: "LockAndDataForSchainERC20.json",
-        address: "0xc7085eb0ba5c2d449e80c22d6da8f0edbb86dd82",
-        referenceVariableName: "LockAndDataERC20"
-    }, {
-        fileName: "LockAndDataForSchainERC721.json",
-        address: "0x97438fdfbdcc4ccc533ea874bfeb71f4098585ab",
-        referenceVariableName: "LockAndDataERC721"
-    }, {
-        fileName: "TokenFactory.json",
-        address: "0xe9e8e031685137c3014793bef2875419c304aa72",
-        referenceVariableName: "TokenFactory"
     }
 ];
 
@@ -250,10 +238,10 @@ const g_joSkaleConfigTemplate = {
             IMA: {
                 ownerAddress: ownerAddress,
                 variables: {
-                    LockAndData: {
-                        permitted: {
-                        }
-                    },
+                    // LockAndData: {
+                    //     permitted: {
+                    //     }
+                    // },
                     MessageProxy: {
                         mapAuthorizedCallers: {
                         }
@@ -286,7 +274,7 @@ for( let idxContract = 0; idxContract < g_arrContracts.length; ++ idxContract ) 
         "code": joContractBuildInfo.deployedBytecode
     };
     g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA[joContractProperties.referenceVariableName] = joContractProperties.address;
-    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.LockAndData.permitted[joContractProperties.referenceVariableName] = joContractProperties.address;
+    // g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.LockAndData.permitted[joContractProperties.referenceVariableName] = joContractProperties.address;
     g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers[joContractProperties.address] = 1;
     //
     const strContractNameCamelCase = joContractProperties.fileName.replace( ".json", "" );
