@@ -24,40 +24,41 @@
  */
 
 const fs = require( "fs" );
-const path = require( "path" );
 require( "dotenv" ).config();
 const fsPromises = fs.promises;
 
-const gasMultiplierParameter = "gas_multiplier";
-const argv = require( "minimist" )( process.argv.slice( 2 ), { string: [ gasMultiplierParameter ] } );
-const gasMultiplier = argv[gasMultiplierParameter] === undefined ? 1 : Number( argv[gasMultiplierParameter] );
-
 const MessageProxyForSchain = artifacts.require( "./MessageProxyForSchain.sol" );
 const MessageProxyForSchainWithoutSignatures = artifacts.require( "./MessageProxyForSchainWithoutSignature.sol" );
-const TokenManager = artifacts.require( "./TokenManager.sol" );
-const LockAndDataForSchain = artifacts.require( "./LockAndDataForSchain.sol" );
+const TokenManagerEth = artifacts.require( "./TokenManagerEth.sol" );
+const TokenManagerERC20 = artifacts.require( "./TokenManagerERC20.sol" );
+const TokenManagerERC721 = artifacts.require( "./TokenManagerERC721.sol" );
 const EthERC20 = artifacts.require( "./EthERC20.sol" );
-const ERC20ModuleForSchain = artifacts.require( "./ERC20ModuleForSchain.sol" );
-const LockAndDataForSchainERC20 = artifacts.require( "./LockAndDataForSchainERC20.sol" );
-const ERC721ModuleForSchain = artifacts.require( "./ERC721ModuleForSchain.sol" );
-const LockAndDataForSchainERC721 = artifacts.require( "./LockAndDataForSchainERC721.sol" );
-const TokenFactory = artifacts.require( "./TokenFactory.sol" );
+const TokenManagerLinker = artifacts.require( "./TokenManagerLinker.sol" );
+// const TokenFactoryERC20 = artifacts.require( "./TokenFactoryERC20.sol" );
+// const TokenFactoryERC721 = artifacts.require( "./TokenFactoryERC721.sol" );
+const ERC20OnChain = artifacts.require( "./ERC20OnChain.sol" );
+const ERC721OnChain = artifacts.require( "./ERC721OnChain.sol" );
+const SkaleFeatures = artifacts.require( "./SkaleFeaturesMock.sol" );
 
 const networks = require( "../truffle-config.js" );
-// const proxyMainnet = require( "../data/proxyMainnet.json" );
+const proxyMainnet = require( "../data/proxyMainnet.json" );
 const gasLimit = 8000000;
 
-async function deploy( deployer, network ) {
+async function deploy( deployer, network, accounts ) {
 
-    if( network == "test" || network == "coverage" ) {
-        // skip this part of deployment if we run tests
-        return;
-    }
+    // if( network == "test" || network == "coverage" ) {
+    //     // skip this part of deployment if we run tests
+    //     return;
+    // }
 
     if( process.env.CHAIN_NAME_SCHAIN == undefined || process.env.CHAIN_NAME_SCHAIN == "" ) {
         console.log( network );
-        console.log( networks.networks[network] );
+        console.log( deployer.networks[network] );
         console.log( "Please set CHAIN_NAME_SCHAIN to .env file" );
+        process.exit( 126 );
+    }
+    if( process.env.PRIVATE_KEY_FOR_SCHAIN == undefined || process.env.PRIVATE_KEY_FOR_SCHAIN == "" ) {
+        console.log( "Please set PRIVATE_KEY_FOR_SCHAIN to .env file" );
         process.exit( 126 );
     }
     const schainName = process.env.CHAIN_NAME_SCHAIN;
@@ -66,94 +67,135 @@ async function deploy( deployer, network ) {
         console.log( "Deploy IMA without signature verification" );
         messageProxy = MessageProxyForSchainWithoutSignatures;
     }
-    await deployer.deploy( messageProxy, schainName, { gas: gasLimit } ).then( async function() {
-        return await deployer.deploy( LockAndDataForSchain, { gas: gasLimit } );
-    } ).then( async function( inst ) {
-        await inst.setContract( "MessageProxy", messageProxy.address );
-        await deployer.deploy( TokenManager, schainName, inst.address, { gas: gasLimit * gasMultiplier } );
-        await deployer.deploy( EthERC20, { gas: gasLimit * gasMultiplier } ).then( async function( EthERC20Inst ) {
-            await EthERC20Inst.transferOwnership( inst.address, { gas: gasLimit } );
-        } );
-        await inst.setContract( "TokenManager", TokenManager.address );
-        await inst.setEthErc20Address( EthERC20.address );
-        await deployer.deploy( ERC20ModuleForSchain, inst.address, { gas: gasLimit * gasMultiplier } );
-        await inst.setContract( "ERC20Module", ERC20ModuleForSchain.address );
-        await deployer.deploy( LockAndDataForSchainERC20, inst.address, { gas: gasLimit * gasMultiplier } );
-        await inst.setContract( "LockAndDataERC20", LockAndDataForSchainERC20.address );
-        await deployer.deploy( ERC721ModuleForSchain, inst.address, { gas: gasLimit * gasMultiplier } );
-        await inst.setContract( "ERC721Module", ERC721ModuleForSchain.address );
-        await deployer.deploy( LockAndDataForSchainERC721, inst.address, { gas: gasLimit * gasMultiplier } );
-        await inst.setContract( "LockAndDataERC721", LockAndDataForSchainERC721.address );
-        await deployer.deploy( TokenFactory, inst.address, { gas: gasLimit * gasMultiplier } );
-        await inst.setContract( "TokenFactory", TokenFactory.address );
+    const contracts = [
+        "MessageProxyForSchain",
+        "TokenManagerLinker",
+        "TokenManagerEth",
+        "TokenManagerERC20",
+        "TokenManagerERC721",
+        "EthERC20",
+        "SkaleFeatures"
+        // "TokenFactoryERC20",
+        // "TokenFactoryERC721"
+    ];
+    const deployed = new Map();
+    // check proxyMainnet file (depositBoxEth, depositBoxERC20, depositBoxERC721)
+    if(
+        proxyMainnet.deposit_box_eth_address == undefined ||
+        proxyMainnet.deposit_box_eth_address == "" ||
+        proxyMainnet.deposit_box_erc20_address == undefined ||
+        proxyMainnet.deposit_box_erc20_address == "" ||
+        proxyMainnet.deposit_box_erc721_address == undefined ||
+        proxyMainnet.deposit_box_erc721_address == ""
+    ) {
+        console.log( "Please provide correct abi for mainnet contracts in IMA/proxy/data/proxyMainnet.json" );
+        process.exit( 126 );
+    }
+    const depositBoxEthAddress = proxyMainnet.deposit_box_eth_address;
+    const depositBoxERC20Address = proxyMainnet.deposit_box_erc20_address;
+    const depositBoxERC721Address = proxyMainnet.deposit_box_erc721_address;
 
-        const strPathToBuildDir = path.join( __dirname, "../build/contracts" );
-        const strPathToERC20OnChainJSON = path.join( strPathToBuildDir, "ERC20OnChain.json" );
-        const strPathToERC721OnChainJSON = path.join( strPathToBuildDir, "ERC721OnChain.json" );
-        console.log( "Loading auto-instantiated token ERC20OnChain..." );
-        const joBuiltERC20OnChain = JSON.parse( fs.readFileSync( strPathToERC20OnChainJSON, "utf8" ) );
-        console.log( "Loading auto-instantiated token ERC20OnChain..." );
-        const joBuiltERC721OnChain = JSON.parse( fs.readFileSync( strPathToERC721OnChainJSON, "utf8" ) );
-        console.log( "Done loading auto-instantiated tokens." );
-        if( ! ( "abi" in joBuiltERC20OnChain ) || ( ! ( joBuiltERC20OnChain.abi ) ) || typeof joBuiltERC20OnChain.abi != "object" )
-            throw new Error( "ABI is not found in \"" + strPathToERC20OnChainJSON + "\"" );
-        if( ! ( "abi" in joBuiltERC721OnChain ) || ( ! ( joBuiltERC721OnChain.abi ) ) || typeof joBuiltERC721OnChain.abi != "object" )
-            throw new Error( "ABI is not found in \"" + strPathToERC721OnChainJSON + "\"" );
+    await deployer.deploy( messageProxy, schainName, { gas: gasLimit } );
+    deployed.set( "MessageProxyForSchain", messageProxy.address );
 
-        const jsonObject = {
-            lock_and_data_for_schain_address: LockAndDataForSchain.address,
-            lock_and_data_for_schain_abi: LockAndDataForSchain.abi,
-            eth_erc20_address: EthERC20.address,
-            eth_erc20_abi: EthERC20.abi,
-            token_manager_address: TokenManager.address,
-            token_manager_abi: TokenManager.abi,
-            lock_and_data_for_schain_erc20_address: LockAndDataForSchainERC20.address,
-            lock_and_data_for_schain_erc20_abi: LockAndDataForSchainERC20.abi,
-            erc20_module_for_schain_address: ERC20ModuleForSchain.address,
-            erc20_module_for_schain_abi: ERC20ModuleForSchain.abi,
-            lock_and_data_for_schain_erc721_address: LockAndDataForSchainERC721.address,
-            lock_and_data_for_schain_erc721_abi: LockAndDataForSchainERC721.abi,
-            erc721_module_for_schain_address: ERC721ModuleForSchain.address,
-            erc721_module_for_schain_abi: ERC721ModuleForSchain.abi,
-            token_factory_address: TokenFactory.address,
-            token_factory_abi: TokenFactory.abi,
-            // erc721_on_chain_address: ERC721OnChain.address,
-            // erc721_on_chain_abi: ERC721OnChain.abi,
-            message_proxy_chain_address: messageProxy.address,
-            message_proxy_chain_abi: messageProxy.abi,
-            //
-            ERC20OnChain_abi: joBuiltERC20OnChain.abi,
-            ERC721OnChain_abi: joBuiltERC721OnChain.abi
-        };
+    await deployer.deploy( TokenManagerLinker, messageProxy.address, { gas: gasLimit } );
+    deployed.set( "TokenManagerLinker", TokenManagerLinker.address );
 
-        const jsonObject2 = {
-            lock_and_data_for_schain_address: LockAndDataForSchain.address,
-            lock_and_data_for_schain_bytecode: LockAndDataForSchain.bytecode,
-            eth_erc20_address: EthERC20.address,
-            eth_erc20_bytecode: EthERC20.bytecode,
-            token_manager_address: TokenManager.address,
-            token_manager_bytecode: TokenManager.bytecode,
-            lock_and_data_for_schain_erc20_address: LockAndDataForSchainERC20.address,
-            lock_and_data_for_schain_erc20_bytecode: LockAndDataForSchainERC20.bytecode,
-            erc20_module_for_schain_address: ERC20ModuleForSchain.address,
-            erc20_module_for_schain_bytecode: ERC20ModuleForSchain.bytecode,
-            lock_and_data_for_schain_erc721_address: LockAndDataForSchainERC721.address,
-            lock_and_data_for_schain_erc721_bytecode: LockAndDataForSchainERC721.bytecode,
-            erc721_module_for_schain_address: ERC721ModuleForSchain.address,
-            erc721_module_for_schain_bytecode: ERC721ModuleForSchain.bytecode,
-            token_factory_address: TokenFactory.address,
-            token_factory_bytecode: TokenFactory.bytecode,
-            // erc721_on_chain_address: ERC721OnChain.address,
-            // erc721_on_chain_bytecode: ERC721OnChain.bytecode,
-            message_proxy_chain_address: messageProxy.address,
-            message_proxy_chain_bytecode: messageProxy.bytecode
-        };
+    console.log( depositBoxEthAddress );
 
-        await fsPromises.writeFile( `data/proxySchain_${schainName}.json`, JSON.stringify( jsonObject ) );
-        await fsPromises.writeFile( `data/proxySchain_${schainName}_bytecode.json`, JSON.stringify( jsonObject2 ) );
-        await sleep( 10000 );
-        console.log( `Done, check proxySchain_${schainName}.json file in data folder.` );
-    } );
+    const tokenManagerEth = await deployer.deploy(
+        TokenManagerEth,
+        schainName,
+        messageProxy.address,
+        TokenManagerLinker.address,
+        depositBoxEthAddress,
+        { gas: gasLimit }
+    );
+    deployed.set( "TokenManagerEth", TokenManagerEth.address );
+
+    const tokenManagerERC20 = await deployer.deploy(
+        TokenManagerERC20,
+        schainName,
+        messageProxy.address,
+        TokenManagerLinker.address,
+        depositBoxERC20Address,
+        { gas: gasLimit }
+    );
+    deployed.set( "TokenManagerERC20", TokenManagerERC20.address );
+
+    const tokenManagerERC721 = await deployer.deploy(
+        TokenManagerERC721,
+        schainName,
+        messageProxy.address,
+        TokenManagerLinker.address,
+        depositBoxERC721Address,
+        { gas: gasLimit }
+    );
+    deployed.set( "TokenManagerERC721", TokenManagerERC721.address );
+
+    await deployer.deploy( EthERC20, TokenManagerEth.address, { gas: gasLimit } );
+    const skaleFeatures = await deployer.deploy( SkaleFeatures, { gas: gasLimit } );
+    deployed.set( "EthERC20", EthERC20.address );
+    // await deployer.deploy( TokenFactoryERC20, "TokenManagerERC20", TokenManagerERC20.address, { gas: gasLimit } );
+    // deployed.set("TokenFactoryERC20", TokenFactoryERC20.address);
+    // await deployer.deploy( TokenFactoryERC721, "TokenManagerERC721", TokenManagerERC721.address, { gas: gasLimit } );
+    // deployed.set("TokenFactoryERC721", TokenFactoryERC721.address);
+
+    console.log( "\nWill set dependencies!\n" );
+
+    await tokenManagerEth.setEthErc20Address( EthERC20.address );
+    console.log( "Set EthERC20 address", EthERC20.address, "in TokenManagerEth", TokenManagerEth.address, "completed!\n" );
+    // await tokenManagerERC20.setTokenFactory(TokenFactoryERC20.address);
+    // console.log("Set TokenFactoryERC20 address", TokenFactoryERC20.address, "in TokenManagerERC20", TokenManagerERC20.address, "completed!\n");
+    // await tokenManagerERC721.setTokenFactory(TokenFactoryERC721.address);
+    // console.log("Set TokenFactoryERC721 address", TokenFactoryERC721.address, "in TokenManagerERC721", TokenManagerERC721.address, "completed!\n");
+    const messageProxyDeployed = await messageProxy.deployed();
+    const chainConnectorRole = await messageProxyDeployed.CHAIN_CONNECTOR_ROLE();
+    await messageProxyDeployed.grantRole( chainConnectorRole, TokenManagerLinker.address );
+    console.log( "Grant CHAIN_CONNECTOR_ROLE to TokenManagerLinker", TokenManagerLinker.address, "in MessageProxyForSchain", messageProxy.address, "completed!\n" );
+
+    const schainOwner = web3.eth.accounts.privateKeyToAccount( process.env.PRIVATE_KEY_FOR_SCHAIN );
+    await skaleFeatures.setSchainOwner( schainOwner.address );
+    console.log( "Set Schain owner address", schainOwner.address, "in SkaleFeatures", SkaleFeatures.address, "completed!\n" );
+
+    let skaleFeaturesSetterRole = await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE();
+    await tokenManagerEth.grantRole( skaleFeaturesSetterRole, accounts[0] );
+    console.log( "Grant SKALE_FEATURES_SETTER_ROLE to deployer", accounts[0], "in TokenManagerEth", TokenManagerEth.address, "completed!\n" );
+    await tokenManagerEth.setSkaleFeaturesAddress( SkaleFeatures.address );
+    console.log( "Set SkaleFeatures address", SkaleFeatures.address, "in TokenManagerEth", TokenManagerEth.address, "completed!\n" );
+
+    skaleFeaturesSetterRole = await tokenManagerERC20.SKALE_FEATURES_SETTER_ROLE();
+    await tokenManagerERC20.grantRole( skaleFeaturesSetterRole, accounts[0] );
+    console.log( "Grant SKALE_FEATURES_SETTER_ROLE to deployer", accounts[0], "in TokenManagerERC20", TokenManagerERC20.address, "completed!\n" );
+    await tokenManagerERC20.setSkaleFeaturesAddress( SkaleFeatures.address );
+    console.log( "Set SkaleFeatures address", SkaleFeatures.address, "in TokenManagerERC20", TokenManagerERC20.address, "completed!\n" );
+
+    skaleFeaturesSetterRole = await tokenManagerERC721.SKALE_FEATURES_SETTER_ROLE();
+    await tokenManagerERC721.grantRole( skaleFeaturesSetterRole, accounts[0] );
+    console.log( "Grant SKALE_FEATURES_SETTER_ROLE to deployer", accounts[0], "in TokenManagerERC721", TokenManagerERC721.address, "completed!\n" );
+    await tokenManagerERC721.setSkaleFeaturesAddress( SkaleFeatures.address );
+    console.log( "Set SkaleFeatures address", SkaleFeatures.address, "in TokenManagerERC721", TokenManagerERC721.address, "completed!\n" );
+
+    const jsonObjectABI = { };
+    const jsonObjectBytecode = { };
+    for( const contractName of contracts ) {
+        if( contractName !== "MessageProxyForSchain" )
+            propertyName = contractName.replace( /([a-z0-9])(?=[A-Z])/g, "$1_" ).toLowerCase();
+        else
+            propertyName = "message_proxy_chain";
+
+        jsonObjectABI[propertyName + "_address"] = deployed.get( contractName );
+        jsonObjectABI[propertyName + "_abi"] = artifacts.require( "./" + contractName ).abi;
+        jsonObjectBytecode[propertyName + "_address"] = deployed.get( contractName );
+        jsonObjectBytecode[propertyName + "_bytescode"] = artifacts.require( "./" + contractName ).bytecode;
+    }
+    jsonObjectABI.ERC20OnChain_abi = ERC20OnChain.abi;
+    jsonObjectABI.ERC721OnChain_abi = ERC721OnChain.abi;
+
+    await fsPromises.writeFile( `data/proxySchain_${schainName}.json`, JSON.stringify( jsonObjectABI ) );
+    await fsPromises.writeFile( `data/proxySchain_${schainName}_bytecode.json`, JSON.stringify( jsonObjectBytecode ) );
+    await sleep( 5000 );
+    console.log( `Done, check proxySchain_${schainName}.json file in data folder.` );
 }
 
 function sleep( ms ) {

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   LockAndDataForSchainWorkaround.sol - SKALE Interchain Messaging Agent
- *   Copyright (C) 2019-Present SKALE Labs
- *   @author Artem Payvin
+ *   EthERC20Tester.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2021-Present SKALE Labs
+ *   @author Dmytro Stebaiev
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published
@@ -19,18 +19,20 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
-import "../schain/LockAndDataForSchain.sol";
+import "../schain/tokens/EthERC20.sol";
 
 
-contract LockAndDataForSchainWorkaround is LockAndDataForSchain {
+contract EthERC20Tester is EthERC20 {
 
-    function setContract(string calldata contractName, address newContract) external override onlyOwner {
-        require(newContract != address(0), "New address is equal zero");
-        bytes32 contractId = keccak256(abi.encodePacked(contractName));
-        require(permitted[contractId] != newContract, "Contract is already added");
-        permitted[contractId] = newContract;
+    constructor(address tokenManagerEthAddress) public EthERC20(tokenManagerEthAddress) 
+        // solhint-disable-next-line no-empty-blocks
+    { }
+
+    function setTokenManagerEthAddress(address newTokenManagerEthAddress) external {
+        tokenManagerEth = newTokenManagerEthAddress;
     }
-
 }

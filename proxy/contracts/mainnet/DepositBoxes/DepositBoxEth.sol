@@ -55,7 +55,8 @@ contract DepositBoxEth is DepositBox {
      *
      * Requirements:
      *
-     * - `msg.sender` must be schain owner or contract owner.
+     * - `msg.sender` must be schain owner or contract owner
+     * = or imaLinker contract.
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
