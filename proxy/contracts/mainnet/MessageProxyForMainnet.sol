@@ -22,17 +22,13 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "./connectors/ProxyConnector.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
+import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 
-interface ContractReceiverForMainnet {
-    function postMessage(
-        bytes32 schainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        returns (bool);
-}
+import "../interfaces/IMessageReceiver.sol";
+import "./SkaleManagerClient.sol";
+
 
 /**
  * @title Message Proxy for Mainnet
@@ -44,7 +40,7 @@ interface ContractReceiverForMainnet {
  * nodes in the chain. Since Ethereum Mainnet has no BLS public key, mainnet
  * messages do not need to be signed.
  */
-contract MessageProxyForMainnet is ProxyConnector {
+contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable {
 
     /**
      * 16 Agents
@@ -80,13 +76,17 @@ contract MessageProxyForMainnet is ProxyConnector {
         uint256 counter;
     }
 
-    string public chainID;
-    // Owner of this chain. For mainnet, the owner is SkaleManager
-    address public owner;
+    bytes32 public constant MAINNET_CHAIN_ID = keccak256(abi.encodePacked("Mainnet"));
+    bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
 
     uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 50000;
 
     mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
+
+    modifier onlyDebugger() {
+        require(hasRole(DEBUGGER_ROLE, msg.sender), "Access denied");
+        _;
+    }
 
     /**
      * @dev Emitted for every outgoing message to `dstChain`.
@@ -115,13 +115,14 @@ contract MessageProxyForMainnet is ProxyConnector {
      */
     function addConnectedChain(string calldata newChainID) external {
         require(
-            keccak256(abi.encodePacked(newChainID)) !=
-            keccak256(abi.encodePacked("Mainnet")), "SKALE chain name is incorrect. Inside in MessageProxy");
-
+            keccak256(abi.encodePacked(newChainID)) != MAINNET_CHAIN_ID,
+            "SKALE chain name is incorrect. Inside in MessageProxy"
+        );
         require(
             !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
             "Chain is already connected"
         );
+
         connectedChains[
             keccak256(abi.encodePacked(newChainID))
         ] = ConnectedChainInfo({
@@ -219,8 +220,7 @@ contract MessageProxyForMainnet is ProxyConnector {
      * 
      * - `msg.sender` must be owner.
      */
-    function moveIncomingCounter(string calldata schainName) external {
-        require(msg.sender == owner, "Sender is not an owner");
+    function incrementIncomingCounter(string calldata schainName) external onlyDebugger{
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 
             connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
     }
@@ -234,8 +234,7 @@ contract MessageProxyForMainnet is ProxyConnector {
      * 
      * - `msg.sender` must be owner.
      */
-    function setCountersToZero(string calldata schainName) external {
-        require(msg.sender == owner, "Sender is not an owner");
+    function setCountersToZero(string calldata schainName) external onlyDebugger {
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
@@ -303,10 +302,10 @@ contract MessageProxyForMainnet is ProxyConnector {
 
     // Create a new message proxy
 
-    function initialize(address newContractManagerOfSkaleManager) public override initializer {
-        ProxyConnector.initialize(newContractManagerOfSkaleManager);
-        owner = msg.sender;
-        chainID = "Mainnet";
+    function initialize(IContractManager contractManagerOfSkaleManager) public override initializer {
+        SkaleManagerClient.initialize(contractManagerOfSkaleManager);
+        AccessControlUpgradeable.__AccessControl_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     /**
@@ -333,7 +332,7 @@ contract MessageProxyForMainnet is ProxyConnector {
         private
         returns (bool)
     {
-        try ContractReceiverForMainnet(message.destinationContract).postMessage(
+        try IMessageReceiver(message.destinationContract).postMessage(
             schainHash,
             message.sender,
             message.data
@@ -352,5 +351,40 @@ contract MessageProxyForMainnet is ProxyConnector {
             );
             return false;
         }
+    }
+
+    function _refundGasBySchain(bytes32 schainId, uint gasTotal) internal {
+        address walletsAddress = IContractManager(contractManagerOfSkaleManager).getContract("Wallets");
+        IWallets(payable(walletsAddress)).refundGasBySchain(schainId, msg.sender, gasTotal.sub(gasleft()), false);
+    }
+
+    /**
+     * @dev Converts calldata structure to memory structure and checks
+     * whether message BLS signature is valid.
+     */
+    function _verifyMessages(
+        string calldata srcChainID,
+        bytes32 hashedMessages,
+        MessageProxyForMainnet.Signature calldata sign
+    )
+        internal
+        view
+        returns (bool)
+    {
+        return ISchains(
+            IContractManager(
+                contractManagerOfSkaleManager
+            ).getContract(
+                "Schains"
+            )
+        ).verifySchainSignature(
+            sign.blsSignature[0],
+            sign.blsSignature[1],
+            hashedMessages,
+            sign.counter,
+            sign.hashA,
+            sign.hashB,
+            srcChainID
+        );
     }
 }

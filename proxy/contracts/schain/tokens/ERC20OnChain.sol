@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxyForSchainWithoutSignature.sol - SKALE Interchain Messaging Agent
+ *   ERC20OnChain.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
+ *   @author Artem Payvin
  *   @author Dmytro Stebaiev
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
@@ -20,25 +21,28 @@
  */
 
 pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
 
-import "../schain/MessageProxyForSchain.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract MessageProxyForSchainWithoutSignature is MessageProxyForSchain {
 
-    constructor(string memory newChainID) public MessageProxyForSchain(newChainID)
-    // solhint-disable-next-line no-empty-blocks
-    { }
+contract ERC20OnChain is AccessControl, ERC20Burnable {
 
-    function _verifyMessages(
-        bytes32,
-        Signature calldata
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
+    constructor(
+        string memory contractName,
+        string memory contractSymbol
     )
-        internal
-        view
-        override
-        returns (bool)
+        public
+        ERC20(contractName, contractSymbol)        
     {
-        return true;
+        _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
+        _setupRole(MINTER_ROLE, _msgSender());
+    }
+
+    function mint(address account, uint256 value) public {
+        require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
+        _mint(account, value);
     }
 }

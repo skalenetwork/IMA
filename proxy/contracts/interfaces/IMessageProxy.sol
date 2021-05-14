@@ -31,4 +31,5 @@ interface IMessageProxy {
 
     function addConnectedChain(string calldata newChainID) external;
     function removeConnectedChain(string calldata newChainID) external;
+    function isConnectedChain(string calldata newChainID) external view returns (bool);
 }

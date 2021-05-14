@@ -30,9 +30,7 @@ import chai = require("chai");
 import {
     DepositBoxEthInstance,
     ContractManagerInstance,
-    IMALinkerInstance,
-    LockAndDataForSchainContract,
-    LockAndDataForSchainInstance,
+    LinkerInstance,
     MessageProxyForMainnetInstance,
     MessageProxyForSchainContract,
     MessageProxyForSchainInstance,
@@ -48,7 +46,7 @@ import { randomString } from "./utils/helper";
 chai.should();
 chai.use((chaiAsPromised as any));
 
-import { deployIMALinker } from "./utils/deploy/imaLinker";
+import { deployLinker } from "./utils/deploy/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
 import { deployDepositBoxEth } from "./utils/deploy/depositBoxEth";
 import { deployContractManager } from "./utils/deploy/contractManager";
@@ -58,18 +56,16 @@ import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const TokenManager: TokenManagerContract = artifacts.require("./TokenManager");
-const LockAndDataForSchain: LockAndDataForSchainContract = artifacts.require("./LockAndDataForSchain");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 const SkaleFeaturesMock: SkaleFeaturesMockContract = artifacts.require("./SkaleFeaturesMock");
 
 contract("MessageProxy", ([deployer, user, client, customer]) => {
     let messageProxyForSchain: MessageProxyForSchainInstance;
-    let lockAndDataForSchain: LockAndDataForSchainInstance;
 
     let depositBox: DepositBoxEthInstance;
     let contractManager: ContractManagerInstance;
     let messageProxyForMainnet: MessageProxyForMainnetInstance;
-    let imaLinker: IMALinkerInstance;
+    let imaLinker: LinkerInstance;
     let messages: MessagesTesterInstance;
     let contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
@@ -93,7 +89,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             contractManager = await deployContractManager(contractManagerAddress);
             contractManagerAddress = contractManager.address;
             messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
-            imaLinker = await deployIMALinker(contractManager, messageProxyForMainnet);
+            imaLinker = await deployLinker(messageProxyForMainnet);
             depositBox = await deployDepositBoxEth(contractManager, messageProxyForMainnet, imaLinker);
             messages = await MessagesTester.new();
         });
@@ -298,6 +294,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             await messageProxyForMainnet.addConnectedChain(chainID, {from: deployer});
             const isConnectedChain = await messageProxyForMainnet.isConnectedChain(chainID);
             isConnectedChain.should.be.deep.equal(Boolean(true));
+            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.DEBUGGER_ROLE(), deployer);
 
             // chain can't be connected twice:
             const incomingMessages = new BigNumber(
@@ -305,7 +302,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             );
 
             // main net does not have a public key and is implicitly connected:
-            await messageProxyForMainnet.moveIncomingCounter(chainID, {from: deployer});
+            await messageProxyForMainnet.incrementIncomingCounter(chainID, {from: deployer});
 
             const newIncomingMessages = new BigNumber(
                 await messageProxyForMainnet.getIncomingMessagesCounter(chainID, {from: deployer}),
@@ -401,8 +398,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
         beforeEach(async () => {
             messageProxyForSchain = await MessageProxyForSchain.new("MyChain", {from: deployer});
-            lockAndDataForSchain = await LockAndDataForSchain.new({from: deployer});
-            await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address, {from: deployer});
+            const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
+            await messageProxyForSchain.grantRole(chainConnectorRole, deployer, {from: deployer});
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -526,7 +523,9 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             }
             const skaleFeatures = await SkaleFeaturesMock.new();
             await skaleFeatures.setBlsCommonPublicKey(blsCommonPublicKey);
-            messageProxyForSchain.setSkaleFeaturesAddress(skaleFeatures.address);
+            const skaleFeaturesSetterRole = await messageProxyForSchain.SKALE_FEATURES_SETTER_ROLE();
+            await messageProxyForSchain.grantRole(skaleFeaturesSetterRole, deployer, {from: deployer});
+            await messageProxyForSchain.setSkaleFeaturesAddress(skaleFeatures.address);
 
             const sign = {
                 blsSignature: [
@@ -566,7 +565,6 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
 
         it("should get outgoing messages counter", async () => {
             const chainID = randomString(10);
-            const contractAddress = lockAndDataForSchain.address;
             const amount = 5;
             const addressTo = client;
             const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
@@ -582,7 +580,7 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
             outgoingMessagesCounter0.should.be.deep.equal(new BigNumber(0));
 
             await messageProxyForSchain
-            .postOutgoingMessage(chainID, contractAddress, bytesData, {from: deployer});
+                .postOutgoingMessage(chainID, depositBox.address, bytesData, {from: deployer});
 
             const outgoingMessagesCounter = new BigNumber(
                 await messageProxyForSchain.getOutgoingMessagesCounter(chainID));

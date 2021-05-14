@@ -22,19 +22,27 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "@nomiclabs/buidler/console.sol";
+
 import "../schain/bls/FieldOperations.sol";
+import "../schain/SkaleFeatures.sol";
 
 
-contract SkaleFeaturesMock {
-
+contract SkaleFeaturesMock is SkaleFeatures {
+    
     G2Operations.G2Point public blsCommonPublicKey;
+    address public schainOwner;
 
     function setBlsCommonPublicKey(G2Operations.G2Point calldata key) external {
         G2Operations.G2Point memory _key = key;
-        blsCommonPublicKey = _key;
+        blsCommonPublicKey = _key;        
     }
 
-    function getConfigVariableUint256(string calldata key) external view returns (uint) {
+    function setSchainOwner(address _schainOwner) external {
+        schainOwner = _schainOwner;
+    }
+
+    function getConfigVariableUint256(string calldata key) external view override returns (uint) {
         if (_equal(key, "skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey0")) {
             return blsCommonPublicKey.x.a;
         } else if (_equal(key, "skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey1")) {
@@ -44,6 +52,15 @@ contract SkaleFeaturesMock {
         } else if (_equal(key, "skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey3")) {
             return blsCommonPublicKey.y.b;
         } else {
+            revert("The key is not implemented in the mock");
+        }
+    }
+
+    function getConfigVariableAddress( string memory key ) public view override returns ( address ) {
+        if (_equal(key, "skaleConfig.contractSettings.IMA.ownerAddress")) {
+            return schainOwner;
+        } else {
+            console.log(key);
             revert("The key is not implemented in the mock");
         }
     }

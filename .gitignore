@@ -4,7 +4,9 @@ proxy/types/
 
 # artifacts
 proxy/artifacts/
+proxy/test-tokens/artifacts/
 proxy/cache/
+proxy/test-tokens/cache/
 
 # openzeppelin
 proxy/.openzeppelin/dev-*.json
@@ -77,6 +79,7 @@ __pycache__/
 
 proxy/proxy.json
 proxy/data/*.json
+proxy/test-tokens/data/*.json
 ima_data.json
 
 test/working
