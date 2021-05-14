@@ -135,7 +135,7 @@ global.imaState = {
     "jo_token_manager": null, // only s-chain
     "jo_message_proxy_main_net": null,
     "jo_message_proxy_s_chain": null,
-    "jo_ima_linker": null,
+    "jo_linker": null,
     "jo_lock_and_data_s_chain": null,
     // "eth_erc721": null, // only s-chain
     "eth_erc20": null, // only s-chain
@@ -811,24 +811,18 @@ describe( "Agent Utils Module", function() {
             const strName = imaState.strChainID_s_chain;
             const strFile = imaState.strPathAbiJson_s_chain;
             const joABI = imaUtils.jsonFileLoad( strFile, { error: "file \"" + strFile + "\"was not loaded" } );
-            const strKey = "lock_and_data_for_schain_address";
+            const strKey = "token_manager_linker_address";
             const arrKeys = [
-                "lock_and_data_for_schain_address",
-                "lock_and_data_for_schain_abi",
+                "token_manager_linker_address",
+                "token_manager_linker_abi",
                 "eth_erc20_address",
                 "eth_erc20_abi",
-                "token_manager_address",
-                "token_manager_abi",
-                "lock_and_data_for_schain_erc20_address",
-                "lock_and_data_for_schain_erc20_abi",
-                "lock_and_data_for_schain_erc721_address",
-                "lock_and_data_for_schain_erc721_abi",
-                "erc20_module_for_schain_address",
-                "erc20_module_for_schain_abi",
-                "erc721_module_for_schain_address",
-                "erc721_module_for_schain_abi",
-                "token_factory_address",
-                "token_factory_abi",
+                "token_manager_eth_address",
+                "token_manager_eth_abi",
+                "token_manager_erc20_address",
+                "token_manager_erc20_abi",
+                "token_manager_erc721_address",
+                "token_manager_erc721_abi",
                 "message_proxy_chain_address",
                 "message_proxy_chain_abi"
             ];

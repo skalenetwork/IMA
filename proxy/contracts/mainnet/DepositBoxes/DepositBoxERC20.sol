@@ -22,15 +22,13 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/IDepositBox.sol";
-import "../thirdparty/openzeppelin/IERC20Metadata.sol";
-import "../Messages.sol";
-
-import "./IMAConnected.sol";
+import "../../thirdparty/openzeppelin/IERC20Metadata.sol";
+import "../../Messages.sol";
+import "../DepositBox.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract DepositBoxERC20 is IMAConnected, IDepositBox {
+contract DepositBoxERC20 is DepositBox {
 
     // uint256 public gasConsumption;
 
@@ -105,16 +103,17 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addTokenManager(string calldata schainID, address newTokenManagerERC20Address) external override {
+    function addTokenManager(string calldata schainName, address newTokenManagerERC20Address) external override {
+        bytes32 schainId = keccak256(abi.encodePacked(schainName));
         require(
-            msg.sender == imaLinker ||
-            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            _isOwner(), "Not authorized caller"
-        );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerERC20Addresses[schainHash] == address(0), "SKALE chain is already set");
+            hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
+            isSchainOwner(msg.sender, schainId) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
+        );        
+        require(tokenManagerERC20Addresses[schainId] == address(0), "SKALE chain is already set");
         require(newTokenManagerERC20Address != address(0), "Incorrect Token Manager address");
-        tokenManagerERC20Addresses[schainHash] = newTokenManagerERC20Address;
+
+        tokenManagerERC20Addresses[schainId] = newTokenManagerERC20Address;
     }
 
     /**
@@ -126,15 +125,16 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
      * - `msg.sender` must be schain owner or contract owner
      * - SKALE chain must already be set.
      */
-    function removeTokenManager(string calldata schainID) external override {
+    function removeTokenManager(string calldata schainName) external override {
+        bytes32 schainId = keccak256(abi.encodePacked(schainName));
         require(
-            msg.sender == imaLinker ||
-            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainID))) ||
-            _isOwner(), "Not authorized caller"
+            hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
+            isSchainOwner(msg.sender, schainId) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        require(tokenManagerERC20Addresses[schainHash] != address(0), "SKALE chain is not set");
-        delete tokenManagerERC20Addresses[schainHash];
+        
+        require(tokenManagerERC20Addresses[schainId] != address(0), "SKALE chain is not set");
+        delete tokenManagerERC20Addresses[schainId];
     }
 
     function postMessage(
@@ -172,7 +172,10 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
      */
     function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet) external {
         bytes32 schainId = keccak256(abi.encodePacked(schainName));
-        require(isSchainOwner(msg.sender, schainId) || msg.sender == getOwner(), "Sender is not a Schain owner");
+        require(
+            isSchainOwner(msg.sender, schainId) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            "Sender is not an Schain owner"
+        );
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
         // require(!withoutWhitelist[schainId], "Whitelist is enabled");
         schainToERC20[schainId][erc20OnMainnet] = true;
@@ -183,7 +186,7 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
      * @dev Allows Schain owner turn on whitelist of tokens.
      */
     function enableWhitelist(string memory schainName) external {
-        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not a Schain owner");
+        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not an Schain owner");
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = false;
     }
 
@@ -191,7 +194,7 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
      * @dev Allows Schain owner turn off whitelist of tokens.
      */
     function disableWhitelist(string memory schainName) external {
-        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not a Schain owner");
+        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not an Schain owner");
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
     }
 
@@ -211,16 +214,15 @@ contract DepositBoxERC20 is IMAConnected, IDepositBox {
 
     /// Create a new deposit box
     function initialize(
-        address newContractManagerOfSkaleManager,
-        address newMessageProxyAddress,
-        address newIMALinkerAddress
+        IContractManager contractManagerOfSkaleManager,
+        Linker linker,
+        MessageProxyForMainnet newMessageProxyAddress
     )
         public
         override
         initializer
     {
-        IMAConnected.initialize(newIMALinkerAddress, newContractManagerOfSkaleManager, newMessageProxyAddress);
-        // gasConsumption = 500000;
+        DepositBox.initialize(contractManagerOfSkaleManager, linker, newMessageProxyAddress);
     }
 
     /**

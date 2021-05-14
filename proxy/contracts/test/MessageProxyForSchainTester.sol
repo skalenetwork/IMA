@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxyForSchainWithoutSignature.sol - SKALE Interchain Messaging Agent
+ *   MessageProxyForSchainTester.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Dmytro Stebaiev
  *
@@ -24,21 +24,20 @@ pragma experimental ABIEncoderV2;
 
 import "../schain/MessageProxyForSchain.sol";
 
-contract MessageProxyForSchainWithoutSignature is MessageProxyForSchain {
+contract MessageProxyForSchainTester is MessageProxyForSchain {    
 
-    constructor(string memory newChainID) public MessageProxyForSchain(newChainID)
-    // solhint-disable-next-line no-empty-blocks
+    constructor(string memory newChainName) public MessageProxyForSchain(newChainName)
+        // solhint-disable-next-line no-empty-blocks 
     { }
 
-    function _verifyMessages(
-        bytes32,
-        Signature calldata
+    function postMessage(
+        IContractReceiverForSchain targetContract,
+        string calldata fromSchainName,
+        address sender,
+        bytes calldata data
     )
-        internal
-        view
-        override
-        returns (bool)
+    external
     {
-        return true;
+        targetContract.postMessage(fromSchainName, sender, data);
     }
 }

@@ -210,7 +210,7 @@ describe("Gas calculation", () => {
 
         // IMA mainnet part deployment
         messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
-        imaLinker = await deployIMALinker(contractManager, messageProxyForMainnet);
+        imaLinker = await deployLinker(messageProxyForMainnet);
         depositBoxEth = await deployDepositBoxEth(contractManager, messageProxyForMainnet, imaLinker);
         depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxyForMainnet, imaLinker);
         depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxyForMainnet, imaLinker);
@@ -285,40 +285,40 @@ describe("Gas calculation", () => {
 
     it("calculate registration and approve ERC20", async () => {
         // register tokens
-        await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address);
-        let res = await (await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address)).wait();
-        console.log("Registration of ERC20 token cost:", res.gasUsed.toNumber());
-        res = await (await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5)).wait();
-        console.log("First approve of ERC20 token cost:", res.gasUsed.toNumber());
-        res = await (await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 10)).wait();
-        console.log("Second approve of ERC20 token cost:", res.gasUsed.toNumber());
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        let res = await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
+        console.log("Registration of ERC20 token cost:", res.receipt.gasUsed);
+        res = await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
+        console.log("First approve of ERC20 token cost:", res.receipt.gasUsed);
+        res = await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 10, {from: user});
+        console.log("Second approve of ERC20 token cost:", res.receipt.gasUsed);
     });
 
     it("calculate erc20 deposits without eth without automatic deploy", async () => {
         // register tokens
-        await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address);
-        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address);
-        await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 6);
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
+        await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 6, {from: user});
 
-        let res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1)).wait();
-        console.log("First deposit erc20 cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1)).wait();
-        console.log("Second deposit erc20 cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1)).wait();
-        console.log("Third deposit erc20 cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1)).wait();
-        console.log("Forth deposit erc20 cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1)).wait();
-        console.log("Fifth deposit erc20 cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1)).wait();
-        console.log("Deposit all remaining approved erc20 tokens cost:", res.gasUsed.toNumber());
+        let res = await depositBoxERC20.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 1, {from: user});
+        console.log("First deposit erc20 cost:", res.receipt.gasUsed);
+        res = await depositBoxERC20.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 1, {from: user});
+        console.log("Second deposit erc20 cost:", res.receipt.gasUsed);
+        res = await depositBoxERC20.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 1, {from: user});
+        console.log("Third deposit erc20 cost:", res.receipt.gasUsed);
+        res = await depositBoxERC20.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 1, {from: user});
+        console.log("Forth deposit erc20 cost:", res.receipt.gasUsed);
+        res = await depositBoxERC20.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 1, {from: user});
+        console.log("Fifth deposit erc20 cost:", res.receipt.gasUsed);
+        res = await depositBoxERC20.depositERC20(schainName, ERC20TokenOnMainnet.address, user, 1, {from: user});
+        console.log("Deposit all remaining approved erc20 tokens cost:", res.receipt.gasUsed);
     });
 
     it("calculate erc20 deposits of all approved tokens without eth without automatic deploy", async () => {
         // register tokens
-        await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address);
-        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address);
-        await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
+        await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
         const res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 5)).wait();
         console.log("Deposit all approved erc20 tokens at once cost:", res.gasUsed.toNumber());
@@ -326,113 +326,113 @@ describe("Gas calculation", () => {
 
     it("calculate registration and approve ERC721", async () => {
         // register tokens
-        await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address);
-        let res = await (await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address)).wait();
-        console.log("Registration of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1)).wait();
-        console.log("First transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2)).wait();
-        console.log("Second transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 3)).wait();
-        console.log("Third transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 4)).wait();
-        console.log("Forth transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 5)).wait();
-        console.log("Fifth transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 6)).wait();
-        console.log("Sixth transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 7)).wait();
-        console.log("Seventh transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 8)).wait();
-        console.log("Eighth transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 9)).wait();
-        console.log("Ninth transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 10)).wait();
-        console.log("Tenth transfer of ERC721 token cost:", res.gasUsed.toNumber());
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        let res = await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
+        console.log("Registration of ERC721 token cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
+        console.log("First transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
+        console.log("Second transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 3, {from: user});
+        console.log("Third transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 4, {from: user});
+        console.log("Forth transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 5, {from: user});
+        console.log("Fifth transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 6, {from: user});
+        console.log("Sixth transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 7, {from: user});
+        console.log("Seventh transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 8, {from: user});
+        console.log("Eighth transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 9, {from: user});
+        console.log("Ninth transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 10, {from: user});
+        console.log("Tenth transfer of ERC721 token cost:", res.receipt.gasUsed);
     });
 
     it("calculate erc721 deposits without eth without automatic deploy", async () => {
         // register tokens
-        await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address);
-        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 3);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 4);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 5);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 6);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 7);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 8);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 9);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 10);
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 3, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 4, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 5, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 6, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 7, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 8, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 9, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 10, {from: user});
 
-        let res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 1)).wait();
-        console.log("First deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 2)).wait();
-        console.log("Second deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 3)).wait();
-        console.log("Third deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 4)).wait();
-        console.log("Forth deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 5)).wait();
-        console.log("Fifth deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 6)).wait();
-        console.log("Sixth deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 7)).wait();
-        console.log("Seventh deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 8)).wait();
-        console.log("Eighth deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 9)).wait();
-        console.log("Ninth deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 10)).wait();
-        console.log("Tenth deposit erc721 cost:", res.gasUsed.toNumber());
+        let res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 1, {from: user});
+        console.log("First deposit erc721 cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 2, {from: user});
+        console.log("Second deposit erc721 cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 3, {from: user});
+        console.log("Third deposit erc721 cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 4, {from: user});
+        console.log("Forth deposit erc721 cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 5, {from: user});
+        console.log("Fifth deposit erc721 cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 6, {from: user});
+        console.log("Sixth deposit erc721 cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 7, {from: user});
+        console.log("Seventh deposit erc721 cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 8, {from: user});
+        console.log("Eighth deposit erc721 cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 9, {from: user});
+        console.log("Ninth deposit erc721 cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 10, {from: user});
+        console.log("Tenth deposit erc721 cost:", res.receipt.gasUsed);
     });
 
     it("calculate erc721 deposits without eth without automatic deploy and transfer each time", async () => {
         // register tokens
-        await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address);
-        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address);
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
 
-        let res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1)).wait();
-        console.log("First transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 1)).wait();
-        console.log("First deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2)).wait();
-        console.log("Second transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 2)).wait();
-        console.log("Second deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 3)).wait();
-        console.log("Third transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 3)).wait();
-        console.log("Third deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 4)).wait();
-        console.log("Forth transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 4)).wait();
-        console.log("Forth deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 5)).wait();
-        console.log("Fifth transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 5)).wait();
-        console.log("Fifth deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 6)).wait();
-        console.log("Sixth transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 6)).wait();
-        console.log("Sixth deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 7)).wait();
-        console.log("Seventh transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 7)).wait();
-        console.log("Seventh deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 8)).wait();
-        console.log("Eighth transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 8)).wait();
-        console.log("Eighth deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 9)).wait();
-        console.log("Ninth transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 9)).wait();
-        console.log("Ninth deposit erc721 cost:", res.gasUsed.toNumber());
-        res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 10)).wait();
-        console.log("Tenth transfer of ERC721 token cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 10)).wait();
-        console.log("Tenth deposit erc721 cost:", res.gasUsed.toNumber());
+        let res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
+        console.log("First transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 1, {from: user});
+        console.log("First deposit erc721 cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
+        console.log("Second transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 2, {from: user});
+        console.log("Second deposit erc721 cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 3, {from: user});
+        console.log("Third transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 3, {from: user});
+        console.log("Third deposit erc721 cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 4, {from: user});
+        console.log("Forth transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 4, {from: user});
+        console.log("Forth deposit erc721 cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 5, {from: user});
+        console.log("Fifth transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 5, {from: user});
+        console.log("Fifth deposit erc721 cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 6, {from: user});
+        console.log("Sixth transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 6, {from: user});
+        console.log("Sixth deposit erc721 cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 7, {from: user});
+        console.log("Seventh transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 7, {from: user});
+        console.log("Seventh deposit erc721 cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 8, {from: user});
+        console.log("Eighth transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 8, {from: user});
+        console.log("Eighth deposit erc721 cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 9, {from: user});
+        console.log("Ninth transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 9, {from: user});
+        console.log("Ninth deposit erc721 cost:", res.receipt.gasUsed);
+        res = await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 10, {from: user});
+        console.log("Tenth transfer of ERC721 token cost:", res.receipt.gasUsed);
+        res = await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 10, {from: user});
+        console.log("Tenth deposit erc721 cost:", res.receipt.gasUsed);
     });
 
     it("calculate 1 exit eth cost per one message", async () => {
@@ -447,7 +447,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -524,7 +524,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -613,7 +613,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -682,7 +682,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -763,7 +763,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -820,7 +820,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -889,7 +889,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -942,7 +942,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -1007,7 +1007,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -1054,7 +1054,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -1113,7 +1113,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -1158,7 +1158,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -1215,7 +1215,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -1262,7 +1262,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };;
 
         // prepare BLS signature
@@ -1321,7 +1321,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -1366,7 +1366,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -1423,7 +1423,7 @@ describe("Gas calculation", () => {
         const message = {
             data: await messages.encodeTransferEthMessage(user.address, "1000000000000000000"),
             destinationContract: depositBoxEth.address,
-            sender: tokenManager.address,
+            sender: tokenManagerEth.address,
         };
 
         // prepare BLS signature
@@ -1470,9 +1470,9 @@ describe("Gas calculation", () => {
 
     it("calculate 1 exit erc20 cost per one message", async () => {
         // make erc20 deposits
-        await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address);
-        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address);
-        await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
+        await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
         await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 5);
 
@@ -1482,7 +1482,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC20,
             destinationContract: depositBoxERC20.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc20.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -1547,9 +1547,9 @@ describe("Gas calculation", () => {
 
     it("calculate 1 exit erc20 cost per one message deposit each time", async () => {
         // register erc20
-        await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address);
-        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address);
-        await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
+        await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
         // prepare exit message of 1 erc20 - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, user.address, 1, "1000000000000000000", {from: user});
         const dataOfERC20 = await messages.encodeTransferErc20Message(ERC20TokenOnMainnet.address, user.address, 1);
@@ -1557,7 +1557,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC20,
             destinationContract: depositBoxERC20.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc20.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -1627,9 +1627,9 @@ describe("Gas calculation", () => {
 
     it("calculate 2 exit erc20 cost per one message", async () => {
         // make erc20 deposits
-        await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address);
-        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address);
-        await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
+        await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
         await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 5);
 
@@ -1639,7 +1639,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC20,
             destinationContract: depositBoxERC20.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc20.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -1688,9 +1688,9 @@ describe("Gas calculation", () => {
 
     it("calculate 2 exit erc20 cost per one message deposit each time", async () => {
         // register erc20
-        await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address);
-        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address);
-        await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
+        await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
         // prepare exit message of 1 erc20 - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, user.address, 1, "1000000000000000000", {from: user});
         const dataOfERC20 = await messages.encodeTransferErc20Message(ERC20TokenOnMainnet.address, user.address, 1);
@@ -1698,7 +1698,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC20,
             destinationContract: depositBoxERC20.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc20.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -1752,9 +1752,9 @@ describe("Gas calculation", () => {
 
     it("calculate 3 exit erc20 cost per one message", async () => {
         // make erc20 deposits
-        await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address);
-        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address);
-        await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
+        await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
         await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 5);
 
@@ -1764,7 +1764,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC20,
             destinationContract: depositBoxERC20.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc20.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -1805,9 +1805,9 @@ describe("Gas calculation", () => {
 
     it("calculate 3 exit erc20 cost per one message deposit each time", async () => {
         // register erc20
-        await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address);
-        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address);
-        await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
+        await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
         // prepare exit message of 1 erc20 - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, user.address, 1, "1000000000000000000", {from: user});
         const dataOfERC20 = await messages.encodeTransferErc20Message(ERC20TokenOnMainnet.address, user.address, 1);
@@ -1815,7 +1815,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC20,
             destinationContract: depositBoxERC20.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc20.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -1861,9 +1861,9 @@ describe("Gas calculation", () => {
 
     it("calculate 4 exit erc20 cost per one message", async () => {
         // make erc20 deposits
-        await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address);
-        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address);
-        await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
+        await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
         await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 5);
 
@@ -1873,7 +1873,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC20,
             destinationContract: depositBoxERC20.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc20.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -1914,9 +1914,9 @@ describe("Gas calculation", () => {
 
     it("calculate 4 exit erc20 cost per one message deposit each time", async () => {
         // register erc20
-        await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address);
-        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address);
-        await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
+        await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
         // prepare exit message of 1 erc20 - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, user.address, 1, "1000000000000000000", {from: user});
         const dataOfERC20 = await messages.encodeTransferErc20Message(ERC20TokenOnMainnet.address, user.address, 1);
@@ -1924,7 +1924,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC20,
             destinationContract: depositBoxERC20.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc20.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -1970,9 +1970,9 @@ describe("Gas calculation", () => {
 
     it("calculate 5 exit erc20 cost per one message", async () => {
         // make erc20 deposits
-        await lockAndDataForSchainERC20.addERC20TokenByOwner("Mainnet", ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address);
-        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address);
-        await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
+        await tokenManagerErc20.addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address, {from: deployer});
+        await depositBoxERC20.addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address, {from: deployer});
+        await ERC20TokenOnMainnet.approve(depositBoxERC20.address, 5, {from: user});
 
         await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 5);
 
@@ -1982,7 +1982,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC20,
             destinationContract: depositBoxERC20.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc20.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -2017,27 +2017,27 @@ describe("Gas calculation", () => {
 
     it("calculate 1 exit erc721 cost per one message", async () => {
         // register ERC721 tokens
-        await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address);
-        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 3);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 4);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 5);
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 3, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 4, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 5, {from: user});
 
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 1);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 2);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 3);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 4);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 5);
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 1, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 2, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 3, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 4, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 5, {from: user});
 
-        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user.address, 1);
+        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 2, "1000000000000000000", {from: user});
@@ -2046,7 +2046,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 3, "1000000000000000000", {from: user});
@@ -2055,7 +2055,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 4, "1000000000000000000", {from: user});
@@ -2064,7 +2064,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 5, "1000000000000000000", {from: user});
@@ -2073,7 +2073,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -2138,21 +2138,21 @@ describe("Gas calculation", () => {
 
     it("calculate 1 exit erc721 cost per one message deposit each time", async () => {
         // register ERC721 tokens
-        await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address);
-        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 3);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 4);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 5);
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 3, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 4, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 5, {from: user});
 
-        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user.address, 1);
+        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 2, "1000000000000000000", {from: user});
@@ -2161,7 +2161,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 3, "1000000000000000000", {from: user});
@@ -2170,7 +2170,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 4, "1000000000000000000", {from: user});
@@ -2179,7 +2179,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 5, "1000000000000000000", {from: user});
@@ -2188,7 +2188,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -2258,27 +2258,27 @@ describe("Gas calculation", () => {
 
     it("calculate 2 exit erc721 cost per one message", async () => {
         // register ERC721 tokens
-        await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address);
-        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 3);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 4);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 5);
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 3, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 4, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 5, {from: user});
 
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 1);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 2);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 3);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 4);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 5);
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 1, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 2, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 3, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 4, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 5, {from: user});
 
-        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user.address, 1);
+        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 2, "1000000000000000000", {from: user});
@@ -2287,7 +2287,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 3, "1000000000000000000", {from: user});
@@ -2296,7 +2296,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 4, "1000000000000000000", {from: user});
@@ -2305,7 +2305,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 5, "1000000000000000000", {from: user});
@@ -2314,7 +2314,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -2363,21 +2363,21 @@ describe("Gas calculation", () => {
 
     it("calculate 2 exit erc721 cost per one message deposit each time", async () => {
         // register ERC721 tokens
-        await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address);
-        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 3);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 4);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 5);
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 3, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 4, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 5, {from: user});
 
-        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user.address, 1);
+        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 2, "1000000000000000000", {from: user});
@@ -2386,7 +2386,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 3, "1000000000000000000", {from: user});
@@ -2395,7 +2395,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 4, "1000000000000000000", {from: user});
@@ -2404,7 +2404,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 5, "1000000000000000000", {from: user});
@@ -2413,7 +2413,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -2467,27 +2467,27 @@ describe("Gas calculation", () => {
 
     it("calculate 3 exit erc721 cost per one message", async () => {
         // register ERC721 tokens
-        await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address);
-        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 3);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 4);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 5);
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 3, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 4, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 5, {from: user});
 
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 1);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 2);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 3);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 4);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 5);
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 1, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 2, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 3, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 4, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 5, {from: user});
 
-        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user.address, 1);
+        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 2, "1000000000000000000", {from: user});
@@ -2496,7 +2496,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 3, "1000000000000000000", {from: user});
@@ -2505,7 +2505,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 4, "1000000000000000000", {from: user});
@@ -2514,7 +2514,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 5, "1000000000000000000", {from: user});
@@ -2523,7 +2523,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -2564,21 +2564,21 @@ describe("Gas calculation", () => {
 
     it("calculate 3 exit erc721 cost per one message deposit each time", async () => {
         // register ERC721 tokens
-        await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address);
-        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 3);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 4);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 5);
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 3, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 4, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 5, {from: user});
 
-        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user.address, 1);
+        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 2, "1000000000000000000", {from: user});
@@ -2587,7 +2587,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 3, "1000000000000000000", {from: user});
@@ -2596,7 +2596,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 4, "1000000000000000000", {from: user});
@@ -2605,7 +2605,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 5, "1000000000000000000", {from: user});
@@ -2614,7 +2614,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -2660,27 +2660,27 @@ describe("Gas calculation", () => {
 
     it("calculate 4 exit erc721 cost per one message", async () => {
         // register ERC721 tokens
-        await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address);
-        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 3);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 4);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 5);
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 3, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 4, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 5, {from: user});
 
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 1);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 2);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 3);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 4);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 5);
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 1, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 2, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 3, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 4, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 5, {from: user});
 
-        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user.address, 1);
+        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 2, "1000000000000000000", {from: user});
@@ -2689,7 +2689,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 3, "1000000000000000000", {from: user});
@@ -2698,7 +2698,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 4, "1000000000000000000", {from: user});
@@ -2707,7 +2707,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 5, "1000000000000000000", {from: user});
@@ -2716,7 +2716,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -2757,21 +2757,21 @@ describe("Gas calculation", () => {
 
     it("calculate 4 exit erc721 cost per one message deposit each time", async () => {
         // register ERC721 tokens
-        await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address);
-        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 3);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 4);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 5);
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 3, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 4, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 5, {from: user});
 
-        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user.address, 1);
+        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 2, "1000000000000000000", {from: user});
@@ -2780,7 +2780,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 3, "1000000000000000000", {from: user});
@@ -2789,7 +2789,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 4, "1000000000000000000", {from: user});
@@ -2798,7 +2798,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 5, "1000000000000000000", {from: user});
@@ -2807,7 +2807,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 
@@ -2853,27 +2853,27 @@ describe("Gas calculation", () => {
 
     it("calculate 5 exit erc721 cost per one message", async () => {
         // register ERC721 tokens
-        await lockAndDataForSchainERC721.addERC721TokenByOwner("Mainnet", ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address);
-        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 3);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 4);
-        await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 5);
+        await tokenManagerErc721.addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address, {from: deployer});
+        await depositBoxERC721.addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address, {from: deployer});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 1, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 2, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 3, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 4, {from: user});
+        await ERC721TokenOnMainnet.approve(depositBoxERC721.address, 5, {from: user});
 
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 1);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 2);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 3);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 4);
-        await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 5);
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 1, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 2, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 3, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 4, {from: user});
+        await depositBoxERC721.depositERC721(schainName, ERC721TokenOnMainnet.address, user, 5, {from: user});
 
-        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 1, "1000000000000000000", {from: user});
-        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user.address, 1);
+        // prepare exit message of 1 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user, 1, "1000000000000000000", {from: user});
+        const dataOfERC721OfToken1 = await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user, 1);
         const message1 = {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken1,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 2 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 2, "1000000000000000000", {from: user});
@@ -2882,7 +2882,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken2,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 3 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 3, "1000000000000000000", {from: user});
@@ -2891,7 +2891,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken3,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 4 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 4, "1000000000000000000", {from: user});
@@ -2900,7 +2900,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken4,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
         // prepare exit message of 5 erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, 5, "1000000000000000000", {from: user});
@@ -2909,7 +2909,7 @@ describe("Gas calculation", () => {
             amount: "1000000000000000000",
             data: dataOfERC721OfToken5,
             destinationContract: depositBoxERC721.address,
-            sender: tokenManager.address,
+            sender: tokenManagerErc721.address,
             to: "0x0000000000000000000000000000000000000000"
         };
 

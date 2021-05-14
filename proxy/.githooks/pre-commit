@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd proxy
+yarn fullcheck
+cd ..

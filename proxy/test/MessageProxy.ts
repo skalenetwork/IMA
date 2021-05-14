@@ -104,7 +104,7 @@ describe("MessageProxy", () => {
             contractManager = await deployContractManager(contractManagerAddress);
             contractManagerAddress = contractManager.address;
             messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
-            imaLinker = await deployIMALinker(contractManager, messageProxyForMainnet);
+            imaLinker = await deployLinker(messageProxyForMainnet);
             depositBox = await deployDepositBoxEth(contractManager, messageProxyForMainnet, imaLinker);
             messages = await deployMessages();
         });
@@ -308,6 +308,7 @@ describe("MessageProxy", () => {
             await messageProxyForMainnet.connect(deployer).addConnectedChain(chainID);
             const isConnectedChain = await messageProxyForMainnet.isConnectedChain(chainID);
             isConnectedChain.should.be.deep.equal(Boolean(true));
+            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.DEBUGGER_ROLE(), deployer);
 
             // chain can't be connected twice:
             const incomingMessages = BigNumber.from(
@@ -315,7 +316,7 @@ describe("MessageProxy", () => {
             );
 
             // main net does not have a public key and is implicitly connected:
-            await messageProxyForMainnet.connect(deployer).moveIncomingCounter(chainID);
+            await messageProxyForMainnet.connect(deployer).incrementIncomingCounter(chainID);
 
             const newIncomingMessages = BigNumber.from(
                 await messageProxyForMainnet.connect(deployer).getIncomingMessagesCounter(chainID),
@@ -409,8 +410,8 @@ describe("MessageProxy", () => {
 
         beforeEach(async () => {
             messageProxyForSchain = await deployMessageProxyForSchain("MyChain");
-            lockAndDataForSchain = await deployLockAndDataForSchain();
-            await lockAndDataForSchain.connect(deployer).setContract("MessageProxy", messageProxyForSchain.address);
+            const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
+            await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, deployer);
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -536,7 +537,9 @@ describe("MessageProxy", () => {
             }
             const skaleFeatures = await deploySkaleFeaturesMock();
             await skaleFeatures.setBlsCommonPublicKey(blsCommonPublicKey);
-            messageProxyForSchain.setSkaleFeaturesAddress(skaleFeatures.address);
+            const skaleFeaturesSetterRole = await messageProxyForSchain.SKALE_FEATURES_SETTER_ROLE();
+            await messageProxyForSchain.grantRole(skaleFeaturesSetterRole, deployer, {from: deployer});
+            await messageProxyForSchain.setSkaleFeaturesAddress(skaleFeatures.address);
 
             const newBLSSignature: [BigNumber, BigNumber] = [
                 BigNumber.from("0x2dedd4eaeac95881fbcaa4146f95a438494545c607bd57d560aa1d13d2679db8"),
@@ -576,7 +579,6 @@ describe("MessageProxy", () => {
 
         it("should get outgoing messages counter", async () => {
             const chainID = randomString(10);
-            const contractAddress = lockAndDataForSchain.address;
             const amount = 5;
             const addressTo = client.address;
             const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
