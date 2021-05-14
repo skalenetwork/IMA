@@ -188,7 +188,6 @@ contract TokenManagerERC721 is TokenManager {
                 require(automaticDeploy, "Automatic deploy is disabled");
                 contractOnSchainTmp = new ERC721OnChain(message.tokenInfo.name, message.tokenInfo.symbol);           
                 clonesErc721[token] = contractOnSchainTmp;
-                contractOnSchainTmp.grantRole(contractOnSchainTmp.MINTER_ROLE(), address(this));
                 emit ERC721TokenCreated(token, address(contractOnSchainTmp));
             }
         }
