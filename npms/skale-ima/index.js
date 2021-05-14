@@ -3095,32 +3095,6 @@ async function do_transfer(
                 );
                 //
                 //
-                //
-                { // EXPERIMENTAL BLOCK: check DST permissions, result is ignored
-                    details.write( strLogPrefix + cc.debug( "Will check permissions in destination message proxy..." ) + "\n" );
-                    try {
-                        const a = joAccountDst.address( w3_dst );
-                        const hashOfSchainName = w3_dst.utils.keccak256( chain_id_src );
-                        details.write( strLogPrefix + cc.debug( "From address " ) + cc.info( a ) + "\n" );
-                        details.write( strLogPrefix + cc.debug( "Chain name " ) + cc.info( chain_id_src ) + "\n" );
-                        details.write( strLogPrefix + cc.debug( "Hash of chain name " ) + cc.info( hashOfSchainName ) + "\n" );
-                        const r = await jo_message_proxy_dst.methods.isAuthorizedCaller(
-                            hashOfSchainName,
-                            a
-                        ).call( {
-                            from: a
-                        } );
-                        details.write( strLogPrefix + cc.debug( "Result of checking permissions in destination message proxy is " ) + cc.info( r ) + "\n" );
-                    } catch ( err ) {
-                        if( verbose_get() >= RV_VERBOSE.fatal )
-                            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error check permissions in destination message proxy: " ) + cc.error( err ) + "\n" );
-                        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error check permissions in destination message proxy: " ) + cc.error( err ) + "\n" );
-                    }
-
-                } // EXPERIMENTAL BLOCK: check DST permissions, result is ignored
-                //
-                // TO DO: convert joGlueResult.hashSrc into G1 point
-                //
                 let signature = joGlueResult ? joGlueResult.signature : null;
                 if( !signature )
                     signature = { X: "0", Y: "0" };
