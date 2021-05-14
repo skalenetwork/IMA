@@ -38,7 +38,6 @@ import {
   MessageProxyForSchainInstance,
   } from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
-import { gasMultiplier } from "./utils/command_line";
 
 import chai = require("chai");
 
@@ -61,51 +60,12 @@ contract("TokenManagerLinker", ([deployer, user, user2]) => {
   let fakeDepositBox: any;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxyForSchain.new(
-      schainName,
-      {
-        from: deployer,
-        gas: 8000000 * gasMultiplier
-      }
-    );
-    linker = await TokenManagerLinker.new(
-      messageProxy.address,
-      {
-        from: deployer,
-        gas: 8000000 * gasMultiplier
-      }
-    );
+    messageProxy = await MessageProxyForSchain.new(schainName);
+    linker = await TokenManagerLinker.new(messageProxy.address);
     fakeDepositBox = linker.address;
-    tokenManagerEth = await TokenManagerEth.new(
-      schainName,
-      messageProxy.address,
-      linker.address,
-      fakeDepositBox,
-      {
-        from: deployer,
-        gas: 8000000 * gasMultiplier
-      }
-    );
-    tokenManagerERC20 = await TokenManagerERC20.new(
-      schainName,
-      messageProxy.address,
-      linker.address,
-      fakeDepositBox,
-      {
-        from: deployer,
-        gas: 8000000 * gasMultiplier
-      }
-    );
-    tokenManagerERC721 = await TokenManagerERC721.new(
-      schainName,
-      messageProxy.address,
-      linker.address,
-      fakeDepositBox,
-      {
-        from: deployer,
-        gas: 8000000 * gasMultiplier
-      }
-    );
+    tokenManagerEth = await TokenManagerEth.new(schainName, messageProxy.address, linker.address, fakeDepositBox);
+    tokenManagerERC20 = await TokenManagerERC20.new(schainName, messageProxy.address, linker.address, fakeDepositBox);
+    tokenManagerERC721 = await TokenManagerERC721.new(schainName, messageProxy.address, linker.address, fakeDepositBox);
     const chainConnectorRole = await messageProxy.CHAIN_CONNECTOR_ROLE();
     await messageProxy.grantRole(chainConnectorRole, linker.address, {from: deployer});
   });
