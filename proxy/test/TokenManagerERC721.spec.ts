@@ -164,7 +164,7 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner]) => {
         await tokenManagerERC721.enableAutomaticDeploy({from: schainOwner});
         await messageProxyForSchain.postMessage(tokenManagerERC721.address, chainName, fakeDepositBox.address, data);
         const addressERC721OnSchain = await tokenManagerERC721.clonesErc721(token.address);
-        const erc721OnChain = new web3.eth.Contract(artifacts.require("./ERC721MintAndBurn").abi, addressERC721OnSchain);
+        const erc721OnChain = new web3.eth.Contract(artifacts.require("./ERC721OnChain").abi, addressERC721OnSchain);
         expect(await erc721OnChain.methods.ownerOf(tokenId).call()).to.be.equal(to);
     });
 
