@@ -50,6 +50,8 @@ import {
     SchainsInstance,
     SchainsInternalContract,
     SchainsInternalInstance,
+    SkaleFeaturesMockContract,
+    SkaleFeaturesMockInstance,
     SkaleVerifierMockContract,
     SkaleVerifierMockInstance,
     TokenManagerERC20Contract,
@@ -94,6 +96,7 @@ const TokenManagerEth: TokenManagerEthContract = artifacts.require("./TokenManag
 const TokenManagerLinker: TokenManagerLinkerContract = artifacts.require("./TokenManagerLinker");
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
+const SkaleFeatures: SkaleFeaturesMockContract = artifacts.require("./SkaleFeaturesMock");
 
 contract("Gas calculation", ([deployer, schainOwner, user]) => {
     let imaLinker: LinkerInstance;
@@ -117,6 +120,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     let ethERC20: EthERC20Instance;
     let messageProxyForSchain: MessageProxyForSchainInstance;
     let messages: MessagesTesterInstance;
+    let skaleFeatures: SkaleFeaturesMockInstance;
 
     let ERC20TokenOnMainnet: ERC20OnChainInstance;
     let ERC20TokenOnSchain: ERC20OnChainInstance;
@@ -212,12 +216,23 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         tokenManagerErc721 = await TokenManagerErc721.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBoxERC721.address);
         tokenManagerEth = await TokenManagerEth.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBoxEth.address);
         ethERC20 = await EthERC20.new(tokenManagerEth.address, {from: deployer});
+        skaleFeatures = await SkaleFeatures.new({from: deployer});
+        await skaleFeatures.setSchainOwner(deployer);
+
+        await tokenManagerEth.grantRole(await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE(), deployer);
+        await tokenManagerEth.setSkaleFeaturesAddress(skaleFeatures.address);
+
+        await tokenManagerErc20.grantRole(await tokenManagerErc20.SKALE_FEATURES_SETTER_ROLE(), deployer);
+        await tokenManagerErc20.setSkaleFeaturesAddress(skaleFeatures.address);
+
+        await tokenManagerErc721.grantRole(await tokenManagerErc721.SKALE_FEATURES_SETTER_ROLE(), deployer);
+        await tokenManagerErc721.setSkaleFeaturesAddress(skaleFeatures.address);
 
         // IMA schain part registration
         // TODO: register schain here
 
         // IMA registration
-        await imaLinker.connectSchain(schainName, [tokenManagerErc20.address, tokenManagerErc721.address, tokenManagerEth.address], {from: deployer});
+        await imaLinker.connectSchain(schainName, [tokenManagerEth.address, tokenManagerErc20.address, tokenManagerErc721.address], {from: deployer});
 
         // Deploy test tokens
         ERC20TokenOnMainnet = await ERC20OnChain.new("GCERC20", "GCE", {from: deployer});
@@ -228,7 +243,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         // Mint tokens and grant minter role
         await ERC20TokenOnMainnet.mint(user, 100000, {from: deployer});
         const minterRoleERC20 = await ERC20TokenOnSchain.MINTER_ROLE();
-        await ERC20TokenOnSchain.grantRole(minterRoleERC20, TokenManagerErc20.address, {from: deployer});
+        await ERC20TokenOnSchain.grantRole(minterRoleERC20, tokenManagerErc20.address, {from: deployer});
         await ERC721TokenOnMainnet.mint(user, 1, {from: deployer});
         await ERC721TokenOnMainnet.mint(user, 2, {from: deployer});
         await ERC721TokenOnMainnet.mint(user, 3, {from: deployer});
@@ -240,7 +255,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         await ERC721TokenOnMainnet.mint(user, 9, {from: deployer});
         await ERC721TokenOnMainnet.mint(user, 10, {from: deployer});
         const minterRoleERC721 = await ERC721TokenOnSchain.MINTER_ROLE();
-        await ERC721TokenOnSchain.grantRole(minterRoleERC721, TokenManagerErc721.address, {from: deployer});
+        await ERC721TokenOnSchain.grantRole(minterRoleERC721, tokenManagerErc721.address, {from: deployer});
     });
 
     it("calculate eth deposits", async () => {
