@@ -55,7 +55,7 @@ import {
 chai.should();
 chai.use((chaiAsPromised as any));
 
-import { deployIMALinker } from "../test/utils/deploy/mainnet/imaLinker";
+import { deployLinker } from "../test/utils/deploy/mainnet/linker";
 import { deployDepositBoxEth } from "../test/utils/deploy/mainnet/depositBoxEth";
 import { deployDepositBoxERC20 } from "../test/utils/deploy/mainnet/depositBoxERC20";
 import { deployDepositBoxERC721 } from "../test/utils/deploy/mainnet/depositBoxERC721";

@@ -1,15 +1,15 @@
 import { ethers } from "hardhat";
-import { ContractManager, MessageProxyForMainnet, IMALinker, DepositBoxEth } from "../../../../typechain";
+import { ContractManager, MessageProxyForMainnet, Linker, DepositBoxEth } from "../../../../typechain";
 
 export async function deployDepositBoxEth(
     contractManager: ContractManager,
     messageProxy: MessageProxyForMainnet,
-    imaLinker: IMALinker
+    linker: Linker
 
 ) {
     const factory = await ethers.getContractFactory("DepositBoxEth");
     const instance = await factory.deploy() as DepositBoxEth;
-    await instance["initialize(address,address,address)"](contractManager.address, messageProxy.address, imaLinker.address);
-    await imaLinker.registerDepositBox(instance.address);
+    await instance["initialize(address,address,address)"](contractManager.address, linker.address, messageProxy.address);
+    await linker.registerDepositBox(instance.address);
     return instance;
 }
