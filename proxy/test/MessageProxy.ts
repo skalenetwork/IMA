@@ -92,7 +92,7 @@ describe("MessageProxy", () => {
 
     before(async () => {
         [deployer, user, client, customer] = await ethers.getSigners();
-      });
+    });
 
     describe("MessageProxyForMainnet for mainnet", async () => {
 
