@@ -83,6 +83,15 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner]) => {
 
     });
 
+    it("should change depositBox address", async () => {
+        const newDepositBox = user;
+        expect(await tokenManagerERC721.depositBox()).to.equal(messages.address);
+        await tokenManagerERC721.changeDepositBoxAddress(newDepositBox, {from: user})
+          .should.be.eventually.rejectedWith("Sender is not an Schain owner");
+        await tokenManagerERC721.changeDepositBoxAddress(newDepositBox, {from: schainOwner});
+        expect(await tokenManagerERC721.depositBox()).to.equal(newDepositBox);
+      });
+
     it("should successfully call exitToMainERC721", async () => {
         await tokenManagerERC721.exitToMainERC721(token.address, to, tokenId, {from: user})
             .should.be.eventually.rejectedWith("No token clone on schain");
@@ -107,9 +116,6 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner]) => {
     it("should successfully call addERC721TokenByOwner", async () => {
         await tokenManagerERC721.addERC721TokenByOwner(token.address, tokenClone.address, {from: deployer})
             .should.be.eventually.rejectedWith("Sender is not an Schain owner");
-
-        await tokenManagerERC721.addERC721TokenByOwner(deployer, tokenClone.address, {from: schainOwner})
-            .should.be.eventually.rejectedWith("Given address is not a contract");
 
         await tokenManagerERC721.addERC721TokenByOwner(token.address, deployer, {from: schainOwner})
             .should.be.eventually.rejectedWith("Given address is not a contract");
