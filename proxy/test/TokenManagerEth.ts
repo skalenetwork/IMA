@@ -25,7 +25,7 @@
 
 import chaiAsPromised from "chai-as-promised";
 import chai = require("chai");
-import { 
+import {
   EthERC20Tester,
   MessageProxyForSchain,
   MessagesTester,

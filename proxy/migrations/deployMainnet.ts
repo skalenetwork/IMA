@@ -25,13 +25,13 @@
 import { promises as fs } from 'fs';
 import { Interface } from "ethers/lib/utils";
 import { ethers, upgrades, network, run, artifacts } from "hardhat";
-import { MessageProxyForMainnet, IMALinker } from "../typechain";
+import { MessageProxyForMainnet, Linker } from "../typechain";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
 import { verify, verifyProxy } from './tools/verification';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
 
-const jsonData = require( "../data/skaleManagerComponents.json" );
+import jsonData = require("../data/skaleManagerComponents.json");
 
 export function getContractKeyInAbiFile(contract: string) {
     return contract.replace(/([a-zA-Z])(?=[A-Z])/g, '$1_').toLowerCase();
@@ -71,7 +71,7 @@ export async function getContractFactory(contract: string) {
 
 export const contracts = [
     // "MessageProxyForMainnet", // it will be deployed explicitly
-    // "IMALinker", // it will be deployed explicitly
+    // "Linker", // it will be deployed explicitly
 
     "DepositBoxEth",
     "DepositBoxERC20",
@@ -97,7 +97,7 @@ async function main() {
     // }
 
     // const version = await getVersion();
-    let deployed = new Map<string, {address: string, interface: Interface, contract: string}>();
+    const deployed = new Map<string, {address: string, interface: Interface, contract: string}>();
     const contractArtifacts: {address: string, interface: Interface, contract: string}[] = [];
 
     const messageProxyForMainnetName = "MessageProxyForMainnet";
@@ -110,15 +110,15 @@ async function main() {
     contractArtifacts.push({address: messageProxyForMainnet.address, interface: messageProxyForMainnet.interface, contract: messageProxyForMainnetName})
     await verifyProxy(messageProxyForMainnetName, messageProxyForMainnet.address);
 
-    const imaLinkerName = "IMALinker";
-    console.log("Deploy", imaLinkerName);
-    const imaLinkerFactory = await getContractFactory(imaLinkerName);
-    const imaLinker = (await upgrades.deployProxy(imaLinkerFactory, [jsonData.contract_manager_address, deployed.get(messageProxyForMainnetName)?.address], { initializer: 'initialize(address,address)' })) as IMALinker;
-    await imaLinker.deployTransaction.wait();
-    console.log("Proxy Contract", imaLinkerName, "deployed to", imaLinker.address);
-    deployed.set(imaLinkerName, {address: imaLinker.address, interface: imaLinker.interface, contract: imaLinkerName});
-    contractArtifacts.push({address: imaLinker.address, interface: imaLinker.interface, contract: imaLinkerName})
-    await verifyProxy(imaLinkerName, imaLinker.address);
+    const linkerName = "Linker";
+    console.log("Deploy", linkerName);
+    const linkerFactory = await getContractFactory(linkerName);
+    const linker = (await upgrades.deployProxy(linkerFactory, [jsonData.contract_manager_address, deployed.get(messageProxyForMainnetName)?.address], { initializer: 'initialize(address,address)' })) as Linker;
+    await linker.deployTransaction.wait();
+    console.log("Proxy Contract", linkerName, "deployed to", linker.address);
+    deployed.set(linkerName, {address: linker.address, interface: linker.interface, contract: linkerName});
+    contractArtifacts.push({address: linker.address, interface: linker.interface, contract: linkerName})
+    await verifyProxy(linkerName, linker.address);
 
     for (const contract of contracts) {
         const contractFactory = await getContractFactory(contract);
@@ -128,16 +128,16 @@ async function main() {
             [
                 jsonData.contract_manager_address,
                 deployed.get(messageProxyForMainnetName)?.address,
-                deployed.get(imaLinkerName)?.address
+                deployed.get(linkerName)?.address
             ],
             { initializer: 'initialize(address,address,address)' }
         );
         await proxy.deployTransaction.wait();
         const contractName = contract;
         console.log("Register", contract, "as", contractName, "=>", proxy.address);
-        const transaction = await imaLinker.registerDepositBox(proxy.address);
+        const transaction = await linker.registerDepositBox(proxy.address);
         await transaction.wait();
-        console.log( "Contract", contractName, "with address", proxy.address, "is registered as DepositBox in IMALinker" );
+        console.log( "Contract", contractName, "with address", proxy.address, "is registered as DepositBox in Linker" );
         deployed.set(contractName, {address: proxy.address, interface: proxy.interface, contract});
         contractArtifacts.push({address: proxy.address, interface: proxy.interface, contract});
         await verifyProxy(contract, proxy.address);
