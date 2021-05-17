@@ -152,11 +152,10 @@ contract TokenManagerERC721 is TokenManager {
         external
     {
         require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
-        // require( // l_sergiy: TO-FIX later
-        //     erc721OnMainnet.isContract() &&
-        //     address(erc721OnSchain).isContract(),
-        //     "Given address is not a contract"
-        // );
+        require(
+            address(erc721OnSchain).isContract(),
+            "Given address is not a contract"
+        );
         clonesErc721[erc721OnMainnet] = erc721OnSchain;
         emit ERC721TokenAdded(erc721OnMainnet, address(erc721OnSchain));
     }

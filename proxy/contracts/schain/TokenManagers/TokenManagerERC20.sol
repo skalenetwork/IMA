@@ -198,11 +198,10 @@ contract TokenManagerERC20 is TokenManager {
         external 
     {
         require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
-        // require(  // l_sergiy: TO-FIX later
-        //     erc20OnMainnet.isContract() &&
-        //     address(erc20OnSchain).isContract(),
-        //     "Given address is not a contract"
-        // );
+        require(
+            address(erc20OnSchain).isContract(),
+            "Given address is not a contract"
+        );
         require(erc20OnSchain.totalSupply() == 0, "TotalSupply is not zero");
         clonesErc20[erc20OnMainnet] = erc20OnSchain;
         emit ERC20TokenAdded(erc20OnMainnet, address(erc20OnSchain));
