@@ -23,6 +23,7 @@
  * @copyright SKALE Labs 2019-Present
  */
 import { promises as fs } from 'fs';
+import { existsSync } from 'fs';
 import { Interface } from "ethers/lib/utils";
 import { ethers, upgrades, network, run, artifacts } from "hardhat";
 import { MessageProxyForMainnet, Linker } from "../typechain";
@@ -30,8 +31,6 @@ import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
 import { verify, verifyProxy } from './tools/verification';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
-
-import jsonData = require("../data/skaleManagerComponents.json");
 
 export function getContractKeyInAbiFile(contract: string) {
     return contract.replace(/([a-zA-Z])(?=[A-Z])/g, '$1_').toLowerCase();
@@ -69,6 +68,19 @@ export async function getContractFactory(contract: string) {
     return await getLinkedContractFactory(contract, libraries);
 }
 
+
+function getContractManager() {
+    const defaultFilePath = "../data/skaleManagerComponents.json";
+    const jsonData = require(defaultFilePath);
+    try {
+        const contractManagerAddress = jsonData.contract_manager_address;
+        return contractManagerAddress;
+    } catch (e) {
+        console.log(e);
+        process.exit( 126 );
+    } 
+}
+
 export const contracts = [
     // "MessageProxyForMainnet", // it will be deployed explicitly
     // "Linker", // it will be deployed explicitly
@@ -100,10 +112,12 @@ async function main() {
     const deployed = new Map<string, {address: string, interface: Interface, contract: string}>();
     const contractArtifacts: {address: string, interface: Interface, contract: string}[] = [];
 
+    const contractManagerAddress = getContractManager();
+
     const messageProxyForMainnetName = "MessageProxyForMainnet";
     console.log("Deploy", messageProxyForMainnetName);
     const messageProxyForMainnetFactory = await getContractFactory(messageProxyForMainnetName);
-    const messageProxyForMainnet = (await upgrades.deployProxy(messageProxyForMainnetFactory, [jsonData.contract_manager_address], { initializer: 'initialize(address)' })) as MessageProxyForMainnet;
+    const messageProxyForMainnet = (await upgrades.deployProxy(messageProxyForMainnetFactory, [contractManagerAddress], { initializer: 'initialize(address)' })) as MessageProxyForMainnet;
     await messageProxyForMainnet.deployTransaction.wait();
     console.log("Proxy Contract", messageProxyForMainnetName, "deployed to", messageProxyForMainnet.address);
     deployed.set(messageProxyForMainnetName, {address: messageProxyForMainnet.address, interface: messageProxyForMainnet.interface, contract: messageProxyForMainnetName})
@@ -113,7 +127,7 @@ async function main() {
     const linkerName = "Linker";
     console.log("Deploy", linkerName);
     const linkerFactory = await getContractFactory(linkerName);
-    const linker = (await upgrades.deployProxy(linkerFactory, [jsonData.contract_manager_address, deployed.get(messageProxyForMainnetName)?.address], { initializer: 'initialize(address,address)' })) as Linker;
+    const linker = (await upgrades.deployProxy(linkerFactory, [deployed.get(messageProxyForMainnetName)?.address], { initializer: 'initialize(address)' })) as Linker;
     await linker.deployTransaction.wait();
     console.log("Proxy Contract", linkerName, "deployed to", linker.address);
     deployed.set(linkerName, {address: linker.address, interface: linker.interface, contract: linkerName});
@@ -126,7 +140,7 @@ async function main() {
         const proxy = await upgrades.deployProxy(
             contractFactory,
             [
-                jsonData.contract_manager_address,
+                contractManagerAddress,
                 deployed.get(messageProxyForMainnetName)?.address,
                 deployed.get(linkerName)?.address
             ],
@@ -170,20 +184,20 @@ async function main() {
 
     await fs.writeFile("data/proxyMainnet.json", JSON.stringify(outputObject, null, 4));
 
-    // if( jsonData.contract_manager_address !== null && jsonData.contract_manager_address !== "" && jsonData.contract_manager_address !== "0x0000000000000000000000000000000000000000" ) {
+    // if( contractManagerAddress !== null && contractManagerAddress !== "" && contractManagerAddress !== "0x0000000000000000000000000000000000000000" ) {
     //     // register MessageProxy in ContractManager
     //     if( jsonData.contract_manager_abi !== "" && jsonData.contract_manager_abi !== undefined ) {
     //         if( configFile.networks[networkName].host !== "" && configFile.networks[networkName].host !== undefined && configFile.networks[networkName].port !== "" && configFile.networks[networkName].port !== undefined ) {
     //             const web3 = new Web3( new Web3.providers.HttpProvider( "http://" + configFile.networks[networkName].host + ":" + configFile.networks[networkName].port ) );
-    //             if( await web3.eth.getCode( jsonData.contract_manager_address ) !== "0x" ) {
-    //                 const contractManager = new web3.eth.Contract( jsonData.contract_manager_abi, jsonData.contract_manager_address );
+    //             if( await web3.eth.getCode( contractManagerAddress ) !== "0x" ) {
+    //                 const contractManager = new web3.eth.Contract( jsonData.contract_manager_abi, contractManagerAddress );
     //                 const methodRegister = await contractManager.methods.setContractsAddress( "MessageProxyForMainnet", deployed.get( "MessageProxyForMainnet" ).address ).encodeABI();
     //                 const ownerAddress = await contractManager.methods.owner().call();
     //                 if( await web3.utils.toChecksumAddress( ownerAddress ) !== await web3.utils.toChecksumAddress( deployAccount ) )
     //                     console.log( "Owner of ContractManager is not the same of the deployer" );
     //                 else {
     //                     try {
-    //                         await web3.eth.sendTransaction( { from: deployAccount, to: jsonData.contract_manager_address, data: methodRegister } );
+    //                         await web3.eth.sendTransaction( { from: deployAccount, to: contractManagerAddress, data: methodRegister } );
     //                         console.log( "Successfully registered MessageProxy in ContractManager" );
     //                     } catch ( error ) {
     //                         console.log( "Registration of MessageProxy is failed on ContractManager. Please redo it by yourself!\nError:", error );
@@ -194,8 +208,8 @@ async function main() {
 
     //         } else if( configFile.networks[networkName].provider !== "" && configFile.networks[networkName].provider !== undefined ) {
     //             const web3 = new Web3( configFile.networks[networkName].provider() );
-    //             if( await web3.eth.getCode( jsonData.contract_manager_address ) !== "0x" ) {
-    //                 const contractManager = new web3.eth.Contract( jsonData.contract_manager_abi, jsonData.contract_manager_address );
+    //             if( await web3.eth.getCode( contractManagerAddress ) !== "0x" ) {
+    //                 const contractManager = new web3.eth.Contract( jsonData.contract_manager_abi, contractManagerAddress );
     //                 const methodRegister = await contractManager.methods.setContractsAddress( "MessageProxyForMainnet", deployed.get( "MessageProxyForMainnet" ).address ).encodeABI();
     //                 const ownerAddress = await contractManager.methods.owner().call();
     //                 if( await web3.utils.toChecksumAddress( ownerAddress ) !== await web3.utils.toChecksumAddress( deployAccount ) )
@@ -206,7 +220,7 @@ async function main() {
     //                         const tx = {
     //                             nonce: nonceNumber,
     //                             from: deployAccount,
-    //                             to: jsonData.contract_manager_address,
+    //                             to: contractManagerAddress,
     //                             gas: "150000",
     //                             data: methodRegister
     //                         };
