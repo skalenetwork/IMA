@@ -40,7 +40,6 @@ chai.use((chaiAsPromised as any));
 
 import { deployTokenManagerERC20 } from "./utils/deploy/schain/tokenManagerERC20";
 import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
-// const MessageProxyForSchainTester: MessageProxyForSchainTesterContract = artifacts.require("./MessageProxyForSchainTester");
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 import { deploySkaleFeaturesMock } from "./utils/deploy/test/skaleFeaturesMock";
