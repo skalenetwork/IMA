@@ -64,7 +64,7 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner]) => {
     let messageProxyForSchain: MessageProxyForSchainTesterInstance;
 
     beforeEach(async () => {
-        messageProxyForSchain = await MessageProxyForSchainTester.new(schainName);
+        messageProxyForSchain = await MessageProxyForSchainTester.new();
         tokenManagerLinker = await TokenManagerLinker.new(messageProxyForSchain.address);
         messages = await MessagesTester.new();
         const fakeDepositBox =  messages;

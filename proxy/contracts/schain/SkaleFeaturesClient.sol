@@ -21,12 +21,12 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 import "./SkaleFeatures.sol";
 
 
-contract SkaleFeaturesClient is AccessControl {
+contract SkaleFeaturesClient is AccessControlUpgradeable {
 
     bytes32 public constant SKALE_FEATURES_SETTER_ROLE = keccak256("SKALE_FEATURES_SETTER_ROLE");
 

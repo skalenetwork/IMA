@@ -26,9 +26,9 @@ import "../schain/MessageProxyForSchain.sol";
 
 contract MessageProxyForSchainTester is MessageProxyForSchain {    
 
-    constructor(string memory newChainName) public MessageProxyForSchain(newChainName)
-        // solhint-disable-next-line no-empty-blocks 
-    { }
+    constructor() public {
+        MessageProxyForSchain.initialize();
+    }
 
     function postMessage(
         IContractReceiverForSchain targetContract,

@@ -20,8 +20,7 @@ contract("ERC721OnChain", ([user, deployer]) => {
     let eRC721OnChain: ERC721OnChainInstance;
 
     beforeEach(async () => {
-      messageProxy = await MessageProxyForSchain.new(
-        "Mainnet", {from: deployer});
+      messageProxy = await MessageProxyForSchain.new();
       eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721", {from: deployer});
     });
 

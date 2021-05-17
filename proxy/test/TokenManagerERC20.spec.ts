@@ -71,7 +71,7 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner]) => {
     messages = await MessagesTester.new();
     fakeDepositBox = messages.address;
 
-    messageProxyForSchain = await MessageProxyForSchainTester.new(schainName);
+    messageProxyForSchain = await MessageProxyForSchainTester.new();
     tokenManagerLinker = await TokenManagerLinker.new(messageProxyForSchain.address);
     tokenManagerErc20 = await TokenManagerErc20.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, fakeDepositBox);
     await erc20OnChain.grantRole(await erc20OnChain.MINTER_ROLE(), tokenManagerErc20.address);

@@ -87,8 +87,6 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
     bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
 
-    bool public mainnetConnected;
-
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     //      chainID  =>      message_id  => MessageData
     mapping(bytes32 => mapping(uint256 => bytes32)) private _outgoingMessageDataHash;
@@ -110,20 +108,6 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         bytes message
     );
 
-    modifier connectMainnet() {
-        if (!mainnetConnected) {
-            connectedChains[
-                keccak256(abi.encodePacked("Mainnet"))
-            ] = ConnectedChainInfo(
-                0,
-                0,
-                true
-            );
-            mainnetConnected = true;
-        }
-        _;
-    }
-
     modifier onlyDebugger() {
         require(hasRole(DEBUGGER_ROLE, msg.sender), "DEBUGGER_ROLE is required");
         _;
@@ -134,22 +118,20 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         _;
     }
 
-    /// Create a new message proxy
-
-    constructor(string memory newChainID) public {
-        if (keccak256(abi.encodePacked(newChainID)) !=
-            keccak256(abi.encodePacked("Mainnet"))
-        ) {
-            connectedChains[
-                keccak256(abi.encodePacked("Mainnet"))
-            ] = ConnectedChainInfo(
-                0,
-                0,
-                true
-            );
-            mainnetConnected = true;
-        }
+    function initialize()
+        public
+        virtual
+        initializer
+    {
+        AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        connectedChains[
+            keccak256(abi.encodePacked("Mainnet"))
+        ] = ConnectedChainInfo(
+            0,
+            0,
+            true
+        );
     }
 
     // Registration state detection
@@ -176,7 +158,6 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         string calldata newChainID
     )
         external
-        connectMainnet
         onlyChainConnector
     {
         if (keccak256(abi.encodePacked(newChainID)) ==
@@ -265,7 +246,6 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         uint256 idxLastToPopNotIncluding
     )
         external
-        connectMainnet
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
         require(_verifyMessages(_hashedArray(messages), signature), "Signature is not verified");

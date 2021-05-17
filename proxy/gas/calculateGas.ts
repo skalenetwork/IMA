@@ -210,7 +210,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         messages = await MessagesTester.new();
 
         // IMA schain part deployment
-        messageProxyForSchain = await MessageProxyForSchain.new(schainName, {from: deployer});
+        messageProxyForSchain = await MessageProxyForSchain.new({from: deployer});
         tokenManagerLinker = await TokenManagerLinker.new(messageProxyForSchain.address);
         tokenManagerErc20 = await TokenManagerErc20.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBoxERC20.address);
         tokenManagerErc721 = await TokenManagerErc721.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBoxERC721.address);

@@ -55,7 +55,7 @@ const SkaleFeaturesMock: SkaleFeaturesMockContract = artifacts.require("./SkaleF
 
 const schainName = "TestSchain";
 
-contract("TokenManagerEth", ([user, deployer]) => {
+contract("TokenManagerEth", ([deployer, user]) => {
   let tokenManagerEth: TokenManagerEthInstance;
   let tokenManagerLinker: TokenManagerLinkerInstance;
   let messageProxyForSchain: MessageProxyForSchainInstance;
@@ -65,13 +65,8 @@ contract("TokenManagerEth", ([user, deployer]) => {
   let fakeDepositBox: any;
 
   beforeEach(async () => {
-    messageProxyForSchain = await MessageProxyForSchain.new(
-      schainName,
-      {
-        from: deployer,
-        gas: 8000000 * gasMultiplier
-      }
-    );
+    messageProxyForSchain = await MessageProxyForSchain.new();
+    await messageProxyForSchain.initialize();
     tokenManagerLinker = await TokenManagerLinker.new(
       messageProxyForSchain.address,
       {

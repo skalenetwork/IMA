@@ -60,7 +60,8 @@ contract("TokenManagerLinker", ([deployer, user, user2]) => {
   let fakeDepositBox: any;
 
   beforeEach(async () => {
-    messageProxy = await MessageProxyForSchain.new(schainName);
+    messageProxy = await MessageProxyForSchain.new();
+    await messageProxy.initialize();
     linker = await TokenManagerLinker.new(messageProxy.address);
     fakeDepositBox = linker.address;
     tokenManagerEth = await TokenManagerEth.new(schainName, messageProxy.address, linker.address, fakeDepositBox);

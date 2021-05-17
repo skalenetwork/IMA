@@ -397,7 +397,8 @@ contract("MessageProxy", ([deployer, user, client, customer]) => {
     describe("MessageProxyForSchain for schain", async () => {
 
         beforeEach(async () => {
-            messageProxyForSchain = await MessageProxyForSchain.new("MyChain", {from: deployer});
+            messageProxyForSchain = await MessageProxyForSchain.new({from: deployer});
+            await messageProxyForSchain.initialize();
             const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
             await messageProxyForSchain.grantRole(chainConnectorRole, deployer, {from: deployer});
         });
