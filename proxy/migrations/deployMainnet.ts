@@ -78,7 +78,7 @@ function getContractManager() {
     } catch (e) {
         console.log(e);
         process.exit( 126 );
-    } 
+    }
 }
 
 export const contracts = [
