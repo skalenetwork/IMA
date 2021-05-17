@@ -33,7 +33,7 @@ import { verify, verifyProxy } from './tools/verification';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
 
 export function getContractKeyInAbiFile(contract: string) {
-    return contract.replace(/([a-zA-Z])(?=[A-Z])/g, '$1_').toLowerCase();
+    return contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
 }
 
 export async function getManifestFile(): Promise<string> {
