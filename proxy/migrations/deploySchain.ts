@@ -25,7 +25,7 @@
 import { promises as fs } from 'fs';
 import { Interface } from "ethers/lib/utils";
 import { ethers, upgrades, network, run, artifacts, web3 } from "hardhat";
-import { ERC20OnChain, ERC721OnChain } from "../typechain";
+import { ERC20OnChain, ERC721OnChain, MessageProxyForSchainWithoutSignature } from "../typechain";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
 import { verify, verifyProxy } from './tools/verification';
@@ -104,7 +104,7 @@ async function main() {
     let messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchain");
     if( process.env.NO_SIGNATURES === "true" ) {
         console.log( "Deploy IMA without signature verification" );
-        messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchainWithoutSignatures");
+        messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchainWithoutSignature");
     }
     const deployed = new Map<string, {address: string, interface: Interface, bytecode: string}>();
 
