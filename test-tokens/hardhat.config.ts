@@ -50,7 +50,7 @@ task("mint-erc20", "Mint ERC20 Token")
         const contractName = "ERC20Example";
         const erc20Factory = await ethers.getContractFactory(contractName);
         const erc20 = erc20Factory.attach(taskArgs.tokenAddress);
-        const amount = web3.utils.toBN(taskArgs.amount).mul(web3.utils.toBN(10 ** 18)).toString()
+        const amount = ethers.BigNumber.from(taskArgs.amount).mul(ethers.BigNumber.from(10 ** 18)).toString()
         const res = await(await erc20.mint(taskArgs.receiverAddress, amount)).wait();
         console.log("ERC20 Token at address:", taskArgs.tokenAddress);
         console.log("Minted tokens amount:", taskArgs.amount, "to address", taskArgs.receiverAddress);
