@@ -106,11 +106,11 @@ describe("TokenManagerEth", () => {
   });
 
   it("should change depositBox address", async () => {
-    const newDepositBox = user;
+    const newDepositBox = user.address;
     expect(await tokenManagerEth.depositBox()).to.equal(fakeDepositBox);
-    await tokenManagerEth.changeDepositBoxAddress(newDepositBox, {from: user})
+    await tokenManagerEth.connect(user).changeDepositBoxAddress(newDepositBox)
       .should.be.eventually.rejectedWith("Sender is not an Schain owner");
-    await tokenManagerEth.changeDepositBoxAddress(newDepositBox, {from: deployer});
+    await tokenManagerEth.connect(deployer).changeDepositBoxAddress(newDepositBox);
     expect(await tokenManagerEth.depositBox()).to.equal(newDepositBox);
   });
 

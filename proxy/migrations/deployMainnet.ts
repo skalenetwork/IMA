@@ -23,9 +23,8 @@
  * @copyright SKALE Labs 2019-Present
  */
 import { promises as fs } from 'fs';
-import { existsSync } from 'fs';
 import { Interface } from "ethers/lib/utils";
-import { ethers, upgrades, network, run, artifacts, web3 } from "hardhat";
+import { ethers, upgrades, artifacts, web3 } from "hardhat";
 import { MessageProxyForMainnet, Linker } from "../typechain";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
@@ -82,10 +81,15 @@ function getContractManager() {
     }
 }
 
-export const contracts = [
-    // "MessageProxyForMainnet", // it will be deployed explicitly
-    // "Linker", // it will be deployed explicitly
+export const contractsToDeploy = [
+    "DepositBoxEth",
+    "DepositBoxERC20",
+    "DepositBoxERC721"
+]
 
+export const contracts = [
+    "MessageProxyForMainnet",
+    "Linker",
     "DepositBoxEth",
     "DepositBoxERC20",
     "DepositBoxERC721"
@@ -93,59 +97,57 @@ export const contracts = [
 
 async function main() {
     const [ owner,] = await ethers.getSigners();
-    // if (await ethers.provider.getCode("0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24") === "0x") {
-    //     await run("erc1820");
-    // }
-
-    // let production = false;
-
-    // if (process.env.PRODUCTION === "true") {
-    //     production = true;
-    // } else if (process.env.PRODUCTION === "false") {
-    //     production = false;
-    // }
-
-    // if (!production) {
-    //     contracts.push("TimeHelpersWithDebug");
-    // }
-
-    // const version = await getVersion();
-    const deployed = new Map<string, {address: string, interface: Interface, contract: string}>();
-    const contractArtifacts: {address: string, interface: Interface, contract: string}[] = [];
+    const deployed = new Map<string, {address: string, interface: Interface}>();
 
     const contractManager = getContractManager();
 
     const messageProxyForMainnetName = "MessageProxyForMainnet";
     console.log("Deploy", messageProxyForMainnetName);
     const messageProxyForMainnetFactory = await getContractFactory(messageProxyForMainnetName);
-    const messageProxyForMainnet = (await upgrades.deployProxy(messageProxyForMainnetFactory, [contractManager.address], { initializer: 'initialize(address)' })) as MessageProxyForMainnet;
+    const messageProxyForMainnet = (
+        await upgrades.deployProxy(messageProxyForMainnetFactory, [contractManager?.address], { initializer: 'initialize(address)' })
+    ) as MessageProxyForMainnet;
     await messageProxyForMainnet.deployTransaction.wait();
     console.log("Proxy Contract", messageProxyForMainnetName, "deployed to", messageProxyForMainnet.address);
-    deployed.set(messageProxyForMainnetName, {address: messageProxyForMainnet.address, interface: messageProxyForMainnet.interface, contract: messageProxyForMainnetName})
-    contractArtifacts.push({address: messageProxyForMainnet.address, interface: messageProxyForMainnet.interface, contract: messageProxyForMainnetName})
+    deployed.set(
+        messageProxyForMainnetName,
+        {
+            address: messageProxyForMainnet.address,
+            interface: messageProxyForMainnet.interface
+        }
+    );
     await verifyProxy(messageProxyForMainnetName, messageProxyForMainnet.address);
 
     const linkerName = "Linker";
     console.log("Deploy", linkerName);
     const linkerFactory = await getContractFactory(linkerName);
-    const linker = (await upgrades.deployProxy(linkerFactory, [deployed.get(messageProxyForMainnetName)?.address], { initializer: 'initialize(address)' })) as Linker;
+    const linker = (
+        await upgrades.deployProxy(linkerFactory, [deployed.get(messageProxyForMainnetName)?.address], { initializer: 'initialize(address)' })
+    ) as Linker;
     await linker.deployTransaction.wait();
     console.log("Proxy Contract", linkerName, "deployed to", linker.address);
-    deployed.set(linkerName, {address: linker.address, interface: linker.interface, contract: linkerName});
-    contractArtifacts.push({address: linker.address, interface: linker.interface, contract: linkerName})
+    deployed.set(
+        linkerName,
+        {
+            address: linker.address,
+            interface: linker.interface
+        }
+    );
     await verifyProxy(linkerName, linker.address);
 
-    for (const contract of contracts) {
+    for (const contract of contractsToDeploy) {
         const contractFactory = await getContractFactory(contract);
         console.log("Deploy", contract);
         const proxy = await upgrades.deployProxy(
             contractFactory,
             [
-                contractManager.address,
+                contractManager?.address,
                 deployed.get(linkerName)?.address,
                 deployed.get(messageProxyForMainnetName)?.address
             ],
-            { initializer: 'initialize(address,address,address)' }
+            { 
+                initializer: 'initialize(address,address,address)'
+            }
         );
         await proxy.deployTransaction.wait();
         const contractName = contract;
@@ -153,46 +155,35 @@ async function main() {
         const transaction = await linker.registerDepositBox(proxy.address);
         await transaction.wait();
         console.log( "Contract", contractName, "with address", proxy.address, "is registered as DepositBox in Linker" );
-        deployed.set(contractName, {address: proxy.address, interface: proxy.interface, contract});
-        contractArtifacts.push({address: proxy.address, interface: proxy.interface, contract});
+        deployed.set(
+            contractName,
+            {
+                address: proxy.address,
+                interface: proxy.interface
+            }
+        );
         await verifyProxy(contract, proxy.address);
     }
-
-    // const skaleTokenName = "SkaleToken";
-    // console.log("Deploy", skaleTokenName);
-    // const skaleTokenFactory = await ethers.getContractFactory(skaleTokenName);
-    // const skaleToken = await skaleTokenFactory.deploy(contractManager.address, []);
-    // await skaleToken.deployTransaction.wait();
-    // console.log("Register", skaleTokenName);
-    // await (await contractManager.setContractsAddress(skaleTokenName, skaleToken.address)).wait();
-    // contractArtifacts.push({address: skaleToken.address, interface: skaleToken.interface, contract: skaleTokenName});
-    // await verify(skaleTokenName, skaleToken.address);
-
-    // if (!production) {
-    //     console.log("Do actions for non production deployment");
-    //     const money = "5000000000000000000000000000"; // 5e9 * 1e18
-    //     await skaleToken.mint(owner.address, money, "0x", "0x");
-    // }
 
     console.log("Store ABIs");
 
     const outputObject: {[k: string]: any} = {};
-    for (const artifact of contractArtifacts) {
-        let contractKey = getContractKeyInAbiFile(artifact.contract);
-        if (artifact.contract === "MessageProxyForMainnet") {
+    for (const contract of contracts) {
+        let contractKey = getContractKeyInAbiFile(contract);
+        if (contract === "MessageProxyForMainnet") {
             contractKey = "message_proxy_mainnet";
         }
-        outputObject[contractKey + "_address"] = artifact.address;
-        outputObject[contractKey + "_abi"] = getAbi(artifact.interface);
+        outputObject[contractKey + "_address"] = deployed.get(contract)?.address;
+        outputObject[contractKey + "_abi"] = getAbi(deployed.get(contract)?.interface);
     }
 
     await fs.writeFile("data/proxyMainnet.json", JSON.stringify(outputObject, null, 4));
 
-    if( contractManager.address !== null && contractManager.address !== "" && contractManager.address !== "0x0000000000000000000000000000000000000000" ) {
+    if( contractManager?.address !== null && contractManager?.address !== "" && contractManager?.address !== "0x0000000000000000000000000000000000000000" ) {
         // register MessageProxy in ContractManager
-        if( contractManager.abi !== "" && contractManager.abi !== undefined ) {
-            if( await web3.eth.getCode( contractManager.address) !== "0x") {
-                const contractManagerInst = new ethers.Contract(contractManager.address, contractManager.abi, owner);
+        if( contractManager?.abi !== "" && contractManager?.abi !== undefined ) {
+            if( await web3.eth.getCode( contractManager?.address) !== "0x") {
+                const contractManagerInst = new ethers.Contract(contractManager?.address, contractManager?.abi, owner);
                 if (await contractManagerInst.owner() !== owner.address) {
                     console.log( "Owner of ContractManager is not the same of the deployer" );
                 } else {

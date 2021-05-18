@@ -23,12 +23,9 @@
  * @copyright SKALE Labs 2021-Present
  */
 import { promises as fs } from 'fs';
-import { existsSync } from 'fs';
-import { Interface } from "ethers/lib/utils";
-import { ethers, upgrades, network, run, artifacts, web3 } from "hardhat";
+import { ethers, artifacts, web3 } from "hardhat";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
-import { verify, verifyProxy } from './tools/verification';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
 
 export function getContractKeyInAbiFile(contract: string) {

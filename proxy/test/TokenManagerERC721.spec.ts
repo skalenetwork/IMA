@@ -91,11 +91,11 @@ describe("TokenManagerERC721", () => {
     });
 
     it("should change depositBox address", async () => {
-        const newDepositBox = user;
+        const newDepositBox = user.address;
         expect(await tokenManagerERC721.depositBox()).to.equal(messages.address);
-        await tokenManagerERC721.changeDepositBoxAddress(newDepositBox, {from: user})
+        await tokenManagerERC721.connect(user).changeDepositBoxAddress(newDepositBox)
           .should.be.eventually.rejectedWith("Sender is not an Schain owner");
-        await tokenManagerERC721.changeDepositBoxAddress(newDepositBox, {from: schainOwner});
+        await tokenManagerERC721.connect(schainOwner).changeDepositBoxAddress(newDepositBox);
         expect(await tokenManagerERC721.depositBox()).to.equal(newDepositBox);
       });
 

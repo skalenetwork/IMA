@@ -94,11 +94,11 @@ describe("TokenManagerERC20", () => {
   });
 
   it("should change depositBox address", async () => {
-    const newDepositBox = user;
+    const newDepositBox = user.address;
     expect(await tokenManagerErc20.depositBox()).to.equal(fakeDepositBox);
-    await tokenManagerErc20.changeDepositBoxAddress(newDepositBox, {from: user})
+    await tokenManagerErc20.connect(user).changeDepositBoxAddress(newDepositBox)
       .should.be.eventually.rejectedWith("Sender is not an Schain owner");
-    await tokenManagerErc20.changeDepositBoxAddress(newDepositBox, {from: schainOwner});
+    await tokenManagerErc20.connect(schainOwner).changeDepositBoxAddress(newDepositBox);
     expect(await tokenManagerErc20.depositBox()).to.equal(newDepositBox);
   });
 
