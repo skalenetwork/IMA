@@ -98,7 +98,7 @@ async function main() {
     console.log("Contract Wallets deployed to", wallets.address);
 
     console.log("Deploy SkaleVerifier");
-    const skaleVerifierFactory = await getContractFactory("SkaleVerifier");
+    const skaleVerifierFactory = await getContractFactory("SkaleVerifierMock");
     const skaleVerifier = await skaleVerifierFactory.deploy();
     console.log("Contract SkaleVerifier deployed to", skaleVerifier.address);
 
