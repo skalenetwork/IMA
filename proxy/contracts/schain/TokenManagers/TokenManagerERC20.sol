@@ -97,9 +97,9 @@ contract TokenManagerERC20 is TokenManager {
         
         contractOnSchain.burn(amount);
         
-        messageProxy.postOutgoingMessage(
+        getMessageProxy().postOutgoingMessage(
             MAINNET_NAME,
-            depositBox,
+            getDepositBoxERC20Address(),
             Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
         );
     }
@@ -140,7 +140,7 @@ contract TokenManagerERC20 is TokenManager {
 
         contractOnSchain.burn(amount);
 
-        messageProxy.postOutgoingMessage(
+        getMessageProxy().postOutgoingMessage(
             targetSchainName,
             tokenManagers[targetSchainId],
             Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
@@ -165,14 +165,14 @@ contract TokenManagerERC20 is TokenManager {
     )
         external
         override
+        onlyMessageProxy
         returns (bool)
     {
-        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
         require(
-            fromChainId != schainId && 
+            fromChainId != getSchainHash() && 
                 (
                     fromChainId == MAINNET_ID ?
-                    sender == depositBox :
+                    sender == getDepositBoxERC20Address() :
                     sender == tokenManagers[fromChainId]
                 ),
             "Receiver chain is incorrect"
@@ -206,6 +206,13 @@ contract TokenManagerERC20 is TokenManager {
         require(erc20OnSchain.totalSupply() == 0, "TotalSupply is not zero");
         clonesErc20[erc20OnMainnet] = erc20OnSchain;
         emit ERC20TokenAdded(erc20OnMainnet, address(erc20OnSchain));
+    }
+
+    function getDepositBoxERC20Address() public view returns (address) {
+        if (depositBox == address(0)) {
+            return getSkaleFeatures().getConfigVariableAddress("skaleConfig.contractSettings.IMA.DepositBoxERC20");
+        }
+        return depositBox;
     }
 
     /**

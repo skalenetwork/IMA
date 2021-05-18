@@ -58,6 +58,11 @@ abstract contract TokenManager is SkaleFeaturesClient {
         _;
     }
 
+    modifier onlyMessageProxy() {
+        require(msg.sender == address(getMessageProxy()), "Sender is not a MessageProxy");
+        _;
+    }
+
     constructor(
         string memory newSchainName,
         MessageProxyForSchain newMessageProxy,
@@ -161,6 +166,39 @@ abstract contract TokenManager is SkaleFeaturesClient {
         return tokenManagers[keccak256(abi.encodePacked(schainName))] != address(0);
     }
 
+    function getSchainHash() public view returns (bytes32) {
+        if (schainId == bytes32(0)) {
+            return keccak256(
+                abi.encodePacked(
+                    getSkaleFeatures().getConfigVariableString("skaleConfig.sChain.schainName")
+                )
+            );
+        }
+        return schainId;
+    }
+
+    function getTokenManagerLinker() public view returns (TokenManagerLinker) {
+        if (address(tokenManagerLinker) == address(0)) {
+            return TokenManagerLinker(
+                getSkaleFeatures().getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.TokenManagerLinker"
+                )
+            );
+        }
+        return tokenManagerLinker;
+    }
+
+    function getMessageProxy() public view returns (MessageProxyForSchain) {
+        if (address(messageProxy) == address(0)) {
+            return MessageProxyForSchain(
+                getSkaleFeatures().getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.MessageProxyForSchain"
+                )
+            );
+        }
+        return messageProxy;
+    }
+
     // private
 
     /**
@@ -171,4 +209,6 @@ abstract contract TokenManager is SkaleFeaturesClient {
             "skaleConfig.contractSettings.IMA.ownerAddress"
         );
     }
+
+
 }

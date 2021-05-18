@@ -75,10 +75,10 @@ contract TokenManagerEth is TokenManager {
      */
     function exitToMain(address to, uint256 amount) external receivedEth(amount) {
         require(to != address(0), "Incorrect receiver address");
-        communityLocker.checkAllowedToSendMessage(to);
-        messageProxy.postOutgoingMessage(
+        getCommunityLocker().checkAllowedToSendMessage(to);
+        getMessageProxy().postOutgoingMessage(
             "Mainnet",
-            depositBox,
+            getDepositBoxEthAddress(),
             Messages.encodeTransferEthMessage(to, amount)
         );
     }
@@ -98,7 +98,7 @@ contract TokenManagerEth is TokenManager {
         );
         require(tokenManagers[targetSchainId] != address(0), "Incorrect Token Manager address");
         require(to != address(0), "Incorrect receiver address");
-        messageProxy.postOutgoingMessage(
+        getMessageProxy().postOutgoingMessage(
             targetSchainName,
             tokenManagers[targetSchainId],
             Messages.encodeTransferEthMessage(to, amount)
@@ -123,14 +123,14 @@ contract TokenManagerEth is TokenManager {
     )
         external
         override
+        onlyMessageProxy
         returns (bool)
     {
-        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
         require(
-            fromChainId != schainId && 
+            fromChainId != getSchainHash() && 
                 (
                     fromChainId == MAINNET_ID ?
-                    sender == depositBox :
+                    sender == getDepositBoxEthAddress() :
                     sender == tokenManagers[fromChainId]
                 ),
             "Receiver chain is incorrect"
@@ -151,5 +151,12 @@ contract TokenManagerEth is TokenManager {
             );
         }
         return _ethErc20;
+    }
+
+    function getDepositBoxEthAddress() public view returns (address) {
+        if (depositBox == address(0)) {
+            return getSkaleFeatures().getConfigVariableAddress("skaleConfig.contractSettings.IMA.DepositBoxEth");
+        }
+        return depositBox;
     }
 }
