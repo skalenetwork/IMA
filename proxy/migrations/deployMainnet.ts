@@ -145,7 +145,7 @@ async function main() {
                 deployed.get(linkerName)?.address,
                 deployed.get(messageProxyForMainnetName)?.address
             ],
-            { 
+            {
                 initializer: 'initialize(address,address,address)'
             }
         );
