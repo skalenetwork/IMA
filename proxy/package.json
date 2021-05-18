@@ -30,7 +30,7 @@
         "dotenv": "^8.2.0",
         "ethereumjs-tx": "2.1.2",
         "path": "^0.12.7",
-        "@truffle/hdwallet-provider": "1.0.18",
+        "@truffle/hdwallet-provider": "1.4.0",
         "truffle": "5.2.3",
         "truffle-plugin-verify": "^0.5.8"
     },
