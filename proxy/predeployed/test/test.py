@@ -39,8 +39,9 @@ def check_message_proxy_for_schain():
     message_proxy_for_schain = w3.eth.contract(address=MESSAGE_PROXY_FOR_SCHAIN_ADDRESS,
                                                abi=load_abi(MessageProxyForSchainGenerator.ARTIFACT_FILENAME))
     assert message_proxy_for_schain.functions.getRoleMember(
-        MessageProxyForSchainGenerator.DEFAULT_ADMIN_ROLE.to_bytes(32, 'big'), 0) == owner_address
-    assert message_proxy_for_schain.functions.hasRole(MessageProxyForSchainGenerator.DEFAULT_ADMIN_ROLE, owner_address)
+        MessageProxyForSchainGenerator.DEFAULT_ADMIN_ROLE, 0).call() == owner_address
+    assert message_proxy_for_schain.functions.hasRole(
+        MessageProxyForSchainGenerator.DEFAULT_ADMIN_ROLE, owner_address).call()
 
 
 def main():

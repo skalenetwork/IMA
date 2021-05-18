@@ -1,9 +1,26 @@
-from ..contract_generator import ContractGenerator, calculate_mapping_value_slot
+from ..contract_generator import ContractGenerator, calculate_mapping_value_slot, calculate_array_value_slot
 
 
 class MessageProxyForSchainGenerator(ContractGenerator):
     ARTIFACT_FILENAME = "MessageProxyForSchain.json"
-    DEFAULT_ADMIN_ROLE = 0
+    DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
+
+    # ---------- storage ----------
+    # --------Initializable--------
+    # 0:    _initialized, _initializing;
+    # -----ContextUpgradeable------
+    # 1:    __gap
+    # ...   __gap
+    # 50:   __gap
+    # --AccessControlUpgradeable---
+    # 51:   _roles
+    # 52:   __gap
+    # ...   __gap
+    # 100:  __gap
+    # -----SkaleFeaturesClient-----
+    # ----MessageProxyForSchain----
+
+    ROLES_SLOT = 51
 
     def __init__(self, deployer_address: str):
         super().__init__(self.ARTIFACT_FILENAME)
@@ -12,5 +29,5 @@ class MessageProxyForSchainGenerator(ContractGenerator):
     # private
 
     def _setup(self, deployer_address: str) -> None:
-        self._setup_role(0, self.DEFAULT_ADMIN_ROLE, [deployer_address])
+        self._setup_role(self.ROLES_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
         # gap 49
