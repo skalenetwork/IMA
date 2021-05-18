@@ -56,10 +56,11 @@ contract TokenManagerEth is TokenManager {
         string memory newChainName,
         MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
         address newDepositBox
     )
         public
-        TokenManager(newChainName, newMessageProxy, newIMALinker, newDepositBox)
+        TokenManager(newChainName, newMessageProxy, newIMALinker, newCommunityLocker, newDepositBox)
         // solhint-disable-next-line no-empty-blocks
     { }
 
@@ -74,6 +75,7 @@ contract TokenManagerEth is TokenManager {
      */
     function exitToMain(address to, uint256 amount) external receivedEth(amount) {
         require(to != address(0), "Incorrect receiver address");
+        communityLocker.checkAllowedToSendMessage(to);
         messageProxy.postOutgoingMessage(
             "Mainnet",
             depositBox,
@@ -115,7 +117,7 @@ contract TokenManagerEth is TokenManager {
      * - `fromSchainID` must exist in TokenManager addresses.
      */
     function postMessage(
-        string calldata fromSchainName,
+        bytes32 fromChainId,
         address sender,
         bytes calldata data
     )
@@ -124,13 +126,12 @@ contract TokenManagerEth is TokenManager {
         returns (bool)
     {
         require(msg.sender == address(messageProxy), "Sender is not a message proxy");
-        bytes32 fromSchainId = keccak256(abi.encodePacked(fromSchainName));
         require(
-            fromSchainId != schainId && 
+            fromChainId != schainId && 
                 (
-                    fromSchainId == MAINNET_ID ?
+                    fromChainId == MAINNET_ID ?
                     sender == depositBox :
-                    sender == tokenManagers[fromSchainId]
+                    sender == tokenManagers[fromChainId]
                 ),
             "Receiver chain is incorrect"
         );

@@ -27,10 +27,12 @@ import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 
 import chai = require("chai");
-import { EthERC20TesterContract,
+import { CommunityLockerContract, CommunityLockerInstance, EthERC20TesterContract,
   EthERC20TesterInstance,
   MessageProxyForSchainContract,
   MessageProxyForSchainInstance,
+  MessageProxyForSchainTesterContract,
+  MessageProxyForSchainTesterInstance,
   MessagesTesterContract,
   MessagesTesterInstance,
   SkaleFeaturesMockContract,
@@ -48,24 +50,28 @@ chai.use((chaiAsPromised as any));
 
 const TokenManagerEth: TokenManagerEthContract = artifacts.require("./TokenManagerEth");
 const TokenManagerLinker: TokenManagerLinkerContract = artifacts.require("./TokenManagerLinker");
-const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
+const MessageProxyForSchainTester: MessageProxyForSchainTesterContract = artifacts.require("./MessageProxyForSchainTester");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 const EthERC20Tester: EthERC20TesterContract = artifacts.require("./EthERC20Tester");
 const SkaleFeaturesMock: SkaleFeaturesMockContract = artifacts.require("./SkaleFeaturesMock");
+const CommunityLocker: CommunityLockerContract = artifacts.require("./CommunityLocker");
 
 const schainName = "TestSchain";
+const schainId = web3.utils.soliditySha3(schainName);
 
 contract("TokenManagerEth", ([user, deployer]) => {
   let tokenManagerEth: TokenManagerEthInstance;
   let tokenManagerLinker: TokenManagerLinkerInstance;
-  let messageProxyForSchain: MessageProxyForSchainInstance;
+  let messageProxyForSchain: MessageProxyForSchainTesterInstance;
   let messages: MessagesTesterInstance;
   let ethERC20: EthERC20TesterInstance;
   let skaleFeatures: SkaleFeaturesMockInstance;
   let fakeDepositBox: any;
+  let communityLocker: CommunityLockerInstance;
+  const mainnetId = web3.utils.soliditySha3("Mainnet");
 
   beforeEach(async () => {
-    messageProxyForSchain = await MessageProxyForSchain.new(
+    messageProxyForSchain = await MessageProxyForSchainTester.new(
       schainName,
       {
         from: deployer,
@@ -80,10 +86,12 @@ contract("TokenManagerEth", ([user, deployer]) => {
       }
     );
     fakeDepositBox = tokenManagerLinker.address;
+    communityLocker = await CommunityLocker.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, {from: deployer});
     tokenManagerEth = await TokenManagerEth.new(
       schainName,
       messageProxyForSchain.address,
       tokenManagerLinker.address,
+      communityLocker.address,
       fakeDepositBox,
       {
         from: deployer,
@@ -113,6 +121,9 @@ contract("TokenManagerEth", ([user, deployer]) => {
     const skaleFeaturesSetterRole = await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE();
     await tokenManagerEth.grantRole(skaleFeaturesSetterRole, deployer, {from: deployer});
     await tokenManagerEth.setSkaleFeaturesAddress(skaleFeatures.address, {from: deployer});
+
+    const data = await messages.encodeFreezeStateMessage(user, true);
+    await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, "0x0000000000000000000000000000000000000000", data);
   });
 
   it("should set EthERC20 address", async () => {
@@ -262,7 +273,7 @@ contract("TokenManagerEth", ([user, deployer]) => {
     const amountTo = new BigNumber("20000000000000000");
     const amountTo2 = new BigNumber("60000000000000000");
     const amountAfter = new BigNumber("540000000000000000");
-    const to = deployer;
+    const to = user;
 
     // set EthERC20 address:
     await tokenManagerEth.setEthErc20Address(ethERC20.address, {from: deployer});
@@ -333,7 +344,7 @@ contract("TokenManagerEth", ([user, deployer]) => {
       const sender = deployer;
       // execution/expectation
       await tokenManagerEth
-        .postMessage(schainName, sender, bytesData, {from: deployer})
+        .postMessage(schainId, sender, bytesData, {from: deployer})
         .should.be.eventually.rejectedWith(error);
     });
 
@@ -347,11 +358,11 @@ contract("TokenManagerEth", ([user, deployer]) => {
       const sender = deployer;
       // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
       // to avoid `Not a sender` error
-      tokenManagerEth = await TokenManagerEth.new(schainID, deployer, tokenManagerLinker.address, fakeDepositBox, {from: deployer});
+      tokenManagerEth = await TokenManagerEth.new(schainID, deployer, tokenManagerLinker.address, communityLocker.address, fakeDepositBox, {from: deployer});
       // await tokenManagerEth.setContract("MessageProxy", deployer, {from: deployer});
       // execution
       await tokenManagerEth
-          .postMessage(schainName, sender, bytesData, {from: deployer})
+          .postMessage(schainId, sender, bytesData, {from: deployer})
           .should.be.eventually.rejectedWith(error);
     });
 
@@ -365,14 +376,13 @@ contract("TokenManagerEth", ([user, deployer]) => {
         const sender = deployer;
         // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
         // to avoid `Not a sender` error
-        tokenManagerEth = await TokenManagerEth.new(schainName, deployer, tokenManagerLinker.address, fakeDepositBox, {from: deployer});
+        tokenManagerEth = await TokenManagerEth.new(schainName, deployer, tokenManagerLinker.address, communityLocker.address, fakeDepositBox, {from: deployer});
         // set `tokenManagerEth` contract to avoid the `Not allowed` error in tokenManagerEth.sol
         const skaleFeaturesSetterRole = await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE();
         await tokenManagerEth.grantRole(skaleFeaturesSetterRole, deployer, {from: deployer});
         await tokenManagerEth.setSkaleFeaturesAddress(skaleFeatures.address, {from: deployer});
         // add schain to avoid the `Receiver chain is incorrect` error
-        await tokenManagerEth
-            .addTokenManager(schainID, deployer, {from: deployer});
+        await tokenManagerEth.addTokenManager(schainID, deployer, {from: deployer});
         // execution
         await tokenManagerEth
             .postMessage(schainID, sender, bytesData, {from: deployer})
@@ -381,7 +391,8 @@ contract("TokenManagerEth", ([user, deployer]) => {
 
     it("should transfer eth", async () => {
         //  preparation
-        const schainID = randomString(10);
+        const fromSchainName = randomString(10);
+        const fromSchainId = web3.utils.soliditySha3(fromSchainName);
         const amount = "10";
         const sender = deployer;
         const to = user;
@@ -389,20 +400,20 @@ contract("TokenManagerEth", ([user, deployer]) => {
         const bytesData = await messages.encodeTransferEthMessage(to, amount);
         // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
         // to avoid `Not a sender` error
-        tokenManagerEth = await TokenManagerEth.new(schainName, deployer, tokenManagerLinker.address, fakeDepositBox, {from: deployer});
+        tokenManagerEth = await TokenManagerEth.new(schainName, deployer, tokenManagerLinker.address, communityLocker.address, fakeDepositBox, {from: deployer});
         // set `tokenManagerEth` contract to avoid the `Not allowed` error in tokenManagerEth.sol
         const skaleFeaturesSetterRole = await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE();
         await tokenManagerEth.grantRole(skaleFeaturesSetterRole, deployer, {from: deployer});
         await tokenManagerEth.setSkaleFeaturesAddress(skaleFeatures.address, {from: deployer});
         // add schain to avoid the `Receiver chain is incorrect` error
         await tokenManagerEth
-            .addTokenManager(schainID, deployer, {from: deployer});
+            .addTokenManager(fromSchainName, deployer, {from: deployer});
         // set EthERC20 address:
         await tokenManagerEth.setEthErc20Address(ethERC20.address, {from: deployer});
         await ethERC20.setTokenManagerEthAddress(tokenManagerEth.address, {from: deployer});
         // execution
         await tokenManagerEth
-            .postMessage(schainID, sender, bytesData, {from: deployer});
+            .postMessage(fromSchainId, sender, bytesData, {from: deployer});
         // expectation
         expect(parseInt((new BigNumber(await ethERC20.balanceOf(to))).toString(), 10))
             .to.be.equal(parseInt(amount, 10));

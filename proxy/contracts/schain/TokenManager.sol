@@ -25,6 +25,7 @@ pragma experimental ABIEncoderV2;
 import "./MessageProxyForSchain.sol";
 import "./SkaleFeaturesClient.sol";
 import "./TokenManagerLinker.sol";
+import "./CommunityLocker.sol";
 
 
 interface ICommunityLocker {
@@ -42,11 +43,11 @@ abstract contract TokenManager is SkaleFeaturesClient {
 
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
+    CommunityLocker public communityLocker;
     bytes32 public schainId;
     address public depositBox;
     bool public automaticDeploy;
 
-    address public communityLockerAddress;
     mapping(bytes32 => address) public tokenManagers;
 
     string constant public MAINNET_NAME = "Mainnet";
@@ -61,6 +62,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
         string memory newSchainName,
         MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
         address newDepositBox
     )
         public
@@ -69,12 +71,13 @@ abstract contract TokenManager is SkaleFeaturesClient {
         schainId = keccak256(abi.encodePacked(newSchainName));
         messageProxy = newMessageProxy;
         tokenManagerLinker = newIMALinker;
+        communityLocker = newCommunityLocker;
         require(newDepositBox.isContract(), "Given address is not a contract");
         depositBox = newDepositBox;
     }
 
     function postMessage(
-        string calldata fromSchainID,
+        bytes32 fromChainID,
         address sender,
         bytes calldata data
     )
@@ -137,10 +140,6 @@ abstract contract TokenManager is SkaleFeaturesClient {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(tokenManagers[schainHash] != address(0), "Token Manager is not set");
         delete tokenManagers[schainHash];
-    }
-
-    function setCommunityLocker(address newCommunityLockerAddress) external onlyOwner {
-        communityLockerAddress = newCommunityLockerAddress;
     }
 
     /**

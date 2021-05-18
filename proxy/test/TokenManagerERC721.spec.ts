@@ -37,6 +37,8 @@ import {
     SkaleFeaturesMockContract,
     MessagesTesterContract,
     MessagesTesterInstance,
+    CommunityLockerInstance,
+    CommunityLockerContract,
     } from "../types/truffle-contracts";
 
 import chai = require("chai");
@@ -51,17 +53,21 @@ const TokenManagerLinker: TokenManagerLinkerContract = artifacts.require("./Toke
 const SkaleFeaturesMock: SkaleFeaturesMockContract = artifacts.require("./SkaleFeaturesMock");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
 const MessageProxyForSchainTester: MessageProxyForSchainTesterContract = artifacts.require("./MessageProxyForSchainTester");
+const CommunityLocker: CommunityLockerContract = artifacts.require("./CommunityLocker");
 
 contract("TokenManagerERC721", ([deployer, user, schainOwner]) => {
     const schainName = "V-chain";
     const tokenId = 1;
     const to = user;
+    const schainId = web3.utils.soliditySha3(schainName);
+    const mainnetId = web3.utils.soliditySha3("Mainnet");
     let token: ERC721OnChainInstance;
     let tokenClone: ERC721OnChainInstance;
     let tokenManagerERC721: TokenManagerERC721Instance;
     let tokenManagerLinker: TokenManagerLinkerInstance;
     let messages: MessagesTesterInstance;
     let messageProxyForSchain: MessageProxyForSchainTesterInstance;
+    let communityLocker: CommunityLockerInstance;
 
     beforeEach(async () => {
         messageProxyForSchain = await MessageProxyForSchainTester.new(schainName);
@@ -71,9 +77,16 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner]) => {
 
         const skaleFeatures = await SkaleFeaturesMock.new();
         await skaleFeatures.setSchainOwner(schainOwner);
+        communityLocker = await CommunityLocker.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, {from: deployer});
 
         tokenManagerERC721 =
-            await TokenManagerERC721.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, fakeDepositBox.address);
+            await TokenManagerERC721.new(
+                schainName,
+                messageProxyForSchain.address,
+                tokenManagerLinker.address,
+                communityLocker.address,
+                fakeDepositBox.address
+            );
         await tokenManagerERC721.grantRole(await tokenManagerERC721.SKALE_FEATURES_SETTER_ROLE(), deployer);
         await tokenManagerERC721.setSkaleFeaturesAddress(skaleFeatures.address);
 
@@ -81,6 +94,8 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner]) => {
         tokenClone = await ERC721OnChain.new("ELVIS", "ELV", {from: deployer});
         token = await ERC721OnChain.new("SKALE", "SKL", {from: deployer});
 
+        const data = await messages.encodeFreezeStateMessage(user, true);
+        await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, "0x0000000000000000000000000000000000000000", data);
     });
 
     it("should successfully call exitToMainERC721", async () => {
@@ -150,7 +165,6 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner]) => {
     it("should transfer ERC721 token through `postMessage` function", async () => {
         //  preparation
         const fakeDepositBox =  messages;
-        const chainName = "Mainnet";
         const data = await messages.encodeTransferErc721AndTokenInfoMessage(
             token.address,
             to,
@@ -162,7 +176,7 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner]) => {
         );
 
         await tokenManagerERC721.enableAutomaticDeploy({from: schainOwner});
-        await messageProxyForSchain.postMessage(tokenManagerERC721.address, chainName, fakeDepositBox.address, data);
+        await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox.address, data);
         const addressERC721OnSchain = await tokenManagerERC721.clonesErc721(token.address);
         const erc721OnChain = new web3.eth.Contract(artifacts.require("./ERC721OnChain").abi, addressERC721OnSchain);
         expect(await erc721OnChain.methods.ownerOf(tokenId).call()).to.be.equal(to);

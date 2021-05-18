@@ -28,7 +28,7 @@ import "../schain/MessageProxyForSchain.sol";
 
 contract ReceiverMock is IContractReceiverForSchain {
     function postMessage(
-        string calldata,
+        bytes32,
         address,
         bytes calldata
     )

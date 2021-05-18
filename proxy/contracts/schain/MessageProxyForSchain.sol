@@ -29,7 +29,7 @@ import "./SkaleFeaturesClient.sol";
 
 interface IContractReceiverForSchain {
     function postMessage(
-        string calldata schainID,
+        bytes32 fromChainId,
         address sender,
         bytes calldata data
     )
@@ -258,7 +258,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
     }
 
     function postIncomingMessages(
-        string calldata srcChainID,
+        string calldata fromChainName,
         uint256 startingCounter,
         Message[] calldata messages,
         Signature calldata signature,
@@ -267,18 +267,18 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         external
         connectMainnet
     {
-        bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
+        bytes32 fromChainId = keccak256(abi.encodePacked(fromChainName));
         require(_verifyMessages(_hashedArray(messages), signature), "Signature is not verified");
-        require(connectedChains[srcChainHash].inited, "Chain is not initialized");
+        require(connectedChains[fromChainId].inited, "Chain is not initialized");
         require(
-            startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
+            startingCounter == connectedChains[fromChainId].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
         for (uint256 i = 0; i < messages.length; i++) {
-            _callReceiverContract(srcChainID, messages[i], startingCounter + 1);
+            _callReceiverContract(fromChainId, messages[i], startingCounter + 1);
         }
-        connectedChains[srcChainHash].incomingMessageCounter 
-            = connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
-        _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
+        connectedChains[fromChainId].incomingMessageCounter 
+            = connectedChains[fromChainId].incomingMessageCounter.add(uint256(messages.length));
+        _popOutgoingMessageData(fromChainId, idxLastToPopNotIncluding);
     }
 
     function moveIncomingCounter(string calldata schainName) external onlyDebugger {
@@ -305,7 +305,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
     }
 
     function _callReceiverContract(
-        string memory srcChainID,
+        bytes32 fromChainId,
         Message calldata message,
         uint counter
     )
@@ -313,7 +313,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         returns (bool)
     {
         try IContractReceiverForSchain(message.destinationContract).postMessage(
-            srcChainID,
+            fromChainId,
             message.sender,
             message.data
         ) returns (bool success) {

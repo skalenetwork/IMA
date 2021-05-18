@@ -24,61 +24,68 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "./PermissionsForSchain.sol";
 import "../Messages.sol";
+import "./SkaleFeaturesClient.sol";
+import "./MessageProxyForSchain.sol";
+import "./TokenManagerLinker.sol";
 
 /**
  * @title CommunityLocker
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract CommunityLocker is PermissionsForSchain {
+contract CommunityLocker is SkaleFeaturesClient {
 
-    string private _chainID;
+    MessageProxyForSchain public messageProxy;
+    TokenManagerLinker public tokenManagerLinker;
+
+    bytes32 public schainId;
     uint public timeLimitPerMessage;
+    string constant public MAINNET_NAME = "Mainnet";
+    bytes32 constant public MAINNET_ID = keccak256(abi.encodePacked(MAINNET_NAME));
 
     mapping(address => bool) private _unfrozenUsers;
     mapping(address => uint) private _lastMessageTimeStamp;
 
     event UserUnfrozed(
-        bytes32 schainHash,
+        bytes32 schainId,
         address user
     );
 
     constructor(
-        string memory newChainID,
-        address newLockAndDataAddress
+        string memory newSchainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newIMALinker
     )
         public
-        PermissionsForSchain(newLockAndDataAddress)
     {
-        _chainID = newChainID;
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        schainId = keccak256(abi.encodePacked(newSchainName));
+        messageProxy = newMessageProxy;
+        tokenManagerLinker = newIMALinker;
         timeLimitPerMessage = 5 minutes;
     }
 
     function postMessage(
-        string calldata fromSchainID,
+        bytes32 fromChainId,
         address,
         bytes calldata data
     )
         external
         returns (bool)
     {
-        require(msg.sender == getProxyForSchainAddress(), "Sender must be MessageProxy");
-        bytes32 schainHash = keccak256(abi.encodePacked(fromSchainID));
-        require(
-            schainHash != keccak256(abi.encodePacked(getChainID())),
-            "Receiver chain is incorrect"
-        );
+        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
+        require(fromChainId == MAINNET_ID, "Source chain name should be Mainnet");
         Messages.MessageType operation = Messages.getMessageType(data);
         require(operation == Messages.MessageType.FREEZE_STATE, "The message should contain a frozen state");
         Messages.FreezeStateMessage memory message =  Messages.decodeFreezeStateMessage(data);
         require(_unfrozenUsers[message.receiver] != message.isUnfrozen, "Freezing states must be different");
         _unfrozenUsers[message.receiver] = message.isUnfrozen;
-        emit UserUnfrozed(schainHash, message.receiver);
+        emit UserUnfrozed(schainId, message.receiver);
         return true;
     }
 
-    function checkAllowedToSendMessage(address receiver) external allow("TokenManager") {
+    function checkAllowedToSendMessage(address receiver) external {
+        tokenManagerLinker.hasTokenManager(TokenManager(msg.sender));
         require(_unfrozenUsers[receiver], "Recipient must be unfrozen");
         require(
             _lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
@@ -87,33 +94,9 @@ contract CommunityLocker is PermissionsForSchain {
         _lastMessageTimeStamp[receiver] = block.timestamp;
     }
 
-    function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external onlySchainOwner {
+    function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
         timeLimitPerMessage = newTimeLimitPerMessage;
-    }
-
-    /**
-     * @dev Returns chain ID.
-     */
-    function getChainID() public view returns ( string memory cID ) {
-        if ((keccak256(abi.encodePacked(_chainID))) == (keccak256(abi.encodePacked(""))) ) {
-            return SkaleFeatures(getSkaleFeaturesAddress())
-                .getConfigVariableString("skaleConfig.sChain.schainName");
-        }
-        return _chainID;
-    }
-
-    /**
-     * @dev Returns MessageProxy address.
-     */
-    function getProxyForSchainAddress() public view returns ( address ow ) {
-        address proxyForSchainAddress = LockAndDataForSchain(
-            getLockAndDataAddress()
-        ).getMessageProxy();
-        if (proxyForSchainAddress != address(0) )
-            return proxyForSchainAddress;
-        return SkaleFeatures(getSkaleFeaturesAddress()).getConfigVariableAddress(
-            "skaleConfig.contractSettings.IMA.MessageProxy"
-        );
     }
 
 }
