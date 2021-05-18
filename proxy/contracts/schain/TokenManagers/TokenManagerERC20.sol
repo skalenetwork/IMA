@@ -199,7 +199,6 @@ contract TokenManagerERC20 is TokenManager {
     {
         require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
         require(
-            erc20OnMainnet.isContract() &&
             address(erc20OnSchain).isContract(),
             "Given address is not a contract"
         );

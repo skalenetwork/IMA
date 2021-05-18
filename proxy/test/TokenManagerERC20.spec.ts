@@ -93,6 +93,15 @@ describe("TokenManagerERC20", () => {
     await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
   });
 
+  it("should change depositBox address", async () => {
+    const newDepositBox = user;
+    expect(await tokenManagerErc20.depositBox()).to.equal(fakeDepositBox);
+    await tokenManagerErc20.changeDepositBoxAddress(newDepositBox, {from: user})
+      .should.be.eventually.rejectedWith("Sender is not an Schain owner");
+    await tokenManagerErc20.changeDepositBoxAddress(newDepositBox, {from: schainOwner});
+    expect(await tokenManagerErc20.depositBox()).to.equal(newDepositBox);
+  });
+
   it("should reject on exit if there is no mainnet token clone on schain", async () => {
     // preparation
     const error = "No token clone on schain";

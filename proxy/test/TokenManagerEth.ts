@@ -105,6 +105,15 @@ describe("TokenManagerEth", () => {
     expect(address).to.equal(ethERC20.address);
   });
 
+  it("should change depositBox address", async () => {
+    const newDepositBox = user;
+    expect(await tokenManagerEth.depositBox()).to.equal(fakeDepositBox);
+    await tokenManagerEth.changeDepositBoxAddress(newDepositBox, {from: user})
+      .should.be.eventually.rejectedWith("Sender is not an Schain owner");
+    await tokenManagerEth.changeDepositBoxAddress(newDepositBox, {from: deployer});
+    expect(await tokenManagerEth.depositBox()).to.equal(newDepositBox);
+  });
+
   it("should add tokenManager", async () => {
     const tokenManagerAddress = user.address;
     const nullAddress = "0x0000000000000000000000000000000000000000";
