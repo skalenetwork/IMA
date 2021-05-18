@@ -250,9 +250,9 @@ describe("TokenManagerEth", () => {
   });
 
   describe("tests for `postMessage` function", async () => {
-    it("should rejected with `Sender is not a message proxy`", async () => {
+    it("should rejected with `Sender is not a MessageProxy`", async () => {
       //  preparation
-      const error = "Sender is not a message proxy";
+      const error = "Sender is not a MessageProxy";
       const schainID = randomString(10);
       const amount = 10;
       const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
