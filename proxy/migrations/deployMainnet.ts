@@ -142,8 +142,8 @@ async function main() {
             contractFactory,
             [
                 contractManager.address,
-                deployed.get(messageProxyForMainnetName)?.address,
-                deployed.get(linkerName)?.address
+                deployed.get(linkerName)?.address,
+                deployed.get(messageProxyForMainnetName)?.address
             ],
             { initializer: 'initialize(address,address,address)' }
         );
