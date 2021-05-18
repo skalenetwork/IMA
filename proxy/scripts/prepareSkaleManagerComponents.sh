@@ -6,5 +6,4 @@ if [ -z "$RUNNING_NETWORK" ]; then
 else
     npx hardhat run migrations/deploySkaleManagerComponents --network "${RUNNING_NETWORK}"
 fi
-rm ./migrations/3_migration_skale_manager_components.js
 exit
