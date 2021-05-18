@@ -183,7 +183,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
         if (address(messageProxy) == address(0)) {
             return MessageProxyForSchain(
                 getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.MessageProxy"
+                    "skaleConfig.contractSettings.IMA.MessageProxyForSchain"
                 )
             );
         }

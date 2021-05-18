@@ -168,7 +168,7 @@ contract TokenManagerERC20 is TokenManager {
     {
         bytes32 fromSchainId = keccak256(abi.encodePacked(fromSchainName));
         require(
-            fromSchainId != schainId && 
+            fromSchainId != getSchainHash() && 
                 (
                     fromSchainId == MAINNET_ID ?
                     sender == getDepositBoxERC20Address() :

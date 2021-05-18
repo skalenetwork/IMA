@@ -122,7 +122,7 @@ contract TokenManagerERC721 is TokenManager {
     {
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainName));
         require(
-            schainHash != schainId && 
+            schainHash != getSchainHash() && 
             (
                 schainHash == MAINNET_ID ?
                 sender == getDepositBoxERC721Address() :
