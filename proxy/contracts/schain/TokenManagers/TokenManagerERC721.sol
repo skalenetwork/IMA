@@ -72,7 +72,7 @@ contract TokenManagerERC721 is TokenManager {
         contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
         contractOnSchain.burn(tokenId);
         bytes memory data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);
-        messageProxy.postOutgoingMessage(MAINNET_NAME, depositBox, data);
+        getMessageProxy().postOutgoingMessage(MAINNET_NAME, getDepositBoxERC721Address(), data);
     }
 
     function transferToSchainERC721(
@@ -96,7 +96,7 @@ contract TokenManagerERC721 is TokenManager {
         contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
         contractOnSchain.burn(tokenId);
         bytes memory data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);    
-        messageProxy.postOutgoingMessage(targetSchainName, tokenManagers[targetSchainId], data);
+        getMessageProxy().postOutgoingMessage(targetSchainName, tokenManagers[targetSchainId], data);
     }
 
     /**
@@ -117,15 +117,15 @@ contract TokenManagerERC721 is TokenManager {
     )
         external
         override
+        onlyMessageProxy
         returns (bool)
     {
-        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
         bytes32 schainHash = keccak256(abi.encodePacked(fromSchainName));
         require(
             schainHash != schainId && 
             (
                 schainHash == MAINNET_ID ?
-                sender == depositBox :
+                sender == getDepositBoxERC721Address() :
                 sender == tokenManagers[schainHash]
             ),
             "Receiver chain is incorrect"
@@ -158,6 +158,13 @@ contract TokenManagerERC721 is TokenManager {
         );
         clonesErc721[erc721OnMainnet] = erc721OnSchain;
         emit ERC721TokenAdded(erc721OnMainnet, address(erc721OnSchain));
+    }
+
+    function getDepositBoxERC721Address() public view returns (address) {
+        if (depositBox == address(0)) {
+            return getSkaleFeatures().getConfigVariableAddress("skaleConfig.contractSettings.IMA.DepositBoxERC721");
+        }
+        return depositBox;
     }
 
 
