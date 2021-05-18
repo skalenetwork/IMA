@@ -253,7 +253,7 @@ describe("TokenManagerEth", () => {
     it("should rejected with `Sender is not a MessageProxy`", async () => {
       //  preparation
       const error = "Sender is not a MessageProxy";
-      const schainName = randomString(10);
+      const newSchainName = randomString(10);
       const amount = 10;
       const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
 
@@ -265,17 +265,17 @@ describe("TokenManagerEth", () => {
         .should.be.eventually.rejectedWith(error);
     });
 
-    it("should be Error event with message `Receiver chain is incorrect` when schainName=`mainnet`", async () => {
+    it("should be Error event with message `Receiver chain is incorrect` when newSchainName=`mainnet`", async () => {
       //  preparation
       const error = "Receiver chain is incorrect";
-      // for `Receiver chain is incorrect` message schainName should be `Mainnet`
-      const schainName = randomString(10);
+      // for `Receiver chain is incorrect` message newSchainName should be `Mainnet`
+      const newSchainName = randomString(10);
       const amount = 10;
       const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
       const sender = deployer.address;
       // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
       // to avoid `Not a sender` error
-      tokenManagerEth = await deployTokenManagerEth(schainName, deployer.address, tokenManagerLinker, fakeDepositBox);
+      tokenManagerEth = await deployTokenManagerEth(newSchainName, deployer.address, tokenManagerLinker, fakeDepositBox);
       // await tokenManagerEth.setContract("MessageProxy", deployer, {from: deployer});
       // execution
       await tokenManagerEth
@@ -287,7 +287,7 @@ describe("TokenManagerEth", () => {
     it("should be Error event with message `null`", async () => {
         //  preparation
         const error = "Invalid data";
-        const schainName = randomString(10);
+        const newSchainName = randomString(10);
         const amount = 10;
         // for `Invalid data` message bytesData should be `0x`
         const bytesData = "0x";
@@ -302,17 +302,17 @@ describe("TokenManagerEth", () => {
         // add schain to avoid the `Receiver chain is incorrect` error
         await tokenManagerEth
             .connect(deployer)
-            .addTokenManager(schainName, deployer.address);
+            .addTokenManager(newSchainName, deployer.address);
         // execution
         await tokenManagerEth
             .connect(deployer)
-            .postMessage(schainName, sender, bytesData)
+            .postMessage(newSchainName, sender, bytesData)
             .should.be.rejected;
     });
 
     it("should transfer eth", async () => {
         //  preparation
-        const schainName = randomString(10);
+        const newSchainName = randomString(10);
         const amount = "10";
         const sender = deployer.address;
         const to = user.address;
@@ -328,14 +328,14 @@ describe("TokenManagerEth", () => {
         // add schain to avoid the `Receiver chain is incorrect` error
         await tokenManagerEth
             .connect(deployer)
-            .addTokenManager(schainName, deployer.address);
+            .addTokenManager(newSchainName, deployer.address);
         // set EthERC20 address:
         await tokenManagerEth.connect(deployer).setEthErc20Address(ethERC20.address);
         await ethERC20.connect(deployer).setTokenManagerEthAddress(tokenManagerEth.address);
         // execution
         await tokenManagerEth
             .connect(deployer)
-            .postMessage(schainName, sender, bytesData);
+            .postMessage(newSchainName, sender, bytesData);
         // expectation
         expect(parseInt((BigNumber.from(await ethERC20.balanceOf(to))).toString(), 10))
             .to.be.equal(parseInt(amount, 10));
