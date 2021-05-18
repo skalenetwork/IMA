@@ -5,6 +5,7 @@ const cc = log.cc;
 //cc.enable( true );
 cc.enable( false );
 log.addStdout();
+const jsonData = require( "./data/proxyMainnet.json" );
 
 const g_bVerbose = false;
 
@@ -237,22 +238,22 @@ const g_joSkaleConfigTemplate = {
             },
             IMA: {
                 ownerAddress: ownerAddress,
-                variables: {
-                    // LockAndData: {
-                    //     permitted: {
-                    //     }
-                    // },
-                    MessageProxy: {
-                        mapAuthorizedCallers: {
-                        }
-                    }
-                }
+                // variables: {
+                //     // LockAndData: {
+                //     //     permitted: {
+                //     //     }
+                //     // },
+                //     // MessageProxy: {
+                //     //     mapAuthorizedCallers: {
+                //     //     }
+                //     // }
+                // }
             }
         }
     }
 };
 
-g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers[ownerAddress] = 1;
+// g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers[ownerAddress] = 1;
 
 function convert_camel_case_to_underscore_case( s ) {
     return ( typeof s == "string" ) ? s.replace( /\.?([A-Z])/g, function( x,y ) { return "_" + y.toLowerCase(); } ).replace( /^_/, "" ) : s;
@@ -275,7 +276,7 @@ for( let idxContract = 0; idxContract < g_arrContracts.length; ++ idxContract ) 
     };
     g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA[joContractProperties.referenceVariableName] = joContractProperties.address;
     // g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.LockAndData.permitted[joContractProperties.referenceVariableName] = joContractProperties.address;
-    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers[joContractProperties.address] = 1;
+    // g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers[joContractProperties.address] = 1;
     //
     const strContractNameCamelCase = joContractProperties.fileName.replace( ".json", "" );
     let strContractNameUnderscoreCase = convert_camel_case_to_underscore_case( strContractNameCamelCase ).replace( "e_r_c", "erc" );
@@ -287,10 +288,30 @@ for( let idxContract = 0; idxContract < g_arrContracts.length; ++ idxContract ) 
         log.write( cc.success( "Done" ) + "\n" );
 }
 
-for( let idxAuthorizedCaller = 0; idxAuthorizedCaller < g_arrExampleAuthorizedCallers.length; ++ idxAuthorizedCaller ) {
-    const joExampleAuthorizedCaller = g_arrExampleAuthorizedCallers[idxAuthorizedCaller];
-    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers[joExampleAuthorizedCaller.address] = 1;
+const proxyMainnetContracts = [
+    {
+        address: jsonData.deposit_box_eth_address,
+        referenceVariableName: "DepositBoxEth"
+    }, {
+        address: jsonData.deposit_box_erc20_address,
+        referenceVariableName: "DepositBoxERC20"
+    }, {
+        address: jsonData.deposit_box_erc721_address,
+        referenceVariableName: "DepositBoxERC721"
+    }
+];
+
+for( let idxContract = 0; idxContract < proxyMainnetContracts.length; ++ idxContract ) {
+    const joContractProperties = proxyMainnetContracts[idxContract];
+    if( g_bVerbose )
+        log.write( cc.normal( "Processing contract " ) + cc.info( joContractProperties.referenceVariableName ) + cc.normal( "..." ) + "\n" );
+    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA[joContractProperties.referenceVariableName] = joContractProperties.address;
 }
+
+// for( let idxAuthorizedCaller = 0; idxAuthorizedCaller < g_arrExampleAuthorizedCallers.length; ++ idxAuthorizedCaller ) {
+//     const joExampleAuthorizedCaller = g_arrExampleAuthorizedCallers[idxAuthorizedCaller];
+//     g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers[joExampleAuthorizedCaller.address] = 1;
+// }
 
 //log.write( cc.success("Done, generated skaled config data: ") + cc.j(g_joSkaleConfigTemplate) + "\n" );
 //log.write( cc.success("Done, generated skaled config data: ") + cc.j(JSON.stringify( g_joSkaleConfigTemplate, null, 4 ) ) + "\n" );
