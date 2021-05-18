@@ -23,51 +23,59 @@
 //  * @copyright SKALE Labs 2019-Present
 //  */
 
-import { BigNumber } from "bignumber.js";
-import * as chaiAsPromised from "chai-as-promised";
-import {
-  TokenManagerEthContract,
-  TokenManagerEthInstance,
-  TokenManagerERC20Contract,
-  TokenManagerERC20Instance,
-  TokenManagerERC721Contract,
-  TokenManagerERC721Instance,
-  TokenManagerLinkerContract,
-  TokenManagerLinkerInstance,
-  MessageProxyForSchainContract,
-  MessageProxyForSchainInstance,
-  } from "../types/truffle-contracts";
-import { randomString } from "./utils/helper";
-
+import chaiAsPromised from "chai-as-promised";
 import chai = require("chai");
+import {
+  TokenManagerEth,
+  TokenManagerERC20,
+  TokenManagerERC721,
+  TokenManagerLinker,
+  MessageProxyForSchain,
+  } from "../typechain";
+import { randomString, stringValue } from "./utils/helper";
+
 
 chai.should();
 chai.use((chaiAsPromised as any));
 
-const TokenManagerEth: TokenManagerEthContract = artifacts.require("./TokenManagerEth");
-const TokenManagerERC20: TokenManagerERC20Contract = artifacts.require("./TokenManagerERC20");
-const TokenManagerERC721: TokenManagerERC721Contract = artifacts.require("./TokenManagerERC721");
-const TokenManagerLinker: TokenManagerLinkerContract = artifacts.require("./TokenManagerLinker");
-const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
+import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
+import { deployTokenManagerEth } from "./utils/deploy/schain/tokenManagerEth";
+import { deployTokenManagerERC20 } from "./utils/deploy/schain/tokenManagerERC20";
+import { deployTokenManagerERC721 } from "./utils/deploy/schain/tokenManagerERC721";
+import { deployMessageProxyForSchain } from "./utils/deploy/schain/messageProxyForSchain";
 
-contract("TokenManagerLinker", ([deployer, user, user2]) => {
-  let tokenManagerEth: TokenManagerEthInstance;
-  let tokenManagerERC20: TokenManagerERC20Instance;
-  let tokenManagerERC721: TokenManagerERC721Instance;
-  let messageProxy: MessageProxyForSchainInstance;
-  let linker: TokenManagerLinkerInstance;
+import { ethers, web3 } from "hardhat";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { BigNumber } from "ethers";
+
+import { assert, expect } from "chai";
+
+describe("TokenManagerLinker", () => {
+  let deployer: SignerWithAddress;
+  let user: SignerWithAddress;
+  let user2: SignerWithAddress;
+
+  let tokenManagerEth: TokenManagerEth;
+  let tokenManagerERC20: TokenManagerERC20;
+  let tokenManagerERC721: TokenManagerERC721;
+  let messageProxy: MessageProxyForSchain;
+  let linker: TokenManagerLinker;
   const schainName = "TestSchain";
   let fakeDepositBox: any;
 
+  before(async () => {
+    [deployer, user, user2] = await ethers.getSigners();
+  });
+
   beforeEach(async () => {
-    messageProxy = await MessageProxyForSchain.new(schainName);
-    linker = await TokenManagerLinker.new(messageProxy.address);
+    messageProxy = await deployMessageProxyForSchain(schainName);
+    linker = await deployTokenManagerLinker(messageProxy);
     fakeDepositBox = linker.address;
-    tokenManagerEth = await TokenManagerEth.new(schainName, messageProxy.address, linker.address, fakeDepositBox);
-    tokenManagerERC20 = await TokenManagerERC20.new(schainName, messageProxy.address, linker.address, fakeDepositBox);
-    tokenManagerERC721 = await TokenManagerERC721.new(schainName, messageProxy.address, linker.address, fakeDepositBox);
+    tokenManagerEth = await deployTokenManagerEth(schainName, messageProxy.address, linker, fakeDepositBox);
+    tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxy.address, linker, fakeDepositBox);
+    tokenManagerERC721 = await deployTokenManagerERC721(schainName, messageProxy.address, linker, fakeDepositBox);
     const chainConnectorRole = await messageProxy.CHAIN_CONNECTOR_ROLE();
-    await messageProxy.grantRole(chainConnectorRole, linker.address, {from: deployer});
+    await messageProxy.connect(deployer).grantRole(chainConnectorRole, linker.address);
   });
 
 it("should connect schain", async () => {
@@ -75,38 +83,38 @@ it("should connect schain", async () => {
   const nullAddress = "0x0000000000000000000000000000000000000000";
 
   // only owner can add schain:
-  await linker.connectSchain(schainID, [], {from: user}).should.be.rejected;
+  await linker.connect(user).connectSchain(schainID, []).should.be.rejected;
 
   // Token Manager address shouldn't be equal zero:
-  await linker.connectSchain(schainID, [nullAddress], {from: deployer})
+  await linker.connect(deployer).connectSchain(schainID, [nullAddress])
       .should.be.eventually.rejectedWith("Incorrect number of addresses");
 
-  await linker.connectSchain(schainID, [], {from: deployer});
+  await linker.connect(deployer).connectSchain(schainID, []);
 });
 
 it("should connect schain with 1 tokenManager", async() => {
   const schainID = randomString(10);
   const nullAddress = "0x0000000000000000000000000000000000000000";
-  const tokenManagerAddress = user;
+  const tokenManagerAddress = user.address;
 
   expect(await linker.hasTokenManager(tokenManagerEth.address)).to.equal(false);
 
-  await linker.registerTokenManager(tokenManagerEth.address, {from: deployer});
+  await linker.connect(deployer).registerTokenManager(tokenManagerEth.address);
 
   expect(await linker.hasTokenManager(tokenManagerEth.address)).to.equal(true);
 
-  await linker.connectSchain(schainID, [], {from: deployer})
+  await linker.connect(deployer).connectSchain(schainID, [])
     .should.be.eventually.rejectedWith("Incorrect number of addresses");
 
-  await linker.connectSchain(schainID, [tokenManagerAddress, nullAddress], {from: deployer})
+  await linker.connect(deployer).connectSchain(schainID, [tokenManagerAddress, nullAddress])
     .should.be.eventually.rejectedWith("Incorrect number of addresses");
 
   expect(await linker.hasSchain(schainID)).to.equal(false);
 
-  await linker.connectSchain(schainID, [nullAddress], {from: deployer})
+  await linker.connect(deployer).connectSchain(schainID, [nullAddress])
     .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
-  await linker.connectSchain(schainID, [tokenManagerAddress], {from: deployer})
+  await linker.connect(deployer).connectSchain(schainID, [tokenManagerAddress])
 
   expect(await linker.hasSchain(schainID)).to.equal(true);
 
@@ -115,35 +123,35 @@ it("should connect schain with 1 tokenManager", async() => {
 it("should connect schain with 3 tokenManager", async() => {
   const schainID = randomString(10);
   const nullAddress = "0x0000000000000000000000000000000000000000";
-  const tokenManagerAddress = user;
+  const tokenManagerAddress = user.address;
 
   expect(await linker.hasTokenManager(tokenManagerEth.address)).to.equal(false);
   expect(await linker.hasTokenManager(tokenManagerERC20.address)).to.equal(false);
   expect(await linker.hasTokenManager(tokenManagerERC721.address)).to.equal(false);
 
-  await linker.registerTokenManager(tokenManagerEth.address, {from: deployer});
-  await linker.registerTokenManager(tokenManagerERC20.address, {from: deployer});
-  await linker.registerTokenManager(tokenManagerERC721.address, {from: deployer});
+  await linker.connect(deployer).registerTokenManager(tokenManagerEth.address);
+  await linker.connect(deployer).registerTokenManager(tokenManagerERC20.address);
+  await linker.connect(deployer).registerTokenManager(tokenManagerERC721.address);
 
   expect(await linker.hasTokenManager(tokenManagerEth.address)).to.equal(true);
   expect(await linker.hasTokenManager(tokenManagerERC20.address)).to.equal(true);
   expect(await linker.hasTokenManager(tokenManagerERC721.address)).to.equal(true);
 
-  await linker.connectSchain(schainID, [], {from: deployer})
+  await linker.connect(deployer).connectSchain(schainID, [])
     .should.be.eventually.rejectedWith("Incorrect number of addresses");
 
-  await linker.connectSchain(schainID, [tokenManagerAddress], {from: deployer})
+  await linker.connect(deployer).connectSchain(schainID, [tokenManagerAddress])
     .should.be.eventually.rejectedWith("Incorrect number of addresses");
 
-  await linker.connectSchain(schainID, [tokenManagerAddress, nullAddress], {from: deployer})
+  await linker.connect(deployer).connectSchain(schainID, [tokenManagerAddress, nullAddress])
     .should.be.eventually.rejectedWith("Incorrect number of addresses");
 
   expect(await linker.hasSchain(schainID)).to.equal(false);
 
-  await linker.connectSchain(schainID, [nullAddress, tokenManagerAddress, nullAddress], {from: deployer})
+  await linker.connect(deployer).connectSchain(schainID, [nullAddress, tokenManagerAddress, nullAddress])
     .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
-  await linker.connectSchain(schainID, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress], {from: deployer})
+  await linker.connect(deployer).connectSchain(schainID, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress])
 
   expect(await linker.hasSchain(schainID)).to.equal(true);
 });
@@ -151,33 +159,33 @@ it("should connect schain with 3 tokenManager", async() => {
 it("should invoke `unconnectSchain` without mistakes", async () => {
   const schainID = randomString(10);
   const nullAddress = "0x0000000000000000000000000000000000000000";
-  const tokenManagerAddress = user;
+  const tokenManagerAddress = user.address;
 
-  await linker.registerTokenManager(tokenManagerEth.address, {from: deployer});
-  await linker.registerTokenManager(tokenManagerERC20.address, {from: deployer});
-  await linker.registerTokenManager(tokenManagerERC721.address, {from: deployer});
+  await linker.connect(deployer).registerTokenManager(tokenManagerEth.address);
+  await linker.connect(deployer).registerTokenManager(tokenManagerERC20.address);
+  await linker.connect(deployer).registerTokenManager(tokenManagerERC721.address);
 
-  await linker.connectSchain(schainID, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress], {from: deployer});
+  await linker.connect(deployer).connectSchain(schainID, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress]);
 
   expect(await linker.hasSchain(schainID)).to.equal(true);
 
-  await linker.disconnectSchain(schainID, {from: user}).should.be.rejected;
-  await linker.disconnectSchain(schainID, {from: deployer});
+  await linker.connect(user).disconnectSchain(schainID).should.be.rejected;
+  await linker.connect(deployer).disconnectSchain(schainID);
 
   expect(await linker.hasSchain(schainID)).to.equal(false);
 });
 
 it("should register and remove tokenManagers", async () => {
   const nullAddress = "0x0000000000000000000000000000000000000000";
-  const tokenManagerAddress = user;
+  const tokenManagerAddress = user.address;
 
   expect(await linker.hasTokenManager(tokenManagerEth.address)).to.equal(false);
   expect(await linker.hasTokenManager(tokenManagerERC20.address)).to.equal(false);
   expect(await linker.hasTokenManager(tokenManagerERC721.address)).to.equal(false);
 
-  await linker.registerTokenManager(tokenManagerEth.address, {from: deployer});
-  await linker.registerTokenManager(tokenManagerERC20.address, {from: deployer});
-  await linker.registerTokenManager(tokenManagerERC721.address, {from: deployer});
+  await linker.connect(deployer).registerTokenManager(tokenManagerEth.address);
+  await linker.connect(deployer).registerTokenManager(tokenManagerERC20.address);
+  await linker.connect(deployer).registerTokenManager(tokenManagerERC721.address);
 
   expect(await linker.hasTokenManager(tokenManagerEth.address)).to.equal(true);
   expect(await linker.hasTokenManager(tokenManagerERC20.address)).to.equal(true);
@@ -186,28 +194,28 @@ it("should register and remove tokenManagers", async () => {
   expect(await linker.hasTokenManager(nullAddress)).to.equal(false);
   expect(await linker.hasTokenManager(tokenManagerAddress)).to.equal(false);
 
-  await linker.registerTokenManager(nullAddress, {from: user}).should.be.rejected;
-  await linker.registerTokenManager(nullAddress, {from: deployer});
+  await linker.connect(user).registerTokenManager(nullAddress).should.be.rejected;
+  await linker.connect(deployer).registerTokenManager(nullAddress);
 
   expect(await linker.hasTokenManager(nullAddress)).to.equal(true);
   expect(await linker.hasTokenManager(tokenManagerAddress)).to.equal(false);
 
-  await linker.registerTokenManager(tokenManagerAddress, {from: deployer});
+  await linker.connect(deployer).registerTokenManager(tokenManagerAddress);
 
   expect(await linker.hasTokenManager(tokenManagerAddress)).to.equal(true);
 
-  await linker.removeTokenManager(tokenManagerAddress, {from: user}).should.be.rejected;
-  await linker.removeTokenManager(tokenManagerAddress, {from: deployer});
+  await linker.connect(user).removeTokenManager(tokenManagerAddress).should.be.rejected;
+  await linker.connect(deployer).removeTokenManager(tokenManagerAddress);
 
   expect(await linker.hasTokenManager(tokenManagerAddress)).to.equal(false);
 
-  await linker.removeTokenManager(nullAddress, {from: deployer});
+  await linker.connect(deployer).removeTokenManager(nullAddress);
 
   expect(await linker.hasTokenManager(nullAddress)).to.equal(false);
 
-  await linker.removeTokenManager(tokenManagerEth.address, {from: deployer});
-  await linker.removeTokenManager(tokenManagerERC20.address, {from: deployer});
-  await linker.removeTokenManager(tokenManagerERC721.address, {from: deployer});
+  await linker.connect(deployer).removeTokenManager(tokenManagerEth.address);
+  await linker.connect(deployer).removeTokenManager(tokenManagerERC20.address);
+  await linker.connect(deployer).removeTokenManager(tokenManagerERC721.address);
 
   expect(await linker.hasTokenManager(tokenManagerEth.address)).to.equal(false);
   expect(await linker.hasTokenManager(tokenManagerERC20.address)).to.equal(false);

@@ -23,7 +23,8 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import Web3 = require("web3");
+import  Web3 = require("web3");
+import { IpcProvider } from "web3-core";
 
 let requestId = 0xd2;
 
@@ -33,7 +34,7 @@ function responseCallback(error: Error | null, val?: any) {
     }
 }
 
-export function skipTime(web3: Web3, seconds: number) {
+export function skipTime(web3: {currentProvider: IpcProvider}, seconds: number) {
     web3.currentProvider.send(
         {
             id: requestId++,
@@ -53,6 +54,6 @@ export function skipTime(web3: Web3, seconds: number) {
         responseCallback);
 }
 
-export async function currentTime(web3: Web3) {
+export async function currentTime(web3: Web3.default) {
     return (await web3.eth.getBlock("latest")).timestamp;
 }

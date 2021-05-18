@@ -204,7 +204,7 @@ class BlockChain:
         erc20_address = lock_erc20.functions.clonesErc20(erc20_address_mainnet).call()
         if erc20_address == '0x0000000000000000000000000000000000000000':
             raise ValueError('No such token')
-        with open(self.config.proxy_root + '/build/contracts/ERC20OnChain.json') as erc20_on_chain_file:
+        with open(self.config.proxy_root + '/artifacts/contracts/schain/tokens/ERC20OnChain.sol/ERC20OnChain.json') as erc20_on_chain_file:
             erc20_on_chain_json = json.load(erc20_on_chain_file)
             return self.web3_schain.eth.contract(address=erc20_address, abi=erc20_on_chain_json['abi'])
 
@@ -213,7 +213,7 @@ class BlockChain:
         erc721_address = lock_erc721.functions.clonesErc721(erc721_address_mainnet).call()
         if erc721_address == '0x0000000000000000000000000000000000000000':
             raise ValueError('No such token')
-        with open(self.config.proxy_root + '/build/contracts/ERC721OnChain.json') as erc721_on_chain_file:
+        with open(self.config.proxy_root + '/artifacts/contracts/schain/tokens/ERC721OnChain.sol/ERC721OnChain.json') as erc721_on_chain_file:
             erc721_on_chain_json = json.load(erc721_on_chain_file)
             return self.web3_schain.eth.contract(address=erc721_address, abi=erc721_on_chain_json['abi'])
 
