@@ -890,10 +890,16 @@ function ima_common_init() {
         "community_pool_address"
     ] );
     imaUtils.check_keys_exist_in_abi( "S-Chain", imaState.strPathAbiJson_s_chain, imaState.joTrufflePublishResult_s_chain, [
-        "token_manager_abi",
-        "token_manager_address",
+        "token_manager_eth_abi",
+        "token_manager_eth_address",
+        "token_manager_erc20_abi",
+        "token_manager_erc20_address",
+        "token_manager_erc721_abi",
+        "token_manager_erc721_address",
         "message_proxy_chain_abi",
         "message_proxy_chain_address",
+        "token_manager_linker_abi",
+        "token_manager_linker_address",
         "community_locker_abi",
         "community_locker_address"
     ] );
@@ -901,8 +907,11 @@ function ima_common_init() {
     // deposit_box_eth_address       --> deposit_box_eth_abi
     // deposit_box_erc20_address     --> deposit_box_erc20_abi
     // deposit_box_erc721_address    --> deposit_box_erc721_abi
-    // linker_address             --> linker_abi
-    // token_manager_address         --> token_manager_abi
+    // linker_address                --> linker_abi
+    // token_manager_eth_address     --> token_manager_eth_abi
+    // token_manager_erc20_address   --> token_manager_erc20_abi
+    // token_manager_erc721_address  --> token_manager_erc721_abi
+    // token_manager_linker_address  --> token_manager_linker_abi
     // message_proxy_mainnet_address --> message_proxy_mainnet_abi
     // message_proxy_chain_address   --> message_proxy_chain_abi
 
@@ -923,25 +932,28 @@ function ima_common_init() {
     imaState.jo_deposit_box_erc721 = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.deposit_box_erc721_abi, imaState.joTrufflePublishResult_main_net.deposit_box_erc721_address ); // only main net
     imaState.jo_community_pool = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.community_pool_abi, imaState.joTrufflePublishResult_main_net.community_pool_address ); // only main net
     imaState.jo_linker = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.linker_abi, imaState.joTrufflePublishResult_main_net.linker_address ); // only main net
-    imaState.jo_token_manager = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.token_manager_abi, imaState.joTrufflePublishResult_s_chain.token_manager_address ); // only s-chain
+    imaState.jo_token_manager_eth = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.token_manager_eth_abi, imaState.joTrufflePublishResult_s_chain.token_manager_eth_address ); // only s-chain
+    imaState.jo_token_manager_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.token_manager_erc20_abi, imaState.joTrufflePublishResult_s_chain.token_manager_erc20_address ); // only s-chain
+    imaState.jo_token_manager_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.token_manager_erc721_abi, imaState.joTrufflePublishResult_s_chain.token_manager_erc721_address ); // only s-chain
     imaState.jo_community_locker = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.community_locker_abi, imaState.joTrufflePublishResult_s_chain.community_locker_address ); // only s-chain
     imaState.jo_message_proxy_main_net = new imaState.w3_main_net.eth.Contract( imaState.joTrufflePublishResult_main_net.message_proxy_mainnet_abi, imaState.joTrufflePublishResult_main_net.message_proxy_mainnet_address );
     imaState.jo_message_proxy_s_chain = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.message_proxy_chain_abi, imaState.joTrufflePublishResult_s_chain.message_proxy_chain_address );
-    imaState.jo_lock_and_data_s_chain = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.lock_and_data_for_schain_abi, imaState.joTrufflePublishResult_s_chain.lock_and_data_for_schain_address );
+    imaState.jo_token_manager_linker = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.token_manager_linker_abi, imaState.joTrufflePublishResult_s_chain.token_manager_linker_address );
     // imaState.eth_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.eth_erc721_abi, imaState.joTrufflePublishResult_s_chain.eth_erc721_address ); // only s-chain
     imaState.eth_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joTrufflePublishResult_s_chain.eth_erc20_abi, imaState.joTrufflePublishResult_s_chain.eth_erc20_address ); // only s-chain
 
-    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxEth" ) + cc.info( "    address is....." ) + cc.bright( imaState.jo_deposit_box_eth.options.address ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC20" ) + cc.info( "  address is....." ) + cc.bright( imaState.jo_deposit_box_erc20.options.address ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC721" ) + cc.info( " address is....." ) + cc.bright( imaState.jo_deposit_box_erc721.options.address ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "CommunityPool" ) + cc.info( "    address is....." ) + cc.bright( imaState.jo_community_pool.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManager" ) + cc.info( "     address is....." ) + cc.bright( imaState.jo_token_manager.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "CommunityLocker" ) + cc.info( "  address is....." ) + cc.bright( imaState.jo_community_locker.options.address ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( "     address is....." ) + cc.bright( imaState.jo_message_proxy_main_net.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( "     address is....." ) + cc.bright( imaState.jo_message_proxy_s_chain.options.address ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "        address is....." ) + cc.bright( imaState.jo_linker.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "LockAndData" ) + cc.info( "      address is....." ) + cc.bright( imaState.jo_lock_and_data_s_chain.options.address ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "ERC20" ) + cc.info( "            address is....." ) + cc.bright( imaState.eth_erc20.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxEth" ) + cc.info( "                address is....." ) + cc.bright( imaState.jo_deposit_box_eth.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC20" ) + cc.info( "              address is....." ) + cc.bright( imaState.jo_deposit_box_erc20.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC721" ) + cc.info( "             address is....." ) + cc.bright( imaState.jo_deposit_box_erc721.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerEth" ) + cc.info( "              address is....." ) + cc.bright( imaState.jo_token_manager_eth.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerERC20" ) + cc.info( "            address is....." ) + cc.bright( imaState.jo_token_manager_erc20.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerERC721" ) + cc.info( "           address is....." ) + cc.bright( imaState.jo_token_manager_erc721.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "CommunityLocker" ) + cc.info( "              address is....." ) + cc.bright( imaState.jo_community_locker.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.info( "                 address is....." ) + cc.bright( imaState.jo_message_proxy_main_net.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.info( "                 address is....." ) + cc.bright( imaState.jo_message_proxy_s_chain.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "                       address is....." ) + cc.bright( imaState.jo_linker.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerLinker" ) + cc.info( "           address is....." ) + cc.bright( imaState.jo_token_manager_linker.options.address ) + "\n" );
+    log.write( cc.info( "S-Chain  " ) + cc.sunny( "ERC20" ) + cc.info( "                        address is....." ) + cc.bright( imaState.eth_erc20.options.address ) + "\n" );
 
     //
     //

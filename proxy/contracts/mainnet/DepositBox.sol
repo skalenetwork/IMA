@@ -30,7 +30,7 @@ import "./Linker.sol";
 
 
 /**
- * @title IMAConnected - connected module for Upgradeable approach, knows ContractManager
+ * @title ProxyConnectorMainnet - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
 abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, IMainnetContract {

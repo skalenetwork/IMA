@@ -21,15 +21,15 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "./OwnableForSchain.sol";
+import "../SkaleFeaturesClient.sol";
 
 
-contract EthERC20 is OwnableForSchain, IERC20 {
+contract EthERC20 is IERC20, SkaleFeaturesClient {
 
-    using SafeMath for uint256;
+    using SafeMath for uint;
 
     mapping (address => uint256) private _balances;
 
@@ -43,11 +43,19 @@ contract EthERC20 is OwnableForSchain, IERC20 {
 
     bool private _initialized = false;
 
-    constructor() public {
-        _delayedInit();
+    address public tokenManagerEth;
+
+    modifier onlyTokenManagerEth() {
+        require(msg.sender == getTokenManagerEthAddress(), "Sender is not TokenManagerEth");
+        _;
     }
 
-    function mint(address account, uint256 amount) external onlyLockAndDataOwner returns (bool) {
+    constructor(address tokenManagerEthAddress) public {
+        _delayedInit();
+        tokenManagerEth = tokenManagerEthAddress;
+    }
+
+    function mint(address account, uint256 amount) external onlyTokenManagerEth returns (bool) {
         _delayedInit();
         _mint(account, amount);
         return true;
@@ -58,7 +66,7 @@ contract EthERC20 is OwnableForSchain, IERC20 {
         _burn(msg.sender, amount);
     }
 
-    function burnFrom(address account, uint256 amount) external onlyLockAndDataOwner {
+    function burnFrom(address account, uint256 amount) external onlyTokenManagerEth {
         _delayedInit();
         _burn(account, amount);
     }
@@ -117,6 +125,15 @@ contract EthERC20 is OwnableForSchain, IERC20 {
      */
     function balanceOf(address account) public view override returns (uint256) {
         return _balances[account];
+    }
+
+    function getTokenManagerEthAddress() public view returns (address) {
+        if (tokenManagerEth == address(0)) {
+            return getSkaleFeatures().getConfigVariableAddress(
+                "skaleConfig.contractSettings.IMA.TokenManagerEth"
+            );
+        }
+        return tokenManagerEth;
     }
 
     /**

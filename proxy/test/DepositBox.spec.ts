@@ -30,7 +30,6 @@ import {
   DepositBoxEthInstance,
   DepositBoxERC20Instance,
   DepositBoxERC721Instance,
-  EthERC20Contract,
   EthERC20Instance,
   ERC721OnChainContract,
   ERC721OnChainInstance,
@@ -38,7 +37,9 @@ import {
   MessageProxyForMainnetInstance,
   MessagesTesterContract,
   MessagesTesterInstance,
-  CommunityPoolInstance
+  CommunityPoolInstance,
+  ERC20OnChainContract,
+  ERC20OnChainInstance
   } from "../types/truffle-contracts";
 import { randomString } from "./utils/helper";
 
@@ -58,9 +59,9 @@ import { deployContractManager } from "./utils/deploy/contractManager";
 import { deployCommunityPool } from "./utils/deploy/communityPool";
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
-import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
+
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
-const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
+const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 
 const BlsSignature = [
@@ -148,10 +149,10 @@ contract("DepositBox", ([deployer, user, user2]) => {
   });
 
   describe("tests with `ERC20`", async () => {
-    let ethERC20: EthERC20Instance;
+    let erc20: ERC20OnChainInstance;
 
     beforeEach(async () => {
-      ethERC20 = await EthERC20.new({from: deployer});
+      erc20 = await ERC20OnChain.new("D2-token", "D2", {from: deployer});
     });
 
     describe("tests for `depositERC20` function", async () => {
@@ -164,12 +165,12 @@ contract("DepositBox", ([deployer, user, user2]) => {
         const chain = await linker
           .connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
 
-        await ethERC20.mint(user, "1000000000", {from: deployer});
-        await ethERC20.approve(depositBoxERC20.address, "1000000", {from: deployer});
+        await erc20.mint(user, "1000000000", {from: deployer});
+        await erc20.approve(depositBoxERC20.address, "1000000", {from: deployer});
         // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
         // execution/expectation
         await depositBoxERC20
-          .depositERC20(schainID, ethERC20.address, deployer, 100, {from: deployer})
+          .depositERC20(schainID, erc20.address, deployer, 100, {from: deployer})
           .should.be.eventually.rejectedWith(error);
       });
 
@@ -181,12 +182,12 @@ contract("DepositBox", ([deployer, user, user2]) => {
         const chain = await linker
           .connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
 
-        await ethERC20.mint(user, "1000000000", {from: deployer});
+        await erc20.mint(user, "1000000000", {from: deployer});
         await depositBoxERC20.disableWhitelist(schainID);
         // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
         // execution/expectation
         await depositBoxERC20
-          .depositERC20(schainID, ethERC20.address, deployer, 100, {from: deployer})
+          .depositERC20(schainID, erc20.address, deployer, 100, {from: deployer})
           .should.be.eventually.rejectedWith(error);
       });
 
@@ -197,17 +198,17 @@ contract("DepositBox", ([deployer, user, user2]) => {
         const chain = await linker
           .connectSchain(schainID, [deployer, deployer, deployer, deployer], {from: deployer});
         // mint some quantity of ERC20 tokens for `deployer` address
-        await ethERC20.mint(deployer, "1000000000", {from: deployer});
+        await erc20.mint(deployer, "1000000000", {from: deployer});
         // approve some quantity of ERC20 tokens for `depositBoxEth` address
-        await ethERC20.approve(depositBoxERC20.address, "1000000", {from: deployer});
+        await erc20.approve(depositBoxERC20.address, "1000000", {from: deployer});
         // execution
         await depositBoxERC20
-          .depositERC20(schainID, ethERC20.address, deployer, 1, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
+          .depositERC20(schainID, erc20.address, deployer, 1, {from: deployer}).should.be.eventually.rejectedWith("Whitelist is enabled");
         await depositBoxERC20.disableWhitelist(schainID);
         await depositBoxERC20
-          .depositERC20(schainID, ethERC20.address, deployer, 1, {from: deployer});
+          .depositERC20(schainID, erc20.address, deployer, 1, {from: deployer});
         const res = await depositBoxERC20
-          .depositERC20(schainID, ethERC20.address, deployer, 1, {from: deployer});
+          .depositERC20(schainID, erc20.address, deployer, 1, {from: deployer});
         // console.log("Gas for depoositERC20:", res.receipt.gasUsed);
       });
     });
@@ -282,7 +283,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
   describe("tests for `postMessage` function", async () => {
     // let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
     // let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
-    let ethERC20: EthERC20Instance;
+    let erc20: ERC20OnChainInstance;
     // let eRC721ModuleForMainnet: ERC721ModuleForMainnetInstance;
     // let lockAndDataForMainnetERC721: LockAndDataForMainnetERC721Instance;
     let eRC721OnChain: ERC721OnChainInstance;
@@ -291,7 +292,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
     beforeEach(async () => {
       // eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
       // lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
-      ethERC20 = await EthERC20.new({from: deployer});
+      erc20 = await ERC20OnChain.new("D2-token", "D2", {from: deployer});
       // eRC721ModuleForMainnet = await deployERC721ModuleForMainnet(lockAndDataForMainnet);
       // lockAndDataForMainnetERC721 = await deployLockAndDataForMainnetERC721(lockAndDataForMainnet);
       eRC721OnChain = await ERC721OnChain.new("ERC721OnChain", "ERC721");
@@ -522,7 +523,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
 
     it("should transfer ERC20 token", async () => {
       //  preparation
-      const contractHere = ethERC20.address;
+      const contractHere = erc20.address;
       const schainID = randomString(10);
       const amount = 10;
       const to = user;
@@ -552,12 +553,12 @@ contract("DepositBox", ([deployer, user, user2]) => {
       await communityPool.rechargeUserWallet(schainID, {value: wei, from: user});
 
       // mint some quantity of ERC20 tokens for `deployer` address
-      await ethERC20.mint(deployer, "1000000000", {from: deployer});
+      await erc20.mint(deployer, "1000000000", {from: deployer});
       /**
        * transfer more than `amount` quantity of ERC20 tokens
        * for `depositBoxERC20` to avoid `Not enough money`
        */
-      await ethERC20.transfer(depositBoxERC20.address, "1000000", {from: deployer});
+      await erc20.transfer(depositBoxERC20.address, "1000000", {from: deployer});
       // get data from `receiveERC20`
       await depositBoxERC20.disableWhitelist(schainID);
       // execution
@@ -570,7 +571,7 @@ contract("DepositBox", ([deployer, user, user2]) => {
       balance.should.be.almost(balanceBefore);
       // console.log("Gas for postMessage ERC20:", res.receipt.gasUsed);
       // expectation
-      (await ethERC20.balanceOf(user)).toString().should.be.equal(amount.toString());
+      (await erc20.balanceOf(user)).toString().should.be.equal(amount.toString());
     });
 
     it("should transfer ERC721 token", async () => {

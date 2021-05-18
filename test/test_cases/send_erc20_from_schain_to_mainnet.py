@@ -29,7 +29,7 @@ class SendERC20ToMainnet(TestCase):
     erc20 = None
     erc20_clone = None
     amount = 4
-    # index of token in lock_and_data_for_schain_erc20.sol
+    # index of token in token_manager_erc20.sol
     index = 1
 
     def __init__(self, config):
