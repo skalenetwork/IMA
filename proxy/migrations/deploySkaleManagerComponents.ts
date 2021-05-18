@@ -70,7 +70,7 @@ export async function getContractFactory(contract: string) {
 async function main() {
     const [ owner,] = await ethers.getSigners();
 
-    if( process.env.CHAIN_NAME_SCHAIN == undefined || process.env.CHAIN_NAME_SCHAIN == "" ) {
+    if( process.env.CHAIN_NAME_SCHAIN === undefined || process.env.CHAIN_NAME_SCHAIN === "" ) {
         console.log( "Please set CHAIN_NAME_SCHAIN to .env file" );
         process.exit( 126 );
     }
@@ -146,7 +146,7 @@ async function main() {
     console.log("Set common public key in KeyStorage contract", keyStorage.address, "\n");
     await wallets.rechargeSchainWallet( web3.utils.soliditySha3( schainName ), { value: "1000000000000000000" } );
     console.log("Recharge schain wallet in Wallets contract", wallets.address, "\n");
-    
+
     const jsonObject = {
         contract_manager_address: contractManager.address,
         contract_manager_abi: getAbi(contractManager.interface),

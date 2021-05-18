@@ -54,6 +54,15 @@ const config: HardhatUserConfig = {
       url: getCustomUrl(process.env.ENDPOINT),
       accounts: getCustomPrivateKey(process.env.PRIVATE_KEY),
       gasPrice: getGasPrice(process.env.GASPRICE)
+    },
+    mainnet: {
+      url: getCustomUrl(process.env.URL_W3_ETHEREUM),
+      accounts: getCustomPrivateKey(process.env.PRIVATE_KEY_FOR_ETHEREUM),
+      gasPrice: getGasPrice(process.env.GASPRICE)
+    },
+    schain: {
+      url: getCustomUrl(process.env.URL_W3_S_CHAIN),
+      accounts: getCustomPrivateKey(process.env.PRIVATE_KEY_FOR_SCHAIN),
     }
   },
   etherscan: {
