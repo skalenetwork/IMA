@@ -138,7 +138,7 @@ async function main() {
 
     const communityPoolName = "CommunityPool";
     const communityPoolFactory = await getContractFactory(communityPoolName);
-    const communityPool = 
+    const communityPool =
         await upgrades.deployProxy(
             communityPoolFactory,
             [

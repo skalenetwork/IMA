@@ -7,6 +7,7 @@ proxy/test-tokens/cache/
 
 # openzeppelin
 proxy/.openzeppelin/dev-*.json
+proxy/.openzeppelin/unknown-*.json
 proxy/.openzeppelin/.session
 
 # idea

@@ -1,11 +1,10 @@
-import { BigNumber } from "bignumber.js";
-import * as chaiAsPromised from "chai-as-promised";
+import chaiAsPromised from "chai-as-promised";
 import {
-  ContractManagerInstance,
-  LinkerInstance,
-  MessageProxyForMainnetInstance,
-  CommunityPoolInstance
-  } from "../types/truffle-contracts";
+    ContractManager,
+    Linker,
+    MessageProxyForMainnet,
+    CommunityPool
+} from "../typechain";
 import { randomString } from "./utils/helper";
 
 import chai = require("chai");
@@ -15,67 +14,76 @@ chai.should();
 chai.use((chaiAsPromised as any));
 chai.use(chaiAlmost(0.000000000002));
 
-import { deployLinker } from "./utils/deploy/linker";
-import { deployMessageProxyForMainnet } from "./utils/deploy/messageProxyForMainnet";
-import { deployContractManager } from "./utils/deploy/contractManager";
-import { deployCommunityPool } from "./utils/deploy/communityPool";
+import { deployLinker } from "./utils/deploy/mainnet/linker";
+import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
+import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
+import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
+
+import { ethers, web3 } from "hardhat";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { BigNumber } from "ethers";
 
 async function getBalance(address: string) {
-  return parseFloat(web3.utils.fromWei(await web3.eth.getBalance(address)));
+    return parseFloat(web3.utils.fromWei(await web3.eth.getBalance(address)));
 }
 
-contract("CommunityPool", ([deployer, user]) => {
-  let contractManager: ContractManagerInstance;
-  let messageProxy: MessageProxyForMainnetInstance;
-  let linker: LinkerInstance;
-  let communityPool: CommunityPoolInstance;
-  const contractManagerAddress = "0x0000000000000000000000000000000000000000";
+describe("CommunityPool", () => {
+    let deployer: SignerWithAddress;
+    let user: SignerWithAddress;
 
-  beforeEach(async () => {
-    contractManager = await deployContractManager(contractManagerAddress);
-    messageProxy = await deployMessageProxyForMainnet(contractManager);
-    linker = await deployLinker(messageProxy);
-    communityPool = await deployCommunityPool(contractManager, messageProxy, linker);
+    let contractManager: ContractManager;
+    let messageProxy: MessageProxyForMainnet;
+    let linker: Linker;
+    let communityPool: CommunityPool;
+    const contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
-  });
+    before(async () => {
+        [deployer, user] = await ethers.getSigners();
+    });
 
-  it("should revert if user recharged not enough money for most costly transaction", async () => {
-    const schainID = randomString(10);
-    await messageProxy.addConnectedChain(schainID);
-    const gasPrice = await web3.eth.getGasPrice();
-    const minTransactionGas =  (await communityPool.minTransactionGas()).toNumber();
-    const wei = minTransactionGas * gasPrice - 1;
-    await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user, gasPrice: gasPrice})
-        .should.be.eventually.rejectedWith("Not enough money for transaction");
-  });
+    beforeEach(async () => {
+        contractManager = await deployContractManager(contractManagerAddress);
+        messageProxy = await deployMessageProxyForMainnet(contractManager);
+        linker = await deployLinker(messageProxy);
+        communityPool = await deployCommunityPool(contractManager, linker, messageProxy);
+    });
 
-  it("should recharge wallet if user passed enough money", async () => {
-    const schainID = randomString(10);
-    await messageProxy.addConnectedChain(schainID);
-    const minTransactionGas =  (await communityPool.minTransactionGas()).toNumber();
-    const gasPrice = await web3.eth.getGasPrice();
-    const wei = minTransactionGas * gasPrice;
-    await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user, gasPrice: gasPrice});
-    const userBalance = (await communityPool.getBalance(schainID, {from: user})).toNumber();
-    userBalance.should.be.equal(wei);
-  });
+    it("should revert if user recharged not enough money for most costly transaction", async () => {
+        const schainID = randomString(10);
+        const tx = await messageProxy.addConnectedChain(schainID);
+        const gasPrice = tx.gasPrice;
+        const minTransactionGas = await communityPool.minTransactionGas();
+        const wei = minTransactionGas.mul(gasPrice).sub(1);
+        await communityPool.connect(user).rechargeUserWallet(schainID, { value: wei.toString(), gasPrice })
+            .should.be.eventually.rejectedWith("Not enough money for transaction");
+    });
 
-  it("should allow to withdraw money", async () => {
-    const schainID = randomString(10);
-    const gasPrice = await web3.eth.getGasPrice();
-    await messageProxy.addConnectedChain(schainID);
-    const minTransactionGas =  (await communityPool.minTransactionGas()).toNumber();
-    const wei = minTransactionGas * gasPrice;
-    await communityPool.rechargeUserWallet(schainID, {value: wei.toString(), from: user, gasPrice: gasPrice});
+    it("should recharge wallet if user passed enough money", async () => {
+        const schainID = randomString(10);
+        const tx = await messageProxy.addConnectedChain(schainID);
+        const minTransactionGas = await communityPool.minTransactionGas();
+        const gasPrice = tx.gasPrice;
+        const wei = minTransactionGas.mul(gasPrice);
+        await communityPool.connect(user).rechargeUserWallet(schainID, { value: wei.toString(), gasPrice });
+        const userBalance = await communityPool.connect(user).getBalance(schainID);
+        userBalance.should.be.deep.equal(wei);
+    });
 
-    await communityPool.withdrawFunds(schainID, wei + 1, {from: user})
-        .should.be.eventually.rejectedWith("Balance is too low");
+    it("should allow to withdraw money", async () => {
+        const schainID = randomString(10);
+        const gasPrice = (await messageProxy.addConnectedChain(schainID)).gasPrice;
+        const minTransactionGas = await communityPool.minTransactionGas();
+        const wei = minTransactionGas.mul(gasPrice).toNumber();
+        await communityPool.connect(user).rechargeUserWallet(schainID, { value: wei.toString(), gasPrice });
 
-    const balanceBefore = await getBalance(user);
-    const tx = await communityPool.withdrawFunds(schainID, wei, {from: user, gasPrice: gasPrice});
-    const balanceAfter = await getBalance(user);
-    const transactionFee = (tx.receipt.gasUsed * gasPrice);
-    (balanceAfter + transactionFee / 1e18).should.be.almost(balanceBefore + wei / 1e18);
-  });
+        await communityPool.connect(user).withdrawFunds(schainID, wei +1 )
+            .should.be.eventually.rejectedWith("Balance is too low");
 
- });
+        const balanceBefore = await getBalance(user.address);
+        const tx = await (await communityPool.connect(user).withdrawFunds(schainID, wei, { gasPrice })).wait();
+        const balanceAfter = await getBalance(user.address);
+        const transactionFee = tx.gasUsed.mul(gasPrice).toNumber();
+        (balanceAfter + transactionFee / 1e18).should.be.almost(balanceBefore + wei / 1e18);
+    });
+
+});

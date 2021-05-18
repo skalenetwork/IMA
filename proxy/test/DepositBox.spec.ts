@@ -25,7 +25,6 @@
 
 import chaiAsPromised from "chai-as-promised";
 // import chaiAlmost from "chai-almost";
-import chai = require("chai");
 import {
     ContractManager,
     DepositBoxEth,
@@ -41,6 +40,8 @@ import {
 } from "../typechain";
 import { randomString, stringValue } from "./utils/helper";
 
+import chai = require("chai");
+import chaiAlmost = require("chai-almost");
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -103,7 +104,7 @@ describe("DepositBox", () => {
         depositBoxEth = await deployDepositBoxEth(contractManager, messageProxy, linker);
         depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxy, linker);
         depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxy, linker);
-        communityPool = await deployCommunityPool(contractManager, messageProxy, linker);
+        communityPool = await deployCommunityPool(contractManager, linker, messageProxy);
     });
 
     describe("tests for `deposit` function", async () => {
