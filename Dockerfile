@@ -1,4 +1,4 @@
-FROM node:10.15.1
+FROM node:10.18.0
 
 RUN mkdir /ima
 WORKDIR /ima
