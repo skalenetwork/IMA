@@ -123,8 +123,8 @@ abstract contract TokenManager is SkaleFeaturesClient {
     }
 
     /**
-     * @dev Allows Owner to remove a TokenManagerEth on SKALE chain
-     * from depositBox.
+     * @dev Allows Owner to remove a TokenManager on SKALE chain
+     * from TokenManager.
      *
      * Requirements:
      *
@@ -140,6 +140,18 @@ abstract contract TokenManager is SkaleFeaturesClient {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(tokenManagers[schainHash] != address(0), "Token Manager is not set");
         delete tokenManagers[schainHash];
+    }
+
+    /**
+     * @dev Allows Schain Owner to change Deposit Box address
+     * This function should be executed only in Emergency.
+     *
+     * Requirements:
+     *
+     * - `msg.sender` must be schain owner
+     */
+    function changeDepositBoxAddress(address newDepositBox) external onlySchainOwner {
+        depositBox = newDepositBox;
     }
 
     /**

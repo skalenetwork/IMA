@@ -154,7 +154,6 @@ contract TokenManagerERC721 is TokenManager {
     {
         require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
         require(
-            erc721OnMainnet.isContract() &&
             address(erc721OnSchain).isContract(),
             "Given address is not a contract"
         );

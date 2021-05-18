@@ -1,11 +1,8 @@
-# truffle build
-proxy/build/
-proxy/types/
-
 # artifacts
 proxy/artifacts/
 proxy/test-tokens/artifacts/
 proxy/cache/
+proxy/typechain
 proxy/test-tokens/cache/
 
 # openzeppelin

@@ -3060,6 +3060,7 @@ async function do_transfer(
             //
             strActionName = "sign messages";
             await fn_sign_messages( messages, nIdxCurrentMsgBlockStart, details, async function( err, jarrMessages, joGlueResult ) {
+                const details = log.createMemoryStream();
                 if( err ) {
                     bErrorInSigningMessages = true;
                     const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error signing messages: " ) + cc.error( err ) + "\n";
@@ -3239,6 +3240,9 @@ async function do_transfer(
                 //
                 //
                 //
+                if( expose_details_get() )
+                    details.exposeDetailsTo( log, "do_transfer", true );
+                details.close();
             } );
             if( bErrorInSigningMessages )
                 break;
