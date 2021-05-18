@@ -90,6 +90,7 @@ export const contractsToDeploy = [
 export const contracts = [
     "MessageProxyForMainnet",
     "Linker",
+    "CommunityPool",
     "DepositBoxEth",
     "DepositBoxERC20",
     "DepositBoxERC721"
@@ -135,6 +136,33 @@ async function main() {
     );
     await verifyProxy(linkerName, linker.address);
 
+    const communityPoolName = "CommunityPool";
+    const communityPoolFactory = await getContractFactory(communityPoolName);
+    const communityPool = 
+        await upgrades.deployProxy(
+            communityPoolFactory,
+            [
+                contractManager?.address,
+                deployed.get(linkerName)?.address,
+                deployed.get(messageProxyForMainnetName)?.address
+            ],
+            {
+                initializer: 'initialize(address,address,address)'
+            }
+        );
+    await communityPool.deployTransaction.wait();
+    await (await linker.registerMainnetContract(communityPool.address)).wait();
+    await (await messageProxyForMainnet.setCommunityPool(communityPool.address)).wait();
+    console.log("Proxy Contract", communityPoolName, "deployed to", communityPool.address);
+    deployed.set(
+        communityPoolName,
+        {
+            address: communityPool.address,
+            interface: communityPool.interface
+        }
+    );
+    await verifyProxy(communityPoolName, communityPool.address);
+
     for (const contract of contractsToDeploy) {
         const contractFactory = await getContractFactory(contract);
         console.log("Deploy", contract);
@@ -152,7 +180,7 @@ async function main() {
         await proxy.deployTransaction.wait();
         const contractName = contract;
         console.log("Register", contract, "as", contractName, "=>", proxy.address);
-        const transaction = await linker.registerDepositBox(proxy.address);
+        const transaction = await linker.registerMainnetContract(proxy.address);
         await transaction.wait();
         console.log( "Contract", contractName, "with address", proxy.address, "is registered as DepositBox in Linker" );
         deployed.set(

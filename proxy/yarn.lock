@@ -2381,6 +2381,14 @@ cbor@^7.0.0:
     "@cto.af/textdecoder" "^0.0.0"
     nofilter "^2.0.3"
 
+chai-almost@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/chai-almost/-/chai-almost-1.0.1.tgz#43d026cf3be79a1cd513cf15af840a81243a4b60"
+  integrity sha1-Q9AmzzvnmhzVE88Vr4QKgSQ6S2A=
+  dependencies:
+    deep-eql "^2.0.2"
+    type-detect "^4.0.3"
+
 chai-as-promised@^7.1.1:
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/chai-as-promised/-/chai-as-promised-7.1.1.tgz#08645d825deb8696ee61725dbf590c012eb00ca0"
@@ -2909,6 +2917,13 @@ decompress-response@^3.2.0, decompress-response@^3.3.0:
   integrity sha1-gKTdMjdIOEv6JICDYirt7Jgq3/M=
   dependencies:
     mimic-response "^1.0.0"
+
+deep-eql@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/deep-eql/-/deep-eql-2.0.2.tgz#b1bac06e56f0a76777686d50c9feb75c2ed7679a"
+  integrity sha1-sbrAblbwp2d3aG1Qyf63XC7XZ5o=
+  dependencies:
+    type-detect "^3.0.0"
 
 deep-eql@^3.0.1:
   version "3.0.1"
