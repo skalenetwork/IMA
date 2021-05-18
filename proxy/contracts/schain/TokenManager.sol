@@ -199,6 +199,17 @@ abstract contract TokenManager is SkaleFeaturesClient {
         return messageProxy;
     }
 
+    function getCommunityLocker() public view returns (CommunityLocker) {
+        if (address(communityLocker) == address(0)) {
+            return CommunityLocker(
+                getSkaleFeatures().getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.CommunityLocker"
+                )
+            );
+        }
+        return communityLocker;
+    }
+
     // private
 
     /**

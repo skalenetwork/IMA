@@ -75,7 +75,7 @@ contract TokenManagerERC20 is TokenManager {
         external
     {
         require(to != address(0), "Incorrect receiver address");
-        communityLocker.checkAllowedToSendMessage(to);
+        getCommunityLocker().checkAllowedToSendMessage(to);
         ERC20Burnable contractOnSchain = clonesErc20[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");

@@ -68,7 +68,7 @@ contract TokenManagerERC721 is TokenManager {
     {
         require(to != address(0), "Incorrect receiver address");
         ERC721Burnable contractOnSchain = clonesErc721[contractOnMainnet];
-        communityLocker.checkAllowedToSendMessage(to);
+        getCommunityLocker().checkAllowedToSendMessage(to);
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
         contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
