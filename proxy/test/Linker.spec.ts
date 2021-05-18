@@ -83,21 +83,21 @@ describe("Linker", () => {
   });
 
   it("should connect schain", async () => {
-    const schainID = randomString(10);
+    const schainName = randomString(10);
     const nullAddress = "0x0000000000000000000000000000000000000000";
 
     // only owner can add schain:
-    await linker.connect(user).connectSchain(schainID, []).should.be.rejected;
+    await linker.connect(user).connectSchain(schainName, []).should.be.rejected;
 
     // Token Manager address shouldn't be equal zero:
-    await linker.connect(deployer).connectSchain(schainID, [nullAddress])
+    await linker.connect(deployer).connectSchain(schainName, [nullAddress])
         .should.be.eventually.rejectedWith("Incorrect number of addresses");
 
-    await linker.connect(deployer).connectSchain(schainID, []);
+    await linker.connect(deployer).connectSchain(schainName, []);
   });
 
   it("should connect schain with 1 tokenManager", async() => {
-    const schainID = randomString(10);
+    const schainName = randomString(10);
     const nullAddress = "0x0000000000000000000000000000000000000000";
     const tokenManagerAddress = user.address;
 
@@ -107,25 +107,25 @@ describe("Linker", () => {
 
     expect(await linker.hasDepositBox(depositBoxEth.address)).to.equal(true);
 
-    await linker.connect(deployer).connectSchain(schainID, [])
+    await linker.connect(deployer).connectSchain(schainName, [])
       .should.be.eventually.rejectedWith("Incorrect number of addresses");
 
-    await linker.connect(deployer).connectSchain(schainID, [tokenManagerAddress, nullAddress])
+    await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress, nullAddress])
       .should.be.eventually.rejectedWith("Incorrect number of addresses");
 
-    expect(await linker.hasSchain(schainID)).to.equal(false);
+    expect(await linker.hasSchain(schainName)).to.equal(false);
 
-    await linker.connect(deployer).connectSchain(schainID, [nullAddress])
+    await linker.connect(deployer).connectSchain(schainName, [nullAddress])
       .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
-    await linker.connect(deployer).connectSchain(schainID, [tokenManagerAddress])
+    await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress])
 
-    expect(await linker.hasSchain(schainID)).to.equal(true);
+    expect(await linker.hasSchain(schainName)).to.equal(true);
 
   });
 
   it("should connect schain with 3 tokenManager", async() => {
-    const schainID = randomString(10);
+    const schainName = randomString(10);
     const nullAddress = "0x0000000000000000000000000000000000000000";
     const tokenManagerAddress = user.address;
 
@@ -141,27 +141,27 @@ describe("Linker", () => {
     expect(await linker.hasDepositBox(depositBoxERC20.address)).to.equal(true);
     expect(await linker.hasDepositBox(depositBoxERC721.address)).to.equal(true);
 
-    await linker.connect(deployer).connectSchain(schainID, [])
+    await linker.connect(deployer).connectSchain(schainName, [])
       .should.be.eventually.rejectedWith("Incorrect number of addresses");
 
-    await linker.connect(deployer).connectSchain(schainID, [tokenManagerAddress])
+    await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress])
       .should.be.eventually.rejectedWith("Incorrect number of addresses");
 
-    await linker.connect(deployer).connectSchain(schainID, [tokenManagerAddress, nullAddress])
+    await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress, nullAddress])
       .should.be.eventually.rejectedWith("Incorrect number of addresses");
 
-    expect(await linker.hasSchain(schainID)).to.equal(false);
+    expect(await linker.hasSchain(schainName)).to.equal(false);
 
-    await linker.connect(deployer).connectSchain(schainID, [nullAddress, tokenManagerAddress, nullAddress])
+    await linker.connect(deployer).connectSchain(schainName, [nullAddress, tokenManagerAddress, nullAddress])
       .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
-    await linker.connect(deployer).connectSchain(schainID, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress])
+    await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress])
 
-    expect(await linker.hasSchain(schainID)).to.equal(true);
+    expect(await linker.hasSchain(schainName)).to.equal(true);
   });
 
   it("should invoke `unconnectSchain` without mistakes", async () => {
-    const schainID = randomString(10);
+    const schainName = randomString(10);
     const nullAddress = "0x0000000000000000000000000000000000000000";
     const tokenManagerAddress = user.address;
 
@@ -169,14 +169,14 @@ describe("Linker", () => {
     await linker.connect(deployer).registerDepositBox(depositBoxERC20.address);
     await linker.connect(deployer).registerDepositBox(depositBoxERC721.address);
 
-    await linker.connect(deployer).connectSchain(schainID, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress]);
+    await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress]);
 
-    expect(await linker.hasSchain(schainID)).to.equal(true);
+    expect(await linker.hasSchain(schainName)).to.equal(true);
 
-    await linker.connect(user).unconnectSchain(schainID).should.be.rejected;
-    await linker.connect(deployer).unconnectSchain(schainID);
+    await linker.connect(user).unconnectSchain(schainName).should.be.rejected;
+    await linker.connect(deployer).unconnectSchain(schainName);
 
-    expect(await linker.hasSchain(schainID)).to.equal(false);
+    expect(await linker.hasSchain(schainName)).to.equal(false);
   });
 
   it("should register and remove depositBoxes", async () => {

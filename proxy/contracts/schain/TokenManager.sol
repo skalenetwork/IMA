@@ -38,7 +38,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
 
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
-    bytes32 public schainId;
+    bytes32 public schainHash;
     address public depositBox;
     bool public automaticDeploy;
 
@@ -66,14 +66,14 @@ abstract contract TokenManager is SkaleFeaturesClient {
         public
     {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        schainId = keccak256(abi.encodePacked(newSchainName));
+        schainHash = keccak256(abi.encodePacked(newSchainName));
         messageProxy = newMessageProxy;
         tokenManagerLinker = newIMALinker;
         depositBox = newDepositBox;
     }
 
     function postMessage(
-        string calldata fromSchainID,
+        string calldata fromSchainName,
         address sender,
         bytes calldata data
     )
@@ -158,14 +158,14 @@ abstract contract TokenManager is SkaleFeaturesClient {
     }
 
     function getSchainHash() public view returns (bytes32) {
-        if (schainId == bytes32(0)) {
+        if (schainHash == bytes32(0)) {
             return keccak256(
                 abi.encodePacked(
                     getSkaleFeatures().getConfigVariableString("skaleConfig.sChain.schainName")
                 )
             );
         }
-        return schainId;
+        return schainHash;
     }
 
     function getTokenManagerLinker() public view returns (TokenManagerLinker) {

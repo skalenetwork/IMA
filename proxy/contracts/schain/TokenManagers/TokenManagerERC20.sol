@@ -111,12 +111,12 @@ contract TokenManagerERC20 is TokenManager {
         external
     {
         require(to != address(0), "Incorrect receiver address");
-        bytes32 targetSchainId = keccak256(abi.encodePacked(targetSchainName));
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
-            targetSchainId != MAINNET_ID,
+            targetSchainHash != MAINNET_ID,
             "This function is not for transferring to Mainnet"
         );
-        require(tokenManagers[targetSchainId] != address(0), "Incorrect Token Manager address");
+        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
         ERC20Burnable contractOnSchain = clonesErc20[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
@@ -140,7 +140,7 @@ contract TokenManagerERC20 is TokenManager {
 
         getMessageProxy().postOutgoingMessage(
             targetSchainName,
-            tokenManagers[targetSchainId],
+            tokenManagers[targetSchainHash],
             Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
         );
     }
@@ -154,7 +154,7 @@ contract TokenManagerERC20 is TokenManager {
      * Requirements:
      * 
      * - MessageProxy must be the sender.
-     * - `fromSchainID` must exist in TokenManager addresses.
+     * - `fromSchainName` must exist in TokenManager addresses.
      */
     function postMessage(
         string calldata fromSchainName,
@@ -166,13 +166,13 @@ contract TokenManagerERC20 is TokenManager {
         onlyMessageProxy
         returns (bool)
     {
-        bytes32 fromSchainId = keccak256(abi.encodePacked(fromSchainName));
+        bytes32 fromSchainHash = keccak256(abi.encodePacked(fromSchainName));
         require(
-            fromSchainId != getSchainHash() && 
+            fromSchainHash != getSchainHash() && 
                 (
-                    fromSchainId == MAINNET_ID ?
+                    fromSchainHash == MAINNET_ID ?
                     sender == getDepositBoxERC20Address() :
-                    sender == tokenManagers[fromSchainId]
+                    sender == tokenManagers[fromSchainHash]
                 ),
             "Receiver chain is incorrect"
         );
