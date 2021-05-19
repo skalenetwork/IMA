@@ -22,8 +22,6 @@
 
 pragma solidity 0.6.12;
 
-import "../schain/tokens/EthERC20.sol";
-
 
 contract Logger {
 

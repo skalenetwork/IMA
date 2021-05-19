@@ -35,8 +35,8 @@ import {
     ERC20OnChainInstance,
     ERC721OnChainContract,
     ERC721OnChainInstance,
-    EthERC20Contract,
-    EthERC20Instance,
+    EthErc20Contract,
+    EthErc20Instance,
     KeyStorageContract,
     KeyStorageInstance,
     MessageProxyForMainnetInstance,
@@ -78,7 +78,7 @@ import { deployDepositBoxERC20 } from "../test/utils/deploy/depositBoxERC20";
 import { deployDepositBoxERC721 } from "../test/utils/deploy/depositBoxERC721";
 import { deployMessageProxyForMainnet } from "../test/utils/deploy/messageProxyForMainnet";
 
-const EthERC20: EthERC20Contract = artifacts.require("./EthERC20");
+const EthERC20: EthErc20Contract = artifacts.require("./EthErc20");
 const ERC20OnChain: ERC20OnChainContract = artifacts.require("./ERC20OnChain");
 const ERC721OnChain: ERC721OnChainContract = artifacts.require("./ERC721OnChain");
 
@@ -117,7 +117,7 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
     let tokenManagerErc721: TokenManagerERC721Instance;
     let tokenManagerEth: TokenManagerEthInstance;
     let tokenManagerLinker: TokenManagerLinkerInstance;
-    let ethERC20: EthERC20Instance;
+    let ethERC20: EthErc20Instance;
     let messageProxyForSchain: MessageProxyForSchainInstance;
     let messages: MessagesTesterInstance;
     let skaleFeatures: SkaleFeaturesMockInstance;

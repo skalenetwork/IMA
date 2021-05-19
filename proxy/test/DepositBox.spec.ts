@@ -30,7 +30,6 @@ import {
   DepositBoxEthInstance,
   DepositBoxERC20Instance,
   DepositBoxERC721Instance,
-  EthERC20Instance,
   ERC721OnChainContract,
   ERC721OnChainInstance,
   LinkerInstance,

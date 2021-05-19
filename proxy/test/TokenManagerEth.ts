@@ -27,8 +27,8 @@ import { BigNumber } from "bignumber.js";
 import * as chaiAsPromised from "chai-as-promised";
 
 import chai = require("chai");
-import { EthERC20TesterContract,
-  EthERC20TesterInstance,
+import { EthErc20Contract,
+  EthErc20Instance,
   MessageProxyForSchainContract,
   MessageProxyForSchainInstance,
   MessagesTesterContract,
@@ -50,7 +50,7 @@ const TokenManagerEth: TokenManagerEthContract = artifacts.require("./TokenManag
 const TokenManagerLinker: TokenManagerLinkerContract = artifacts.require("./TokenManagerLinker");
 const MessageProxyForSchain: MessageProxyForSchainContract = artifacts.require("./MessageProxyForSchain");
 const MessagesTester: MessagesTesterContract = artifacts.require("./MessagesTester");
-const EthERC20Tester: EthERC20TesterContract = artifacts.require("./EthERC20Tester");
+const EthErc20: EthErc20Contract = artifacts.require("./EthErc20");
 const SkaleFeaturesMock: SkaleFeaturesMockContract = artifacts.require("./SkaleFeaturesMock");
 
 const schainName = "TestSchain";
@@ -60,7 +60,7 @@ contract("TokenManagerEth", ([deployer, user]) => {
   let tokenManagerLinker: TokenManagerLinkerInstance;
   let messageProxyForSchain: MessageProxyForSchainInstance;
   let messages: MessagesTesterInstance;
-  let ethERC20: EthERC20TesterInstance;
+  let ethERC20: EthErc20Instance;
   let skaleFeatures: SkaleFeaturesMockInstance;
   let fakeDepositBox: any;
 
@@ -82,7 +82,7 @@ contract("TokenManagerEth", ([deployer, user]) => {
       fakeDepositBox,
       "0x0000000000000000000000000000000000000000"
     );
-    ethERC20 = await EthERC20Tester.new(
+    ethERC20 = await EthErc20.new(
       tokenManagerEth.address,
       {
         from: deployer,
@@ -255,12 +255,8 @@ contract("TokenManagerEth", ([deployer, user]) => {
     const amountAfter = new BigNumber("540000000000000000");
     const to = deployer;
 
-    // set contract TokenManagerEth:
-    await ethERC20.setTokenManagerEthAddress(deployer, {from: deployer});
-
+    await ethERC20.grantRole(await ethERC20.MINTER_ROLE(), deployer);
     await ethERC20.mint(user, amount, {from: deployer});
-
-    await ethERC20.setTokenManagerEthAddress(tokenManagerEth.address, {from: deployer});
 
     // transfer ownership of using ethERC20 contract method to tokenManagerEth contract address:
     // await ethERC20.transferOwnership(tokenManagerEth.address, {from: deployer});
@@ -290,12 +286,8 @@ contract("TokenManagerEth", ([deployer, user]) => {
       // add connected chain:
       await messageProxyForSchain.addConnectedChain(schainName, {from: deployer});
 
-      // transfer ownership of using ethERC20 contract method to tokenManagerEth contract address:
-      await ethERC20.setTokenManagerEthAddress(deployer, {from: deployer});
-
+      await ethERC20.grantRole(await ethERC20.MINTER_ROLE(), deployer);
       await ethERC20.mint(user, amount, {from: deployer});
-
-      await ethERC20.setTokenManagerEthAddress(tokenManagerEth.address, {from: deployer});
 
       // add schain:
       await tokenManagerEth.addTokenManager(schainName, user, {from: deployer});
@@ -391,7 +383,7 @@ contract("TokenManagerEth", ([deployer, user]) => {
             .addTokenManager(schainID, deployer, {from: deployer});
         // set EthERC20 address:
         await tokenManagerEth.setEthErc20Address(ethERC20.address, {from: deployer});
-        await ethERC20.setTokenManagerEthAddress(tokenManagerEth.address, {from: deployer});
+        await ethERC20.grantRole(await ethERC20.MINTER_ROLE(), tokenManagerEth.address);
         // execution
         await tokenManagerEth
             .postMessage(schainID, sender, bytesData, {from: deployer});

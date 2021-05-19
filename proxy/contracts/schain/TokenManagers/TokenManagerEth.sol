@@ -23,7 +23,7 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../../Messages.sol";
-import "../tokens/EthERC20.sol";
+import "../tokens/EthErc20.sol";
 import "../TokenManager.sol";
 
 
@@ -41,7 +41,7 @@ import "../TokenManager.sol";
  */
 contract TokenManagerEth is TokenManager {
 
-    EthERC20 public ethErc20;
+    EthErc20 public ethErc20;
 
     /// Create a new token manager
 
@@ -50,7 +50,7 @@ contract TokenManagerEth is TokenManager {
         MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newIMALinker,
         address newDepositBox,
-        EthERC20 _ethErc20
+        EthErc20 _ethErc20
     )
         public
         TokenManager(newChainName, newMessageProxy, newIMALinker, newDepositBox)
@@ -58,10 +58,10 @@ contract TokenManagerEth is TokenManager {
         ethErc20 = _ethErc20;
     }
 
-    function setEthErc20Address(EthERC20 newEthERC20Address) external {
+    function setEthErc20Address(EthErc20 newEthErc20Address) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
-        require(ethErc20 != newEthERC20Address, "The same address");
-        ethErc20 = newEthERC20Address;
+        require(ethErc20 != newEthErc20Address, "The same address");
+        ethErc20 = newEthErc20Address;
     }
 
     /**
@@ -135,7 +135,7 @@ contract TokenManagerEth is TokenManager {
         Messages.TransferEthMessage memory decodedMessage = Messages.decodeTransferEthMessage(data);
         address receiver = decodedMessage.receiver;
         require(receiver != address(0), "Incorrect receiver");
-        require(ethErc20.mint(receiver, decodedMessage.amount), "Mint error");
+        ethErc20.mint(receiver, decodedMessage.amount);
         return true;
     }
 
@@ -143,7 +143,7 @@ contract TokenManagerEth is TokenManager {
 
     function _burnEthErc20(address account, uint amount) private {
         if (amount > 0) {
-            ethErc20.burnFrom(account, amount);
+            ethErc20.forceBurn(account, amount);
         }
     }
 }
