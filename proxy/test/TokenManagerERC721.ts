@@ -79,7 +79,7 @@ describe("TokenManagerERC721", () => {
         messageProxyForSchain = await deployMessageProxyForSchainTester(schainName);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
         messages = await deployMessages();
-        const fakeDepositBox =  messages;
+        const fakeDepositBox = messages;
 
         const skaleFeatures = await deploySkaleFeaturesMock();
         await skaleFeatures.setSchainOwner(schainOwner.address);
@@ -110,10 +110,10 @@ describe("TokenManagerERC721", () => {
         const newDepositBox = user.address;
         expect(await tokenManagerERC721.depositBox()).to.equal(messages.address);
         await tokenManagerERC721.connect(user).changeDepositBoxAddress(newDepositBox)
-          .should.be.eventually.rejectedWith("Sender is not an Schain owner");
+            .should.be.eventually.rejectedWith("Sender is not an Schain owner");
         await tokenManagerERC721.connect(schainOwner).changeDepositBoxAddress(newDepositBox);
         expect(await tokenManagerERC721.depositBox()).to.equal(newDepositBox);
-      });
+    });
 
     it("should successfully call exitToMainERC721", async () => {
         await tokenManagerERC721.connect(user).exitToMainERC721(token.address, to, tokenId)
@@ -181,7 +181,7 @@ describe("TokenManagerERC721", () => {
 
     it("should transfer ERC721 token through `postMessage` function", async () => {
         //  preparation
-        const fakeDepositBox =  messages;
+        const fakeDepositBox = messages;
         const data = await messages.encodeTransferErc721AndTokenInfoMessage(
             token.address,
             to,

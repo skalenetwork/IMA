@@ -269,16 +269,16 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
     {
         bytes32 fromChainHash = keccak256(abi.encodePacked(fromChainName));
         require(_verifyMessages(_hashedArray(messages), signature), "Signature is not verified");
-        require(connectedChains[fromChainId].inited, "Chain is not initialized");
+        require(connectedChains[fromChainHash].inited, "Chain is not initialized");
         require(
-            startingCounter == connectedChains[fromChainId].incomingMessageCounter,
+            startingCounter == connectedChains[fromChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
         for (uint256 i = 0; i < messages.length; i++) {
             _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
         }
-        connectedChains[fromChainId].incomingMessageCounter 
-            = connectedChains[fromChainId].incomingMessageCounter.add(uint256(messages.length));
-        _popOutgoingMessageData(fromChainId, idxLastToPopNotIncluding);
+        connectedChains[fromChainHash].incomingMessageCounter 
+            = connectedChains[fromChainHash].incomingMessageCounter.add(uint256(messages.length));
+        _popOutgoingMessageData(fromChainHash, idxLastToPopNotIncluding);
     }
 
     function moveIncomingCounter(string calldata schainName) external onlyDebugger {
