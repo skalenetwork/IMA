@@ -77,7 +77,6 @@ abstract contract TokenManager is SkaleFeaturesClient {
         messageProxy = newMessageProxy;
         tokenManagerLinker = newIMALinker;
         communityLocker = newCommunityLocker;
-        require(newDepositBox.isContract(), "Given address is not a contract");
         depositBox = newDepositBox;
     }
 
