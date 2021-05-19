@@ -52,30 +52,5 @@ contract SkaleFeatures {
         }
         require(success, "Get config uint256 failed");
     }
-
-    function getConfigVariableAddress(
-        string memory strConfigVariableName
-    )
-        external
-        view
-        virtual
-        returns ( address rv )
-    {
-        uint256 fmp = FREE_MEM_PTR;
-        uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
-        bool success;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            let ptr := mload(fmp)
-            for { let i := 0 } lt( i, blocks ) { i := add(1, i) } {
-                let where := add(ptr, mul(32, i))
-                let what := mload(add(strConfigVariableName, mul(32, i)))
-                mstore(where, what)
-            }
-            success := staticcall(not(0), FN_NUM_GET_CONFIG_VARIABLE_ADDRESS, ptr, mul( blocks, 32 ), ptr, 32)
-            rv := mload(ptr)
-        }
-        require(success, "Get config address failed");
-    }
 }
 

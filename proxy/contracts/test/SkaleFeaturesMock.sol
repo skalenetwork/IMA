@@ -56,15 +56,6 @@ contract SkaleFeaturesMock is SkaleFeatures {
         }
     }
 
-    function getConfigVariableAddress( string memory key ) public view override returns ( address ) {
-        if (_equal(key, "skaleConfig.contractSettings.IMA.ownerAddress")) {
-            return schainOwner;
-        } else {
-            console.log(key);
-            revert("The key is not implemented in the mock");
-        }
-    }
-
     function _equal(string memory a, string memory b) private pure returns (bool) {
         return keccak256(bytes(a)) == keccak256(bytes(b));
     }
