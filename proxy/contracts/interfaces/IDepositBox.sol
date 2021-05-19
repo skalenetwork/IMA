@@ -31,9 +31,9 @@ interface IDepositBox {
         external
         returns (bool);
 
-    function addTokenManager(string calldata schainID, address newTokenManagerAddress) external;
+    function addTokenManager(string calldata schainName, address newTokenManagerAddress) external;
 
-    function removeTokenManager(string calldata schainID) external;
+    function removeTokenManager(string calldata schainName) external;
 
-    function hasTokenManager(string calldata schainID) external view returns (bool);
+    function hasTokenManager(string calldata schainName) external view returns (bool);
 }

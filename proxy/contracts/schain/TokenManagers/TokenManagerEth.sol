@@ -89,16 +89,16 @@ contract TokenManagerEth is TokenManager {
         external
         receivedEth(amount)
     {
-        bytes32 targetSchainId = keccak256(abi.encodePacked(targetSchainName));
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
-            targetSchainId != MAINNET_ID,
+            targetSchainHash != MAINNET_ID,
             "This function is not for transferring to Mainnet"
         );
-        require(tokenManagers[targetSchainId] != address(0), "Incorrect Token Manager address");
+        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
         require(to != address(0), "Incorrect receiver address");
         getMessageProxy().postOutgoingMessage(
             targetSchainName,
-            tokenManagers[targetSchainId],
+            tokenManagers[targetSchainHash],
             Messages.encodeTransferEthMessage(to, amount)
         );
     }
@@ -112,7 +112,7 @@ contract TokenManagerEth is TokenManager {
      * Requirements:
      * 
      * - MessageProxy must be the sender.
-     * - `fromSchainID` must exist in TokenManager addresses.
+     * - `fromSchainName` must exist in TokenManager addresses.
      */
     function postMessage(
         string calldata fromSchainName,
@@ -124,13 +124,13 @@ contract TokenManagerEth is TokenManager {
         onlyMessageProxy
         returns (bool)
     {
-        bytes32 fromSchainId = keccak256(abi.encodePacked(fromSchainName));
+        bytes32 fromSchainHash = keccak256(abi.encodePacked(fromSchainName));
         require(
-            fromSchainId != getSchainHash() && 
+            fromSchainHash != getSchainHash() && 
                 (
-                    fromSchainId == MAINNET_ID ?
+                    fromSchainHash == MAINNET_ID ?
                     sender == getDepositBoxEthAddress() :
-                    sender == tokenManagers[fromSchainId]
+                    sender == tokenManagers[fromSchainHash]
                 ),
             "Receiver chain is incorrect"
         );

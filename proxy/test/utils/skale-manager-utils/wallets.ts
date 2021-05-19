@@ -25,6 +25,6 @@ export async function rechargeSchainWallet(
     if ( !schainActive )
         await initializeSchain(contractManager, schainName, owner, 1, 1);
 
-    const schainId = await ethers.utils.solidityKeccak256(['string'], [schainName]);
-    await walletsInstance.rechargeSchainWallet(schainId, {value: amountEth /*"1000000000000000000"*/});
+    const schainHash = await ethers.utils.solidityKeccak256(['string'], [schainName]);
+    await walletsInstance.rechargeSchainWallet(schainHash, {value: amountEth /*"1000000000000000000"*/});
 }
