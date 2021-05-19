@@ -64,7 +64,7 @@ contract("TokenManagerLinker", ([deployer, user, user2]) => {
     await messageProxy.initialize();
     linker = await TokenManagerLinker.new(messageProxy.address);
     fakeDepositBox = linker.address;
-    tokenManagerEth = await TokenManagerEth.new(schainName, messageProxy.address, linker.address, fakeDepositBox);
+    tokenManagerEth = await TokenManagerEth.new(schainName, messageProxy.address, linker.address, fakeDepositBox, "0x0000000000000000000000000000000000000000");
     tokenManagerERC20 = await TokenManagerERC20.new(schainName, messageProxy.address, linker.address, fakeDepositBox);
     tokenManagerERC721 = await TokenManagerERC721.new(schainName, messageProxy.address, linker.address, fakeDepositBox);
     const chainConnectorRole = await messageProxy.CHAIN_CONNECTOR_ROLE();

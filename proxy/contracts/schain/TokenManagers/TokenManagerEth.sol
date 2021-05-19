@@ -41,14 +41,7 @@ import "../TokenManager.sol";
  */
 contract TokenManagerEth is TokenManager {
 
-    EthERC20 private _ethErc20;
-
-    modifier receivedEth(uint256 amount) {
-        if (amount > 0) {
-            EthERC20(getEthErc20Address()).burnFrom(msg.sender, amount);
-        }
-        _;
-    }
+    EthERC20 public ethErc20;
 
     /// Create a new token manager
 
@@ -56,24 +49,28 @@ contract TokenManagerEth is TokenManager {
         string memory newChainName,
         MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newIMALinker,
-        address newDepositBox
+        address newDepositBox,
+        EthERC20 _ethErc20
     )
         public
         TokenManager(newChainName, newMessageProxy, newIMALinker, newDepositBox)
-        // solhint-disable-next-line no-empty-blocks
-    { }
+    {
+        ethErc20 = _ethErc20;
+    }
 
-    function setEthErc20Address(address newEthERC20Address) external {
+    function setEthErc20Address(EthERC20 newEthERC20Address) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
-        require(address(_ethErc20) != newEthERC20Address, "The same address");
-        _ethErc20 = EthERC20(newEthERC20Address);
+        require(ethErc20 != newEthERC20Address, "The same address");
+        ethErc20 = newEthERC20Address;
     }
 
     /**
      * @dev Performs an exit (post outgoing message) to Mainnet.
      */
-    function exitToMain(address to, uint256 amount) external receivedEth(amount) {
+    function exitToMain(address to, uint256 amount) external {
         require(to != address(0), "Incorrect receiver address");
+
+        _burnEthErc20(msg.sender, amount);
         messageProxy.postOutgoingMessage(
             "Mainnet",
             depositBox,
@@ -87,7 +84,6 @@ contract TokenManagerEth is TokenManager {
         uint256 amount
     )
         external
-        receivedEth(amount)
     {
         bytes32 targetSchainId = keccak256(abi.encodePacked(targetSchainName));
         require(
@@ -96,6 +92,8 @@ contract TokenManagerEth is TokenManager {
         );
         require(tokenManagers[targetSchainId] != address(0), "Incorrect Token Manager address");
         require(to != address(0), "Incorrect receiver address");
+
+        _burnEthErc20(msg.sender, amount);
         messageProxy.postOutgoingMessage(
             targetSchainName,
             tokenManagers[targetSchainId],
@@ -137,18 +135,15 @@ contract TokenManagerEth is TokenManager {
         Messages.TransferEthMessage memory decodedMessage = Messages.decodeTransferEthMessage(data);
         address receiver = decodedMessage.receiver;
         require(receiver != address(0), "Incorrect receiver");
-        require(EthERC20(getEthErc20Address()).mint(receiver, decodedMessage.amount), "Mint error");
+        require(ethErc20.mint(receiver, decodedMessage.amount), "Mint error");
         return true;
     }
 
-    function getEthErc20Address() public view returns (EthERC20) {
-        if (address(_ethErc20) == address(0)) {
-            return EthERC20(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.EthERC20"
-                )
-            );
+    // private
+
+    function _burnEthErc20(address account, uint amount) private {
+        if (amount > 0) {
+            ethErc20.burnFrom(account, amount);
         }
-        return _ethErc20;
     }
 }

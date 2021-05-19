@@ -214,8 +214,14 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         tokenManagerLinker = await TokenManagerLinker.new(messageProxyForSchain.address);
         tokenManagerErc20 = await TokenManagerErc20.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBoxERC20.address);
         tokenManagerErc721 = await TokenManagerErc721.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBoxERC721.address);
-        tokenManagerEth = await TokenManagerEth.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, depositBoxEth.address);
+        tokenManagerEth = await TokenManagerEth.new(
+            schainName,
+            messageProxyForSchain.address,
+            tokenManagerLinker.address,
+            depositBoxEth.address,
+            "0x0000000000000000000000000000000000000000");
         ethERC20 = await EthERC20.new(tokenManagerEth.address, {from: deployer});
+        await tokenManagerEth.setEthErc20Address(ethERC20.address);
         skaleFeatures = await SkaleFeatures.new({from: deployer});
         await skaleFeatures.setSchainOwner(deployer);
 
