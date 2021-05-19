@@ -37,6 +37,8 @@ contract DepositBoxEth is DepositBox {
 
     mapping(address => uint256) public approveTransfers;
 
+    mapping(bytes32 => uint256) public transferredAmount;
+
     modifier rightTransaction(string memory schainName) {
         require(
             keccak256(abi.encodePacked(schainName)) != keccak256(abi.encodePacked("Mainnet")),
@@ -103,6 +105,7 @@ contract DepositBoxEth is DepositBox {
         address tokenManagerAddress = tokenManagerEthAddresses[schainHash];
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(to != address(0), "Community Pool is not available");
+        _saveTransferredAmount(schainHash, msg.value);
         messageProxy.postOutgoingMessage(
             schainHash,
             tokenManagerAddress,
@@ -132,6 +135,7 @@ contract DepositBoxEth is DepositBox {
         );
         approveTransfers[decodedMessage.receiver] =
             approveTransfers[decodedMessage.receiver].add(decodedMessage.amount);
+        _removeTransferredAmount(schainHash, decodedMessage.amount);
         // TODO add gas reimbusement
         // uint256 txFee = gasConsumption * tx.gasprice;
         // require(amount >= txFee, "Not enough funds to recover gas");
@@ -177,5 +181,13 @@ contract DepositBoxEth is DepositBox {
         initializer
     {
         DepositBox.initialize(newContractManagerOfSkaleManager, newLinkerAddress, newMessageProxyAddress);
+    }
+
+    function _saveTransferredAmount(bytes32 schainHash, uint256 amount) private {
+        transferredAmount[schainHash] = transferredAmount[schainHash].add(amount);
+    }
+
+    function _removeTransferredAmount(bytes32 schainHash, uint256 amount) private {
+        transferredAmount[schainHash] = transferredAmount[schainHash].sub(amount);
     }
 }

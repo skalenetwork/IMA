@@ -38,6 +38,8 @@ contract DepositBoxERC20 is DepositBox {
     mapping(bytes32 => mapping(address => bool)) public schainToERC20;
     mapping(bytes32 => bool) public withoutWhitelist;
 
+    mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
+
     /**
      * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
      */
@@ -86,6 +88,7 @@ contract DepositBoxERC20 is DepositBox {
             ),
             "Could not transfer ERC20 Token"
         );
+        _saveTransferredAmount(schainHash, contractOnMainnet, amount);
         messageProxy.postOutgoingMessage(
             schainHash,
             tokenManagerAddress,
@@ -159,6 +162,7 @@ contract DepositBoxERC20 is DepositBox {
             IERC20Metadata(message.token).transfer(message.receiver, message.amount),
             "Something went wrong with `transfer` in ERC20"
         );
+        _removeTransferredAmount(schainHash, message.token, message.amount);
         // TODO add gas reimbusement
         // uint256 txFee = gasConsumption * tx.gasprice;
         // require(amount >= txFee, "Not enough funds to recover gas");
@@ -223,6 +227,14 @@ contract DepositBoxERC20 is DepositBox {
         initializer
     {
         DepositBox.initialize(contractManagerOfSkaleManager, linker, newMessageProxyAddress);
+    }
+
+    function _saveTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
+        transferredAmount[schainHash][erc20Token] = transferredAmount[schainHash][erc20Token].add(amount);
+    }
+
+    function _removeTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
+        transferredAmount[schainHash][erc20Token] = transferredAmount[schainHash][erc20Token].sub(amount);
     }
 
     /**

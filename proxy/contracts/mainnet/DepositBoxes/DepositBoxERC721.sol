@@ -38,6 +38,8 @@ contract DepositBoxERC721 is DepositBox {
     mapping(bytes32 => mapping(address => bool)) public schainToERC721;
     mapping(bytes32 => bool) public withoutWhitelist;
 
+    mapping(address => mapping(uint256 => bytes32)) public transferredAmount;
+
     /**
      * @dev Emitted when token is mapped in LockAndDataForMainnetERC721.
      */
@@ -74,6 +76,7 @@ contract DepositBoxERC721 is DepositBox {
             tokenId
         );
         IERC721Upgradeable(contractOnMainnet).transferFrom(msg.sender, address(this), tokenId);
+        _saveTransferredAmount(schainHash, contractOnMainnet, tokenId);
         messageProxy.postOutgoingMessage(
             schainHash,
             tokenManagerAddress,
@@ -144,6 +147,7 @@ contract DepositBoxERC721 is DepositBox {
         require(message.token.isContract(), "Given address is not a contract");
         require(IERC721Upgradeable(message.token).ownerOf(message.tokenId) == address(this), "Incorrect tokenId");
         IERC721Upgradeable(message.token).transferFrom(address(this), message.receiver, message.tokenId);
+        _removeTransferredAmount(message.token, message.tokenId);
         // TODO add gas reimbusement
         // uint256 txFee = gasConsumption * tx.gasprice;
         // require(amount >= txFee, "Not enough funds to recover gas");
@@ -208,6 +212,14 @@ contract DepositBoxERC721 is DepositBox {
         initializer
     {
         DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxyAddress);
+    }
+
+    function _saveTransferredAmount(bytes32 schainHash, address erc721Token, uint256 tokenId) private {
+        transferredAmount[erc721Token][tokenId] = schainHash;
+    }
+
+    function _removeTransferredAmount(address erc721Token, uint256 tokenId) private {
+        transferredAmount[erc721Token][tokenId] = bytes32(0);
     }
 
     /**
