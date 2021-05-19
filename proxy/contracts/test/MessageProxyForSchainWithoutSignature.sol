@@ -26,7 +26,7 @@ import "../schain/MessageProxyForSchain.sol";
 
 contract MessageProxyForSchainWithoutSignature is MessageProxyForSchain {
 
-    constructor(string memory newChainID) public MessageProxyForSchain(newChainID)
+    constructor(string memory schainName) public MessageProxyForSchain(schainName)
     // solhint-disable-next-line no-empty-blocks
     { }
 

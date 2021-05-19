@@ -23,13 +23,13 @@ pragma solidity 0.6.12;
 
 interface IMessageProxy {
     function postOutgoingMessage(
-        string calldata dstChainID,
-        address dstContract,
+        string calldata targetSchainName,
+        address targetContract,
         bytes calldata data
     )
         external;
 
-    function addConnectedChain(string calldata newChainID) external;
-    function removeConnectedChain(string calldata newChainID) external;
-    function isConnectedChain(string calldata newChainID) external view returns (bool);
+    function addConnectedChain(string calldata schainName) external;
+    function removeConnectedChain(string calldata schainName) external;
+    function isConnectedChain(string calldata schainName) external view returns (bool);
 }

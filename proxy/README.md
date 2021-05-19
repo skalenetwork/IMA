@@ -20,8 +20,8 @@ You can use MessageProxy contract separately by Interchain Messaging Smart Contr
 ```solidity
 interface Proxy {
     function postOutgoingMessage(
-        string calldata dstChainID, 
-        address dstContract, 
+        string calldata targetSchainName, 
+        address targetContract, 
         uint256 amount, 
         address to, 
         bytes calldata data
@@ -35,7 +35,7 @@ interface Proxy {
 ```solidity
 function postMessage(
     address sender, 
-    string memory fromSchainID, 
+    string memory fromSchainName, 
     address payable to, 
     uint256 amount, 
     bytes memory data
@@ -60,7 +60,7 @@ There is a Wrapped Ether clone(EthERC20.sol) on SKALE chains - it is an ERC20 to
 This system sends and receives ETH, ERC20, and ERC721 tokens from other chains.
 It consists of 3 additional smart contracts (not including MessageProxy contract):
 
-1)  `DepositBox.sol` - contract only on a mainnet: DepositBox can transfer ETH and ERC20, ERC721 tokens to other chains. \- `deposit(string memory schainID, address to)` - transfer ETH. ...
+1)  `DepositBox.sol` - contract only on a mainnet: DepositBox can transfer ETH and ERC20, ERC721 tokens to other chains. \- `deposit(string memory schainName, address to)` - transfer ETH. ...
 2)  `TokenManager.sol`
 3)  `TokenFactory.sol`
 

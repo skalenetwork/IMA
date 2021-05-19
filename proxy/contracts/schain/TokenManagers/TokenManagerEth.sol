@@ -91,16 +91,16 @@ contract TokenManagerEth is TokenManager {
         external
         receivedEth(amount)
     {
-        bytes32 targetSchainId = keccak256(abi.encodePacked(targetSchainName));
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
-            targetSchainId != MAINNET_ID,
+            targetSchainHash != MAINNET_ID,
             "This function is not for transferring to Mainnet"
         );
-        require(tokenManagers[targetSchainId] != address(0), "Incorrect Token Manager address");
+        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
         require(to != address(0), "Incorrect receiver address");
         getMessageProxy().postOutgoingMessage(
             targetSchainName,
-            tokenManagers[targetSchainId],
+            tokenManagers[targetSchainHash],
             Messages.encodeTransferEthMessage(to, amount)
         );
     }
@@ -114,10 +114,10 @@ contract TokenManagerEth is TokenManager {
      * Requirements:
      * 
      * - MessageProxy must be the sender.
-     * - `fromSchainID` must exist in TokenManager addresses.
+     * - `fromSchainName` must exist in TokenManager addresses.
      */
     function postMessage(
-        bytes32 fromChainId,
+        bytes32 fromChainHash,
         address sender,
         bytes calldata data
     )
@@ -127,11 +127,11 @@ contract TokenManagerEth is TokenManager {
         returns (bool)
     {
         require(
-            fromChainId != getSchainHash() && 
+            fromChainHash != getSchainHash() && 
                 (
-                    fromChainId == MAINNET_ID ?
+                    fromChainHash == MAINNET_ID ?
                     sender == getDepositBoxEthAddress() :
-                    sender == tokenManagers[fromChainId]
+                    sender == tokenManagers[fromChainHash]
                 ),
             "Receiver chain is incorrect"
         );

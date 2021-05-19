@@ -165,7 +165,7 @@ describe("TokenManagerERC20", () => {
 
   it("should add token by owner", async () => {
     // preparation
-    const schainID = randomString(10);
+    const newSchainName = randomString(10);
     const addressERC20 = erc20OnChain.address;
     const addressERC201 = erc20OnMainnet.address;
     const automaticDeploy = await tokenManagerErc20.automaticDeploy();
@@ -224,7 +224,7 @@ describe("TokenManagerERC20", () => {
       await erc20OnChain.connect(user).approve(tokenManagerErc20.address, amountMint);
 
       // add schain:
-      // await lockAndDataForSchain.addSchain(chainID, tokenManager.address, {from: deployer});
+      // await lockAndDataForSchain.addSchain(schainName, tokenManager.address, {from: deployer});
 
       // execution:
       const res = await tokenManagerErc20
@@ -239,11 +239,11 @@ describe("TokenManagerERC20", () => {
   it("should invoke `transferToSchainERC20` without mistakes", async () => {
     const amount = "20000000000000000";
     const amountReduceCost = "8000000000000000";
-    const schainID = randomString(10);
+    const newSchainName = randomString(10);
 
     // add connected chain:
     await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
-    await messageProxyForSchain.connect(deployer).addConnectedChain(schainID);
+    await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
     // invoke `setTotalSupplyOnMainnet` before `mint` to avoid `SafeMath: subtraction overflow` exception:
     // await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
     // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
@@ -255,17 +255,17 @@ describe("TokenManagerERC20", () => {
     // execution:
     await tokenManagerErc20
         .connect(user)
-        .transferToSchainERC20(schainID, erc20OnMainnet.address, user.address, amountReduceCost)
+        .transferToSchainERC20(newSchainName, erc20OnMainnet.address, user.address, amountReduceCost)
         .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
-    await tokenManagerErc20.connect(deployer).addTokenManager(schainID, tokenManagerErc20.address);
+    await tokenManagerErc20.connect(deployer).addTokenManager(newSchainName, tokenManagerErc20.address);
 
     await tokenManagerErc20
         .connect(user)
-        .transferToSchainERC20(schainID, erc20OnMainnet.address, user.address, amountReduceCost);
+        .transferToSchainERC20(newSchainName, erc20OnMainnet.address, user.address, amountReduceCost);
     // expectation:
     const outgoingMessagesCounter = BigNumber.from(
-        await messageProxyForSchain.getOutgoingMessagesCounter(schainID));
+        await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
     outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
   });
 
@@ -274,7 +274,7 @@ describe("TokenManagerERC20", () => {
       //  preparation
       const remoteTokenManagerAddress = fakeDepositBox;
       const fromSchainName = randomString(10);
-      const fromSchainId = stringValue(web3.utils.soliditySha3(fromSchainName));
+      const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
       await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
 
       const amount = 10;
@@ -294,7 +294,7 @@ describe("TokenManagerERC20", () => {
       await tokenManagerErc20.connect(schainOwner).enableAutomaticDeploy();
 
       // execution
-      await messageProxyForSchain.postMessage(tokenManagerErc20.address, fromSchainId, remoteTokenManagerAddress, data);
+      await messageProxyForSchain.postMessage(tokenManagerErc20.address, fromSchainHash, remoteTokenManagerAddress, data);
       // expectation
       const addressERC20OnSchain = await tokenManagerErc20.clonesErc20(erc20OnMainnet.address);
       const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;

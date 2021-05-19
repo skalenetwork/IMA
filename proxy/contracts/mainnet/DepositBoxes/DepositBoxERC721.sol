@@ -40,26 +40,26 @@ contract DepositBoxERC721 is DepositBox {
     /**
      * @dev Emitted when token is mapped in LockAndDataForMainnetERC721.
      */
-    event ERC721TokenAdded(string schainID, address indexed contractOnMainnet);
+    event ERC721TokenAdded(string schainName, address indexed contractOnMainnet);
     event ERC721TokenReady(address indexed contractOnMainnet, uint256 tokenId);
 
-    modifier rightTransaction(string memory schainID) {
+    modifier rightTransaction(string memory schainName) {
         require(
-            keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")),
+            keccak256(abi.encodePacked(schainName)) != keccak256(abi.encodePacked("Mainnet")),
             "SKALE chain name is incorrect"
         );
         _;
     }
 
     function depositERC721(
-        string calldata schainID,
+        string calldata schainName,
         address contractOnMainnet,
         address to,
         uint256 tokenId
     )
         external
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address tokenManagerAddress = tokenManagerERC721Addresses[schainHash];
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(
@@ -67,7 +67,7 @@ contract DepositBoxERC721 is DepositBox {
             "DepositBox was not approved for ERC721 token"
         );
         bytes memory data = _receiveERC721(
-            schainID,
+            schainName,
             contractOnMainnet,
             to,
             tokenId
@@ -91,16 +91,16 @@ contract DepositBoxERC721 is DepositBox {
      * - TokenManager address must be non-zero.
      */
     function addSchainContract(string calldata schainName, address newTokenManagerERC721Address) external override {
-        bytes32 schainId = keccak256(abi.encodePacked(schainName));
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainId) ||
+            isSchainOwner(msg.sender, schainHash) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        require(tokenManagerERC721Addresses[schainId] == address(0), "SKALE chain is already set");
+        require(tokenManagerERC721Addresses[schainHash] == address(0), "SKALE chain is already set");
         require(newTokenManagerERC721Address != address(0), "Incorrect Token Manager address");
 
-        tokenManagerERC721Addresses[schainId] = newTokenManagerERC721Address;
+        tokenManagerERC721Addresses[schainHash] = newTokenManagerERC721Address;
     }
 
     /**
@@ -113,15 +113,15 @@ contract DepositBoxERC721 is DepositBox {
      * - SKALE chain must already be set.
      */
     function removeSchainContract(string calldata schainName) external override {
-        bytes32 schainId = keccak256(abi.encodePacked(schainName));
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainId) ||
+            isSchainOwner(msg.sender, schainHash) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );        
-        require(tokenManagerERC721Addresses[schainId] != address(0), "SKALE chain is not set");
+        require(tokenManagerERC721Addresses[schainHash] != address(0), "SKALE chain is not set");
 
-        delete tokenManagerERC721Addresses[schainId];
+        delete tokenManagerERC721Addresses[schainHash];
     }
 
     function postMessage(
@@ -150,14 +150,14 @@ contract DepositBoxERC721 is DepositBox {
      * @dev Allows Schain owner to add an ERC721 token to LockAndDataForMainnetERC20.
      */
     function addERC721TokenByOwner(string calldata schainName, address erc721OnMainnet) external {
-        bytes32 schainId = keccak256(abi.encodePacked(schainName));
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
-            isSchainOwner(msg.sender, schainId) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            isSchainOwner(msg.sender, schainHash) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
             "Sender is not an Schain owner"
         );
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
-        // require(!withoutWhitelist[schainId], "Whitelist is enabled");
-        schainToERC721[schainId][erc721OnMainnet] = true;
+        // require(!withoutWhitelist[schainHash], "Whitelist is enabled");
+        schainToERC721[schainHash][erc721OnMainnet] = true;
         emit ERC721TokenAdded(schainName, erc721OnMainnet);
     }
 
@@ -187,8 +187,8 @@ contract DepositBoxERC721 is DepositBox {
     /**
      * @dev Checks whether depositBoxERC721 is connected to a SKALE chain TokenManagerERC721.
      */
-    function hasSchainContract(string calldata schainID) external view override returns (bool) {
-        return tokenManagerERC721Addresses[keccak256(abi.encodePacked(schainID))] != address(0);
+    function hasSchainContract(string calldata schainName) external view override returns (bool) {
+        return tokenManagerERC721Addresses[keccak256(abi.encodePacked(schainName))] != address(0);
     }
 
     /// Create a new deposit box
@@ -210,7 +210,7 @@ contract DepositBoxERC721 is DepositBox {
      * Emits an {ERC721TokenAdded} event.  
      */
     function _receiveERC721(
-        string calldata schainID,
+        string calldata schainName,
         address contractOnMainnet,
         address to,
         uint256 tokenId
@@ -218,10 +218,10 @@ contract DepositBoxERC721 is DepositBox {
         private
         returns (bytes memory data)
     {
-        bool isERC721AddedToSchain = schainToERC721[keccak256(abi.encodePacked(schainID))][contractOnMainnet];
+        bool isERC721AddedToSchain = schainToERC721[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
         if (!isERC721AddedToSchain) {
-            _addERC721ForSchain(schainID, contractOnMainnet);
-            emit ERC721TokenAdded(schainID, contractOnMainnet);
+            _addERC721ForSchain(schainName, contractOnMainnet);
+            emit ERC721TokenAdded(schainName, contractOnMainnet);
             data = Messages.encodeTransferErc721AndTokenInfoMessage(
                 contractOnMainnet,
                 to,
@@ -250,10 +250,10 @@ contract DepositBoxERC721 is DepositBox {
      * LockAndDataForMainnetERC721.
      */
     function _addERC721ForSchain(string calldata schainName, address erc721OnMainnet) private {
-        bytes32 schainId = keccak256(abi.encodePacked(schainName));
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
-        require(withoutWhitelist[schainId], "Whitelist is enabled");
-        schainToERC721[schainId][erc721OnMainnet] = true;
+        require(withoutWhitelist[schainHash], "Whitelist is enabled");
+        schainToERC721[schainHash][erc721OnMainnet] = true;
         emit ERC721TokenAdded(schainName, erc721OnMainnet);
     }
 

@@ -86,19 +86,19 @@ contract TokenManagerERC721 is TokenManager {
         external
     {
         require(to != address(0), "Incorrect receiver address");
-        bytes32 targetSchainId = keccak256(abi.encodePacked(targetSchainName));
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
-            targetSchainId != MAINNET_ID,
+            targetSchainHash != MAINNET_ID,
             "This function is not for transferring to Mainnet"
         );
-        require(tokenManagers[targetSchainId] != address(0), "Incorrect Token Manager address");
+        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
         ERC721Burnable contractOnSchain = clonesErc721[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
         contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
         contractOnSchain.burn(tokenId);
         bytes memory data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);    
-        getMessageProxy().postOutgoingMessage(targetSchainName, tokenManagers[targetSchainId], data);
+        getMessageProxy().postOutgoingMessage(targetSchainName, tokenManagers[targetSchainHash], data);
     }
 
     /**
@@ -110,7 +110,7 @@ contract TokenManagerERC721 is TokenManager {
      * Requirements:
      * 
      * - MessageProxy must be the sender.
-     * - `fromSchainID` must exist in TokenManager addresses.
+     * - `fromSchainName` must exist in TokenManager addresses.
      */
     function postMessage(
         bytes32 fromChainId,

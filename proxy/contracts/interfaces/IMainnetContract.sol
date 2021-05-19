@@ -31,9 +31,9 @@ interface IMainnetContract {
         external
         returns (address);
 
-    function addSchainContract(string calldata schainID, address newSchainContract) external;
+    function addSchainContract(string calldata schainName, address newSchainContract) external;
 
-    function removeSchainContract(string calldata schainID) external;
+    function removeSchainContract(string calldata schainName) external;
 
-    function hasSchainContract(string calldata schainID) external view returns (bool);
+    function hasSchainContract(string calldata schainName) external view returns (bool);
 }

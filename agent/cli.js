@@ -383,12 +383,12 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "id-s-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.strChainID_s_chain = joArg.value;
+            imaState.strChainName_s_chain = joArg.value;
             continue;
         }
         if( joArg.name == "id-main-net" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.strChainID_main_net = joArg.value;
+            imaState.strChainName_main_net = joArg.value;
             continue;
         }
         if( joArg.name == "cid-s-chain" ) {
@@ -1150,10 +1150,10 @@ function ima_common_init() {
         ensure_have_value( "S-chain URL", imaState.strURL_s_chain, false, true, null, ( x ) => {
             return cc.u( x );
         } );
-        ensure_have_value( "Main-net Ethereum network name", imaState.strChainID_main_net, false, true, null, ( x ) => {
+        ensure_have_value( "Main-net Ethereum network name", imaState.strChainName_main_net, false, true, null, ( x ) => {
             return cc.note( x );
         } );
-        ensure_have_value( "S-Chain Ethereum network name", imaState.strChainID_s_chain, false, true, null, ( x ) => {
+        ensure_have_value( "S-Chain Ethereum network name", imaState.strChainName_s_chain, false, true, null, ( x ) => {
             return cc.note( x );
         } );
         ensure_have_value( "Main-net Ethereum chain ID", imaState.cid_main_net, false, true, null, ( x ) => {
