@@ -945,6 +945,7 @@ function ima_common_init() {
     log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxEth" ) + cc.info( "                address is....." ) + cc.bright( imaState.jo_deposit_box_eth.options.address ) + "\n" );
     log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC20" ) + cc.info( "              address is....." ) + cc.bright( imaState.jo_deposit_box_erc20.options.address ) + "\n" );
     log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC721" ) + cc.info( "             address is....." ) + cc.bright( imaState.jo_deposit_box_erc721.options.address ) + "\n" );
+    log.write( cc.info( "Main-net " ) + cc.sunny( "CommunityPool" ) + cc.info( "                address is....." ) + cc.bright( imaState.jo_community_pool.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerEth" ) + cc.info( "              address is....." ) + cc.bright( imaState.jo_token_manager_eth.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerERC20" ) + cc.info( "            address is....." ) + cc.bright( imaState.jo_token_manager_erc20.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerERC721" ) + cc.info( "           address is....." ) + cc.bright( imaState.jo_token_manager_erc721.options.address ) + "\n" );
