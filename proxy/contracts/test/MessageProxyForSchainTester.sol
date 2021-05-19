@@ -32,12 +32,12 @@ contract MessageProxyForSchainTester is MessageProxyForSchain {
 
     function postMessage(
         IContractReceiverForSchain targetContract,
-        bytes32 fromSchainId,
+        bytes32 fromSchainHash,
         address sender,
         bytes calldata data
     )
     external
     {
-        targetContract.postMessage(fromSchainId, sender, data);
+        targetContract.postMessage(fromSchainHash, sender, data);
     }
 }

@@ -51,7 +51,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
     mapping(bytes32 => address) public tokenManagers;
 
     string constant public MAINNET_NAME = "Mainnet";
-    bytes32 constant public MAINNET_ID = keccak256(abi.encodePacked(MAINNET_NAME));
+    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
 
     modifier onlySchainOwner() {
         require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");

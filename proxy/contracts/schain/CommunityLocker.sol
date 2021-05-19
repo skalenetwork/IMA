@@ -38,16 +38,16 @@ contract CommunityLocker is SkaleFeaturesClient {
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
 
-    bytes32 public schainId;
+    bytes32 public schainHash;
     uint public timeLimitPerMessage;
     string constant public MAINNET_NAME = "Mainnet";
-    bytes32 constant public MAINNET_ID = keccak256(abi.encodePacked(MAINNET_NAME));
+    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
 
     mapping(address => bool) private _unfrozenUsers;
     mapping(address => uint) private _lastMessageTimeStamp;
 
     event UserUnfrozed(
-        bytes32 schainId,
+        bytes32 schainHash,
         address user
     );
 
@@ -59,14 +59,14 @@ contract CommunityLocker is SkaleFeaturesClient {
         public
     {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        schainId = keccak256(abi.encodePacked(newSchainName));
+        schainHash = keccak256(abi.encodePacked(newSchainName));
         messageProxy = newMessageProxy;
         tokenManagerLinker = newIMALinker;
         timeLimitPerMessage = 5 minutes;
     }
 
     function postMessage(
-        bytes32 fromChainId,
+        bytes32 fromChainHash,
         address,
         bytes calldata data
     )
@@ -74,13 +74,13 @@ contract CommunityLocker is SkaleFeaturesClient {
         returns (bool)
     {
         require(msg.sender == address(messageProxy), "Sender is not a message proxy");
-        require(fromChainId == MAINNET_ID, "Source chain name should be Mainnet");
+        require(fromChainHash == MAINNET_HASH, "Source chain name should be Mainnet");
         Messages.MessageType operation = Messages.getMessageType(data);
         require(operation == Messages.MessageType.FREEZE_STATE, "The message should contain a frozen state");
         Messages.FreezeStateMessage memory message =  Messages.decodeFreezeStateMessage(data);
         require(_unfrozenUsers[message.receiver] != message.isUnfrozen, "Freezing states must be different");
         _unfrozenUsers[message.receiver] = message.isUnfrozen;
-        emit UserUnfrozed(schainId, message.receiver);
+        emit UserUnfrozed(schainHash, message.receiver);
         return true;
     }
 

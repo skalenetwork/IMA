@@ -88,7 +88,7 @@ contract TokenManagerERC721 is TokenManager {
         require(to != address(0), "Incorrect receiver address");
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
-            targetSchainHash != MAINNET_ID,
+            targetSchainHash != MAINNET_HASH,
             "This function is not for transferring to Mainnet"
         );
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
@@ -113,7 +113,7 @@ contract TokenManagerERC721 is TokenManager {
      * - `fromSchainName` must exist in TokenManager addresses.
      */
     function postMessage(
-        bytes32 fromChainId,
+        bytes32 fromChainHash,
         address sender,
         bytes calldata data
     )
@@ -123,11 +123,11 @@ contract TokenManagerERC721 is TokenManager {
         returns (bool)
     {
         require(
-            fromChainId != getSchainHash() && 
+            fromChainHash != getSchainHash() && 
             (
-                fromChainId == MAINNET_ID ?
+                fromChainHash == MAINNET_HASH ?
                 sender == getDepositBoxERC721Address() :
-                sender == tokenManagers[fromChainId]
+                sender == tokenManagers[fromChainHash]
             ),
             "Receiver chain is incorrect"
         );

@@ -115,7 +115,7 @@ contract TokenManagerERC20 is TokenManager {
         require(to != address(0), "Incorrect receiver address");
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
-            targetSchainHash != MAINNET_ID,
+            targetSchainHash != MAINNET_HASH,
             "This function is not for transferring to Mainnet"
         );
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
@@ -171,7 +171,7 @@ contract TokenManagerERC20 is TokenManager {
         require(
             fromChainHash != getSchainHash() && 
                 (
-                    fromChainHash == MAINNET_ID ?
+                    fromChainHash == MAINNET_HASH ?
                     sender == getDepositBoxERC20Address() :
                     sender == tokenManagers[fromChainHash]
                 ),

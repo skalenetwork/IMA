@@ -93,7 +93,7 @@ contract TokenManagerEth is TokenManager {
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
-            targetSchainHash != MAINNET_ID,
+            targetSchainHash != MAINNET_HASH,
             "This function is not for transferring to Mainnet"
         );
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
@@ -129,7 +129,7 @@ contract TokenManagerEth is TokenManager {
         require(
             fromChainHash != getSchainHash() && 
                 (
-                    fromChainHash == MAINNET_ID ?
+                    fromChainHash == MAINNET_HASH ?
                     sender == getDepositBoxEthAddress() :
                     sender == tokenManagers[fromChainHash]
                 ),
