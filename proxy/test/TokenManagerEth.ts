@@ -377,7 +377,7 @@ contract("TokenManagerEth", ([deployer, user]) => {
           deployer,
           tokenManagerLinker.address,
           fakeDepositBox,
-          "0x0000000000000000000000000000000000000000");        
+          "0x0000000000000000000000000000000000000000");
         // add schain to avoid the `Receiver chain is incorrect` error
         await tokenManagerEth
             .addTokenManager(schainID, deployer, {from: deployer});
