@@ -225,15 +225,6 @@ contract("Gas calculation", ([deployer, schainOwner, user]) => {
         skaleFeatures = await SkaleFeatures.new({from: deployer});
         await skaleFeatures.setSchainOwner(deployer);
 
-        await tokenManagerEth.grantRole(await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE(), deployer);
-        await tokenManagerEth.setSkaleFeaturesAddress(skaleFeatures.address);
-
-        await tokenManagerErc20.grantRole(await tokenManagerErc20.SKALE_FEATURES_SETTER_ROLE(), deployer);
-        await tokenManagerErc20.setSkaleFeaturesAddress(skaleFeatures.address);
-
-        await tokenManagerErc721.grantRole(await tokenManagerErc721.SKALE_FEATURES_SETTER_ROLE(), deployer);
-        await tokenManagerErc721.setSkaleFeaturesAddress(skaleFeatures.address);
-
         // IMA schain part registration
         // TODO: register schain here
 

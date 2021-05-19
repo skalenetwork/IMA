@@ -72,15 +72,16 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner]) => {
         const skaleFeatures = await SkaleFeaturesMock.new();
         await skaleFeatures.setSchainOwner(schainOwner);
 
-        tokenManagerERC721 =
-            await TokenManagerERC721.new(schainName, messageProxyForSchain.address, tokenManagerLinker.address, fakeDepositBox.address);
-        await tokenManagerERC721.grantRole(await tokenManagerERC721.SKALE_FEATURES_SETTER_ROLE(), deployer);
-        await tokenManagerERC721.setSkaleFeaturesAddress(skaleFeatures.address);
-
+        tokenManagerERC721 = await TokenManagerERC721.new(
+            schainName,
+            messageProxyForSchain.address,
+            tokenManagerLinker.address,
+            fakeDepositBox.address);
+        await tokenManagerERC721.grantRole(await tokenManagerERC721.TOKEN_REGISTRAR_ROLE(), schainOwner);
+        await tokenManagerERC721.grantRole(await tokenManagerERC721.AUTOMATIC_DEPLOY_ROLE(), schainOwner);
 
         tokenClone = await ERC721OnChain.new("ELVIS", "ELV", {from: deployer});
         token = await ERC721OnChain.new("SKALE", "SKL", {from: deployer});
-
     });
 
     it("should successfully call exitToMainERC721", async () => {
@@ -105,11 +106,8 @@ contract("TokenManagerERC721", ([deployer, user, schainOwner]) => {
     });
 
     it("should successfully call addERC721TokenByOwner", async () => {
-        await tokenManagerERC721.addERC721TokenByOwner(token.address, tokenClone.address, {from: deployer})
-            .should.be.eventually.rejectedWith("Sender is not an Schain owner");
-
-        await tokenManagerERC721.addERC721TokenByOwner(deployer, tokenClone.address, {from: schainOwner})
-            .should.be.eventually.rejectedWith("Given address is not a contract");
+        await tokenManagerERC721.addERC721TokenByOwner(token.address, tokenClone.address, {from: user})
+            .should.be.eventually.rejectedWith("TOKEN_REGISTRAR_ROLE is required");
 
         await tokenManagerERC721.addERC721TokenByOwner(token.address, deployer, {from: schainOwner})
             .should.be.eventually.rejectedWith("Given address is not a contract");

@@ -103,9 +103,6 @@ contract("TokenManagerEth", ([deployer, user]) => {
       }
     );
     await skaleFeatures.setSchainOwner(deployer);
-    const skaleFeaturesSetterRole = await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE();
-    await tokenManagerEth.grantRole(skaleFeaturesSetterRole, deployer, {from: deployer});
-    await tokenManagerEth.setSkaleFeaturesAddress(skaleFeatures.address, {from: deployer});
   });
 
   it("should set EthERC20 address", async () => {
@@ -364,10 +361,6 @@ contract("TokenManagerEth", ([deployer, user]) => {
           tokenManagerLinker.address,
           fakeDepositBox,
           "0x0000000000000000000000000000000000000000");
-        // set `tokenManagerEth` contract to avoid the `Not allowed` error in tokenManagerEth.sol
-        const skaleFeaturesSetterRole = await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE();
-        await tokenManagerEth.grantRole(skaleFeaturesSetterRole, deployer, {from: deployer});
-        await tokenManagerEth.setSkaleFeaturesAddress(skaleFeatures.address, {from: deployer});
         // add schain to avoid the `Receiver chain is incorrect` error
         await tokenManagerEth
             .addTokenManager(schainID, deployer, {from: deployer});
@@ -392,11 +385,7 @@ contract("TokenManagerEth", ([deployer, user]) => {
           deployer,
           tokenManagerLinker.address,
           fakeDepositBox,
-          "0x0000000000000000000000000000000000000000");
-        // set `tokenManagerEth` contract to avoid the `Not allowed` error in tokenManagerEth.sol
-        const skaleFeaturesSetterRole = await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE();
-        await tokenManagerEth.grantRole(skaleFeaturesSetterRole, deployer, {from: deployer});
-        await tokenManagerEth.setSkaleFeaturesAddress(skaleFeatures.address, {from: deployer});
+          "0x0000000000000000000000000000000000000000");        
         // add schain to avoid the `Receiver chain is incorrect` error
         await tokenManagerEth
             .addTokenManager(schainID, deployer, {from: deployer});

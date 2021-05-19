@@ -79,9 +79,8 @@ contract("TokenManagerERC20", ([deployer, user, schainOwner]) => {
     const skaleFeatures = await SkaleFeaturesMock.new();
     await skaleFeatures.setSchainOwner(schainOwner);
 
-    await tokenManagerErc20.grantRole(await tokenManagerErc20.SKALE_FEATURES_SETTER_ROLE(), deployer);
-    await tokenManagerErc20.setSkaleFeaturesAddress(skaleFeatures.address);
-
+    await tokenManagerErc20.grantRole(await tokenManagerErc20.TOKEN_REGISTRAR_ROLE(), schainOwner);
+    await tokenManagerErc20.grantRole(await tokenManagerErc20.AUTOMATIC_DEPLOY_ROLE(), schainOwner);
     await tokenManagerErc20.addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address, {from: schainOwner});
   });
 

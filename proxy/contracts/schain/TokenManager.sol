@@ -34,7 +34,7 @@ import "./TokenManagerLinker.sol";
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-abstract contract TokenManager is SkaleFeaturesClient {
+abstract contract TokenManager is AccessControlUpgradeable {
 
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
@@ -47,8 +47,16 @@ abstract contract TokenManager is SkaleFeaturesClient {
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_ID = keccak256(abi.encodePacked(MAINNET_NAME));
 
-    modifier onlySchainOwner() {
-        require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
+    bytes32 public constant AUTOMATIC_DEPLOY_ROLE = keccak256("AUTOMATIC_DEPLOY_ROLE");
+    bytes32 public constant TOKEN_REGISTRAR_ROLE = keccak256("TOKEN_REGISTRAR_ROLE");
+
+    modifier onlyAutomaticDeploy() {
+        require(hasRole(AUTOMATIC_DEPLOY_ROLE, msg.sender), "AUTOMATIC_DEPLOY_ROLE is required");
+        _;
+    }
+
+    modifier onlyTokenRegistrar() {
+        require(hasRole(TOKEN_REGISTRAR_ROLE, msg.sender), "TOKEN_REGISTRAR_ROLE is required");
         _;
     }
 
@@ -60,11 +68,16 @@ abstract contract TokenManager is SkaleFeaturesClient {
     )
         public
     {
+        require(newDepositBox.isContract(), "Given address is not a contract");
+
+        AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(AUTOMATIC_DEPLOY_ROLE, msg.sender);
+        _setupRole(TOKEN_REGISTRAR_ROLE, msg.sender);
+
         schainId = keccak256(abi.encodePacked(newSchainName));
         messageProxy = newMessageProxy;
-        tokenManagerLinker = newIMALinker;
-        require(newDepositBox.isContract(), "Given address is not a contract");
+        tokenManagerLinker = newIMALinker;        
         depositBox = newDepositBox;
     }
 
@@ -80,14 +93,14 @@ abstract contract TokenManager is SkaleFeaturesClient {
     /**
      * @dev Allows Schain owner turn on automatic deploy on schain.
      */
-    function enableAutomaticDeploy() external onlySchainOwner {
+    function enableAutomaticDeploy() external onlyAutomaticDeploy {
         automaticDeploy = true;
     }
 
     /**
      * @dev Allows Schain owner turn off automatic deploy on schain.
      */
-    function disableAutomaticDeploy() external onlySchainOwner {
+    function disableAutomaticDeploy() external onlyAutomaticDeploy {
         automaticDeploy = false;
     }
 
@@ -105,7 +118,6 @@ abstract contract TokenManager is SkaleFeaturesClient {
     function addTokenManager(string calldata schainName, address newTokenManager) external {
         require(
             msg.sender == address(tokenManagerLinker) ||
-            _isSchainOwner(msg.sender) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -126,7 +138,6 @@ abstract contract TokenManager is SkaleFeaturesClient {
     function removeTokenManager(string calldata schainName) external {
         require(
             msg.sender == address(tokenManagerLinker) ||
-            _isSchainOwner(msg.sender) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -139,16 +150,5 @@ abstract contract TokenManager is SkaleFeaturesClient {
      */
     function hasTokenManager(string calldata schainName) external view returns (bool) {
         return tokenManagers[keccak256(abi.encodePacked(schainName))] != address(0);
-    }
-
-    // private
-
-    /**
-     * @dev Checks whether sender is owner of SKALE chain
-     */
-    function _isSchainOwner(address sender) internal view returns (bool) {
-        return sender == getSkaleFeatures().getConfigVariableAddress(
-            "skaleConfig.contractSettings.IMA.ownerAddress"
-        );
     }
 }
