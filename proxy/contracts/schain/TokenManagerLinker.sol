@@ -87,7 +87,7 @@ contract TokenManagerLinker is SkaleFeaturesClient {
         for (uint i = 0; i < tokenManagerAddresses.length; i++) {
             _tokenManagers[i].addTokenManager(schainName, tokenManagerAddresses[i]);
         }
-        getMessageProxy().addConnectedChain(schainName);
+        messageProxy.addConnectedChain(schainName);
     }
 
     function disconnectSchain(string calldata schainName) external onlyRegistrar {
@@ -95,7 +95,7 @@ contract TokenManagerLinker is SkaleFeaturesClient {
         for (uint i = 0; i < length; i++) {
             _tokenManagers[i].removeTokenManager(schainName);
         }
-        getMessageProxy().removeConnectedChain(schainName);
+        messageProxy.removeConnectedChain(schainName);
     }
 
     function hasTokenManager(TokenManager tokenManager) external view returns (bool) {
@@ -115,17 +115,6 @@ contract TokenManagerLinker is SkaleFeaturesClient {
         for (uint i = 0; i < length; i++) {
             connected = connected && _tokenManagers[i].hasTokenManager(schainName);
         }
-        connected = connected && getMessageProxy().isConnectedChain(schainName);
-    }
-
-    function getMessageProxy() public view returns (IMessageProxy) {
-        if (address(messageProxy) == address(0)) {
-            return IMessageProxy(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.MessageProxy"
-                )
-            );
-        }
-        return messageProxy;
+        connected = connected && messageProxy.isConnectedChain(schainName);
     }
 }

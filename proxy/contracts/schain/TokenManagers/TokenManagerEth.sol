@@ -72,10 +72,10 @@ contract TokenManagerEth is TokenManager {
         require(to != address(0), "Incorrect receiver address");
 
         _burnEthErc20(msg.sender, amount);
-        getCommunityLocker().checkAllowedToSendMessage(to);
-        getMessageProxy().postOutgoingMessage(
+        communityLocker.checkAllowedToSendMessage(to);
+        messageProxy.postOutgoingMessage(
             "Mainnet",
-            getDepositBoxEthAddress(),
+            depositBox,
             Messages.encodeTransferEthMessage(to, amount)
         );
     }
@@ -96,7 +96,7 @@ contract TokenManagerEth is TokenManager {
         require(to != address(0), "Incorrect receiver address");
 
         _burnEthErc20(msg.sender, amount);
-        getMessageProxy().postOutgoingMessage(
+        messageProxy.postOutgoingMessage(
             targetSchainName,
             tokenManagers[targetSchainHash],
             Messages.encodeTransferEthMessage(to, amount)
@@ -125,10 +125,10 @@ contract TokenManagerEth is TokenManager {
         returns (bool)
     {
         require(
-            fromChainHash != getSchainHash() && 
+            fromChainHash != schainHash && 
                 (
                     fromChainHash == MAINNET_HASH ?
-                    sender == getDepositBoxEthAddress() :
+                    sender == depositBox :
                     sender == tokenManagers[fromChainHash]
                 ),
             "Receiver chain is incorrect"
@@ -146,12 +146,5 @@ contract TokenManagerEth is TokenManager {
         if (amount > 0) {
             ethErc20.forceBurn(account, amount);
         }
-    }
-
-    function getDepositBoxEthAddress() public view returns (address) {
-        if (depositBox == address(0)) {
-            return getSkaleFeatures().getConfigVariableAddress("skaleConfig.contractSettings.IMA.DepositBoxEth");
-        }
-        return depositBox;
-    }
+    }   
 }

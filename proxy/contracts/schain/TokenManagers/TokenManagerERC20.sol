@@ -75,7 +75,7 @@ contract TokenManagerERC20 is TokenManager {
         external
     {
         require(to != address(0), "Incorrect receiver address");
-        getCommunityLocker().checkAllowedToSendMessage(to);
+        communityLocker.checkAllowedToSendMessage(to);
         ERC20Burnable contractOnSchain = clonesErc20[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
@@ -97,9 +97,9 @@ contract TokenManagerERC20 is TokenManager {
         
         contractOnSchain.burn(amount);
         
-        getMessageProxy().postOutgoingMessage(
+        messageProxy.postOutgoingMessage(
             MAINNET_NAME,
-            getDepositBoxERC20Address(),
+            depositBox,
             Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
         );
     }
@@ -140,7 +140,7 @@ contract TokenManagerERC20 is TokenManager {
 
         contractOnSchain.burn(amount);
 
-        getMessageProxy().postOutgoingMessage(
+        messageProxy.postOutgoingMessage(
             targetSchainName,
             tokenManagers[targetSchainHash],
             Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
@@ -169,10 +169,10 @@ contract TokenManagerERC20 is TokenManager {
         returns (bool)
     {
         require(
-            fromChainHash != getSchainHash() && 
+            fromChainHash != schainHash && 
                 (
                     fromChainHash == MAINNET_HASH ?
-                    sender == getDepositBoxERC20Address() :
+                    sender == depositBox :
                     sender == tokenManagers[fromChainHash]
                 ),
             "Receiver chain is incorrect"
@@ -204,13 +204,6 @@ contract TokenManagerERC20 is TokenManager {
         
         clonesErc20[erc20OnMainnet] = erc20OnSchain;
         emit ERC20TokenAdded(erc20OnMainnet, address(erc20OnSchain));
-    }
-
-    function getDepositBoxERC20Address() public view returns (address) {
-        if (depositBox == address(0)) {
-            return getSkaleFeatures().getConfigVariableAddress("skaleConfig.contractSettings.IMA.DepositBoxERC20");
-        }
-        return depositBox;
     }
 
     /**

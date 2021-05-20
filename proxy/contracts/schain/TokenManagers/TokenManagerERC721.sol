@@ -68,13 +68,13 @@ contract TokenManagerERC721 is TokenManager {
     {
         require(to != address(0), "Incorrect receiver address");
         ERC721Burnable contractOnSchain = clonesErc721[contractOnMainnet];
-        getCommunityLocker().checkAllowedToSendMessage(to);
+        communityLocker.checkAllowedToSendMessage(to);
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
         contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
         contractOnSchain.burn(tokenId);
         bytes memory data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);
-        getMessageProxy().postOutgoingMessage(MAINNET_NAME, getDepositBoxERC721Address(), data);
+        messageProxy.postOutgoingMessage(MAINNET_NAME, depositBox, data);
     }
 
     function transferToSchainERC721(
@@ -98,7 +98,7 @@ contract TokenManagerERC721 is TokenManager {
         contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
         contractOnSchain.burn(tokenId);
         bytes memory data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);    
-        getMessageProxy().postOutgoingMessage(targetSchainName, tokenManagers[targetSchainHash], data);
+        messageProxy.postOutgoingMessage(targetSchainName, tokenManagers[targetSchainHash], data);
     }
 
     /**
@@ -123,10 +123,10 @@ contract TokenManagerERC721 is TokenManager {
         returns (bool)
     {
         require(
-            fromChainHash != getSchainHash() && 
+            fromChainHash != schainHash && 
             (
                 fromChainHash == MAINNET_HASH ?
-                sender == getDepositBoxERC721Address() :
+                sender == depositBox :
                 sender == tokenManagers[fromChainHash]
             ),
             "Receiver chain is incorrect"
@@ -158,14 +158,6 @@ contract TokenManagerERC721 is TokenManager {
         clonesErc721[erc721OnMainnet] = erc721OnSchain;
         emit ERC721TokenAdded(erc721OnMainnet, address(erc721OnSchain));
     }
-
-    function getDepositBoxERC721Address() public view returns (address) {
-        if (depositBox == address(0)) {
-            return getSkaleFeatures().getConfigVariableAddress("skaleConfig.contractSettings.IMA.DepositBoxERC721");
-        }
-        return depositBox;
-    }
-
 
     /**
      * @dev Allows TokenManager to send ERC721 tokens.

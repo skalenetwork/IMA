@@ -67,7 +67,7 @@ abstract contract TokenManager is AccessControlUpgradeable {
     }
 
     modifier onlyMessageProxy() {
-        require(msg.sender == address(getMessageProxy()), "Sender is not a MessageProxy");
+        require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
         _;
     }
 
@@ -166,7 +166,8 @@ abstract contract TokenManager is AccessControlUpgradeable {
      *
      * - `msg.sender` must be schain owner
      */
-    function changeDepositBoxAddress(address newDepositBox) external onlySchainOwner {
+    function changeDepositBoxAddress(address newDepositBox) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Default admin role is required");
         depositBox = newDepositBox;
     }
 
@@ -176,17 +177,4 @@ abstract contract TokenManager is AccessControlUpgradeable {
     function hasTokenManager(string calldata schainName) external view returns (bool) {
         return tokenManagers[keccak256(abi.encodePacked(schainName))] != address(0);
     }
-
-    // private
-
-    /**
-     * @dev Checks whether sender is owner of SKALE chain
-     */
-    function _isSchainOwner(address sender) internal view returns (bool) {
-        return sender == getSkaleFeatures().getConfigVariableAddress(
-            "skaleConfig.contractSettings.IMA.ownerAddress"
-        );
-    }
-
-
 }
