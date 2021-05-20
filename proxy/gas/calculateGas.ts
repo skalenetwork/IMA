@@ -32,7 +32,7 @@ import {
     DepositBoxERC721,
     ERC20OnChain,
     ERC721OnChain,
-    EthERC20,
+    EthErc20,
     KeyStorage,
     MessageProxyForMainnet,
     MessageProxyForSchain,
@@ -60,7 +60,7 @@ import { deployDepositBoxERC20 } from "../test/utils/deploy/mainnet/depositBoxER
 import { deployDepositBoxERC721 } from "../test/utils/deploy/mainnet/depositBoxERC721";
 import { deployMessageProxyForMainnet } from "../test/utils/deploy/mainnet/messageProxyForMainnet";
 
-import { deployEthERC20 } from "../test/utils/deploy/schain/ethERC20";
+import { deployEthErc20 } from "../test/utils/deploy/schain/ethErc20";
 import { deployERC20OnChain } from "../test/utils/deploy/erc20OnChain";
 import { deployERC721OnChain } from "../test/utils/deploy/erc721OnChain";
 
@@ -115,7 +115,7 @@ describe("Gas calculation", () => {
     let tokenManagerERC721: TokenManagerERC721;
     let tokenManagerLinker: TokenManagerLinker;
     let communityLocker: CommunityLocker;
-    let ethERC20: EthERC20;
+    let ethERC20: EthErc20;
     let messageProxyForSchain: MessageProxyForSchain;
     let messages: MessagesTester;
     let skaleFeatures: SkaleFeaturesMock;
@@ -220,7 +220,7 @@ describe("Gas calculation", () => {
         tokenManagerEth = await deployTokenManagerEth(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxEth.address);
         tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxERC20.address);
         tokenManagerERC721 = await deployTokenManagerERC721(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxERC721.address);
-        ethERC20 = await deployEthERC20(tokenManagerEth);
+        ethERC20 = await deployEthErc20(tokenManagerEth);
         const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
         await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, tokenManagerLinker.address);
 

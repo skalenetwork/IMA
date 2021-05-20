@@ -27,7 +27,7 @@ import chaiAsPromised from "chai-as-promised";
 import chai = require("chai");
 import {
     CommunityLocker,
-    EthERC20Tester,
+  EthErc20,
     MessageProxyForSchain,
     MessagesTester,
     SkaleFeaturesMock,
@@ -44,7 +44,7 @@ import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLink
 import { deployTokenManagerEth } from "./utils/deploy/schain/tokenManagerEth";
 import { deployMessageProxyForSchain } from "./utils/deploy/schain/messageProxyForSchain";
 import { deployMessages } from "./utils/deploy/messages";
-import { deployEthERC20 } from "./utils/deploy/schain/ethERC20";
+import { deployEthErc20 } from "./utils/deploy/schain/ethErc20";
 import { deploySkaleFeaturesMock } from "./utils/deploy/test/skaleFeaturesMock";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
@@ -65,7 +65,7 @@ describe("TokenManagerEth", () => {
     let tokenManagerLinker: TokenManagerLinker;
     let messageProxyForSchain: MessageProxyForSchain;
     let messages: MessagesTester;
-    let ethERC20: EthERC20Tester;
+    let ethERC20: EthErc20;
     let skaleFeatures: SkaleFeaturesMock;
     let communityLocker: CommunityLocker;
     let fakeDepositBox: any;
@@ -87,7 +87,7 @@ describe("TokenManagerEth", () => {
             communityLocker,
             fakeDepositBox
         );
-        ethERC20 = await deployEthERC20(
+        ethERC20 = await deployEthErc20(
             tokenManagerEth
         );
         messages = await deployMessages();
@@ -345,6 +345,4 @@ describe("TokenManagerEth", () => {
                 .to.be.equal(parseInt(amount, 10));
         });
     });
-  });
-
 });
