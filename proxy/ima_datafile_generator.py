@@ -10,6 +10,11 @@ CONTRACTS_METADATA = {
         'filename': 'SkaleFeatures',
         'filepath': 'artifacts/contracts/schain/SkaleFeatures.sol/SkaleFeatures.json'
     },
+    'community_locker': {
+        'address': '0x2cc2ee181334a3c5456d437fd6b8d01c6c0de5e7',
+        'filename': 'CommunityLocker',
+        'filepath': 'artifacts/contracts/schain/CommunityLocker.sol/CommunityLocker.json'
+    },
     'token_manager_eth': {
         'address': '0x47cf4c2d6891377952a7e0e08a6f17180a91a0f9',
         'filename': 'TokenManagerEth',
