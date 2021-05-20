@@ -56,8 +56,8 @@ contract TokenManagerLinker is SkaleFeaturesClient {
         _;
     }
 
-    function registerTokenManager(TokenManager newTokenManagerAddress) external onlyRegistrar {
-        _tokenManagers.push(newTokenManagerAddress);
+    function registerTokenManager(TokenManager newTokenManager) external onlyRegistrar {
+        _tokenManagers.push(newTokenManager);
     }
 
     function removeTokenManager(TokenManager tokenManagerAddress) external onlyRegistrar {
@@ -98,11 +98,11 @@ contract TokenManagerLinker is SkaleFeaturesClient {
         getMessageProxy().removeConnectedChain(schainName);
     }
 
-    function hasTokenManager(TokenManager tokenManagerAddress) external view returns (bool) {
+    function hasTokenManager(TokenManager tokenManager) external view returns (bool) {
         uint index;
         uint length = _tokenManagers.length;
         for (index = 0; index < length; index++) {
-            if (_tokenManagers[index] == tokenManagerAddress) {
+            if (_tokenManagers[index] == tokenManager) {
                 return true;
             }
         }

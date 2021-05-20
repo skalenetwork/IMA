@@ -31,7 +31,10 @@ import {
     TokenManagerLinker,
     MessageProxyForSchainTester,
     MessagesTester,
+    CommunityLocker
 } from "../typechain";
+
+import { stringValue } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -42,6 +45,7 @@ import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messagePr
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 import { deploySkaleFeaturesMock } from "./utils/deploy/test/skaleFeaturesMock";
 import { deployMessages } from "./utils/deploy/messages";
+import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
@@ -56,6 +60,8 @@ describe("TokenManagerERC721", () => {
 
     const schainName = "V-chain";
     const tokenId = 1;
+    const schainId = web3.utils.soliditySha3(schainName);
+    const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
     let to: string;
     let token: ERC721OnChain;
     let tokenClone: ERC721OnChain;
@@ -63,6 +69,7 @@ describe("TokenManagerERC721", () => {
     let tokenManagerLinker: TokenManagerLinker;
     let messages: MessagesTester;
     let messageProxyForSchain: MessageProxyForSchainTester;
+    let communityLocker: CommunityLocker;
 
     before(async () => {
         [deployer, user, schainOwner] = await ethers.getSigners();
@@ -72,13 +79,20 @@ describe("TokenManagerERC721", () => {
         messageProxyForSchain = await deployMessageProxyForSchainTester(schainName);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
         messages = await deployMessages();
-        const fakeDepositBox =  messages;
+        const fakeDepositBox = messages;
 
         const skaleFeatures = await deploySkaleFeaturesMock();
         await skaleFeatures.setSchainOwner(schainOwner.address);
+        communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker);
 
         tokenManagerERC721 =
-            await deployTokenManagerERC721(schainName, messageProxyForSchain.address, tokenManagerLinker, fakeDepositBox.address);
+            await deployTokenManagerERC721(
+                schainName,
+                messageProxyForSchain.address,
+                tokenManagerLinker,
+                communityLocker,
+                fakeDepositBox.address
+            );
         await tokenManagerERC721.grantRole(await tokenManagerERC721.SKALE_FEATURES_SETTER_ROLE(), deployer.address);
         await tokenManagerERC721.setSkaleFeaturesAddress(skaleFeatures.address);
 
@@ -88,16 +102,18 @@ describe("TokenManagerERC721", () => {
 
         to = user.address;
 
+        const data = await messages.encodeFreezeStateMessage(user.address, true);
+        await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, "0x0000000000000000000000000000000000000000", data);
     });
 
     it("should change depositBox address", async () => {
         const newDepositBox = user.address;
         expect(await tokenManagerERC721.depositBox()).to.equal(messages.address);
         await tokenManagerERC721.connect(user).changeDepositBoxAddress(newDepositBox)
-          .should.be.eventually.rejectedWith("Sender is not an Schain owner");
+            .should.be.eventually.rejectedWith("Sender is not an Schain owner");
         await tokenManagerERC721.connect(schainOwner).changeDepositBoxAddress(newDepositBox);
         expect(await tokenManagerERC721.depositBox()).to.equal(newDepositBox);
-      });
+    });
 
     it("should successfully call exitToMainERC721", async () => {
         await tokenManagerERC721.connect(user).exitToMainERC721(token.address, to, tokenId)
@@ -165,8 +181,7 @@ describe("TokenManagerERC721", () => {
 
     it("should transfer ERC721 token through `postMessage` function", async () => {
         //  preparation
-        const fakeDepositBox =  messages;
-        const chainName = "Mainnet";
+        const fakeDepositBox = messages;
         const data = await messages.encodeTransferErc721AndTokenInfoMessage(
             token.address,
             to,
@@ -178,7 +193,7 @@ describe("TokenManagerERC721", () => {
         );
 
         await tokenManagerERC721.connect(schainOwner).enableAutomaticDeploy();
-        await messageProxyForSchain.postMessage(tokenManagerERC721.address, chainName, fakeDepositBox.address, data);
+        await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox.address, data);
         const addressERC721OnSchain = await tokenManagerERC721.clonesErc721(token.address);
         const erc721OnChain = await (await ethers.getContractFactory("ERC721OnChain")).attach(addressERC721OnSchain) as ERC721OnChain;
         expect((await erc721OnChain.functions.ownerOf(tokenId))[0]).to.be.equal(to);

@@ -791,6 +791,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
     jo_token_manager_eth, // only s-chain
     jo_token_manager_erc20, // only s-chain
     jo_token_manager_erc721, // only s-chain
+    jo_community_locker, // only s-chain
     chain_id_s_chain,
     cid_main_net,
     tc_main_net,
@@ -835,6 +836,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
         const methodWithArguments = jo_linker.methods.connectSchain(
             chain_id_s_chain,
             [
+                jo_community_locker.options.address, // call params
                 jo_token_manager_eth.options.address, // call params
                 jo_token_manager_erc20.options.address, // call params
                 jo_token_manager_erc721.options.address // call params

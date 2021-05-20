@@ -10,6 +10,6 @@ export async function deployDepositBoxEth(
     const factory = await ethers.getContractFactory("DepositBoxEth");
     const instance = await factory.deploy() as DepositBoxEth;
     await instance["initialize(address,address,address)"](contractManager.address, linker.address, messageProxy.address);
-    await linker.registerDepositBox(instance.address);
+    await linker.registerMainnetContract(instance.address);
     return instance;
 }
