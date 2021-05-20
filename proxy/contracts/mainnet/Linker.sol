@@ -21,13 +21,12 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "../interfaces/IDepositBox.sol";
-
+import "./SkaleManagerClient.sol";
 import "./MessageProxyForMainnet.sol";
 
 
@@ -36,7 +35,7 @@ import "./MessageProxyForMainnet.sol";
  * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
  * balances of ETH tokens received through DepositBox.
  */
-contract Linker is AccessControlUpgradeable {
+contract Linker is SkaleManagerClient {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     using SafeMathUpgradeable for uint;
@@ -45,6 +44,12 @@ contract Linker is AccessControlUpgradeable {
 
     EnumerableSetUpgradeable.AddressSet private _depositBoxes;
     MessageProxyForMainnet public messageProxy;
+
+    mapping(bytes32 => bool) public interchainConnections;
+
+    enum KillProcess {Active, PartiallyKilledBySchainOwner, PartiallyKilledByContractOwner, Killed}
+
+    mapping(bytes32 => KillProcess) public statuses;
 
     modifier onlyLinker() {
         require(hasRole(LINKER_ROLE, msg.sender), "Linker role is required");
@@ -67,12 +72,45 @@ contract Linker is AccessControlUpgradeable {
         messageProxy.addConnectedChain(schainName);
     }
 
+    function allowInterchainConnections(string calldata schainName) external onlySchainOwner(schainName) {
+        interchainConnections[keccak256(abi.encodePacked(schainName))] = true;
+    }
+
+    function kill(string calldata schainName) external {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        if (statuses[schainHash] == KillProcess.Active) {
+            if (isSchainOwner(msg.sender, schainHash)) {
+                statuses[schainHash] = KillProcess.PartiallyKilledBySchainOwner;
+            } else if (hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
+                statuses[schainHash] = KillProcess.PartiallyKilledByContractOwner;
+            } else {
+                revert("Not allowed");
+            }
+        } else if (
+            (
+                statuses[schainHash] == KillProcess.PartiallyKilledBySchainOwner &&
+                hasRole(DEFAULT_ADMIN_ROLE, msg.sender)
+            ) || (
+                statuses[schainHash] == KillProcess.PartiallyKilledByContractOwner &&
+                isSchainOwner(msg.sender, schainHash)
+            )
+        ) {
+            statuses[schainHash] = KillProcess.Killed;
+        } else {
+            revert("Already killed or incorrect sender");
+        }
+    }
+
     function unconnectSchain(string calldata schainName) external onlyLinker {
         uint length = _depositBoxes.length();
         for (uint i = 0; i < length; i++) {
             IDepositBox(_depositBoxes.at(i)).removeTokenManager(schainName);
         }
         messageProxy.removeConnectedChain(schainName);
+    }
+
+    function isNotKilled(string calldata schainName) external view returns (bool) {
+        return statuses[keccak256(abi.encodePacked(schainName))] != KillProcess.Killed;
     }
 
     function hasDepositBox(address depositBoxAddress) external view returns (bool) {
@@ -87,8 +125,8 @@ contract Linker is AccessControlUpgradeable {
         }
     }
 
-    function initialize(address messageProxyAddress) public initializer {
-        AccessControlUpgradeable.__AccessControl_init();
+    function initialize(address messageProxyAddress, IContractManager newContractManagerOfSkaleManager) public initializer {
+        SkaleManagerClient.initialize(newContractManagerOfSkaleManager);
         _setupRole(LINKER_ROLE, msg.sender);
         messageProxy = MessageProxyForMainnet(messageProxyAddress);
     }

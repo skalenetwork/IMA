@@ -105,7 +105,8 @@ contract DepositBoxEth is DepositBox {
         address tokenManagerAddress = tokenManagerEthAddresses[schainHash];
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(to != address(0), "Community Pool is not available");
-        _saveTransferredAmount(schainHash, msg.value);
+        if (!linker.interchainConnections(schainHash))
+            _saveTransferredAmount(schainHash, msg.value);
         messageProxy.postOutgoingMessage(
             schainHash,
             tokenManagerAddress,
@@ -135,7 +136,8 @@ contract DepositBoxEth is DepositBox {
         );
         approveTransfers[decodedMessage.receiver] =
             approveTransfers[decodedMessage.receiver].add(decodedMessage.amount);
-        _removeTransferredAmount(schainHash, decodedMessage.amount);
+        if (!linker.interchainConnections(schainHash))
+            _removeTransferredAmount(schainHash, decodedMessage.amount);
         // TODO add gas reimbusement
         // uint256 txFee = gasConsumption * tx.gasprice;
         // require(amount >= txFee, "Not enough funds to recover gas");

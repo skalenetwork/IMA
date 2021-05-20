@@ -88,7 +88,8 @@ contract DepositBoxERC20 is DepositBox {
             ),
             "Could not transfer ERC20 Token"
         );
-        _saveTransferredAmount(schainHash, contractOnMainnet, amount);
+        if (!linker.interchainConnections(schainHash))
+            _saveTransferredAmount(schainHash, contractOnMainnet, amount);
         messageProxy.postOutgoingMessage(
             schainHash,
             tokenManagerAddress,
@@ -162,7 +163,8 @@ contract DepositBoxERC20 is DepositBox {
             IERC20Metadata(message.token).transfer(message.receiver, message.amount),
             "Something went wrong with `transfer` in ERC20"
         );
-        _removeTransferredAmount(schainHash, message.token, message.amount);
+        if (!linker.interchainConnections(schainHash))
+            _removeTransferredAmount(schainHash, message.token, message.amount);
         // TODO add gas reimbusement
         // uint256 txFee = gasConsumption * tx.gasprice;
         // require(amount >= txFee, "Not enough funds to recover gas");
@@ -174,12 +176,8 @@ contract DepositBoxERC20 is DepositBox {
     /**
      * @dev Allows Schain owner to add an ERC20 token to LockAndDataForMainnetERC20.
      */
-    function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet) external {
+    function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet) external onlySchainOwner(schainName) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            isSchainOwner(msg.sender, schainHash) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "Sender is not an Schain owner"
-        );
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
         // require(!withoutWhitelist[schainHash], "Whitelist is enabled");
         schainToERC20[schainHash][erc20OnMainnet] = true;
@@ -189,16 +187,14 @@ contract DepositBoxERC20 is DepositBox {
     /**
      * @dev Allows Schain owner turn on whitelist of tokens.
      */
-    function enableWhitelist(string memory schainName) external {
-        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not an Schain owner");
+    function enableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = false;
     }
 
     /**
      * @dev Allows Schain owner turn off whitelist of tokens.
      */
-    function disableWhitelist(string memory schainName) external {
-        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not an Schain owner");
+    function disableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
     }
 
