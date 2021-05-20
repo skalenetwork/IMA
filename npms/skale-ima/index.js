@@ -1250,6 +1250,221 @@ async function register_s_chain_in_deposit_boxes( // step 1
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+async function reimbursement_show_balance(
+    w3_main_net,
+    jo_community_pool,
+    joAccount_main_net,
+    strChainName_main_net,
+    cid_main_net,
+    tc_main_net,
+    strReimbursementChain,
+    isForcePrintOut
+) {
+    const details = log.createMemoryStream();
+    let s = "";
+    const strLogPrefix = cc.info( "Gas Reimbursement - Show Balance" ) + " ";
+    try {
+        details.write( strLogPrefix + cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) + cc.debug( " balance..." ) + "\n" );
+        const addressFrom = joAccount_main_net.address( w3_main_net );
+        const xWei = await jo_community_pool.methods.getBalance( strReimbursementChain ).call( {
+            from: addressFrom
+        } );
+        //
+        s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const xEth = w3_main_net.utils.fromWei( xWei, "ether" );
+        s = strLogPrefix + cc.success( "Balance(eth): " ) + cc.attention( xEth ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        if( expose_details_get() )
+            details.exposeDetailsTo( log, "reimbursement_show_balance", true );
+        details.close();
+        return xWei;
+    } catch ( err ) {
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in reimbursement_show_balance(): " ) + cc.error( err ) + "\n";
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( s );
+        details.write( s );
+        details.exposeDetailsTo( log, "reimbursement_show_balance", false );
+        details.close();
+        return 0;
+    }
+}
+
+async function reimbursement_wallet_recharge(
+    w3_main_net,
+    jo_community_pool,
+    joAccount_main_net,
+    strChainName_main_net,
+    cid_main_net,
+    tc_main_net,
+    strReimbursementChain,
+    nReimbursementRecharge
+) {
+    const details = log.createMemoryStream();
+    const jarrReceipts = []; // reimbursement_wallet_recharge
+    let strActionName = "";
+    const strLogPrefix = cc.info( "Gas Reimbursement - Wallet Recharge" ) + " ";
+    try {
+        details.write( strLogPrefix + cc.debug( "Recharging wallet " ) + cc.notice( strReimbursementChain ) + cc.debug( "..." ) + "\n" );
+        //
+        strActionName = "w3_main_net.eth.getTransactionCount()";
+        details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        const tcnt = await get_web3_transactionCount( details, 10, w3_main_net, joAccount_main_net.address( w3_main_net ), null );
+        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        //
+        //
+        const methodWithArguments = jo_community_pool.methods.rechargeUserWallet(
+            // call params, last is destination account on S-chain
+            strReimbursementChain
+        );
+        const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+        //
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ), nReimbursementRecharge );
+        details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        //
+        const isIgnore = false;
+        const strDRC = "reimbursement_wallet_recharge";
+        await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, nReimbursementRecharge );
+        //
+        const rawTx = {
+            chainId: cid_main_net,
+            nonce: tcnt,
+            gasPrice: gasPrice,
+            // gasLimit: estimatedGas,
+            gas: estimatedGas,
+            to: jo_community_pool.options.address, // contract address
+            data: dataTx,
+            value: "0x" + w3_main_net.utils.toBN( nReimbursementRecharge ).toString( 16 ) // wei_how_much // how much money to send
+        };
+        const tx = compose_tx_instance( details, strLogPrefix, rawTx );
+        const joSR = await safe_sign_transaction_with_account( details, w3_main_net, tx, rawTx, joAccount_main_net );
+        let joReceipt = null;
+        if( joSR.joACI.isAutoSend )
+            joReceipt = await get_web3_transactionReceipt( details, 10, w3_main_net, joSR.txHashSent );
+        else {
+            const serializedTx = tx.serialize();
+            strActionName = "w3_main_net.eth.sendSignedTransaction()";
+            // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+            joReceipt = await safe_send_signed_transaction( details, w3_main_net, serializedTx, strActionName, strLogPrefix );
+        }
+        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+            jarrReceipts.push( {
+                "description": "reimbursement_wallet_recharge",
+                "receipt": joReceipt
+            } );
+        }
+    } catch ( err ) {
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n";
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( s );
+        details.write( s );
+        details.exposeDetailsTo( log, "reimbursement_wallet_recharge", false );
+        details.close();
+        return false;
+    }
+    print_gas_usage_report_from_array( "ETH PAYMENT FROM MAIN NET", jarrReceipts );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "reimbursement_wallet_recharge", true );
+    details.close();
+    return true;
+}
+
+async function reimbursement_wallet_withdraw(
+    w3_main_net,
+    jo_community_pool,
+    joAccount_main_net,
+    strChainName_main_net,
+    cid_main_net,
+    tc_main_net,
+    strReimbursementChain,
+    nReimbursementWithdraw
+) {
+    const details = log.createMemoryStream();
+    const jarrReceipts = []; // reimbursement_wallet_withdraw
+    let strActionName = "";
+    const strLogPrefix = cc.info( "Gas Reimbursement - Wallet Withdraw" ) + " ";
+    const wei_how_much = 0;
+    try {
+        details.write( strLogPrefix + cc.debug( "Recharging wallet " ) + cc.notice( strReimbursementChain ) + cc.debug( "..." ) + "\n" );
+        //
+        strActionName = "w3_main_net.eth.getTransactionCount()";
+        details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        const tcnt = await get_web3_transactionCount( details, 10, w3_main_net, joAccount_main_net.address( w3_main_net ), null );
+        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        //
+        //
+        const methodWithArguments = jo_community_pool.methods.withdrawFunds(
+            // call params, last is destination account on S-chain
+            strReimbursementChain,
+            "0x" + w3_main_net.utils.toBN( nReimbursementWithdraw ).toString( 16 )
+        );
+        const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+        //
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        const estimatedGas = await tc_main_net.computeGas( methodWithArguments, w3_main_net, 3000000, gasPrice, joAccount_main_net.address( w3_main_net ), wei_how_much );
+        details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        //
+        const isIgnore = false;
+        const strDRC = "reimbursement_wallet_withdraw";
+        await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        //
+        const rawTx = {
+            chainId: cid_main_net,
+            nonce: tcnt,
+            gasPrice: gasPrice,
+            // gasLimit: estimatedGas,
+            gas: estimatedGas,
+            to: jo_community_pool.options.address, // contract address
+            data: dataTx,
+            value: "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 ) // wei_how_much // how much money to send
+        };
+        const tx = compose_tx_instance( details, strLogPrefix, rawTx );
+        const joSR = await safe_sign_transaction_with_account( details, w3_main_net, tx, rawTx, joAccount_main_net );
+        let joReceipt = null;
+        if( joSR.joACI.isAutoSend )
+            joReceipt = await get_web3_transactionReceipt( details, 10, w3_main_net, joSR.txHashSent );
+        else {
+            const serializedTx = tx.serialize();
+            strActionName = "w3_main_net.eth.sendSignedTransaction()";
+            // let joReceipt = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+            joReceipt = await safe_send_signed_transaction( details, w3_main_net, serializedTx, strActionName, strLogPrefix );
+        }
+        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+            jarrReceipts.push( {
+                "description": "reimbursement_wallet_withdraw",
+                "receipt": joReceipt
+            } );
+        }
+    } catch ( err ) {
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n";
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( s );
+        details.write( s );
+        details.exposeDetailsTo( log, "reimbursement_wallet_withdraw", false );
+        details.close();
+        return false;
+    }
+    print_gas_usage_report_from_array( "ETH PAYMENT FROM MAIN NET", jarrReceipts );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "reimbursement_wallet_withdraw", true );
+    details.close();
+    return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // transfer money from main-net to S-chain
 // main-net.DepositBox call: function deposit(string schainName, address to) public payable
@@ -1274,7 +1489,8 @@ async function do_eth_payment_from_main_net(
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // do_eth_payment_from_main_net
-    let strActionName = ""; const strLogPrefix = cc.info( "M2S ETH Payment:" ) + " ";
+    let strActionName = "";
+    const strLogPrefix = cc.info( "M2S ETH Payment:" ) + " ";
     try {
         details.write( strLogPrefix + cc.debug( "Doing payment from mainnet with " ) + cc.notice( "chain_id_s_chain" ) + cc.debug( "=" ) + cc.notice( chain_id_s_chain ) + cc.debug( "..." ) + "\n" );
         //
@@ -3389,6 +3605,10 @@ module.exports.register_s_chain_in_deposit_boxes = register_s_chain_in_deposit_b
 module.exports.check_is_registered_s_chain_in_deposit_boxes = check_is_registered_s_chain_in_deposit_boxes; // step 1
 // module.exports.check_is_registered_main_net_depositBox_on_s_chain = check_is_registered_main_net_depositBox_on_s_chain; // step 2A
 // module.exports.check_is_registered_main_net_on_s_chain = check_is_registered_main_net_on_s_chain; // step 2B
+
+module.exports.reimbursement_show_balance = reimbursement_show_balance;
+module.exports.reimbursement_wallet_recharge = reimbursement_wallet_recharge;
+module.exports.reimbursement_wallet_withdraw = reimbursement_wallet_withdraw;
 
 module.exports.do_eth_payment_from_main_net = do_eth_payment_from_main_net;
 module.exports.do_eth_payment_from_s_chain = do_eth_payment_from_s_chain;

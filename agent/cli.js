@@ -329,6 +329,12 @@ function parse( joExternalHandlers, argv ) {
             console.log( cc.sunny( "MONITORING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "........" ) + cc.notice( "Run monitoring web socket RPC server on specified port. By default monitoring server is disabled." ) );
             //
+            console.log( cc.sunny( "GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-chain" ) + cc.sunny( "=" ) + cc.note( "name" ) + cc.debug( "......" ) + cc.notice( "Specifies chain name." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-recharge" ) + cc.sunny( "=" ) + cc.note( "v" ) + cc.warning( "u" ) + cc.debug( "....." ) + cc.notice( "Recharge user wallet with specified value " ) + cc.attention( "v" ) + cc.notice( ", unit name " ) + cc.attention( "u" ) + cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) + cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-withdraw" ) + cc.sunny( "=" ) + cc.note( "v" ) + cc.warning( "u" ) + cc.debug( "....." ) + cc.notice( "Withdraw user wallet with specified value " ) + cc.attention( "v" ) + cc.notice( ", unit name " ) + cc.attention( "u" ) + cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) + cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-balance" ) + cc.debug( "........." ) + cc.notice( "Show wallet balance." ) );
+            //
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
             //
@@ -819,6 +825,25 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "monitoring-port" ) {
             owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg );
             imaState.nMonitoringPort = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
+        if( joArg.name == "reimbursement-chain" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.strReimbursementChain = joArg.value.trim();
+            continue;
+        }
+        if( joArg.name == "reimbursement-recharge" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.nReimbursementRecharge = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value, true );
+            continue;
+        }
+        if( joArg.name == "reimbursement-withdraw" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.nReimbursementWithdraw = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value, true );
+            continue;
+        }
+        if( joArg.name == "reimbursement-balance" ) {
+            imaState.isShowReimbursementBalance = true;
             continue;
         }
         if( joArg.name == "register" ||
