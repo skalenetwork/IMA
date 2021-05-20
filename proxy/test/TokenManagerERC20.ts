@@ -83,7 +83,7 @@ describe("TokenManagerERC20", () => {
         messages = await deployMessages();
         fakeDepositBox = messages.address;
 
-        messageProxyForSchain = await deployMessageProxyForSchainTester(schainName);
+        messageProxyForSchain = await deployMessageProxyForSchainTester();
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker);
         tokenManagerErc20 = await deployTokenManagerERC20(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, fakeDepositBox);
@@ -92,9 +92,8 @@ describe("TokenManagerERC20", () => {
         const skaleFeatures = await deploySkaleFeaturesMock();
         await skaleFeatures.connect(deployer).setSchainOwner(schainOwner.address);
 
-        await tokenManagerErc20.connect(deployer).grantRole(await tokenManagerErc20.SKALE_FEATURES_SETTER_ROLE(), deployer.address);
-        await tokenManagerErc20.connect(deployer).setSkaleFeaturesAddress(skaleFeatures.address);
-
+        await tokenManagerErc20.connect(deployer).grantRole(await tokenManagerErc20.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
+        await tokenManagerErc20.connect(deployer).grantRole(await tokenManagerErc20.AUTOMATIC_DEPLOY_ROLE(), schainOwner.address);
         await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
         const data = await messages.encodeFreezeStateMessage(user.address, true);
         await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, "0x0000000000000000000000000000000000000000", data);
@@ -104,8 +103,8 @@ describe("TokenManagerERC20", () => {
         const newDepositBox = user.address;
         expect(await tokenManagerErc20.depositBox()).to.equal(fakeDepositBox);
         await tokenManagerErc20.connect(user).changeDepositBoxAddress(newDepositBox)
-            .should.be.eventually.rejectedWith("Sender is not an Schain owner");
-        await tokenManagerErc20.connect(schainOwner).changeDepositBoxAddress(newDepositBox);
+            .should.be.eventually.rejectedWith("DEFAULT_ADMIN_ROLE is required");
+        await tokenManagerErc20.connect(deployer).changeDepositBoxAddress(newDepositBox);
         expect(await tokenManagerErc20.depositBox()).to.equal(newDepositBox);
     });
 

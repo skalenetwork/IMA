@@ -8,7 +8,8 @@ export async function deployTokenManagerEth(
     messageProxyForSchain: string,
     tokenManagerLinker: TokenManagerLinker,
     communityLocker: CommunityLocker,
-    newDepositBox: string
+    newDepositBox: string,
+    ethErc20Address: string
 ) {
     const factory = await ethers.getContractFactory(name);
     const instance = await factory.deploy(
@@ -16,7 +17,8 @@ export async function deployTokenManagerEth(
         messageProxyForSchain,
         tokenManagerLinker.address,
         communityLocker.address,
-        newDepositBox
+        newDepositBox,
+        ethErc20Address
     ) as TokenManagerEth;
     return instance;
 }

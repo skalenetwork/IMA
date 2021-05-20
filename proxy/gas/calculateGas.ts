@@ -214,13 +214,20 @@ describe("Gas calculation", () => {
         messages = await deployMessages();
 
         // IMA schain part deployment
-        messageProxyForSchain = await deployMessageProxyForSchain(schainName);
+        messageProxyForSchain = await deployMessageProxyForSchain();
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker);
-        tokenManagerEth = await deployTokenManagerEth(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxEth.address);
+        tokenManagerEth = await deployTokenManagerEth(
+            schainName,
+            messageProxyForSchain.address,
+            tokenManagerLinker,
+            communityLocker,
+            depositBoxEth.address,
+            "0x0000000000000000000000000000000000000000");
         tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxERC20.address);
         tokenManagerERC721 = await deployTokenManagerERC721(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxERC721.address);
         ethERC20 = await deployEthErc20(tokenManagerEth);
+        await tokenManagerEth.connect(deployer).setEthErc20Address(ethERC20.address);
         const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
         await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, tokenManagerLinker.address);
 

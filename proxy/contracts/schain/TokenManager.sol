@@ -167,7 +167,7 @@ abstract contract TokenManager is AccessControlUpgradeable {
      * - `msg.sender` must be schain owner
      */
     function changeDepositBoxAddress(address newDepositBox) external {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Default admin role is required");
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
         depositBox = newDepositBox;
     }
 

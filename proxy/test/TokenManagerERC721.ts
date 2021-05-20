@@ -76,7 +76,7 @@ describe("TokenManagerERC721", () => {
     });
 
     beforeEach(async () => {
-        messageProxyForSchain = await deployMessageProxyForSchainTester(schainName);
+        messageProxyForSchain = await deployMessageProxyForSchainTester();
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
         messages = await deployMessages();
         const fakeDepositBox = messages;
@@ -93,9 +93,8 @@ describe("TokenManagerERC721", () => {
                 communityLocker,
                 fakeDepositBox.address
             );
-        await tokenManagerERC721.grantRole(await tokenManagerERC721.SKALE_FEATURES_SETTER_ROLE(), deployer.address);
-        await tokenManagerERC721.setSkaleFeaturesAddress(skaleFeatures.address);
-
+        await tokenManagerERC721.connect(deployer).grantRole(await tokenManagerERC721.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
+        await tokenManagerERC721.connect(deployer).grantRole(await tokenManagerERC721.AUTOMATIC_DEPLOY_ROLE(), schainOwner.address);
 
         tokenClone = await deployERC721OnChain("ELVIS", "ELV");
         token = await deployERC721OnChain("SKALE", "SKL");
@@ -110,8 +109,8 @@ describe("TokenManagerERC721", () => {
         const newDepositBox = user.address;
         expect(await tokenManagerERC721.depositBox()).to.equal(messages.address);
         await tokenManagerERC721.connect(user).changeDepositBoxAddress(newDepositBox)
-            .should.be.eventually.rejectedWith("Sender is not an Schain owner");
-        await tokenManagerERC721.connect(schainOwner).changeDepositBoxAddress(newDepositBox);
+            .should.be.eventually.rejectedWith("DEFAULT_ADMIN_ROLE is required");
+        await tokenManagerERC721.connect(deployer).changeDepositBoxAddress(newDepositBox);
         expect(await tokenManagerERC721.depositBox()).to.equal(newDepositBox);
     });
 
@@ -137,8 +136,8 @@ describe("TokenManagerERC721", () => {
     });
 
     it("should successfully call addERC721TokenByOwner", async () => {
-        await tokenManagerERC721.connect(deployer).addERC721TokenByOwner(token.address, tokenClone.address)
-            .should.be.eventually.rejectedWith("Sender is not an Schain owner");
+        await tokenManagerERC721.connect(user).addERC721TokenByOwner(token.address, tokenClone.address)
+            .should.be.eventually.rejectedWith("TOKEN_REGISTRAR_ROLE is required");
 
         await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(token.address, deployer.address)
             .should.be.eventually.rejectedWith("Given address is not a contract");

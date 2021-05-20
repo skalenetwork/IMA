@@ -71,11 +71,11 @@ describe("TokenManagerLinker", () => {
     });
 
     beforeEach(async () => {
-        messageProxy = await deployMessageProxyForSchain(schainName);
+        messageProxy = await deployMessageProxyForSchain();
         linker = await deployTokenManagerLinker(messageProxy);
         fakeDepositBox = linker.address;
         communityLocker = await deployCommunityLocker(schainName, messageProxy.address, linker);
-        tokenManagerEth = await deployTokenManagerEth(schainName, messageProxy.address, linker, communityLocker, fakeDepositBox);
+        tokenManagerEth = await deployTokenManagerEth(schainName, messageProxy.address, linker, communityLocker, fakeDepositBox, "0x0000000000000000000000000000000000000000");
         tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxy.address, linker, communityLocker, fakeDepositBox);
         tokenManagerERC721 = await deployTokenManagerERC721(schainName, messageProxy.address, linker, communityLocker, fakeDepositBox);
         const chainConnectorRole = await messageProxy.CHAIN_CONNECTOR_ROLE();

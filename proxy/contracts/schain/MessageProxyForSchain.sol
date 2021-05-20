@@ -26,7 +26,6 @@ import "./bls/FieldOperations.sol";
 import "./bls/SkaleVerifier.sol";
 import "./SkaleFeaturesClient.sol";
 
-
 interface IContractReceiverForSchain {
     function postMessage(
         bytes32 fromChainHash,

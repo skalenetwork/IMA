@@ -410,7 +410,7 @@ describe("MessageProxy", () => {
     describe("MessageProxyForSchain for schain", async () => {
 
         beforeEach(async () => {
-            messageProxyForSchain = await deployMessageProxyForSchain("MyChain");
+            messageProxyForSchain = await deployMessageProxyForSchain();
             const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
             await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, deployer.address);
         });
