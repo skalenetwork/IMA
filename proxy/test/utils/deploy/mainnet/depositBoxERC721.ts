@@ -10,6 +10,6 @@ export async function deployDepositBoxERC721(
     const factory = await ethers.getContractFactory("DepositBoxERC721");
     const instance = await factory.deploy() as DepositBoxERC721;
     await instance["initialize(address,address,address)"](contractManager.address, linker.address, messageProxy.address);
-    await linker.registerDepositBox(instance.address);
+    await linker.registerMainnetContract(instance.address);
     return instance;
 }

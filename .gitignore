@@ -8,8 +8,7 @@ test-tokens/typechain
 
 # openzeppelin
 proxy/.openzeppelin/dev-*.json
-proxy/.openzeppelin/unknown-1337.json
-proxy/.openzeppelin/unknown-31337.json
+proxy/.openzeppelin/unknown-*.json
 proxy/.openzeppelin/.session
 
 # idea

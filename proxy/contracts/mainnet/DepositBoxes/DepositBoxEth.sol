@@ -60,7 +60,7 @@ contract DepositBoxEth is DepositBox {
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addTokenManager(string calldata schainName, address newTokenManagerEthAddress) external override {
+    function addSchainContract(string calldata schainName, address newTokenManagerEthAddress) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
@@ -82,7 +82,7 @@ contract DepositBoxEth is DepositBox {
      * - `msg.sender` must be schain owner or contract owner
      * - SKALE chain must already be set.
      */
-    function removeTokenManager(string calldata schainName) external override {
+    function removeSchainContract(string calldata schainName) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
@@ -118,26 +118,21 @@ contract DepositBoxEth is DepositBox {
         external
         override
         onlyMessageProxy
-        returns (bool)
+        returns (address)
     {
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&
             sender == tokenManagerEthAddresses[schainHash],
             "Receiver chain is incorrect"
         );
-        Messages.TransferEthMessage memory decodedMessage = Messages.decodeTransferEthMessage(data);
+        Messages.TransferEthMessage memory message = Messages.decodeTransferEthMessage(data);
         require(
-            decodedMessage.amount <= address(this).balance,
+            message.amount <= address(this).balance,
             "Not enough money to finish this transaction"
         );
-        approveTransfers[decodedMessage.receiver] =
-            approveTransfers[decodedMessage.receiver].add(decodedMessage.amount);
-        // TODO add gas reimbusement
-        // uint256 txFee = gasConsumption * tx.gasprice;
-        // require(amount >= txFee, "Not enough funds to recover gas");
-        // TODO add gas reimbusement
-        // imaLinker.rechargeSchainWallet(schainHash, txFee);
-        return true;
+        approveTransfers[message.receiver] =
+            approveTransfers[message.receiver].add(message.amount);
+        return message.receiver;
     }
 
     /**
@@ -162,20 +157,20 @@ contract DepositBoxEth is DepositBox {
     /**
      * @dev Checks whether depositBoxEth is connected to a SKALE chain TokenManagerEth.
      */
-    function hasTokenManager(string calldata schainName) external view override returns (bool) {
+    function hasSchainContract(string calldata schainName) external view override returns (bool) {
         return tokenManagerEthAddresses[keccak256(abi.encodePacked(schainName))] != address(0);
     }
 
     /// Create a new deposit box
     function initialize(
-        IContractManager newContractManagerOfSkaleManager,        
-        Linker newLinkerAddress,
-        MessageProxyForMainnet newMessageProxyAddress
+        IContractManager contractManagerOfSkaleManager,        
+        Linker linker,
+        MessageProxyForMainnet messageProxy
     )
         public
         override
         initializer
     {
-        DepositBox.initialize(newContractManagerOfSkaleManager, newLinkerAddress, newMessageProxyAddress);
+        DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
     }
 }

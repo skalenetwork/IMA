@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { TokenManagerEth, MessageProxyForSchain, TokenManagerLinker } from "../../../../typechain";
+import { TokenManagerEth, MessageProxyForSchain, TokenManagerLinker, CommunityLocker } from "../../../../typechain";
 
 const name = "TokenManagerEth";
 
@@ -7,6 +7,7 @@ export async function deployTokenManagerEth(
     schainName: string,
     messageProxyForSchain: string,
     tokenManagerLinker: TokenManagerLinker,
+    communityLocker: CommunityLocker,
     newDepositBox: string
 ) {
     const factory = await ethers.getContractFactory(name);
@@ -14,6 +15,7 @@ export async function deployTokenManagerEth(
         schainName,
         messageProxyForSchain,
         tokenManagerLinker.address,
+        communityLocker.address,
         newDepositBox
     ) as TokenManagerEth;
     return instance;

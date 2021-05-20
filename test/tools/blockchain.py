@@ -187,6 +187,36 @@ class BlockChain:
 
         self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
+    def recharge_user_wallet(self, from_key, schainName, amount_wei):
+        sender_address = self.key_to_address(from_key)
+        community_pool = self._get_contract_on_mainnet('community_pool')
+        recharge_abi = community_pool.encodeABI(fn_name="rechargeUserWallet", args=[schainName])
+        signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
+                nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
+                gasPrice=self.web3_mainnet.eth.gasPrice,
+                gas=200000,
+                to=community_pool.address,
+                value=amount_wei,
+                data = recharge_abi
+            ),
+            from_key)
+        self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+
+    def set_time_limit_per_message(self, from_key, time_limit):
+        sender_address = self.key_to_address(from_key)
+        community_locker = self._get_contract_on_schain('community_locker')
+        time_limit_abi = community_locker.encodeABI(fn_name="setTimeLimitPerMessage", args=[time_limit])
+        signed_txn = self.web3_schain.eth.account.signTransaction(dict(
+                nonce=self.web3_schain.eth.getTransactionCount(sender_address),
+                gasPrice=self.web3_schain.eth.gasPrice,
+                gas=200000,
+                to=community_locker.address,
+                value=0,
+                data=time_limit_abi
+            ),
+            from_key)
+        self.web3_schain.eth.sendRawTransaction(signed_txn.rawTransaction)
+
     def deploy_erc20_on_mainnet(self, private_key, name, symbol, decimals):
         return self._deploy_contract_to_mainnet(self.config.test_root + '/resources/ERC20MintableDetailed.json',
                                                 [name, symbol, decimals],

@@ -103,7 +103,7 @@ contract DepositBoxERC20 is DepositBox {
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addTokenManager(string calldata schainName, address newTokenManagerERC20Address) external override {
+    function addSchainContract(string calldata schainName, address newTokenManagerERC20Address) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
@@ -125,7 +125,7 @@ contract DepositBoxERC20 is DepositBox {
      * - `msg.sender` must be schain owner or contract owner
      * - SKALE chain must already be set.
      */
-    function removeTokenManager(string calldata schainName) external override {
+    function removeSchainContract(string calldata schainName) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
@@ -145,7 +145,7 @@ contract DepositBoxERC20 is DepositBox {
         external
         override
         onlyMessageProxy
-        returns (bool)
+        returns (address)
     {
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&
@@ -159,12 +159,7 @@ contract DepositBoxERC20 is DepositBox {
             IERC20Metadata(message.token).transfer(message.receiver, message.amount),
             "Something went wrong with `transfer` in ERC20"
         );
-        // TODO add gas reimbusement
-        // uint256 txFee = gasConsumption * tx.gasprice;
-        // require(amount >= txFee, "Not enough funds to recover gas");
-        // TODO add gas reimbusement
-        // imaLinker.rechargeSchainWallet(schainHash, txFee);
-        return true;
+        return message.receiver;
     }
 
     /**
@@ -208,7 +203,7 @@ contract DepositBoxERC20 is DepositBox {
     /**
      * @dev Checks whether depositBoxERC20 is connected to a SKALE chain TokenManagerERC20.
      */
-    function hasTokenManager(string calldata schainName) external view override returns (bool) {
+    function hasSchainContract(string calldata schainName) external view override returns (bool) {
         return tokenManagerERC20Addresses[keccak256(abi.encodePacked(schainName))] != address(0);
     }
 
@@ -216,13 +211,13 @@ contract DepositBoxERC20 is DepositBox {
     function initialize(
         IContractManager contractManagerOfSkaleManager,
         Linker linker,
-        MessageProxyForMainnet newMessageProxyAddress
+        MessageProxyForMainnet messageProxy
     )
         public
         override
         initializer
     {
-        DepositBox.initialize(contractManagerOfSkaleManager, linker, newMessageProxyAddress);
+        DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
     }
 
     /**

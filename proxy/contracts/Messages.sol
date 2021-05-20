@@ -31,7 +31,8 @@ library Messages {
         TRANSFER_ERC20_AND_TOTAL_SUPPLY,
         TRANSFER_ERC20_AND_TOKEN_INFO,
         TRANSFER_ERC721,
-        TRANSFER_ERC721_AND_TOKEN_INFO
+        TRANSFER_ERC721_AND_TOKEN_INFO,
+        FREEZE_STATE
     }
 
     struct BaseMessage {
@@ -42,6 +43,12 @@ library Messages {
         BaseMessage message;
         address receiver;
         uint256 amount;
+    }
+
+    struct FreezeStateMessage {
+        BaseMessage message;
+        address receiver;
+        bool isUnfrozen;
     }
 
     struct TransferErc20Message {
@@ -238,5 +245,19 @@ library Messages {
             "Message type is not ERC721 transfer with token info"
         );
         return abi.decode(data, (TransferErc721AndTokenInfoMessage));
+    }
+
+    function encodeFreezeStateMessage(address receiver, bool isUnfrozen) internal pure returns (bytes memory) {
+        FreezeStateMessage memory message = FreezeStateMessage(
+            BaseMessage(MessageType.FREEZE_STATE),
+            receiver,
+            isUnfrozen
+        );
+        return abi.encode(message);
+    }
+
+    function decodeFreezeStateMessage(bytes memory data) internal pure returns (FreezeStateMessage memory) {
+        require(getMessageType(data) == MessageType.FREEZE_STATE, "Message type is not Freeze User");
+        return abi.decode(data, (FreezeStateMessage));
     }
 }
