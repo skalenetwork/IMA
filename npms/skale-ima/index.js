@@ -692,7 +692,7 @@ async function safe_send_signed_transaction( details, w3, serializedTx, strActio
 
 //
 // register direction for money transfer
-// main-net.DepositBox call: function addSchain(uint64 schainID, address tokenManagerAddress)
+// main-net.DepositBox call: function addSchain(string schainName, address tokenManagerAddress)
 //
 async function check_is_registered_s_chain_in_deposit_boxes( // step 1
     w3_main_net,
@@ -791,6 +791,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
     jo_token_manager_eth, // only s-chain
     jo_token_manager_erc20, // only s-chain
     jo_token_manager_erc721, // only s-chain
+    jo_community_locker, // only s-chain
     chain_id_s_chain,
     cid_main_net,
     tc_main_net,
@@ -835,6 +836,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
         const methodWithArguments = jo_linker.methods.connectSchain(
             chain_id_s_chain,
             [
+                jo_community_locker.options.address, // call params
                 jo_token_manager_eth.options.address, // call params
                 jo_token_manager_erc20.options.address, // call params
                 jo_token_manager_erc721.options.address // call params
@@ -1250,9 +1252,9 @@ async function register_s_chain_in_deposit_boxes( // step 1
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // transfer money from main-net to S-chain
-// main-net.DepositBox call: function deposit(uint64 schainID, address to) public payable
+// main-net.DepositBox call: function deposit(string schainName, address to) public payable
 // Where:
-//   schainID...obvious
+//   schainName...obvious
 //   to.........address in S-chain
 // Notice:
 //   this function is available for everyone in main-net
@@ -1646,7 +1648,7 @@ async function do_erc721_payment_from_main_net(
         const erc721ABI = erc721PrivateTestnetJson_main_net[strCoinNameErc721_main_net + "_abi"];
         const erc721Address_main_net = erc721PrivateTestnetJson_main_net[strCoinNameErc721_main_net + "_address"];
         const contractERC721 = new w3_main_net.eth.Contract( erc721ABI, erc721Address_main_net );
-        // prepare the smart contract function deposit(string schainID, address to)
+        // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc721.options.address;
         const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC721.methods.approve( // same as approve in 20
@@ -1844,7 +1846,7 @@ async function do_erc20_payment_from_main_net(
         const erc20Address_main_net = erc20PrivateTestnetJson_main_net[strCoinNameErc20_main_net + "_address"];
         // details.write( strLogPrefix + cc.normal("erc20Address_main_net = ") + cc.info(erc20Address_main_net) + "\n" )
         const contractERC20 = new w3_main_net.eth.Contract( erc20ABI, erc20Address_main_net );
-        // prepare the smart contract function deposit(string schainID, address to)
+        // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc20.options.address;
         const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC20.methods.approve(
@@ -2036,7 +2038,7 @@ async function do_erc20_payment_from_s_chain(
         const tokenManagerAddress = jo_token_manager_erc20.options.address;
         const contractERC20 = new w3_s_chain.eth.Contract( erc20ABI, erc20Address_s_chain );
         //
-        // prepare the smart contract function deposit(string schainID, address to)
+        // prepare the smart contract function deposit(string schainName, address to)
         //
         // const depositBoxAddress = jo_deposit_box.options.address;
         const methodWithArguments_approve = contractERC20.methods.approve(
@@ -2212,7 +2214,7 @@ async function do_erc721_payment_from_s_chain(
         const erc721Address_s_chain = joErc721_s_chain[strCoinNameErc721_s_chain + "_address"];
         const tokenManagerAddress = jo_token_manager_erc721.options.address;
         const contractERC721 = new w3_s_chain.eth.Contract( erc721ABI, erc721Address_s_chain );
-        // prepare the smart contract function deposit(string schainID, address to)
+        // prepare the smart contract function deposit(string schainName, address to)
         // const depositBoxAddress = jo_deposit_box.options.address;
         const methodWithArguments_approve = contractERC721.methods.approve(
             // accountForSchain,
@@ -3058,6 +3060,7 @@ async function do_transfer(
             //
             strActionName = "sign messages";
             await fn_sign_messages( messages, nIdxCurrentMsgBlockStart, details, async function( err, jarrMessages, joGlueResult ) {
+                const details = log.createMemoryStream();
                 if( err ) {
                     bErrorInSigningMessages = true;
                     const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error signing messages: " ) + cc.error( err ) + "\n";
@@ -3237,6 +3240,9 @@ async function do_transfer(
                 //
                 //
                 //
+                if( expose_details_get() )
+                    details.exposeDetailsTo( log, "do_transfer", true );
+                details.close();
             } );
             if( bErrorInSigningMessages )
                 break;

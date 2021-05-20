@@ -22,8 +22,6 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@nomiclabs/buidler/console.sol";
-
 import "../schain/bls/FieldOperations.sol";
 import "../schain/SkaleFeatures.sol";
 

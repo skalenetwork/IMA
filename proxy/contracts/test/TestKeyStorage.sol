@@ -30,11 +30,11 @@ contract KeyStorage {
 
     mapping(bytes32 => G2Operations.G2Point) private _schainsPublicKeys;
 
-    function setCommonPublicKey(bytes32 schainId, G2Operations.G2Point memory value) external {
-        _schainsPublicKeys[schainId] = value;
+    function setCommonPublicKey(bytes32 schainHash, G2Operations.G2Point memory value) external {
+        _schainsPublicKeys[schainHash] = value;
     }
 
-    function getCommonPublicKey(bytes32 schainId) external view returns (G2Operations.G2Point memory) {
-        return _schainsPublicKeys[schainId];
+    function getCommonPublicKey(bytes32 schainHash) external view returns (G2Operations.G2Point memory) {
+        return _schainsPublicKeys[schainHash];
     }
 }

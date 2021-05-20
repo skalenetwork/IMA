@@ -90,8 +90,8 @@ global.imaState = {
     "strURL_main_net": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ), // example: "http://127.0.0.1:8545"
     "strURL_s_chain": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ), // example: "http://127.0.0.1:2231"
 
-    "strChainID_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
-    "strChainID_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
+    "strChainName_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
+    "strChainName_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
     "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
     "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
 
@@ -126,6 +126,7 @@ global.imaState = {
     "w3_main_net": null,
     "w3_s_chain": null,
 
+    "jo_community_pool": null, // only main net
     "jo_deposit_box_eth": null, // only main net
     "jo_deposit_box_erc20": null, // only main net
     "jo_deposit_box_erc721": null, // only main net
@@ -133,6 +134,7 @@ global.imaState = {
     "jo_token_manager_eth": null, // only s-chain
     "jo_token_manager_erc20": null, // only s-chain
     "jo_token_manager_erc721": null, // only s-chain
+    "jo_community_locker": null, // only s-chain
     "jo_message_proxy_main_net": null,
     "jo_message_proxy_s_chain": null,
     "jo_token_manager_linker": null,
@@ -292,7 +294,7 @@ imaCLI.parse( {
                         imaState.joAccount_s_chain,
                         imaState.jo_deposit_box_erc721, // only main net
                         imaState.jo_message_proxy_main_net, // for checking logs
-                        imaState.strChainID_s_chain,
+                        imaState.strChainName_s_chain,
                         imaState.idToken, // which ERC721 token id to send
                         imaState.nAmountOfWei, // how much WEI money to send
                         imaState.jo_token_manager_erc721, // only s-chain
@@ -317,7 +319,7 @@ imaCLI.parse( {
                         imaState.joAccount_s_chain,
                         imaState.jo_deposit_box_erc20, // only main net
                         imaState.jo_message_proxy_main_net, // for checking logs
-                        imaState.strChainID_s_chain,
+                        imaState.strChainName_s_chain,
                         imaState.nAmountOfToken, // how much ERC20 tokens to send
                         imaState.nAmountOfWei, // how much WEI money to send
                         imaState.jo_token_manager_erc20, // only s-chain
@@ -337,7 +339,7 @@ imaCLI.parse( {
                     imaState.joAccount_s_chain,
                     imaState.jo_deposit_box_eth, // only main net
                     imaState.jo_message_proxy_main_net, // for checking logs
-                    imaState.strChainID_s_chain,
+                    imaState.strChainName_s_chain,
                     imaState.nAmountOfWei, // how much WEI money to send
                     imaState.tc_main_net
                 );
@@ -456,8 +458,8 @@ imaCLI.parse( {
                     imaState.jo_message_proxy_s_chain,
                     //
                     imaState.joAccount_s_chain,
-                    imaState.strChainID_main_net,
-                    imaState.strChainID_s_chain,
+                    imaState.strChainName_main_net,
+                    imaState.strChainName_s_chain,
                     imaState.cid_main_net,
                     imaState.cid_s_chain,
                     null, // imaState.jo_deposit_box, // for logs validation on mainnet
@@ -488,8 +490,8 @@ imaCLI.parse( {
                     imaState.jo_message_proxy_main_net,
                     //
                     imaState.joAccount_main_net,
-                    imaState.strChainID_s_chain,
-                    imaState.strChainID_main_net,
+                    imaState.strChainName_s_chain,
+                    imaState.strChainName_main_net,
                     imaState.cid_s_chain,
                     imaState.cid_main_net,
                     imaState.jo_deposit_box_eth, // for logs validation on mainnet
@@ -896,8 +898,8 @@ if( imaState.nMonitoringPort > 0 ) {
                             "strURL_main_net",
                             "strURL_s_chain",
 
-                            "strChainID_main_net",
-                            "strChainID_s_chain",
+                            "strChainName_main_net",
+                            "strChainName_s_chain",
                             "cid_main_net",
                             "cid_s_chain",
 
@@ -1048,7 +1050,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
         imaState.w3_main_net,
         imaState.jo_linker,
         imaState.joAccount_main_net,
-        imaState.strChainID_s_chain
+        imaState.strChainName_s_chain
     );
     if( !bRetVal ) {
         jarrReceipts = await IMA.register_s_chain_in_deposit_boxes( // step 1
@@ -1061,7 +1063,8 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
             imaState.jo_token_manager_eth, // only s-chain
             imaState.jo_token_manager_erc20, // only s-chain
             imaState.jo_token_manager_erc721, // only s-chain
-            imaState.strChainID_s_chain,
+            imaState.jo_community_locker, // only s-chain
+            imaState.strChainName_s_chain,
             imaState.cid_main_net,
             imaState.tc_main_net //,
             // cntWaitAttempts,
@@ -1115,7 +1118,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
 //         imaState.w3_s_chain,
 //         imaState.jo_message_proxy_s_chain,
 //         imaState.joAccount_s_chain,
-//         imaState.strChainID_main_net
+//         imaState.strChainName_main_net
 //     );
 //     //console.log( "----------- bRetVal is", bRetVal );
 //     if( !bRetVal ) {
@@ -1123,7 +1126,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
 //             imaState.w3_s_chain,
 //             imaState.jo_message_proxy_s_chain,
 //             imaState.joAccount_s_chain,
-//             imaState.strChainID_main_net,
+//             imaState.strChainName_main_net,
 //             imaState.cid_s_chain,
 //             imaState.tc_s_chain
 //         );
@@ -1167,7 +1170,7 @@ async function check_registration_step1() {
         imaState.w3_main_net,
         imaState.jo_linker,
         imaState.joAccount_main_net,
-        imaState.strChainID_s_chain
+        imaState.strChainName_s_chain
     );
     return bRetVal;
 }
@@ -1184,7 +1187,7 @@ async function check_registration_step1() {
 //         imaState.w3_s_chain,
 //         imaState.jo_message_proxy_s_chain,
 //         imaState.joAccount_s_chain,
-//         imaState.strChainID_main_net
+//         imaState.strChainName_main_net
 //     );
 //     // const bRetVal = ( bRetVal2A && bRetVal2B ) ? true : false;
 //     return bRetVal;
@@ -1274,8 +1277,8 @@ async function single_transfer_loop() {
         imaState.jo_message_proxy_s_chain,
         //
         imaState.joAccount_s_chain,
-        imaState.strChainID_main_net,
-        imaState.strChainID_s_chain,
+        imaState.strChainName_main_net,
+        imaState.strChainName_s_chain,
         imaState.cid_main_net,
         imaState.cid_s_chain,
         null, // imaState.jo_deposit_box - for logs validation on mainnet
@@ -1303,8 +1306,8 @@ async function single_transfer_loop() {
         imaState.jo_message_proxy_main_net,
         //
         imaState.joAccount_main_net,
-        imaState.strChainID_s_chain,
-        imaState.strChainID_main_net,
+        imaState.strChainName_s_chain,
+        imaState.strChainName_main_net,
         imaState.cid_s_chain,
         imaState.cid_main_net,
         imaState.jo_deposit_box_eth, // for logs validation on mainnet

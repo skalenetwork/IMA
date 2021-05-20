@@ -21,10 +21,10 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 import "../interfaces/IMessageProxy.sol";
+import "./SkaleFeaturesClient.sol";
 import "./TokenManager.sol";
 
 
@@ -32,7 +32,7 @@ import "./TokenManager.sol";
  * @title TokenManagerLinker
  * @dev Runs on Schain
  */
-contract TokenManagerLinker is AccessControl {
+contract TokenManagerLinker is SkaleFeaturesClient {
 
     using SafeMath for uint;
 
@@ -56,8 +56,8 @@ contract TokenManagerLinker is AccessControl {
         _;
     }
 
-    function registerTokenManager(TokenManager newTokenManagerAddress) external onlyRegistrar {
-        _tokenManagers.push(newTokenManagerAddress);
+    function registerTokenManager(TokenManager newTokenManager) external onlyRegistrar {
+        _tokenManagers.push(newTokenManager);
     }
 
     function removeTokenManager(TokenManager tokenManagerAddress) external onlyRegistrar {
@@ -87,7 +87,7 @@ contract TokenManagerLinker is AccessControl {
         for (uint i = 0; i < tokenManagerAddresses.length; i++) {
             _tokenManagers[i].addTokenManager(schainName, tokenManagerAddresses[i]);
         }
-        messageProxy.addConnectedChain(schainName);
+        getMessageProxy().addConnectedChain(schainName);
     }
 
     function disconnectSchain(string calldata schainName) external onlyRegistrar {
@@ -95,14 +95,14 @@ contract TokenManagerLinker is AccessControl {
         for (uint i = 0; i < length; i++) {
             _tokenManagers[i].removeTokenManager(schainName);
         }
-        messageProxy.removeConnectedChain(schainName);
+        getMessageProxy().removeConnectedChain(schainName);
     }
 
-    function hasTokenManager(TokenManager tokenManagerAddress) external view returns (bool) {
+    function hasTokenManager(TokenManager tokenManager) external view returns (bool) {
         uint index;
         uint length = _tokenManagers.length;
         for (index = 0; index < length; index++) {
-            if (_tokenManagers[index] == tokenManagerAddress) {
+            if (_tokenManagers[index] == tokenManager) {
                 return true;
             }
         }
@@ -115,6 +115,17 @@ contract TokenManagerLinker is AccessControl {
         for (uint i = 0; i < length; i++) {
             connected = connected && _tokenManagers[i].hasTokenManager(schainName);
         }
-        connected = connected && messageProxy.isConnectedChain(schainName);
+        connected = connected && getMessageProxy().isConnectedChain(schainName);
+    }
+
+    function getMessageProxy() public view returns (IMessageProxy) {
+        if (address(messageProxy) == address(0)) {
+            return IMessageProxy(
+                getSkaleFeatures().getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.MessageProxy"
+                )
+            );
+        }
+        return messageProxy;
     }
 }

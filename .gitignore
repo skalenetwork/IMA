@@ -1,15 +1,14 @@
-# truffle build
-proxy/build/
-proxy/types/
-
 # artifacts
 proxy/artifacts/
-proxy/test-tokens/artifacts/
+test-tokens/artifacts/
 proxy/cache/
-proxy/test-tokens/cache/
+test-tokens/cache/
+proxy/typechain
+test-tokens/typechain
 
 # openzeppelin
 proxy/.openzeppelin/dev-*.json
+proxy/.openzeppelin/unknown-*.json
 proxy/.openzeppelin/.session
 
 # idea
@@ -79,7 +78,7 @@ __pycache__/
 
 proxy/proxy.json
 proxy/data/*.json
-proxy/test-tokens/data/*.json
+test-tokens/data/*.json
 ima_data.json
 
 test/working

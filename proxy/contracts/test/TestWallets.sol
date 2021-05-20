@@ -35,16 +35,16 @@ contract Wallets is IWallets {
 
     mapping (bytes32 => uint) private _schainWallets;
 
-    event SchainWalletRecharged(address sponsor, uint amount, bytes32 schainId);
+    event SchainWalletRecharged(address sponsor, uint amount, bytes32 schainHash);
 
-    event NodeRefundedBySchain(address node, bytes32 schainId, uint amount);
+    event NodeRefundedBySchain(address node, bytes32 schainHash, uint amount);
 
     function addContractManager(address newContractManager) external {
         contractManager = ContractManager(newContractManager);
     }
 
     function refundGasBySchain(
-        bytes32 schainId,
+        bytes32 schainHash,
         address payable spender,
         uint spentGas,
         bool
@@ -53,17 +53,17 @@ contract Wallets is IWallets {
         override
     {
         uint amount = tx.gasprice * spentGas;
-        require(schainId != bytes32(0), "SchainId cannot be null");
-        require(amount <= _schainWallets[schainId], "Schain wallet has not enough funds");
-        _schainWallets[schainId] = _schainWallets[schainId].sub(amount);
-        emit NodeRefundedBySchain(spender, schainId, amount);
+        require(schainHash != bytes32(0), "SchainHash cannot be null");
+        require(amount <= _schainWallets[schainHash], "Schain wallet has not enough funds");
+        _schainWallets[schainHash] = _schainWallets[schainHash].sub(amount);
+        emit NodeRefundedBySchain(spender, schainHash, amount);
         spender.transfer(amount);
     }
 
-    function rechargeSchainWallet(bytes32 schainId) external payable override {
+    function rechargeSchainWallet(bytes32 schainHash) external payable override {
         SchainsInternal schainsInternal = SchainsInternal(contractManager.getContract("SchainsInternal"));
-        require(schainsInternal.isSchainActive(schainId), "Schain should be active for recharging");
-        _schainWallets[schainId] = _schainWallets[schainId].add(msg.value);
-        emit SchainWalletRecharged(msg.sender, msg.value, schainId);
+        require(schainsInternal.isSchainActive(schainHash), "Schain should be active for recharging");
+        _schainWallets[schainHash] = _schainWallets[schainHash].add(msg.value);
+        emit SchainWalletRecharged(msg.sender, msg.value, schainHash);
     }
 }

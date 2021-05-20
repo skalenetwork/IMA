@@ -75,4 +75,8 @@ contract MessagesTester {
     ) external pure returns (bytes memory) {
         return Messages.encodeTransferErc721AndTokenInfoMessage(token, receiver, tokenId, tokenInfo);
     }
+
+    function encodeFreezeStateMessage(address receiver, bool isUnfrozen) external pure returns (bytes memory) {
+        return Messages.encodeFreezeStateMessage(receiver, isUnfrozen);
+    }
 }

@@ -25,7 +25,12 @@ pragma experimental ABIEncoderV2;
 import "./MessageProxyForSchain.sol";
 import "./SkaleFeaturesClient.sol";
 import "./TokenManagerLinker.sol";
+import "./CommunityLocker.sol";
 
+
+interface ICommunityLocker {
+    function checkAllowedToSendMessage(address receiver) external;
+}
 
 /**
  * @title Token Manager
@@ -38,14 +43,15 @@ abstract contract TokenManager is AccessControlUpgradeable {
 
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
-    bytes32 public schainId;
+    CommunityLocker public communityLocker;
+    bytes32 public schainHash;
     address public depositBox;
     bool public automaticDeploy;
 
     mapping(bytes32 => address) public tokenManagers;
 
     string constant public MAINNET_NAME = "Mainnet";
-    bytes32 constant public MAINNET_ID = keccak256(abi.encodePacked(MAINNET_NAME));
+    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
 
     bytes32 public constant AUTOMATIC_DEPLOY_ROLE = keccak256("AUTOMATIC_DEPLOY_ROLE");
     bytes32 public constant TOKEN_REGISTRAR_ROLE = keccak256("TOKEN_REGISTRAR_ROLE");
@@ -60,10 +66,16 @@ abstract contract TokenManager is AccessControlUpgradeable {
         _;
     }
 
+    modifier onlyMessageProxy() {
+        require(msg.sender == address(getMessageProxy()), "Sender is not a MessageProxy");
+        _;
+    }
+
     constructor(
         string memory newSchainName,
         MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
         address newDepositBox
     )
         public
@@ -75,14 +87,15 @@ abstract contract TokenManager is AccessControlUpgradeable {
         _setupRole(AUTOMATIC_DEPLOY_ROLE, msg.sender);
         _setupRole(TOKEN_REGISTRAR_ROLE, msg.sender);
 
-        schainId = keccak256(abi.encodePacked(newSchainName));
+        schainHash = keccak256(abi.encodePacked(newSchainName));
         messageProxy = newMessageProxy;
-        tokenManagerLinker = newIMALinker;        
+        tokenManagerLinker = newIMALinker;
+        communityLocker = newCommunityLocker;        
         depositBox = newDepositBox;
     }
 
     function postMessage(
-        string calldata fromSchainID,
+        bytes32 fromChainHash,
         address sender,
         bytes calldata data
     )
@@ -120,15 +133,15 @@ abstract contract TokenManager is AccessControlUpgradeable {
             msg.sender == address(tokenManagerLinker) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(tokenManagers[schainHash] == address(0), "Token Manager is already set");
+        bytes32 newSchainHash = keccak256(abi.encodePacked(schainName));
+        require(tokenManagers[newSchainHash] == address(0), "Token Manager is already set");
         require(newTokenManager != address(0), "Incorrect Token Manager address");
-        tokenManagers[schainHash] = newTokenManager;
+        tokenManagers[newSchainHash] = newTokenManager;
     }
 
     /**
-     * @dev Allows Owner to remove a TokenManagerEth on SKALE chain
-     * from depositBox.
+     * @dev Allows Owner to remove a TokenManager on SKALE chain
+     * from TokenManager.
      *
      * Requirements:
      *
@@ -140,9 +153,21 @@ abstract contract TokenManager is AccessControlUpgradeable {
             msg.sender == address(tokenManagerLinker) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(tokenManagers[schainHash] != address(0), "Token Manager is not set");
-        delete tokenManagers[schainHash];
+        bytes32 newSchainHash = keccak256(abi.encodePacked(schainName));
+        require(tokenManagers[newSchainHash] != address(0), "Token Manager is not set");
+        delete tokenManagers[newSchainHash];
+    }
+
+    /**
+     * @dev Allows Schain Owner to change Deposit Box address
+     * This function should be executed only in Emergency.
+     *
+     * Requirements:
+     *
+     * - `msg.sender` must be schain owner
+     */
+    function changeDepositBoxAddress(address newDepositBox) external onlySchainOwner {
+        depositBox = newDepositBox;
     }
 
     /**
@@ -151,4 +176,17 @@ abstract contract TokenManager is AccessControlUpgradeable {
     function hasTokenManager(string calldata schainName) external view returns (bool) {
         return tokenManagers[keccak256(abi.encodePacked(schainName))] != address(0);
     }
+
+    // private
+
+    /**
+     * @dev Checks whether sender is owner of SKALE chain
+     */
+    function _isSchainOwner(address sender) internal view returns (bool) {
+        return sender == getSkaleFeatures().getConfigVariableAddress(
+            "skaleConfig.contractSettings.IMA.ownerAddress"
+        );
+    }
+
+
 }

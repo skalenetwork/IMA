@@ -29,11 +29,20 @@ import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 import "../interfaces/IMessageReceiver.sol";
 import "./SkaleManagerClient.sol";
 
+interface ICommunityPool {
+    function refundGasByUser(
+        bytes32 schainHash,
+        address node,
+        address user,
+        uint256 gas
+    ) external;
+    function getBalance() external view returns (uint);
+}
 
 /**
  * @title Message Proxy for Mainnet
  * @dev Runs on Mainnet, contains functions to manage the incoming messages from
- * `dstChainID` and outgoing messages to `srcChainID`. Every SKALE chain with 
+ * `targetSchainName` and outgoing messages to `fromSchainName`. Every SKALE chain with 
  * IMA is therefore connected to MessageProxyForMainnet.
  *
  * Messages from SKALE chains are signed using BLS threshold signatures from the
@@ -79,9 +88,12 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
     bytes32 public constant MAINNET_CHAIN_ID = keccak256(abi.encodePacked("Mainnet"));
     bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
 
-    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 50000;
+    address public communityPoolAddress;
 
     mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
+
+    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 70000;
+    uint256 public constant MESSAGE_GAS_COST = 8790;
 
     modifier onlyDebugger() {
         require(hasRole(DEBUGGER_ROLE, msg.sender), "Access denied");
@@ -105,26 +117,26 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
     );
 
     /**
-     * @dev Allows LockAndData to add a `newChainID`.
+     * @dev Allows LockAndData to add a `schainName`.
      * 
      * Requirements:
      * 
      * - `msg.sender` must be SKALE Node address.
-     * - `newChainID` must not be "Mainnet".
-     * - `newChainID` must not already be added.
+     * - `schainName` must not be "Mainnet".
+     * - `schainName` must not already be added.
      */
-    function addConnectedChain(string calldata newChainID) external {
+    function addConnectedChain(string calldata schainName) external {
         require(
-            keccak256(abi.encodePacked(newChainID)) != MAINNET_CHAIN_ID,
+            keccak256(abi.encodePacked(schainName)) != MAINNET_CHAIN_ID,
             "SKALE chain name is incorrect. Inside in MessageProxy"
         );
         require(
-            !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
+            !connectedChains[keccak256(abi.encodePacked(schainName))].inited,
             "Chain is already connected"
         );
 
         connectedChains[
-            keccak256(abi.encodePacked(newChainID))
+            keccak256(abi.encodePacked(schainName))
         ] = ConnectedChainInfo({
             incomingMessageCounter: 0,
             outgoingMessageCounter: 0,
@@ -138,23 +150,30 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
      * Requirements:
      * 
      * - `msg.sender` must be LockAndData contract.
-     * - `newChainID` must be initialized.
+     * - `schainName` must be initialized.
      */
-    function removeConnectedChain(string calldata newChainID) external {
+    function removeConnectedChain(string calldata schainName) external {
         require(
-            connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
+            connectedChains[keccak256(abi.encodePacked(schainName))].inited,
             "Chain is not initialized"
         );
-        delete connectedChains[keccak256(abi.encodePacked(newChainID))];
+        delete connectedChains[keccak256(abi.encodePacked(schainName))];
+    }
+
+    function setCommunityPool(address newCommunityPoolAddress) external {
+        require(
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
+        );  
+        communityPoolAddress = newCommunityPoolAddress;
     }
 
     /**
-     * @dev Posts message from this contract to `dstChainID` MessageProxy contract.
+     * @dev Posts message from this contract to `targetSchainName` MessageProxy contract.
      * This is called by a smart contract to make a cross-chain call.
      * 
      * Requirements:
      * 
-     * - `dstChainID` must be initialized.
+     * - `targetSchainName` must be initialized.
      */
     function postOutgoingMessage(
         bytes32 dstChainHash,
@@ -163,7 +182,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
     )
         external
     {
-        // bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
+        // bytes32 dstChainHash = keccak256(abi.encodePacked(targetSchainName));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         uint msgCounter = connectedChains[dstChainHash].outgoingMessageCounter;
         emit OutgoingMessage(
@@ -177,17 +196,17 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
     }
 
     /**
-     * @dev Posts incoming message from `srcChainID`. 
+     * @dev Posts incoming message from `fromSchainName`. 
      * 
      * Requirements:
      * 
      * - `msg.sender` must be authorized caller.
-     * - `srcChainID` must be initialized.
+     * - `fromSchainName` must be initialized.
      * - `startingCounter` must be equal to the chain's incoming message counter.
      * - If destination chain is Mainnet, message signature must be valid.
      */
     function postIncomingMessages(
-        string calldata srcChainID,
+        string calldata fromSchainName,
         uint256 startingCounter,
         Message[] calldata messages,
         Signature calldata sign,
@@ -196,19 +215,32 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
         external
     {
         uint256 gasTotal = gasleft();
-        bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
+        bytes32 srcChainHash = keccak256(abi.encodePacked(fromSchainName));
         require(connectedChains[srcChainHash].inited, "Chain is not initialized");
         require(
             startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
             "Starting counter is not equal to incoming message counter");
 
-        require(_verifyMessages(srcChainID, _hashedArray(messages), sign), "Signature is not verified");
+        require(_verifyMessages(fromSchainName, _hashedArray(messages), sign), "Signature is not verified");
+        uint additionalGasPerMessage = 
+            (gasTotal.sub(gasleft())
+            .add(BASIC_POST_INCOMING_MESSAGES_TX)
+            .add(messages.length * MESSAGE_GAS_COST))
+            .div(messages.length);
         for (uint256 i = 0; i < messages.length; i++) {
-            _callReceiverContract(srcChainHash, messages[i], startingCounter + i);
+            gasTotal = gasleft();
+            address receiver = _callReceiverContract(srcChainHash, messages[i], startingCounter + i);
+            if (receiver == address(0)) 
+                continue;
+            ICommunityPool(communityPoolAddress).refundGasByUser(
+                srcChainHash,
+                msg.sender,
+                receiver,
+                gasTotal.sub(gasleft()).add(additionalGasPerMessage)
+            );
         }
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
-        _refundGasBySchain(srcChainHash, gasTotal + BASIC_POST_INCOMING_MESSAGES_TX);
     }
 
     /**
@@ -247,20 +279,20 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
      * 
      * Requirements:
      * 
-     * - `someChainID` must not be Mainnet.
+     * - `schainName` must not be Mainnet.
      */
     function isConnectedChain(
-        string calldata someChainID
+        string calldata schainName
     )
         external
         view
         returns (bool)
     {
         require(
-            keccak256(abi.encodePacked(someChainID)) !=
+            keccak256(abi.encodePacked(schainName)) !=
             keccak256(abi.encodePacked("Mainnet")),
             "Schain id can not be equal Mainnet"); // main net does not have a public key and is implicitly connected
-        if ( ! connectedChains[keccak256(abi.encodePacked(someChainID))].inited ) {
+        if ( ! connectedChains[keccak256(abi.encodePacked(schainName))].inited ) {
             return false;
         }
         return true;
@@ -271,14 +303,14 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
      * 
      * Requirements:
      * 
-     * - `dstChainID` must be initialized.
+     * - `targetSchainName` must be initialized.
      */
-    function getOutgoingMessagesCounter(string calldata dstChainID)
+    function getOutgoingMessagesCounter(string calldata targetSchainName)
         external
         view
         returns (uint256)
     {
-        bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
+        bytes32 dstChainHash = keccak256(abi.encodePacked(targetSchainName));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         return connectedChains[dstChainHash].outgoingMessageCounter;
     }
@@ -288,14 +320,14 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
      * 
      * Requirements:
      * 
-     * - `srcChainID` must be initialized.
+     * - `fromSchainName` must be initialized.
      */
-    function getIncomingMessagesCounter(string calldata srcChainID)
+    function getIncomingMessagesCounter(string calldata fromSchainName)
         external
         view
         returns (uint256)
     {
-        bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
+        bytes32 srcChainHash = keccak256(abi.encodePacked(fromSchainName));
         require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
         return connectedChains[srcChainHash].incomingMessageCounter;
     }
@@ -330,32 +362,27 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
         uint counter
     )
         private
-        returns (bool)
+        returns (address)
     {
         try IMessageReceiver(message.destinationContract).postMessage(
             schainHash,
             message.sender,
             message.data
-        ) returns (bool success) {
-            return success;
+        ) returns (address receiver) {
+            return receiver;
         } catch Error(string memory reason) {
             emit PostMessageError(
                 counter,
                 bytes(reason)
             );
-            return false;
+            return address(0);
         } catch (bytes memory revertData) {
             emit PostMessageError(
                 counter,
                 revertData
             );
-            return false;
+            return address(0);
         }
-    }
-
-    function _refundGasBySchain(bytes32 schainId, uint gasTotal) internal {
-        address walletsAddress = IContractManager(contractManagerOfSkaleManager).getContract("Wallets");
-        IWallets(payable(walletsAddress)).refundGasBySchain(schainId, msg.sender, gasTotal.sub(gasleft()), false);
     }
 
     /**
@@ -363,7 +390,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
      * whether message BLS signature is valid.
      */
     function _verifyMessages(
-        string calldata srcChainID,
+        string calldata fromSchainName,
         bytes32 hashedMessages,
         MessageProxyForMainnet.Signature calldata sign
     )
@@ -384,7 +411,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
             sign.counter,
             sign.hashA,
             sign.hashB,
-            srcChainID
+            fromSchainName
         );
     }
 }

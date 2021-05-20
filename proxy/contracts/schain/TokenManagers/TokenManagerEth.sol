@@ -49,11 +49,12 @@ contract TokenManagerEth is TokenManager {
         string memory newChainName,
         MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
         address newDepositBox,
         EthErc20 _ethErc20
     )
         public
-        TokenManager(newChainName, newMessageProxy, newIMALinker, newDepositBox)
+        TokenManager(newChainName, newMessageProxy, newIMALinker, newCommunityLocker, newDepositBox)
     {
         ethErc20 = _ethErc20;
     }
@@ -71,9 +72,10 @@ contract TokenManagerEth is TokenManager {
         require(to != address(0), "Incorrect receiver address");
 
         _burnEthErc20(msg.sender, amount);
-        messageProxy.postOutgoingMessage(
+        getCommunityLocker().checkAllowedToSendMessage(to);
+        getMessageProxy().postOutgoingMessage(
             "Mainnet",
-            depositBox,
+            getDepositBoxEthAddress(),
             Messages.encodeTransferEthMessage(to, amount)
         );
     }
@@ -85,18 +87,18 @@ contract TokenManagerEth is TokenManager {
     )
         external
     {
-        bytes32 targetSchainId = keccak256(abi.encodePacked(targetSchainName));
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
-            targetSchainId != MAINNET_ID,
+            targetSchainHash != MAINNET_HASH,
             "This function is not for transferring to Mainnet"
         );
-        require(tokenManagers[targetSchainId] != address(0), "Incorrect Token Manager address");
+        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
         require(to != address(0), "Incorrect receiver address");
 
         _burnEthErc20(msg.sender, amount);
-        messageProxy.postOutgoingMessage(
+        getMessageProxy().postOutgoingMessage(
             targetSchainName,
-            tokenManagers[targetSchainId],
+            tokenManagers[targetSchainHash],
             Messages.encodeTransferEthMessage(to, amount)
         );
     }
@@ -110,25 +112,24 @@ contract TokenManagerEth is TokenManager {
      * Requirements:
      * 
      * - MessageProxy must be the sender.
-     * - `fromSchainID` must exist in TokenManager addresses.
+     * - `fromSchainName` must exist in TokenManager addresses.
      */
     function postMessage(
-        string calldata fromSchainName,
+        bytes32 fromChainHash,
         address sender,
         bytes calldata data
     )
         external
         override
+        onlyMessageProxy
         returns (bool)
     {
-        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
-        bytes32 fromSchainId = keccak256(abi.encodePacked(fromSchainName));
         require(
-            fromSchainId != schainId && 
+            fromChainHash != getSchainHash() && 
                 (
-                    fromSchainId == MAINNET_ID ?
-                    sender == depositBox :
-                    sender == tokenManagers[fromSchainId]
+                    fromChainHash == MAINNET_HASH ?
+                    sender == getDepositBoxEthAddress() :
+                    sender == tokenManagers[fromChainHash]
                 ),
             "Receiver chain is incorrect"
         );
@@ -145,5 +146,12 @@ contract TokenManagerEth is TokenManager {
         if (amount > 0) {
             ethErc20.forceBurn(account, amount);
         }
+    }
+
+    function getDepositBoxEthAddress() public view returns (address) {
+        if (depositBox == address(0)) {
+            return getSkaleFeatures().getConfigVariableAddress("skaleConfig.contractSettings.IMA.DepositBoxEth");
+        }
+        return depositBox;
     }
 }

@@ -48,33 +48,31 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: yarn install
 
-    # TODO: uncomment
+    - name: Install slither
+      working-directory: ${{env.working-directory}}
+      run: pip3 install -r scripts/requirements.txt
 
-    # - name: Install slither
-    #   working-directory: ${{env.working-directory}}
-    #   run: pip3 install -r scripts/requirements.txt
+    - name: Lint solidity
+      working-directory: ${{env.working-directory}}
+      run: yarn lint
 
-    # - name: Lint solidity
-    #   working-directory: ${{env.working-directory}}
-    #   run: yarn lint
+    - name: Compile typescript
+      working-directory: ${{env.working-directory}}
+      run: yarn tsc
 
-    # - name: Compile typescript
-    #   working-directory: ${{env.working-directory}}
-    #   run: yarn tsc
+    - name: Lint typescript
+      working-directory: ${{env.working-directory}}
+      run: yarn tslint
 
-    # - name: Lint typescript
-    #   working-directory: ${{env.working-directory}}
-    #   run: yarn tslint
-
-    # - name: Slither checks
-    #   working-directory: ${{env.working-directory}}
-    #   run: yarn slither    
+    - name: Slither checks
+      working-directory: ${{env.working-directory}}
+      run: yarn slither
     
-    # - name: Run tests
-    #   working-directory: ${{env.working-directory}}
-    #   run: |
-    #     npx buidler coverage --solcoverjs .solcover.js
-    #     bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"         
+    - name: Run tests
+      working-directory: ${{env.working-directory}}
+      run: |
+        npx hardhat coverage --solcoverjs .solcover.js
+        bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"         
 
     - name: Install geth
       run: |
@@ -92,7 +90,6 @@ jobs:
       run: |
         ./predeployed/test/prepare_environment.sh
         ./predeployed/test/test.sh
-
 
   test-agent:
     # The type of runner that the job will run on

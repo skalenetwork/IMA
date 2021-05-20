@@ -24,16 +24,16 @@ pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
-import "../interfaces/IDepositBox.sol";
-import "./Linker.sol";
+import "../interfaces/IMainnetContract.sol";
 import "./MessageProxyForMainnet.sol";
+import "./Linker.sol";
 
 
 /**
  * @title ProxyConnectorMainnet - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, IDepositBox {
+abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, IMainnetContract {
 
     bytes32 public constant DEPOSIT_BOX_MANAGER_ROLE = keccak256("DEPOSIT_BOX_MANAGER_ROLE");
 
@@ -46,8 +46,8 @@ abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, ID
     
     function initialize(
         IContractManager contractManagerOfSkaleManager,
-        Linker linkerAddress,
-        MessageProxyForMainnet messageProxyAddress
+        Linker linker,
+        MessageProxyForMainnet newMessageProxy
     )
         public
         virtual
@@ -55,7 +55,7 @@ abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, ID
     {
         SkaleManagerClient.initialize(contractManagerOfSkaleManager);
         AccessControlUpgradeable.__AccessControl_init();
-        _setupRole(DEPOSIT_BOX_MANAGER_ROLE, address(linkerAddress));
-        messageProxy = messageProxyAddress;
+        _setupRole(DEPOSIT_BOX_MANAGER_ROLE, address(linker));
+        messageProxy = newMessageProxy;
     }
 }
