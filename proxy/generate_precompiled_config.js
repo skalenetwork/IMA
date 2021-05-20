@@ -197,32 +197,44 @@ const g_arrExampleAuthorizedCallers = [
 const g_arrContracts = [
     {
         fileName: "SkaleFeatures.json",
+        filePath: "artifacts/contracts/schain/SkaleFeatures.sol/SkaleFeatures.json",
         address: "0xc033b369416c9ecd8e4a07aafa8b06b4107419e2",
         referenceVariableName: "SkaleFeatures"
     } , {
         fileName: "TokenManagerEth.json",
+        filePath: "artifacts/contracts/schain/TokenManagers/TokenManagerEth.sol/TokenManagerEth.json",
         address: "0x47cf4c2d6891377952a7e0e08a6f17180a91a0f9",
         referenceVariableName: "TokenManagerEth"
     }, {
         fileName: "TokenManagerERC20.json",
+        filePath: "artifacts/contracts/schain/TokenManagers/TokenManagerERC20.sol/TokenManagerERC20.json",
         address: "0xc7085eb0ba5c2d449e80c22d6da8f0edbb86dd82",
         referenceVariableName: "TokenManagerERC20"
     }, {
         fileName: "TokenManagerERC721.json",
+        filePath: "artifacts/contracts/schain/TokenManagers/TokenManagerERC721.sol/TokenManagerERC721.json",
         address: "0x97438fdfbdcc4ccc533ea874bfeb71f4098585ab",
         referenceVariableName: "TokenManagerERC721"
     }, {
         fileName: "MessageProxyForSchain.json",
+        filePath: "artifacts/contracts/schain/MessageProxyForSchain.sol/MessageProxyForSchain.json",
         address: "0x427c74e358eb1f620e71f64afc9b1b5d2309dd01",
         referenceVariableName: "MessageProxy"
     }, {
         fileName: "TokenManagerLinker.json",
+        filePath: "artifacts/contracts/schain/TokenManagerLinker.sol/TokenManagerLinker.json",
         address: "0x57ad607c6e90df7d7f158985c3e436007a15d744",
         referenceVariableName: "TokenManagerLinker"
     }, {
         fileName: "EthERC20.json",
+        filePath: "artifacts/contracts/schain/tokens/EthERC20.sol/EthERC20.json",
         address: "0xd3cdbc1b727b2ed91b8ad21333841d2e96f255af",
         referenceVariableName: "EthERC20"
+    }, {
+        fileName: "CommunityLocker.json",
+        filePath: "artifacts/contracts/schain/CommunityLocker.sol/CommunityLocker.json",
+        address: "0xe6489fd3d2176832d82af91467f650b15e654c77",
+        referenceVariableName: "CommunityLocker"
     }
 ];
 
@@ -238,16 +250,6 @@ const g_joSkaleConfigTemplate = {
             },
             IMA: {
                 ownerAddress: ownerAddress,
-                // variables: {
-                //     // LockAndData: {
-                //     //     permitted: {
-                //     //     }
-                //     // },
-                //     // MessageProxy: {
-                //     //     mapAuthorizedCallers: {
-                //     //     }
-                //     // }
-                // }
             }
         }
     }
@@ -263,7 +265,7 @@ for( let idxContract = 0; idxContract < g_arrContracts.length; ++ idxContract ) 
     const joContractProperties = g_arrContracts[idxContract];
     if( g_bVerbose )
         log.write( cc.normal( "Processing contract " ) + cc.info( joContractProperties.fileName ) + cc.normal( "..." ) + "\n" );
-    const joContractBuildInfo = imaUtils.jsonFileLoad( imaUtils.normalizePath( path.join( __dirname, "/build/contracts/", joContractProperties.fileName ) ) );
+    const joContractBuildInfo = imaUtils.jsonFileLoad( imaUtils.normalizePath( path.join( __dirname, joContractProperties.filePath ) ) );
     if( g_bVerbose ) {
         log.write( cc.normal( "    Contract name is " ) + cc.notice( joContractBuildInfo.contractName ) + "\n" );
         log.write( cc.normal( "    Runtime byte-code string length is " ) + cc.notice( joContractBuildInfo.deployedBytecode.length ) + "\n" );
