@@ -334,6 +334,8 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-recharge" ) + cc.sunny( "=" ) + cc.note( "v" ) + cc.warning( "u" ) + cc.debug( "....." ) + cc.notice( "Recharge user wallet with specified value " ) + cc.attention( "v" ) + cc.notice( ", unit name " ) + cc.attention( "u" ) + cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) + cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-withdraw" ) + cc.sunny( "=" ) + cc.note( "v" ) + cc.warning( "u" ) + cc.debug( "....." ) + cc.notice( "Withdraw user wallet with specified value " ) + cc.attention( "v" ) + cc.notice( ", unit name " ) + cc.attention( "u" ) + cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) + cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-balance" ) + cc.debug( "........." ) + cc.notice( "Show wallet balance." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-range" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "...." ) + cc.notice( "Sets minimal time interval between transfers from S-Chain to Main Net." ) );
+
             //
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
@@ -844,6 +846,11 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "reimbursement-balance" ) {
             imaState.isShowReimbursementBalance = true;
+            continue;
+        }
+        if( joArg.name == "reimbursement-range" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.nReimbursementRange = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "register" ||

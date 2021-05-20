@@ -194,6 +194,7 @@ global.imaState = {
     "isShowReimbursementBalance": false,
     "nReimbursementRecharge": 0,
     "nReimbursementWithdraw": 0,
+    "nReimbursementRange": -1, // < 0 - do not change anything
 
     "arrActions": [] // array of actions to run
 };
@@ -678,6 +679,23 @@ if( haveReimbursementCommands ) {
         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing value for " ) + cc.warning( "reimbursement-chain" ) + cc.error( " parameter, must be non-empty chain name" ) + "\n" );
         process.exit( 130 );
     }
+}
+if( imaState.nReimbursementRange >= 0 ) {
+    imaState.arrActions.push( {
+        "name": "Gas Reimbursement - Set Minimal time interval from S2M transfers",
+        "fn": async function() {
+            await IMA.reimbursement_set_range(
+                imaState.w3_s_chain,
+                imaState.jo_community_locker,
+                imaState.joAccount_s_chain,
+                imaState.strChainName_s_chain,
+                imaState.cid_s_chain,
+                imaState.tc_s_chain,
+                imaState.nReimbursementRange
+            );
+            return true;
+        }
+    } );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
