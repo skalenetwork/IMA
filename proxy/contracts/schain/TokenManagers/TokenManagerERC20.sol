@@ -96,7 +96,7 @@ contract TokenManagerERC20 is TokenManager {
         );
 
         contractOnSchain.burn(amount);
-        
+
         getMessageProxy().postOutgoingMessage(
             MAINNET_NAME,
             getDepositBoxERC20Address(),
