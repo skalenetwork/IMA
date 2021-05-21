@@ -109,8 +109,8 @@ contract Linker is SkaleManagerClient {
         messageProxy.removeConnectedChain(schainName);
     }
 
-    function isNotKilled(string calldata schainName) external view returns (bool) {
-        return statuses[keccak256(abi.encodePacked(schainName))] != KillProcess.Killed;
+    function isNotKilled(bytes32 schainHash) external view returns (bool) {
+        return statuses[schainHash] != KillProcess.Killed;
     }
 
     function hasDepositBox(address depositBoxAddress) external view returns (bool) {

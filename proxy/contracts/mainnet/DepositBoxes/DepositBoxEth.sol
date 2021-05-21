@@ -99,6 +99,7 @@ contract DepositBoxEth is DepositBox {
     function deposit(string memory schainName, address to)
         external
         payable
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
         // receivedEth
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -122,6 +123,7 @@ contract DepositBoxEth is DepositBox {
         external
         override
         onlyMessageProxy
+        whenNotKilled(schainHash)
         returns (bool)
     {
         require(

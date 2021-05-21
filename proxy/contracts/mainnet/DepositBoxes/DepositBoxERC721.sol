@@ -61,6 +61,7 @@ contract DepositBoxERC721 is DepositBox {
         uint256 tokenId
     )
         external
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address tokenManagerAddress = tokenManagerERC721Addresses[schainHash];
@@ -137,6 +138,7 @@ contract DepositBoxERC721 is DepositBox {
         external
         override
         onlyMessageProxy
+        whenNotKilled(schainHash)
         returns (bool)
     {
         require(
@@ -161,7 +163,11 @@ contract DepositBoxERC721 is DepositBox {
     /**
      * @dev Allows Schain owner to add an ERC721 token to LockAndDataForMainnetERC20.
      */
-    function addERC721TokenByOwner(string calldata schainName, address erc721OnMainnet) external onlySchainOwner(schainName) {
+    function addERC721TokenByOwner(string calldata schainName, address erc721OnMainnet)
+        external
+        onlySchainOwner(schainName)
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+    {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
         // require(!withoutWhitelist[schainHash], "Whitelist is enabled");

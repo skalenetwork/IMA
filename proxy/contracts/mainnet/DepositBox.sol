@@ -42,6 +42,16 @@ abstract contract DepositBox is SkaleManagerClient, IDepositBox {
         require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
         _;
     }
+
+    modifier whenNotKilled(bytes32 schainHash) {
+        require(linker.isNotKilled(schainHash), "Schain is killed");
+        _;
+    }
+
+    modifier whenKilled(bytes32 schainHash) {
+        require(!linker.isNotKilled(schainHash), "Schain is not killed");
+        _;
+    }
     
     function initialize(
         IContractManager contractManagerOfSkaleManager,
