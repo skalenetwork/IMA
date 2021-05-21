@@ -76,9 +76,9 @@ contract DepositBoxERC721 is DepositBox {
             to,
             tokenId
         );
-        IERC721Upgradeable(contractOnMainnet).transferFrom(msg.sender, address(this), tokenId);
         if (!linker.interchainConnections(schainHash))
             _saveTransferredAmount(schainHash, contractOnMainnet, tokenId);
+        IERC721Upgradeable(contractOnMainnet).transferFrom(msg.sender, address(this), tokenId);
         messageProxy.postOutgoingMessage(
             schainHash,
             tokenManagerAddress,
