@@ -204,7 +204,7 @@ describe("Gas calculation", () => {
 
         // IMA mainnet part deployment
         messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
-        imaLinker = await deployLinker(messageProxyForMainnet);
+        imaLinker = await deployLinker(messageProxyForMainnet, contractManager);
         depositBoxEth = await deployDepositBoxEth(contractManager, messageProxyForMainnet, imaLinker);
         depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxyForMainnet, imaLinker);
         depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxyForMainnet, imaLinker);
