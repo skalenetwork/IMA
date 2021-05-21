@@ -42,7 +42,7 @@ contract SkaleManagerClient is Initializable {
      * @dev Checks whether sender is owner of SKALE chain
      */
     function isSchainOwner(address sender, bytes32 schainHash) public view returns (bool) {
-        address skaleChainsInternal = IContractManager(contractManagerOfSkaleManager).getContract("SchainsInternal");
+        address skaleChainsInternal = contractManagerOfSkaleManager.getContract("SchainsInternal");
         return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainHash);
     }
 

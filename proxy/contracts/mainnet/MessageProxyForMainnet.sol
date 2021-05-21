@@ -85,15 +85,17 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
         uint256 counter;
     }
 
-    bytes32 public constant MAINNET_CHAIN_ID = keccak256(abi.encodePacked("Mainnet"));
+    bytes32 public constant MAINNET_HASH = keccak256(abi.encodePacked("Mainnet"));
     bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
 
     address public communityPoolAddress;
 
-    mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
+    mapping(bytes32 => ConnectedChainInfo) public connectedChains;
+    mapping(bytes32 => mapping(address => bool)) public registryContracts;
 
     uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 70000;
     uint256 public constant MESSAGE_GAS_COST = 8790;
+
 
     modifier onlyDebugger() {
         require(hasRole(DEBUGGER_ROLE, msg.sender), "Access denied");
@@ -126,22 +128,26 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
      * - `schainName` must not already be added.
      */
     function addConnectedChain(string calldata schainName) external {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
-            keccak256(abi.encodePacked(schainName)) != MAINNET_CHAIN_ID,
+            schainHash != MAINNET_HASH,
             "SKALE chain name is incorrect. Inside in MessageProxy"
         );
-        require(
-            !connectedChains[keccak256(abi.encodePacked(schainName))].inited,
-            "Chain is already connected"
-        );
+        require(!connectedChains[schainHash].inited,"Chain is already connected");
+        address depositBoxEth = contractManagerOfSkaleManager.getContract("DepositBoxEth");
+        address depositBoxERC20 = contractManagerOfSkaleManager.getContract("DepositBoxERC20");
+        address depositBoxERC721 = contractManagerOfSkaleManager.getContract("DepositBoxERC721");
 
         connectedChains[
-            keccak256(abi.encodePacked(schainName))
+            schainHash
         ] = ConnectedChainInfo({
             incomingMessageCounter: 0,
             outgoingMessageCounter: 0,
             inited: true
         });
+        registryContracts[schainHash][depositBoxEth] = true;
+        registryContracts[schainHash][depositBoxERC20] = true;
+        registryContracts[schainHash][depositBoxERC721] = true;
     }
 
     /**
@@ -153,11 +159,14 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
      * - `schainName` must be initialized.
      */
     function removeConnectedChain(string calldata schainName) external {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
-            connectedChains[keccak256(abi.encodePacked(schainName))].inited,
+            connectedChains[schainHash].inited,
             "Chain is not initialized"
         );
-        delete connectedChains[keccak256(abi.encodePacked(schainName))];
+        require(registryContracts[schainHash][deposiBoxAddress], "DepositBox is already removed");
+        delete connectedChains[schainHash];
+        delete registryContracts[schainHash][deposiBoxAddress];
     }
 
     function setCommunityPool(address newCommunityPoolAddress) external {
@@ -182,8 +191,8 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
     )
         external
     {
-        // bytes32 dstChainHash = keccak256(abi.encodePacked(targetSchainName));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
+        require(registryContracts[dstChainHash][msg.sender], "Sender contract is not registered");
         uint msgCounter = connectedChains[dstChainHash].outgoingMessageCounter;
         emit OutgoingMessage(
             dstChainHash,
