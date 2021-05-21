@@ -144,10 +144,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         view
         returns (bool)
     {
-        if (! connectedChains[keccak256(abi.encodePacked(schainName))].inited) {
-            return false;
-        }
-        return true;
+        return connectedChains[keccak256(abi.encodePacked(schainName))].inited;
     }
 
     /**

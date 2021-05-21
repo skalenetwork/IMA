@@ -43,6 +43,9 @@ def check_message_proxy_for_schain():
     assert message_proxy_for_schain.functions.hasRole(
         MessageProxyForSchainGenerator.DEFAULT_ADMIN_ROLE, owner_address).call()
     assert message_proxy_for_schain.functions.keyStorage().call() == KEY_STORAGE_ADDRESS
+    assert message_proxy_for_schain.functions.getIncomingMessagesCounter('Mainnet').call() == 0
+    assert message_proxy_for_schain.functions.getOutgoingMessagesCounter('Mainnet').call() == 0
+    assert message_proxy_for_schain.functions.isConnectedChain('Mainnet').call()
 
 
 def main():
