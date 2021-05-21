@@ -55,7 +55,7 @@ contract Schains is ISchains {
         SkaleVerifierMock skaleVerifier = SkaleVerifierMock(contractManager.getContract("SkaleVerifier"));
         G2Operations.G2Point memory publicKey = KeyStorageMock(
             contractManager.getContract("KeyStorage")
-        ).getBlsCommonPublicKey(
+        ).getBlsCommonPublicKeyForSchain(
             keccak256(abi.encodePacked(schainName))
         );
         return skaleVerifier.verify(

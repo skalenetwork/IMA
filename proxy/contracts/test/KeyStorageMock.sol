@@ -29,6 +29,7 @@ contract KeyStorageMock is KeyStorage {
     
     G2Operations.G2Point public blsCommonPublicKey;
     mapping (bytes32 => G2Operations.G2Point) public blsCommonPublicKeys;
+    string public hello = "Hello";
 
     function setBlsCommonPublicKey(G2Operations.G2Point calldata key) external {
         // TODO: remove when update compiler will be updated
@@ -36,7 +37,7 @@ contract KeyStorageMock is KeyStorage {
         blsCommonPublicKey = _key;        
     }
 
-    function setBlsCommonPublicKey(bytes32 schainHash, G2Operations.G2Point calldata key) external {
+    function setBlsCommonPublicKeyForSchain(bytes32 schainHash, G2Operations.G2Point calldata key) external {
         // TODO: remove when update compiler will be updated
         G2Operations.G2Point memory _key = key;
         blsCommonPublicKeys[schainHash] = _key;
@@ -48,19 +49,19 @@ contract KeyStorageMock is KeyStorage {
               blsCommonPublicKey.x.b == 0 &&
               blsCommonPublicKey.y.a == 0 &&
               blsCommonPublicKey.y.b == 0),
-            "BLS common publick key is not set in the mock"
+            "BLS common public key is not set in the mock"
         );
         return blsCommonPublicKey;
     }
 
-    function getBlsCommonPublicKey(bytes32 schainHash) external view returns (G2Operations.G2Point memory) {
+    function getBlsCommonPublicKeyForSchain(bytes32 schainHash) external view returns (G2Operations.G2Point memory) {
         G2Operations.G2Point memory key = blsCommonPublicKeys[schainHash];
         require(
             !(key.x.a == 0 &&
               key.x.b == 0 &&
               key.y.a == 0 &&
               key.y.b == 0),
-            "BLS common publick key is not set in the mock"
+            "BLS common public key is not set in the mock"
         );
         return key;
     }

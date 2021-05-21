@@ -1,6 +1,6 @@
 import { Wallet } from "@ethersproject/wallet";
 import { ethers } from "hardhat";
-import { ContractManager, KeyStorage, Nodes, Schains, SchainsInternal, SkaleVerifierMock, Wallets } from "../../../typechain";
+import { ContractManager, KeyStorageMock, Nodes, Schains, SchainsInternal, SkaleVerifierMock, Wallets } from "../../../typechain";
 
 // const contractManager: ContractManagerContract = artifacts.require("./ContractManager");
 // const keyStorage: KeyStorageContract = artifacts.require("./KeyStorage");
@@ -9,7 +9,6 @@ import { ContractManager, KeyStorage, Nodes, Schains, SchainsInternal, SkaleVeri
 // const schainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
 // const skaleVerifier: SkaleVerifierMockContract = artifacts.require("./SkaleVerifierMock");
 // const wallets: WalletsContract = artifacts.require("./Wallets");
-const nameKeyStorage = "KeyStorage";
 const nameNodes = "Nodes";
 const nameSchains = "Schains";
 const nameSchainsInternal = "SchainsInternal";
@@ -24,9 +23,9 @@ export async function deployContractManager(contractManagerAddress: string) {
     } else {
         instance = await contractManagerFactory.attach(contractManagerAddress) as ContractManager;
     }
-    if (await instance.getContract(nameKeyStorage) === "0x0000000000000000000000000000000000000000") {
-        const keyStorageInstance = await (await ethers.getContractFactory(nameKeyStorage)).deploy() as KeyStorage;
-        await instance.setContractsAddress(nameKeyStorage, keyStorageInstance.address);
+    if (await instance.getContract("KeyStorage") === "0x0000000000000000000000000000000000000000") {
+        const keyStorageInstance = await (await ethers.getContractFactory("KeyStorageMock")).deploy() as KeyStorageMock;
+        await instance.setContractsAddress("KeyStorage", keyStorageInstance.address);
     }
     if (await instance.getContract(nameNodes) === "0x0000000000000000000000000000000000000000") {
         const nodesInstance = await (await ethers.getContractFactory(nameNodes)).deploy() as Nodes;
