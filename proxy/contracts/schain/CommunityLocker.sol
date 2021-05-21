@@ -73,7 +73,7 @@ contract CommunityLocker is SkaleFeaturesClient {
         external
         returns (bool)
     {
-        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
+        require(msg.sender == address(getMessageProxy()), "Sender is not a message proxy");
         require(fromChainHash == MAINNET_HASH, "Source chain name should be Mainnet");
         Messages.MessageType operation = Messages.getMessageType(data);
         require(operation == Messages.MessageType.FREEZE_STATE, "The message should contain a frozen state");
@@ -108,6 +108,17 @@ contract CommunityLocker is SkaleFeaturesClient {
             );
         }
         return tokenManagerLinker;
+    }
+
+    function getMessageProxy() public view returns (MessageProxyForSchain) {
+        if (address(messageProxy) == address(0)) {
+            return MessageProxyForSchain(
+                getSkaleFeatures().getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.MessageProxyForSchain"
+                )
+            );
+        }
+        return messageProxy;
     }
 
 }
