@@ -77,7 +77,10 @@ contract TokenManagerERC20 is TokenManager {
         require(to != address(0), "Incorrect receiver address");
         //add logs
         getSkaleFeatures().logMessage("exitToMainERC20: will check in CommunityLocker");
-        getCommunityLocker().checkAllowedToSendMessage(to);
+        CommunityLocker cl = getCommunityLocker();
+        getSkaleFeatures().logMessage("exitToMainERC20: got CommunityLocker");
+        getSkaleFeatures().logMessage("exitToMainERC20: got will call checkAllowedToSendMessage()");
+        cl.checkAllowedToSendMessage(to);
         //add logs
         getSkaleFeatures().logMessage("exitToMainERC20: after check in CommunityLocker");
         ERC20Burnable contractOnSchain = clonesErc20[contractOnMainnet];
