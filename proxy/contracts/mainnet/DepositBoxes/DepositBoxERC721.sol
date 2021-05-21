@@ -149,9 +149,9 @@ contract DepositBoxERC721 is DepositBox {
         Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
         require(message.token.isContract(), "Given address is not a contract");
         require(IERC721Upgradeable(message.token).ownerOf(message.tokenId) == address(this), "Incorrect tokenId");
-        IERC721Upgradeable(message.token).transferFrom(address(this), message.receiver, message.tokenId);
         if (!linker.interchainConnections(schainHash))
             _removeTransferredAmount(message.token, message.tokenId);
+        IERC721Upgradeable(message.token).transferFrom(address(this), message.receiver, message.tokenId);
         // TODO add gas reimbusement
         // uint256 txFee = gasConsumption * tx.gasprice;
         // require(amount >= txFee, "Not enough funds to recover gas");

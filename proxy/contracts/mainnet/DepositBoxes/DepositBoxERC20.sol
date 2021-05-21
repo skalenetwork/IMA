@@ -81,6 +81,8 @@ contract DepositBoxERC20 is DepositBox {
             to,
             amount
         );
+        if (!linker.interchainConnections(schainHash))
+            _saveTransferredAmount(schainHash, contractOnMainnet, amount);
         require(
             IERC20Metadata(contractOnMainnet).transferFrom(
                 msg.sender,
@@ -89,8 +91,6 @@ contract DepositBoxERC20 is DepositBox {
             ),
             "Could not transfer ERC20 Token"
         );
-        if (!linker.interchainConnections(schainHash))
-            _saveTransferredAmount(schainHash, contractOnMainnet, amount);
         messageProxy.postOutgoingMessage(
             schainHash,
             tokenManagerAddress,
