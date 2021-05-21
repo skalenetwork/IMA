@@ -167,6 +167,17 @@ contract DepositBoxEth is DepositBox {
         msg.sender.transfer(amount);
     }
 
+    function getFunds(string calldata schainName, address payable receiver, uint amount)
+        external
+        onlySchainOwner(schainName)
+        whenKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(transferredAmount[schainHash] >= amount, "Incorrect amount");
+        _removeTransferredAmount(schainHash, amount);
+        receiver.transfer(amount);
+    }
+
     /**
      * @dev Checks whether depositBoxEth is connected to a SKALE chain TokenManagerEth.
      */

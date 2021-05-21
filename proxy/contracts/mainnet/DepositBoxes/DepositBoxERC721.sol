@@ -189,6 +189,17 @@ contract DepositBoxERC721 is DepositBox {
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
     }
 
+    function getFunds(string calldata schainName, address erc721OnMainnet, address receiver, uint tokenId)
+        external
+        onlySchainOwner(schainName)
+        whenKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(transferredAmount[erc721OnMainnet][tokenId] == schainHash, "Incorrect tokenId");
+        _removeTransferredAmount(erc721OnMainnet, tokenId);
+        IERC721Upgradeable(erc721OnMainnet).transferFrom(address(this), receiver, tokenId);
+    }
+
     /**
      * @dev Should return true if token in whitelist.
      */

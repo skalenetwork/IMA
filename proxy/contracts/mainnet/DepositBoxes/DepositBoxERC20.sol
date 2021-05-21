@@ -204,6 +204,20 @@ contract DepositBoxERC20 is DepositBox {
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
     }
 
+    function getFunds(string calldata schainName, address erc20OnMainnet, address receiver, uint amount)
+        external
+        onlySchainOwner(schainName)
+        whenKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(transferredAmount[schainHash][erc20OnMainnet] >= amount, "Incorrect amount");
+        _removeTransferredAmount(schainHash, erc20OnMainnet, amount);
+        require(
+            IERC20Metadata(erc20OnMainnet).transfer(receiver, amount),
+            "Something went wrong with `transfer` in ERC20"
+        );
+    }
+
     /**
      * @dev Should return true if token in whitelist.
      */

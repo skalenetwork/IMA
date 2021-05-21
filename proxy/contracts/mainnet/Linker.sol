@@ -77,6 +77,7 @@ contract Linker is SkaleManagerClient {
     }
 
     function kill(string calldata schainName) external {
+        require(!interchainConnections[keccak256(abi.encodePacked(schainName))], "Interchain connections turned on");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         if (statuses[schainHash] == KillProcess.Active) {
             if (isSchainOwner(msg.sender, schainHash)) {
