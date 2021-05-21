@@ -75,11 +75,7 @@ contract TokenManagerEth is TokenManager {
      */
     function exitToMain(address to, uint256 amount) external receivedEth(amount) {
         require(to != address(0), "Incorrect receiver address");
-        //add logs
-        getSkaleFeatures().logMessage("exitToMain: will check in CommunityLocker");
         getCommunityLocker().checkAllowedToSendMessage(to);
-        //add logs
-        getSkaleFeatures().logMessage("exitToMain: after check in CommunityLocker");
         getMessageProxy().postOutgoingMessage(
             "Mainnet",
             getDepositBoxEthAddress(),

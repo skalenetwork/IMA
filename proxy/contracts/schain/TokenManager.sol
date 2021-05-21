@@ -199,30 +199,15 @@ abstract contract TokenManager is SkaleFeaturesClient {
     }
 
     function getCommunityLocker() public view returns (CommunityLocker) {
-        //add logs
-        getSkaleFeatures().logMessage("getCommunityLocker: will get CommunityLocker");
-        if (address(communityLocker) != address(0)) {
-            return communityLocker;
-        } else
-            return CommunityLocker(0xe6489fd3d2176832D82AF91467f650B15e654C77);
-            // return MessageProxyForSchain(
-            //     getSkaleFeatures().getConfigVariableAddress(
-            //         "skaleConfig.contractSettings.IMA.CommunityLocker"
-            //     )
+        if (address(communityLocker) == address(0)) {
+            return CommunityLocker(
+                getSkaleFeatures().getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.CommunityLocker"
+                )
+            );
+        }
+        return communityLocker;
     }
-
-    // function toString(bytes memory data) public pure returns (string memory) {
-    //     bytes memory alphabet = "0123456789abcdef";
-
-    //     bytes memory str = new bytes(2 + data.length * 2);
-    //     str[0] = "0";
-    //     str[1] = "x";
-    //     for (uint i = 0; i < data.length; i++) {
-    //         str[2+i*2] = alphabet[uint(uint8(data[i] >> 4))];
-    //         str[3+i*2] = alphabet[uint(uint8(data[i] & 0x0f))];
-    //     }
-    //     return string(str);
-    // }
 
     // private
 

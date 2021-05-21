@@ -75,14 +75,7 @@ contract TokenManagerERC20 is TokenManager {
         external
     {
         require(to != address(0), "Incorrect receiver address");
-        //add logs
-        getSkaleFeatures().logMessage("exitToMainERC20: will check in CommunityLocker");
-        CommunityLocker cl = getCommunityLocker();
-        getSkaleFeatures().logMessage("exitToMainERC20: got CommunityLocker");
-        getSkaleFeatures().logMessage("exitToMainERC20: got will call checkAllowedToSendMessage()");
-        cl.checkAllowedToSendMessage(to);
-        //add logs
-        getSkaleFeatures().logMessage("exitToMainERC20: after check in CommunityLocker");
+        getCommunityLocker().checkAllowedToSendMessage(to);
         ERC20Burnable contractOnSchain = clonesErc20[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
@@ -102,12 +95,7 @@ contract TokenManagerERC20 is TokenManager {
             "Could not transfer ERC20 Token"
         );
 
-        //add logs
-        getSkaleFeatures().logMessage("exitToMainERC20: will burn tokens in");
-        // getSkaleFeatures().logMessage(toString(abi.encodePacked(contractOnSchain)));
         contractOnSchain.burn(amount);
-        //add logs
-        getSkaleFeatures().logMessage("exitToMainERC20: after burn tokens");
         
         getMessageProxy().postOutgoingMessage(
             MAINNET_NAME,

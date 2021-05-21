@@ -68,20 +68,11 @@ contract TokenManagerERC721 is TokenManager {
     {
         require(to != address(0), "Incorrect receiver address");
         ERC721Burnable contractOnSchain = clonesErc721[contractOnMainnet];
-        //add logs
-        getSkaleFeatures().logMessage("exitToMainERC721: will check in CommunityLocker");
         getCommunityLocker().checkAllowedToSendMessage(to);
-        //add logs
-        getSkaleFeatures().logMessage("exitToMainERC721: after check in CommunityLocker");
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
         contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
-        //add logs
-        getSkaleFeatures().logMessage("exitToMainERC721: will burn tokens in");
-        // getSkaleFeatures().logMessage(toString(abi.encodePacked(contractOnSchain)));
         contractOnSchain.burn(tokenId);
-        //add logs
-        getSkaleFeatures().logMessage("exitToMainERC721: after burn tokens");
         bytes memory data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);
         getMessageProxy().postOutgoingMessage(MAINNET_NAME, getDepositBoxERC721Address(), data);
     }

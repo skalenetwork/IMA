@@ -69,7 +69,6 @@ contract SkaleFeatures {
         uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
         bool success;
         // solhint-disable-next-line no-inline-assembly
-        logMessage("SkaleFeatures will get address");
         assembly {
             let ptr := mload(fmp)
             for { let i := 0 } lt( i, blocks ) { i := add(1, i) } {
@@ -79,11 +78,6 @@ contract SkaleFeatures {
             }
             success := staticcall(not(0), FN_NUM_GET_CONFIG_VARIABLE_ADDRESS, ptr, mul( blocks, 32 ), ptr, 32)
             rv := mload(ptr)
-        }
-        if (success) {
-            logMessage("Successfully read address");
-        } else {
-            logMessage("Not successfully read address");
         }
         require(success, "Get config address failed");
     }
