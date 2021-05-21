@@ -125,7 +125,13 @@ contract Linker is SkaleManagerClient {
         }
     }
 
-    function initialize(address messageProxyAddress, IContractManager newContractManagerOfSkaleManager) public initializer {
+    function initialize(
+        address messageProxyAddress,
+        IContractManager newContractManagerOfSkaleManager
+    )
+        public
+        initializer
+    {
         SkaleManagerClient.initialize(newContractManagerOfSkaleManager);
         _setupRole(LINKER_ROLE, msg.sender);
         messageProxy = MessageProxyForMainnet(messageProxyAddress);
