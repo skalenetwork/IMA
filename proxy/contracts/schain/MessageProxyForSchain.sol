@@ -119,14 +119,14 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         _;
     }
 
-    function initialize(KeyStorage _keyStorage)
+    function initialize(KeyStorage blsKeyStorage)
         public
         virtual
         initializer
     {
         AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        keyStorage = _keyStorage;
+        keyStorage = blsKeyStorage;
         connectedChains[
             keccak256(abi.encodePacked("Mainnet"))
         ] = ConnectedChainInfo(
