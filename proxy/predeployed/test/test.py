@@ -1,8 +1,8 @@
 from ima_predeployed.addresses import \
-    PROXY_ADMIN_ADDRESS,\
-    MESSAGE_PROXY_FOR_SCHAIN_ADDRESS,\
-    MESSAGE_PROXY_FOR_SCHAIN_IMPLEMENTATION_ADDRESS
-from ima_predeployed.contracts.admin_upgradeability_proxy import AdminUpgradeabilityProxyGenerator
+    PROXY_ADMIN_ADDRESS, \
+    MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, \
+    MESSAGE_PROXY_FOR_SCHAIN_IMPLEMENTATION_ADDRESS, \
+    KEY_STORAGE_ADDRESS
 from ima_predeployed.contracts.message_proxy_for_schain import MessageProxyForSchainGenerator
 import json
 import os
@@ -42,6 +42,7 @@ def check_message_proxy_for_schain():
         MessageProxyForSchainGenerator.DEFAULT_ADMIN_ROLE, 0).call() == owner_address
     assert message_proxy_for_schain.functions.hasRole(
         MessageProxyForSchainGenerator.DEFAULT_ADMIN_ROLE, owner_address).call()
+    assert message_proxy_for_schain.functions.keyStorage().call() == KEY_STORAGE_ADDRESS
 
 
 def main():
