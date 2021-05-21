@@ -205,6 +205,10 @@ abstract contract TokenManager is SkaleFeaturesClient {
             return communityLocker;
         } else
             return CommunityLocker(0xe6489fd3d2176832D82AF91467f650B15e654C77);
+            // return MessageProxyForSchain(
+            //     getSkaleFeatures().getConfigVariableAddress(
+            //         "skaleConfig.contractSettings.IMA.CommunityLocker"
+            //     )
     }
 
     // function toString(bytes memory data) public pure returns (string memory) {
