@@ -233,7 +233,7 @@ const g_arrContracts = [
     }, {
         fileName: "CommunityLocker.json",
         filePath: "artifacts/contracts/schain/CommunityLocker.sol/CommunityLocker.json",
-        address: "0xe6489fd3d2176832d82af91467f650b15e654c77",
+        address: "0xe6489fd3d2176832D82AF91467f650B15e654C77",
         referenceVariableName: "CommunityLocker"
     }
 ];

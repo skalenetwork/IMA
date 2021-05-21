@@ -201,26 +201,10 @@ abstract contract TokenManager is SkaleFeaturesClient {
     function getCommunityLocker() public view returns (CommunityLocker) {
         //add logs
         getSkaleFeatures().logMessage("getCommunityLocker: will get CommunityLocker");
-        if (address(communityLocker) == address(0)) {
-            //add logs
-            getSkaleFeatures().logMessage("getCommunityLocker: will get CommunityLocker from SkaleFeatures");
-            getSkaleFeatures().logMessage("getCommunityLocker: by path - skaleConfig.contractSettings.IMA.CommunityLocker");
-            // getSkaleFeatures().logMessage(
-            //     toString(
-            //         abi.encodePacked(
-            //             getSkaleFeatures().getConfigVariableAddress(
-            //                 "skaleConfig.contractSettings.IMA.CommunityLocker"
-            //             )
-            //         )
-            //     )
-            // );
-            return CommunityLocker(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.CommunityLocker"
-                )
-            );
-        }
-        return communityLocker;
+        if (address(communityLocker) != address(0)) {
+            return communityLocker;
+        } else
+            return CommunityLocker(0xe6489fd3d2176832D82AF91467f650B15e654C77);
     }
 
     // function toString(bytes memory data) public pure returns (string memory) {

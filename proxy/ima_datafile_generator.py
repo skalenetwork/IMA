@@ -41,7 +41,7 @@ CONTRACTS_METADATA = {
         'filepath': 'artifacts/contracts/schain/tokens/EthERC20.sol/EthERC20.json'
     },
     'community_locker': {
-        'address': '0xe6489fd3d2176832d82af91467f650b15e654c77',
+        'address': '0xe6489fd3d2176832D82AF91467f650B15e654C77',
         'solname': 'CommunityLocker',
         'filepath': 'artifacts/contracts/schain/CommunityLocker.sol/CommunityLocker.json'
     },
