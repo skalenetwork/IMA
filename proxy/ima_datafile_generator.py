@@ -11,7 +11,7 @@ CONTRACTS_METADATA = {
         'filepath': 'artifacts/contracts/schain/SkaleFeatures.sol/SkaleFeatures.json'
     },
     'community_locker': {
-        'address': '0x2cc2ee181334a3c5456d437fd6b8d01c6c0de5e7',
+        'address': '0xe6489fd3d2176832d82af91467f650b15e654c77',
         'filename': 'CommunityLocker',
         'filepath': 'artifacts/contracts/schain/CommunityLocker.sol/CommunityLocker.json'
     },
