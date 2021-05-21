@@ -94,7 +94,7 @@ contract CommunityLocker is SkaleFeaturesClient {
     }
 
     function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
-        require(_isSchainOwner(msg.sender), "Not authorized caller");
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || _isSchainOwner(msg.sender), "Not authorized caller");
         timeLimitPerMessage = newTimeLimitPerMessage;
     }
 
