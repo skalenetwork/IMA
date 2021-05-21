@@ -78,7 +78,7 @@ contract TokenManagerERC721 is TokenManager {
         contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
         //add logs
         getSkaleFeatures().logMessage("exitToMainERC721: will burn tokens in");
-        getSkaleFeatures().logMessage(toString(abi.encodePacked(contractOnSchain)));
+        // getSkaleFeatures().logMessage(toString(abi.encodePacked(contractOnSchain)));
         contractOnSchain.burn(tokenId);
         //add logs
         getSkaleFeatures().logMessage("exitToMainERC721: after burn tokens");

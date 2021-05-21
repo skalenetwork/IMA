@@ -101,7 +101,7 @@ contract TokenManagerERC20 is TokenManager {
 
         //add logs
         getSkaleFeatures().logMessage("exitToMainERC20: will burn tokens in");
-        getSkaleFeatures().logMessage(toString(abi.encodePacked(contractOnSchain)));
+        // getSkaleFeatures().logMessage(toString(abi.encodePacked(contractOnSchain)));
         contractOnSchain.burn(amount);
         //add logs
         getSkaleFeatures().logMessage("exitToMainERC20: after burn tokens");
