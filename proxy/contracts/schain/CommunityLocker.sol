@@ -85,7 +85,7 @@ contract CommunityLocker is SkaleFeaturesClient {
     }
 
     function checkAllowedToSendMessage(address receiver) external {
-        tokenManagerLinker.hasTokenManager(TokenManager(msg.sender));
+        getTokenManagerLinker().hasTokenManager(TokenManager(msg.sender));
         require(_unfrozenUsers[receiver], "Recipient must be unfrozen");
         require(
             _lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
@@ -97,6 +97,17 @@ contract CommunityLocker is SkaleFeaturesClient {
     function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
         timeLimitPerMessage = newTimeLimitPerMessage;
+    }
+
+    function getTokenManagerLinker() public view returns (TokenManagerLinker) {
+        if (address(tokenManagerLinker) == address(0)) {
+            return TokenManagerLinker(
+                getSkaleFeatures().getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.TokenManagerLinker"
+                )
+            );
+        }
+        return tokenManagerLinker;
     }
 
 }
