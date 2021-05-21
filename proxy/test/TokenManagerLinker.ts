@@ -33,7 +33,6 @@ import {
     TokenManagerLinker,
     MessageProxyForSchain,
 } from "../typechain";
-import { randomString, stringValue } from "./utils/helper";
 
 
 chai.should();
@@ -46,11 +45,11 @@ import { deployTokenManagerERC721 } from "./utils/deploy/schain/tokenManagerERC7
 import { deployMessageProxyForSchain } from "./utils/deploy/schain/messageProxyForSchain";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber } from "ethers";
 
-import { assert, expect } from "chai";
+import { expect } from "chai";
+import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 describe("TokenManagerLinker", () => {
     let deployer: SignerWithAddress;
@@ -71,7 +70,8 @@ describe("TokenManagerLinker", () => {
     });
 
     beforeEach(async () => {
-        messageProxy = await deployMessageProxyForSchain();
+        const keyStorage = await deployKeyStorageMock();
+        messageProxy = await deployMessageProxyForSchain(keyStorage.address);
         linker = await deployTokenManagerLinker(messageProxy);
         fakeDepositBox = linker.address;
         communityLocker = await deployCommunityLocker(schainName, messageProxy.address, linker);

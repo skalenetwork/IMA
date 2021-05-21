@@ -21,10 +21,10 @@
 
 pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 import "../interfaces/IMessageProxy.sol";
-import "./SkaleFeaturesClient.sol";
 import "./TokenManager.sol";
 
 
@@ -32,7 +32,7 @@ import "./TokenManager.sol";
  * @title TokenManagerLinker
  * @dev Runs on Schain
  */
-contract TokenManagerLinker is SkaleFeaturesClient {
+contract TokenManagerLinker is AccessControlUpgradeable {
 
     using SafeMath for uint;
 
@@ -46,9 +46,10 @@ contract TokenManagerLinker is SkaleFeaturesClient {
     )
         public
     {
-        messageProxy = IMessageProxy(newMessageProxyAddress);
+        AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(REGISTRAR_ROLE, msg.sender);
+        messageProxy = IMessageProxy(newMessageProxyAddress);        
     }
 
     modifier onlyRegistrar() {

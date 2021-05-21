@@ -27,7 +27,7 @@ import "../schain/MessageProxyForSchain.sol";
 contract MessageProxyForSchainWithoutSignature is MessageProxyForSchain {
 
     constructor() public {
-        MessageProxyForSchain.initialize();
+        MessageProxyForSchain.initialize(KeyStorage(0));
     }
 
     function _verifyMessages(

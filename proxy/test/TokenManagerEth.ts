@@ -27,11 +27,9 @@ import chaiAsPromised from "chai-as-promised";
 import chai = require("chai");
 import {
     CommunityLocker,
-  EthErc20,
-    MessageProxyForSchain,
+    EthErc20,
     MessageProxyForSchainTester,
     MessagesTester,
-    SkaleFeaturesMock,
     TokenManagerEth,
     TokenManagerLinker,
 } from "../typechain";
@@ -43,10 +41,8 @@ chai.use((chaiAsPromised as any));
 
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 import { deployTokenManagerEth } from "./utils/deploy/schain/tokenManagerEth";
-import { deployMessageProxyForSchain } from "./utils/deploy/schain/messageProxyForSchain";
 import { deployMessages } from "./utils/deploy/messages";
 import { deployEthErc20 } from "./utils/deploy/schain/ethErc20";
-import { deploySkaleFeaturesMock } from "./utils/deploy/test/skaleFeaturesMock";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
 import { ethers, web3 } from "hardhat";
@@ -55,6 +51,7 @@ import { BigNumber } from "ethers";
 
 import { assert, expect } from "chai";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
+import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 const schainName = "TestSchain";
 const schainHash = stringValue(web3.utils.soliditySha3(schainName));
@@ -68,7 +65,6 @@ describe("TokenManagerEth", () => {
     let messageProxyForSchain: MessageProxyForSchainTester;
     let messages: MessagesTester;
     let ethERC20: EthErc20;
-    let skaleFeatures: SkaleFeaturesMock;
     let communityLocker: CommunityLocker;
     let fakeDepositBox: any;
     const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
@@ -78,7 +74,8 @@ describe("TokenManagerEth", () => {
     });
 
     beforeEach(async () => {
-        messageProxyForSchain = await deployMessageProxyForSchainTester();
+        const keyStorage = await deployKeyStorageMock();
+        messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
         fakeDepositBox = tokenManagerLinker.address;
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker);
@@ -95,8 +92,6 @@ describe("TokenManagerEth", () => {
         );
         await tokenManagerEth.connect(deployer).setEthErc20Address(ethERC20.address);
         messages = await deployMessages();
-        skaleFeatures = await deploySkaleFeaturesMock();
-        await skaleFeatures.setSchainOwner(deployer.address);
 
         const data = await messages.encodeFreezeStateMessage(user.address, true);
         await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, "0x0000000000000000000000000000000000000000", data);

@@ -23,7 +23,7 @@
 pragma solidity 0.6.12;
 
 
-contract ConfigReader {
+library ConfigReader {
     uint256 public constant FREE_MEM_PTR = 0x40;
     uint256 public constant FN_NUM_LOG_TEXT_MESSAGE = 0x12;
     uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;

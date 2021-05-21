@@ -24,8 +24,9 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+
 import "../Messages.sol";
-import "./SkaleFeaturesClient.sol";
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
 
@@ -33,7 +34,7 @@ import "./TokenManagerLinker.sol";
  * @title CommunityLocker
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract CommunityLocker is SkaleFeaturesClient {
+contract CommunityLocker is AccessControlUpgradeable {
 
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
@@ -58,6 +59,7 @@ contract CommunityLocker is SkaleFeaturesClient {
     )
         public
     {
+        AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         schainHash = keccak256(abi.encodePacked(newSchainName));
         messageProxy = newMessageProxy;

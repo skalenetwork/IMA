@@ -3,9 +3,9 @@ import { MessageProxyForSchain } from "../../../../typechain";
 
 const name = "MessageProxyForSchain";
 
-export async function deployMessageProxyForSchain() {
+export async function deployMessageProxyForSchain(keyStorageAddress: string) {
     const factory = await ethers.getContractFactory(name);
     const instance = await factory.deploy() as MessageProxyForSchain;
-    await instance.initialize();
+    await instance.initialize(keyStorageAddress);
     return instance;
 }

@@ -26,8 +26,8 @@ import "../schain/MessageProxyForSchain.sol";
 
 contract MessageProxyForSchainTester is MessageProxyForSchain {    
 
-    constructor() public {
-        MessageProxyForSchain.initialize();
+    constructor(KeyStorage _keyStorage) public {
+        MessageProxyForSchain.initialize(_keyStorage);
     }
 
     function postMessage(

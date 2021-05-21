@@ -26,7 +26,7 @@ pragma experimental ABIEncoderV2;
 import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 
 import "./TestContractManager.sol";
-import "./TestKeyStorage.sol";
+import "./KeyStorageMock.sol";
 import "./SkaleVerifierMock.sol";
 
 
@@ -53,9 +53,9 @@ contract Schains is ISchains {
         returns (bool)
     {
         SkaleVerifierMock skaleVerifier = SkaleVerifierMock(contractManager.getContract("SkaleVerifier"));
-        G2Operations.G2Point memory publicKey = KeyStorage(
+        G2Operations.G2Point memory publicKey = KeyStorageMock(
             contractManager.getContract("KeyStorage")
-        ).getCommonPublicKey(
+        ).getBlsCommonPublicKey(
             keccak256(abi.encodePacked(schainName))
         );
         return skaleVerifier.verify(

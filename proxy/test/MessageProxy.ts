@@ -32,7 +32,7 @@ import {
     MessageProxyForMainnet,
     MessageProxyForSchain,
     MessagesTester,
-    SkaleFeaturesMock,
+    KeyStorageMock,
 } from "../typechain/";
 
 import { randomString, stringValue } from "./utils/helper";
@@ -52,7 +52,7 @@ import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 
 import { deployMessageProxyForSchain } from "./utils/deploy/schain/messageProxyForSchain";
 import { deployMessages } from "./utils/deploy/messages";
-import { deploySkaleFeaturesMock } from "./utils/deploy/test/skaleFeaturesMock";
+import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
@@ -66,6 +66,7 @@ describe("MessageProxy", () => {
     let client: SignerWithAddress;
     let customer: SignerWithAddress;
 
+    let keyStorage: KeyStorageMock;
     let messageProxyForSchain: MessageProxyForSchain;
 
     let depositBox: DepositBoxEth;
@@ -410,7 +411,8 @@ describe("MessageProxy", () => {
     describe("MessageProxyForSchain for schain", async () => {
 
         beforeEach(async () => {
-            messageProxyForSchain = await deployMessageProxyForSchain();
+            keyStorage = await deployKeyStorageMock();
+            messageProxyForSchain = await deployMessageProxyForSchain(keyStorage.address);
             const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
             await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, deployer.address);
         });
@@ -536,11 +538,7 @@ describe("MessageProxy", () => {
                     b: "0x256f39ba1d0ae9d402321f6a4f8c46dac3e8bae3d83b23b85262203a400d178e"
                 }
             }
-            const skaleFeatures = await deploySkaleFeaturesMock();
-            await skaleFeatures.setBlsCommonPublicKey(blsCommonPublicKey);
-            const skaleFeaturesSetterRole = await messageProxyForSchain.SKALE_FEATURES_SETTER_ROLE();
-            await messageProxyForSchain.connect(deployer).grantRole(skaleFeaturesSetterRole, deployer.address);
-            await messageProxyForSchain.setSkaleFeaturesAddress(skaleFeatures.address);
+            await keyStorage.setBlsCommonPublicKey(blsCommonPublicKey);
 
             const newBLSSignature: [BigNumber, BigNumber] = [
                 BigNumber.from("0x2dedd4eaeac95881fbcaa4146f95a438494545c607bd57d560aa1d13d2679db8"),

@@ -23,7 +23,7 @@
 pragma solidity 0.6.12;
 
 
-contract Logger {
+library Logger {
 
     uint256 public constant FREE_MEM_PTR = 0x40;
     uint256 public constant FN_NUM_LOG_TEXT_MESSAGE = 0x12;

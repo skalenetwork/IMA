@@ -43,7 +43,6 @@ import { deployTokenManagerERC20 } from "./utils/deploy/schain/tokenManagerERC20
 import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
-import { deploySkaleFeaturesMock } from "./utils/deploy/test/skaleFeaturesMock";
 import { deployMessages } from "./utils/deploy/messages";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
@@ -52,6 +51,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { BigNumber } from "ethers";
 
 import { assert, expect } from "chai";
+import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 describe("TokenManagerERC20", () => {
     let deployer: SignerWithAddress;
@@ -83,14 +83,12 @@ describe("TokenManagerERC20", () => {
         messages = await deployMessages();
         fakeDepositBox = messages.address;
 
-        messageProxyForSchain = await deployMessageProxyForSchainTester();
+        const keyStorage = await deployKeyStorageMock();
+        messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker);
         tokenManagerErc20 = await deployTokenManagerERC20(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, fakeDepositBox);
         await erc20OnChain.connect(deployer).grantRole(await erc20OnChain.MINTER_ROLE(), tokenManagerErc20.address);
-
-        const skaleFeatures = await deploySkaleFeaturesMock();
-        await skaleFeatures.connect(deployer).setSchainOwner(schainOwner.address);
 
         await tokenManagerErc20.connect(deployer).grantRole(await tokenManagerErc20.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
         await tokenManagerErc20.connect(deployer).grantRole(await tokenManagerErc20.AUTOMATIC_DEPLOY_ROLE(), schainOwner.address);

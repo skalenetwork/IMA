@@ -43,7 +43,6 @@ import { deployTokenManagerERC721 } from "./utils/deploy/schain/tokenManagerERC7
 import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
-import { deploySkaleFeaturesMock } from "./utils/deploy/test/skaleFeaturesMock";
 import { deployMessages } from "./utils/deploy/messages";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
@@ -52,6 +51,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { BigNumber } from "ethers";
 
 import { assert, expect } from "chai";
+import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 describe("TokenManagerERC721", () => {
     let deployer: SignerWithAddress;
@@ -76,13 +76,12 @@ describe("TokenManagerERC721", () => {
     });
 
     beforeEach(async () => {
-        messageProxyForSchain = await deployMessageProxyForSchainTester();
+        const keyStorage = await deployKeyStorageMock();
+        messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
         messages = await deployMessages();
         const fakeDepositBox = messages;
 
-        const skaleFeatures = await deploySkaleFeaturesMock();
-        await skaleFeatures.setSchainOwner(schainOwner.address);
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker);
 
         tokenManagerERC721 =

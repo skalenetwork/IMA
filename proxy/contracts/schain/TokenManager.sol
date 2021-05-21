@@ -23,7 +23,6 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "./MessageProxyForSchain.sol";
-import "./SkaleFeaturesClient.sol";
 import "./TokenManagerLinker.sol";
 import "./CommunityLocker.sol";
 

@@ -33,14 +33,13 @@ import {
     ERC20OnChain,
     ERC721OnChain,
     EthErc20,
-    KeyStorage,
+    KeyStorageMock,
     MessageProxyForMainnet,
     MessageProxyForSchain,
     MessagesTester,
     Nodes,
     Schains,
     SchainsInternal,
-    SkaleFeaturesMock,
     SkaleVerifierMock,
     TokenManagerEth,
     TokenManagerERC20,
@@ -79,7 +78,6 @@ import { deployTokenManagerERC20 } from "../test/utils/deploy/schain/tokenManage
 import { deployTokenManagerERC721 } from "../test/utils/deploy/schain/tokenManagerERC721";
 import { deployMessageProxyForSchain } from "../test/utils/deploy/schain/messageProxyForSchain";
 import { deployMessages } from "../test/utils/deploy/messages";
-import { deploySkaleFeaturesMock } from "../test/utils/deploy/test/skaleFeaturesMock";
 
 import { randomString, stringValue } from "../test/utils/helper";
 
@@ -103,7 +101,7 @@ describe("Gas calculation", () => {
     let messageProxyForMainnet: MessageProxyForMainnet;
 
     let contractManager: ContractManager;
-    let keyStorage: KeyStorage;
+    let keyStorage: KeyStorageMock;
     let nodes: Nodes;
     let schains: Schains;
     let schainsInternal: SchainsInternal;
@@ -118,7 +116,6 @@ describe("Gas calculation", () => {
     let ethERC20: EthErc20;
     let messageProxyForSchain: MessageProxyForSchain;
     let messages: MessagesTester;
-    let skaleFeatures: SkaleFeaturesMock;
 
     let ERC20TokenOnMainnet: ERC20OnChain;
     let ERC20TokenOnSchain: ERC20OnChain;
@@ -136,7 +133,7 @@ describe("Gas calculation", () => {
     beforeEach(async () => {
         // skale-manager mock preparation
         contractManager = await deployContractManager(contractManagerAddress);
-        keyStorage = await (await ethers.getContractFactory("KeyStorage")).deploy() as KeyStorage;
+        keyStorage = await (await ethers.getContractFactory("KeyStorageMock")).deploy() as KeyStorageMock;
         nodes = await (await ethers.getContractFactory("Nodes")).deploy() as Nodes;
         schains = await (await ethers.getContractFactory("Schains")).deploy() as Schains;
         schainsInternal = await (await ethers.getContractFactory("SchainsInternal")).deploy() as SchainsInternal;
@@ -214,7 +211,8 @@ describe("Gas calculation", () => {
         messages = await deployMessages();
 
         // IMA schain part deployment
-        messageProxyForSchain = await deployMessageProxyForSchain();
+        messageProxyForSchain = await deployMessageProxyForSchain(keyStorage.address);
+        await keyStorage.connect(deployer).setCommonPublicKey(BLSPublicKey);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker);
         tokenManagerEth = await deployTokenManagerEth(
@@ -231,17 +229,9 @@ describe("Gas calculation", () => {
         const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
         await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, tokenManagerLinker.address);
 
-        skaleFeatures = await deploySkaleFeaturesMock();
-        await skaleFeatures.setSchainOwner(schainOwner.address);
-
         await tokenManagerEth.grantRole(await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE(), deployer.address);
-        await tokenManagerEth.setSkaleFeaturesAddress(skaleFeatures.address);
-
         await tokenManagerERC20.grantRole(await tokenManagerERC20.SKALE_FEATURES_SETTER_ROLE(), deployer.address);
-        await tokenManagerERC20.setSkaleFeaturesAddress(skaleFeatures.address);
-
         await tokenManagerERC721.grantRole(await tokenManagerERC721.SKALE_FEATURES_SETTER_ROLE(), deployer.address);
-        await tokenManagerERC721.setSkaleFeaturesAddress(skaleFeatures.address);
 
         // IMA schain part registration
         // await lockAndDataForSchain.setContract("LockAndDataERC20", lockAndDataForSchainERC20.address);
