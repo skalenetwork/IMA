@@ -39,7 +39,7 @@ contract CommunityLocker is SkaleFeaturesClient {
     TokenManagerLinker public tokenManagerLinker;
 
     bytes32 public schainHash;
-    uint public timeLimitPerMessage;
+    uint public timeLimitPerMessage = 5 minutes;
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
 
@@ -62,7 +62,6 @@ contract CommunityLocker is SkaleFeaturesClient {
         schainHash = keccak256(abi.encodePacked(newSchainName));
         messageProxy = newMessageProxy;
         tokenManagerLinker = newIMALinker;
-        timeLimitPerMessage = 5 minutes;
     }
 
     function postMessage(
@@ -95,7 +94,7 @@ contract CommunityLocker is SkaleFeaturesClient {
     }
 
     function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
+        require(_isSchainOwner(msg.sender), "Not authorized caller");
         timeLimitPerMessage = newTimeLimitPerMessage;
     }
 
@@ -119,6 +118,15 @@ contract CommunityLocker is SkaleFeaturesClient {
             );
         }
         return messageProxy;
+    }
+
+    /**
+     * @dev Checks whether sender is owner of SKALE chain
+     */
+    function _isSchainOwner(address sender) internal view returns (bool) {
+        return sender == getSkaleFeatures().getConfigVariableAddress(
+            "skaleConfig.contractSettings.IMA.ownerAddress"
+        );
     }
 
 }
