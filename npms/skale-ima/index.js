@@ -1372,7 +1372,7 @@ async function reimbursement_wallet_recharge(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ETH PAYMENT FROM MAIN NET", jarrReceipts );
+    print_gas_usage_report_from_array( "REIMBURSEMENT_WALLET_RECHARGE", jarrReceipts );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "reimbursement_wallet_recharge", true );
     details.close();
@@ -1456,7 +1456,7 @@ async function reimbursement_wallet_withdraw(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ETH PAYMENT FROM MAIN NET", jarrReceipts );
+    print_gas_usage_report_from_array( "REIMBURSEMENT_WALLET_WITHDRAW", jarrReceipts );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "reimbursement_wallet_withdraw", true );
     details.close();
@@ -1538,7 +1538,7 @@ async function reimbursement_set_range(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ETH PAYMENT FROM MAIN NET", jarrReceipts );
+    print_gas_usage_report_from_array( "REIMBURSEMENT_SET_RANGE", jarrReceipts );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "reimbursement_set_range", true );
     details.close();
