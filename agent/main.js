@@ -30,6 +30,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 // const url = require( "url" );
 // const os = require( "os" );
 const ws = require( "ws" ); // https://www.npmjs.com/package/ws
+const { cc } = require( "../npms/skale-ima" );
 global.IMA = require( "../npms/skale-ima" );
 global.w3mod = IMA.w3mod;
 global.ethereumjs_tx = IMA.ethereumjs_tx;
@@ -126,6 +127,7 @@ global.imaState = {
     "w3_main_net": null,
     "w3_s_chain": null,
 
+    "jo_community_pool": null, // only main net
     "jo_deposit_box_eth": null, // only main net
     "jo_deposit_box_erc20": null, // only main net
     "jo_deposit_box_erc721": null, // only main net
@@ -133,6 +135,7 @@ global.imaState = {
     "jo_token_manager_eth": null, // only s-chain
     "jo_token_manager_erc20": null, // only s-chain
     "jo_token_manager_erc721": null, // only s-chain
+    "jo_community_locker": null, // only s-chain
     "jo_message_proxy_main_net": null,
     "jo_message_proxy_s_chain": null,
     "jo_token_manager_linker": null,
@@ -186,6 +189,12 @@ global.imaState = {
     },
 
     "nMonitoringPort": 0, // 0 - default, means monitoring server is disabled
+
+    "strReimbursementChain": "",
+    "isShowReimbursementBalance": false,
+    "nReimbursementRecharge": 0,
+    "nReimbursementWithdraw": 0,
+    "nReimbursementRange": -1, // < 0 - do not change anything
 
     "arrActions": [] // array of actions to run
 };
@@ -605,6 +614,89 @@ imaCLI.parse( {
         } );
     }
 } );
+
+// "strReimbursementChain": "",
+let haveReimbursementCommands = false;
+if( imaState.isShowReimbursementBalance ) {
+    haveReimbursementCommands = true;
+    imaState.arrActions.push( {
+        "name": "Gas Reimbursement - Show Balance",
+        "fn": async function() {
+            await IMA.reimbursement_show_balance(
+                imaState.w3_main_net,
+                imaState.jo_community_pool,
+                imaState.joAccount_main_net,
+                imaState.strChainName_main_net,
+                imaState.cid_main_net,
+                imaState.tc_main_net,
+                imaState.strReimbursementChain,
+                true
+            );
+            return true;
+        }
+    } );
+}
+if( imaState.nReimbursementRecharge ) {
+    haveReimbursementCommands = true;
+    imaState.arrActions.push( {
+        "name": "Gas Reimbursement - Recharge User Wallet",
+        "fn": async function() {
+            await IMA.reimbursement_wallet_recharge(
+                imaState.w3_main_net,
+                imaState.jo_community_pool,
+                imaState.joAccount_main_net,
+                imaState.strChainName_main_net,
+                imaState.cid_main_net,
+                imaState.tc_main_net,
+                imaState.strReimbursementChain,
+                imaState.nReimbursementRecharge
+            );
+            return true;
+        }
+    } );
+}
+if( imaState.nReimbursementWithdraw ) {
+    haveReimbursementCommands = true;
+    imaState.arrActions.push( {
+        "name": "Gas Reimbursement - Withdraw User Wallet",
+        "fn": async function() {
+            await IMA.reimbursement_wallet_withdraw(
+                imaState.w3_main_net,
+                imaState.jo_community_pool,
+                imaState.joAccount_main_net,
+                imaState.strChainName_main_net,
+                imaState.cid_main_net,
+                imaState.tc_main_net,
+                imaState.strReimbursementChain,
+                imaState.nReimbursementWithdraw
+            );
+            return true;
+        }
+    } );
+}
+if( haveReimbursementCommands ) {
+    if( imaState.strReimbursementChain == "" ) {
+        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing value for " ) + cc.warning( "reimbursement-chain" ) + cc.error( " parameter, must be non-empty chain name" ) + "\n" );
+        process.exit( 130 );
+    }
+}
+if( imaState.nReimbursementRange >= 0 ) {
+    imaState.arrActions.push( {
+        "name": "Gas Reimbursement - Set Minimal time interval from S2M transfers",
+        "fn": async function() {
+            await IMA.reimbursement_set_range(
+                imaState.w3_s_chain,
+                imaState.jo_community_locker,
+                imaState.joAccount_s_chain,
+                imaState.strChainName_s_chain,
+                imaState.cid_s_chain,
+                imaState.tc_s_chain,
+                imaState.nReimbursementRange
+            );
+            return true;
+        }
+    } );
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1061,6 +1153,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
             imaState.jo_token_manager_eth, // only s-chain
             imaState.jo_token_manager_erc20, // only s-chain
             imaState.jo_token_manager_erc721, // only s-chain
+            imaState.jo_community_locker, // only s-chain
             imaState.strChainName_s_chain,
             imaState.cid_main_net,
             imaState.tc_main_net //,

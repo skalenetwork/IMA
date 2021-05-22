@@ -23,7 +23,6 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721MetadataUpgradeable.sol";
-
 import "../DepositBox.sol";
 import "../../Messages.sol";
 
@@ -96,7 +95,7 @@ contract DepositBoxERC721 is DepositBox {
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addTokenManager(string calldata schainName, address newTokenManagerERC721Address) external override {
+    function addSchainContract(string calldata schainName, address newTokenManagerERC721Address) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
@@ -118,7 +117,7 @@ contract DepositBoxERC721 is DepositBox {
      * - `msg.sender` must be schain owner or contract owner
      * - SKALE chain must already be set.
      */
-    function removeTokenManager(string calldata schainName) external override {
+    function removeSchainContract(string calldata schainName) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
@@ -139,7 +138,7 @@ contract DepositBoxERC721 is DepositBox {
         override
         onlyMessageProxy
         whenNotKilled(schainHash)
-        returns (bool)
+        returns (address)
     {
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&
@@ -152,12 +151,7 @@ contract DepositBoxERC721 is DepositBox {
         if (!linker.interchainConnections(schainHash))
             _removeTransferredAmount(message.token, message.tokenId);
         IERC721Upgradeable(message.token).transferFrom(address(this), message.receiver, message.tokenId);
-        // TODO add gas reimbusement
-        // uint256 txFee = gasConsumption * tx.gasprice;
-        // require(amount >= txFee, "Not enough funds to recover gas");
-        // TODO add gas reimbusement
-        // imaLinker.rechargeSchainWallet(schainHash, txFee);
-        return true;
+        return message.receiver;
     }
 
     /**
@@ -210,7 +204,7 @@ contract DepositBoxERC721 is DepositBox {
     /**
      * @dev Checks whether depositBoxERC721 is connected to a SKALE chain TokenManagerERC721.
      */
-    function hasTokenManager(string calldata schainName) external view override returns (bool) {
+    function hasSchainContract(string calldata schainName) external view override returns (bool) {
         return tokenManagerERC721Addresses[keccak256(abi.encodePacked(schainName))] != address(0);
     }
 
@@ -218,13 +212,13 @@ contract DepositBoxERC721 is DepositBox {
     function initialize(
         IContractManager contractManagerOfSkaleManager,        
         Linker linker,
-        MessageProxyForMainnet messageProxyAddress
+        MessageProxyForMainnet messageProxy
     )
         public
         override
         initializer
     {
-        DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxyAddress);
+        DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
     }
 
     function _saveTransferredAmount(bytes32 schainHash, address erc721Token, uint256 tokenId) private {

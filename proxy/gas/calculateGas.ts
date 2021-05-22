@@ -47,7 +47,8 @@ import {
     TokenManagerERC721,
     TokenManagerLinker,
     Wallets,
-    Linker
+    Linker,
+    CommunityLocker
 } from "../typechain";
 
 chai.should();
@@ -87,6 +88,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { BigNumber, BytesLike } from "ethers";
 
 import { assert, expect } from "chai";
+import { deployCommunityLocker } from "../test/utils/deploy/schain/communityLocker";
 // import { LockAndDataForSchain } from "../typechain/LockAndDataForSchain";
 
 describe("Gas calculation", () => {
@@ -112,6 +114,7 @@ describe("Gas calculation", () => {
     let tokenManagerERC20: TokenManagerERC20;
     let tokenManagerERC721: TokenManagerERC721;
     let tokenManagerLinker: TokenManagerLinker;
+    let communityLocker: CommunityLocker;
     let ethERC20: EthERC20;
     let messageProxyForSchain: MessageProxyForSchain;
     let messages: MessagesTester;
@@ -213,9 +216,10 @@ describe("Gas calculation", () => {
         // IMA schain part deployment
         messageProxyForSchain = await deployMessageProxyForSchain(schainName);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
-        tokenManagerEth = await deployTokenManagerEth(schainName, messageProxyForSchain.address, tokenManagerLinker, depositBoxEth.address);
-        tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxyForSchain.address, tokenManagerLinker, depositBoxERC20.address);
-        tokenManagerERC721 = await deployTokenManagerERC721(schainName, messageProxyForSchain.address, tokenManagerLinker, depositBoxERC721.address);
+        communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker);
+        tokenManagerEth = await deployTokenManagerEth(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxEth.address);
+        tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxERC20.address);
+        tokenManagerERC721 = await deployTokenManagerERC721(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxERC721.address);
         ethERC20 = await deployEthERC20(tokenManagerEth);
         const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
         await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, tokenManagerLinker.address);

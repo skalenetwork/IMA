@@ -25,8 +25,9 @@ import "@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
-import "../interfaces/IDepositBox.sol";
 import "./SkaleManagerClient.sol";
+import "../interfaces/IMainnetContract.sol";
+
 import "./MessageProxyForMainnet.sol";
 
 
@@ -42,7 +43,7 @@ contract Linker is SkaleManagerClient {
 
     bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
 
-    EnumerableSetUpgradeable.AddressSet private _depositBoxes;
+    EnumerableSetUpgradeable.AddressSet private _mainnetContracts;
     MessageProxyForMainnet public messageProxy;
 
     mapping(bytes32 => bool) public interchainConnections;
@@ -56,18 +57,18 @@ contract Linker is SkaleManagerClient {
         _;
     }
 
-    function registerDepositBox(address newDepositBoxAddress) external onlyLinker {
-        _depositBoxes.add(newDepositBoxAddress);
+    function registerMainnetContract(address newMainnetContract) external onlyLinker {
+        _mainnetContracts.add(newMainnetContract);
     }
 
-    function removeDepositBox(address depositBoxAddress) external onlyLinker {
-        _depositBoxes.remove(depositBoxAddress);
+    function removeMainnetContract(address mainnetContract) external onlyLinker {
+        _mainnetContracts.remove(mainnetContract);
     }
 
-    function connectSchain(string calldata schainName, address[] calldata tokenManagerAddresses) external onlyLinker {
-        require(tokenManagerAddresses.length == _depositBoxes.length(), "Incorrect number of addresses");
-        for (uint i = 0; i < tokenManagerAddresses.length; i++) {
-            IDepositBox(_depositBoxes.at(i)).addTokenManager(schainName, tokenManagerAddresses[i]);
+    function connectSchain(string calldata schainName, address[] calldata schainContracts) external onlyLinker {
+        require(schainContracts.length == _mainnetContracts.length(), "Incorrect number of addresses");
+        for (uint i = 0; i < schainContracts.length; i++) {
+            IMainnetContract(_mainnetContracts.at(i)).addSchainContract(schainName, schainContracts[i]);
         }
         messageProxy.addConnectedChain(schainName);
     }
@@ -103,9 +104,9 @@ contract Linker is SkaleManagerClient {
     }
 
     function unconnectSchain(string calldata schainName) external onlyLinker {
-        uint length = _depositBoxes.length();
+        uint length = _mainnetContracts.length();
         for (uint i = 0; i < length; i++) {
-            IDepositBox(_depositBoxes.at(i)).removeTokenManager(schainName);
+            IMainnetContract(_mainnetContracts.at(i)).removeSchainContract(schainName);
         }
         messageProxy.removeConnectedChain(schainName);
     }
@@ -114,15 +115,15 @@ contract Linker is SkaleManagerClient {
         return statuses[schainHash] != KillProcess.Killed;
     }
 
-    function hasDepositBox(address depositBoxAddress) external view returns (bool) {
-        return _depositBoxes.contains(depositBoxAddress);
+    function hasMainnetContract(address mainnetContract) external view returns (bool) {
+        return _mainnetContracts.contains(mainnetContract);
     }
 
     function hasSchain(string calldata schainName) external view returns (bool connected) {
-        uint length = _depositBoxes.length();
+        uint length = _mainnetContracts.length();
         connected = messageProxy.isConnectedChain(schainName);
         for (uint i = 0; connected && i < length; i++) {
-            connected = connected && IDepositBox(_depositBoxes.at(i)).hasTokenManager(schainName);
+            connected = connected && IMainnetContract(_mainnetContracts.at(i)).hasSchainContract(schainName);
         }
     }
 

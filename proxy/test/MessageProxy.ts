@@ -124,7 +124,7 @@ describe("MessageProxy", () => {
 
             // chain can't be connected twice:
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName)
-            .should.be.rejectedWith("Chain is already connected");
+                .should.be.rejectedWith("Chain is already connected");
 
             // // main net does not have a public key and is implicitly connected:
             // await messageProxyForMainnet.connect(deployer).addConnectedChain("Mainnet")
@@ -181,14 +181,16 @@ describe("MessageProxy", () => {
                 data: "0x01",
                 destinationContract: depositBox.address,
                 sender: deployer.address,
-                to: client.address};
+                to: client.address
+            };
 
             const message2 = {
                 amount: 7,
                 data: "0x01",
                 destinationContract: depositBox.address,
                 sender: user.address,
-                to: customer.address};
+                to: customer.address
+            };
 
             const outgoingMessages = [message1, message2];
             const sign = {
@@ -254,20 +256,21 @@ describe("MessageProxy", () => {
             const schainName = randomString(10);
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
-            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
                 data: "0x11",
                 destinationContract: depositBox.address,
                 sender: deployer.address,
-                to: client.address};
+                to: client.address
+            };
             const message2 = {
                 amount: 7,
                 data: "0x22",
                 destinationContract: depositBox.address,
                 sender: user.address,
-                to: customer.address};
+                to: customer.address
+            };
             const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
@@ -332,13 +335,15 @@ describe("MessageProxy", () => {
                 data: "0x11",
                 destinationContract: depositBox.address,
                 sender: deployer.address,
-                to: client.address};
+                to: client.address
+            };
             const message2 = {
                 amount: 7,
                 data: "0x22",
                 destinationContract: depositBox.address,
                 sender: user.address,
-                to: customer.address};
+                to: customer.address
+            };
             const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
@@ -357,14 +362,14 @@ describe("MessageProxy", () => {
             incomingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
 
             const res = await messageProxyForMainnet
-            .connect(deployer)
-            .postIncomingMessages(
-                schainName,
-                startingCounter,
-                outgoingMessages,
-                sign,
-                0,
-            );
+                .connect(deployer)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter,
+                    outgoingMessages,
+                    sign,
+                    0,
+                );
             // console.log("Gas for postIncomingMessages Eth:", res.receipt.gasUsed);
             const incomingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
@@ -428,7 +433,7 @@ describe("MessageProxy", () => {
             isConnectedChain.should.be.deep.equal(Boolean(true));
             // chain can't be connected twice:
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName)
-            .should.be.rejectedWith("Chain is already connected");
+                .should.be.rejectedWith("Chain is already connected");
             // main net does not have a public key and is implicitly connected:
             // await messageProxyForSchain.connect(deployer).addConnectedChain("Mainnet")
             // .should.be.rejectedWith("SKALE chain name is incorrect. Inside in MessageProxy");

@@ -28,6 +28,15 @@ import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 import "../interfaces/IMessageReceiver.sol";
 import "./SkaleManagerClient.sol";
 
+interface ICommunityPool {
+    function refundGasByUser(
+        bytes32 schainHash,
+        address node,
+        address user,
+        uint256 gas
+    ) external;
+    function getBalance() external view returns (uint);
+}
 
 /**
  * @title Message Proxy for Mainnet
@@ -78,9 +87,12 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     bytes32 public constant MAINNET_CHAIN_ID = keccak256(abi.encodePacked("Mainnet"));
     bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
 
-    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 50000;
+    address public communityPoolAddress;
 
     mapping( bytes32 => ConnectedChainInfo ) public connectedChains;
+
+    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 70000;
+    uint256 public constant MESSAGE_GAS_COST = 8790;
 
     modifier onlyDebugger() {
         require(hasRole(DEBUGGER_ROLE, msg.sender), "Access denied");
@@ -147,6 +159,13 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         delete connectedChains[keccak256(abi.encodePacked(schainName))];
     }
 
+    function setCommunityPool(address newCommunityPoolAddress) external {
+        require(
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
+        );  
+        communityPoolAddress = newCommunityPoolAddress;
+    }
+
     /**
      * @dev Posts message from this contract to `targetSchainName` MessageProxy contract.
      * This is called by a smart contract to make a cross-chain call.
@@ -202,12 +221,25 @@ contract MessageProxyForMainnet is SkaleManagerClient {
             "Starting counter is not equal to incoming message counter");
 
         require(_verifyMessages(fromSchainName, _hashedArray(messages), sign), "Signature is not verified");
+        uint additionalGasPerMessage = 
+            (gasTotal.sub(gasleft())
+            .add(BASIC_POST_INCOMING_MESSAGES_TX)
+            .add(messages.length * MESSAGE_GAS_COST))
+            .div(messages.length);
         for (uint256 i = 0; i < messages.length; i++) {
-            _callReceiverContract(srcChainHash, messages[i], startingCounter + i);
+            gasTotal = gasleft();
+            address receiver = _callReceiverContract(srcChainHash, messages[i], startingCounter + i);
+            if (receiver == address(0)) 
+                continue;
+            ICommunityPool(communityPoolAddress).refundGasByUser(
+                srcChainHash,
+                msg.sender,
+                receiver,
+                gasTotal.sub(gasleft()).add(additionalGasPerMessage)
+            );
         }
         connectedChains[srcChainHash].incomingMessageCounter = 
             connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
-        _refundGasBySchain(srcChainHash, gasTotal + BASIC_POST_INCOMING_MESSAGES_TX);
     }
 
     /**
@@ -327,32 +359,27 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         uint counter
     )
         private
-        returns (bool)
+        returns (address)
     {
         try IMessageReceiver(message.destinationContract).postMessage(
             schainHash,
             message.sender,
             message.data
-        ) returns (bool success) {
-            return success;
+        ) returns (address receiver) {
+            return receiver;
         } catch Error(string memory reason) {
             emit PostMessageError(
                 counter,
                 bytes(reason)
             );
-            return false;
+            return address(0);
         } catch (bytes memory revertData) {
             emit PostMessageError(
                 counter,
                 revertData
             );
-            return false;
+            return address(0);
         }
-    }
-
-    function _refundGasBySchain(bytes32 schainHash, uint gasTotal) internal {
-        address walletsAddress = IContractManager(contractManagerOfSkaleManager).getContract("Wallets");
-        IWallets(payable(walletsAddress)).refundGasBySchain(schainHash, msg.sender, gasTotal.sub(gasleft()), false);
     }
 
     /**

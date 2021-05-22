@@ -25,7 +25,12 @@ pragma experimental ABIEncoderV2;
 import "./MessageProxyForSchain.sol";
 import "./SkaleFeaturesClient.sol";
 import "./TokenManagerLinker.sol";
+import "./CommunityLocker.sol";
 
+
+interface ICommunityLocker {
+    function checkAllowedToSendMessage(address receiver) external;
+}
 
 /**
  * @title Token Manager
@@ -38,6 +43,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
 
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
+    CommunityLocker public communityLocker;
     bytes32 public schainHash;
     address public depositBox;
     bool public automaticDeploy;
@@ -45,7 +51,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
     mapping(bytes32 => address) public tokenManagers;
 
     string constant public MAINNET_NAME = "Mainnet";
-    bytes32 constant public MAINNET_ID = keccak256(abi.encodePacked(MAINNET_NAME));
+    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
 
     modifier onlySchainOwner() {
         require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
@@ -61,6 +67,7 @@ abstract contract TokenManager is SkaleFeaturesClient {
         string memory newSchainName,
         MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
         address newDepositBox
     )
         public
@@ -69,11 +76,12 @@ abstract contract TokenManager is SkaleFeaturesClient {
         schainHash = keccak256(abi.encodePacked(newSchainName));
         messageProxy = newMessageProxy;
         tokenManagerLinker = newIMALinker;
+        communityLocker = newCommunityLocker;
         depositBox = newDepositBox;
     }
 
     function postMessage(
-        string calldata fromSchainName,
+        bytes32 fromChainHash,
         address sender,
         bytes calldata data
     )
@@ -188,6 +196,17 @@ abstract contract TokenManager is SkaleFeaturesClient {
             );
         }
         return messageProxy;
+    }
+
+    function getCommunityLocker() public view returns (CommunityLocker) {
+        if (address(communityLocker) == address(0)) {
+            return CommunityLocker(
+                getSkaleFeatures().getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.CommunityLocker"
+                )
+            );
+        }
+        return communityLocker;
     }
 
     // private

@@ -5,7 +5,8 @@
     "Linker": "Linker",
     "DepositBoxEth": "DepositBoxEth",
     "DepositBoxERC20": "DepositBoxERC20",
-    "DepositBoxERC721": "DepositBoxERC721"
+    "DepositBoxERC721": "DepositBoxERC721",
+    "CommunityPool": "CommunityPool"
   },
   "dependencies": {},
   "name": "skale-ima-proxy",

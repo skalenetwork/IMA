@@ -80,6 +80,7 @@ function getProxyMainnet(contractName: string) {
 export const contracts = [
     "MessageProxyForSchain",
     "TokenManagerLinker",
+    "CommunityLocker",
     "TokenManagerEth",
     "TokenManagerERC20",
     "TokenManagerERC721",
@@ -132,12 +133,19 @@ async function main() {
     deployed.set( "TokenManagerLinker", { address: tokenManagerLinker.address, interface: tokenManagerLinker.interface, bytecode: tokenManagerLinker.bytecode } );
     console.log("Contract TokenManagerLinker deployed to", tokenManagerLinker.address);
 
+    console.log("Deploy CommunityLocker");
+    const communityLockerFactory = await ethers.getContractFactory("CommunityLocker");
+    const communityLocker = await communityLockerFactory.deploy(schainName, messageProxy.address, tokenManagerLinker.address);
+    deployed.set( "CommunityLocker", { address: communityLocker.address, interface: communityLocker.interface, bytecode: communityLocker.bytecode } );
+    console.log("Contract CommunityLocker deployed to", communityLocker.address);
+
     console.log("Deploy TokenManagerEth");
     const tokenManagerEthFactory = await ethers.getContractFactory("TokenManagerEth");
     const tokenManagerEth = await tokenManagerEthFactory.deploy(
         schainName,
         messageProxy.address,
         tokenManagerLinker.address,
+        communityLocker.address,
         depositBoxEthAddress
     );
     deployed.set( "TokenManagerEth", { address: tokenManagerEth.address, interface: tokenManagerEth.interface, bytecode: tokenManagerEth.bytecode } );
@@ -149,6 +157,7 @@ async function main() {
         schainName,
         messageProxy.address,
         tokenManagerLinker.address,
+        communityLocker.address,
         depositBoxERC20Address
     );
     deployed.set( "TokenManagerERC20", { address: tokenManagerERC20.address, interface: tokenManagerERC20.interface, bytecode: tokenManagerERC20.bytecode } );
@@ -160,6 +169,7 @@ async function main() {
         schainName,
         messageProxy.address,
         tokenManagerLinker.address,
+        communityLocker.address,
         depositBoxERC721Address
     );
     deployed.set( "TokenManagerERC721", { address: tokenManagerERC721.address, interface: tokenManagerERC721.interface, bytecode: tokenManagerERC721.bytecode } );

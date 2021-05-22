@@ -56,10 +56,11 @@ contract TokenManagerEth is TokenManager {
         string memory newChainName,
         MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
         address newDepositBox
     )
         public
-        TokenManager(newChainName, newMessageProxy, newIMALinker, newDepositBox)
+        TokenManager(newChainName, newMessageProxy, newIMALinker, newCommunityLocker, newDepositBox)
         // solhint-disable-next-line no-empty-blocks
     { }
 
@@ -74,6 +75,7 @@ contract TokenManagerEth is TokenManager {
      */
     function exitToMain(address to, uint256 amount) external receivedEth(amount) {
         require(to != address(0), "Incorrect receiver address");
+        getCommunityLocker().checkAllowedToSendMessage(to);
         getMessageProxy().postOutgoingMessage(
             "Mainnet",
             getDepositBoxEthAddress(),
@@ -91,7 +93,7 @@ contract TokenManagerEth is TokenManager {
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
-            targetSchainHash != MAINNET_ID,
+            targetSchainHash != MAINNET_HASH,
             "This function is not for transferring to Mainnet"
         );
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
@@ -115,7 +117,7 @@ contract TokenManagerEth is TokenManager {
      * - `fromSchainName` must exist in TokenManager addresses.
      */
     function postMessage(
-        string calldata fromSchainName,
+        bytes32 fromChainHash,
         address sender,
         bytes calldata data
     )
@@ -124,13 +126,12 @@ contract TokenManagerEth is TokenManager {
         onlyMessageProxy
         returns (bool)
     {
-        bytes32 fromSchainHash = keccak256(abi.encodePacked(fromSchainName));
         require(
-            fromSchainHash != getSchainHash() && 
+            fromChainHash != getSchainHash() && 
                 (
-                    fromSchainHash == MAINNET_ID ?
+                    fromChainHash == MAINNET_HASH ?
                     sender == getDepositBoxEthAddress() :
-                    sender == tokenManagers[fromSchainHash]
+                    sender == tokenManagers[fromChainHash]
                 ),
             "Receiver chain is incorrect"
         );

@@ -51,10 +51,11 @@ contract TokenManagerERC721 is TokenManager {
         string memory newChainName,
         MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
         address newDepositBox
     )
         public
-        TokenManager(newChainName, newMessageProxy, newIMALinker, newDepositBox)
+        TokenManager(newChainName, newMessageProxy, newIMALinker, newCommunityLocker, newDepositBox)
         // solhint-disable-next-line no-empty-blocks
     { }    
 
@@ -67,6 +68,7 @@ contract TokenManagerERC721 is TokenManager {
     {
         require(to != address(0), "Incorrect receiver address");
         ERC721Burnable contractOnSchain = clonesErc721[contractOnMainnet];
+        getCommunityLocker().checkAllowedToSendMessage(to);
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
         contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
@@ -86,7 +88,7 @@ contract TokenManagerERC721 is TokenManager {
         require(to != address(0), "Incorrect receiver address");
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
-            targetSchainHash != MAINNET_ID,
+            targetSchainHash != MAINNET_HASH,
             "This function is not for transferring to Mainnet"
         );
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
@@ -111,7 +113,7 @@ contract TokenManagerERC721 is TokenManager {
      * - `fromSchainName` must exist in TokenManager addresses.
      */
     function postMessage(
-        string calldata fromSchainName,
+        bytes32 fromChainHash,
         address sender,
         bytes calldata data
     )
@@ -120,13 +122,12 @@ contract TokenManagerERC721 is TokenManager {
         onlyMessageProxy
         returns (bool)
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(fromSchainName));
         require(
-            schainHash != getSchainHash() && 
+            fromChainHash != getSchainHash() && 
             (
-                schainHash == MAINNET_ID ?
+                fromChainHash == MAINNET_HASH ?
                 sender == getDepositBoxERC721Address() :
-                sender == tokenManagers[schainHash]
+                sender == tokenManagers[fromChainHash]
             ),
             "Receiver chain is incorrect"
         );

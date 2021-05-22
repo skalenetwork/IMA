@@ -22,7 +22,7 @@
 
 pragma solidity 0.6.12;
 
-import "../interfaces/IDepositBox.sol";
+import "../interfaces/IMainnetContract.sol";
 import "./Linker.sol";
 import "./MessageProxyForMainnet.sol";
 
@@ -31,7 +31,7 @@ import "./MessageProxyForMainnet.sol";
  * @title ProxyConnectorMainnet - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-abstract contract DepositBox is SkaleManagerClient, IDepositBox {
+abstract contract DepositBox is SkaleManagerClient, IMainnetContract {
 
     bytes32 public constant DEPOSIT_BOX_MANAGER_ROLE = keccak256("DEPOSIT_BOX_MANAGER_ROLE");
 
@@ -55,15 +55,15 @@ abstract contract DepositBox is SkaleManagerClient, IDepositBox {
     
     function initialize(
         IContractManager contractManagerOfSkaleManager,
-        Linker linkerAddress,
-        MessageProxyForMainnet messageProxyAddress
+        Linker linker,
+        MessageProxyForMainnet newMessageProxy
     )
         public
         virtual
         initializer
     {
         SkaleManagerClient.initialize(contractManagerOfSkaleManager);
-        _setupRole(DEPOSIT_BOX_MANAGER_ROLE, address(linkerAddress));
+        _setupRole(DEPOSIT_BOX_MANAGER_ROLE, address(linker));
         messageProxy = messageProxyAddress;
         linker = linkerAddress;
     }
