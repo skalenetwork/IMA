@@ -139,7 +139,7 @@ contract DepositBoxEth is DepositBox {
         approveTransfers[message.receiver] =
             approveTransfers[message.receiver].add(message.amount);
         if (!linker.interchainConnections(schainHash))
-            _removeTransferredAmount(schainHash, decodedMessage.amount);
+            _removeTransferredAmount(schainHash, message.amount);
         return message.receiver;
     }
 

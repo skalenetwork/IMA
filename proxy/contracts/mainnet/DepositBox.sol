@@ -55,7 +55,7 @@ abstract contract DepositBox is SkaleManagerClient, IMainnetContract {
     
     function initialize(
         IContractManager contractManagerOfSkaleManager,
-        Linker linker,
+        Linker newLinker,
         MessageProxyForMainnet newMessageProxy
     )
         public
@@ -63,8 +63,8 @@ abstract contract DepositBox is SkaleManagerClient, IMainnetContract {
         initializer
     {
         SkaleManagerClient.initialize(contractManagerOfSkaleManager);
-        _setupRole(DEPOSIT_BOX_MANAGER_ROLE, address(linker));
-        messageProxy = messageProxyAddress;
-        linker = linkerAddress;
+        _setupRole(DEPOSIT_BOX_MANAGER_ROLE, address(newLinker));
+        messageProxy = newMessageProxy;
+        linker = newLinker;
     }
 }

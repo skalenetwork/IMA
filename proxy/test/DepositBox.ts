@@ -100,7 +100,7 @@ describe("DepositBox", () => {
         contractManager = await deployContractManager(contractManagerAddress);
         contractManagerAddress = contractManager.address;
         messageProxy = await deployMessageProxyForMainnet(contractManager);
-        linker = await deployLinker(messageProxy);
+        linker = await deployLinker(messageProxy, contractManager);
         depositBoxEth = await deployDepositBoxEth(contractManager, messageProxy, linker);
         depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxy, linker);
         depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxy, linker);
@@ -609,19 +609,21 @@ describe("DepositBox", () => {
                 .rechargeUserWallet(schainName, { value: wei });
 
             // mint some quantity of ERC20 tokens for `deployer` address
-            await erc20.connect(deployer).mint(deployer.address, "1000000000");
+            await erc20.connect(deployer).mint(user.address, amount);
             /**
              * transfer more than `amount` quantity of ERC20 tokens
              * for `depositBoxERC20` to avoid `Not enough money`
              */
-            await erc20.connect(deployer).transfer(depositBoxERC20.address, "1000000");
+            await erc20.connect(user).approve(depositBoxERC20.address, amount);
             // get data from `receiveERC20`
             await depositBoxERC20.disableWhitelist(schainName);
+
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, user.address, amount);
             // execution
             // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
             // to avoid `Incorrect sender` error
             const balanceBefore = await getBalance(deployer.address);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign, 0);
+            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign, 0)).wait();
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
