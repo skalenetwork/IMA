@@ -78,6 +78,7 @@ contract Linker is SkaleManagerClient {
 
     function allowInterchainConnections(string calldata schainName) external onlySchainOwner(schainName) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(statuses[schainHash] == KillProcess.Active, "Schain is in kill process");
         interchainConnections[schainHash] = true;
         messageProxy.postOutgoingMessage(
             schainHash,
@@ -91,10 +92,10 @@ contract Linker is SkaleManagerClient {
         require(!interchainConnections[keccak256(abi.encodePacked(schainName))], "Interchain connections turned on");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         if (statuses[schainHash] == KillProcess.Active) {
-            if (isSchainOwner(msg.sender, schainHash)) {
-                statuses[schainHash] = KillProcess.PartiallyKilledBySchainOwner;
-            } else if (hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
+            if (hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
                 statuses[schainHash] = KillProcess.PartiallyKilledByContractOwner;
+            } else if (isSchainOwner(msg.sender, schainHash)) {
+                statuses[schainHash] = KillProcess.PartiallyKilledBySchainOwner;
             } else {
                 revert("Not allowed");
             }

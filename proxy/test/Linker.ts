@@ -46,6 +46,8 @@ import { deployLinker } from "./utils/deploy/mainnet/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
 import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
 
+import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
+
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber } from "ethers";
@@ -132,14 +134,17 @@ describe("Linker", () => {
         expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(false);
         expect(await linker.hasMainnetContract(depositBoxERC20.address)).to.equal(false);
         expect(await linker.hasMainnetContract(depositBoxERC721.address)).to.equal(false);
+        expect(await linker.hasMainnetContract(linker.address)).to.equal(false);
 
         await linker.connect(deployer).registerMainnetContract(depositBoxEth.address);
         await linker.connect(deployer).registerMainnetContract(depositBoxERC20.address);
         await linker.connect(deployer).registerMainnetContract(depositBoxERC721.address);
+        await linker.connect(deployer).registerMainnetContract(linker.address);
 
         expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(true);
         expect(await linker.hasMainnetContract(depositBoxERC20.address)).to.equal(true);
         expect(await linker.hasMainnetContract(depositBoxERC721.address)).to.equal(true);
+        expect(await linker.hasMainnetContract(linker.address)).to.equal(true);
 
         await linker.connect(deployer).connectSchain(schainName, [])
             .should.be.eventually.rejectedWith("Incorrect number of addresses");
@@ -150,12 +155,15 @@ describe("Linker", () => {
         await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress, nullAddress])
             .should.be.eventually.rejectedWith("Incorrect number of addresses");
 
+        await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress, nullAddress, tokenManagerAddress])
+            .should.be.eventually.rejectedWith("Incorrect number of addresses");
+
         expect(await linker.hasSchain(schainName)).to.equal(false);
 
-        await linker.connect(deployer).connectSchain(schainName, [nullAddress, tokenManagerAddress, nullAddress])
+        await linker.connect(deployer).connectSchain(schainName, [nullAddress, tokenManagerAddress, nullAddress, tokenManagerAddress])
             .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
-        await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress])
+        await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress, tokenManagerAddress])
 
         expect(await linker.hasSchain(schainName)).to.equal(true);
     });
@@ -168,8 +176,9 @@ describe("Linker", () => {
         await linker.connect(deployer).registerMainnetContract(depositBoxEth.address);
         await linker.connect(deployer).registerMainnetContract(depositBoxERC20.address);
         await linker.connect(deployer).registerMainnetContract(depositBoxERC721.address);
+        await linker.connect(deployer).registerMainnetContract(linker.address);
 
-        await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress]);
+        await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress, tokenManagerAddress]);
 
         expect(await linker.hasSchain(schainName)).to.equal(true);
 
@@ -224,6 +233,88 @@ describe("Linker", () => {
         expect(await linker.hasMainnetContract(depositBoxEth.address)).to.equal(false);
         expect(await linker.hasMainnetContract(depositBoxERC20.address)).to.equal(false);
         expect(await linker.hasMainnetContract(depositBoxERC721.address)).to.equal(false);
+    });
+
+    it("should allow interchain connection", async () => {
+        const schainName = randomString(10);
+        await linker.connect(deployer).allowInterchainConnections(schainName).should.be.eventually.rejectedWith("Destination chain is not initialized");
+        await linker.connect(deployer).connectSchain(schainName, []);
+        expect(await linker.interchainConnections(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(false);
+        await linker.connect(deployer).allowInterchainConnections(schainName);
+        expect(await linker.interchainConnections(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
+    });
+
+    it("should raise a message during allow interchain connection", async () => {
+        const schainName = randomString(10);
+        await linker.connect(deployer).connectSchain(schainName, []);
+        const res = await (await linker.connect(deployer).allowInterchainConnections(schainName)).wait();
+        if (!res.events) {
+            assert("No events were emitted");
+        } else {
+            expect(res.events[0]?.topics[0]).to.equal(stringValue(web3.utils.soliditySha3("OutgoingMessage(bytes32,uint256,address,address,bytes)")));
+            expect(res.events[0]?.topics[1]).to.equal(stringValue(web3.utils.soliditySha3(schainName)));
+            expect(BigNumber.from(res.events[0]?.topics[2]).toString()).to.equal("0");
+            expect(stringValue(web3.utils.toChecksumAddress("0x" + res.events[0]?.topics[3].slice(-40)))).to.equal(linker.address);
+        }
+    });
+
+    it("should kill schain by schain owner first", async () => {
+        const schainName = randomString(10);
+        // schain owner is user
+        initializeSchain(contractManager, schainName, user.address, 1, 1);
+        await linker.connect(deployer).connectSchain(schainName, []);
+        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
+        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(0);
+        await linker.connect(user).kill(schainName);
+        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
+        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(1);
+        await linker.connect(user).kill(schainName).should.be.eventually.rejectedWith("Already killed or incorrect sender");
+        await linker.connect(deployer).kill(schainName);
+        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(false);
+        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(3);
+    });
+
+    it("should kill schain by deployer first", async () => {
+        const schainName = randomString(10);
+        // schain owner is user
+        initializeSchain(contractManager, schainName, user.address, 1, 1);
+        await linker.connect(deployer).connectSchain(schainName, []);
+        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
+        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(0);
+        await linker.connect(deployer).kill(schainName);
+        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
+        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(2);
+        await linker.connect(user).kill(schainName);
+        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(false);
+        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(3);
+    });
+
+    it("should not kill schain if interchain connection allowed", async () => {
+        const schainName = randomString(10);
+        // schain owner is user
+        initializeSchain(contractManager, schainName, user.address, 1, 1);
+        await linker.connect(deployer).connectSchain(schainName, []);
+        await linker.connect(deployer).allowInterchainConnections(schainName);
+        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
+        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(0);
+        await linker.connect(deployer).kill(schainName).should.be.eventually.rejectedWith("Interchain connections turned on");
+    });
+
+    it("should not allow interchain connection during kill process", async () => {
+        const schainName = randomString(10);
+        // schain owner is user
+        initializeSchain(contractManager, schainName, user.address, 1, 1);
+        await linker.connect(deployer).connectSchain(schainName, []);
+        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
+        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(0);
+        await linker.connect(deployer).kill(schainName);
+        await linker.connect(deployer).allowInterchainConnections(schainName).should.be.eventually.rejectedWith("Schain is in kill process");
+        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
+        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(2);
+        await linker.connect(user).kill(schainName);
+        await linker.connect(deployer).allowInterchainConnections(schainName).should.be.eventually.rejectedWith("Schain is in kill process");
+        expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(false);
+        expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(3);
     });
 
 });
