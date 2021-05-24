@@ -20,11 +20,13 @@
  */
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
+import "../Messages.sol";
 import "./SkaleManagerClient.sol";
 import "../interfaces/IMainnetContract.sol";
 
@@ -51,6 +53,7 @@ contract Linker is SkaleManagerClient {
     enum KillProcess {Active, PartiallyKilledBySchainOwner, PartiallyKilledByContractOwner, Killed}
 
     mapping(bytes32 => KillProcess) public statuses;
+    mapping(bytes32 => address) public schainLinks;
 
     modifier onlyLinker() {
         require(hasRole(LINKER_ROLE, msg.sender), "Linker role is required");
@@ -74,7 +77,14 @@ contract Linker is SkaleManagerClient {
     }
 
     function allowInterchainConnections(string calldata schainName) external onlySchainOwner(schainName) {
-        interchainConnections[keccak256(abi.encodePacked(schainName))] = true;
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        interchainConnections[schainHash] = true;
+        messageProxy.postOutgoingMessage(
+            schainHash,
+            schainLinks[schainHash],
+            // Messages.encodeFreezeStateMessage(address(messageProxy), false)
+            Messages.encodeInterchainConnectionMessage(true)
+        );
     }
 
     function kill(string calldata schainName) external {
@@ -109,6 +119,33 @@ contract Linker is SkaleManagerClient {
             IMainnetContract(_mainnetContracts.at(i)).removeSchainContract(schainName);
         }
         messageProxy.removeConnectedChain(schainName);
+    }
+
+    function addSchainContract(string calldata schainName, address contractOnSchain) external {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(
+            hasRole(LINKER_ROLE, msg.sender) ||
+            isSchainOwner(msg.sender, schainHash) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
+        );
+        require(schainLinks[schainHash] == address(0), "SKALE chain is already set");
+        require(contractOnSchain != address(0), "Incorrect address for contract on Schain");
+        schainLinks[schainHash] = contractOnSchain;
+    }
+
+    function removeSchainContract(string calldata schainName) external {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(
+            hasRole(LINKER_ROLE, msg.sender) ||
+            isSchainOwner(msg.sender, schainHash) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
+        );
+        require(schainLinks[schainHash] != address(0), "SKALE chain is not set");
+        delete schainLinks[schainHash];
+    }
+
+    function hasSchainContract(string calldata schainName) external view returns (bool) {
+        return schainLinks[keccak256(abi.encodePacked(schainName))] != address(0);
     }
 
     function isNotKilled(bytes32 schainHash) external view returns (bool) {
