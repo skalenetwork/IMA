@@ -95,6 +95,7 @@ contract TokenManagerLinker is SkaleFeaturesClient {
         external
         onlyRegistrar
     {
+        require(interchainConnections, "Interchain connection not allowed");
         require(tokenManagerAddresses.length == _tokenManagers.length, "Incorrect number of addresses");
         for (uint i = 0; i < tokenManagerAddresses.length; i++) {
             _tokenManagers[i].addTokenManager(schainName, tokenManagerAddresses[i]);
