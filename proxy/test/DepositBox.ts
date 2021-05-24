@@ -308,6 +308,78 @@ describe("DepositBox", () => {
         });
     });
 
+    describe("tests with `ERC1155`", async () => {
+        let eRC721OnChain: ERC721OnChain;
+
+        beforeEach(async () => {
+            eRC721OnChain = await deployERC721OnChain("ERC721OnChain", "ERC721");
+
+            // mint some ERC721 of  for `deployer` address
+            const tokenId = 10;
+            await eRC721OnChain.connect(deployer).mint(deployer.address, tokenId);
+            const tokenId2 = 11;
+            await eRC721OnChain.connect(deployer).mint(deployer.address, tokenId2);
+
+        });
+
+        describe("tests for `depositERC721` function", async () => {
+            it("should rejected with `DepositBox was not approved for ERC721 token`", async () => {
+                // preparation
+                const error = "DepositBox was not approved for ERC721 token";
+                const schainName = randomString(10);
+                const contractHere = eRC721OnChain.address;
+                const to = user.address;
+                const tokenId = 10;
+                // the wei should be MORE than (55000 * 1000000000)
+                // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
+                const wei = "20000000000000000";
+                // add schain to avoid the `Unconnected chain` error
+                await linker
+                    .connect(deployer)
+                    .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address]);
+
+                // execution/expectation
+                await depositBoxERC721
+                    .connect(deployer)
+                    .depositERC721(schainName, contractHere, to, tokenId)
+                    .should.be.eventually.rejectedWith(error);
+            });
+
+            it("should invoke `depositERC721` without mistakes", async () => {
+                // preparation
+                const schainName = randomString(10);
+                const contractHere = eRC721OnChain.address;
+                const to = user.address;
+                const tokenId = 10;
+                const tokenId2 = 11;
+                // the wei should be MORE than (55000 * 1000000000)
+                // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
+                // add schain to avoid the `Unconnected chain` error
+                await linker
+                    .connect(deployer)
+                    .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address]);
+                // transfer tokenId from `deployer` to `depositBoxERC721`
+                await eRC721OnChain.connect(deployer).approve(depositBoxERC721.address, tokenId);
+                await eRC721OnChain.connect(deployer).approve(depositBoxERC721.address, tokenId2);
+                // execution
+                await depositBoxERC721
+                    .connect(deployer)
+                    .depositERC721(schainName, contractHere, to, tokenId).should.be.eventually.rejectedWith("Whitelist is enabled");
+                await depositBoxERC721.disableWhitelist(schainName);
+                await depositBoxERC721
+                    .connect(deployer)
+                    .depositERC721(schainName, contractHere, to, tokenId);
+                const res = await (await depositBoxERC721
+                    .connect(deployer)
+                    .depositERC721(schainName, contractHere, to, tokenId2)).wait();
+                // console.log("Gas for depoositERC721:", res.receipt.gasUsed);
+                // expectation
+                expect(await eRC721OnChain.ownerOf(tokenId)).to.equal(depositBoxERC721.address);
+                expect(await eRC721OnChain.ownerOf(tokenId2)).to.equal(depositBoxERC721.address);
+            });
+        });
+    });
+
     describe("tests for `postMessage` function", async () => {
         // let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
         // let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
@@ -631,6 +703,59 @@ describe("DepositBox", () => {
         });
 
         it("should transfer ERC721 token", async () => {
+            //  preparation
+            const contractHere = eRC721OnChain.address;
+            const schainName = randomString(10);
+            const tokenId = 10;
+            const to = user.address;
+            const to0 = "0x0000000000000000000000000000000000000000"; // ERC721 address
+            const senderFromSchain = deployer.address;
+            const wei = 1e18.toString();
+
+
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
+
+            const message = {
+                data: await messages.encodeTransferErc721Message(contractHere, to, tokenId),
+                destinationContract: depositBoxERC721.address,
+                sender: senderFromSchain
+            };
+
+            await initializeSchain(contractManager, schainName, user2.address, 1, 1);
+            await setCommonPublicKey(contractManager, schainName);
+            // add schain to avoid the `Receiver chain is incorrect` error
+            await linker
+                .connect(deployer)
+                .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address]);
+            await communityPool
+                .connect(user)
+                .rechargeUserWallet(schainName, { value: wei });
+
+            // mint some ERC721 of  for `deployer` address
+            await eRC721OnChain.connect(deployer).mint(deployer.address, tokenId);
+            // transfer tokenId from `deployer` to `depositBoxERC721`
+            await eRC721OnChain.connect(deployer).transferFrom(deployer.address, depositBoxERC721.address, tokenId);
+            // get data from `receiveERC721`
+            await depositBoxERC721.disableWhitelist(schainName);
+            // execution
+            // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
+            // to avoid `Incorrect sender` error
+            const balanceBefore = await getBalance(deployer.address);
+            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign, 0);
+            const balance = await getBalance(deployer.address);
+            balance.should.not.be.lessThan(balanceBefore);
+            balance.should.be.almost(balanceBefore);
+            // console.log("Gas for postMessage ERC721:", res.receipt.gasUsed);
+            // expectation
+            (await eRC721OnChain.ownerOf(tokenId)).should.be.equal(user.address);
+        });
+
+        it("should transfer ERC1155 token", async () => {
             //  preparation
             const contractHere = eRC721OnChain.address;
             const schainName = randomString(10);
