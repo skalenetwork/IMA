@@ -113,7 +113,9 @@ async function main() {
         getProxyMainnet("deposit_box_erc20_address") === undefined ||
         getProxyMainnet("deposit_box_erc20_address") === "" ||
         getProxyMainnet("deposit_box_erc721_address") === undefined ||
-        getProxyMainnet("deposit_box_erc721_address") === ""
+        getProxyMainnet("deposit_box_erc721_address") === "" ||
+        getProxyMainnet("linker_address") === undefined ||
+        getProxyMainnet("linker_address") === ""
     ) {
         console.log( "Please provide correct abi for mainnet contracts in IMA/proxy/data/proxyMainnet.json" );
         process.exit( 126 );
@@ -121,6 +123,7 @@ async function main() {
     const depositBoxEthAddress = getProxyMainnet("deposit_box_eth_address");
     const depositBoxERC20Address = getProxyMainnet("deposit_box_erc20_address");
     const depositBoxERC721Address = getProxyMainnet("deposit_box_erc721_address");
+    const linkerAddress = getProxyMainnet("linker_address");
 
     console.log("Deploy MessageProxyForSchain");
     const messageProxy = await messageProxyFactory.deploy( schainName );
@@ -129,7 +132,7 @@ async function main() {
 
     console.log("Deploy TokenManagerLinker");
     const tokenManagerLinkerFactory = await ethers.getContractFactory("TokenManagerLinker");
-    const tokenManagerLinker = await tokenManagerLinkerFactory.deploy( messageProxy.address );
+    const tokenManagerLinker = await tokenManagerLinkerFactory.deploy( messageProxy.address, linkerAddress );
     deployed.set( "TokenManagerLinker", { address: tokenManagerLinker.address, interface: tokenManagerLinker.interface, bytecode: tokenManagerLinker.bytecode } );
     console.log("Contract TokenManagerLinker deployed to", tokenManagerLinker.address);
 
