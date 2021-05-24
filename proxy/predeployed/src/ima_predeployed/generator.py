@@ -1,6 +1,7 @@
 import json
 import os
 
+from ima_predeployed.contracts.token_manager_linker import TokenManagerLinkerGenerator
 from .contracts.community_locker import CommunityLockerGenerator
 from .contract_generator import ContractGenerator
 from .contracts.key_storage import KeyStorageGenerator
@@ -11,7 +12,8 @@ from .addresses import \
     PROXY_ADMIN_ADDRESS, \
     MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, \
     MESSAGE_PROXY_FOR_SCHAIN_IMPLEMENTATION_ADDRESS, KEY_STORAGE_IMPLEMENTATION_ADDRESS, KEY_STORAGE_ADDRESS, \
-    COMMUNITY_LOCKER_IMPLEMENTATION_ADDRESS, COMMUNITY_LOCKER_ADDRESS
+    COMMUNITY_LOCKER_IMPLEMENTATION_ADDRESS, COMMUNITY_LOCKER_ADDRESS, TOKEN_MANAGER_LINKER_IMPLEMENTATION_ADDRESS, \
+    TOKEN_MANAGER_LINKER_ADDRESS
 
 
 def generate_contracts(owner_address: str, schain_name: str) -> dict:
@@ -36,6 +38,13 @@ def generate_contracts(owner_address: str, schain_name: str) -> dict:
         CommunityLockerGenerator(owner_address, schain_name)
     )
 
+    token_manager_linker_implementation = ContractGenerator(TokenManagerLinkerGenerator.ARTIFACT_FILENAME)
+    token_manager_linker = UpgradeableContractGenerator(
+        TOKEN_MANAGER_LINKER_IMPLEMENTATION_ADDRESS,
+        PROXY_ADMIN_ADDRESS,
+        TokenManagerLinkerGenerator(owner_address)
+    )
+
     return {
         PROXY_ADMIN_ADDRESS: proxy_admin.generate_contract(),
 
@@ -46,7 +55,10 @@ def generate_contracts(owner_address: str, schain_name: str) -> dict:
         KEY_STORAGE_IMPLEMENTATION_ADDRESS: key_storage_implementation.generate_contract(),
 
         COMMUNITY_LOCKER_ADDRESS: community_locker.generate_contract(),
-        COMMUNITY_LOCKER_IMPLEMENTATION_ADDRESS: community_locker_implementation.generate_contract()
+        COMMUNITY_LOCKER_IMPLEMENTATION_ADDRESS: community_locker_implementation.generate_contract(),
+
+        TOKEN_MANAGER_LINKER_ADDRESS: token_manager_linker.generate_contract(),
+        TOKEN_MANAGER_LINKER_IMPLEMENTATION_ADDRESS: token_manager_linker_implementation.generate_contract()
     }
 
 

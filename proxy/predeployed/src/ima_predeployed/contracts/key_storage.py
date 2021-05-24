@@ -17,7 +17,7 @@ class KeyStorageGenerator(ContractGenerator):
     # 52:   __gap
     # ...   __gap
     # 100:  __gap
-    # ----KeyStorage----
+    # ----------KeyStorage----------
 
     ROLES_SLOT = 51
 

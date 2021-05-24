@@ -39,18 +39,7 @@ contract TokenManagerLinker is AccessControlUpgradeable {
     bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
 
     IMessageProxy public messageProxy;
-    TokenManager[] private _tokenManagers;    
-
-    constructor(
-        address newMessageProxyAddress
-    )
-        public
-    {
-        AccessControlUpgradeable.__AccessControl_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(REGISTRAR_ROLE, msg.sender);
-        messageProxy = IMessageProxy(newMessageProxyAddress);        
-    }
+    TokenManager[] public tokenManagers;    
 
     modifier onlyRegistrar() {
         require(hasRole(REGISTRAR_ROLE, msg.sender), "REGISTRAR_ROLE is required");
@@ -58,22 +47,22 @@ contract TokenManagerLinker is AccessControlUpgradeable {
     }
 
     function registerTokenManager(TokenManager newTokenManager) external onlyRegistrar {
-        _tokenManagers.push(newTokenManager);
+        tokenManagers.push(newTokenManager);
     }
 
     function removeTokenManager(TokenManager tokenManagerAddress) external onlyRegistrar {
         uint index;
-        uint length = _tokenManagers.length;
+        uint length = tokenManagers.length;
         for (index = 0; index < length; index++) {
-            if (_tokenManagers[index] == tokenManagerAddress) {
+            if (tokenManagers[index] == tokenManagerAddress) {
                 break;
             }
         }
         if (index < length) {
             if (index < length.sub(1)) {
-                _tokenManagers[index] = _tokenManagers[length.sub(1)];
+                tokenManagers[index] = tokenManagers[length.sub(1)];
             }
-            _tokenManagers.pop();
+            tokenManagers.pop();
         }
     }
 
@@ -84,26 +73,26 @@ contract TokenManagerLinker is AccessControlUpgradeable {
         external
         onlyRegistrar
     {
-        require(tokenManagerAddresses.length == _tokenManagers.length, "Incorrect number of addresses");
+        require(tokenManagerAddresses.length == tokenManagers.length, "Incorrect number of addresses");
         for (uint i = 0; i < tokenManagerAddresses.length; i++) {
-            _tokenManagers[i].addTokenManager(schainName, tokenManagerAddresses[i]);
+            tokenManagers[i].addTokenManager(schainName, tokenManagerAddresses[i]);
         }
         messageProxy.addConnectedChain(schainName);
     }
 
     function disconnectSchain(string calldata schainName) external onlyRegistrar {
-        uint length = _tokenManagers.length;
+        uint length = tokenManagers.length;
         for (uint i = 0; i < length; i++) {
-            _tokenManagers[i].removeTokenManager(schainName);
+            tokenManagers[i].removeTokenManager(schainName);
         }
         messageProxy.removeConnectedChain(schainName);
     }
 
     function hasTokenManager(TokenManager tokenManager) external view returns (bool) {
         uint index;
-        uint length = _tokenManagers.length;
+        uint length = tokenManagers.length;
         for (index = 0; index < length; index++) {
-            if (_tokenManagers[index] == tokenManager) {
+            if (tokenManagers[index] == tokenManager) {
                 return true;
             }
         }
@@ -111,11 +100,22 @@ contract TokenManagerLinker is AccessControlUpgradeable {
     }
 
     function hasSchain(string calldata schainName) external view returns (bool connected) {
-        uint length = _tokenManagers.length;
+        uint length = tokenManagers.length;
         connected = true;
         for (uint i = 0; i < length; i++) {
-            connected = connected && _tokenManagers[i].hasTokenManager(schainName);
+            connected = connected && tokenManagers[i].hasTokenManager(schainName);
         }
         connected = connected && messageProxy.isConnectedChain(schainName);
+    }
+
+    function initialize(IMessageProxy newMessageProxyAddress)
+        public
+        virtual
+        initializer
+    {
+        AccessControlUpgradeable.__AccessControl_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(REGISTRAR_ROLE, msg.sender);
+        messageProxy = newMessageProxyAddress;    
     }
 }

@@ -73,3 +73,9 @@ class ContractGenerator:
         for i, account in enumerate(accounts):
             self._write_address(calculate_array_value_slot(values_slot, i), account)
             self._write_uint256(calculate_mapping_value_slot(indexes_slot, int(account, 16), 'uint256'), i + 1)
+
+    def _write_addresses_array(self, slot: int, values: list) -> None:
+        self._write_uint256(slot, len(values))
+        for i, address in enumerate(values):
+            address_slot = calculate_array_value_slot(slot, i)
+            self._write_address(address_slot, address)
