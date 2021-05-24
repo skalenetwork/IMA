@@ -283,7 +283,7 @@ describe("Gas calculation", () => {
         const minterRoleERC721 = await ERC721TokenOnSchain.MINTER_ROLE();
         await ERC721TokenOnSchain.grantRole(minterRoleERC721, tokenManagerERC721.address);
 
-        //register user
+        // register user
         await communityPool.connect(user).rechargeUserWallet(schainName, {value: "1000000000000000000"});
     });
 
