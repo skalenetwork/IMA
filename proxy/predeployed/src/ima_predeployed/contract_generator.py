@@ -26,6 +26,10 @@ def calculate_array_value_slot(slot: int, index: int) -> int:
     return int.from_bytes(Web3.solidityKeccak(['uint256'], [slot]), 'big') + index
 
 
+def next_slot(previous_slot: int) -> int:
+    return previous_slot + 1
+
+
 class ContractGenerator:
     def __init__(self, artifact_filename: str):
         artifacts_dir = os.path.join(os.path.dirname(__file__), 'artifacts')

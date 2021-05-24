@@ -36,13 +36,14 @@ import "./TokenManagerLinker.sol";
  */
 contract CommunityLocker is AccessControlUpgradeable {
 
+    string constant public MAINNET_NAME = "Mainnet";
+    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
 
     bytes32 public schainHash;
-    uint public timeLimitPerMessage;
-    string constant public MAINNET_NAME = "Mainnet";
-    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+    uint public timeLimitPerMessage;    
 
     mapping(address => bool) private _unfrozenUsers;
     mapping(address => uint) private _lastMessageTimeStamp;
@@ -50,22 +51,7 @@ contract CommunityLocker is AccessControlUpgradeable {
     event UserUnfrozed(
         bytes32 schainHash,
         address user
-    );
-
-    constructor(
-        string memory newSchainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker
-    )
-        public
-    {
-        AccessControlUpgradeable.__AccessControl_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        schainHash = keccak256(abi.encodePacked(newSchainName));
-        messageProxy = newMessageProxy;
-        tokenManagerLinker = newIMALinker;
-        timeLimitPerMessage = 5 minutes;
-    }
+    );    
 
     function postMessage(
         bytes32 fromChainHash,
@@ -99,6 +85,23 @@ contract CommunityLocker is AccessControlUpgradeable {
     function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
         timeLimitPerMessage = newTimeLimitPerMessage;
+    }
+
+    function initialize(
+        string memory _schainName,
+        MessageProxyForSchain _messageProxy,
+        TokenManagerLinker _tokenManagerLinker
+    )
+        public
+        virtual
+        initializer
+    {
+        AccessControlUpgradeable.__AccessControl_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        messageProxy = _messageProxy;
+        tokenManagerLinker = _tokenManagerLinker;
+        schainHash = keccak256(abi.encodePacked(_schainName));
+        timeLimitPerMessage = 5 minutes;
     }
 
 }

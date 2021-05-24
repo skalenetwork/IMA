@@ -1,6 +1,4 @@
-from ..contract_generator import ContractGenerator, calculate_mapping_value_slot, calculate_array_value_slot
-from ..addresses import KEY_STORAGE_ADDRESS
-from web3 import Web3
+from ..contract_generator import ContractGenerator
 
 
 class KeyStorageGenerator(ContractGenerator):

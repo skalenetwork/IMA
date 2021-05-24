@@ -27,10 +27,6 @@ import "./TokenManagerLinker.sol";
 import "./CommunityLocker.sol";
 
 
-interface ICommunityLocker {
-    function checkAllowedToSendMessage(address receiver) external;
-}
-
 /**
  * @title Token Manager
  * @dev Runs on SKALE Chains, accepts messages from mainnet, and instructs
