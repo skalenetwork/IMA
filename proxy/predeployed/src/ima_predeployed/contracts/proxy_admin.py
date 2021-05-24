@@ -2,10 +2,10 @@ from ..contract_generator import ContractGenerator
 
 
 class ProxyAdminGenerator(ContractGenerator):
-    artifact_filename = "ProxyAdmin.json"
+    ARTIFACT_FILENAME = "ProxyAdmin.json"
 
     def __init__(self, owner_address: str):
-        super().__init__(self.artifact_filename)
+        super().__init__(self.ARTIFACT_FILENAME)
         self._setup(owner_address)
 
     # private
