@@ -88,9 +88,9 @@ contract CommunityLocker is AccessControlUpgradeable {
     }
 
     function initialize(
-        string memory _schainName,
-        MessageProxyForSchain _messageProxy,
-        TokenManagerLinker _tokenManagerLinker
+        string memory newSchainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newTokenManagerLinker
     )
         public
         virtual
@@ -98,9 +98,9 @@ contract CommunityLocker is AccessControlUpgradeable {
     {
         AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        messageProxy = _messageProxy;
-        tokenManagerLinker = _tokenManagerLinker;
-        schainHash = keccak256(abi.encodePacked(_schainName));
+        messageProxy = newMessageProxy;
+        tokenManagerLinker = newTokenManagerLinker;
+        schainHash = keccak256(abi.encodePacked(newSchainName));
         timeLimitPerMessage = 5 minutes;
     }
 
