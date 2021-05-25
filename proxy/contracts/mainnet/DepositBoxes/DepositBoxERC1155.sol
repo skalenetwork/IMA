@@ -26,7 +26,6 @@ import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155MetadataURIUpg
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155ReceiverUpgradeable.sol";
 import "../DepositBox.sol";
 import "../../Messages.sol";
-import "hardhat/console.sol";
 
 
 // This contract runs on the main net and accepts deposits
