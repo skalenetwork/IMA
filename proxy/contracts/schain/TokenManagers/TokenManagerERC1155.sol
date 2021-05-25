@@ -25,7 +25,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 import "../../Messages.sol";
-import "../tokens/ERC721OnChain.sol";
+import "../tokens/ERC1155OnChain.sol";
 import "../TokenManager.sol";
 
 
@@ -38,14 +38,14 @@ import "../TokenManager.sol";
  */
 contract TokenManagerERC1155 is TokenManager {
 
-    // address of ERC721 on Mainnet => ERC721 on Schain
-    mapping(address => ERC721OnChain) public clonesErc721;
+    // address of ERC1155 on Mainnet => ERC1155 on Schain
+    mapping(address => ERC1155OnChain) public clonesErc1155;
 
-    event ERC721TokenAdded(address indexed erc721OnMainnet, address indexed erc721OnSchain);
+    event ERC1155TokenAdded(address indexed erc1155OnMainnet, address indexed erc1155OnSchain);
 
-    event ERC721TokenCreated(address indexed erc721OnMainnet, address indexed erc721OnSchain);
+    event ERC1155TokenCreated(address indexed erc1155OnMainnet, address indexed erc1155OnSchain);
 
-    event ERC721TokenReceived(address indexed erc721OnMainnet, address indexed erc721OnSchain, uint256 tokenId);
+    event ERC1155TokenReceived(address indexed erc1155OnMainnet, address indexed erc1155OnSchain, uint256 id, uint256 amount);
 
     constructor(
         string memory newChainName,
@@ -59,29 +59,30 @@ contract TokenManagerERC1155 is TokenManager {
         // solhint-disable-next-line no-empty-blocks
     { }    
 
-    function exitToMainERC721(
+    function exitToMainERC1155(
         address contractOnMainnet,
         address to,
-        uint256 tokenId
+        uint256 id,
+        uint256 amount
     )
         external
     {
         require(to != address(0), "Incorrect receiver address");
-        ERC721Burnable contractOnSchain = clonesErc721[contractOnMainnet];
+        ERC1155Burnable contractOnSchain = clonesErc1155[contractOnMainnet];
         getCommunityLocker().checkAllowedToSendMessage(to);
         require(address(contractOnSchain).isContract(), "No token clone on schain");
-        require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
-        contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
-        contractOnSchain.burn(tokenId);
-        bytes memory data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);
-        getMessageProxy().postOutgoingMessage(MAINNET_NAME, getDepositBoxERC721Address(), data);
+        require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
+        contractOnSchain.burn(msg.sender, id, amount);
+        bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);
+        getMessageProxy().postOutgoingMessage(MAINNET_NAME, getDepositBoxERC1155Address(), data);
     }
 
-    function transferToSchainERC721(
+    function transferToSchainERC1155(
         string calldata targetSchainName,
         address contractOnMainnet,
         address to,
-        uint256 tokenId
+        uint256 id,
+        uint256 amount
     ) 
         external
     {
@@ -92,12 +93,11 @@ contract TokenManagerERC1155 is TokenManager {
             "This function is not for transferring to Mainnet"
         );
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
-        ERC721Burnable contractOnSchain = clonesErc721[contractOnMainnet];
+        ERC1155Burnable contractOnSchain = clonesErc1155[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
-        require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
-        contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
-        contractOnSchain.burn(tokenId);
-        bytes memory data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);    
+        require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
+        contractOnSchain.burn(msg.sender, id, amount);
+        bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);    
         getMessageProxy().postOutgoingMessage(targetSchainName, tokenManagers[targetSchainHash], data);
     }
 
@@ -126,17 +126,19 @@ contract TokenManagerERC1155 is TokenManager {
             fromChainHash != getSchainHash() && 
             (
                 fromChainHash == MAINNET_HASH ?
-                sender == getDepositBoxERC721Address() :
+                sender == getDepositBoxERC1155Address() :
                 sender == tokenManagers[fromChainHash]
             ),
             "Receiver chain is incorrect"
         );
         Messages.MessageType operation = Messages.getMessageType(data);
         if (
-            operation == Messages.MessageType.TRANSFER_ERC721_AND_TOKEN_INFO ||
-            operation == Messages.MessageType.TRANSFER_ERC721
+            operation == Messages.MessageType.TRANSFER_ERC1155 ||
+            operation == Messages.MessageType.TRANSFER_ERC1155_AND_TOKEN_INFO ||
+            operation == Messages.MessageType.TRANSFER_ERC1155_BATCH ||
+            operation == Messages.MessageType.TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO
         ) {
-            _sendERC721(data);
+            _sendERC1155(data);
         } else {
             revert("MessageType is unknown");
         }
@@ -144,64 +146,67 @@ contract TokenManagerERC1155 is TokenManager {
     }
 
     /**
-     * @dev Allows Schain owner to add an ERC721 token to LockAndDataForSchainERC721.
+     * @dev Allows Schain owner to add an ERC1155 token to LockAndDataForSchainERC1155.
      */
-    function addERC721TokenByOwner(
-        address erc721OnMainnet,
-        ERC721OnChain erc721OnSchain
+    function addERC1155TokenByOwner(
+        address erc1155OnMainnet,
+        ERC1155OnChain erc1155OnSchain
     )
         external
     {
         require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
         require(
-            address(erc721OnSchain).isContract(),
+            address(erc1155OnSchain).isContract(),
             "Given address is not a contract"
         );
-        clonesErc721[erc721OnMainnet] = erc721OnSchain;
-        emit ERC721TokenAdded(erc721OnMainnet, address(erc721OnSchain));
+        clonesErc1155[erc1155OnMainnet] = erc1155OnSchain;
+        emit ERC1155TokenAdded(erc1155OnMainnet, address(erc1155OnSchain));
     }
 
-    function getDepositBoxERC721Address() public view returns (address) {
+    function getDepositBoxERC1155Address() public view returns (address) {
         if (depositBox == address(0)) {
-            return getSkaleFeatures().getConfigVariableAddress("skaleConfig.contractSettings.IMA.DepositBoxERC721");
+            return getSkaleFeatures().getConfigVariableAddress("skaleConfig.contractSettings.IMA.DepositBoxERC1155");
         }
         return depositBox;
     }
 
 
     /**
-     * @dev Allows TokenManager to send ERC721 tokens.
+     * @dev Allows TokenManager to send ERC1155 tokens.
      *  
-     * Emits a {ERC721TokenCreated} event if to address = 0.
+     * Emits a {ERC1155TokenCreated} event if to address = 0.
      */
-    function _sendERC721(bytes calldata data) private {
+    function _sendERC1155(bytes calldata data) private {
         Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
         address token;
-        uint256 tokenId;
-        if (messageType == Messages.MessageType.TRANSFER_ERC721){
-            Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
+        uint256 id;
+        uint256 amount;
+        if (messageType == Messages.MessageType.TRANSFER_ERC1155){
+            Messages.TransferErc1155Message memory message = Messages.decodeTransferErc1155Message(data);
             receiver = message.receiver;
             token = message.token;
-            tokenId = message.tokenId;
+            id = message.id;
+            amount = message.amount;
         } else {
-            Messages.TransferErc721AndTokenInfoMessage memory message =
-                Messages.decodeTransferErc721AndTokenInfoMessage(data);
-            receiver = message.baseErc721transfer.receiver;
-            token = message.baseErc721transfer.token;
-            tokenId = message.baseErc721transfer.tokenId;
-            ERC721OnChain contractOnSchainTmp = clonesErc721[token];
+            Messages.TransferErc1155AndTokenInfoMessage memory message =
+                Messages.decodeTransferErc1155AndTokenInfoMessage(data);
+            receiver = message.baseErc1155transfer.receiver;
+            token = message.baseErc1155transfer.token;
+            id = message.baseErc1155transfer.id;
+            amount = message.baseErc1155transfer.amount;
+            ERC1155OnChain contractOnSchainTmp = clonesErc1155[token];
             if (address(contractOnSchainTmp) == address(0)) {
                 require(automaticDeploy, "Automatic deploy is disabled");
-                contractOnSchainTmp = new ERC721OnChain(message.tokenInfo.name, message.tokenInfo.symbol);           
-                clonesErc721[token] = contractOnSchainTmp;
-                emit ERC721TokenCreated(token, address(contractOnSchainTmp));
+                contractOnSchainTmp = new ERC1155OnChain(message.tokenInfo.uri);
+                clonesErc1155[token] = contractOnSchainTmp;
+                emit ERC1155TokenCreated(token, address(contractOnSchainTmp));
             }
         }
-        ERC721OnChain contractOnSchain = clonesErc721[token];
+        ERC1155OnChain contractOnSchain = clonesErc1155[token];
         require(address(contractOnSchain).isContract(), "Given address is not a contract");
-        contractOnSchain.mint(receiver, tokenId);
-        emit ERC721TokenReceived(token, address(contractOnSchain), tokenId);
+        contractOnSchain.mint(receiver, id, amount, "");
+        emit ERC1155TokenReceived(token, address(contractOnSchain), id, amount);
     }    
 
 }
