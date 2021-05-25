@@ -32,7 +32,10 @@ library Messages {
         TRANSFER_ERC20_AND_TOKEN_INFO,
         TRANSFER_ERC721,
         TRANSFER_ERC721_AND_TOKEN_INFO,
-        FREEZE_STATE
+        FREEZE_STATE,
+        RESERVED,
+        TRANSFER_ERC1155,
+        TRANSFER_ERC1155_BATCH
     }
 
     struct BaseMessage {
@@ -90,6 +93,22 @@ library Messages {
     struct TransferErc721AndTokenInfoMessage {
         TransferErc721Message baseErc721transfer;
         Erc721TokenInfo tokenInfo;
+    }
+
+    struct TransferErc1155Message {
+        BaseMessage message;
+        address token;
+        address receiver;
+        uint256 id;
+        uint256 amount;
+    }
+
+    struct TransferErc1155BatchMessage {
+        BaseMessage message;
+        address token;
+        address receiver;
+        uint256[] ids;
+        uint256[] amounts;
     }
 
     function getMessageType(bytes memory data) internal pure returns (MessageType) {
@@ -259,5 +278,51 @@ library Messages {
     function decodeFreezeStateMessage(bytes memory data) internal pure returns (FreezeStateMessage memory) {
         require(getMessageType(data) == MessageType.FREEZE_STATE, "Message type is not Freeze User");
         return abi.decode(data, (FreezeStateMessage));
+    }
+
+    function encodeTransferErc1155Message(
+        address token,
+        address receiver,
+        uint256 id,
+        uint256 amount
+    ) internal pure returns (bytes memory) {
+        TransferErc1155Message memory message = TransferErc1155Message(
+            BaseMessage(MessageType.TRANSFER_ERC1155),
+            token,
+            receiver,
+            id,
+            amount
+        );
+        return abi.encode(message);
+    }
+
+    function decodeTransferErc1155Message(
+        bytes memory data
+    ) internal pure returns (TransferErc1155Message memory) {
+        require(getMessageType(data) == MessageType.TRANSFER_ERC1155, "Message type is not ERC1155 transfer");
+        return abi.decode(data, (TransferErc1155Message));
+    }
+
+    function encodeTransferErc1155BatchMessage(
+        address token,
+        address receiver,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) internal pure returns (bytes memory) {
+        TransferErc1155BatchMessage memory message = TransferErc1155BatchMessage(
+            BaseMessage(MessageType.TRANSFER_ERC1155_BATCH),
+            token,
+            receiver,
+            ids,
+            amounts
+        );
+        return abi.encode(message);
+    }
+
+    function decodeTransferErc1155BatchMessage(
+        bytes memory data
+    ) internal pure returns (TransferErc1155BatchMessage memory) {
+        require(getMessageType(data) == MessageType.TRANSFER_ERC1155_BATCH, "Message type is not ERC1155Batch transfer");
+        return abi.decode(data, (TransferErc1155BatchMessage));
     }
 }
