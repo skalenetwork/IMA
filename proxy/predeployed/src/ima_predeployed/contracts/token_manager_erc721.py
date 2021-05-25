@@ -1,12 +1,8 @@
-from ima_predeployed.addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, TOKEN_MANAGER_LINKER_ADDRESS, \
-    COMMUNITY_LOCKER_ADDRESS, ETH_ERC_20_ADDRESS
-from ima_predeployed.contract_generator import next_slot
 from ima_predeployed.contracts.token_manager import TokenManagerGenerator
-from tools import w3
 
 
-class TokenManagerErc20Generator(TokenManagerGenerator):
-    ARTIFACT_FILENAME = "TokenManagerERC20.json"
+class TokenManagerErc721Generator(TokenManagerGenerator):
+    ARTIFACT_FILENAME = "TokenManagerERC721.json"
 
     # ---------- storage ----------
     # --------Initializable--------
@@ -27,9 +23,8 @@ class TokenManagerErc20Generator(TokenManagerGenerator):
     # 104:  schainHash
     # 105:  depositBox, automaticDeploy
     # 106:  tokenManagers
-    # ------TokenManagerERC20------
-    # 107:  clonesErc20
-    # 108:  totalSupplyOnMainnet
+    # ------TokenManagerERC721------
+    # 107:  clonesErc721
 
     def __init__(self, deployer_address: str, deposit_box_address: str, schain_name: str):
         super().__init__(deployer_address, deposit_box_address, schain_name)

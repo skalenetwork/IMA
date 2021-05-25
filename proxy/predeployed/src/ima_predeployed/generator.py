@@ -1,7 +1,8 @@
 import json
 import os
 
-from ima_predeployed.contracts.token_manager_erc_20 import TokenManagerErc20Generator
+from ima_predeployed.contracts.token_manager_erc20 import TokenManagerErc20Generator
+from ima_predeployed.contracts.token_manager_erc721 import TokenManagerErc721Generator
 from ima_predeployed.contracts.token_manager_eth import TokenManagerEthGenerator
 from ima_predeployed.contracts.token_manager_linker import TokenManagerLinkerGenerator
 from .contracts.community_locker import CommunityLockerGenerator
@@ -16,7 +17,8 @@ from .addresses import \
     MESSAGE_PROXY_FOR_SCHAIN_IMPLEMENTATION_ADDRESS, KEY_STORAGE_IMPLEMENTATION_ADDRESS, KEY_STORAGE_ADDRESS, \
     COMMUNITY_LOCKER_IMPLEMENTATION_ADDRESS, COMMUNITY_LOCKER_ADDRESS, TOKEN_MANAGER_LINKER_IMPLEMENTATION_ADDRESS, \
     TOKEN_MANAGER_LINKER_ADDRESS, TOKEN_MANAGER_ETH_IMPLEMENTATION_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS, \
-    TOKEN_MANAGER_ERC20_IMPLEMENTATION_ADDRESS, TOKEN_MANAGER_ERC20_ADDRESS
+    TOKEN_MANAGER_ERC20_IMPLEMENTATION_ADDRESS, TOKEN_MANAGER_ERC20_ADDRESS, \
+    TOKEN_MANAGER_ERC721_IMPLEMENTATION_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS
 
 
 def generate_contracts(owner_address: str, schain_name: str, eth_deposit_box: str) -> dict:
@@ -62,6 +64,13 @@ def generate_contracts(owner_address: str, schain_name: str, eth_deposit_box: st
         TokenManagerErc20Generator(owner_address, eth_deposit_box, schain_name)
     )
 
+    token_manager_erc721_implementation = ContractGenerator(TokenManagerErc721Generator.ARTIFACT_FILENAME)
+    token_manager_erc721 = UpgradeableContractGenerator(
+        TOKEN_MANAGER_ERC721_IMPLEMENTATION_ADDRESS,
+        PROXY_ADMIN_ADDRESS,
+        TokenManagerErc721Generator(owner_address, eth_deposit_box, schain_name)
+    )
+
     return {
         PROXY_ADMIN_ADDRESS: proxy_admin.generate_contract(),
 
@@ -81,7 +90,10 @@ def generate_contracts(owner_address: str, schain_name: str, eth_deposit_box: st
         TOKEN_MANAGER_ETH_IMPLEMENTATION_ADDRESS: token_manager_eth_implementation.generate_contract(),
 
         TOKEN_MANAGER_ERC20_ADDRESS: token_manager_erc20.generate_contract(),
-        TOKEN_MANAGER_ERC20_IMPLEMENTATION_ADDRESS: token_manager_erc20_implementation.generate_contract()
+        TOKEN_MANAGER_ERC20_IMPLEMENTATION_ADDRESS: token_manager_erc20_implementation.generate_contract(),
+
+        TOKEN_MANAGER_ERC721_ADDRESS: token_manager_erc721.generate_contract(),
+        TOKEN_MANAGER_ERC721_IMPLEMENTATION_ADDRESS: token_manager_erc721_implementation.generate_contract()
     }
 
 

@@ -4,6 +4,7 @@ from contracts.key_storage import check_key_storage
 from contracts.message_proxy_for_schain import check_message_proxy_for_schain
 from contracts.proxy_admin import check_proxy_admin
 from contracts.token_manager_erc20 import check_token_manager_erc20
+from contracts.token_manager_erc721 import check_token_manager_erc721
 from contracts.token_manager_eth import check_token_manager_eth
 from contracts.token_manager_linker import check_token_manager_linker
 import json
@@ -25,6 +26,7 @@ def main():
     check_token_manager_linker(owner_address)
     check_token_manager_eth(owner_address, eth_deposit_box, schain_name)
     check_token_manager_erc20(owner_address, eth_deposit_box, schain_name)
+    check_token_manager_erc721(owner_address, eth_deposit_box, schain_name)
 
     print('All tests pass')
 

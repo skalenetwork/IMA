@@ -1,6 +1,6 @@
 from ima_predeployed.addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, \
     TOKEN_MANAGER_LINKER_ADDRESS, COMMUNITY_LOCKER_ADDRESS, TOKEN_MANAGER_ERC20_ADDRESS
-from ima_predeployed.contracts.token_manager_erc_20 import TokenManagerErc20Generator
+from ima_predeployed.contracts.token_manager_erc20 import TokenManagerErc20Generator
 from tools import w3, load_abi
 
 

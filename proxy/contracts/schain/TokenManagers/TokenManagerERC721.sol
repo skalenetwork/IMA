@@ -47,24 +47,6 @@ contract TokenManagerERC721 is TokenManager {
 
     event ERC721TokenReceived(address indexed erc721OnMainnet, address indexed erc721OnSchain, uint256 tokenId);
 
-    constructor(
-        string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
-        address newDepositBox
-    )
-        public
-    {
-        TokenManager.initializeTokenManager(
-            newChainName,
-            newMessageProxy,
-            newIMALinker,
-            newCommunityLocker,
-            newDepositBox
-        );
-    }    
-
     function exitToMainERC721(
         address contractOnMainnet,
         address to,
@@ -164,6 +146,26 @@ contract TokenManagerERC721 is TokenManager {
         clonesErc721[erc721OnMainnet] = erc721OnSchain;
         emit ERC721TokenAdded(erc721OnMainnet, address(erc721OnSchain));
     }
+
+    function initialize(
+        string memory newChainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
+        address newDepositBox
+    )
+        public
+    {
+        TokenManager.initializeTokenManager(
+            newChainName,
+            newMessageProxy,
+            newIMALinker,
+            newCommunityLocker,
+            newDepositBox
+        );
+    }    
+
+    // private
 
     /**
      * @dev Allows TokenManager to send ERC721 tokens.
