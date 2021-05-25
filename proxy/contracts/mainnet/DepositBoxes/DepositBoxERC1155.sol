@@ -23,12 +23,14 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155MetadataURIUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155ReceiverUpgradeable.sol";
 import "../DepositBox.sol";
 import "../../Messages.sol";
+import "hardhat/console.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract DepositBoxERC1155 is DepositBox {
+contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
 
     // uint256 public gasConsumption;
 
@@ -49,6 +51,36 @@ contract DepositBoxERC1155 is DepositBox {
             "SKALE chain name is incorrect"
         );
         _;
+    }
+
+    function onERC1155Received(
+        address operator,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    )
+        external
+        override
+        returns(bytes4)
+    {
+        require(operator == address(this), "Revert ERC1155 transfer");
+        return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
+    }
+
+    function onERC1155BatchReceived(
+        address operator,
+        address,
+        uint256[] calldata,
+        uint256[] calldata,
+        bytes calldata
+    )
+        external
+        override
+        returns(bytes4)
+    {
+        require(operator == address(this), "Revert ERC1155 batch transfer");
+        return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
     }
 
     function depositERC1155(
@@ -204,6 +236,7 @@ contract DepositBoxERC1155 is DepositBox {
         initializer
     {
         DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
+        __ERC1155Receiver_init();
     }
 
     /**

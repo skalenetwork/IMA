@@ -79,4 +79,13 @@ contract MessagesTester {
     function encodeFreezeStateMessage(address receiver, bool isUnfrozen) external pure returns (bytes memory) {
         return Messages.encodeFreezeStateMessage(receiver, isUnfrozen);
     }
+
+    function encodeTransferErc1155Message(
+        address token,
+        address receiver,
+        uint256 id,
+        uint256 amount
+    ) external pure returns (bytes memory) {
+        return Messages.encodeTransferErc1155Message(token, receiver, id, amount);
+    }
 }
