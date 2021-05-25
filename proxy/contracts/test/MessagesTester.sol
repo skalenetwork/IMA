@@ -80,6 +80,10 @@ contract MessagesTester {
         return Messages.encodeFreezeStateMessage(receiver, isUnfrozen);
     }
 
+    function encodeInterchainConnectionMessage(bool isAllowed) external pure returns (bytes memory) {
+        return Messages.encodeInterchainConnectionMessage(isAllowed);
+    }
+
     function encodeTransferErc1155Message(
         address token,
         address receiver,

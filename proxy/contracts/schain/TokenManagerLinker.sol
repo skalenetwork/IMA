@@ -20,9 +20,11 @@
  */
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+import "../Messages.sol";
 import "../interfaces/IMessageProxy.sol";
 import "./SkaleFeaturesClient.sol";
 import "./TokenManager.sol";
@@ -39,14 +41,24 @@ contract TokenManagerLinker is SkaleFeaturesClient {
     bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
 
     IMessageProxy public messageProxy;
-    TokenManager[] private _tokenManagers;    
+    TokenManager[] private _tokenManagers;
+
+    bool public interchainConnections;
+
+    address public linkerAddress;
+    string constant public MAINNET_NAME = "Mainnet";
+    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+
+    event InterchainConnectionAllowed(bool isAllowed);
 
     constructor(
-        address newMessageProxyAddress
+        address newMessageProxyAddress,
+        address newLinkerAddress
     )
         public
     {
         messageProxy = IMessageProxy(newMessageProxyAddress);
+        linkerAddress = newLinkerAddress;
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(REGISTRAR_ROLE, msg.sender);
     }
@@ -83,11 +95,35 @@ contract TokenManagerLinker is SkaleFeaturesClient {
         external
         onlyRegistrar
     {
+        require(interchainConnections, "Interchain connection not allowed");
         require(tokenManagerAddresses.length == _tokenManagers.length, "Incorrect number of addresses");
         for (uint i = 0; i < tokenManagerAddresses.length; i++) {
             _tokenManagers[i].addTokenManager(schainName, tokenManagerAddresses[i]);
         }
         getMessageProxy().addConnectedChain(schainName);
+    }
+
+    function postMessage(
+        bytes32 fromChainHash,
+        address sender,
+        bytes calldata data
+    )
+        external
+        returns (bool)
+    {
+        require(msg.sender == address(getMessageProxy()), "Sender is not a message proxy");
+        require(sender == getLinkerAddress(), "Sender from Mainnet is incorrect");
+        require(fromChainHash == MAINNET_HASH, "Source chain name should be Mainnet");
+        Messages.MessageType operation = Messages.getMessageType(data);
+        require(
+            operation == Messages.MessageType.INTERCHAIN_CONNECTION,
+            "The message should contain a interchain connection state"
+        );
+        Messages.InterchainConnectionMessage memory message = Messages.decodeInterchainConnectionMessage(data);
+        require(interchainConnections != message.isAllowed, "Interchain connection state should be different");
+        interchainConnections = message.isAllowed;
+        emit InterchainConnectionAllowed(message.isAllowed);
+        return true;
     }
 
     function disconnectSchain(string calldata schainName) external onlyRegistrar {
@@ -127,5 +163,14 @@ contract TokenManagerLinker is SkaleFeaturesClient {
             );
         }
         return messageProxy;
+    }
+
+    function getLinkerAddress() public view returns (address) {
+        if (linkerAddress == address(0)) {
+            return getSkaleFeatures().getConfigVariableAddress(
+                "skaleConfig.contractSettings.IMA.Linker"
+            );
+        }
+        return linkerAddress;
     }
 }

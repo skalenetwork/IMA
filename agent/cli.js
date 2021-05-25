@@ -178,7 +178,10 @@ function load_node_config( strPath ) {
 
 function parse( joExternalHandlers, argv ) {
     let idxArg; const cntArgs = argv || process.argv.length;
+    console.log( "----------- notice, count of command line args is", cntArgs );
+    console.log( "----------- notice, array of command line args is", JSON.stringify( process.argv ) );
     for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
+        console.log( "----------- notice, command line args no", idxArg, "is", process.argv[idxArg] );
         const joArg = parse_command_line_argument( process.argv[idxArg] );
         if( joArg.name == "help" ) {
             print_about();
@@ -493,6 +496,7 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "abi-main-net" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathAbiJson_main_net = imaUtils.normalizePath( joArg.value );
+            console.log( "----------- notice, got path for main net ABI", imaState.strPathAbiJson_main_net );
             continue;
         }
         if( joArg.name == "abi-s-chain" ) {
@@ -904,6 +908,7 @@ function getWeb3FromURL( strURL ) {
 function ima_common_init() {
     let n1 = 0;
     let n2 = 0;
+    console.log( "----------- notice, will use path for main net ABI", imaState.strPathAbiJson_main_net );
     imaState.joTrufflePublishResult_main_net = imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net, null );
     imaState.joTrufflePublishResult_s_chain = imaUtils.jsonFileLoad( imaState.strPathAbiJson_s_chain, null );
 
@@ -1195,6 +1200,7 @@ function ima_common_init() {
         ensure_have_value( "S-Chain Ethereum chain ID", imaState.cid_s_chain, false, true, null, ( x ) => {
             return cc.note( x );
         } );
+        console.log( "----------- notice, validating path for main net ABI", imaState.strPathAbiJson_main_net );
         ensure_have_value( "Main-net ABI JSON file path", imaState.strPathAbiJson_main_net, false, true, null, ( x ) => {
             return cc.warning( x );
         } );
