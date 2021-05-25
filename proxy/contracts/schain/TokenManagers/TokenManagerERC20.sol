@@ -55,24 +55,6 @@ contract TokenManagerERC20 is TokenManager {
 
     event ERC20TokenReceived(address indexed erc20OnMainnet, address indexed erc20OnSchain, uint256 amount);
 
-    constructor(
-        string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
-        address newDepositBox
-    )
-        public        
-    {
-        TokenManager.initializeTokenManager(
-            newChainName,
-            newMessageProxy,
-            newIMALinker,
-            newCommunityLocker,
-            newDepositBox
-        );
-    }
-
     function exitToMainERC20(
         address contractOnMainnet,
         address to,
@@ -211,6 +193,26 @@ contract TokenManagerERC20 is TokenManager {
         clonesErc20[erc20OnMainnet] = erc20OnSchain;
         emit ERC20TokenAdded(erc20OnMainnet, address(erc20OnSchain));
     }
+
+    function initialize(
+        string memory newChainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
+        address newDepositBox
+    )
+        public        
+    {
+        TokenManager.initializeTokenManager(
+            newChainName,
+            newMessageProxy,
+            newIMALinker,
+            newCommunityLocker,
+            newDepositBox
+        );
+    }
+
+    // private
 
     /**
      * @dev Allows TokenManager to send ERC20 tokens.
