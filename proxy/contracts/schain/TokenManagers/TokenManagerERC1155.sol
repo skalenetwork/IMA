@@ -45,7 +45,12 @@ contract TokenManagerERC1155 is TokenManager {
 
     event ERC1155TokenCreated(address indexed erc1155OnMainnet, address indexed erc1155OnSchain);
 
-    event ERC1155TokenReceived(address indexed erc1155OnMainnet, address indexed erc1155OnSchain, uint256 id, uint256 amount);
+    event ERC1155TokenReceived(
+        address indexed erc1155OnMainnet,
+        address indexed erc1155OnSchain,
+        uint256 id,
+        uint256 amount
+    );
 
     constructor(
         string memory newChainName,
