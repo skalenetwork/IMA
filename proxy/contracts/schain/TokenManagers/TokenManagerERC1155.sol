@@ -48,8 +48,8 @@ contract TokenManagerERC1155 is TokenManager {
     event ERC1155TokenReceived(
         address indexed erc1155OnMainnet,
         address indexed erc1155OnSchain,
-        uint256 id,
-        uint256 amount
+        uint256[] ids,
+        uint256[] amounts
     );
 
     constructor(
@@ -82,6 +82,24 @@ contract TokenManagerERC1155 is TokenManager {
         getMessageProxy().postOutgoingMessage(MAINNET_NAME, getDepositBoxERC1155Address(), data);
     }
 
+    function exitToMainERC1155Batch(
+        address contractOnMainnet,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    )
+        external
+    {
+        require(to != address(0), "Incorrect receiver address");
+        ERC1155Burnable contractOnSchain = clonesErc1155[contractOnMainnet];
+        getCommunityLocker().checkAllowedToSendMessage(to);
+        require(address(contractOnSchain).isContract(), "No token clone on schain");
+        require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
+        contractOnSchain.burnBatch(msg.sender, ids, amounts);
+        bytes memory data = Messages.encodeTransferErc1155BatchMessage(contractOnMainnet, to, ids, amounts);
+        getMessageProxy().postOutgoingMessage(MAINNET_NAME, getDepositBoxERC1155Address(), data);
+    }
+
     function transferToSchainERC1155(
         string calldata targetSchainName,
         address contractOnMainnet,
@@ -103,6 +121,30 @@ contract TokenManagerERC1155 is TokenManager {
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
         contractOnSchain.burn(msg.sender, id, amount);
         bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);    
+        getMessageProxy().postOutgoingMessage(targetSchainName, tokenManagers[targetSchainHash], data);
+    }
+
+    function transferToSchainERC1155Batch(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) 
+        external
+    {
+        require(to != address(0), "Incorrect receiver address");
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        require(
+            targetSchainHash != MAINNET_HASH,
+            "This function is not for transferring to Mainnet"
+        );
+        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
+        ERC1155Burnable contractOnSchain = clonesErc1155[contractOnMainnet];
+        require(address(contractOnSchain).isContract(), "No token clone on schain");
+        require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
+        contractOnSchain.burnBatch(msg.sender, ids, amounts);
+        bytes memory data = Messages.encodeTransferErc1155BatchMessage(contractOnMainnet, to, ids, amounts);
         getMessageProxy().postOutgoingMessage(targetSchainName, tokenManagers[targetSchainHash], data);
     }
 
@@ -139,11 +181,14 @@ contract TokenManagerERC1155 is TokenManager {
         Messages.MessageType operation = Messages.getMessageType(data);
         if (
             operation == Messages.MessageType.TRANSFER_ERC1155 ||
-            operation == Messages.MessageType.TRANSFER_ERC1155_AND_TOKEN_INFO ||
+            operation == Messages.MessageType.TRANSFER_ERC1155_AND_TOKEN_INFO
+        ) {
+            _sendERC1155(data);
+        } else if (
             operation == Messages.MessageType.TRANSFER_ERC1155_BATCH ||
             operation == Messages.MessageType.TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO
         ) {
-            _sendERC1155(data);
+            _sendERC1155Batch(data);
         } else {
             revert("MessageType is unknown");
         }
@@ -211,7 +256,50 @@ contract TokenManagerERC1155 is TokenManager {
         ERC1155OnChain contractOnSchain = clonesErc1155[token];
         require(address(contractOnSchain).isContract(), "Given address is not a contract");
         contractOnSchain.mint(receiver, id, amount, "");
-        emit ERC1155TokenReceived(token, address(contractOnSchain), id, amount);
-    }    
+        emit ERC1155TokenReceived(token, address(contractOnSchain), _asSingletonArray(id), _asSingletonArray(amount));
+    }
+
+    /**
+     * @dev Allows TokenManager to send ERC1155 tokens.
+     *  
+     * Emits a {ERC1155TokenCreated} event if to address = 0.
+     */
+    function _sendERC1155Batch(bytes calldata data) private {
+        Messages.MessageType messageType = Messages.getMessageType(data);
+        address receiver;
+        address token;
+        uint256[] memory ids;
+        uint256[] memory amounts;
+        if (messageType == Messages.MessageType.TRANSFER_ERC1155_BATCH){
+            Messages.TransferErc1155BatchMessage memory message = Messages.decodeTransferErc1155BatchMessage(data);
+            receiver = message.receiver;
+            token = message.token;
+            ids = message.ids;
+            amounts = message.amounts;
+        } else {
+            Messages.TransferErc1155BatchAndTokenInfoMessage memory message =
+                Messages.decodeTransferErc1155BatchAndTokenInfoMessage(data);
+            receiver = message.baseErc1155Batchtransfer.receiver;
+            token = message.baseErc1155Batchtransfer.token;
+            ids = message.baseErc1155Batchtransfer.ids;
+            amounts = message.baseErc1155Batchtransfer.amounts;
+            ERC1155OnChain contractOnSchainTmp = clonesErc1155[token];
+            if (address(contractOnSchainTmp) == address(0)) {
+                require(automaticDeploy, "Automatic deploy is disabled");
+                contractOnSchainTmp = new ERC1155OnChain(message.tokenInfo.uri);
+                clonesErc1155[token] = contractOnSchainTmp;
+                emit ERC1155TokenCreated(token, address(contractOnSchainTmp));
+            }
+        }
+        ERC1155OnChain contractOnSchain = clonesErc1155[token];
+        require(address(contractOnSchain).isContract(), "Given address is not a contract");
+        contractOnSchain.mintBatch(receiver, ids, amounts, "");
+        emit ERC1155TokenReceived(token, address(contractOnSchain), ids, amounts);
+    }
+
+    function _asSingletonArray(uint256 element) private pure returns (uint256[] memory array) {
+        array = new uint256[](1);
+        array[0] = element;
+    }
 
 }

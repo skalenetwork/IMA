@@ -98,4 +98,23 @@ contract MessagesTester {
     ) external pure returns (bytes memory) {
         return Messages.encodeTransferErc1155AndTokenInfoMessage(token, receiver, id, amount, tokenInfo);
     }
+
+    function encodeTransferErc1155BatchMessage(
+        address token,
+        address receiver,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) external pure returns (bytes memory) {
+        return Messages.encodeTransferErc1155BatchMessage(token, receiver, ids, amounts);
+    }
+
+    function encodeTransferErc1155BatchAndTokenInfoMessage(
+        address token,
+        address receiver,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        Messages.Erc1155TokenInfo memory tokenInfo
+    ) external pure returns (bytes memory) {
+        return Messages.encodeTransferErc1155BatchAndTokenInfoMessage(token, receiver, ids, amounts, tokenInfo);
+    }
 }
