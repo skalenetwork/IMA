@@ -178,7 +178,10 @@ function load_node_config( strPath ) {
 
 function parse( joExternalHandlers, argv ) {
     let idxArg; const cntArgs = argv || process.argv.length;
+    console.log( "----------- notice, count of command line args is", cntArgs );
+    console.log( "----------- notice, array of command line args is", JSON.stringify( process.argv ) );
     for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
+        console.log( "----------- notice, command line args no", idxArg, "is", process.argv[idxArg] );
         const joArg = parse_command_line_argument( process.argv[idxArg] );
         if( joArg.name == "help" ) {
             print_about();
