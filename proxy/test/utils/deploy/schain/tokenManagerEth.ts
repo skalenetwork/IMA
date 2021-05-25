@@ -12,13 +12,14 @@ export async function deployTokenManagerEth(
     ethErc20Address: string
 ) {
     const factory = await ethers.getContractFactory(name);
-    const instance = await factory.deploy(
+    const instance = await factory.deploy() as TokenManagerEth;
+    await instance.initialize(
         schainName,
         messageProxyForSchain,
         tokenManagerLinker.address,
         communityLocker.address,
         newDepositBox,
         ethErc20Address
-    ) as TokenManagerEth;
+    );
     return instance;
 }

@@ -1,4 +1,7 @@
 {
     "schain_owner": "0xd2001DAb6898127Be2F167B548691C87251D13C3",
-    "schain_name": "D2 schain for testing"
+    "schain_name": "D2 schain for testing",
+    "eth_deposit_box": "0xd200000000000000000000000000000000000001",
+    "erc20_deposit_box": "0xD200000000000000000000000000000000000002",
+    "erc721_deposit_box": "0xd200000000000000000000000000000000000003"
 }

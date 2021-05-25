@@ -62,10 +62,16 @@ contract TokenManagerERC20 is TokenManager {
         CommunityLocker newCommunityLocker,
         address newDepositBox
     )
-        public
-        TokenManager(newChainName, newMessageProxy, newIMALinker, newCommunityLocker, newDepositBox)
-        // solhint-disable-next-line no-empty-blocks
-    { }
+        public        
+    {
+        TokenManager.initializeTokenManager(
+            newChainName,
+            newMessageProxy,
+            newIMALinker,
+            newCommunityLocker,
+            newDepositBox
+        );
+    }
 
     function exitToMainERC20(
         address contractOnMainnet,

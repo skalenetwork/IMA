@@ -36,6 +36,12 @@ import "./CommunityLocker.sol";
  */
 abstract contract TokenManager is AccessControlUpgradeable {
 
+    string constant public MAINNET_NAME = "Mainnet";
+    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+
+    bytes32 public constant AUTOMATIC_DEPLOY_ROLE = keccak256("AUTOMATIC_DEPLOY_ROLE");
+    bytes32 public constant TOKEN_REGISTRAR_ROLE = keccak256("TOKEN_REGISTRAR_ROLE");
+
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
     CommunityLocker public communityLocker;
@@ -43,13 +49,7 @@ abstract contract TokenManager is AccessControlUpgradeable {
     address public depositBox;
     bool public automaticDeploy;
 
-    mapping(bytes32 => address) public tokenManagers;
-
-    string constant public MAINNET_NAME = "Mainnet";
-    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
-
-    bytes32 public constant AUTOMATIC_DEPLOY_ROLE = keccak256("AUTOMATIC_DEPLOY_ROLE");
-    bytes32 public constant TOKEN_REGISTRAR_ROLE = keccak256("TOKEN_REGISTRAR_ROLE");
+    mapping(bytes32 => address) public tokenManagers;    
 
     modifier onlyAutomaticDeploy() {
         require(hasRole(AUTOMATIC_DEPLOY_ROLE, msg.sender), "AUTOMATIC_DEPLOY_ROLE is required");
@@ -64,29 +64,6 @@ abstract contract TokenManager is AccessControlUpgradeable {
     modifier onlyMessageProxy() {
         require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
         _;
-    }
-
-    constructor(
-        string memory newSchainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
-        address newDepositBox
-    )
-        public
-    {
-        require(newDepositBox.isContract(), "Given address is not a contract");
-
-        AccessControlUpgradeable.__AccessControl_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(AUTOMATIC_DEPLOY_ROLE, msg.sender);
-        _setupRole(TOKEN_REGISTRAR_ROLE, msg.sender);
-
-        schainHash = keccak256(abi.encodePacked(newSchainName));
-        messageProxy = newMessageProxy;
-        tokenManagerLinker = newIMALinker;
-        communityLocker = newCommunityLocker;        
-        depositBox = newDepositBox;
     }
 
     function postMessage(
@@ -171,5 +148,28 @@ abstract contract TokenManager is AccessControlUpgradeable {
      */
     function hasTokenManager(string calldata schainName) external view returns (bool) {
         return tokenManagers[keccak256(abi.encodePacked(schainName))] != address(0);
+    }
+
+    function initializeTokenManager(
+        string memory newSchainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
+        address newDepositBox
+    )
+        public
+        virtual
+        initializer
+    {
+        AccessControlUpgradeable.__AccessControl_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(AUTOMATIC_DEPLOY_ROLE, msg.sender);
+        _setupRole(TOKEN_REGISTRAR_ROLE, msg.sender);
+
+        schainHash = keccak256(abi.encodePacked(newSchainName));
+        messageProxy = newMessageProxy;
+        tokenManagerLinker = newIMALinker;
+        communityLocker = newCommunityLocker;        
+        depositBox = newDepositBox;
     }
 }

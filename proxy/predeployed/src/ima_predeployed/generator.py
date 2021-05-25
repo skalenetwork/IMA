@@ -1,6 +1,7 @@
 import json
 import os
 
+from ima_predeployed.contracts.token_manager_eth import TokenManagerEthGenerator
 from ima_predeployed.contracts.token_manager_linker import TokenManagerLinkerGenerator
 from .contracts.community_locker import CommunityLockerGenerator
 from .contract_generator import ContractGenerator
@@ -13,10 +14,10 @@ from .addresses import \
     MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, \
     MESSAGE_PROXY_FOR_SCHAIN_IMPLEMENTATION_ADDRESS, KEY_STORAGE_IMPLEMENTATION_ADDRESS, KEY_STORAGE_ADDRESS, \
     COMMUNITY_LOCKER_IMPLEMENTATION_ADDRESS, COMMUNITY_LOCKER_ADDRESS, TOKEN_MANAGER_LINKER_IMPLEMENTATION_ADDRESS, \
-    TOKEN_MANAGER_LINKER_ADDRESS
+    TOKEN_MANAGER_LINKER_ADDRESS, TOKEN_MANAGER_ETH_IMPLEMENTATION_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS
 
 
-def generate_contracts(owner_address: str, schain_name: str) -> dict:
+def generate_contracts(owner_address: str, schain_name: str, eth_deposit_box: str) -> dict:
     proxy_admin = ProxyAdminGenerator(owner_address)
 
     message_proxy_for_schain_implementation = ContractGenerator(MessageProxyForSchainGenerator.ARTIFACT_FILENAME)
@@ -45,6 +46,13 @@ def generate_contracts(owner_address: str, schain_name: str) -> dict:
         TokenManagerLinkerGenerator(owner_address)
     )
 
+    token_manager_eth_implementation = ContractGenerator(TokenManagerEthGenerator.ARTIFACT_FILENAME)
+    token_manager_eth = UpgradeableContractGenerator(
+        TOKEN_MANAGER_ETH_IMPLEMENTATION_ADDRESS,
+        PROXY_ADMIN_ADDRESS,
+        TokenManagerEthGenerator(owner_address, eth_deposit_box, schain_name)
+    )
+
     return {
         PROXY_ADMIN_ADDRESS: proxy_admin.generate_contract(),
 
@@ -58,7 +66,10 @@ def generate_contracts(owner_address: str, schain_name: str) -> dict:
         COMMUNITY_LOCKER_IMPLEMENTATION_ADDRESS: community_locker_implementation.generate_contract(),
 
         TOKEN_MANAGER_LINKER_ADDRESS: token_manager_linker.generate_contract(),
-        TOKEN_MANAGER_LINKER_IMPLEMENTATION_ADDRESS: token_manager_linker_implementation.generate_contract()
+        TOKEN_MANAGER_LINKER_IMPLEMENTATION_ADDRESS: token_manager_linker_implementation.generate_contract(),
+
+        TOKEN_MANAGER_ETH_ADDRESS: token_manager_eth.generate_contract(),
+        TOKEN_MANAGER_ETH_IMPLEMENTATION_ADDRESS: token_manager_eth_implementation.generate_contract()
     }
 
 

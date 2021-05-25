@@ -55,9 +55,15 @@ contract TokenManagerERC721 is TokenManager {
         address newDepositBox
     )
         public
-        TokenManager(newChainName, newMessageProxy, newIMALinker, newCommunityLocker, newDepositBox)
-        // solhint-disable-next-line no-empty-blocks
-    { }    
+    {
+        TokenManager.initializeTokenManager(
+            newChainName,
+            newMessageProxy,
+            newIMALinker,
+            newCommunityLocker,
+            newDepositBox
+        );
+    }    
 
     function exitToMainERC721(
         address contractOnMainnet,

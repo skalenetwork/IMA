@@ -11,7 +11,7 @@
         "deploy-skale-manager-components": "npx hardhat run migrations/deploySkaleManagerComponents.ts --network mainnet",
         "lint": "npx solhint \"contracts/**/*.sol\"",
         "prepare": "yarn compile",
-        "test": "npx hardhat test && yarn tsc",
+        "test": "yarn tsc && npx hardhat test",
         "tsc": "tsc --noEmit",
         "tslint": "npx tslint --project .",
         "slither": "slither .",

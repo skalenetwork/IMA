@@ -43,21 +43,7 @@ contract TokenManagerEth is TokenManager {
 
     EthErc20 public ethErc20;
 
-    /// Create a new token manager
-
-    constructor(
-        string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
-        address newDepositBox,
-        EthErc20 _ethErc20
-    )
-        public
-        TokenManager(newChainName, newMessageProxy, newIMALinker, newCommunityLocker, newDepositBox)
-    {
-        ethErc20 = _ethErc20;
-    }
+    /// Create a new token manager    
 
     function setEthErc20Address(EthErc20 newEthErc20Address) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
@@ -138,6 +124,28 @@ contract TokenManagerEth is TokenManager {
         require(receiver != address(0), "Incorrect receiver");
         ethErc20.mint(receiver, decodedMessage.amount);
         return true;
+    }
+
+    function initialize(
+        string memory newChainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
+        address newDepositBox,
+        EthErc20 _ethErc20
+    )
+        public
+        virtual
+        initializer
+    {
+        TokenManager.initializeTokenManager(
+            newChainName,
+            newMessageProxy,
+            newIMALinker,
+            newCommunityLocker,
+            newDepositBox
+        );
+        ethErc20 = _ethErc20;
     }
 
     // private

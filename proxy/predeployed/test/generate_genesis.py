@@ -16,7 +16,10 @@ def main():
             base_genesis = json.load(base_genesis_file)
             config = json.load(config_file)
             genesis = base_genesis
-            genesis['alloc'].update(generate_contracts(config['schain_owner'], config['schain_name']))
+            genesis['alloc'].update(generate_contracts(
+                config['schain_owner'],
+                config['schain_name'],
+                config['eth_deposit_box']))
             print(json.dumps(genesis, indent=4, sort_keys=True))
 
 
