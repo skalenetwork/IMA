@@ -307,7 +307,7 @@ library Messages {
         return abi.encode(message);
     }
 
-    function decodeInterchainConnectionMessage(bytes memory data)
+    function decodeInterchainConnectionMessage(bytes calldata data)
         internal
         pure
         returns (InterchainConnectionMessage memory)

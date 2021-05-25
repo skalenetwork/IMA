@@ -80,7 +80,7 @@ describe("TokenManagerERC1155", () => {
 
     beforeEach(async () => {
         messageProxyForSchain = await deployMessageProxyForSchainTester(schainName);
-        tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
+        tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
         messages = await deployMessages();
         const fakeDepositBox = messages;
 

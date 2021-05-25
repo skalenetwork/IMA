@@ -173,7 +173,7 @@ describe("DepositBox", () => {
             const wei2 = "40000000000000000";
             await linker
                 .connect(deployer)
-                .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address]);
+                .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address, deployer.address]);
             await depositBoxEth
                 .connect(deployer)
                 .deposit(schainName, deployer.address, { value: wei });
@@ -264,7 +264,7 @@ describe("DepositBox", () => {
             const schainName = randomString(10);
             await linker
                 .connect(deployer)
-                .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address]);
+                .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address, deployer.address]);
             await erc20.connect(deployer).mint(deployer.address, "1000000000");
             await erc20.connect(deployer).approve(depositBoxERC20.address, "1000000");
             await depositBoxERC20.disableWhitelist(schainName);
@@ -357,7 +357,7 @@ describe("DepositBox", () => {
             const tokenId2 = 11;
             await linker
                 .connect(deployer)
-                .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address]);
+                .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address, deployer.address]);
             await eRC721OnChain.connect(deployer).approve(depositBoxERC721.address, tokenId);
             await depositBoxERC721.disableWhitelist(schainName);
             await depositBoxERC721
