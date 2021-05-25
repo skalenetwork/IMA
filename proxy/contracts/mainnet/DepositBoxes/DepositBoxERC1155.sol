@@ -224,9 +224,17 @@ contract DepositBoxERC1155 is DepositBox {
         bool isERC1155AddedToSchain = schainToERC1155[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
         if (!isERC1155AddedToSchain) {
             _addERC1155ForSchain(schainName, contractOnMainnet);
+            data = Messages.encodeTransferErc1155AndTokenInfoMessage(
+                contractOnMainnet,
+                to,
+                id,
+                amount,
+                _getTokenInfo(IERC1155MetadataURIUpgradeable(contractOnMainnet))
+            );
             emit ERC1155TokenAdded(schainName, contractOnMainnet);
+        } else {
+            data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);
         }
-        data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);
         emit ERC1155TokenReady(contractOnMainnet, id, amount);
     }
 
@@ -239,5 +247,9 @@ contract DepositBoxERC1155 is DepositBox {
         require(withoutWhitelist[schainHash], "Whitelist is enabled");
         schainToERC1155[schainHash][erc1155OnMainnet] = true;
         emit ERC1155TokenAdded(schainName, erc1155OnMainnet);
+    }
+
+    function _getTokenInfo(IERC1155MetadataURIUpgradeable erc1155) private view returns (Messages.Erc1155TokenInfo memory) {
+        return Messages.Erc1155TokenInfo({uri: erc1155.uri(0)});
     }
 }
