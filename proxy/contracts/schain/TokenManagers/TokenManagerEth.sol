@@ -132,7 +132,7 @@ contract TokenManagerEth is TokenManager {
         TokenManagerLinker newIMALinker,
         CommunityLocker newCommunityLocker,
         address newDepositBox,
-        EthErc20 _ethErc20
+        EthErc20 ethErc20Address
     )
         public
         virtual
@@ -145,7 +145,7 @@ contract TokenManagerEth is TokenManager {
             newCommunityLocker,
             newDepositBox
         );
-        ethErc20 = _ethErc20;
+        ethErc20 = ethErc20Address;
     }
 
     // private
