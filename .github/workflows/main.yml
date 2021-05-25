@@ -67,6 +67,10 @@ jobs:
     - name: Slither checks
       working-directory: ${{env.working-directory}}
       run: yarn slither
+
+    - name: Gas calculation test
+      working-directory: ${{env.working-directory}}
+      run: npx hardhat test gas/calculateGas.ts
     
     - name: Run tests
       working-directory: ${{env.working-directory}}

@@ -300,6 +300,9 @@ const proxyMainnetContracts = [
     }, {
         address: jsonData.deposit_box_erc721_address,
         referenceVariableName: "DepositBoxERC721"
+    }, {
+        address: jsonData.linker_address,
+        referenceVariableName: "Linker"
     }
 ];
 

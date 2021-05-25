@@ -79,4 +79,8 @@ contract MessagesTester {
     function encodeFreezeStateMessage(address receiver, bool isUnfrozen) external pure returns (bytes memory) {
         return Messages.encodeFreezeStateMessage(receiver, isUnfrozen);
     }
+
+    function encodeInterchainConnectionMessage(bool isAllowed) external pure returns (bytes memory) {
+        return Messages.encodeInterchainConnectionMessage(isAllowed);
+    }
 }

@@ -37,6 +37,8 @@ contract DepositBoxEth is DepositBox {
 
     mapping(address => uint256) public approveTransfers;
 
+    mapping(bytes32 => uint256) public transferredAmount;
+
     modifier rightTransaction(string memory schainName) {
         require(
             keccak256(abi.encodePacked(schainName)) != keccak256(abi.encodePacked("Mainnet")),
@@ -97,12 +99,15 @@ contract DepositBoxEth is DepositBox {
     function deposit(string memory schainName, address to)
         external
         payable
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
         // receivedEth
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address tokenManagerAddress = tokenManagerEthAddresses[schainHash];
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(to != address(0), "Community Pool is not available");
+        if (!linker.interchainConnections(schainHash))
+            _saveTransferredAmount(schainHash, msg.value);
         messageProxy.postOutgoingMessage(
             schainHash,
             tokenManagerAddress,
@@ -118,6 +123,7 @@ contract DepositBoxEth is DepositBox {
         external
         override
         onlyMessageProxy
+        whenNotKilled(schainHash)
         returns (address)
     {
         require(
@@ -132,6 +138,8 @@ contract DepositBoxEth is DepositBox {
         );
         approveTransfers[message.receiver] =
             approveTransfers[message.receiver].add(message.amount);
+        if (!linker.interchainConnections(schainHash))
+            _removeTransferredAmount(schainHash, message.amount);
         return message.receiver;
     }
 
@@ -154,6 +162,17 @@ contract DepositBoxEth is DepositBox {
         msg.sender.transfer(amount);
     }
 
+    function getFunds(string calldata schainName, address payable receiver, uint amount)
+        external
+        onlySchainOwner(schainName)
+        whenKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(transferredAmount[schainHash] >= amount, "Incorrect amount");
+        _removeTransferredAmount(schainHash, amount);
+        receiver.transfer(amount);
+    }
+
     /**
      * @dev Checks whether depositBoxEth is connected to a SKALE chain TokenManagerEth.
      */
@@ -172,5 +191,13 @@ contract DepositBoxEth is DepositBox {
         initializer
     {
         DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
+    }
+
+    function _saveTransferredAmount(bytes32 schainHash, uint256 amount) private {
+        transferredAmount[schainHash] = transferredAmount[schainHash].add(amount);
+    }
+
+    function _removeTransferredAmount(bytes32 schainHash, uint256 amount) private {
+        transferredAmount[schainHash] = transferredAmount[schainHash].sub(amount);
     }
 }

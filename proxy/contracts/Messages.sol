@@ -32,7 +32,8 @@ library Messages {
         TRANSFER_ERC20_AND_TOKEN_INFO,
         TRANSFER_ERC721,
         TRANSFER_ERC721_AND_TOKEN_INFO,
-        FREEZE_STATE
+        FREEZE_STATE,
+        INTERCHAIN_CONNECTION
     }
 
     struct BaseMessage {
@@ -90,6 +91,11 @@ library Messages {
     struct TransferErc721AndTokenInfoMessage {
         TransferErc721Message baseErc721transfer;
         Erc721TokenInfo tokenInfo;
+    }
+
+    struct InterchainConnectionMessage {
+        BaseMessage message;
+        bool isAllowed;
     }
 
     function getMessageType(bytes memory data) internal pure returns (MessageType) {
@@ -259,5 +265,22 @@ library Messages {
     function decodeFreezeStateMessage(bytes memory data) internal pure returns (FreezeStateMessage memory) {
         require(getMessageType(data) == MessageType.FREEZE_STATE, "Message type is not Freeze User");
         return abi.decode(data, (FreezeStateMessage));
+    }
+
+    function encodeInterchainConnectionMessage(bool isAllowed) internal pure returns (bytes memory) {
+        InterchainConnectionMessage memory message = InterchainConnectionMessage(
+            BaseMessage(MessageType.INTERCHAIN_CONNECTION),
+            isAllowed
+        );
+        return abi.encode(message);
+    }
+
+    function decodeInterchainConnectionMessage(bytes memory data)
+        internal
+        pure
+        returns (InterchainConnectionMessage memory)
+    {
+        require(getMessageType(data) == MessageType.INTERCHAIN_CONNECTION, "Message type is not Interchain connection");
+        return abi.decode(data, (InterchainConnectionMessage));
     }
 }

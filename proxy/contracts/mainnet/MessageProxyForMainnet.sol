@@ -22,7 +22,6 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 
@@ -49,7 +48,7 @@ interface ICommunityPool {
  * nodes in the chain. Since Ethereum Mainnet has no BLS public key, mainnet
  * messages do not need to be signed.
  */
-contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable {
+contract MessageProxyForMainnet is SkaleManagerClient {
 
     /**
      * 16 Agents
@@ -336,8 +335,6 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
 
     function initialize(IContractManager contractManagerOfSkaleManager) public override initializer {
         SkaleManagerClient.initialize(contractManagerOfSkaleManager);
-        AccessControlUpgradeable.__AccessControl_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     /**
