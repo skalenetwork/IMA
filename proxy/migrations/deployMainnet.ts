@@ -84,7 +84,8 @@ function getContractManager() {
 export const contractsToDeploy = [
     "DepositBoxEth",
     "DepositBoxERC20",
-    "DepositBoxERC721"
+    "DepositBoxERC721",
+    "DepositBoxERC1155"
 ]
 
 export const contracts = [
@@ -94,7 +95,7 @@ export const contracts = [
     "DepositBoxEth",
     "DepositBoxERC20",
     "DepositBoxERC721",
-    "DepositBoxERc1155"
+    "DepositBoxERC1155"
 ]
 
 async function main() {

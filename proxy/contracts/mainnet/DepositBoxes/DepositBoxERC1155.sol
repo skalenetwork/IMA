@@ -26,7 +26,6 @@ import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155MetadataURIUpg
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155ReceiverUpgradeable.sol";
 import "../DepositBox.sol";
 import "../../Messages.sol";
-import "hardhat/console.sol";
 
 
 // This contract runs on the main net and accepts deposits
@@ -175,8 +174,17 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         );
         Messages.TransferErc1155Message memory message = Messages.decodeTransferErc1155Message(data);
         require(message.token.isContract(), "Given address is not a contract");
-        require(IERC1155Upgradeable(message.token).balanceOf(address(this), message.id) == message.amount, "Incorrect amount");
-        IERC1155Upgradeable(message.token).safeTransferFrom(address(this), message.receiver, message.id, message.amount, "");
+        require(
+            IERC1155Upgradeable(message.token).balanceOf(address(this), message.id) == message.amount,
+            "Incorrect amount"
+        );
+        IERC1155Upgradeable(message.token).safeTransferFrom(
+            address(this),
+            message.receiver,
+            message.id,
+            message.amount,
+            ""
+        );
         return message.receiver;
     }
 
@@ -282,7 +290,13 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         emit ERC1155TokenAdded(schainName, erc1155OnMainnet);
     }
 
-    function _getTokenInfo(IERC1155MetadataURIUpgradeable erc1155) private view returns (Messages.Erc1155TokenInfo memory) {
+    function _getTokenInfo(
+        IERC1155MetadataURIUpgradeable erc1155
+    )
+        private
+        view
+        returns (Messages.Erc1155TokenInfo memory)
+    {
         return Messages.Erc1155TokenInfo({uri: erc1155.uri(0)});
     }
 }
