@@ -127,12 +127,10 @@ library Messages {
         Erc1155TokenInfo tokenInfo;
     }
 
-    function getMessageType(bytes memory data) internal pure returns (MessageType) {
+    function getMessageType(bytes calldata data) internal pure returns (MessageType) {
         uint256 firstWord = abi.decode(data, (uint256));
-        if (firstWord == 32) {
-            Messages.MessageType messageType;
-            (, messageType) = abi.decode(data, (uint256, Messages.MessageType));
-            return messageType;
+        if (firstWord % 32 == 0) {
+            return getMessageType(data[firstWord:]);
         } else {
             return abi.decode(data, (Messages.MessageType));
         }
@@ -148,7 +146,7 @@ library Messages {
     }
 
     function decodeTransferEthMessage(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferEthMessage memory) {
         require(getMessageType(data) == MessageType.TRANSFER_ETH, "Message type is not ETH transfer");
         return abi.decode(data, (TransferEthMessage));
@@ -187,14 +185,14 @@ library Messages {
     }
 
     function decodeTransferErc20Message(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferErc20Message memory) {
         require(getMessageType(data) == MessageType.TRANSFER_ERC20, "Message type is not ERC20 transfer");
         return abi.decode(data, (TransferErc20Message));
     }
 
     function decodeTransferErc20AndTotalSupplyMessage(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferErc20AndTotalSupplyMessage memory) {
         require(
             getMessageType(data) == MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY,
@@ -224,7 +222,7 @@ library Messages {
     }
 
     function decodeTransferErc20AndTokenInfoMessage(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferErc20AndTokenInfoMessage memory) {
         require(
             getMessageType(data) == MessageType.TRANSFER_ERC20_AND_TOKEN_INFO,
@@ -248,7 +246,7 @@ library Messages {
     }
 
     function decodeTransferErc721Message(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferErc721Message memory) {
         require(getMessageType(data) == MessageType.TRANSFER_ERC721, "Message type is not ERC721 transfer");
         return abi.decode(data, (TransferErc721Message));
@@ -273,7 +271,7 @@ library Messages {
     }
 
     function decodeTransferErc721AndTokenInfoMessage(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferErc721AndTokenInfoMessage memory) {
         require(
             getMessageType(data) == MessageType.TRANSFER_ERC721_AND_TOKEN_INFO,
@@ -291,7 +289,7 @@ library Messages {
         return abi.encode(message);
     }
 
-    function decodeFreezeStateMessage(bytes memory data) internal pure returns (FreezeStateMessage memory) {
+    function decodeFreezeStateMessage(bytes calldata data) internal pure returns (FreezeStateMessage memory) {
         require(getMessageType(data) == MessageType.FREEZE_STATE, "Message type is not Freeze User");
         return abi.decode(data, (FreezeStateMessage));
     }
@@ -313,7 +311,7 @@ library Messages {
     }
 
     function decodeTransferErc1155Message(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferErc1155Message memory) {
         require(getMessageType(data) == MessageType.TRANSFER_ERC1155, "Message type is not ERC1155 transfer");
         return abi.decode(data, (TransferErc1155Message));
@@ -340,7 +338,7 @@ library Messages {
     }
 
     function decodeTransferErc1155AndTokenInfoMessage(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferErc1155AndTokenInfoMessage memory) {
         require(
             getMessageType(data) == MessageType.TRANSFER_ERC1155_AND_TOKEN_INFO,
@@ -366,7 +364,7 @@ library Messages {
     }
 
     function decodeTransferErc1155BatchMessage(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferErc1155BatchMessage memory) {
         require(
             getMessageType(data) == MessageType.TRANSFER_ERC1155_BATCH,
@@ -396,7 +394,7 @@ library Messages {
     }
 
     function decodeTransferErc1155BatchAndTokenInfoMessage(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferErc1155BatchAndTokenInfoMessage memory) {
         require(
             getMessageType(data) == MessageType.TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO,
