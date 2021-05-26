@@ -491,7 +491,7 @@ describe("Gas calculation", () => {
         };
 
         // send exit message to mainnet
-        let res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+        await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             0,
             [message],

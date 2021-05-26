@@ -90,8 +90,8 @@ describe("DepositBox", () => {
     let messageProxy: MessageProxyForMainnet;
     let linker: Linker;
     let communityPool: CommunityPool;
-    let contractManagerAddress = "0x0000000000000000000000000000000000000000";
-    let schainName = "geProxyForSchainSchain";
+    const contractManagerAddress = "0x0000000000000000000000000000000000000000";
+    const schainName = "geProxyForSchainSchain";
 
     before(async () => {
         [deployer, user, user2] = await ethers.getSigners();
@@ -127,11 +127,11 @@ describe("DepositBox", () => {
         it("should rejected with `Unconnected chain` when invoke `deposit`", async () => {
             // preparation
             const error = "Unconnected chain";
-            const schainName = "Mainnet";
+            const newSchainName = "Mainnet";
             // execution/expectation
             await depositBoxEth
                 .connect(deployer)
-                .deposit(schainName, user.address)
+                .deposit(newSchainName, user.address)
                 .should.be.eventually.rejectedWith(error);
         });
 

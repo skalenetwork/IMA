@@ -134,7 +134,6 @@ describe("TokenManagerERC721", () => {
 
         await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerERC721.address);
         await tokenManagerERC721.connect(user).exitToMainERC721(token.address, to, tokenId);
-            
 
         const outgoingMessagesCounterMainnet = BigNumber.from(
             await messageProxyForSchain.getOutgoingMessagesCounter("Mainnet")

@@ -28,7 +28,7 @@ import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 
 import "../interfaces/IMessageReceiver.sol";
 import "./SkaleManagerClient.sol";
-import "hardhat/console.sol";
+
 interface ICommunityPool {
     function refundGasByUser(
         bytes32 schainHash,
@@ -98,7 +98,6 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
     uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 70000;
     uint256 public constant MESSAGE_GAS_COST = 8790;
 
-
     modifier onlyDebugger() {
         require(hasRole(DEBUGGER_ROLE, msg.sender), "Access denied");
         _;
@@ -146,9 +145,6 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
             outgoingMessageCounter: 0,
             inited: true
         });
-        registryContracts[schainHash][depositBoxEth] = true;
-        registryContracts[schainHash][depositBoxERC20] = true;
-        registryContracts[schainHash][depositBoxERC721] = true;
     }
 
     /**

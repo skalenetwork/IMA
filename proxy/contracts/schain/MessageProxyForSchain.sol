@@ -162,18 +162,18 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
      * To connect to other chains, the owner needs to explicitly call this function
      */
     function addConnectedChain(
-        string calldata newSchainName
+        string calldata chainName
     )
         external
         onlyChainConnector
     {
-        bytes32 newSchainHash = keccak256(abi.encodePacked(newSchainName));
-        require(newSchainHash != schainHash, "Schain cannot connect itself");
+        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
+        require(chainHash != schainHash, "Schain cannot connect itself");
         require(
-            !connectedChains[newSchainHash].inited,
+            !connectedChains[chainHash].inited,
             "Chain is already connected"
         );
-        connectedChains[newSchainHash] = ConnectedChainInfo({
+        connectedChains[chainHash] = ConnectedChainInfo({
             incomingMessageCounter: 0,
             outgoingMessageCounter: 0,
             inited: true
@@ -181,16 +181,16 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
     }
 
     function removeConnectedChain(string calldata schainName) external onlyChainConnector {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        bytes32 chainHash = keccak256(abi.encodePacked(schainName));
         require(
-            schainHash != keccak256(abi.encodePacked("Mainnet")),
+            chainHash != keccak256(abi.encodePacked("Mainnet")),
             "New chain hash cannot be equal to Mainnet"
         );
         require(
-            connectedChains[schainHash].inited,
+            connectedChains[chainHash].inited,
             "Chain is not initialized"
         );
-        delete connectedChains[schainHash];
+        delete connectedChains[chainHash];
     }
 
     // This is called by a smart contract that wants to make a cross-chain call
@@ -262,7 +262,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         external
         virtual
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        bytes32 chainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender) ||
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
@@ -270,8 +270,8 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
             "Not enough permissions to register extra contract"
         );
         require(contractOnSchain.isContract(), "Given address is not a contract");
-        require(!registryContracts[schainHash][contractOnSchain], "Extra contract is already registered");
-        registryContracts[schainHash][contractOnSchain] = true;
+        require(!registryContracts[chainHash][contractOnSchain], "Extra contract is already registered");
+        registryContracts[chainHash][contractOnSchain] = true;
     }
 
     function removeExtraContract(
@@ -280,7 +280,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
     ) 
         external
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        bytes32 chainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender) ||
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
@@ -288,7 +288,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
             "Not enough permissions to remove extra contract"
         );
         require(contractOnSchain.isContract(),"Given address is not a contract");
-        require(registryContracts[schainHash][contractOnSchain], "Extra contract is already removed");
+        require(registryContracts[chainHash][contractOnSchain], "Extra contract is already removed");
         delete registryContracts[keccak256(abi.encodePacked(schainName))][contractOnSchain];
     }
 
@@ -325,8 +325,8 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         view
         returns (bool isValidMessage)
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(message.dstChain));
-        bytes32 messageDataHash = _outgoingMessageDataHash[schainHash][message.msgCounter];
+        bytes32 chainHash = keccak256(abi.encodePacked(message.dstChain));
+        bytes32 messageDataHash = _outgoingMessageDataHash[chainHash][message.msgCounter];
         if (messageDataHash == _hashOfMessage(message))
             isValidMessage = true;
     }
@@ -388,22 +388,22 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
      * @dev Pop outgoing message from outgoingMessageData array.
      */
     function _popOutgoingMessageData(
-        bytes32 schainHash,
+        bytes32 chainHash,
         uint256 idxLastToPopNotIncluding
     )
         private
         returns (uint256 cntDeleted)
     {
         cntDeleted = 0;
-        uint idxTail = _idxTail[schainHash];
-        for (uint256 i = _idxHead[schainHash]; i < idxLastToPopNotIncluding; ++ i ) {
+        uint idxTail = _idxTail[chainHash];
+        for (uint256 i = _idxHead[chainHash]; i < idxLastToPopNotIncluding; ++ i ) {
             if (i >= idxTail)
                 break;
-            delete _outgoingMessageDataHash[schainHash][i];
+            delete _outgoingMessageDataHash[chainHash][i];
             ++ cntDeleted;
         }
         if (cntDeleted > 0)
-            _idxHead[schainHash] = _idxHead[schainHash].add(cntDeleted);
+            _idxHead[chainHash] = _idxHead[chainHash].add(cntDeleted);
     }
 
     /**

@@ -76,7 +76,7 @@ describe("MessageProxy", () => {
     let messageProxyForMainnet: MessageProxyForMainnetTester;
     let imaLinker: Linker;
     let messages: MessagesTester;
-    let contractManagerAddress = "0x0000000000000000000000000000000000000000";
+    const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const schainName = "Schain";
 
     const publicKeyArray = [
@@ -381,7 +381,7 @@ describe("MessageProxy", () => {
                 await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
 
-            await messageProxyForMainnet.connect(deployer).postOutgoingMessageTester(messageProxyForMainnet.address, 
+            await messageProxyForMainnet.connect(deployer).postOutgoingMessageTester(messageProxyForMainnet.address,
                 stringValue(web3.utils.soliditySha3(schainName)),
                 depositBox.address,
                 bytesData,

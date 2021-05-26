@@ -26,10 +26,6 @@ import "../mainnet/MessageProxyForMainnet.sol";
 
 contract MessageProxyForMainnetTester is MessageProxyForMainnet {    
 
-    function initialize(IContractManager contractManagerOfSkaleManager) public override initializer  {
-        MessageProxyForMainnet.initialize(contractManagerOfSkaleManager);
-    }
-
     function postOutgoingMessageTester(
         MessageProxyForMainnet messageProxyForMainnet,
         bytes32 targetChainHash,
@@ -39,5 +35,9 @@ contract MessageProxyForMainnetTester is MessageProxyForMainnet {
         external
     {
         messageProxyForMainnet.postOutgoingMessage(targetChainHash, targetContract, data);
+    }
+
+    function initialize(IContractManager contractManagerOfSkaleManager) public override initializer  {
+        MessageProxyForMainnet.initialize(contractManagerOfSkaleManager);
     }
 }
