@@ -270,7 +270,7 @@ class BlockChain:
         return self._deploy_contract_to_mainnet(self.config.test_root + '/resources/ERC721FullMetadataMintable.json',
                                                 [name, symbol],
                                                 private_key)
-    
+
     def deploy_erc1155_on_mainnet(self, private_key, uri):
         return self._deploy_contract_to_mainnet(self.config.test_root + '/resources/ERC1155BurnableMintable.json',
                                                 [uri],
