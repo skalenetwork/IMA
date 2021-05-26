@@ -260,6 +260,8 @@ async function main() {
     jsonObjectABI.ERC20OnChain_abi = getAbi(erc20OnChainFactory.interface);
     const erc721OnChainFactory = await ethers.getContractFactory("ERC721OnChain");
     jsonObjectABI.ERC721OnChain_abi = getAbi(erc721OnChainFactory.interface);
+    const erc1155OnChainFactory = await ethers.getContractFactory("ERC1155OnChain");
+    jsonObjectABI.ERC1155OnChain_abi = getAbi(erc1155OnChainFactory.interface);
 
     await fs.writeFile( `data/proxySchain_${schainName}.json`, JSON.stringify( jsonObjectABI ) );
     await fs.writeFile( `data/proxySchain_${schainName}_bytecode.json`, JSON.stringify( jsonObjectBytecode ) );

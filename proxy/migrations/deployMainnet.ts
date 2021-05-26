@@ -181,12 +181,12 @@ async function main() {
         );
         await proxy.deployTransaction.wait();
         const contractName = contract;
-        // TODO: remove if - after adding tests to agent
-        if (contractName !== "DepositBoxERC1155") {
-            console.log("Register", contract, "as", contractName, "=>", proxy.address);
-            const transaction = await linker.registerMainnetContract(proxy.address);
-            await transaction.wait();
-        }
+        // // TODO: remove if - after adding tests to agent
+        // if (contractName !== "DepositBoxERC1155") {
+        console.log("Register", contract, "as", contractName, "=>", proxy.address);
+        const transaction = await linker.registerMainnetContract(proxy.address);
+        await transaction.wait();
+        // }
         console.log( "Contract", contractName, "with address", proxy.address, "is registered as DepositBox in Linker" );
         deployed.set(
             contractName,
