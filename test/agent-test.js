@@ -79,6 +79,12 @@ global.imaState = {
     "strCoinNameErc721_main_net": "", // in-JSON coin name
     "strCoinNameErc721_s_chain": "", // in-JSON coin name
 
+    "joErc1155_main_net": null,
+    "joErc1155_s_chain": null,
+    "strAddrErc1155_explicit": "",
+    "strCoinNameErc1155_main_net": "", // in-JSON coin name
+    "strCoinNameErc1155_s_chain": "", // in-JSON coin name
+
     // "strPathAbiJson_main_net": imaUtils.normalizePath( "../proxy/data/proxyMainnet.json" ),
     // "strPathAbiJson_s_chain": imaUtils.normalizePath( "../proxy/data/proxySchain_Bob.json" ),
     "strPathAbiJson_main_net": imaUtils.normalizePath( "./agent-test-data/proxyMainnet.json" ),
@@ -103,6 +109,9 @@ global.imaState = {
 
     "strPathJsonErc721_main_net": "",
     "strPathJsonErc721_s_chain": "",
+
+    "strPathJsonErc1155_main_net": "",
+    "strPathJsonErc1155_s_chain": "",
 
     "nAmountOfWei": 0,
     "nAmountOfToken": 0,
@@ -132,6 +141,7 @@ global.imaState = {
     "jo_deposit_box_eth": null, // only main net
     "jo_deposit_box_erc20": null, // only main net
     "jo_deposit_box_erc721": null, // only main net
+    "jo_deposit_box_erc1155": null, // only main net
     "jo_token_manager": null, // only s-chain
     "jo_message_proxy_main_net": null,
     "jo_message_proxy_s_chain": null,
@@ -616,6 +626,7 @@ describe( "CLI", function() {
                 "--abi-s-chain=" + imaState.strPathAbiJson_s_chain,
                 // --erc721-main-net --erc721-s-chain --addr-erc721-s-chain
                 // --erc20-main-net --erc20-s-chain --addr-erc20-s-chain
+                // --erc1155-main-net --erc1155-s-chain --addr-erc1155-s-chain
                 "--sleep-between-tx=5000",
                 "--wait-next-block=true",
                 // --value...
@@ -823,6 +834,8 @@ describe( "Agent Utils Module", function() {
                 "token_manager_erc20_abi",
                 "token_manager_erc721_address",
                 "token_manager_erc721_abi",
+                "token_manager_erc1155_address",
+                "token_manager_erc1155_abi",
                 "message_proxy_chain_address",
                 "message_proxy_chain_abi"
             ];
