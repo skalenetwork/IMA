@@ -66,7 +66,7 @@ describe("Linker", () => {
     let contractManager: ContractManager;
     let messageProxy: MessageProxyForMainnet;
     let linker: Linker;
-    let contractManagerAddress = "0x0000000000000000000000000000000000000000";
+    const contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
     before(async () => {
         [deployer, user, user2] = await ethers.getSigners();
