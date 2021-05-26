@@ -301,9 +301,10 @@ class Agent:
             json.dump(config_mainnet_json, erc1155_file)
 
         erc1155 = token_contract_on_mainnet
-        destination_address = erc1155.functions.ownerOf(token_id).call()
+        destination_address = self.blockchain.key_to_address(to_key)
+        # destination_address = erc1155.functions.balanceOf(token_id).call()
         # destination_address = self.blockchain.key_to_address(to_key)
-        tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
+        # tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
         sleep(10)
         self._execute_command(
             's2m-payment',
@@ -320,7 +321,7 @@ class Agent:
 
         start = time()
         while (time() < start + timeout if timeout > 0 else True) and \
-                destination_address == erc1155.functions.ownerOf(token_id).call():
+                token_amount != erc1155.functions.balanceOf(destination_address, token_id).call():
             debug('Wait for erc1155 payment')
             sleep(1)
         # start = time()
