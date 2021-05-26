@@ -349,31 +349,31 @@ imaCLI.parse( {
                     );
                 }
                 if( imaState.strCoinNameErc1155_main_net.length > 0
-                    // && imaState.strCoinNameErc1155_s_chain.length > 0
-                    ) {
-                        // ERC1155 payment
-                        log.write( cc.info( "one M->S single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + "\n" ); // just print value
-                        return await IMA.do_erc1155_payment_from_main_net(
-                            imaState.w3_main_net,
-                            imaState.w3_s_chain,
-                            imaState.cid_main_net,
-                            imaState.cid_s_chain,
-                            imaState.joAccount_main_net,
-                            imaState.joAccount_s_chain,
-                            imaState.jo_deposit_box_erc1155, // only main net
-                            imaState.jo_message_proxy_main_net, // for checking logs
-                            imaState.strChainName_s_chain,
-                            imaState.idToken, // which ERC1155 token id to send
-                            imaState.nAmountOfToken, // which ERC1155 token amount to send
-                            imaState.nAmountOfWei, // how much WEI money to send
-                            imaState.jo_token_manager_erc1155, // only s-chain
-                            imaState.strCoinNameErc1155_main_net,
-                            imaState.joErc1155_main_net,
-                            imaState.strCoinNameErc1155_s_chain,
-                            imaState.joErc1155_s_chain,
-                            imaState.tc_main_net
-                        );
-                    }
+                // && imaState.strCoinNameErc1155_s_chain.length > 0
+                ) {
+                    // ERC1155 payment
+                    log.write( cc.info( "one M->S single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + "\n" ); // just print value
+                    return await IMA.do_erc1155_payment_from_main_net(
+                        imaState.w3_main_net,
+                        imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
+                        imaState.joAccount_main_net,
+                        imaState.joAccount_s_chain,
+                        imaState.jo_deposit_box_erc1155, // only main net
+                        imaState.jo_message_proxy_main_net, // for checking logs
+                        imaState.strChainName_s_chain,
+                        imaState.idToken, // which ERC1155 token id to send
+                        imaState.nAmountOfToken, // which ERC1155 token amount to send
+                        imaState.nAmountOfWei, // how much WEI money to send
+                        imaState.jo_token_manager_erc1155, // only s-chain
+                        imaState.strCoinNameErc1155_main_net,
+                        imaState.joErc1155_main_net,
+                        imaState.strCoinNameErc1155_s_chain,
+                        imaState.joErc1155_s_chain,
+                        imaState.tc_main_net
+                    );
+                }
                 // ETH payment
                 log.write( cc.info( "one M->S single ETH payment: " ) + cc.sunny( imaState.nAmountOfWei ) + "\n" ); // just print value
                 return await IMA.do_eth_payment_from_main_net(
