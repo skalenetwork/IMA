@@ -176,7 +176,7 @@ class Agent:
                 debug('Wait for erc721 deployment')
                 sleep(1)
 
-    def transfer_erc1155_from_mainnet_to_schain(self, token_contract, from_key, to_key, token_id, amount_wei, timeout=0):
+    def transfer_erc1155_from_mainnet_to_schain(self, token_contract, from_key, to_key, token_id, token_amount, amount_wei, timeout=0):
         config_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
         erc1155_config_filename = self.config.test_working_dir + '/erc1155.json'
         self._create_path(erc1155_config_filename)
@@ -189,6 +189,7 @@ class Agent:
             {
                 **self._wei_to_bigger(amount_wei),
                 'tid': token_id,
+                'amount': token_amount,
                 'key-main-net': from_key,
                 'key-s-chain': to_key,
                 'erc1155-main-net': erc1155_config_filename
@@ -287,7 +288,7 @@ class Agent:
         #     debug('Wait for erc721 payment')
         #     sleep(1)
 
-    def transfer_erc1155_from_schain_to_mainnet(self, token_contract, token_contract_on_mainnet, from_key, to_key, token_id, amount_wei, timeout=0):
+    def transfer_erc1155_from_schain_to_mainnet(self, token_contract, token_contract_on_mainnet, from_key, to_key, token_id, token_amount, amount_wei, timeout=0):
         config_schain_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
         config_mainnet_json = {'token_address': token_contract_on_mainnet.address, 'token_abi': token_contract_on_mainnet.abi}
         erc1155_clone_config_filename = self.config.test_working_dir + '/erc1155_clone.json'
@@ -309,6 +310,7 @@ class Agent:
             {
                 **self._wei_to_bigger(amount_wei),
                 'tid': token_id,
+                'amount': token_amount,
                 'key-main-net': to_key,
                 'key-s-chain': from_key,
                 'erc1155-main-net': erc1155_config_filename,
