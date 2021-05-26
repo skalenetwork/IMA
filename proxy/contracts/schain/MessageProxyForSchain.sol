@@ -25,7 +25,6 @@ pragma experimental ABIEncoderV2;
 import "./bls/FieldOperations.sol";
 import "./bls/SkaleVerifier.sol";
 import "./SkaleFeaturesClient.sol";
-import "hardhat/console.sol";
 
 interface IContractReceiverForSchain {
     function postMessage(
@@ -203,7 +202,11 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
     {
         bytes32 targetChainHash = keccak256(abi.encodePacked(targetChainName));
         require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
-        require(registryContracts[targetChainHash][msg.sender], "Sender contract is not registered");
+        require(
+            registryContracts[bytes32(0)][msg.sender] || 
+            registryContracts[targetChainHash][msg.sender],
+            "Sender contract is not registered"
+        );
         connectedChains[targetChainHash].outgoingMessageCounter
             = connectedChains[targetChainHash].outgoingMessageCounter.add(1);
         _pushOutgoingMessageData(
@@ -233,7 +236,10 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
             startingCounter == connectedChains[fromChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
         for (uint256 i = 0; i < messages.length; i++) {
-            if (!registryContracts[fromChainHash][messages[i].destinationContract]) {
+            if (
+                !registryContracts[fromChainHash][messages[i].destinationContract] &&
+                !registryContracts[bytes32(0)][messages[i].destinationContract]
+            ) {
                 emit PostMessageError(
                     startingCounter + i,
                     bytes("Destination contract is not registered")
@@ -258,13 +264,9 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
-    function registerExtraContract(string calldata schainName, address contractOnSchain)
-        external
-        virtual
-    {
+    function registerExtraContract(string calldata schainName, address contractOnSchain) external {
         bytes32 chainHash = keccak256(abi.encodePacked(schainName));
         require(
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender) ||
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
             _isSchainOwner(msg.sender),
             "Not enough permissions to register extra contract"
@@ -274,22 +276,36 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         registryContracts[chainHash][contractOnSchain] = true;
     }
 
-    function removeExtraContract(
-        string calldata schainName,
-        address contractOnSchain
-    ) 
-        external
-    {
+    function registerExtraContractForAll(address contractOnSchain) external {
+        require(
+            hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
+            "Not enough permissions to register extra contract for all"
+        );
+        require(contractOnSchain.isContract(), "Given address is not a contract");
+        require(!registryContracts[bytes32(0)][contractOnSchain], "Extra contract is already registered");
+        registryContracts[bytes32(0)][contractOnSchain] = true;
+    }
+
+    function removeExtraContract(string calldata schainName, address contractOnSchain) external {
         bytes32 chainHash = keccak256(abi.encodePacked(schainName));
         require(
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender) ||
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
             _isSchainOwner(msg.sender),
             "Not enough permissions to remove extra contract"
         );
         require(contractOnSchain.isContract(),"Given address is not a contract");
         require(registryContracts[chainHash][contractOnSchain], "Extra contract is already removed");
-        delete registryContracts[keccak256(abi.encodePacked(schainName))][contractOnSchain];
+        delete registryContracts[chainHash][contractOnSchain];
+    }
+
+    function removeExtraContractForAll(address contractOnSchain) external {
+        require(
+            hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
+            "Not enough permissions to remove extra contract for all"
+        );
+        require(contractOnSchain.isContract(),"Given address is not a contract");
+        require(registryContracts[bytes32(0)][contractOnSchain], "Extra contract is already removed");
+        delete registryContracts[bytes32(0)][contractOnSchain];
     }
 
     function getOutgoingMessagesCounter(string calldata targetSchainName)

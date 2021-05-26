@@ -100,6 +100,9 @@ describe("TokenManagerERC20", () => {
         await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
         const data = await messages.encodeFreezeStateMessage(user.address, true);
         await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, fakeCommunityPool, data);
+
+        const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
+        await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
     });
 
     it("should change depositBox address", async () => {

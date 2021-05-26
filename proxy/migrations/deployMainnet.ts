@@ -152,6 +152,9 @@ async function main() {
         );
     await communityPool.deployTransaction.wait();
     await (await linker.registerMainnetContract(communityPool.address)).wait();
+    const extraContractRegistrarRole = await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE();
+    await (await messageProxyForMainnet.grantRole(extraContractRegistrarRole, owner.address)).wait();
+    await (await messageProxyForMainnet.registerExtraContractForAll(communityPool.address)).wait();
     await (await messageProxyForMainnet.setCommunityPool(communityPool.address)).wait();
     console.log("Proxy Contract", communityPoolName, "deployed to", communityPool.address);
     deployed.set(
@@ -180,8 +183,8 @@ async function main() {
         await proxy.deployTransaction.wait();
         const contractName = contract;
         console.log("Register", contract, "as", contractName, "=>", proxy.address);
-        const transaction = await linker.registerMainnetContract(proxy.address);
-        await transaction.wait();
+        await (await linker.registerMainnetContract(proxy.address)).wait();
+        await (await messageProxyForMainnet.registerExtraContractForAll(proxy.address)).wait();
         console.log( "Contract", contractName, "with address", proxy.address, "is registered as DepositBox in Linker" );
         deployed.set(
             contractName,

@@ -215,6 +215,8 @@ describe("Gas calculation", () => {
         depositBoxERC20 = await deployDepositBoxERC20(contractManager, imaLinker, messageProxyForMainnet);
         depositBoxERC721 = await deployDepositBoxERC721(contractManager, imaLinker, messageProxyForMainnet);
         communityPool = await deployCommunityPool(contractManager, imaLinker, messageProxyForMainnet);
+        const extraContractRegistrarRole = await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE();
+        await messageProxyForMainnet.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
         await messageProxyForMainnet.registerExtraContract(schainName, depositBoxEth.address)
         await messageProxyForMainnet.registerExtraContract(schainName, depositBoxERC20.address)
         await messageProxyForMainnet.registerExtraContract(schainName, depositBoxERC721.address)
@@ -229,6 +231,7 @@ describe("Gas calculation", () => {
         tokenManagerEth = await deployTokenManagerEth(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxEth.address);
         tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxERC20.address);
         tokenManagerERC721 = await deployTokenManagerERC721(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxERC721.address);
+        await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
         await messageProxyForSchain.registerExtraContract(schainName, tokenManagerEth.address)
         await messageProxyForSchain.registerExtraContract(schainName, tokenManagerERC20.address)
         await messageProxyForSchain.registerExtraContract(schainName, tokenManagerERC721.address)

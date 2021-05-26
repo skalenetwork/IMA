@@ -192,7 +192,11 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
         external
     {
         require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
-        require(registryContracts[targetChainHash][msg.sender], "Sender contract is not registered");
+        require(
+            registryContracts[bytes32(0)][msg.sender] || 
+            registryContracts[targetChainHash][msg.sender],
+            "Sender contract is not registered"
+        );
         uint msgCounter = connectedChains[targetChainHash].outgoingMessageCounter;
         emit OutgoingMessage(
             targetChainHash,
@@ -204,9 +208,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
         connectedChains[targetChainHash].outgoingMessageCounter = msgCounter.add(1);
     }
 
-    function registerExtraContract(string calldata schainName, address contractOnMainnet)
-        external
-    {
+    function registerExtraContract(string calldata schainName, address contractOnMainnet) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
@@ -218,9 +220,17 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
         registryContracts[schainHash][contractOnMainnet] = true;
     }
 
-    function removeExtraContract(string calldata schainName, address contractOnMainnet)
-        external
-    {
+    function registerExtraContractForAll(address contractOnMainnet) external {
+        require(
+            hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
+            "Not enough permissions to register extra contract"
+        );
+        require(contractOnMainnet.isContract(), "Given address is not a contract");
+        require(!registryContracts[bytes32(0)][contractOnMainnet], "Extra contract is already registered");
+        registryContracts[bytes32(0)][contractOnMainnet] = true;
+    }
+
+    function removeExtraContract(string calldata schainName, address contractOnMainnet) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
@@ -230,6 +240,16 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
         require(contractOnMainnet.isContract(), "Given address is not a contract");
         require(registryContracts[schainHash][contractOnMainnet], "Extra contract does not exist");
         delete registryContracts[schainHash][contractOnMainnet];
+    }
+
+    function removeExtraContractForAll(address contractOnMainnet) external {
+        require(
+            hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
+            "Not enough permissions to remove extra contract"
+        );
+        require(contractOnMainnet.isContract(), "Given address is not a contract");
+        require(registryContracts[bytes32(0)][contractOnMainnet], "Extra contract does not exist");
+        delete registryContracts[bytes32(0)][contractOnMainnet];
     }
 
     /**
@@ -266,7 +286,10 @@ contract MessageProxyForMainnet is SkaleManagerClient, AccessControlUpgradeable 
             .div(messages.length);
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
-            if (!registryContracts[fromSchainHash][messages[i].destinationContract]) {
+            if (
+                !registryContracts[fromSchainHash][messages[i].destinationContract] &&
+                !registryContracts[bytes32(0)][messages[i].destinationContract]
+            ) {
                 emit PostMessageError(
                     startingCounter + i,
                     bytes("Destination contract is not registered")

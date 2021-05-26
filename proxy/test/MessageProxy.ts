@@ -412,6 +412,8 @@ describe("MessageProxy", () => {
             messages = await deployMessages();
             const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
             await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, deployer.address);
+            const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
+            await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
             await messageProxyForSchain.registerExtraContract(schainName, messageProxyForSchain.address);
         });
 
