@@ -335,6 +335,31 @@ function verifyArgumentIsPathToExistingFolder( joArg ) {
     }
 }
 
+function verifyArgumentIsArrayOfIntegers( joArg ) {
+    try {
+        if( !Array.isArray( joArg.value ) ) {
+            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be an array" ) );
+            process.exit( 126 );
+        }
+        const newArray = []( joArg.value.length );
+        for (let index = 0; index < newArray.length; index++) {
+            if( !joArg.value[index] || ( typeof joArg.value[index] === "string" && joArg.value[index].length === 0)) {
+                console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value[index] ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
+                process.exit( 126 );
+            }
+            if( !validateInteger( jelement ) ) {
+                console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value[index] ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid integer" ) );
+                process.exit( 126 );
+            }
+            newArray = toInteger( joArg.value[index] );
+        }
+        return newArray;
+    } catch ( err ) {
+        console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid integer array" ) );
+        process.exit( 126 );
+    }
+}
+
 function ensure_starts_with_0x( s ) {
     if( s == null || s == undefined || typeof s !== "string" )
         return s;
@@ -554,6 +579,7 @@ module.exports = {
     verifyArgumentIsIntegerIpPortNumber: verifyArgumentIsIntegerIpPortNumber,
     verifyArgumentIsPathToExistingFile: verifyArgumentIsPathToExistingFile,
     verifyArgumentIsPathToExistingFolder: verifyArgumentIsPathToExistingFolder,
+    verifyArgumentIsArrayOfIntegers: verifyArgumentIsArrayOfIntegers,
     ensure_starts_with_0x: ensure_starts_with_0x,
     remove_starting_0x: remove_starting_0x,
     private_key_2_public_key: private_key_2_public_key,

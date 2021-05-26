@@ -258,7 +258,9 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "finney" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "................." ) + cc.notice( "Amount of " ) + cc.attention( "finney" ) + cc.info( "(wei*1000*1000*1000*1000*1000)" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "ether" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( ".................." ) + cc.notice( "Amount of " ) + cc.attention( "ether" ) + cc.info( "(wei*1000*1000*1000*1000*1000*1000)" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "amount" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "................." ) + cc.notice( "Amount of " ) + cc.attention( "tokens" ) + cc.notice( " to transfer." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "tid" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "...................." ) + cc.attention( "ERC721" ) + cc.notice( " token id to transfer." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "tid" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "...................." ) + cc.attention( "ERC721 or ERC1155" ) + cc.notice( " token id to transfer." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "amounts" ) + cc.sunny( "=" ) + cc.attention( "array of numbers" ) + cc.debug( "......" ) + cc.attention( "ERC1155" ) + cc.notice( " token id to transfer in batch." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "tids" ) + cc.sunny( "=" ) + cc.attention( "array of numbers" ) + cc.debug( "........." ) + cc.attention( "ERC1155" ) + cc.notice( " token amount to transfer in batch." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sleep-between-tx" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "......." ) + cc.notice( "Number of of " ) + cc.attention( "milliseconds" ) + cc.notice( " to sleep between transactions during complex operations." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "wait-next-block" ) + cc.debug( "..............." ) + cc.notice( "Wait for next block between transactions during complex operations." ) );
             //
@@ -622,6 +624,14 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "tid" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.idToken = joArg.value;
+            continue;
+        }
+        if( joArg.name == "amounts" ) {
+            imaState.nAmountOfTokens = owaspUtils.verifyArgumentIsArrayOfIntegers( joArg );
+            continue;
+        }
+        if( joArg.name == "tids" ) {
+            imaState.idTokens = owaspUtils.verifyArgumentIsArrayOfIntegers( joArg );
             continue;
         }
         //
@@ -1425,6 +1435,12 @@ function ima_common_init() {
                 return cc.info( x );
             } );
             ensure_have_value( "ERC1155 token amount ", imaState.nAmountOfToken, false, true, null, ( x ) => {
+                return cc.info( x );
+            } );
+            ensure_have_value( "ERC1155 batch of token ids ", imaState.idTokens, false, true, null, ( x ) => {
+                return cc.info( x );
+            } );
+            ensure_have_value( "ERC1155 batch of token amounts ", imaState.nAmountOfTokens, false, true, null, ( x ) => {
                 return cc.info( x );
             } );
             log.write( cc.info( "ERC1155 explicit S-Chain address is " ) + cc.attention( imaState.strAddrErc1155_explicit ) + "\n" );
