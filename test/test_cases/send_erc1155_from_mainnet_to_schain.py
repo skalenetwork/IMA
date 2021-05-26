@@ -39,7 +39,7 @@ class SendERC1155ToSchain(TestCase):
         self.erc1155 = self.blockchain.deploy_erc1155_on_mainnet(self.config.mainnet_key, 'elv1155')
         sleep(5)
         address = self.blockchain.key_to_address(self.config.mainnet_key)
-        mint_txn = self.erc1155.functions.mint(address, self.tokenId, self.tokenAmount)\
+        mint_txn = self.erc1155.functions.mint(address, self.tokenId, self.tokenAmount, "0x")\
             .buildTransaction({
                 'gas': 8000000,
                 'nonce': self.blockchain.get_transactions_count_on_mainnet(address)})

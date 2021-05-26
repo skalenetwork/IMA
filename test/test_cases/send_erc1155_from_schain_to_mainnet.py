@@ -41,7 +41,7 @@ class Senderc1155ToMainnet(TestCase):
         self.erc1155 = self.blockchain.deploy_erc1155_on_mainnet(self.config.mainnet_key, 'elv1155')
         # mint
         address = self.blockchain.key_to_address(self.config.mainnet_key)
-        mint_txn = self.erc1155.functions.mint(address, self.token_id, self.token_amount)\
+        mint_txn = self.erc1155.functions.mint(address, self.token_id, self.token_amount, "0x")\
             .buildTransaction({
                 'gas': 8000000,
                 'nonce': self.blockchain.get_transactions_count_on_mainnet(address)})
