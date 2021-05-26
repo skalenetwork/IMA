@@ -89,6 +89,8 @@ import { BigNumber, BytesLike } from "ethers";
 
 import { assert, expect } from "chai";
 import { deployCommunityLocker } from "../test/utils/deploy/schain/communityLocker";
+import { deployCommunityPool } from "../test/utils/deploy/mainnet/communityPool";
+import { CommunityPool } from "../typechain/CommunityPool";
 // import { LockAndDataForSchain } from "../typechain/LockAndDataForSchain";
 
 describe("Gas calculation", () => {
@@ -100,6 +102,7 @@ describe("Gas calculation", () => {
     let depositBoxEth: DepositBoxEth;
     let depositBoxERC20: DepositBoxERC20;
     let depositBoxERC721: DepositBoxERC721;
+    let communityPool: CommunityPool;
     let messageProxyForMainnet: MessageProxyForMainnet;
 
     let contractManager: ContractManager;
@@ -203,23 +206,34 @@ describe("Gas calculation", () => {
             }
         }
         await keyStorage.connect(deployer).setCommonPublicKey(stringValue(schainNameHash), BLSPublicKey);
-        await wallets.rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
+        // await wallets.rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
 
         // IMA mainnet part deployment
         messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
         imaLinker = await deployLinker(messageProxyForMainnet);
-        depositBoxEth = await deployDepositBoxEth(contractManager, messageProxyForMainnet, imaLinker);
-        depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxyForMainnet, imaLinker);
-        depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxyForMainnet, imaLinker);
+        depositBoxEth = await deployDepositBoxEth(contractManager, imaLinker, messageProxyForMainnet);
+        depositBoxERC20 = await deployDepositBoxERC20(contractManager, imaLinker, messageProxyForMainnet);
+        depositBoxERC721 = await deployDepositBoxERC721(contractManager, imaLinker, messageProxyForMainnet);
+        communityPool = await deployCommunityPool(contractManager, imaLinker, messageProxyForMainnet);
+        await messageProxyForMainnet.registerExtraContract(schainName, depositBoxEth.address)
+        await messageProxyForMainnet.registerExtraContract(schainName, depositBoxERC20.address)
+        await messageProxyForMainnet.registerExtraContract(schainName, depositBoxERC721.address)
+        await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address)
+
         messages = await deployMessages();
 
         // IMA schain part deployment
         messageProxyForSchain = await deployMessageProxyForSchain(schainName);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
-        communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker);
+        communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker, communityPool.address);
         tokenManagerEth = await deployTokenManagerEth(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxEth.address);
         tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxERC20.address);
         tokenManagerERC721 = await deployTokenManagerERC721(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxERC721.address);
+        await messageProxyForSchain.registerExtraContract(schainName, tokenManagerEth.address)
+        await messageProxyForSchain.registerExtraContract(schainName, tokenManagerERC20.address)
+        await messageProxyForSchain.registerExtraContract(schainName, tokenManagerERC721.address)
+        await messageProxyForSchain.registerExtraContract(schainName, communityLocker.address)
+
         ethERC20 = await deployEthERC20(tokenManagerEth);
         const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
         await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, tokenManagerLinker.address);
@@ -250,7 +264,8 @@ describe("Gas calculation", () => {
         // await ethERC20.transferOwnership(lockAndDataForSchain.address);
 
         // IMA registration
-        await imaLinker.connectSchain(schainName, [tokenManagerEth.address, tokenManagerERC20.address, tokenManagerERC721.address]);
+        await imaLinker.connectSchain(schainName, [tokenManagerEth.address, tokenManagerERC20.address, tokenManagerERC721.address, communityLocker.address]);
+        await communityPool.connect(user).rechargeUserWallet(schainName, { value: 1e18.toString() });
         // await lockAndDataForSchain.addDepositBox(depositBoxEth.address);
         // await lockAndDataForSchain.addDepositBox(depositBoxERC20.address);
         // await lockAndDataForSchain.addDepositBox(depositBoxERC721.address);
@@ -483,49 +498,49 @@ describe("Gas calculation", () => {
             sign,
             5
         )).wait();
-        console.log("First exit eth cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxEth.connect(user).getMyEth()).wait();
-        console.log("First getMyEth eth cost:", res.gasUsed.toNumber());
-        res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
-            schainName,
-            1,
-            [message],
-            sign,
-            5
-        )).wait();
-        console.log("Second exit eth cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxEth.connect(user).getMyEth()).wait();
-        console.log("Second getMyEth eth cost:", res.gasUsed.toNumber());
-        res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
-            schainName,
-            2,
-            [message],
-            sign,
-            5
-        )).wait();
-        console.log("Third exit eth cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxEth.connect(user).getMyEth()).wait();
-        console.log("Third getMyEth eth cost:", res.gasUsed.toNumber());
-        res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
-            schainName,
-            3,
-            [message],
-            sign,
-            5
-        )).wait();
-        console.log("Forth exit eth cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxEth.connect(user).getMyEth()).wait();
-        console.log("Forth getMyEth eth cost:", res.gasUsed.toNumber());
-        res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
-            schainName,
-            4,
-            [message],
-            sign,
-            5
-        )).wait();
-        console.log("Fifth exit eth cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxEth.connect(user).getMyEth()).wait();
-        console.log("Fifth getMyEth eth cost:", res.gasUsed.toNumber());
+        // console.log("First exit eth cost:", res.gasUsed.toNumber());
+        // res = await (await depositBoxEth.connect(user).getMyEth()).wait();
+        // console.log("First getMyEth eth cost:", res.gasUsed.toNumber());
+        // res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+        //     schainName,
+        //     1,
+        //     [message],
+        //     sign,
+        //     5
+        // )).wait();
+        // console.log("Second exit eth cost:", res.gasUsed.toNumber());
+        // res = await (await depositBoxEth.connect(user).getMyEth()).wait();
+        // console.log("Second getMyEth eth cost:", res.gasUsed.toNumber());
+        // res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+        //     schainName,
+        //     2,
+        //     [message],
+        //     sign,
+        //     5
+        // )).wait();
+        // console.log("Third exit eth cost:", res.gasUsed.toNumber());
+        // res = await (await depositBoxEth.connect(user).getMyEth()).wait();
+        // console.log("Third getMyEth eth cost:", res.gasUsed.toNumber());
+        // res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+        //     schainName,
+        //     3,
+        //     [message],
+        //     sign,
+        //     5
+        // )).wait();
+        // console.log("Forth exit eth cost:", res.gasUsed.toNumber());
+        // res = await (await depositBoxEth.connect(user).getMyEth()).wait();
+        // console.log("Forth getMyEth eth cost:", res.gasUsed.toNumber());
+        // res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+        //     schainName,
+        //     4,
+        //     [message],
+        //     sign,
+        //     5
+        // )).wait();
+        // console.log("Fifth exit eth cost:", res.gasUsed.toNumber());
+        // res = await (await depositBoxEth.connect(user).getMyEth()).wait();
+        // console.log("Fifth getMyEth eth cost:", res.gasUsed.toNumber());
     });
 
     it("calculate 1 exit eth cost per one message deposit each time", async () => {
