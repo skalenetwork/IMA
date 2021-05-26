@@ -202,7 +202,7 @@ describe("Gas calculation", () => {
                 b: "14411459380456065006136894392078433460802915485975038137226267466736619639091",
             }
         }
-        await keyStorage.connect(deployer).setCommonPublicKey(stringValue(schainNameHash), BLSPublicKey);
+        await keyStorage.connect(deployer).setBlsCommonPublicKeyForSchain(stringValue(schainNameHash), BLSPublicKey);
         await wallets.rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
 
         // IMA mainnet part deployment
@@ -216,7 +216,7 @@ describe("Gas calculation", () => {
 
         // IMA schain part deployment
         messageProxyForSchain = await deployMessageProxyForSchain(keyStorage.address);
-        await keyStorage.connect(deployer).setCommonPublicKey(BLSPublicKey);
+        await keyStorage.connect(deployer).setBlsCommonPublicKey(BLSPublicKey);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, imaLinker.address);
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker);
         tokenManagerEth = await deployTokenManagerEth(
@@ -232,10 +232,8 @@ describe("Gas calculation", () => {
         await tokenManagerEth.connect(deployer).setEthErc20Address(ethERC20.address);
         const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
         await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, tokenManagerLinker.address);
-
-        await tokenManagerEth.grantRole(await tokenManagerEth.SKALE_FEATURES_SETTER_ROLE(), deployer.address);
-        await tokenManagerERC20.grantRole(await tokenManagerERC20.SKALE_FEATURES_SETTER_ROLE(), deployer.address);
-        await tokenManagerERC721.grantRole(await tokenManagerERC721.SKALE_FEATURES_SETTER_ROLE(), deployer.address);
+        await tokenManagerERC20.connect(deployer).grantRole(await tokenManagerERC20.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
+        await tokenManagerERC721.connect(deployer).grantRole(await tokenManagerERC721.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
 
         // IMA schain part registration
         // await lockAndDataForSchain.setContract("LockAndDataERC20", lockAndDataForSchainERC20.address);
@@ -245,10 +243,6 @@ describe("Gas calculation", () => {
         // await lockAndDataForSchain.setContract("TokenManager", tokenManager.address);
         // await lockAndDataForSchain.setContract("MessageProxy", messageProxyForSchain.address);
         // await lockAndDataForSchain.setContract("TokenFactory", tokenFactory.address);
-
-        // Register and transfer ownership of EthERC20
-        await tokenManagerEth.setEthErc20Address(ethERC20.address);
-        // await ethERC20.transferOwnership(lockAndDataForSchain.address);
 
         // IMA registration
         await imaLinker.connectSchain(schainName, [communityLocker.address, tokenManagerEth.address, tokenManagerERC20.address, tokenManagerERC721.address]);
