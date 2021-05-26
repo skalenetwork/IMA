@@ -176,6 +176,34 @@ class Agent:
                 debug('Wait for erc721 deployment')
                 sleep(1)
 
+    def transfer_erc1155_from_mainnet_to_schain(self, token_contract, from_key, to_key, token_id, amount_wei, timeout=0):
+        config_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
+        erc1155_config_filename = self.config.test_working_dir + '/erc1155.json'
+        self._create_path(erc1155_config_filename)
+        with open(erc1155_config_filename, 'w') as erc1155_file:
+            json.dump(config_json, erc1155_file)
+        sleep(5)
+
+        self._execute_command(
+            'm2s-payment',
+            {
+                **self._wei_to_bigger(amount_wei),
+                'tid': token_id,
+                'key-main-net': from_key,
+                'key-s-chain': to_key,
+                'erc1155-main-net': erc1155_config_filename
+            }
+        )
+
+        start = time()
+        while time() < start + timeout if timeout > 0 else True:
+            try:
+                self.blockchain.get_erc1155_on_schain("Mainnet", token_contract.address)
+                return
+            except ValueError:
+                debug('Wait for erc1155 deployment')
+                sleep(1)
+
     def transfer_erc20_from_schain_to_mainnet(self, token_contract, token_contract_on_mainnet, from_key, to_key, amount, amount_wei, timeout=0):
         config_schain_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
         config_mainnet_json = {'token_address': token_contract_on_mainnet.address, 'token_abi': token_contract_on_mainnet.abi}
@@ -257,6 +285,46 @@ class Agent:
         # while (time() < start + timeout if timeout > 0 else True) and \
         #         self.blockchain.get_transactions_count_on_mainnet(destination_address) == tx_count:
         #     debug('Wait for erc721 payment')
+        #     sleep(1)
+
+    def transfer_erc1155_from_schain_to_mainnet(self, token_contract, token_contract_on_mainnet, from_key, to_key, token_id, amount_wei, timeout=0):
+        config_schain_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
+        config_mainnet_json = {'token_address': token_contract_on_mainnet.address, 'token_abi': token_contract_on_mainnet.abi}
+        erc1155_clone_config_filename = self.config.test_working_dir + '/erc1155_clone.json'
+        erc1155_config_filename = self.config.test_working_dir + '/erc1155.json'
+        self._create_path(erc1155_clone_config_filename)
+        self._create_path(erc1155_config_filename)
+        with open(erc1155_clone_config_filename, 'w') as erc1155_file:
+            json.dump(config_schain_json, erc1155_file)
+        with open(erc1155_config_filename, 'w') as erc1155_file:
+            json.dump(config_mainnet_json, erc1155_file)
+
+        erc1155 = token_contract_on_mainnet
+        destination_address = erc1155.functions.ownerOf(token_id).call()
+        # destination_address = self.blockchain.key_to_address(to_key)
+        tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
+        sleep(10)
+        self._execute_command(
+            's2m-payment',
+            {
+                **self._wei_to_bigger(amount_wei),
+                'tid': token_id,
+                'key-main-net': to_key,
+                'key-s-chain': from_key,
+                'erc1155-main-net': erc1155_config_filename,
+                'erc1155-s-chain': erc1155_clone_config_filename
+            }
+        )
+
+        start = time()
+        while (time() < start + timeout if timeout > 0 else True) and \
+                destination_address == erc1155.functions.ownerOf(token_id).call():
+            debug('Wait for erc1155 payment')
+            sleep(1)
+        # start = time()
+        # while (time() < start + timeout if timeout > 0 else True) and \
+        #         self.blockchain.get_transactions_count_on_mainnet(destination_address) == tx_count:
+        #     debug('Wait for erc1155 payment')
         #     sleep(1)
 
 
