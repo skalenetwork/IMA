@@ -78,7 +78,7 @@ describe("TokenManagerEth", () => {
 
     beforeEach(async () => {
         messageProxyForSchain = await deployMessageProxyForSchain(schainName);
-        tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
+        tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
         fakeDepositBox = tokenManagerLinker.address;
         fakeCommunityPool = tokenManagerLinker.address;
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker, fakeCommunityPool);

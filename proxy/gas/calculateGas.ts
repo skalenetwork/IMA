@@ -26,6 +26,8 @@
 import chaiAsPromised from "chai-as-promised";
 import chai = require("chai");
 import {
+    CommunityLocker,
+    CommunityPool,
     ContractManager,
     DepositBoxEth,
     DepositBoxERC20,
@@ -48,7 +50,6 @@ import {
     TokenManagerLinker,
     Wallets,
     Linker,
-    CommunityLocker
 } from "../typechain";
 
 chai.should();
@@ -90,7 +91,6 @@ import { BigNumber, BytesLike } from "ethers";
 import { assert, expect } from "chai";
 import { deployCommunityLocker } from "../test/utils/deploy/schain/communityLocker";
 import { deployCommunityPool } from "../test/utils/deploy/mainnet/communityPool";
-import { CommunityPool } from "../typechain/CommunityPool";
 // import { LockAndDataForSchain } from "../typechain/LockAndDataForSchain";
 
 describe("Gas calculation", () => {
@@ -210,7 +210,7 @@ describe("Gas calculation", () => {
 
         // IMA mainnet part deployment
         messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
-        imaLinker = await deployLinker(messageProxyForMainnet);
+        imaLinker = await deployLinker(messageProxyForMainnet, contractManager);
         depositBoxEth = await deployDepositBoxEth(contractManager, imaLinker, messageProxyForMainnet);
         depositBoxERC20 = await deployDepositBoxERC20(contractManager, imaLinker, messageProxyForMainnet);
         depositBoxERC721 = await deployDepositBoxERC721(contractManager, imaLinker, messageProxyForMainnet);
@@ -226,7 +226,7 @@ describe("Gas calculation", () => {
 
         // IMA schain part deployment
         messageProxyForSchain = await deployMessageProxyForSchain(schainName);
-        tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
+        tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, imaLinker.address);
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker, communityPool.address);
         tokenManagerEth = await deployTokenManagerEth(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxEth.address);
         tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, depositBoxERC20.address);
@@ -267,7 +267,7 @@ describe("Gas calculation", () => {
         // await ethERC20.transferOwnership(lockAndDataForSchain.address);
 
         // IMA registration
-        await imaLinker.connectSchain(schainName, [tokenManagerEth.address, tokenManagerERC20.address, tokenManagerERC721.address, communityLocker.address]);
+        await imaLinker.connectSchain(schainName, [communityLocker.address, tokenManagerEth.address, tokenManagerERC20.address, tokenManagerERC721.address]);
         await communityPool.connect(user).rechargeUserWallet(schainName, { value: 1e18.toString() });
         // await lockAndDataForSchain.addDepositBox(depositBoxEth.address);
         // await lockAndDataForSchain.addDepositBox(depositBoxERC20.address);
@@ -295,6 +295,9 @@ describe("Gas calculation", () => {
         await ERC721TokenOnMainnet.mint(user.address, 10);
         const minterRoleERC721 = await ERC721TokenOnSchain.MINTER_ROLE();
         await ERC721TokenOnSchain.grantRole(minterRoleERC721, tokenManagerERC721.address);
+
+        // register user
+        await communityPool.connect(user).rechargeUserWallet(schainName, {value: "1000000000000000000"});
     });
 
     it("calculate eth deposits", async () => {

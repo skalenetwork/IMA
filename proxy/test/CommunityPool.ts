@@ -45,7 +45,7 @@ describe("CommunityPool", () => {
     beforeEach(async () => {
         contractManager = await deployContractManager(contractManagerAddress);
         messageProxy = await deployMessageProxyForMainnet(contractManager);
-        linker = await deployLinker(messageProxy);
+        linker = await deployLinker(messageProxy, contractManager);
         communityPool = await deployCommunityPool(contractManager, linker, messageProxy);
         await messageProxy.registerExtraContract(schainName, communityPool.address);
     });

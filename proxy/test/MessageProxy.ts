@@ -104,7 +104,7 @@ describe("MessageProxy", () => {
             contractManager = await deployContractManager(contractManagerAddress);
             // contractManagerAddress = contractManager.address;
             messageProxyForMainnet = await deployMessageProxyForMainnetTester(contractManager);
-            imaLinker = await deployLinker(messageProxyForMainnet);
+            imaLinker = await deployLinker(messageProxyForMainnet, contractManager);
             depositBox = await deployDepositBoxEth(contractManager, imaLinker, messageProxyForMainnet);
             messages = await deployMessages();
             await messageProxyForMainnet.registerExtraContract(schainName, messageProxyForMainnet.address);

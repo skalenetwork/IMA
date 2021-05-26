@@ -38,6 +38,8 @@ contract DepositBoxERC20 is DepositBox {
     mapping(bytes32 => mapping(address => bool)) public schainToERC20;
     mapping(bytes32 => bool) public withoutWhitelist;
 
+    mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
+
     /**
      * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
      */
@@ -64,6 +66,7 @@ contract DepositBoxERC20 is DepositBox {
         uint256 amount
     )
         external
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address tokenManagerAddress = tokenManagerERC20Addresses[schainHash];
@@ -78,6 +81,8 @@ contract DepositBoxERC20 is DepositBox {
             to,
             amount
         );
+        if (!linker.interchainConnections(schainHash))
+            _saveTransferredAmount(schainHash, contractOnMainnet, amount);
         require(
             IERC20Metadata(contractOnMainnet).transferFrom(
                 msg.sender,
@@ -145,6 +150,7 @@ contract DepositBoxERC20 is DepositBox {
         external
         override
         onlyMessageProxy
+        whenNotKilled(schainHash)
         returns (address)
     {
         require(
@@ -155,6 +161,8 @@ contract DepositBoxERC20 is DepositBox {
         Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
         require(message.token.isContract(), "Given address is not a contract");
         require(IERC20Metadata(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
+        if (!linker.interchainConnections(schainHash))
+            _removeTransferredAmount(schainHash, message.token, message.amount);
         require(
             IERC20Metadata(message.token).transfer(message.receiver, message.amount),
             "Something went wrong with `transfer` in ERC20"
@@ -165,12 +173,12 @@ contract DepositBoxERC20 is DepositBox {
     /**
      * @dev Allows Schain owner to add an ERC20 token to LockAndDataForMainnetERC20.
      */
-    function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet) external {
+    function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet)
+        external
+        onlySchainOwner(schainName)
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+    {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            isSchainOwner(msg.sender, schainHash) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "Sender is not an Schain owner"
-        );
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
         // require(!withoutWhitelist[schainHash], "Whitelist is enabled");
         schainToERC20[schainHash][erc20OnMainnet] = true;
@@ -180,17 +188,29 @@ contract DepositBoxERC20 is DepositBox {
     /**
      * @dev Allows Schain owner turn on whitelist of tokens.
      */
-    function enableWhitelist(string memory schainName) external {
-        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not an Schain owner");
+    function enableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = false;
     }
 
     /**
      * @dev Allows Schain owner turn off whitelist of tokens.
      */
-    function disableWhitelist(string memory schainName) external {
-        require(isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))), "Sender is not an Schain owner");
+    function disableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
+    }
+
+    function getFunds(string calldata schainName, address erc20OnMainnet, address receiver, uint amount)
+        external
+        onlySchainOwner(schainName)
+        whenKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(transferredAmount[schainHash][erc20OnMainnet] >= amount, "Incorrect amount");
+        _removeTransferredAmount(schainHash, erc20OnMainnet, amount);
+        require(
+            IERC20Metadata(erc20OnMainnet).transfer(receiver, amount),
+            "Something went wrong with `transfer` in ERC20"
+        );
     }
 
     /**
@@ -218,6 +238,14 @@ contract DepositBoxERC20 is DepositBox {
         initializer
     {
         DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
+    }
+
+    function _saveTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
+        transferredAmount[schainHash][erc20Token] = transferredAmount[schainHash][erc20Token].add(amount);
+    }
+
+    function _removeTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
+        transferredAmount[schainHash][erc20Token] = transferredAmount[schainHash][erc20Token].sub(amount);
     }
 
     /**

@@ -24,8 +24,6 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-
 import "../Messages.sol";
 import "./MessageProxyForMainnet.sol";
 import "../interfaces/IMainnetContract.sol";
@@ -35,7 +33,7 @@ import "./Linker.sol";
  * @title CommunityPool
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract CommunityPool is SkaleManagerClient, AccessControlUpgradeable {
+contract CommunityPool is SkaleManagerClient {
 
     MessageProxyForMainnet public messageProxy;
 
