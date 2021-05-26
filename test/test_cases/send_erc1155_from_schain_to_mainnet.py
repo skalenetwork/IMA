@@ -84,7 +84,7 @@ class Senderc1155ToMainnet(TestCase):
         source_address = self.blockchain.key_to_address(self.config.schain_key)
         destination_address = self.blockchain.key_to_address(self.config.mainnet_key)
 
-        if self.erc1155_clone.functions.ownerOf(self.token_id).call() != source_address:
+        if self.erc1155_clone.functions.balanceOf(source_address, self.token_id).call() != self.token_amount:
             error("Token was not send")
             return
         #
