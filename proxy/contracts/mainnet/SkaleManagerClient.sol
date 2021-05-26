@@ -23,6 +23,7 @@ pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 
@@ -33,10 +34,19 @@ import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
  * @author Artem Payvin
  * @author Dmytro Stebaiev
  */
-contract SkaleManagerClient is Initializable {
+contract SkaleManagerClient is Initializable, AccessControlUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     IContractManager public contractManagerOfSkaleManager;
+
+    modifier onlySchainOwner(string memory schainName) {
+        require(
+            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))) ||
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            "Sender is not an Schain owner"
+        );
+        _;
+    }
 
     /**
      * @dev Checks whether sender is owner of SKALE chain
@@ -57,6 +67,8 @@ contract SkaleManagerClient is Initializable {
         virtual
         initializer
     {
+        AccessControlUpgradeable.__AccessControl_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         contractManagerOfSkaleManager = newContractManagerOfSkaleManager;
     }
 }

@@ -78,7 +78,7 @@ describe("TokenManagerERC721", () => {
     beforeEach(async () => {
         const keyStorage = await deployKeyStorageMock();
         messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address);
-        tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain);
+        tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
         messages = await deployMessages();
         const fakeDepositBox = messages;
 

@@ -43,7 +43,7 @@ contract CommunityLocker is AccessControlUpgradeable {
     TokenManagerLinker public tokenManagerLinker;
 
     bytes32 public schainHash;
-    uint public timeLimitPerMessage;    
+    uint public timeLimitPerMessage = 5 minutes;
 
     mapping(address => bool) private _unfrozenUsers;
     mapping(address => uint) private _lastMessageTimeStamp;
@@ -65,7 +65,7 @@ contract CommunityLocker is AccessControlUpgradeable {
         require(fromChainHash == MAINNET_HASH, "Source chain name should be Mainnet");
         Messages.MessageType operation = Messages.getMessageType(data);
         require(operation == Messages.MessageType.FREEZE_STATE, "The message should contain a frozen state");
-        Messages.FreezeStateMessage memory message =  Messages.decodeFreezeStateMessage(data);
+        Messages.FreezeStateMessage memory message = Messages.decodeFreezeStateMessage(data);
         require(_unfrozenUsers[message.receiver] != message.isUnfrozen, "Freezing states must be different");
         _unfrozenUsers[message.receiver] = message.isUnfrozen;
         emit UserUnfrozed(schainHash, message.receiver);
@@ -101,7 +101,6 @@ contract CommunityLocker is AccessControlUpgradeable {
         messageProxy = newMessageProxy;
         tokenManagerLinker = newTokenManagerLinker;
         schainHash = keccak256(abi.encodePacked(newSchainName));
-        timeLimitPerMessage = 5 minutes;
     }
 
 }

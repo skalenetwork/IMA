@@ -123,7 +123,7 @@ async function main() {
     console.log("Deploy", linkerName);
     const linkerFactory = await getContractFactory(linkerName);
     const linker = (
-        await upgrades.deployProxy(linkerFactory, [deployed.get(messageProxyForMainnetName)?.address], { initializer: 'initialize(address)' })
+        await upgrades.deployProxy(linkerFactory, [deployed.get(messageProxyForMainnetName)?.address, contractManager?.address], { initializer: 'initialize(address,address)' })
     ) as Linker;
     await linker.deployTransaction.wait();
     console.log("Proxy Contract", linkerName, "deployed to", linker.address);

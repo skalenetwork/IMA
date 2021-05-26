@@ -19,7 +19,12 @@ def main():
             genesis['alloc'].update(generate_contracts(
                 config['schain_owner'],
                 config['schain_name'],
-                config['eth_deposit_box']))
+                {
+                    'eth_deposit_box': config['eth_deposit_box'],
+                    'erc20_deposit_box': config['erc20_deposit_box'],
+                    'erc721_deposit_box': config['erc721_deposit_box'],
+                    'linker': config['linker']
+                }))
             print(json.dumps(genesis, indent=4, sort_keys=True))
 
 

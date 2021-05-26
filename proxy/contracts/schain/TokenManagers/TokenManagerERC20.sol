@@ -82,9 +82,9 @@ contract TokenManagerERC20 is TokenManager {
             ),
             "Could not transfer ERC20 Token"
         );
-        
+
         contractOnSchain.burn(amount);
-        
+
         messageProxy.postOutgoingMessage(
             MAINNET_NAME,
             depositBox,

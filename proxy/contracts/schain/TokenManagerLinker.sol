@@ -20,10 +20,12 @@
  */
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+import "../Messages.sol";
 import "../interfaces/IMessageProxy.sol";
 import "./TokenManager.sol";
 
@@ -32,14 +34,20 @@ import "./TokenManager.sol";
  * @title TokenManagerLinker
  * @dev Runs on Schain
  */
-contract TokenManagerLinker is AccessControlUpgradeable {
+contract TokenManagerLinker is AccessControlUpgradeable, IContractReceiverForSchain {
 
     using SafeMath for uint;
 
+    string constant public MAINNET_NAME = "Mainnet";
+    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
     bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
 
     IMessageProxy public messageProxy;
-    TokenManager[] public tokenManagers;    
+    address public linkerAddress;
+    TokenManager[] public tokenManagers;	
+    bool public interchainConnections;    
+
+    event InterchainConnectionAllowed(bool isAllowed);
 
     modifier onlyRegistrar() {
         require(hasRole(REGISTRAR_ROLE, msg.sender), "REGISTRAR_ROLE is required");
@@ -73,11 +81,36 @@ contract TokenManagerLinker is AccessControlUpgradeable {
         external
         onlyRegistrar
     {
+        require(interchainConnections, "Interchain connection not allowed");
         require(tokenManagerAddresses.length == tokenManagers.length, "Incorrect number of addresses");
         for (uint i = 0; i < tokenManagerAddresses.length; i++) {
             tokenManagers[i].addTokenManager(schainName, tokenManagerAddresses[i]);
         }
         messageProxy.addConnectedChain(schainName);
+    }
+
+    function postMessage(
+        bytes32 fromChainHash,
+        address sender,
+        bytes calldata data
+    )
+        external
+        override
+        returns (bool)
+    {
+        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
+        require(sender == linkerAddress, "Sender from Mainnet is incorrect");
+        require(fromChainHash == MAINNET_HASH, "Source chain name should be Mainnet");
+        Messages.MessageType operation = Messages.getMessageType(data);
+        require(
+            operation == Messages.MessageType.INTERCHAIN_CONNECTION,
+            "The message should contain a interchain connection state"
+        );
+        Messages.InterchainConnectionMessage memory message = Messages.decodeInterchainConnectionMessage(data);
+        require(interchainConnections != message.isAllowed, "Interchain connection state should be different");
+        interchainConnections = message.isAllowed;
+        emit InterchainConnectionAllowed(message.isAllowed);
+        return true;
     }
 
     function disconnectSchain(string calldata schainName) external onlyRegistrar {
@@ -108,7 +141,7 @@ contract TokenManagerLinker is AccessControlUpgradeable {
         connected = connected && messageProxy.isConnectedChain(schainName);
     }
 
-    function initialize(IMessageProxy newMessageProxyAddress)
+    function initialize(IMessageProxy newMessageProxyAddress, address linker)
         public
         virtual
         initializer
@@ -117,5 +150,6 @@ contract TokenManagerLinker is AccessControlUpgradeable {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(REGISTRAR_ROLE, msg.sender);
         messageProxy = newMessageProxyAddress;    
-    }
+	    linkerAddress = linker;
+    }    
 }

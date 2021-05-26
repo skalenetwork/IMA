@@ -178,7 +178,10 @@ function load_node_config( strPath ) {
 
 function parse( joExternalHandlers, argv ) {
     let idxArg; const cntArgs = argv || process.argv.length;
+    console.log( "----------- notice, count of command line args is", cntArgs );
+    console.log( "----------- notice, array of command line args is", JSON.stringify( process.argv ) );
     for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
+        console.log( "----------- notice, command line args no", idxArg, "is", process.argv[idxArg] );
         const joArg = parse_command_line_argument( process.argv[idxArg] );
         if( joArg.name == "help" ) {
             print_about();
@@ -328,6 +331,14 @@ function parse( joExternalHandlers, argv ) {
             //
             console.log( cc.sunny( "MONITORING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "........" ) + cc.notice( "Run monitoring web socket RPC server on specified port. By default monitoring server is disabled." ) );
+            //
+            console.log( cc.sunny( "GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-chain" ) + cc.sunny( "=" ) + cc.note( "name" ) + cc.debug( "......" ) + cc.notice( "Specifies chain name." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-recharge" ) + cc.sunny( "=" ) + cc.note( "v" ) + cc.warning( "u" ) + cc.debug( "....." ) + cc.notice( "Recharge user wallet with specified value " ) + cc.attention( "v" ) + cc.notice( ", unit name " ) + cc.attention( "u" ) + cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) + cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-withdraw" ) + cc.sunny( "=" ) + cc.note( "v" ) + cc.warning( "u" ) + cc.debug( "....." ) + cc.notice( "Withdraw user wallet with specified value " ) + cc.attention( "v" ) + cc.notice( ", unit name " ) + cc.attention( "u" ) + cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) + cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-balance" ) + cc.debug( "........." ) + cc.notice( "Show wallet balance." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-range" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "...." ) + cc.notice( "Sets minimal time interval between transfers from S-Chain to Main Net." ) );
+
             //
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
@@ -485,6 +496,7 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "abi-main-net" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.strPathAbiJson_main_net = imaUtils.normalizePath( joArg.value );
+            console.log( "----------- notice, got path for main net ABI", imaState.strPathAbiJson_main_net );
             continue;
         }
         if( joArg.name == "abi-s-chain" ) {
@@ -821,6 +833,30 @@ function parse( joExternalHandlers, argv ) {
             imaState.nMonitoringPort = owaspUtils.toInteger( joArg.value );
             continue;
         }
+        if( joArg.name == "reimbursement-chain" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.strReimbursementChain = joArg.value.trim();
+            continue;
+        }
+        if( joArg.name == "reimbursement-recharge" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.nReimbursementRecharge = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value, true );
+            continue;
+        }
+        if( joArg.name == "reimbursement-withdraw" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.nReimbursementWithdraw = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value, true );
+            continue;
+        }
+        if( joArg.name == "reimbursement-balance" ) {
+            imaState.isShowReimbursementBalance = true;
+            continue;
+        }
+        if( joArg.name == "reimbursement-range" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.nReimbursementRange = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
         if( joArg.name == "register" ||
             joArg.name == "register1" ||
             joArg.name == "register2" ||
@@ -872,6 +908,7 @@ function getWeb3FromURL( strURL ) {
 function ima_common_init() {
     let n1 = 0;
     let n2 = 0;
+    console.log( "----------- notice, will use path for main net ABI", imaState.strPathAbiJson_main_net );
     imaState.joTrufflePublishResult_main_net = imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net, null );
     imaState.joTrufflePublishResult_s_chain = imaUtils.jsonFileLoad( imaState.strPathAbiJson_s_chain, null );
 
@@ -1163,6 +1200,7 @@ function ima_common_init() {
         ensure_have_value( "S-Chain Ethereum chain ID", imaState.cid_s_chain, false, true, null, ( x ) => {
             return cc.note( x );
         } );
+        console.log( "----------- notice, validating path for main net ABI", imaState.strPathAbiJson_main_net );
         ensure_have_value( "Main-net ABI JSON file path", imaState.strPathAbiJson_main_net, false, true, null, ( x ) => {
             return cc.warning( x );
         } );
