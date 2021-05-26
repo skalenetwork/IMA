@@ -74,9 +74,9 @@ describe("Linker", () => {
         contractManagerAddress = contractManager.address;
         messageProxy = await deployMessageProxyForMainnet(contractManager);
         linker = await deployLinker(messageProxy);
-        depositBoxEth = await deployDepositBoxEth(contractManager, messageProxy, linker);
-        depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxy, linker);
-        depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxy, linker);
+        depositBoxEth = await deployDepositBoxEth(contractManager, linker, messageProxy);
+        depositBoxERC20 = await deployDepositBoxERC20(contractManager, linker, messageProxy);
+        depositBoxERC721 = await deployDepositBoxERC721(contractManager, linker, messageProxy);
         await linker.removeMainnetContract(depositBoxEth.address);
         await linker.removeMainnetContract(depositBoxERC20.address);
         await linker.removeMainnetContract(depositBoxERC721.address);

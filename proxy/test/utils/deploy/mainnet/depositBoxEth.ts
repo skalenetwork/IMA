@@ -3,8 +3,8 @@ import { ContractManager, MessageProxyForMainnet, Linker, DepositBoxEth } from "
 
 export async function deployDepositBoxEth(
     contractManager: ContractManager,
-    messageProxy: MessageProxyForMainnet,
-    linker: Linker
+    linker: Linker,
+    messageProxy: MessageProxyForMainnet
 
 ) {
     const factory = await ethers.getContractFactory("DepositBoxEth");
