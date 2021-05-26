@@ -15,6 +15,8 @@ with open('config.json') as config_file:
     owner_address = config['schain_owner']
     schain_name = config['schain_name']
     eth_deposit_box = config['eth_deposit_box']
+    erc20_deposit_box = config['erc20_deposit_box']
+    erc721_deposit_box = config['erc721_deposit_box']
     linker_address = config['linker']
 
 
@@ -26,8 +28,8 @@ def main():
     check_community_locker(owner_address, schain_name)
     check_token_manager_linker(owner_address, linker_address)
     check_token_manager_eth(owner_address, eth_deposit_box, schain_name)
-    check_token_manager_erc20(owner_address, eth_deposit_box, schain_name)
-    check_token_manager_erc721(owner_address, eth_deposit_box, schain_name)
+    check_token_manager_erc20(owner_address, erc20_deposit_box, schain_name)
+    check_token_manager_erc721(owner_address, erc721_deposit_box, schain_name)
 
     print('All tests pass')
 

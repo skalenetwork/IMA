@@ -1,12 +1,12 @@
 from ima_predeployed.addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, \
-    TOKEN_MANAGER_LINKER_ADDRESS, COMMUNITY_LOCKER_ADDRESS, TOKEN_MANAGER_ERC20_ADDRESS
+    TOKEN_MANAGER_LINKER_ADDRESS, COMMUNITY_LOCKER_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS
 from ima_predeployed.contracts.token_manager_erc721 import TokenManagerErc721Generator
 from tools import w3, load_abi
 
 
 def check_token_manager_erc721(deployer_address, deposit_box_address, schain_name):
     token_manager_erc721 = w3.eth.contract(
-        address=TOKEN_MANAGER_ERC20_ADDRESS, abi=load_abi(TokenManagerErc721Generator.ARTIFACT_FILENAME))
+        address=TOKEN_MANAGER_ERC721_ADDRESS, abi=load_abi(TokenManagerErc721Generator.ARTIFACT_FILENAME))
     assert token_manager_erc721.functions.getRoleMember(
         TokenManagerErc721Generator.DEFAULT_ADMIN_ROLE, 0).call() == deployer_address
     assert token_manager_erc721.functions.hasRole(

@@ -16,7 +16,7 @@ def check_token_manager_linker(deployer_address, linker_address):
     assert token_manager_linker.functions.hasRole(
         TokenManagerLinkerGenerator.REGISTRAR_ROLE, deployer_address).call()
     assert token_manager_linker.functions.messageProxy().call() == MESSAGE_PROXY_FOR_SCHAIN_ADDRESS
-    assert token_manager_linker.functions.linkerAddress().call() == token_manager_linker
+    assert token_manager_linker.functions.linkerAddress().call() == linker_address
     assert token_manager_linker.functions.tokenManagers(0).call() == TOKEN_MANAGER_ETH_ADDRESS
     assert token_manager_linker.functions.tokenManagers(1).call() == TOKEN_MANAGER_ERC20_ADDRESS
     assert token_manager_linker.functions.tokenManagers(2).call() == TOKEN_MANAGER_ERC721_ADDRESS
