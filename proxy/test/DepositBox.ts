@@ -91,7 +91,7 @@ describe("DepositBox", () => {
     let linker: Linker;
     let communityPool: CommunityPool;
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
-    const schainName = "geProxyForSchainSchain";
+    const schainName = "Schain";
 
     before(async () => {
         [deployer, user, user2] = await ethers.getSigners();
@@ -165,7 +165,6 @@ describe("DepositBox", () => {
         });
 
         it("should get funds after kill", async () => {
-            const schainName = randomString(10);
             const wei = "20000000000000000";
             const wei2 = "40000000000000000";
             await linker
@@ -243,10 +242,6 @@ describe("DepositBox", () => {
         });
 
         it("should get funds after kill", async () => {
-            const schainName = randomString(10);
-            await linker
-                .connect(deployer)
-                .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address]);
             await erc20.connect(deployer).mint(deployer.address, "1000000000");
             await erc20.connect(deployer).approve(depositBoxERC20.address, "1000000");
             await depositBoxERC20.disableWhitelist(schainName);
@@ -332,7 +327,6 @@ describe("DepositBox", () => {
         });
 
         it("should get funds after kill", async () => {
-            const schainName = randomString(10);
             const tokenId = 10;
             const tokenId2 = 11;
             await linker

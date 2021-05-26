@@ -87,6 +87,9 @@ describe("TokenManagerLinker", () => {
         messages = await deployMessages();
         const chainConnectorRole = await messageProxy.CHAIN_CONNECTOR_ROLE();
         await messageProxy.connect(deployer).grantRole(chainConnectorRole, linker.address);
+        const extraContractRegistrarRole = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
+        await messageProxy.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
+        await messageProxy.registerExtraContractForAll(linker.address);
     });
 
     it("should allow interchain connection", async () => {
@@ -111,10 +114,11 @@ describe("TokenManagerLinker", () => {
     });
 
     describe("When interchain connection is turned on", () => {
-
+        let schainName: string;
         beforeEach(async () => {
             const data = await messages.encodeInterchainConnectionMessage(true);
             await messageProxy.connect(deployer).postMessage(linker.address, stringValue(web3.utils.soliditySha3("Mainnet")), deployer.address, data)
+            schainName = randomString(10);
         });
 
         it("should connect schain", async () => {
