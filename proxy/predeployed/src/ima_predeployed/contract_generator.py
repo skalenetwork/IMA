@@ -79,3 +79,21 @@ class ContractGenerator:
         for i, address in enumerate(values):
             address_slot = calculate_array_value_slot(slot, i)
             self._write_address(address_slot, address)
+
+    def _write_string(self, slot: int, value: str) -> None:
+        binary = value.encode()
+        length = len(binary)
+        if length < 32:
+            binary += (2 * length).to_bytes(32 - length, 'big')
+            self._write_bytes32(slot, binary)
+        else:
+            self._write_uint256(slot, 2 * length + 1)
+
+            def chunks(size, source):
+                for i in range(0, len(source), size):
+                    yield source[i:i + size]
+
+            for index, data in enumerate(chunks(32, binary)):
+                if len(data) < 32:
+                    data += int(0).to_bytes(32 - len(data), 'big')
+                self._write_bytes32(calculate_array_value_slot(slot, index), data)

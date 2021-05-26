@@ -21,20 +21,14 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20BurnableUpgradeable.sol";
 
 
-contract EthErc20 is AccessControl, ERC20Burnable {
+contract EthErc20 is AccessControlUpgradeable, ERC20BurnableUpgradeable {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-
-    constructor(address tokenManagerEthAddress) public ERC20("ERC20 Ether Clone", "ETHC"){
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(MINTER_ROLE, tokenManagerEthAddress);
-        _setupRole(BURNER_ROLE, tokenManagerEthAddress);
-    }
 
     function mint(address account, uint256 amount) external {
         require(hasRole(MINTER_ROLE, _msgSender()), "MINTER role is required");
@@ -44,5 +38,18 @@ contract EthErc20 is AccessControl, ERC20Burnable {
     function forceBurn(address account, uint256 amount) external {
         require(hasRole(BURNER_ROLE, _msgSender()), "BURNER role is required");
         _burn(account, amount);
+    }
+
+    function initialize(address tokenManagerEthAddress)
+        public
+        virtual
+        initializer
+    {
+        AccessControlUpgradeable.__AccessControl_init();
+        ERC20Upgradeable.__ERC20_init("ERC20 Ether Clone", "ETHC");
+        ERC20BurnableUpgradeable.__ERC20Burnable_init();        
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(MINTER_ROLE, tokenManagerEthAddress);
+        _setupRole(BURNER_ROLE, tokenManagerEthAddress);
     }
 }

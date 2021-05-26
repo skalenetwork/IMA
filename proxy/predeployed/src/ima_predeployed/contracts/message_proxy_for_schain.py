@@ -27,6 +27,7 @@ class MessageProxyForSchainGenerator(ContractGenerator):
     # 104:  _idxHead
     # 105:  _idxTail
 
+    INITIALIZED_SLOT = 0
     ROLES_SLOT = 51
     KEY_STORAGE_SLOT = 101
     CONNECTED_CHAINS_SLOT = 102
@@ -38,6 +39,7 @@ class MessageProxyForSchainGenerator(ContractGenerator):
     # private
 
     def _setup(self, deployer_address: str) -> None:
+        self._write_uint256(self.INITIALIZED_SLOT, 1)
         self._setup_role(self.ROLES_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
         self._write_address(self.KEY_STORAGE_SLOT, KEY_STORAGE_ADDRESS)
 

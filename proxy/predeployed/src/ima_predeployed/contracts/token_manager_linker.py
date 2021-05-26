@@ -25,6 +25,7 @@ class TokenManagerLinkerGenerator(ContractGenerator):
     # 101:  messageProxy
     # 102:  tokenManagers
 
+    INITIALIZED_SLOT = 0
     ROLES_SLOT = 51
     MESSAGE_PROXY_SLOT = 101
     TOKEN_MANAGERS_SLOT = next_slot(MESSAGE_PROXY_SLOT)
@@ -36,6 +37,7 @@ class TokenManagerLinkerGenerator(ContractGenerator):
     # private
 
     def _setup(self, deployer_address: str) -> None:
+        self._write_uint256(self.INITIALIZED_SLOT, 1)
         self._setup_role(self.ROLES_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
         self._setup_role(self.ROLES_SLOT, self.REGISTRAR_ROLE, [deployer_address])
         self._write_address(self.MESSAGE_PROXY_SLOT, MESSAGE_PROXY_FOR_SCHAIN_ADDRESS)

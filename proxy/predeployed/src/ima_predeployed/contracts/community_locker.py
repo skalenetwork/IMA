@@ -28,6 +28,7 @@ class CommunityLockerGenerator(ContractGenerator):
     # 105:  _unfrozenUsers
     # 106:  _lastMessageTimeStamp
 
+    INITIALIZED_SLOT = 0
     ROLES_SLOT = 51
     MESSAGE_PROXY_SLOT = 101
     TOKEN_MANAGER_LINKER_SLOT = next_slot(MESSAGE_PROXY_SLOT)
@@ -41,6 +42,7 @@ class CommunityLockerGenerator(ContractGenerator):
     # private
 
     def _setup(self, deployer_address: str, schain_name: str) -> None:
+        self._write_uint256(self.INITIALIZED_SLOT, 1)
         self._setup_role(self.ROLES_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
         self._write_address(self.MESSAGE_PROXY_SLOT, MESSAGE_PROXY_FOR_SCHAIN_ADDRESS)
         self._write_address(self.TOKEN_MANAGER_LINKER_SLOT, TOKEN_MANAGER_LINKER_ADDRESS)

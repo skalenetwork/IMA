@@ -19,6 +19,7 @@ class KeyStorageGenerator(ContractGenerator):
     # 100:  __gap
     # ----------KeyStorage----------
 
+    INITIALIZED_SLOT = 0
     ROLES_SLOT = 51
 
     def __init__(self, deployer_address: str):
@@ -28,4 +29,5 @@ class KeyStorageGenerator(ContractGenerator):
     # private
 
     def _setup(self, deployer_address: str) -> None:
+        self._write_uint256(self.INITIALIZED_SLOT, 1)
         self._setup_role(self.ROLES_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])

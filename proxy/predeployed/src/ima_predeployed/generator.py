@@ -1,6 +1,7 @@
 import json
 import os
 
+from ima_predeployed.contracts.eth_erc20 import EthErc20Generator
 from ima_predeployed.contracts.token_manager_erc20 import TokenManagerErc20Generator
 from ima_predeployed.contracts.token_manager_erc721 import TokenManagerErc721Generator
 from ima_predeployed.contracts.token_manager_eth import TokenManagerEthGenerator
@@ -18,7 +19,8 @@ from .addresses import \
     COMMUNITY_LOCKER_IMPLEMENTATION_ADDRESS, COMMUNITY_LOCKER_ADDRESS, TOKEN_MANAGER_LINKER_IMPLEMENTATION_ADDRESS, \
     TOKEN_MANAGER_LINKER_ADDRESS, TOKEN_MANAGER_ETH_IMPLEMENTATION_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS, \
     TOKEN_MANAGER_ERC20_IMPLEMENTATION_ADDRESS, TOKEN_MANAGER_ERC20_ADDRESS, \
-    TOKEN_MANAGER_ERC721_IMPLEMENTATION_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS
+    TOKEN_MANAGER_ERC721_IMPLEMENTATION_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS, ETH_ERC20_IMPLEMENTATION_ADDRESS, \
+    ETH_ERC20_ADDRESS
 
 
 def generate_contracts(owner_address: str, schain_name: str, eth_deposit_box: str) -> dict:
@@ -71,6 +73,13 @@ def generate_contracts(owner_address: str, schain_name: str, eth_deposit_box: st
         TokenManagerErc721Generator(owner_address, eth_deposit_box, schain_name)
     )
 
+    eth_erc20_implementation = ContractGenerator(EthErc20Generator.ARTIFACT_FILENAME)
+    eth_erc20 = UpgradeableContractGenerator(
+        ETH_ERC20_IMPLEMENTATION_ADDRESS,
+        PROXY_ADMIN_ADDRESS,
+        EthErc20Generator(owner_address)
+    )
+
     return {
         PROXY_ADMIN_ADDRESS: proxy_admin.generate_contract(),
 
@@ -93,7 +102,10 @@ def generate_contracts(owner_address: str, schain_name: str, eth_deposit_box: st
         TOKEN_MANAGER_ERC20_IMPLEMENTATION_ADDRESS: token_manager_erc20_implementation.generate_contract(),
 
         TOKEN_MANAGER_ERC721_ADDRESS: token_manager_erc721.generate_contract(),
-        TOKEN_MANAGER_ERC721_IMPLEMENTATION_ADDRESS: token_manager_erc721_implementation.generate_contract()
+        TOKEN_MANAGER_ERC721_IMPLEMENTATION_ADDRESS: token_manager_erc721_implementation.generate_contract(),
+
+        ETH_ERC20_ADDRESS: eth_erc20.generate_contract(),
+        ETH_ERC20_IMPLEMENTATION_ADDRESS: eth_erc20_implementation.generate_contract()
     }
 
 

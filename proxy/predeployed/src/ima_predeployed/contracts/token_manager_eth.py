@@ -1,4 +1,4 @@
-from ima_predeployed.addresses import ETH_ERC_20_ADDRESS
+from ima_predeployed.addresses import ETH_ERC20_ADDRESS
 from ima_predeployed.contract_generator import next_slot
 from ima_predeployed.contracts.token_manager import TokenManagerGenerator
 
@@ -37,4 +37,4 @@ class TokenManagerEthGenerator(TokenManagerGenerator):
     # private
 
     def _setup(self) -> None:
-        self._write_address(self.ETH_ERC_20_SLOT, ETH_ERC_20_ADDRESS)
+        self._write_address(self.ETH_ERC_20_SLOT, ETH_ERC20_ADDRESS)

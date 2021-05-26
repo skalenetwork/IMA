@@ -30,6 +30,7 @@ class TokenManagerGenerator(ContractGenerator):
     # 105:  depositBox, automaticDeploy
     # 106:  tokenManagers
 
+    INITIALIZED_SLOT = 0
     ROLES_SLOT = 51
     MESSAGE_PROXY_SLOT = 101
     TOKEN_MANAGER_LINKER_SLOT = next_slot(MESSAGE_PROXY_SLOT)
@@ -46,6 +47,7 @@ class TokenManagerGenerator(ContractGenerator):
     # private
 
     def _setup_token_manager(self, deployer_address: str, deposit_box_address: str, schain_name: str) -> None:
+        self._write_uint256(self.INITIALIZED_SLOT, 1)
         self._setup_role(self.ROLES_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
         self._setup_role(self.ROLES_SLOT, self.AUTOMATIC_DEPLOY_ROLE, [deployer_address])
         self._setup_role(self.ROLES_SLOT, self.TOKEN_REGISTRAR_ROLE, [deployer_address])

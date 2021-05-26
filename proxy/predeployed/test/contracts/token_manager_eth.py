@@ -1,5 +1,5 @@
 from ima_predeployed.addresses import TOKEN_MANAGER_ETH_ADDRESS, MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, \
-    TOKEN_MANAGER_LINKER_ADDRESS, COMMUNITY_LOCKER_ADDRESS, ETH_ERC_20_ADDRESS
+    TOKEN_MANAGER_LINKER_ADDRESS, COMMUNITY_LOCKER_ADDRESS, ETH_ERC20_ADDRESS
 from ima_predeployed.contracts.token_manager_eth import TokenManagerEthGenerator
 from tools import w3, load_abi
 
@@ -25,4 +25,4 @@ def check_token_manager_eth(deployer_address, deposit_box_address, schain_name):
     assert token_manager_eth.functions.schainHash().call() == w3.solidityKeccak(['string'], [schain_name])
     assert token_manager_eth.functions.depositBox().call() == deposit_box_address
     assert not token_manager_eth.functions.automaticDeploy().call()
-    assert token_manager_eth.functions.ethErc20().call() == ETH_ERC_20_ADDRESS
+    assert token_manager_eth.functions.ethErc20().call() == ETH_ERC20_ADDRESS
