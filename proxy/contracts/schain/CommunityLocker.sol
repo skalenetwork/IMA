@@ -37,6 +37,7 @@ contract CommunityLocker is SkaleFeaturesClient {
 
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
+    address public communityPool;
 
     bytes32 public schainHash;
     uint public timeLimitPerMessage;
@@ -54,7 +55,8 @@ contract CommunityLocker is SkaleFeaturesClient {
     constructor(
         string memory newSchainName,
         MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker
+        TokenManagerLinker newIMALinker,
+        address newCommunityPool
     )
         public
     {
@@ -62,18 +64,20 @@ contract CommunityLocker is SkaleFeaturesClient {
         schainHash = keccak256(abi.encodePacked(newSchainName));
         messageProxy = newMessageProxy;
         tokenManagerLinker = newIMALinker;
+        communityPool = newCommunityPool;
         timeLimitPerMessage = 5 minutes;
     }
 
     function postMessage(
         bytes32 fromChainHash,
-        address,
+        address sender,
         bytes calldata data
     )
         external
         returns (bool)
     {
         require(msg.sender == address(messageProxy), "Sender is not a message proxy");
+        require(sender == communityPool, "Sender should be CommunityPool");
         require(fromChainHash == MAINNET_HASH, "Source chain name should be Mainnet");
         Messages.MessageType operation = Messages.getMessageType(data);
         require(operation == Messages.MessageType.FREEZE_STATE, "The message should contain a frozen state");
