@@ -43,7 +43,7 @@ contract CommunityLocker is AccessControlUpgradeable {
     TokenManagerLinker public tokenManagerLinker;
 
     bytes32 public schainHash;
-    uint public timeLimitPerMessage = 5 minutes;
+    uint public timeLimitPerMessage;
 
     mapping(address => bool) private _unfrozenUsers;
     mapping(address => uint) private _lastMessageTimeStamp;
@@ -101,6 +101,7 @@ contract CommunityLocker is AccessControlUpgradeable {
         messageProxy = newMessageProxy;
         tokenManagerLinker = newTokenManagerLinker;
         schainHash = keccak256(abi.encodePacked(newSchainName));
+        timeLimitPerMessage = 5 minutes;
     }
 
 }
