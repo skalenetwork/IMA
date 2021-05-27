@@ -176,23 +176,23 @@ describe("TokenManagerERC1155", () => {
     });
 
     it("should successfully call transferToSchainERC1155", async () => {
-        const schainName = randomString(10);
+        const newSchainName = randomString(10);
         const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
         await messageProxyForSchain.grantRole(chainConnectorRole, deployer.address);
-        await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
+        await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
 
         await tokenManagerERC1155
             .connect(deployer)
-            .transferToSchainERC1155(schainName, token.address, to, id, amount)
+            .transferToSchainERC1155(newSchainName, token.address, to, id, amount)
             .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
-        await tokenManagerERC1155.addTokenManager(schainName, deployer.address);
+        await tokenManagerERC1155.addTokenManager(newSchainName, deployer.address);
         await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone.address);
         await tokenClone.connect(deployer).mint(deployer.address, id, amount, "0x");
 
         await tokenManagerERC1155
             .connect(deployer)
-            .transferToSchainERC1155(schainName, token.address, to, id, amount)
+            .transferToSchainERC1155(newSchainName, token.address, to, id, amount)
             .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
 
         await tokenClone.connect(deployer).setApprovalForAll(tokenManagerERC1155.address, true);
@@ -200,7 +200,7 @@ describe("TokenManagerERC1155", () => {
         // execution:
         await tokenManagerERC1155
             .connect(deployer)
-            .transferToSchainERC1155(schainName, token.address, to, id, amount);
+            .transferToSchainERC1155(newSchainName, token.address, to, id, amount);
         // expectation:
         const outgoingMessagesCounter = BigNumber.from(
             await messageProxyForSchain.getOutgoingMessagesCounter(schainName)
@@ -209,24 +209,24 @@ describe("TokenManagerERC1155", () => {
     });
 
     it("should successfully call transferToSchainERC1155Batch", async () => {
-        const schainName = randomString(10);
+        const newSchainName = randomString(10);
 
         const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
         await messageProxyForSchain.grantRole(chainConnectorRole, deployer.address);
-        await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
+        await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
 
         await tokenManagerERC1155
             .connect(deployer)
-            .transferToSchainERC1155Batch(schainName, token.address, to, ids, amounts)
+            .transferToSchainERC1155Batch(newSchainName, token.address, to, ids, amounts)
             .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
-        await tokenManagerERC1155.addTokenManager(schainName, deployer.address);
+        await tokenManagerERC1155.addTokenManager(newSchainName, deployer.address);
         await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone.address);
         await tokenClone.connect(deployer).mintBatch(deployer.address, ids, amounts, "0x");
 
         await tokenManagerERC1155
             .connect(deployer)
-            .transferToSchainERC1155Batch(schainName, token.address, to, ids, amounts)
+            .transferToSchainERC1155Batch(newSchainName, token.address, to, ids, amounts)
             .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
 
         await tokenClone.connect(deployer).setApprovalForAll(tokenManagerERC1155.address, true);
@@ -234,10 +234,10 @@ describe("TokenManagerERC1155", () => {
         // execution:
         await tokenManagerERC1155
             .connect(deployer)
-            .transferToSchainERC1155Batch(schainName, token.address, to, ids, amounts);
+            .transferToSchainERC1155Batch(newSchainName, token.address, to, ids, amounts);
         // expectation:
         const outgoingMessagesCounter = BigNumber.from(
-            await messageProxyForSchain.getOutgoingMessagesCounter(schainName)
+            await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)
         );
         outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
     });
