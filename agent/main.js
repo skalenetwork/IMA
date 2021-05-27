@@ -379,7 +379,7 @@ imaCLI.parse( {
                             imaState.joErc1155_s_chain,
                             imaState.tc_main_net
                         );
-                    } else if (
+                    } else if(
                         imaState.idTokens && imaState.idTokens !== null && imaState.idTokens !== undefined &&
                         imaState.nAmountOfTokens && imaState.nAmountOfTokens !== null && imaState.nAmountOfTokens !== undefined &&
                         ( !imaState.idToken || imaState.idToken === null || imaState.idToken === undefined ) &&
@@ -501,7 +501,7 @@ imaCLI.parse( {
                             imaState.joErc1155_s_chain,
                             imaState.tc_s_chain
                         );
-                    } else if (
+                    } else if(
                         imaState.idTokens && imaState.idTokens !== null && imaState.idTokens !== undefined &&
                         imaState.nAmountOfTokens && imaState.nAmountOfTokens !== null && imaState.nAmountOfTokens !== undefined &&
                         ( !imaState.idToken || imaState.idToken === null || imaState.idToken === undefined ) &&
