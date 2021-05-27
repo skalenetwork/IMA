@@ -467,11 +467,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         returns (bool)
     {
         return ISchains(
-            IContractManager(
-                contractManagerOfSkaleManager
-            ).getContract(
-                "Schains"
-            )
+            contractManagerOfSkaleManager.getContract("Schains")
         ).verifySchainSignature(
             sign.blsSignature[0],
             sign.blsSignature[1],
