@@ -28,6 +28,7 @@ import "../Messages.sol";
 import "./SkaleFeaturesClient.sol";
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
+import "../mainnet/CommunityPool.sol";
 
 /**
  * @title CommunityLocker
@@ -76,7 +77,7 @@ contract CommunityLocker is SkaleFeaturesClient {
         returns (bool)
     {
         require(msg.sender == address(getMessageProxy()), "Sender is not a message proxy");
-        require(sender == getCommunityPool(), "Sender should be CommunityPool");
+        require(sender == getCommunityPoolAddress(), "Sender should be CommunityPool");
         require(fromChainHash == MAINNET_HASH, "Source chain name should be Mainnet");
         Messages.MessageType operation = Messages.getMessageType(data);
         require(operation == Messages.MessageType.FREEZE_STATE, "The message should contain a frozen state");
@@ -135,13 +136,10 @@ contract CommunityLocker is SkaleFeaturesClient {
         return schainHash;
     }
 
-    function getCommunityPool() public view returns (CommunityPool) {
-        if (address(CommunityPool) == address(0)) {
-            return CommunityPool(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.CommunityPool"
-                )
-            );
+
+    function getCommunityPoolAddress() public view returns (address) {
+        if (communityPool == address(0)) {
+            return getSkaleFeatures().getConfigVariableAddress("skaleConfig.contractSettings.IMA.CommunityPool");
         }
         return communityPool;
     }
