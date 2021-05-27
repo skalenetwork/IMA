@@ -47,6 +47,10 @@ jobs:
         python3 -m pip install --upgrade build
         python3 -m pip install --user --upgrade twine
 
+    - name: Install project:
+      working-directory: ${{env.PROXY_DIR}}
+      run: yarn install
+
     - name: Build predeployed pip package
       working-directory: ${{env.PROXY_DIR}}
       run: |        
