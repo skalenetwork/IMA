@@ -85,6 +85,8 @@ jobs:
 
     - name: Publish predeployed pip package
       working-directory: ${{env.PROXY_DIR}}
+      env:
+        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
       run: |        
         ./predeployed/scripts/publish_package.sh
 
