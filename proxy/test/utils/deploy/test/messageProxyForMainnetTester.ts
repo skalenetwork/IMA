@@ -1,15 +1,11 @@
 import { ethers } from "hardhat";
-import { ContractManager, MessageProxyForMainnetTester } from "../../../../typechain";
+import { MessageProxyForMainnetTester } from "../../../../typechain/MessageProxyForMainnetTester";
 
 const name = "MessageProxyForMainnetTester";
 
-export async function deployMessageProxyForMainnetTester(
-    contractManager: ContractManager
-) {
+export async function deployMessageProxyForMainnetTester() {
     const factory = await ethers.getContractFactory(name);
 
         const instance = await factory.deploy() as MessageProxyForMainnetTester;
-        await instance.initialize(contractManager.address);
-        await contractManager.setContractsAddress(name, instance.address);
         return instance;
 }

@@ -251,6 +251,7 @@ async function main() {
         tokenManagerEth,
         tokenManagerERC20,
         tokenManagerERC721,
+        tokenManagerERC1155,
         communityLocker
     ];
     const extraContractRegistrarRole = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
