@@ -158,9 +158,9 @@ describe("TokenManagerERC721", () => {
         await tokenClone.connect(deployer).mint(user.address, tokenId);
         await tokenClone.connect(user).approve(tokenManagerERC721.address, tokenId);
         await messageProxyForSchain.registerExtraContractForAll(tokenManagerERC721.address);
-    
+
         await tokenManagerERC721.connect(user).exitToMainERC721(token.address, to, tokenId);
-    
+
         await messageProxyForSchain.removeExtraContractForAll(tokenManagerERC721.address);
         await tokenClone.connect(deployer).mint(user.address, tokenId);
         await tokenClone.connect(user).approve(tokenManagerERC721.address, tokenId);
