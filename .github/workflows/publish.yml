@@ -77,6 +77,8 @@ jobs:
 
     - name: Build predeployed pip package
       working-directory: ${{env.PROXY_DIR}}
+      env:
+        VERSION: ${{ env.VERSION }}
       run: |        
         ./predeployed/scripts/build_package.sh
 

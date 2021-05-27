@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import os
+import sys
+
 
 def calculate_version(release_version):
     if '-' not in release_version:
@@ -23,7 +25,7 @@ def calculate_version(release_version):
 def main():
     VERSION_KEY = 'VERSION'
     if VERSION_KEY not in os.environ:
-        print('VERSION environment variable is not set')
+        print('VERSION environment variable is not set', file=sys.stderr)
         exit(1)
     
     print(calculate_version(os.environ[VERSION_KEY]))
