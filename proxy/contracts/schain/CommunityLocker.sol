@@ -40,7 +40,7 @@ contract CommunityLocker is SkaleFeaturesClient {
     address public communityPool;
 
     bytes32 public schainHash;
-    uint public timeLimitPerMessage;
+    uint public timeLimitPerMessage = 5 minutes;
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
 
@@ -65,7 +65,6 @@ contract CommunityLocker is SkaleFeaturesClient {
         messageProxy = newMessageProxy;
         tokenManagerLinker = newIMALinker;
         communityPool = newCommunityPool;
-        timeLimitPerMessage = 5 minutes;
     }
 
     function postMessage(
@@ -77,14 +76,14 @@ contract CommunityLocker is SkaleFeaturesClient {
         returns (bool)
     {
         require(msg.sender == address(getMessageProxy()), "Sender is not a message proxy");
-        require(sender == communityPool, "Sender should be CommunityPool");
+        require(sender == getCommunityPool(), "Sender should be CommunityPool");
         require(fromChainHash == MAINNET_HASH, "Source chain name should be Mainnet");
         Messages.MessageType operation = Messages.getMessageType(data);
         require(operation == Messages.MessageType.FREEZE_STATE, "The message should contain a frozen state");
         Messages.FreezeStateMessage memory message = Messages.decodeFreezeStateMessage(data);
         require(_unfrozenUsers[message.receiver] != message.isUnfrozen, "Freezing states must be different");
         _unfrozenUsers[message.receiver] = message.isUnfrozen;
-        emit UserUnfrozed(schainHash, message.receiver);
+        emit UserUnfrozed(getSchainHash(), message.receiver);
         return true;
     }
 
@@ -123,6 +122,28 @@ contract CommunityLocker is SkaleFeaturesClient {
             );
         }
         return messageProxy;
+    }
+
+    function getSchainHash() public view returns (bytes32) {
+        if (schainHash == bytes32(0)) {
+            return keccak256(
+                abi.encodePacked(
+                    getSkaleFeatures().getConfigVariableString("skaleConfig.sChain.schainName")
+                )
+            );
+        }
+        return schainHash;
+    }
+
+    function getCommunityPool() public view returns (CommunityPool) {
+        if (address(CommunityPool) == address(0)) {
+            return CommunityPool(
+                getSkaleFeatures().getConfigVariableAddress(
+                    "skaleConfig.contractSettings.IMA.CommunityPool"
+                )
+            );
+        }
+        return communityPool;
     }
 
     /**
