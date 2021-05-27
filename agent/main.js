@@ -358,7 +358,7 @@ imaCLI.parse( {
                         ( !imaState.nAmountOfTokens || imaState.nAmountOfTokens === null || imaState.nAmountOfTokens === undefined )
                     ) {
                         // ERC1155 payment
-                        log.write( cc.info( "one M->S single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
+                        log.write( cc.info( "one M->S single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + " " + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
                         return await IMA.do_erc1155_payment_from_main_net(
                             imaState.w3_main_net,
                             imaState.w3_s_chain,
@@ -386,7 +386,7 @@ imaCLI.parse( {
                         ( !imaState.nAmountOfToken || imaState.nAmountOfToken === null || imaState.nAmountOfToken === undefined )
                     ) {
                         // ERC1155 Batch payment
-                        log.write( cc.info( "one M->S single ERC1155 Batch payment: " ) + cc.sunny( imaState.idTokens ) + cc.sunny( imaState.nAmountOfTokens ) + "\n" ); // just print value
+                        log.write( cc.info( "one M->S single ERC1155 Batch payment: " ) + cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.nAmountOfTokens ) + "\n" ); // just print value
                         return await IMA.do_erc1155_batch_payment_from_main_net(
                             imaState.w3_main_net,
                             imaState.w3_s_chain,
@@ -407,7 +407,8 @@ imaCLI.parse( {
                             imaState.joErc1155_s_chain,
                             imaState.tc_main_net
                         );
-                    }
+                    } else
+                        log.write( cc.warning( "Please only correct tid and amount for ERC1155 transfer or only correct tids and amounts for ERC1155 batch transfer \n" ) );
                 }
                 // ETH payment
                 log.write( cc.info( "one M->S single ETH payment: " ) + cc.sunny( imaState.nAmountOfWei ) + "\n" ); // just print value
@@ -481,7 +482,7 @@ imaCLI.parse( {
                         ( !imaState.nAmountOfTokens || imaState.nAmountOfTokens === null || imaState.nAmountOfTokens === undefined )
                     ) {
                         // ERC1155 payment
-                        log.write( cc.info( "one S->M single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
+                        log.write( cc.info( "one S->M single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + " " + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
                         return await IMA.do_erc1155_payment_from_s_chain(
                             imaState.w3_main_net,
                             imaState.w3_s_chain,
@@ -508,7 +509,7 @@ imaCLI.parse( {
                         ( !imaState.nAmountOfToken || imaState.nAmountOfToken === null || imaState.nAmountOfToken === undefined )
                     ) {
                         // ERC1155 payment
-                        log.write( cc.info( "one S->M single ERC1155 payment: " ) + cc.sunny( imaState.idTokens ) + cc.sunny( imaState.nAmountOfTokens ) + "\n" ); // just print value
+                        log.write( cc.info( "one S->M single ERC1155 payment: " ) + cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.nAmountOfTokens ) + "\n" ); // just print value
                         return await IMA.do_erc1155_batch_payment_from_s_chain(
                             imaState.w3_main_net,
                             imaState.w3_s_chain,
@@ -528,7 +529,8 @@ imaCLI.parse( {
                             imaState.joErc1155_s_chain,
                             imaState.tc_s_chain
                         );
-                    }
+                    } else
+                        log.write( cc.warning( "Please only correct tid and amount for ERC1155 transfer or only correct tids and amounts for ERC1155 batch transfer \n" ) );
                 }
                 // ETH payment
                 log.write( cc.info( "one S->M single ETH payment: " ) + cc.sunny( imaState.nAmountOfWei ) + "\n" ); // just print value

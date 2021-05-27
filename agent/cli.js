@@ -1431,18 +1431,28 @@ function ima_common_init() {
             ensure_have_value( "Loaded S-Chain  ERC1155 ABI ", imaState.strCoinNameErc1155_s_chain, false, true, null, ( x ) => {
                 return cc.attention( x );
             } );
-            ensure_have_value( "ERC1155 token id ", imaState.idToken, false, true, null, ( x ) => {
-                return cc.info( x );
-            } );
-            ensure_have_value( "ERC1155 token amount ", imaState.nAmountOfToken, false, true, null, ( x ) => {
-                return cc.info( x );
-            } );
-            ensure_have_value( "ERC1155 batch of token ids ", imaState.idTokens, false, true, null, ( x ) => {
-                return cc.info( x );
-            } );
-            ensure_have_value( "ERC1155 batch of token amounts ", imaState.nAmountOfTokens, false, true, null, ( x ) => {
-                return cc.info( x );
-            } );
+            try {
+                ensure_have_value( "ERC1155 token id ", imaState.idToken, false, true, null, ( x ) => {
+                    return cc.info( x );
+                } );
+                ensure_have_value( "ERC1155 token amount ", imaState.nAmountOfToken, false, true, null, ( x ) => {
+                    return cc.info( x );
+                } );
+            } catch ( e1 ) {
+                try {
+                    ensure_have_value( "ERC1155 batch of token ids ", imaState.idTokens, false, true, null, ( x ) => {
+                        return cc.info( x );
+                    } );
+                    ensure_have_value( "ERC1155 batch of token amounts ", imaState.nAmountOfTokens, false, true, null, ( x ) => {
+                        return cc.info( x );
+                    } );
+                } catch ( e2 ) {
+                    log.write( cc.warning( "Please check your params in ERC1155 transfer \n" ) );
+                    log.write( cc.warning( "Error 1" ) + cc.sunny( e1 ) + "\n" );
+                    log.write( cc.warning( "Error 2" ) + cc.sunny( e2 ) + "\n" );
+                    process.exit( 126 );
+                }
+            }
             log.write( cc.info( "ERC1155 explicit S-Chain address is " ) + cc.attention( imaState.strAddrErc1155_explicit ) + "\n" );
         }
         log.write( cc.info( "Main Net Gas Price Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasPriceMultiplier ? cc.info( imaState.tc_main_net.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
