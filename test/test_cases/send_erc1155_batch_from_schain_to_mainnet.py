@@ -58,7 +58,7 @@ class SendERC1155BatchToMainnet(TestCase):
         self.blockchain.enableAutomaticDeployERC1155(self.config.schain_key, "Mainnet")
         sleep(5)
         # send to schain
-        self.agent.transfer_erc1155_from_mainnet_to_schain(self.erc1155,
+        self.agent.transfer_erc1155_batch_from_mainnet_to_schain(self.erc1155,
                                                           self.config.mainnet_key,
                                                           self.config.schain_key,
                                                           self.token_ids,
@@ -84,7 +84,7 @@ class SendERC1155BatchToMainnet(TestCase):
         source_address = self.blockchain.key_to_address(self.config.schain_key)
         destination_address = self.blockchain.key_to_address(self.config.mainnet_key)
 
-        if self.erc1155_clone.functions.balanceOfBatch(source_address, self.token_ids).call() != self.token_amounts:
+        if self.erc1155_clone.functions.balanceOfBatch([source_address] * len(self.token_ids), self.token_ids).call() != self.token_amounts:
             error("Token was not send")
             return
         #
@@ -102,7 +102,7 @@ class SendERC1155BatchToMainnet(TestCase):
         #
         # erc1155 = self.blockchain.get_erc1155_on_mainnet(self.token_id)
         # new_owner_address = erc1155.functions.ownerOf(self.token_id).call()
-        new_amounts = self.erc1155.functions.balanceOfBatch(destination_address, self.token_ids).call()
+        new_amounts = self.erc1155.functions.balanceOfBatch([destination_address] * len(self.token_ids), self.token_ids).call()
         if self.token_amounts == new_amounts:
             self._mark_passed()
 

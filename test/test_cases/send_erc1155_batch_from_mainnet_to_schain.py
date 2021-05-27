@@ -66,7 +66,7 @@ class SendERC1155BatchToSchain(TestCase):
 
         erc1155 = self.blockchain.get_erc1155_on_schain("Mainnet", self.erc1155.address)
         destination_address = self.blockchain.key_to_address(self.config.schain_key)
-        new_amounts = erc1155.functions.balanceOfBatch(destination_address, self.tokenIds).call()
+        new_amounts = erc1155.functions.balanceOfBatch([destination_address] * len(self.tokenIds), self.tokenIds).call()
         if self.tokenAmounts == new_amounts:
             self._mark_passed()
 
