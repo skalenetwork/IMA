@@ -23,8 +23,9 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../mainnet/MessageProxyForMainnet.sol";
+import "../schain/MessageProxyForSchain.sol";
 
-contract MessageProxyForMainnetTester is MessageProxyForMainnet {    
+contract MessageProxyForMainnetTester {    
 
     function postOutgoingMessageTester(
         MessageProxyForMainnet messageProxyForMainnet,
@@ -37,7 +38,22 @@ contract MessageProxyForMainnetTester is MessageProxyForMainnet {
         messageProxyForMainnet.postOutgoingMessage(targetChainHash, targetContract, data);
     }
 
-    function initialize(IContractManager contractManagerOfSkaleManager) public override initializer  {
-        MessageProxyForMainnet.initialize(contractManagerOfSkaleManager);
+    function postOutgoingMessageTester2(
+        MessageProxyForSchain messageProxyForSchain,
+        string memory targetChainName,
+        address targetContract,
+        bytes calldata data
+    )
+        external
+    {
+        messageProxyForSchain.postOutgoingMessage(targetChainName, targetContract, data);
     }
+
+    // function initialize2(IContractManager newContractManagerOfSkaleManager) public  {
+    //     MessageProxyForMainnet.initialize(newContractManagerOfSkaleManager);
+    // }
+    
+    // constructor(IContractManager newContractManagerOfSkaleManager) public  {
+    //     MessageProxyForMainnet.initialize(newContractManagerOfSkaleManager);
+    // }
 }

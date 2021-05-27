@@ -73,7 +73,8 @@ describe("MessageProxy", () => {
 
     let depositBox: DepositBoxEth;
     let contractManager: ContractManager;
-    let messageProxyForMainnet: MessageProxyForMainnetTester;
+    let messageProxyForMainnet: MessageProxyForMainnet;
+    let caller: MessageProxyForMainnetTester;
     let imaLinker: Linker;
     let messages: MessagesTester;
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
@@ -103,11 +104,12 @@ describe("MessageProxy", () => {
         beforeEach(async () => {
             contractManager = await deployContractManager(contractManagerAddress);
             // contractManagerAddress = contractManager.address;
-            messageProxyForMainnet = await deployMessageProxyForMainnetTester(contractManager);
+            messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
+            caller = await deployMessageProxyForMainnetTester();
             imaLinker = await deployLinker(messageProxyForMainnet, contractManager);
             depositBox = await deployDepositBoxEth(contractManager, imaLinker, messageProxyForMainnet);
             messages = await deployMessages();
-            await messageProxyForMainnet.registerExtraContract(schainName, messageProxyForMainnet.address);
+            await messageProxyForMainnet.registerExtraContract(schainName, caller.address);
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -157,14 +159,12 @@ describe("MessageProxy", () => {
             const amount = 4;
             const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
 
-            await messageProxyForMainnet
-                .connect(deployer)
+            await caller
                 .postOutgoingMessageTester(messageProxyForMainnet.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData)
                 .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
-            await messageProxyForMainnet
-                .connect(deployer)
+            await caller
                 .postOutgoingMessageTester(messageProxyForMainnet.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData);
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
@@ -243,8 +243,7 @@ describe("MessageProxy", () => {
                 await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
 
-            await messageProxyForMainnet
-                .connect(deployer)
+            await caller
                 .postOutgoingMessageTester(messageProxyForMainnet.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData);
 
             const outgoingMessagesCounter = BigNumber.from(
@@ -381,7 +380,7 @@ describe("MessageProxy", () => {
                 await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
 
-            await messageProxyForMainnet.connect(deployer).postOutgoingMessageTester(messageProxyForMainnet.address,
+            await caller.postOutgoingMessageTester(messageProxyForMainnet.address,
                 stringValue(web3.utils.soliditySha3(schainName)),
                 depositBox.address,
                 bytesData,
@@ -410,11 +409,12 @@ describe("MessageProxy", () => {
         beforeEach(async () => {
             messageProxyForSchain = await deployMessageProxyForSchain("MyChain");
             messages = await deployMessages();
+            caller = await deployMessageProxyForMainnetTester();
             const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
             await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, deployer.address);
             const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
             await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
-            await messageProxyForSchain.registerExtraContract(schainName, messageProxyForSchain.address);
+            await messageProxyForSchain.registerExtraContract(schainName, caller.address);
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -461,17 +461,13 @@ describe("MessageProxy", () => {
             const amount = 4;
             const addressTo = user.address;
             const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
-
-
-            await messageProxyForSchain
-                .connect(deployer)
-                .postOutgoingMessageTester(messageProxyForSchain.address, schainName, contractAddress, bytesData)
+            await caller
+                .postOutgoingMessageTester2(messageProxyForSchain.address, schainName, contractAddress, bytesData)
                 .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
-            await messageProxyForSchain
-                .connect(deployer)
-                .postOutgoingMessageTester(messageProxyForSchain.address, schainName, contractAddress, bytesData);
+            await caller
+                .postOutgoingMessageTester2(messageProxyForSchain.address, schainName, contractAddress, bytesData);
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
@@ -591,9 +587,8 @@ describe("MessageProxy", () => {
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
 
-            await messageProxyForSchain
-                .connect(deployer)
-                .postOutgoingMessageTester(messageProxyForSchain.address, schainName, depositBox.address, bytesData);
+            await caller
+                .postOutgoingMessageTester2(messageProxyForSchain.address, schainName, depositBox.address, bytesData);
 
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));

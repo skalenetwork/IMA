@@ -203,7 +203,7 @@ describe("TokenManagerERC1155", () => {
             .transferToSchainERC1155(newSchainName, token.address, to, id, amount);
         // expectation:
         const outgoingMessagesCounter = BigNumber.from(
-            await messageProxyForSchain.getOutgoingMessagesCounter(schainName)
+            await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)
         );
         outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
     });
