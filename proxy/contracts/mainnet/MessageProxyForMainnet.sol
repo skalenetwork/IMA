@@ -216,6 +216,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         );
         require(contractOnMainnet.isContract(), "Given address is not a contract");
         require(!registryContracts[schainHash][contractOnMainnet], "Extra contract is already registered");
+        require(!registryContracts[bytes32(0)][contractOnMainnet], "Extra contract is already registered for all chains");
         registryContracts[schainHash][contractOnMainnet] = true;
     }
 

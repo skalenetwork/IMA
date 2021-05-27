@@ -108,6 +108,8 @@ describe("TokenManagerERC721", () => {
 
         const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
         await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
+
+        await communityLocker.setTimeLimitPerMessage(0);
     });
 
     it("should change depositBox address", async () => {
@@ -137,6 +139,34 @@ describe("TokenManagerERC721", () => {
 
         await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerERC721.address);
         await tokenManagerERC721.connect(user).exitToMainERC721(token.address, to, tokenId);
+
+        await messageProxyForSchain.removeExtraContract("Mainnet", tokenManagerERC721.address);
+        await tokenClone.connect(deployer).mint(user.address, tokenId);
+        await tokenClone.connect(user).approve(tokenManagerERC721.address, tokenId);
+
+        await tokenManagerERC721.connect(user).exitToMainERC721(token.address, to, tokenId)
+            .should.be.eventually.rejectedWith("Sender contract is not registered");
+
+        const outgoingMessagesCounterMainnet = BigNumber.from(
+            await messageProxyForSchain.getOutgoingMessagesCounter("Mainnet")
+        );
+        outgoingMessagesCounterMainnet.should.be.deep.equal(BigNumber.from(1));
+    });
+
+    it("should be rejected when call exitToMainERC721 if remove contract for all chains", async () => {
+        await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(token.address, tokenClone.address);
+        await tokenClone.connect(deployer).mint(user.address, tokenId);
+        await tokenClone.connect(user).approve(tokenManagerERC721.address, tokenId);
+        await messageProxyForSchain.registerExtraContractForAll(tokenManagerERC721.address);
+    
+        await tokenManagerERC721.connect(user).exitToMainERC721(token.address, to, tokenId);
+    
+        await messageProxyForSchain.removeExtraContractForAll(tokenManagerERC721.address);
+        await tokenClone.connect(deployer).mint(user.address, tokenId);
+        await tokenClone.connect(user).approve(tokenManagerERC721.address, tokenId);
+
+        await tokenManagerERC721.connect(user).exitToMainERC721(token.address, to, tokenId)
+            .should.be.eventually.rejectedWith("Sender contract is not registered");
 
         const outgoingMessagesCounterMainnet = BigNumber.from(
             await messageProxyForSchain.getOutgoingMessagesCounter("Mainnet")
