@@ -123,11 +123,6 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         _;
     }
 
-    modifier onlyExtraContractRegistrar() {
-        require(hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender), "EXTRA_CONTRACT_REGISTRAR_ROLE is required");
-        _;
-    }
-
     /// Create a new message proxy
 
     constructor(string memory schainName) public {
