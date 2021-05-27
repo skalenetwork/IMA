@@ -7,7 +7,8 @@ import sys
 def calculate_version(release_version):
     if '-' not in release_version:
         return release_version
-    [ main_part, tail_part ] = release_version.strip().split('-')
+    parts = release_version.strip().split('-')
+    [ main_part, tail_part ] = [parts[0], '-'.join(parts[1:])]
     [ branch, build_number ] = tail_part.split('.')
     if branch == 'stable':
         if int(build_number) == 0:
