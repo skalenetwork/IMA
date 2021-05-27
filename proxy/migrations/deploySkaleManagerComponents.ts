@@ -27,6 +27,7 @@ import { ethers, artifacts, web3 } from "hardhat";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
+import { KeyStorageMock } from '../typechain/KeyStorageMock';
 
 export function getContractKeyInAbiFile(contract: string) {
     return contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
@@ -100,8 +101,8 @@ async function main() {
     console.log("Contract SkaleVerifier deployed to", skaleVerifier.address);
 
     console.log("Deploy KeyStorage");
-    const keyStorageFactory = await getContractFactory("KeyStorage");
-    const keyStorage = await keyStorageFactory.deploy();
+    const keyStorageFactory = await getContractFactory("KeyStorageMock");
+    const keyStorage = await keyStorageFactory.deploy() as KeyStorageMock;
     console.log("Contract KeyStorage deployed to", keyStorage.address);
 
     console.log("Deploy Nodes");
@@ -139,7 +140,7 @@ async function main() {
             b: "14411459380456065006136894392078433460802915485975038137226267466736619639091"
         }
     };
-    await keyStorage.setCommonPublicKey( web3.utils.soliditySha3( schainName ), BLSPublicKey );
+    await keyStorage.setBlsCommonPublicKeyForSchain( ethers.utils.solidityKeccak256(['string'], [schainName]), BLSPublicKey );
     console.log("Set common public key in KeyStorage contract", keyStorage.address, "\n");
     await wallets.rechargeSchainWallet( web3.utils.soliditySha3( schainName ), { value: "1000000000000000000" } );
     console.log("Recharge schain wallet in Wallets contract", wallets.address, "\n");
