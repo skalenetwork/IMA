@@ -1,12 +1,13 @@
 name: Build and publish
-on:
-  pull_request:
-    types: [closed]
-    branches:
-      - master
-      - develop
-      - beta
-      - stable
+# on:
+#   pull_request:
+#     types: [closed]
+#     branches:
+#       - master
+#       - develop
+#       - beta
+#       - stable
+on: [push, pull_request]
 
 jobs:
   build:
@@ -17,10 +18,12 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v1
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
       with:
-        python-version: 3.7
+        python-version: 3.8
+
     - name: Build and publish container
       run: |
         export BRANCH=${GITHUB_REF##*/}
@@ -34,8 +37,22 @@ jobs:
         echo "RELEASE=$RELEASE" >> $GITHUB_ENV
         echo ------------ docker image
         bash ./scripts/build_image.sh ${{ secrets.DOCKER_USERNAME }} ${{ secrets.DOCKER_PASSWORD }} #|| echo "----> Looks like deploy failed"
-    - name: Checkout code
-      uses: actions/checkout@master
+
+    - name: Prepare for pip package building
+      run: |
+        python3 -m pip install --upgrade build
+        python3 -m pip install --user --upgrade twine
+
+    - name: Build predeployed pip package
+      working-directory: ${{env.working-directory}}
+      run: |        
+        ./predeployed/scripts/build_package.sh
+
+    - name: Publish predeployed pip package
+      working-directory: ${{env.working-directory}}
+      run: |        
+        ./predeployed/scripts/publish_package.sh
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
