@@ -84,6 +84,7 @@ export const contracts = [
     "TokenManagerEth",
     "TokenManagerERC20",
     "TokenManagerERC721",
+    "TokenManagerERC1155",
     "EthERC20",
     "SkaleFeatures"
 ];
@@ -114,6 +115,8 @@ async function main() {
         getProxyMainnet("deposit_box_erc20_address") === "" ||
         getProxyMainnet("deposit_box_erc721_address") === undefined ||
         getProxyMainnet("deposit_box_erc721_address") === "" ||
+        getProxyMainnet("deposit_box_erc1155_address") === undefined ||
+        getProxyMainnet("deposit_box_erc1155_address") === "" ||
         getProxyMainnet("linker_address") === undefined ||
         getProxyMainnet("linker_address") === ""
     ) {
@@ -123,6 +126,7 @@ async function main() {
     const depositBoxEthAddress = getProxyMainnet("deposit_box_eth_address");
     const depositBoxERC20Address = getProxyMainnet("deposit_box_erc20_address");
     const depositBoxERC721Address = getProxyMainnet("deposit_box_erc721_address");
+    const depositBoxERC1155Address = getProxyMainnet("deposit_box_erc1155_address");
     const linkerAddress = getProxyMainnet("linker_address");
 
     console.log("Deploy MessageProxyForSchain");
@@ -178,6 +182,18 @@ async function main() {
     deployed.set( "TokenManagerERC721", { address: tokenManagerERC721.address, interface: tokenManagerERC721.interface, bytecode: tokenManagerERC721.bytecode } );
     console.log("Contract TokenManagerERC721 deployed to", tokenManagerERC721.address);
 
+    console.log("Deploy TokenManagerERC1155");
+    const tokenManagerERC1155Factory = await ethers.getContractFactory("TokenManagerERC1155");
+    const tokenManagerERC1155 = await tokenManagerERC1155Factory.deploy(
+        schainName,
+        messageProxy.address,
+        tokenManagerLinker.address,
+        communityLocker.address,
+        depositBoxERC1155Address
+    );
+    deployed.set( "TokenManagerERC1155", { address: tokenManagerERC1155.address, interface: tokenManagerERC1155.interface, bytecode: tokenManagerERC1155.bytecode } );
+    console.log("Contract TokenManagerERC1155 deployed to", tokenManagerERC1155.address);
+
     console.log("Deploy EthERC20");
     const ethERC20Factory = await ethers.getContractFactory("EthERC20");
     const ethERC20 = await ethERC20Factory.deploy( tokenManagerEth.address );
@@ -220,6 +236,12 @@ async function main() {
     await tokenManagerERC721.setSkaleFeaturesAddress( skaleFeatures.address );
     console.log( "Set SkaleFeatures address", skaleFeatures.address, "in TokenManagerERC721", tokenManagerERC721.address, "completed!\n" );
 
+    skaleFeaturesSetterRole = await tokenManagerERC1155.SKALE_FEATURES_SETTER_ROLE();
+    await tokenManagerERC1155.grantRole( skaleFeaturesSetterRole, owner.address );
+    console.log( "Grant SKALE_FEATURES_SETTER_ROLE to deployer", owner.address, "in TokenManagerERC1155", tokenManagerERC1155.address, "completed!\n" );
+    await tokenManagerERC1155.setSkaleFeaturesAddress( skaleFeatures.address );
+    console.log( "Set SkaleFeatures address", skaleFeatures.address, "in TokenManagerERC1155", tokenManagerERC1155.address, "completed!\n" );
+
     const jsonObjectABI: {[k: string]: any} = { };
     const jsonObjectBytecode: {[k: string]: any} = { };
     for( const contractName of contracts ) {
@@ -238,6 +260,8 @@ async function main() {
     jsonObjectABI.ERC20OnChain_abi = getAbi(erc20OnChainFactory.interface);
     const erc721OnChainFactory = await ethers.getContractFactory("ERC721OnChain");
     jsonObjectABI.ERC721OnChain_abi = getAbi(erc721OnChainFactory.interface);
+    const erc1155OnChainFactory = await ethers.getContractFactory("ERC1155OnChain");
+    jsonObjectABI.ERC1155OnChain_abi = getAbi(erc1155OnChainFactory.interface);
 
     await fs.writeFile( `data/proxySchain_${schainName}.json`, JSON.stringify( jsonObjectABI ) );
     await fs.writeFile( `data/proxySchain_${schainName}_bytecode.json`, JSON.stringify( jsonObjectBytecode ) );

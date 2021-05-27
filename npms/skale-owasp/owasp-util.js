@@ -335,6 +335,36 @@ function verifyArgumentIsPathToExistingFolder( joArg ) {
     }
 }
 
+function verifyArgumentIsArrayOfIntegers( joArg ) {
+    try {
+        verifyArgumentWithNonEmptyValue( joArg );
+        if( joArg.value.length < 3 ) {
+            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " length " ) + cc.warning( joArg.value.length ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be bigger than 2" ) );
+            process.exit( 126 );
+        }
+        if( joArg.value[0] !== "[" || joArg.value[joArg.value.length - 1] !== "]" ) {
+            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " first and last symbol " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be brackets" ) );
+            process.exit( 126 );
+        }
+        const newValue = joArg.value.replace( "[", "" ).replace( "]", "" ).split( "," );
+        for( let index = 0; index < newValue.length; index++ ) {
+            if( !newValue[index] || ( typeof newValue[index] === "string" && newValue[index].length === 0 ) ) {
+                console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( newValue[index] ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
+                process.exit( 126 );
+            }
+            if( !validateInteger( newValue[index] ) ) {
+                console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( newValue[index] ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid integer" ) );
+                process.exit( 126 );
+            }
+            newValue[index] = toInteger( newValue[index] );
+        }
+        return newValue;
+    } catch ( err ) {
+        console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid integer array" ) );
+        process.exit( 126 );
+    }
+}
+
 function ensure_starts_with_0x( s ) {
     if( s == null || s == undefined || typeof s !== "string" )
         return s;
@@ -554,6 +584,7 @@ module.exports = {
     verifyArgumentIsIntegerIpPortNumber: verifyArgumentIsIntegerIpPortNumber,
     verifyArgumentIsPathToExistingFile: verifyArgumentIsPathToExistingFile,
     verifyArgumentIsPathToExistingFolder: verifyArgumentIsPathToExistingFolder,
+    verifyArgumentIsArrayOfIntegers: verifyArgumentIsArrayOfIntegers,
     ensure_starts_with_0x: ensure_starts_with_0x,
     remove_starting_0x: remove_starting_0x,
     private_key_2_public_key: private_key_2_public_key,

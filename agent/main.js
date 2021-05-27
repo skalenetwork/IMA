@@ -79,6 +79,12 @@ global.imaState = {
     "strCoinNameErc721_main_net": "", // in-JSON coin name
     "strCoinNameErc721_s_chain": "", // in-JSON coin name
 
+    "joErc1155_main_net": null,
+    "joErc1155_s_chain": null,
+    "strAddrErc1155_explicit": "",
+    "strCoinNameErc1155_main_net": "", // in-JSON coin name
+    "strCoinNameErc1155_s_chain": "", // in-JSON coin name
+
     "strPathAbiJson_main_net": imaUtils.normalizePath( "../proxy/data/proxyMainnet.json" ), // "./abi_main_net.json"
     "strPathAbiJson_s_chain": imaUtils.normalizePath( "../proxy/data/proxySchain.json" ), // "./abi_s_chain.json"
 
@@ -101,6 +107,9 @@ global.imaState = {
 
     "strPathJsonErc721_main_net": "",
     "strPathJsonErc721_s_chain": "",
+
+    "strPathJsonErc1155_main_net": "",
+    "strPathJsonErc1155_s_chain": "",
 
     "nAmountOfWei": 0,
     "nAmountOfToken": 0,
@@ -131,10 +140,12 @@ global.imaState = {
     "jo_deposit_box_eth": null, // only main net
     "jo_deposit_box_erc20": null, // only main net
     "jo_deposit_box_erc721": null, // only main net
+    "jo_deposit_box_erc1155": null, // only main net
     "jo_linker": null, // only main net
     "jo_token_manager_eth": null, // only s-chain
     "jo_token_manager_erc20": null, // only s-chain
     "jo_token_manager_erc721": null, // only s-chain
+    "jo_token_manager_erc1155": null, // only s-chain
     "jo_community_locker": null, // only s-chain
     "jo_message_proxy_main_net": null,
     "jo_message_proxy_s_chain": null,
@@ -337,6 +348,66 @@ imaCLI.parse( {
                         imaState.tc_main_net
                     );
                 }
+                if(
+                    imaState.strCoinNameErc1155_main_net.length > 0 &&
+                    imaState.idToken && imaState.idToken !== null && imaState.idToken !== undefined &&
+                    imaState.nAmountOfToken && imaState.nAmountOfToken !== null && imaState.nAmountOfToken !== undefined &&
+                    ( !imaState.idTokens || imaState.idTokens === null || imaState.idTokens === undefined ) &&
+                    ( !imaState.nAmountOfTokens || imaState.nAmountOfTokens === null || imaState.nAmountOfTokens === undefined )
+                ) {
+                    // ERC1155 payment
+                    log.write( cc.info( "one M->S single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + " " + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
+                    return await IMA.do_erc1155_payment_from_main_net(
+                        imaState.w3_main_net,
+                        imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
+                        imaState.joAccount_main_net,
+                        imaState.joAccount_s_chain,
+                        imaState.jo_deposit_box_erc1155, // only main net
+                        imaState.jo_message_proxy_main_net, // for checking logs
+                        imaState.strChainName_s_chain,
+                        imaState.idToken, // which ERC1155 token id to send
+                        imaState.nAmountOfToken, // which ERC1155 token amount to send
+                        imaState.nAmountOfWei, // how much WEI money to send
+                        imaState.jo_token_manager_erc1155, // only s-chain
+                        imaState.strCoinNameErc1155_main_net,
+                        imaState.joErc1155_main_net,
+                        imaState.strCoinNameErc1155_s_chain,
+                        imaState.joErc1155_s_chain,
+                        imaState.tc_main_net
+                    );
+                }
+                if(
+                    imaState.strCoinNameErc1155_main_net.length > 0 &&
+                    imaState.idTokens && imaState.idTokens !== null && imaState.idTokens !== undefined &&
+                    imaState.nAmountOfTokens && imaState.nAmountOfTokens !== null && imaState.nAmountOfTokens !== undefined &&
+                    ( !imaState.idToken || imaState.idToken === null || imaState.idToken === undefined ) &&
+                    ( !imaState.nAmountOfToken || imaState.nAmountOfToken === null || imaState.nAmountOfToken === undefined )
+                ) {
+                    // ERC1155 Batch payment
+                    log.write( cc.info( "one M->S single ERC1155 Batch payment: " ) + cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.nAmountOfTokens ) + "\n" ); // just print value
+                    return await IMA.do_erc1155_batch_payment_from_main_net(
+                        imaState.w3_main_net,
+                        imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
+                        imaState.joAccount_main_net,
+                        imaState.joAccount_s_chain,
+                        imaState.jo_deposit_box_erc1155, // only main net
+                        imaState.jo_message_proxy_main_net, // for checking logs
+                        imaState.strChainName_s_chain,
+                        imaState.idTokens, // which ERC1155 token id to send
+                        imaState.nAmountOfTokens, // which ERC1155 token amount to send
+                        imaState.nAmountOfWei, // how much WEI money to send
+                        imaState.jo_token_manager_erc1155, // only s-chain
+                        imaState.strCoinNameErc1155_main_net,
+                        imaState.joErc1155_main_net,
+                        imaState.strCoinNameErc1155_s_chain,
+                        imaState.joErc1155_s_chain,
+                        imaState.tc_main_net
+                    );
+                }
                 // ETH payment
                 log.write( cc.info( "one M->S single ETH payment: " ) + cc.sunny( imaState.nAmountOfWei ) + "\n" ); // just print value
                 return await IMA.do_eth_payment_from_main_net(
@@ -398,6 +469,64 @@ imaCLI.parse( {
                         imaState.joErc20_main_net,
                         imaState.strCoinNameErc20_s_chain,
                         imaState.joErc20_s_chain,
+                        imaState.tc_s_chain
+                    );
+                }
+                if(
+                    imaState.strCoinNameErc1155_s_chain.length > 0 &&
+                    imaState.idToken && imaState.idToken !== null && imaState.idToken !== undefined &&
+                    imaState.nAmountOfToken && imaState.nAmountOfToken !== null && imaState.nAmountOfToken !== undefined &&
+                    ( !imaState.idTokens || imaState.idTokens === null || imaState.idTokens === undefined ) &&
+                    ( !imaState.nAmountOfTokens || imaState.nAmountOfTokens === null || imaState.nAmountOfTokens === undefined )
+                ) {
+                    // ERC1155 payment
+                    log.write( cc.info( "one S->M single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + " " + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
+                    return await IMA.do_erc1155_payment_from_s_chain(
+                        imaState.w3_main_net,
+                        imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
+                        imaState.joAccount_s_chain,
+                        imaState.joAccount_main_net,
+                        imaState.jo_token_manager_erc1155, // only s-chain
+                        imaState.jo_message_proxy_s_chain, // for checking logs
+                        imaState.jo_deposit_box_erc1155, // only main net
+                        imaState.idToken, // which ERC1155 token id to send
+                        imaState.nAmountOfToken, // which ERC1155 token amount to send
+                        imaState.nAmountOfWei, // how much WEI money to send
+                        imaState.strCoinNameErc1155_main_net,
+                        imaState.joErc1155_main_net,
+                        imaState.strCoinNameErc1155_s_chain,
+                        imaState.joErc1155_s_chain,
+                        imaState.tc_s_chain
+                    );
+                }
+                if(
+                    imaState.strCoinNameErc1155_s_chain.length > 0 &&
+                    imaState.idTokens && imaState.idTokens !== null && imaState.idTokens !== undefined &&
+                    imaState.nAmountOfTokens && imaState.nAmountOfTokens !== null && imaState.nAmountOfTokens !== undefined &&
+                    ( !imaState.idToken || imaState.idToken === null || imaState.idToken === undefined ) &&
+                    ( !imaState.nAmountOfToken || imaState.nAmountOfToken === null || imaState.nAmountOfToken === undefined )
+                ) {
+                    // ERC1155 payment
+                    log.write( cc.info( "one S->M single ERC1155 payment: " ) + cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.nAmountOfTokens ) + "\n" ); // just print value
+                    return await IMA.do_erc1155_batch_payment_from_s_chain(
+                        imaState.w3_main_net,
+                        imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
+                        imaState.joAccount_s_chain,
+                        imaState.joAccount_main_net,
+                        imaState.jo_token_manager_erc1155, // only s-chain
+                        imaState.jo_message_proxy_s_chain, // for checking logs
+                        imaState.jo_deposit_box_erc1155, // only main net
+                        imaState.idTokens, // which ERC1155 token id to send
+                        imaState.nAmountOfTokens, // which ERC1155 token amount to send
+                        imaState.nAmountOfWei, // how much WEI money to send
+                        imaState.strCoinNameErc1155_main_net,
+                        imaState.joErc1155_main_net,
+                        imaState.strCoinNameErc1155_s_chain,
+                        imaState.joErc1155_s_chain,
                         imaState.tc_s_chain
                     );
                 }
@@ -1153,6 +1282,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
             imaState.jo_token_manager_eth, // only s-chain
             imaState.jo_token_manager_erc20, // only s-chain
             imaState.jo_token_manager_erc721, // only s-chain
+            imaState.jo_token_manager_erc1155, // only s-chain
             imaState.jo_community_locker, // only s-chain
             imaState.strChainName_s_chain,
             imaState.cid_main_net,
