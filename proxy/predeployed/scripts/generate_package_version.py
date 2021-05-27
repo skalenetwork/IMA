@@ -24,7 +24,7 @@ def calculate_version(release_version):
 
 def main():
     VERSION_KEY = 'VERSION'
-    if VERSION_KEY not in os.environ:
+    if VERSION_KEY not in os.environ or not os.environ[VERSION_KEY]:
         print('VERSION environment variable is not set', file=sys.stderr)
         exit(1)
     
