@@ -22,7 +22,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC20OnChain.sol";
@@ -47,7 +47,7 @@ contract TokenManagerERC20 is TokenManager {
     mapping(address => ERC20OnChain) public clonesErc20;
     
     // address of clone on schain => totalSupplyOnMainnet
-    mapping(IERC20 => uint) public totalSupplyOnMainnet;
+    mapping(IERC20Upgradeable => uint) public totalSupplyOnMainnet;
 
     event ERC20TokenAdded(address indexed erc20OnMainnet, address indexed erc20OnSchain);
 
@@ -64,7 +64,7 @@ contract TokenManagerERC20 is TokenManager {
     {
         require(to != address(0), "Incorrect receiver address");
         communityLocker.checkAllowedToSendMessage(to);
-        ERC20Burnable contractOnSchain = clonesErc20[contractOnMainnet];
+        ERC20BurnableUpgradeable contractOnSchain = clonesErc20[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
         require(
@@ -107,7 +107,7 @@ contract TokenManagerERC20 is TokenManager {
             "This function is not for transferring to Mainnet"
         );
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
-        ERC20Burnable contractOnSchain = clonesErc20[contractOnMainnet];
+        ERC20BurnableUpgradeable contractOnSchain = clonesErc20[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
         require(

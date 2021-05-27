@@ -22,14 +22,14 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 
 import "./TestSchainsInternal.sol";
 
 
 contract Wallets is IWallets {
-    using SafeMath for uint;
+    using SafeMathUpgradeable for uint;
 
     ContractManager public contractManager;
 

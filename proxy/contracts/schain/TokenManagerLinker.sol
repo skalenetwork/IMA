@@ -23,7 +23,7 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 
 import "../Messages.sol";
 import "../interfaces/IMessageProxy.sol";
@@ -36,7 +36,7 @@ import "./TokenManager.sol";
  */
 contract TokenManagerLinker is AccessControlUpgradeable, IContractReceiverForSchain {
 
-    using SafeMath for uint;
+    using SafeMathUpgradeable for uint;
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));

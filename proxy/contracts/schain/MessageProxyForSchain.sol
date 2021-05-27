@@ -39,7 +39,7 @@ interface IContractReceiverForSchain {
 
 contract MessageProxyForSchain is AccessControlUpgradeable {
 
-    using SafeMath for uint;
+    using SafeMathUpgradeable for uint;
 
     /**
      * 16 Agents

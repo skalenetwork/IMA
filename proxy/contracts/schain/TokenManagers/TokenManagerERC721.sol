@@ -22,8 +22,6 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-
 import "../../Messages.sol";
 import "../tokens/ERC721OnChain.sol";
 import "../TokenManager.sol";
@@ -54,15 +52,8 @@ contract TokenManagerERC721 is TokenManager {
     )
         external
     {
-        require(to != address(0), "Incorrect receiver address");
-        ERC721Burnable contractOnSchain = clonesErc721[contractOnMainnet];
         communityLocker.checkAllowedToSendMessage(to);
-        require(address(contractOnSchain).isContract(), "No token clone on schain");
-        require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
-        contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
-        contractOnSchain.burn(tokenId);
-        bytes memory data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);
-        messageProxy.postOutgoingMessage(MAINNET_NAME, depositBox, data);
+        _exit(MAINNET_NAME, depositBox, contractOnMainnet, to, tokenId);
     }
 
     function transferToSchainERC721(
@@ -73,20 +64,13 @@ contract TokenManagerERC721 is TokenManager {
     ) 
         external
     {
-        require(to != address(0), "Incorrect receiver address");
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
             targetSchainHash != MAINNET_HASH,
             "This function is not for transferring to Mainnet"
         );
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
-        ERC721Burnable contractOnSchain = clonesErc721[contractOnMainnet];
-        require(address(contractOnSchain).isContract(), "No token clone on schain");
-        require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
-        contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
-        contractOnSchain.burn(tokenId);
-        bytes memory data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);    
-        messageProxy.postOutgoingMessage(targetSchainName, tokenManagers[targetSchainHash], data);
+        _exit(targetSchainName, tokenManagers[targetSchainHash], contractOnMainnet, to, tokenId);
     }
 
     /**
@@ -177,29 +161,48 @@ contract TokenManagerERC721 is TokenManager {
         address receiver;
         address token;
         uint256 tokenId;
+        ERC721OnChain contractOnSchain;
         if (messageType == Messages.MessageType.TRANSFER_ERC721){
             Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
             receiver = message.receiver;
             token = message.token;
             tokenId = message.tokenId;
+            contractOnSchain = clonesErc721[token];
         } else {
             Messages.TransferErc721AndTokenInfoMessage memory message =
                 Messages.decodeTransferErc721AndTokenInfoMessage(data);
             receiver = message.baseErc721transfer.receiver;
             token = message.baseErc721transfer.token;
             tokenId = message.baseErc721transfer.tokenId;
-            ERC721OnChain contractOnSchainTmp = clonesErc721[token];
-            if (address(contractOnSchainTmp) == address(0)) {
+            contractOnSchain = clonesErc721[token];
+            if (address(contractOnSchain) == address(0)) {
                 require(automaticDeploy, "Automatic deploy is disabled");
-                contractOnSchainTmp = new ERC721OnChain(message.tokenInfo.name, message.tokenInfo.symbol);           
-                clonesErc721[token] = contractOnSchainTmp;
-                emit ERC721TokenCreated(token, address(contractOnSchainTmp));
+                contractOnSchain = new ERC721OnChain(message.tokenInfo.name, message.tokenInfo.symbol);           
+                clonesErc721[token] = contractOnSchain;
+                emit ERC721TokenCreated(token, address(contractOnSchain));
             }
         }
-        ERC721OnChain contractOnSchain = clonesErc721[token];
         require(address(contractOnSchain).isContract(), "Given address is not a contract");
         contractOnSchain.mint(receiver, tokenId);
         emit ERC721TokenReceived(token, address(contractOnSchain), tokenId);
-    }    
+    }
 
+    function _exit(
+        string memory chainName,
+        address messageReceiver,
+        address contractOnMainnet,
+        address to,
+        uint256 tokenId
+    )
+        private
+    {
+        require(to != address(0), "Incorrect receiver address");
+        ERC721BurnableUpgradeable contractOnSchain = clonesErc721[contractOnMainnet];
+        require(address(contractOnSchain).isContract(), "No token clone on schain");
+        require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
+        contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
+        contractOnSchain.burn(tokenId);
+        bytes memory data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);    
+        messageProxy.postOutgoingMessage(chainName, messageReceiver, data);
+    }
 }
