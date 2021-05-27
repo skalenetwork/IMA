@@ -97,9 +97,9 @@ describe("TokenManagerEth", () => {
         await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, "0x0000000000000000000000000000000000000000", data);
     });
 
-    it("should set EthERC20 address", async () => {
+    it("should set EthErc20 address", async () => {
         const newEthErc20Address = tokenManagerLinker.address;
-        // only owner can set EthERC20 address:
+        // only owner can set EthErc20 address:
         await tokenManagerEth.connect(user).setEthErc20Address(newEthErc20Address).should.be.rejected;
         await tokenManagerEth.connect(deployer).setEthErc20Address(newEthErc20Address);
 

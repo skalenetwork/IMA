@@ -226,10 +226,10 @@ const g_arrContracts = [
         address: "0x57ad607c6e90df7d7f158985c3e436007a15d744",
         referenceVariableName: "TokenManagerLinker"
     }, {
-        fileName: "EthERC20.json",
-        filePath: "artifacts/contracts/schain/tokens/EthERC20.sol/EthERC20.json",
+        fileName: "EthErc20.json",
+        filePath: "artifacts/contracts/schain/tokens/EthErc20.sol/EthErc20.json",
         address: "0xd3cdbc1b727b2ed91b8ad21333841d2e96f255af",
-        referenceVariableName: "EthERC20"
+        referenceVariableName: "EthErc20"
     }, {
         fileName: "CommunityLocker.json",
         filePath: "artifacts/contracts/schain/CommunityLocker.sol/CommunityLocker.json",

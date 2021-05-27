@@ -84,7 +84,7 @@ export const contracts = [
     "TokenManagerEth",
     "TokenManagerERC20",
     "TokenManagerERC721",
-    "EthERC20",
+    "EthErc20",
     "SkaleFeatures"
 ];
 
@@ -192,7 +192,7 @@ async function main() {
     console.log( "\nWill set dependencies!\n" );
 
     await tokenManagerEth.setEthErc20Address( ethERC20.address );
-    console.log( "Set EthERC20 address", ethERC20.address, "in TokenManagerEth", tokenManagerEth.address, "completed!\n" );
+    console.log( "Set EthErc20 address", ethERC20.address, "in TokenManagerEth", tokenManagerEth.address, "completed!\n" );
 
     const chainConnectorRole = await messageProxy.CHAIN_CONNECTOR_ROLE();
     await messageProxy.grantRole( chainConnectorRole, tokenManagerLinker.address );
