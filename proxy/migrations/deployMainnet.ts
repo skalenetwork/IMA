@@ -84,7 +84,8 @@ function getContractManager() {
 export const contractsToDeploy = [
     "DepositBoxEth",
     "DepositBoxERC20",
-    "DepositBoxERC721"
+    "DepositBoxERC721",
+    "DepositBoxERC1155"
 ]
 
 export const contracts = [
@@ -93,7 +94,8 @@ export const contracts = [
     "CommunityPool",
     "DepositBoxEth",
     "DepositBoxERC20",
-    "DepositBoxERC721"
+    "DepositBoxERC721",
+    "DepositBoxERC1155"
 ]
 
 async function main() {
@@ -183,6 +185,8 @@ async function main() {
         );
         await proxy.deployTransaction.wait();
         const contractName = contract;
+        // // TODO: remove if - after adding tests to agent
+        // if (contractName !== "DepositBoxERC1155") {
         console.log("Register", contract, "as", contractName, "=>", proxy.address);
         await (await linker.registerMainnetContract(proxy.address)).wait();
         await (await messageProxyForMainnet.registerExtraContractForAll(proxy.address)).wait();
