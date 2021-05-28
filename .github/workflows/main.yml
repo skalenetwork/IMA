@@ -86,7 +86,7 @@ jobs:
     - name: Build predeployed pip package
       working-directory: ${{env.working-directory}}
       env:
-        VERSION: "0.0.1"
+        VERSION: "0.0.0"
       run: |
         python3 -m pip install --upgrade build
         ./predeployed/scripts/build_package.sh
