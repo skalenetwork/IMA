@@ -88,17 +88,23 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
     bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
+    bytes32 public constant MESSAGE_GAS_COST_SETTER_ROLE = keccak256("MESSAGE_GAS_COST_SETTER_ROLE");
 
     address public communityPoolAddress;
 
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     mapping(bytes32 => mapping(address => bool)) public registryContracts;
 
-    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 70000;
-    uint256 public constant MESSAGE_GAS_COST = 8790;
+    uint256 public headerMessageGasCost;
+    uint256 public messageGasCost;
 
     modifier onlyDebugger() {
         require(hasRole(DEBUGGER_ROLE, msg.sender), "Access denied");
+        _;
+    }
+
+    modifier onlyMessageGasCostSetter() {
+        require(hasRole(MESSAGE_GAS_COST_SETTER_ROLE, msg.sender), "Access denied");
         _;
     }
 
@@ -284,21 +290,11 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         require(_verifyMessages(fromSchainName, _hashedArray(messages), sign), "Signature is not verified");
         uint additionalGasPerMessage = 
             (gasTotal.sub(gasleft())
-            .add(BASIC_POST_INCOMING_MESSAGES_TX)
-            .add(messages.length * MESSAGE_GAS_COST))
+            .add(headerMessageGasCost)
+            .add(messages.length * messageGasCost))
             .div(messages.length);
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
-            if (
-                !registryContracts[fromSchainHash][messages[i].destinationContract] &&
-                !registryContracts[bytes32(0)][messages[i].destinationContract]
-            ) {
-                emit PostMessageError(
-                    startingCounter + i,
-                    bytes("Destination contract is not registered")
-                );
-                continue;
-            }
             address receiver = _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
             if (receiver == address(0)) 
                 continue;
@@ -339,6 +335,28 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     function setCountersToZero(string calldata schainName) external onlyDebugger {
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
+    }
+
+    /**
+     * @dev Sets headerMessageGasCost
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted as MESSAGE_GAS_COST_SETTER_ROLE.
+     */
+    function setHeaderMessageGasCost(uint256 newHeaderMessageGasCost) external onlyMessageGasCostSetter {
+        headerMessageGasCost = newHeaderMessageGasCost;
+    }
+
+    /**
+     * @dev Sets messageGasCost
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted as MESSAGE_GAS_COST_SETTER_ROLE.
+     */
+    function setMessageGasCost(uint256 newMessageGasCost) external onlyMessageGasCostSetter {
+        messageGasCost = newMessageGasCost;
     }
 
     /**
@@ -406,6 +424,8 @@ contract MessageProxyForMainnet is SkaleManagerClient {
 
     function initialize(IContractManager contractManagerOfSkaleManager) public virtual override initializer {
         SkaleManagerClient.initialize(contractManagerOfSkaleManager);
+        headerMessageGasCost = 70000;
+        messageGasCost = 8790;
     }
 
     /**
