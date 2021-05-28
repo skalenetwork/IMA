@@ -210,11 +210,12 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
     {
         bytes32 targetChainHash = keccak256(abi.encodePacked(targetChainName));
         require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
-        require(
-            registryContracts[bytes32(0)][msg.sender] || 
-            registryContracts[targetChainHash][msg.sender],
-            "Sender contract is not registered"
-        );
+        require(_isAuthorizedCaller(targetChainHash, msg.sender), "Sender contract is not registered");
+        // require(
+        //     registryContracts[bytes32(0)][msg.sender] || 
+        //     registryContracts[targetChainHash][msg.sender],
+        //     "Sender contract is not registered"
+        // );
         connectedChains[targetChainHash].outgoingMessageCounter
             = connectedChains[targetChainHash].outgoingMessageCounter.add(1);
         _pushOutgoingMessageData(
@@ -372,6 +373,16 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
             );
             return false;
         }
+    }
+
+    function _isAuthorizedCaller(bytes32 targetChainHash, address sender) private view returns (bool) {
+        if (!(registryContracts[bytes32(0)][sender] || registryContracts[targetChainHash][sender])) {
+            return 0 != getSkaleFeatures().getConfigPermissionFlag(
+                sender,
+                "skaleConfig.contractSettings.IMA.mapAuthorizedCallers"
+            );
+        }
+        return registryContracts[bytes32(0)][sender] || registryContracts[targetChainHash][sender];
     }
 
     function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {

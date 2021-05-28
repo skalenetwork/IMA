@@ -255,6 +255,8 @@ const g_joSkaleConfigTemplate = {
             },
             IMA: {
                 ownerAddress: ownerAddress,
+                mapAuthorizedCallers: {
+                }
             }
         }
     }
@@ -283,7 +285,7 @@ for( let idxContract = 0; idxContract < g_arrContracts.length; ++ idxContract ) 
     };
     g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA[joContractProperties.referenceVariableName] = joContractProperties.address;
     // g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.LockAndData.permitted[joContractProperties.referenceVariableName] = joContractProperties.address;
-    // g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.variables.MessageProxy.mapAuthorizedCallers[joContractProperties.address] = 1;
+    g_joSkaleConfigTemplate.skaleConfig.contractSettings.IMA.mapAuthorizedCallers[joContractProperties.address] = 1;
     //
     const strContractNameCamelCase = joContractProperties.fileName.replace( ".json", "" );
     let strContractNameUnderscoreCase = convert_camel_case_to_underscore_case( strContractNameCamelCase ).replace( "e_r_c", "erc" );

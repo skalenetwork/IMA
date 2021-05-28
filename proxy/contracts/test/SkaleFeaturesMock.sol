@@ -62,6 +62,10 @@ contract SkaleFeaturesMock is SkaleFeatures {
         }
     }
 
+    function getConfigPermissionFlag(address, string memory) public view override returns (uint256) {
+        return 0;
+    }
+
     function _equal(string memory a, string memory b) private pure returns (bool) {
         return keccak256(bytes(a)) == keccak256(bytes(b));
     }

@@ -96,6 +96,9 @@ describe("TokenManagerERC721", () => {
             );
         await tokenManagerERC721.grantRole(await tokenManagerERC721.SKALE_FEATURES_SETTER_ROLE(), deployer.address);
         await tokenManagerERC721.setSkaleFeaturesAddress(skaleFeatures.address);
+        const skaleFeaturesSetterRole = await messageProxyForSchain.SKALE_FEATURES_SETTER_ROLE();
+        await messageProxyForSchain.connect(deployer).grantRole(skaleFeaturesSetterRole, deployer.address);
+        await messageProxyForSchain.setSkaleFeaturesAddress(skaleFeatures.address);
 
 
         tokenClone = await deployERC721OnChain("ELVIS", "ELV");
