@@ -83,12 +83,13 @@ jobs:
       run: |        
         ./predeployed/scripts/build_package.sh
 
-    - name: Publish predeployed pip package
-      working-directory: ${{env.PROXY_DIR}}
-      env:
-        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-      run: |        
-        ./predeployed/scripts/publish_package.sh
+    # TODO: return this
+    # - name: Publish predeployed pip package
+    #   working-directory: ${{env.PROXY_DIR}}
+    #   env:
+    #     PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+    #   run: |        
+    #     ./predeployed/scripts/publish_package.sh
 
     - name: Create Release
       id: create_release
@@ -98,5 +99,6 @@ jobs:
       with:
         tag_name: ${{ env.VERSION }}
         release_name: ${{ env.VERSION }}
+        artifacts: "proxy/predeployed/dist/*"
         draft: false
         prerelease: true
