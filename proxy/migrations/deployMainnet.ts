@@ -84,7 +84,8 @@ function getContractManager() {
 export const contractsToDeploy = [
     "DepositBoxEth",
     "DepositBoxERC20",
-    "DepositBoxERC721"
+    "DepositBoxERC721",
+    "DepositBoxERC1155"
 ]
 
 export const contracts = [
@@ -93,7 +94,8 @@ export const contracts = [
     "CommunityPool",
     "DepositBoxEth",
     "DepositBoxERC20",
-    "DepositBoxERC721"
+    "DepositBoxERC721",
+    "DepositBoxERC1155"
 ]
 
 async function main() {
@@ -118,6 +120,8 @@ async function main() {
         }
     );
     await verifyProxy(messageProxyForMainnetName, messageProxyForMainnet.address);
+    const extraContractRegistrarRole = await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE();
+    await (await messageProxyForMainnet.grantRole(extraContractRegistrarRole, owner.address)).wait();
 
     const linkerName = "Linker";
     console.log("Deploy", linkerName);
@@ -126,6 +130,7 @@ async function main() {
         await upgrades.deployProxy(linkerFactory, [deployed.get(messageProxyForMainnetName)?.address, contractManager?.address], { initializer: 'initialize(address,address)' })
     ) as Linker;
     await linker.deployTransaction.wait();
+    await (await messageProxyForMainnet.registerExtraContractForAll(linker.address)).wait();
     console.log("Proxy Contract", linkerName, "deployed to", linker.address);
     deployed.set(
         linkerName,
@@ -152,6 +157,7 @@ async function main() {
         );
     await communityPool.deployTransaction.wait();
     await (await linker.registerMainnetContract(communityPool.address)).wait();
+    await (await messageProxyForMainnet.registerExtraContractForAll(communityPool.address)).wait();
     await (await messageProxyForMainnet.setCommunityPool(communityPool.address)).wait();
     console.log("Proxy Contract", communityPoolName, "deployed to", communityPool.address);
     deployed.set(
@@ -179,9 +185,11 @@ async function main() {
         );
         await proxy.deployTransaction.wait();
         const contractName = contract;
+        // // TODO: remove if - after adding tests to agent
+        // if (contractName !== "DepositBoxERC1155") {
         console.log("Register", contract, "as", contractName, "=>", proxy.address);
-        const transaction = await linker.registerMainnetContract(proxy.address);
-        await transaction.wait();
+        await (await linker.registerMainnetContract(proxy.address)).wait();
+        await (await messageProxyForMainnet.registerExtraContractForAll(proxy.address)).wait();
         console.log( "Contract", contractName, "with address", proxy.address, "is registered as DepositBox in Linker" );
         deployed.set(
             contractName,

@@ -48,7 +48,8 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      blockGasLimit: 12000000
+      blockGasLimit: 12000000,
+      allowUnlimitedContractSize: true
     },
     custom: {
       url: getCustomUrl(process.env.ENDPOINT),

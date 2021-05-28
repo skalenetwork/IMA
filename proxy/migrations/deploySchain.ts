@@ -28,6 +28,7 @@ import { ethers, artifacts, upgrades } from "hardhat";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
+import { Contract } from '@ethersproject/contracts';
 
 export function getContractKeyInAbiFile(contract: string) {
     return contract.replace(/([a-zA-Z])(?=[A-Z])/g, '$1_').toLowerCase();
@@ -84,6 +85,7 @@ export const contracts = [
     "TokenManagerEth",
     "TokenManagerERC20",
     "TokenManagerERC721",
+    "TokenManagerERC1155",
     "EthErc20",
     "SkaleFeatures"
 ];
@@ -114,6 +116,10 @@ async function main() {
         getProxyMainnet("deposit_box_erc20_address") === "" ||
         getProxyMainnet("deposit_box_erc721_address") === undefined ||
         getProxyMainnet("deposit_box_erc721_address") === "" ||
+        getProxyMainnet("deposit_box_erc1155_address") === undefined ||
+        getProxyMainnet("deposit_box_erc1155_address") === "" ||
+        getProxyMainnet("community_pool_address") === undefined ||
+        getProxyMainnet("community_pool_address") === "" ||
         getProxyMainnet("linker_address") === undefined ||
         getProxyMainnet("linker_address") === ""
     ) {
@@ -123,6 +129,8 @@ async function main() {
     const depositBoxEthAddress = getProxyMainnet("deposit_box_eth_address");
     const depositBoxERC20Address = getProxyMainnet("deposit_box_erc20_address");
     const depositBoxERC721Address = getProxyMainnet("deposit_box_erc721_address");
+    const depositBoxERC1155Address = getProxyMainnet("deposit_box_erc1155_address");
+    const communityPoolAddress = getProxyMainnet("community_pool_address");
     const linkerAddress = getProxyMainnet("linker_address");
 
     console.log("Deploy KeyStorage");
@@ -142,7 +150,7 @@ async function main() {
 
     console.log("Deploy CommunityLocker");
     const communityLockerFactory = await ethers.getContractFactory("CommunityLocker");
-    const communityLocker = await upgrades.deployProxy(communityLockerFactory, [ schainName, messageProxy.address, tokenManagerLinker.address ]);
+    const communityLocker = await upgrades.deployProxy(communityLockerFactory, [ schainName, messageProxy.address, tokenManagerLinker.address, communityPoolAddress ]);
     deployed.set( "CommunityLocker", { address: communityLocker.address, interface: communityLocker.interface });
     console.log("Contract CommunityLocker deployed to", communityLocker.address);
 
@@ -183,6 +191,18 @@ async function main() {
     deployed.set( "TokenManagerERC721", { address: tokenManagerERC721.address, interface: tokenManagerERC721.interface } );
     console.log("Contract TokenManagerERC721 deployed to", tokenManagerERC721.address);
 
+    console.log("Deploy TokenManagerERC1155");
+    const tokenManagerERC1155Factory = await ethers.getContractFactory("TokenManagerERC1155");
+    const tokenManagerERC1155 = await upgrades.deployProxy(tokenManagerERC1155Factory, [
+        schainName,
+        messageProxy.address,
+        tokenManagerLinker.address,
+        communityLocker.address,
+        depositBoxERC1155Address
+    ]);
+    deployed.set( "TokenManagerERC1155", { address: tokenManagerERC1155.address, interface: tokenManagerERC1155.interface } );
+    console.log("Contract TokenManagerERC1155 deployed to", tokenManagerERC1155.address);
+
     console.log("Deploy EthErc20");
     const ethERC20Factory = await ethers.getContractFactory("EthErc20");
     const ethERC20 = await upgrades.deployProxy(ethERC20Factory, [ tokenManagerEth.address ]);
@@ -200,6 +220,21 @@ async function main() {
 
     const schainOwner = new ethers.Wallet( process.env.PRIVATE_KEY_FOR_SCHAIN );
 
+    let extraContract: Contract;
+    const extraContracts = [
+        tokenManagerEth,
+        tokenManagerERC20,
+        tokenManagerERC721,
+        tokenManagerERC1155,
+        communityLocker
+    ];
+    const extraContractRegistrarRole = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
+    await messageProxy.grantRole(extraContractRegistrarRole, owner.address);
+    for (extraContract of extraContracts) {
+        await messageProxy.registerExtraContractForAll(extraContract.address)
+        console.log("Contract with address ", extraContract.address, "registered as extra contract");
+    }
+
     const jsonObjectABI: {[k: string]: any} = { };
     for( const contractName of contracts ) {
         let propertyName: string;
@@ -215,6 +250,8 @@ async function main() {
     jsonObjectABI.ERC20OnChain_abi = getAbi(erc20OnChainFactory.interface);
     const erc721OnChainFactory = await ethers.getContractFactory("ERC721OnChain");
     jsonObjectABI.ERC721OnChain_abi = getAbi(erc721OnChainFactory.interface);
+    const erc1155OnChainFactory = await ethers.getContractFactory("ERC1155OnChain");
+    jsonObjectABI.ERC1155OnChain_abi = getAbi(erc1155OnChainFactory.interface);
 
     await fs.writeFile( `data/proxySchain_${schainName}.json`, JSON.stringify( jsonObjectABI ) );
     console.log( `Done, check proxySchain_${schainName}.json file in data folder.` );

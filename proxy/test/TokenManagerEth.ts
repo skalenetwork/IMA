@@ -67,6 +67,7 @@ describe("TokenManagerEth", () => {
     let ethERC20: EthErc20;
     let communityLocker: CommunityLocker;
     let fakeDepositBox: any;
+    let fakeCommunityPool: any;
     const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
 
     before(async () => {
@@ -75,10 +76,11 @@ describe("TokenManagerEth", () => {
 
     beforeEach(async () => {
         const keyStorage = await deployKeyStorageMock();
-        messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address);
+        messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, schainName);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
         fakeDepositBox = tokenManagerLinker.address;
-        communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker);
+        fakeCommunityPool = tokenManagerLinker.address;
+        communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker, fakeCommunityPool);
         tokenManagerEth = await deployTokenManagerEth(
             schainName,
             messageProxyForSchain.address,
@@ -94,7 +96,10 @@ describe("TokenManagerEth", () => {
         messages = await deployMessages();
 
         const data = await messages.encodeFreezeStateMessage(user.address, true);
-        await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, "0x0000000000000000000000000000000000000000", data);
+        await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, fakeCommunityPool, data);
+
+        const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
+        await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
     });
 
     it("should set EthErc20 address", async () => {
@@ -193,6 +198,7 @@ describe("TokenManagerEth", () => {
         const amountTo2 = BigNumber.from("60000000000000000");
         const amountAfter = BigNumber.from("540000000000000000");
         const to = user.address;
+        await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerEth.address);
 
         await ethERC20.connect(deployer).grantRole(await ethERC20.MINTER_ROLE(), deployer.address);
         await ethERC20.connect(deployer).mint(user.address, amount);
@@ -215,6 +221,8 @@ describe("TokenManagerEth", () => {
         const amountAfter = BigNumber.from("18000000000000000");
         const bytesData = "0x0";
         const to = deployer.address;
+        const newSchainName = randomString(10);
+        await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerEth.address);
 
         // set contract TokenManagerEth:
         // await tokenManagerEth.setContract("TokenManagerEth", tokenManagerEth.address, {from: deployer});
@@ -223,16 +231,16 @@ describe("TokenManagerEth", () => {
         await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, deployer.address);
 
         // add connected chain:
-        await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
+        await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
 
         await ethERC20.connect(deployer).grantRole(await ethERC20.MINTER_ROLE(), deployer.address);
         await ethERC20.connect(deployer).mint(user.address, amount);
 
         // add schain:
-        await tokenManagerEth.connect(deployer).addTokenManager(schainName, user.address);
+        await tokenManagerEth.connect(deployer).addTokenManager(newSchainName, user.address);
 
         // send Eth and data to a client on schain:
-        await tokenManagerEth.connect(user).transferToSchain(schainName, to, amountTo);
+        await tokenManagerEth.connect(user).transferToSchain(newSchainName, to, amountTo);
 
         const balanceAfter = BigNumber.from(await ethERC20.balanceOf(user.address));
         balanceAfter.should.be.deep.equal(amountAfter);

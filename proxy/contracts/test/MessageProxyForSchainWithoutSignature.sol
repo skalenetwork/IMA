@@ -26,12 +26,12 @@ import "../schain/MessageProxyForSchain.sol";
 
 contract MessageProxyForSchainWithoutSignature is MessageProxyForSchain {
 
-    function initialize(KeyStorage)
+    function initialize(KeyStorage, string memory schainName)
         public
         override
         initializer
     {
-        MessageProxyForSchain.initialize(KeyStorage(0));
+        MessageProxyForSchain.initialize(KeyStorage(0), schainName);
     }
 
     function _verifyMessages(

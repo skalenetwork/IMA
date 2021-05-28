@@ -216,6 +216,11 @@ const g_arrContracts = [
         address: "0x97438fdfbdcc4ccc533ea874bfeb71f4098585ab",
         referenceVariableName: "TokenManagerERC721"
     }, {
+        fileName: "TokenManagerERC1155.json",
+        filePath: "artifacts/contracts/schain/TokenManagers/TokenManagerERC721.sol/TokenManagerERC1155.json",
+        address: "0xa13095db73dc4afeff48c625d153b17ab668990d",
+        referenceVariableName: "TokenManagerERC1155"
+    }, {
         fileName: "MessageProxyForSchain.json",
         filePath: "artifacts/contracts/schain/MessageProxyForSchain.sol/MessageProxyForSchain.json",
         address: "0x427c74e358eb1f620e71f64afc9b1b5d2309dd01",

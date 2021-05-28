@@ -1,5 +1,5 @@
 {
-    "message_proxy_mainnet_address": "0x8811E7af19A8f4cCB50947d5a503046D46752015",
+    "message_proxy_mainnet_address": "0x8d0bb329E51Ea55D922b94EE8C15CBa53daAe9F9",
     "message_proxy_mainnet_abi": [
         {
             "type": "event",
@@ -194,7 +194,7 @@
             "inputs": [
                 {
                     "type": "string",
-                    "name": "newChainID"
+                    "name": "schainName"
                 }
             ],
             "outputs": []
@@ -263,7 +263,7 @@
             "inputs": [
                 {
                     "type": "string",
-                    "name": "srcChainID"
+                    "name": "fromSchainName"
                 }
             ],
             "outputs": [
@@ -282,7 +282,7 @@
             "inputs": [
                 {
                     "type": "string",
-                    "name": "dstChainID"
+                    "name": "targetSchainName"
                 }
             ],
             "outputs": [
@@ -428,7 +428,7 @@
             "inputs": [
                 {
                     "type": "string",
-                    "name": "someChainID"
+                    "name": "schainName"
                 }
             ],
             "outputs": [
@@ -451,7 +451,7 @@
                 },
                 {
                     "type": "bytes32",
-                    "name": "schainId"
+                    "name": "schainHash"
                 }
             ],
             "outputs": [
@@ -469,7 +469,7 @@
             "inputs": [
                 {
                     "type": "string",
-                    "name": "srcChainID"
+                    "name": "fromSchainName"
                 },
                 {
                     "type": "uint256",
@@ -551,7 +551,7 @@
             "inputs": [
                 {
                     "type": "string",
-                    "name": "newChainID"
+                    "name": "schainName"
                 }
             ],
             "outputs": []
@@ -617,7 +617,7 @@
             "outputs": []
         }
     ],
-    "linker_address": "0xC0A4B69ab4bC12F069eb8f9AdE5855Cb64b89D61",
+    "linker_address": "0x347907c4111b2122a8Aca6A81ac1c5Ad94458Cf9",
     "linker_abi": [
         {
             "type": "event",
@@ -715,6 +715,36 @@
         },
         {
             "type": "function",
+            "name": "addSchainContract",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                },
+                {
+                    "type": "address",
+                    "name": "contractOnSchain"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "allowInterchainConnections",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
             "name": "connectSchain",
             "constant": false,
             "payable": false,
@@ -729,6 +759,20 @@
                 }
             ],
             "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "contractManagerOfSkaleManager",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "address",
+                    "name": ""
+                }
+            ]
         },
         {
             "type": "function",
@@ -871,6 +915,25 @@
         },
         {
             "type": "function",
+            "name": "hasSchainContract",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bool",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
             "name": "initialize",
             "constant": false,
             "payable": false,
@@ -878,6 +941,97 @@
                 {
                     "type": "address",
                     "name": "messageProxyAddress"
+                },
+                {
+                    "type": "address",
+                    "name": "newContractManagerOfSkaleManager"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "initialize",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "address",
+                    "name": "newContractManagerOfSkaleManager"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "interchainConnections",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": ""
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bool",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "isNotKilled",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "schainHash"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bool",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "isSchainOwner",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "address",
+                    "name": "sender"
+                },
+                {
+                    "type": "bytes32",
+                    "name": "schainHash"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bool",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "kill",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
                 }
             ],
             "outputs": []
@@ -924,6 +1078,19 @@
         },
         {
             "type": "function",
+            "name": "removeSchainContract",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
             "name": "renounceRole",
             "constant": false,
             "payable": false,
@@ -958,6 +1125,44 @@
         },
         {
             "type": "function",
+            "name": "schainLinks",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": ""
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "address",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "statuses",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": ""
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "uint8",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
             "name": "unconnectSchain",
             "constant": false,
             "payable": false,
@@ -970,7 +1175,7 @@
             "outputs": []
         }
     ],
-    "community_pool_address": "0x27b594bD8d03b5E07Ef2562c698ED48d11738daA",
+    "community_pool_address": "0x744da9064B20B7574BD697b4c5B37C2578a95282",
     "community_pool_abi": [
         {
             "type": "event",
@@ -1283,7 +1488,7 @@
                 },
                 {
                     "type": "bytes32",
-                    "name": "schainId"
+                    "name": "schainHash"
                 }
             ],
             "outputs": [
@@ -1444,7 +1649,7 @@
             "outputs": []
         }
     ],
-    "deposit_box_eth_address": "0xaf2b600AdB3cAbf59486679ADD519F1808083E90",
+    "deposit_box_eth_address": "0xF1E85FC6a94d4C8Fbb739c29d36C2E447ef1a315",
     "deposit_box_eth_abi": [
         {
             "type": "event",
@@ -1599,11 +1804,32 @@
             "inputs": [
                 {
                     "type": "string",
-                    "name": "schainID"
+                    "name": "schainName"
                 },
                 {
                     "type": "address",
                     "name": "to"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "getFunds",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                },
+                {
+                    "type": "address",
+                    "name": "receiver"
+                },
+                {
+                    "type": "uint256",
+                    "name": "amount"
                 }
             ],
             "outputs": []
@@ -1726,7 +1952,7 @@
             "inputs": [
                 {
                     "type": "string",
-                    "name": "schainID"
+                    "name": "schainName"
                 }
             ],
             "outputs": [
@@ -1783,12 +2009,26 @@
                 },
                 {
                     "type": "bytes32",
-                    "name": "schainId"
+                    "name": "schainHash"
                 }
             ],
             "outputs": [
                 {
                     "type": "bool",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "linker",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "address",
                     "name": ""
                 }
             ]
@@ -1898,9 +2138,28 @@
                     "name": ""
                 }
             ]
+        },
+        {
+            "type": "function",
+            "name": "transferredAmount",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": ""
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "uint256",
+                    "name": ""
+                }
+            ]
         }
     ],
-    "deposit_box_erc20_address": "0xA1Fb4BF6b985B33aDF965a83C727ddD372D6Eaa3",
+    "deposit_box_erc20_address": "0x38BA6c9F431Ad54893E40D59a33313f1Ea05d688",
     "deposit_box_erc20_abi": [
         {
             "type": "event",
@@ -1909,7 +2168,7 @@
             "inputs": [
                 {
                     "type": "string",
-                    "name": "schainID",
+                    "name": "schainName",
                     "indexed": false
                 },
                 {
@@ -2086,7 +2345,7 @@
             "inputs": [
                 {
                     "type": "string",
-                    "name": "schainID"
+                    "name": "schainName"
                 },
                 {
                     "type": "address",
@@ -2125,6 +2384,31 @@
                 {
                     "type": "string",
                     "name": "schainName"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "getFunds",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                },
+                {
+                    "type": "address",
+                    "name": "erc20OnMainnet"
+                },
+                {
+                    "type": "address",
+                    "name": "receiver"
+                },
+                {
+                    "type": "uint256",
+                    "name": "amount"
                 }
             ],
             "outputs": []
@@ -2262,7 +2546,7 @@
             "inputs": [
                 {
                     "type": "string",
-                    "name": "schainID"
+                    "name": "schainName"
                 }
             ],
             "outputs": [
@@ -2319,12 +2603,26 @@
                 },
                 {
                     "type": "bytes32",
-                    "name": "schainId"
+                    "name": "schainHash"
                 }
             ],
             "outputs": [
                 {
                     "type": "bool",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "linker",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "address",
                     "name": ""
                 }
             ]
@@ -2460,6 +2758,29 @@
         },
         {
             "type": "function",
+            "name": "transferredAmount",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": ""
+                },
+                {
+                    "type": "address",
+                    "name": ""
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "uint256",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
             "name": "withoutWhitelist",
             "constant": true,
             "stateMutability": "view",
@@ -2478,7 +2799,7 @@
             ]
         }
     ],
-    "deposit_box_erc721_address": "0x5a265Db60827118B069d44b0825D2036b2b5c2FD",
+    "deposit_box_erc721_address": "0xA0f10D670E9BE483D6b9d60FE44921E979D11AF1",
     "deposit_box_erc721_abi": [
         {
             "type": "event",
@@ -2487,7 +2808,7 @@
             "inputs": [
                 {
                     "type": "string",
-                    "name": "schainID",
+                    "name": "schainName",
                     "indexed": false
                 },
                 {
@@ -2664,7 +2985,7 @@
             "inputs": [
                 {
                     "type": "string",
-                    "name": "schainID"
+                    "name": "schainName"
                 },
                 {
                     "type": "address",
@@ -2703,6 +3024,31 @@
                 {
                     "type": "string",
                     "name": "schainName"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "getFunds",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                },
+                {
+                    "type": "address",
+                    "name": "erc721OnMainnet"
+                },
+                {
+                    "type": "address",
+                    "name": "receiver"
+                },
+                {
+                    "type": "uint256",
+                    "name": "tokenId"
                 }
             ],
             "outputs": []
@@ -2840,7 +3186,7 @@
             "inputs": [
                 {
                     "type": "string",
-                    "name": "schainID"
+                    "name": "schainName"
                 }
             ],
             "outputs": [
@@ -2897,12 +3243,26 @@
                 },
                 {
                     "type": "bytes32",
-                    "name": "schainId"
+                    "name": "schainHash"
                 }
             ],
             "outputs": [
                 {
                     "type": "bool",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "linker",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "address",
                     "name": ""
                 }
             ]
@@ -3020,6 +3380,746 @@
         {
             "type": "function",
             "name": "tokenManagerERC721Addresses",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": ""
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "address",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "transferredAmount",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "address",
+                    "name": ""
+                },
+                {
+                    "type": "uint256",
+                    "name": ""
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bytes32",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "withoutWhitelist",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": ""
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bool",
+                    "name": ""
+                }
+            ]
+        }
+    ],
+    "deposit_box_erc1155_address": "0x33676fc32E4B191633a5DC44939E7B66744De670",
+    "deposit_box_erc1155_abi": [
+        {
+            "type": "event",
+            "anonymous": false,
+            "name": "ERC1155TokenAdded",
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName",
+                    "indexed": false
+                },
+                {
+                    "type": "address",
+                    "name": "contractOnMainnet",
+                    "indexed": true
+                }
+            ]
+        },
+        {
+            "type": "event",
+            "anonymous": false,
+            "name": "ERC1155TokenReady",
+            "inputs": [
+                {
+                    "type": "address",
+                    "name": "contractOnMainnet",
+                    "indexed": true
+                },
+                {
+                    "type": "uint256[]",
+                    "name": "ids",
+                    "indexed": false
+                },
+                {
+                    "type": "uint256[]",
+                    "name": "amounts",
+                    "indexed": false
+                }
+            ]
+        },
+        {
+            "type": "event",
+            "anonymous": false,
+            "name": "RoleAdminChanged",
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role",
+                    "indexed": true
+                },
+                {
+                    "type": "bytes32",
+                    "name": "previousAdminRole",
+                    "indexed": true
+                },
+                {
+                    "type": "bytes32",
+                    "name": "newAdminRole",
+                    "indexed": true
+                }
+            ]
+        },
+        {
+            "type": "event",
+            "anonymous": false,
+            "name": "RoleGranted",
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role",
+                    "indexed": true
+                },
+                {
+                    "type": "address",
+                    "name": "account",
+                    "indexed": true
+                },
+                {
+                    "type": "address",
+                    "name": "sender",
+                    "indexed": true
+                }
+            ]
+        },
+        {
+            "type": "event",
+            "anonymous": false,
+            "name": "RoleRevoked",
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role",
+                    "indexed": true
+                },
+                {
+                    "type": "address",
+                    "name": "account",
+                    "indexed": true
+                },
+                {
+                    "type": "address",
+                    "name": "sender",
+                    "indexed": true
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "DEFAULT_ADMIN_ROLE",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "bytes32",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "DEPOSIT_BOX_MANAGER_ROLE",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "bytes32",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "addERC1155TokenByOwner",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                },
+                {
+                    "type": "address",
+                    "name": "erc1155OnMainnet"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "addSchainContract",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                },
+                {
+                    "type": "address",
+                    "name": "newTokenManagerERC1155Address"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "contractManagerOfSkaleManager",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "address",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "depositERC1155",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                },
+                {
+                    "type": "address",
+                    "name": "contractOnMainnet"
+                },
+                {
+                    "type": "address",
+                    "name": "to"
+                },
+                {
+                    "type": "uint256",
+                    "name": "id"
+                },
+                {
+                    "type": "uint256",
+                    "name": "amount"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "depositERC1155Batch",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                },
+                {
+                    "type": "address",
+                    "name": "contractOnMainnet"
+                },
+                {
+                    "type": "address",
+                    "name": "to"
+                },
+                {
+                    "type": "uint256[]",
+                    "name": "ids"
+                },
+                {
+                    "type": "uint256[]",
+                    "name": "amounts"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "disableWhitelist",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "enableWhitelist",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "getRoleAdmin",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bytes32",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "getRoleMember",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role"
+                },
+                {
+                    "type": "uint256",
+                    "name": "index"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "address",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "getRoleMemberCount",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "uint256",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "getSchainToERC1155",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                },
+                {
+                    "type": "address",
+                    "name": "erc1155OnMainnet"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bool",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "grantRole",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role"
+                },
+                {
+                    "type": "address",
+                    "name": "account"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "hasRole",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role"
+                },
+                {
+                    "type": "address",
+                    "name": "account"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bool",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "hasSchainContract",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bool",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "initialize",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "address",
+                    "name": "contractManagerOfSkaleManager"
+                },
+                {
+                    "type": "address",
+                    "name": "linker"
+                },
+                {
+                    "type": "address",
+                    "name": "messageProxy"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "initialize",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "address",
+                    "name": "newContractManagerOfSkaleManager"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "isSchainOwner",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "address",
+                    "name": "sender"
+                },
+                {
+                    "type": "bytes32",
+                    "name": "schainHash"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bool",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "linker",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "address",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "messageProxy",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "address",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "onERC1155BatchReceived",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "address",
+                    "name": "operator"
+                },
+                {
+                    "type": "address",
+                    "name": ""
+                },
+                {
+                    "type": "uint256[]",
+                    "name": ""
+                },
+                {
+                    "type": "uint256[]",
+                    "name": ""
+                },
+                {
+                    "type": "bytes",
+                    "name": ""
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bytes4",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "onERC1155Received",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "address",
+                    "name": "operator"
+                },
+                {
+                    "type": "address",
+                    "name": ""
+                },
+                {
+                    "type": "uint256",
+                    "name": ""
+                },
+                {
+                    "type": "uint256",
+                    "name": ""
+                },
+                {
+                    "type": "bytes",
+                    "name": ""
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bytes4",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "postMessage",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "schainHash"
+                },
+                {
+                    "type": "address",
+                    "name": "sender"
+                },
+                {
+                    "type": "bytes",
+                    "name": "data"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "address",
+                    "name": "receiver"
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "removeSchainContract",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "string",
+                    "name": "schainName"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "renounceRole",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role"
+                },
+                {
+                    "type": "address",
+                    "name": "account"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "revokeRole",
+            "constant": false,
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": "role"
+                },
+                {
+                    "type": "address",
+                    "name": "account"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "type": "function",
+            "name": "schainToERC1155",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes32",
+                    "name": ""
+                },
+                {
+                    "type": "address",
+                    "name": ""
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bool",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "supportsInterface",
+            "constant": true,
+            "stateMutability": "view",
+            "payable": false,
+            "inputs": [
+                {
+                    "type": "bytes4",
+                    "name": "interfaceId"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "bool",
+                    "name": ""
+                }
+            ]
+        },
+        {
+            "type": "function",
+            "name": "tokenManagerERC1155Addresses",
             "constant": true,
             "stateMutability": "view",
             "payable": false,

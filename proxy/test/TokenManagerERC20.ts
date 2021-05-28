@@ -63,6 +63,7 @@ describe("TokenManagerERC20", () => {
     const schainId = web3.utils.soliditySha3(schainName);
     const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
     let fakeDepositBox: any;
+    let fakeCommunityPool: any;
     let erc20OnChain: ERC20OnChain;
     let eRC20OnChain2: ERC20OnChain;
     let erc20OnMainnet: ERC20OnChain;
@@ -82,11 +83,12 @@ describe("TokenManagerERC20", () => {
         erc20OnMainnet = await deployERC20OnChain("SKALE", "SKL");
         messages = await deployMessages();
         fakeDepositBox = messages.address;
+        fakeCommunityPool = messages.address;
 
         const keyStorage = await deployKeyStorageMock();
-        messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address);
+        messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, schainName);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
-        communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker);
+        communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker, fakeCommunityPool);
         tokenManagerErc20 = await deployTokenManagerERC20(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, fakeDepositBox);
         await erc20OnChain.connect(deployer).grantRole(await erc20OnChain.MINTER_ROLE(), tokenManagerErc20.address);
 
@@ -94,7 +96,10 @@ describe("TokenManagerERC20", () => {
         await tokenManagerErc20.connect(deployer).grantRole(await tokenManagerErc20.AUTOMATIC_DEPLOY_ROLE(), schainOwner.address);
         await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
         const data = await messages.encodeFreezeStateMessage(user.address, true);
-        await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, "0x0000000000000000000000000000000000000000", data);
+        await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, fakeCommunityPool, data);
+
+        const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
+        await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
     });
 
     it("should change depositBox address", async () => {
@@ -210,6 +215,7 @@ describe("TokenManagerERC20", () => {
         const amountToCost = "9000000000000000";
         const amountReduceCost = "8000000000000000";
         const amountEth = BigNumber.from("60000000000000000");
+        await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerErc20.address);
 
         // // invoke `setTotalSupplyOnMainnet` before `mint` to avoid `SafeMath: subtraction overflow` exception:
         // await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
@@ -237,6 +243,7 @@ describe("TokenManagerERC20", () => {
         const amount = "20000000000000000";
         const amountReduceCost = "8000000000000000";
         const newSchainName = randomString(10);
+        await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
 
         // add connected chain:
         await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);

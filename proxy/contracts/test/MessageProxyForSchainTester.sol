@@ -26,8 +26,8 @@ import "../schain/MessageProxyForSchain.sol";
 
 contract MessageProxyForSchainTester is MessageProxyForSchain {    
 
-    constructor(KeyStorage _keyStorage) public {
-        MessageProxyForSchain.initialize(_keyStorage);
+    constructor(KeyStorage _keyStorage, string memory schainName) public {
+        MessageProxyForSchain.initialize(_keyStorage, schainName);
     }
 
     function postMessage(
@@ -39,5 +39,16 @@ contract MessageProxyForSchainTester is MessageProxyForSchain {
     external
     {
         targetContract.postMessage(fromSchainHash, sender, data);
+    }
+
+    function postOutgoingMessageTester(
+        MessageProxyForSchain targetContract,
+        string calldata targetChainName,
+        address dstContract,
+        bytes calldata data
+    )
+    external
+    {
+        targetContract.postOutgoingMessage(targetChainName, dstContract, data);
     }
 }

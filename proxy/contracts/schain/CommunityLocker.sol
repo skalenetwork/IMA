@@ -29,6 +29,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "../Messages.sol";
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
+import "../mainnet/CommunityPool.sol";
 
 /**
  * @title CommunityLocker
@@ -41,6 +42,7 @@ contract CommunityLocker is AccessControlUpgradeable {
 
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
+    address public communityPool;
 
     bytes32 public schainHash;
     uint public timeLimitPerMessage;
@@ -55,14 +57,15 @@ contract CommunityLocker is AccessControlUpgradeable {
 
     function postMessage(
         bytes32 fromChainHash,
-        address,
+        address sender,
         bytes calldata data
     )
         external
         returns (bool)
     {
         require(msg.sender == address(messageProxy), "Sender is not a message proxy");
-        require(fromChainHash == MAINNET_HASH, "Source chain name should be Mainnet");
+        require(sender == communityPool, "Sender must be CommunityPool");
+        require(fromChainHash == MAINNET_HASH, "Source chain name must be Mainnet");
         Messages.MessageType operation = Messages.getMessageType(data);
         require(operation == Messages.MessageType.FREEZE_STATE, "The message should contain a frozen state");
         Messages.FreezeStateMessage memory message = Messages.decodeFreezeStateMessage(data);
@@ -90,7 +93,8 @@ contract CommunityLocker is AccessControlUpgradeable {
     function initialize(
         string memory newSchainName,
         MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newTokenManagerLinker
+        TokenManagerLinker newTokenManagerLinker,
+        address newCommunityPool
     )
         public
         virtual
@@ -102,6 +106,7 @@ contract CommunityLocker is AccessControlUpgradeable {
         tokenManagerLinker = newTokenManagerLinker;
         schainHash = keccak256(abi.encodePacked(newSchainName));
         timeLimitPerMessage = 5 minutes;
+	communityPool = newCommunityPool;
     }
 
 }
