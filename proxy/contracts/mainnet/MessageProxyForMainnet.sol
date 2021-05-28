@@ -136,7 +136,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         require(
             hasRole(CHAIN_CONNECTOR_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash),
-            "Not enough permissions to remove extra contract"
+            "Not enough permissions to add connected chain"
         );
         require(!connectedChains[schainHash].inited,"Chain is already connected");
         connectedChains[schainHash] = ConnectedChainInfo({
@@ -163,7 +163,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         require(
             hasRole(CHAIN_CONNECTOR_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash),
-            "Not enough permissions to remove extra contract"
+            "Not enough permissions to remove connected chain"
         );
         delete connectedChains[schainHash];
     }
@@ -226,7 +226,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     function registerExtraContractForAll(address contractOnMainnet) external {
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
-            "Not enough permissions to register extra contract"
+            "Not enough permissions to register extra contract for all chains"
         );
         require(contractOnMainnet.isContract(), "Given address is not a contract");
         require(!registryContracts[bytes32(0)][contractOnMainnet], "Extra contract is already registered");
@@ -248,7 +248,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     function removeExtraContractForAll(address contractOnMainnet) external {
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
-            "Not enough permissions to remove extra contract"
+            "Not enough permissions to remove extra contract for all chains"
         );
         require(contractOnMainnet.isContract(), "Given address is not a contract");
         require(registryContracts[bytes32(0)][contractOnMainnet], "Extra contract does not exist");
