@@ -40,4 +40,15 @@ contract MessageProxyForSchainTester is MessageProxyForSchain {
     {
         targetContract.postMessage(fromSchainHash, sender, data);
     }
+
+    function postOutgoingMessageTester(
+        MessageProxyForSchain targetContract,
+        string calldata targetChainName,
+        address dstContract,
+        bytes calldata data
+    )
+    external
+    {
+        targetContract.postOutgoingMessage(targetChainName, dstContract, data);
+    }
 }

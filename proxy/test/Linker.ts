@@ -53,6 +53,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { BigNumber } from "ethers";
 
 import { assert, expect } from "chai";
+const schainName = "TestSchain";
 
 describe("Linker", () => {
     let deployer: SignerWithAddress;
@@ -65,7 +66,7 @@ describe("Linker", () => {
     let contractManager: ContractManager;
     let messageProxy: MessageProxyForMainnet;
     let linker: Linker;
-    let contractManagerAddress = "0x0000000000000000000000000000000000000000";
+    const contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
     before(async () => {
         [deployer, user, user2] = await ethers.getSigners();
@@ -73,19 +74,21 @@ describe("Linker", () => {
 
     beforeEach(async () => {
         contractManager = await deployContractManager(contractManagerAddress);
-        contractManagerAddress = contractManager.address;
+        // contractManagerAddress = contractManager.address;
         messageProxy = await deployMessageProxyForMainnet(contractManager);
         linker = await deployLinker(messageProxy, contractManager);
-        depositBoxEth = await deployDepositBoxEth(contractManager, messageProxy, linker);
-        depositBoxERC20 = await deployDepositBoxERC20(contractManager, messageProxy, linker);
-        depositBoxERC721 = await deployDepositBoxERC721(contractManager, messageProxy, linker);
+        depositBoxEth = await deployDepositBoxEth(contractManager, linker, messageProxy);
+        depositBoxERC20 = await deployDepositBoxERC20(contractManager, linker, messageProxy);
+        depositBoxERC721 = await deployDepositBoxERC721(contractManager, linker, messageProxy);
         await linker.removeMainnetContract(depositBoxEth.address);
         await linker.removeMainnetContract(depositBoxERC20.address);
         await linker.removeMainnetContract(depositBoxERC721.address);
+        const extraContractRegistrarRole = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
+        await messageProxy.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
+        await messageProxy.registerExtraContractForAll(linker.address);
     });
 
     it("should connect schain", async () => {
-        const schainName = randomString(10);
         const nullAddress = "0x0000000000000000000000000000000000000000";
 
         // only owner can add schain:
@@ -99,7 +102,6 @@ describe("Linker", () => {
     });
 
     it("should connect schain with 1 tokenManager", async () => {
-        const schainName = randomString(10);
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const tokenManagerAddress = user.address;
 
@@ -127,7 +129,6 @@ describe("Linker", () => {
     });
 
     it("should connect schain with 3 tokenManager", async () => {
-        const schainName = randomString(10);
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const tokenManagerAddress = user.address;
 
@@ -169,7 +170,6 @@ describe("Linker", () => {
     });
 
     it("should invoke `unconnectSchain` without mistakes", async () => {
-        const schainName = randomString(10);
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const tokenManagerAddress = user.address;
 
@@ -236,7 +236,6 @@ describe("Linker", () => {
     });
 
     it("should allow interchain connection", async () => {
-        const schainName = randomString(10);
         await linker.connect(deployer).allowInterchainConnections(schainName).should.be.eventually.rejectedWith("Destination chain is not initialized");
         await linker.connect(deployer).connectSchain(schainName, []);
         expect(await linker.interchainConnections(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(false);
@@ -245,7 +244,6 @@ describe("Linker", () => {
     });
 
     it("should raise a message during allow interchain connection", async () => {
-        const schainName = randomString(10);
         await linker.connect(deployer).connectSchain(schainName, []);
         const res = await (await linker.connect(deployer).allowInterchainConnections(schainName)).wait();
         if (!res.events) {
@@ -259,7 +257,6 @@ describe("Linker", () => {
     });
 
     it("should kill schain by schain owner first", async () => {
-        const schainName = randomString(10);
         // schain owner is user
         initializeSchain(contractManager, schainName, user.address, 1, 1);
         await linker.connect(deployer).connectSchain(schainName, []);
@@ -275,7 +272,6 @@ describe("Linker", () => {
     });
 
     it("should kill schain by deployer first", async () => {
-        const schainName = randomString(10);
         // schain owner is user
         initializeSchain(contractManager, schainName, user.address, 1, 1);
         await linker.connect(deployer).connectSchain(schainName, []);
@@ -290,7 +286,6 @@ describe("Linker", () => {
     });
 
     it("should not kill schain if interchain connection allowed", async () => {
-        const schainName = randomString(10);
         // schain owner is user
         initializeSchain(contractManager, schainName, user.address, 1, 1);
         await linker.connect(deployer).connectSchain(schainName, []);
@@ -301,7 +296,6 @@ describe("Linker", () => {
     });
 
     it("should not allow interchain connection during kill process", async () => {
-        const schainName = randomString(10);
         // schain owner is user
         initializeSchain(contractManager, schainName, user.address, 1, 1);
         await linker.connect(deployer).connectSchain(schainName, []);

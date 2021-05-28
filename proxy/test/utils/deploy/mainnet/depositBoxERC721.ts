@@ -3,8 +3,8 @@ import { ContractManager, MessageProxyForMainnet, Linker, DepositBoxERC721 } fro
 
 export async function deployDepositBoxERC721(
     contractManager: ContractManager,
-    messageProxy: MessageProxyForMainnet,
-    linker: Linker
+    linker: Linker,
+    messageProxy: MessageProxyForMainnet
 
 ) {
     const factory = await ethers.getContractFactory("DepositBoxERC721");

@@ -28,6 +28,7 @@ import { ethers, artifacts, web3 } from "hardhat";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
+import { Contract } from '@ethersproject/contracts';
 
 export function getContractKeyInAbiFile(contract: string) {
     return contract.replace(/([a-zA-Z])(?=[A-Z])/g, '$1_').toLowerCase();
@@ -117,6 +118,8 @@ async function main() {
         getProxyMainnet("deposit_box_erc721_address") === "" ||
         getProxyMainnet("deposit_box_erc1155_address") === undefined ||
         getProxyMainnet("deposit_box_erc1155_address") === "" ||
+        getProxyMainnet("community_pool_address") === undefined ||
+        getProxyMainnet("community_pool_address") === "" ||
         getProxyMainnet("linker_address") === undefined ||
         getProxyMainnet("linker_address") === ""
     ) {
@@ -127,6 +130,7 @@ async function main() {
     const depositBoxERC20Address = getProxyMainnet("deposit_box_erc20_address");
     const depositBoxERC721Address = getProxyMainnet("deposit_box_erc721_address");
     const depositBoxERC1155Address = getProxyMainnet("deposit_box_erc1155_address");
+    const communityPoolAddress = getProxyMainnet("community_pool_address");
     const linkerAddress = getProxyMainnet("linker_address");
 
     console.log("Deploy MessageProxyForSchain");
@@ -142,7 +146,7 @@ async function main() {
 
     console.log("Deploy CommunityLocker");
     const communityLockerFactory = await ethers.getContractFactory("CommunityLocker");
-    const communityLocker = await communityLockerFactory.deploy(schainName, messageProxy.address, tokenManagerLinker.address);
+    const communityLocker = await communityLockerFactory.deploy(schainName, messageProxy.address, tokenManagerLinker.address, communityPoolAddress);
     deployed.set( "CommunityLocker", { address: communityLocker.address, interface: communityLocker.interface, bytecode: communityLocker.bytecode } );
     console.log("Contract CommunityLocker deployed to", communityLocker.address);
 
@@ -241,6 +245,21 @@ async function main() {
     console.log( "Grant SKALE_FEATURES_SETTER_ROLE to deployer", owner.address, "in TokenManagerERC1155", tokenManagerERC1155.address, "completed!\n" );
     await tokenManagerERC1155.setSkaleFeaturesAddress( skaleFeatures.address );
     console.log( "Set SkaleFeatures address", skaleFeatures.address, "in TokenManagerERC1155", tokenManagerERC1155.address, "completed!\n" );
+
+    let extraContract: Contract;
+    const extraContracts = [
+        tokenManagerEth,
+        tokenManagerERC20,
+        tokenManagerERC721,
+        tokenManagerERC1155,
+        communityLocker
+    ];
+    const extraContractRegistrarRole = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
+    await messageProxy.grantRole(extraContractRegistrarRole, owner.address);
+    for (extraContract of extraContracts) {
+        await messageProxy.registerExtraContractForAll(extraContract.address)
+        console.log("Contract with address ", extraContract.address, "registered as extra contract");
+    }
 
     const jsonObjectABI: {[k: string]: any} = { };
     const jsonObjectBytecode: {[k: string]: any} = { };
