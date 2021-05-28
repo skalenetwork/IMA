@@ -154,6 +154,20 @@ describe("MessageProxy", () => {
             notConnectedChain.should.be.deep.equal(Boolean(false));
         });
 
+        it("set messages gas cost", async () => {
+            await messageProxyForMainnet.connect(user).setHeaderMessageGasCost(7).should.be.eventually.rejectedWith("Access denied");
+            await messageProxyForMainnet.connect(user).setMessageGasCost(7).should.be.eventually.rejectedWith("Access denied");
+            const messageGasCostSetterRole = await messageProxyForMainnet.MESSAGE_GAS_COST_SETTER_ROLE();
+            await messageProxyForMainnet.grantRole(messageGasCostSetterRole, user.address);
+            expect(await messageProxyForMainnet.hasRole(messageGasCostSetterRole, user.address)).to.equal(true);
+            expect(await messageProxyForMainnet.headerMessageGasCost()).to.deep.equal(BigNumber.from(70000));
+            expect(await messageProxyForMainnet.messageGasCost()).to.deep.equal(BigNumber.from(8790));
+            await messageProxyForMainnet.connect(user).setHeaderMessageGasCost(7);
+            await messageProxyForMainnet.connect(user).setMessageGasCost(7);
+            expect(await messageProxyForMainnet.headerMessageGasCost()).to.deep.equal(BigNumber.from(7));
+            expect(await messageProxyForMainnet.messageGasCost()).to.deep.equal(BigNumber.from(7));
+        });
+
         it("should post outgoing message", async () => {
             const contractAddress = messageProxyForMainnet.address;
             const amount = 4;
