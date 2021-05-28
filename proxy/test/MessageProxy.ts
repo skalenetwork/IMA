@@ -51,7 +51,6 @@ import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 
-import { deployMessageProxyForSchain } from "./utils/deploy/schain/messageProxyForSchain";
 import { deployMessageProxyForMainnetTester } from "./utils/deploy/test/messageProxyForMainnetTester";
 import { deployMessages } from "./utils/deploy/messages";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
@@ -410,7 +409,7 @@ describe("MessageProxy", () => {
 
         beforeEach(async () => {
             keyStorage = await deployKeyStorageMock();
-            messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, schainName);
+            messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, "Base schain");
             messages = await deployMessages();
             caller = await deployMessageProxyForMainnetTester();
             const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
