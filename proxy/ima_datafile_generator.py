@@ -25,6 +25,11 @@ CONTRACTS_METADATA = {
         'solname': 'TokenManagerERC721',
         'filepath': 'artifacts/contracts/schain/TokenManagers/TokenManagerERC721.sol/TokenManagerERC721.json'
     },
+    'token_manager_erc1155': {
+        'address': '0xa13095db73dc4afeff48c625d153b17ab668990d',
+        'solname': 'TokenManagerERC1155',
+        'filepath': 'artifacts/contracts/schain/TokenManagers/TokenManagerERC721.sol/TokenManagerERC1155.json'
+    },
     'message_proxy_chain': {
         'address': '0x427c74e358eb1f620e71f64afc9b1b5d2309dd01',
         'solname': 'MessageProxyForSchain',
