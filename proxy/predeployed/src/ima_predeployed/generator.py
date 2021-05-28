@@ -1,10 +1,10 @@
 import json
 import os
-from proxy.predeployed.src.ima_predeployed.contracts.token_manager_erc1155 import TokenManagerErc1155Generator
 
 from ima_predeployed.contracts.eth_erc20 import EthErc20Generator
 from ima_predeployed.contracts.token_manager_erc20 import TokenManagerErc20Generator
 from ima_predeployed.contracts.token_manager_erc721 import TokenManagerErc721Generator
+from ima_predeployed.contracts.token_manager_erc1155 import TokenManagerErc1155Generator
 from ima_predeployed.contracts.token_manager_eth import TokenManagerEthGenerator
 from ima_predeployed.contracts.token_manager_linker import TokenManagerLinkerGenerator
 from .contracts.community_locker import CommunityLockerGenerator
