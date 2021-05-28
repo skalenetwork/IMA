@@ -123,6 +123,18 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         _;
     }
 
+    modifier connectMainnet() {
+        if (!mainnetConnected) {
+            connectedChains[keccak256(abi.encodePacked("Mainnet"))] = ConnectedChainInfo(
+                0,
+                0,
+                true
+            );
+            mainnetConnected = true;
+        }
+        _;
+    }
+
     /// Create a new message proxy
 
     constructor(string memory schainName) public {
@@ -159,6 +171,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         string calldata chainName
     )
         external
+        connectMainnet
         onlyChainConnector
     {
         bytes32 chainHash = keccak256(abi.encodePacked(chainName));
@@ -223,6 +236,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         uint256 idxLastToPopNotIncluding
     )
         external
+        connectMainnet
     {
         bytes32 fromChainHash = keccak256(abi.encodePacked(fromChainName));
         require(_verifyMessages(_hashedArray(messages), signature), "Signature is not verified");
@@ -231,18 +245,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
             startingCounter == connectedChains[fromChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
         for (uint256 i = 0; i < messages.length; i++) {
-            if (
-                !registryContracts[fromChainHash][messages[i].destinationContract] &&
-                !registryContracts[bytes32(0)][messages[i].destinationContract]
-            ) {
-                emit PostMessageError(
-                    startingCounter + i,
-                    bytes("Destination contract is not registered")
-                );
-                continue;
-            } else {
-                _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
-            }
+            _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
         }
         connectedChains[fromChainHash].incomingMessageCounter 
             = connectedChains[fromChainHash].incomingMessageCounter.add(uint256(messages.length));
