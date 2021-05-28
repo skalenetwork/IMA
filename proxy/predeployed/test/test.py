@@ -20,6 +20,7 @@ with open('config.json') as config_file:
     erc721_deposit_box = config['erc721_deposit_box']
     erc1155_deposit_box = config['erc1155_deposit_box']
     linker_address = config['linker']
+    community_pool = config['community_pool']
 
 
 def main():

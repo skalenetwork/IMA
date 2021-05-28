@@ -47,7 +47,7 @@ def generate_contracts(
     community_locker = UpgradeableContractGenerator(
         COMMUNITY_LOCKER_IMPLEMENTATION_ADDRESS,
         PROXY_ADMIN_ADDRESS,
-        CommunityLockerGenerator(owner_address, schain_name)
+        CommunityLockerGenerator(owner_address, schain_name, contracts_on_mainnet['community_pool'])
     )
 
     token_manager_linker_implementation = ContractGenerator(TokenManagerLinkerGenerator.ARTIFACT_FILENAME)
