@@ -23,6 +23,7 @@ def main():
                     'eth_deposit_box': config['eth_deposit_box'],
                     'erc20_deposit_box': config['erc20_deposit_box'],
                     'erc721_deposit_box': config['erc721_deposit_box'],
+                    'erc1155_deposit_box': config['erc1155_deposit_box'],
                     'linker': config['linker'],
                     'community_pool': config['community_pool']
                 }))
