@@ -28,7 +28,7 @@ def main():
     check_admin_upgradeability_proxy()
     check_message_proxy_for_schain(owner_address, schain_name)
     check_key_storage(owner_address)
-    check_community_locker(owner_address, schain_name)
+    check_community_locker(owner_address, schain_name, community_pool)
     check_token_manager_linker(owner_address, linker_address)
     check_token_manager_eth(owner_address, eth_deposit_box, schain_name)
     check_token_manager_erc20(owner_address, erc20_deposit_box, schain_name)
