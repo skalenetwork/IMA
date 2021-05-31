@@ -138,7 +138,7 @@ async function main() {
     const keyStorage = await upgrades.deployProxy(keyStorageFactory);
 
     console.log("Deploy MessageProxyForSchain");
-    const messageProxy = await upgrades.deployProxy(messageProxyFactory, [keyStorage.address]);
+    const messageProxy = await upgrades.deployProxy(messageProxyFactory, [keyStorage.address, schainName]);
     deployed.set( "MessageProxyForSchain", { address: messageProxy.address, interface: messageProxy.interface } );
     console.log("Contract MessageProxyForSchain deployed to", messageProxy.address);
 
