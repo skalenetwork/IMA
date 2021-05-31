@@ -12,6 +12,6 @@ def check_community_locker(deployer_address: str, schain_name: str, community_po
     assert community_locker.functions.hasRole(CommunityLockerGenerator.DEFAULT_ADMIN_ROLE, deployer_address).call()
     assert community_locker.functions.messageProxy().call() == MESSAGE_PROXY_FOR_SCHAIN_ADDRESS
     assert community_locker.functions.tokenManagerLinker().call() == TOKEN_MANAGER_LINKER_ADDRESS
-    assert community_locker.function.communityPool().call() == community_pool_address
+    assert community_locker.functions.communityPool().call() == community_pool_address
     assert community_locker.functions.schainHash().call() == w3.solidityKeccak(['string'], [schain_name])
     assert community_locker.functions.timeLimitPerMessage().call() == CommunityLockerGenerator.DEFAULT_TIME_LIMIT_SEC
