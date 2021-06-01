@@ -95,8 +95,8 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     mapping(bytes32 => mapping(address => bool)) public registryContracts;
 
-    uint256 public basicPostIncomingMessagesTx = 70000;
-    uint256 public messageGasCost = 8790;
+    uint256 public basicPostIncomingMessagesTx;
+    uint256 public messageGasCost;
     uint256 public gasLimit;
 
     modifier onlyDebugger() {
@@ -423,6 +423,8 @@ contract MessageProxyForMainnet is SkaleManagerClient {
 
     function initialize(IContractManager contractManagerOfSkaleManager) public virtual override initializer {
         SkaleManagerClient.initialize(contractManagerOfSkaleManager);
+        basicPostIncomingMessagesTx = 70000;
+        messageGasCost = 8790;
         gasLimit = 1000000;
     }
 

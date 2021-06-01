@@ -24,7 +24,6 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../interfaces/IMessageReceiver.sol";
-import "hardhat/console.sol";
 
 
 contract ReceiverGasLimitMainnetMock is IMessageReceiver {
