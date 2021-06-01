@@ -19,10 +19,11 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.4;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC20OnChain.sol";
@@ -42,6 +43,7 @@ import "../TokenManager.sol";
  * burns tokens.
  */
 contract TokenManagerERC20 is TokenManager {
+    using AddressUpgradeable for address;
 
     // address of ERC20 on Mainnet => ERC20 on Schain
     mapping(address => ERC20OnChain) public clonesErc20;

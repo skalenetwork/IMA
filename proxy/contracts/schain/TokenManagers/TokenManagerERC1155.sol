@@ -19,10 +19,11 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.4;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC1155OnChain.sol";
@@ -37,6 +38,7 @@ import "../TokenManager.sol";
  * burns tokens.
  */
 contract TokenManagerERC1155 is TokenManager {
+    using AddressUpgradeable for address;
 
     // address of ERC1155 on Mainnet => ERC1155 on Schain
     mapping(address => ERC1155OnChain) public clonesErc1155;

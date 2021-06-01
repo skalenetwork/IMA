@@ -19,17 +19,20 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.4;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155MetadataURIUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155ReceiverUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/IERC1155MetadataURIUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 import "../DepositBox.sol";
 import "../../Messages.sol";
 
 
 // This contract runs on the main net and accepts deposits
 contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
+
+    using AddressUpgradeable for address;
 
     // uint256 public gasConsumption;
 
@@ -60,6 +63,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         bytes calldata
     )
         external
+        view
         override
         returns(bytes4)
     {
@@ -75,6 +79,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         bytes calldata
     )
         external
+        view
         override
         returns(bytes4)
     {
@@ -286,6 +291,18 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     {
         DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
         __ERC1155Receiver_init();
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    )
+        public
+        view
+        override(AccessControlUpgradeable, ERC1155ReceiverUpgradeable)
+        returns (bool)
+    {
+        return interfaceId == type(IMainnetContract).interfaceId
+            || super.supportsInterface(interfaceId);
     }
 
     /**

@@ -20,9 +20,9 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.4;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155BurnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 
@@ -33,7 +33,6 @@ contract ERC1155OnChain is AccessControlUpgradeable, ERC1155BurnableUpgradeable 
     constructor(
         string memory uri
     )
-        public
     {
         AccessControlUpgradeable.__AccessControl_init();
         ERC1155Upgradeable.__ERC1155_init(uri);
@@ -65,5 +64,16 @@ contract ERC1155OnChain is AccessControlUpgradeable, ERC1155BurnableUpgradeable 
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mintBatch(account, ids, amounts, data);
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    )
+        public
+        view
+        override(AccessControlUpgradeable, ERC1155Upgradeable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
     }
 }

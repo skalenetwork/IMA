@@ -21,8 +21,10 @@
     along with SKALE Manager.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.4;
 pragma experimental ABIEncoderV2;
+
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 
 import "../Messages.sol";
 import "./MessageProxyForMainnet.sol";
@@ -34,6 +36,7 @@ import "./Linker.sol";
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
 contract CommunityPool is SkaleManagerClient {
+    using SafeMathUpgradeable for uint256;
 
     MessageProxyForMainnet public messageProxy;
 
@@ -97,7 +100,7 @@ contract CommunityPool is SkaleManagerClient {
                 Messages.encodeFreezeStateMessage(msg.sender, true)
             );
         }
-        msg.sender.transfer(amount);
+        payable(msg.sender).transfer(amount);
     }
 
     function addSchainContract(string calldata schainName, address contractOnSchain) external {

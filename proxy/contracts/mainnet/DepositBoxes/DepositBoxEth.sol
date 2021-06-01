@@ -19,8 +19,10 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.4;
 pragma experimental ABIEncoderV2;
+
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "../DepositBox.sol";
 import "../../Messages.sol";
@@ -28,7 +30,7 @@ import "../../Messages.sol";
 
 // This contract runs on the main net and accepts deposits
 contract DepositBoxEth is DepositBox {
-
+    using AddressUpgradeable for address;
     using SafeMathUpgradeable for uint;
 
     // uint256 public gasConsumption;
@@ -159,7 +161,7 @@ contract DepositBoxEth is DepositBox {
         require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
         uint256 amount = approveTransfers[msg.sender];
         approveTransfers[msg.sender] = 0;
-        msg.sender.transfer(amount);
+        payable(msg.sender).transfer(amount);
     }
 
     function getFunds(string calldata schainName, address payable receiver, uint amount)

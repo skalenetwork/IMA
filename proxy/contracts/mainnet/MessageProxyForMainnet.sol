@@ -19,9 +19,11 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.4;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 
@@ -49,6 +51,9 @@ interface ICommunityPool {
  * messages do not need to be signed.
  */
 contract MessageProxyForMainnet is SkaleManagerClient {
+
+    using AddressUpgradeable for address;
+    using SafeMathUpgradeable for uint256;
 
     /**
      * 16 Agents
@@ -204,7 +209,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
             targetContract,
             data
         );
-        connectedChains[targetChainHash].outgoingMessageCounter = msgCounter.add(1);
+        connectedChains[targetChainHash].outgoingMessageCounter = msgCounter + 1;
     }
 
     function registerExtraContract(string calldata schainName, address contractOnMainnet) external {

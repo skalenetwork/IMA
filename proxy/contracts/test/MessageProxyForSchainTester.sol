@@ -19,14 +19,14 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.4;
 pragma experimental ABIEncoderV2;
 
 import "../schain/MessageProxyForSchain.sol";
 
 contract MessageProxyForSchainTester is MessageProxyForSchain {    
 
-    constructor(KeyStorage _keyStorage, string memory schainName) public {
+    constructor(KeyStorage _keyStorage, string memory schainName) {
         MessageProxyForSchain.initialize(_keyStorage, schainName);
     }
 

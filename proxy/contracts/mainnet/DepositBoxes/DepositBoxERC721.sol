@@ -19,16 +19,19 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.4;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721MetadataUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+
 import "../DepositBox.sol";
 import "../../Messages.sol";
 
 
 // This contract runs on the main net and accepts deposits
 contract DepositBoxERC721 is DepositBox {
+    using AddressUpgradeable for address;
 
     // uint256 public gasConsumption;
 

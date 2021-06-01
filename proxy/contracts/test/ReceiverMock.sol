@@ -20,7 +20,7 @@
  */
 
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.4;
 pragma experimental ABIEncoderV2;
 
 import "../schain/MessageProxyForSchain.sol";
@@ -33,6 +33,7 @@ contract ReceiverMock is IContractReceiverForSchain {
         bytes calldata
     )
         external
+        pure
         override
         returns (bool) 
     {

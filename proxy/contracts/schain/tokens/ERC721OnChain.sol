@@ -20,21 +20,21 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.4;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721BurnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 
-contract ERC721OnChain is AccessControlUpgradeable, ERC721BurnableUpgradeable {
+contract ERC721OnChain is AccessControlUpgradeable, ERC721BurnableUpgradeable, ERC721URIStorageUpgradeable {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     constructor(
         string memory contractName,
         string memory contractSymbol
-    )
-        public       
+    )   
     {
         AccessControlUpgradeable.__AccessControl_init();
         ERC721Upgradeable.__ERC721_init(contractName, contractSymbol);
@@ -58,5 +58,33 @@ contract ERC721OnChain is AccessControlUpgradeable, ERC721BurnableUpgradeable {
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, tokenId);
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    )
+        public
+        view
+        override(AccessControlUpgradeable, ERC721Upgradeable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+
+    function tokenURI(
+        uint256 tokenId
+    )
+        public
+        view
+        override (ERC721Upgradeable, ERC721URIStorageUpgradeable)
+        returns (string memory) 
+    {
+        return ERC721URIStorageUpgradeable.tokenURI(tokenId);
+    }
+
+    // private
+
+    function _burn(uint256 tokenId) internal override (ERC721Upgradeable, ERC721URIStorageUpgradeable) {
+        ERC721URIStorageUpgradeable._burn(tokenId);
     }
 }

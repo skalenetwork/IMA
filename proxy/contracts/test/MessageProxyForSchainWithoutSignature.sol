@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.4;
 pragma experimental ABIEncoderV2;
 
 import "../schain/MessageProxyForSchain.sol";
@@ -31,7 +31,7 @@ contract MessageProxyForSchainWithoutSignature is MessageProxyForSchain {
         override
         initializer
     {
-        MessageProxyForSchain.initialize(KeyStorage(0), schainName);
+        MessageProxyForSchain.initialize(KeyStorage(address(0)), schainName);
     }
 
     function _verifyMessages(
@@ -39,7 +39,7 @@ contract MessageProxyForSchainWithoutSignature is MessageProxyForSchain {
         Signature calldata
     )
         internal
-        view
+        pure
         override
         returns (bool)
     {
