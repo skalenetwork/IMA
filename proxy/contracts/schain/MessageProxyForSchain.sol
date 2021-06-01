@@ -86,6 +86,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
     bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
+    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
     bool public mainnetConnected;
     bytes32 public schainHash;
@@ -99,6 +100,8 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
     mapping(bytes32 => uint) private _idxTail;
 
     mapping( bytes32 => mapping( address => bool) ) public registryContracts;
+
+    uint256 public gasLimit = 1000000;
 
     event OutgoingMessage(
         bytes32 indexed dstChainHash,
@@ -259,6 +262,15 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
+    function setNewGasLimit(uint256 newGasLimit) external {
+        require(
+            hasRole(CONSTANT_SETTER_ROLE, msg.sender) ||
+            _isSchainOwner(msg.sender),
+            "Not enough permissions to set constant"
+        );
+        gasLimit = newGasLimit;
+    }
+
     function registerExtraContract(string calldata schainName, address contractOnSchain) external {
         bytes32 chainHash = keccak256(abi.encodePacked(schainName));
         require(
@@ -350,7 +362,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         private
         returns (bool)
     {
-        try IContractReceiverForSchain(message.destinationContract).postMessage(
+        try IContractReceiverForSchain(message.destinationContract).postMessage{gas: gasLimit}(
             fromChainHash,
             message.sender,
             message.data
