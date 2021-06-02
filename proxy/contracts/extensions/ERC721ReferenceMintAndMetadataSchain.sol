@@ -35,6 +35,24 @@ import "../interfaces/IMessageReceiver.sol";
  */
 contract ERC721ReferenceMintAndMetadataSchain is IMessageReceiver {
 
+    address public erc721Contract;
+    address public receiverContractOnMainnet;
+
+    function sendTokenToMainnet(address receiver, uint256 tokenId) external {
+        require(
+            IERC721MetadataUpgradeable(erc721Contract).getApproved(tokenId) == address(this),
+            "Not allowed ERC721 Token"
+        );
+        IERC721MetadataUpgradeable(erc721Contract).transferFrom(msg.sender, address(this), tokenId);
+        IERC721MetadataUpgradeable(erc721Contract).burn(tokenId);
+        bytes memory data = _encodeData(receiver, tokenId);    
+        messageProxy.postOutgoingMessage("Mainnet", receiverContractOnMainnet, data);
+    }
+
+    function _encodeData(address receiver, uint256 tokenId) private returns (bytes memory data) {
+        data = abi.encode(receiver, tokenId, IERC721MetadataUpgradeable(erc721Contract).tokenURI(tokenId));
+    }
+
     function postMessage(
         bytes32,
         address,
