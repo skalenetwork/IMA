@@ -55,4 +55,4 @@ class MessageProxyForSchainGenerator(ContractGenerator):
             self.CONNECTED_CHAINS_SLOT, self.MAINNET_HASH, 'bytes32')
         inited_slot = connected_chain_info_slot + 2
         self._write_uint256(inited_slot, 1)
-        self._write_uint256(self.GAS_LIMIT_SLOT, GAS_LIMIT)
+        self._write_uint256(self.GAS_LIMIT_SLOT, self.GAS_LIMIT)
