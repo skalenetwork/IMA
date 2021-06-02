@@ -23,14 +23,9 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "./MessageProxyForSchain.sol";
-import "./SkaleFeaturesClient.sol";
 import "./TokenManagerLinker.sol";
 import "./CommunityLocker.sol";
 
-
-interface ICommunityLocker {
-    function checkAllowedToSendMessage(address receiver) external;
-}
 
 /**
  * @title Token Manager
@@ -39,7 +34,13 @@ interface ICommunityLocker {
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-abstract contract TokenManager is SkaleFeaturesClient {
+abstract contract TokenManager is AccessControlUpgradeable {
+
+    string constant public MAINNET_NAME = "Mainnet";
+    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+
+    bytes32 public constant AUTOMATIC_DEPLOY_ROLE = keccak256("AUTOMATIC_DEPLOY_ROLE");
+    bytes32 public constant TOKEN_REGISTRAR_ROLE = keccak256("TOKEN_REGISTRAR_ROLE");
 
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
@@ -48,36 +49,21 @@ abstract contract TokenManager is SkaleFeaturesClient {
     address public depositBox;
     bool public automaticDeploy;
 
-    mapping(bytes32 => address) public tokenManagers;
+    mapping(bytes32 => address) public tokenManagers;    
 
-    string constant public MAINNET_NAME = "Mainnet";
-    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+    modifier onlyAutomaticDeploy() {
+        require(hasRole(AUTOMATIC_DEPLOY_ROLE, msg.sender), "AUTOMATIC_DEPLOY_ROLE is required");
+        _;
+    }
 
-    modifier onlySchainOwner() {
-        require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
+    modifier onlyTokenRegistrar() {
+        require(hasRole(TOKEN_REGISTRAR_ROLE, msg.sender), "TOKEN_REGISTRAR_ROLE is required");
         _;
     }
 
     modifier onlyMessageProxy() {
-        require(msg.sender == address(getMessageProxy()), "Sender is not a MessageProxy");
+        require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
         _;
-    }
-
-    constructor(
-        string memory newSchainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
-        address newDepositBox
-    )
-        public
-    {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        schainHash = keccak256(abi.encodePacked(newSchainName));
-        messageProxy = newMessageProxy;
-        tokenManagerLinker = newIMALinker;
-        communityLocker = newCommunityLocker;
-        depositBox = newDepositBox;
     }
 
     function postMessage(
@@ -92,14 +78,14 @@ abstract contract TokenManager is SkaleFeaturesClient {
     /**
      * @dev Allows Schain owner turn on automatic deploy on schain.
      */
-    function enableAutomaticDeploy() external onlySchainOwner {
+    function enableAutomaticDeploy() external onlyAutomaticDeploy {
         automaticDeploy = true;
     }
 
     /**
      * @dev Allows Schain owner turn off automatic deploy on schain.
      */
-    function disableAutomaticDeploy() external onlySchainOwner {
+    function disableAutomaticDeploy() external onlyAutomaticDeploy {
         automaticDeploy = false;
     }
 
@@ -117,7 +103,6 @@ abstract contract TokenManager is SkaleFeaturesClient {
     function addTokenManager(string calldata schainName, address newTokenManager) external {
         require(
             msg.sender == address(tokenManagerLinker) ||
-            _isSchainOwner(msg.sender) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         bytes32 newSchainHash = keccak256(abi.encodePacked(schainName));
@@ -138,7 +123,6 @@ abstract contract TokenManager is SkaleFeaturesClient {
     function removeTokenManager(string calldata schainName) external {
         require(
             msg.sender == address(tokenManagerLinker) ||
-            _isSchainOwner(msg.sender) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
         bytes32 newSchainHash = keccak256(abi.encodePacked(schainName));
@@ -154,7 +138,8 @@ abstract contract TokenManager is SkaleFeaturesClient {
      *
      * - `msg.sender` must be schain owner
      */
-    function changeDepositBoxAddress(address newDepositBox) external onlySchainOwner {
+    function changeDepositBoxAddress(address newDepositBox) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
         depositBox = newDepositBox;
     }
 
@@ -165,60 +150,26 @@ abstract contract TokenManager is SkaleFeaturesClient {
         return tokenManagers[keccak256(abi.encodePacked(schainName))] != address(0);
     }
 
-    function getSchainHash() public view returns (bytes32) {
-        if (schainHash == bytes32(0)) {
-            return keccak256(
-                abi.encodePacked(
-                    getSkaleFeatures().getConfigVariableString("skaleConfig.sChain.schainName")
-                )
-            );
-        }
-        return schainHash;
+    function initializeTokenManager(
+        string memory newSchainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
+        address newDepositBox
+    )
+        public
+        virtual
+        initializer
+    {
+        AccessControlUpgradeable.__AccessControl_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(AUTOMATIC_DEPLOY_ROLE, msg.sender);
+        _setupRole(TOKEN_REGISTRAR_ROLE, msg.sender);
+
+        schainHash = keccak256(abi.encodePacked(newSchainName));
+        messageProxy = newMessageProxy;
+        tokenManagerLinker = newIMALinker;
+        communityLocker = newCommunityLocker;        
+        depositBox = newDepositBox;
     }
-
-    function getTokenManagerLinker() public view returns (TokenManagerLinker) {
-        if (address(tokenManagerLinker) == address(0)) {
-            return TokenManagerLinker(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.TokenManagerLinker"
-                )
-            );
-        }
-        return tokenManagerLinker;
-    }
-
-    function getMessageProxy() public view returns (MessageProxyForSchain) {
-        if (address(messageProxy) == address(0)) {
-            return MessageProxyForSchain(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.MessageProxyForSchain"
-                )
-            );
-        }
-        return messageProxy;
-    }
-
-    function getCommunityLocker() public view returns (CommunityLocker) {
-        if (address(communityLocker) == address(0)) {
-            return CommunityLocker(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.CommunityLocker"
-                )
-            );
-        }
-        return communityLocker;
-    }
-
-    // private
-
-    /**
-     * @dev Checks whether sender is owner of SKALE chain
-     */
-    function _isSchainOwner(address sender) internal view returns (bool) {
-        return sender == getSkaleFeatures().getConfigVariableAddress(
-            "skaleConfig.contractSettings.IMA.ownerAddress"
-        );
-    }
-
-
 }

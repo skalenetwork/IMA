@@ -43,7 +43,6 @@ import { deployTokenManagerERC721 } from "./utils/deploy/schain/tokenManagerERC7
 import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
-import { deploySkaleFeaturesMock } from "./utils/deploy/test/skaleFeaturesMock";
 import { deployMessages } from "./utils/deploy/messages";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
@@ -52,6 +51,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { BigNumber } from "ethers";
 
 import { assert, expect } from "chai";
+import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 describe("TokenManagerERC721", () => {
     let deployer: SignerWithAddress;
@@ -76,14 +76,13 @@ describe("TokenManagerERC721", () => {
     });
 
     beforeEach(async () => {
-        messageProxyForSchain = await deployMessageProxyForSchainTester(schainName);
+        const keyStorage = await deployKeyStorageMock();
+        messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, schainName);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
         messages = await deployMessages();
         const fakeDepositBox = messages.address;
         const fakeCommunityPool = messages.address;
 
-        const skaleFeatures = await deploySkaleFeaturesMock();
-        await skaleFeatures.setSchainOwner(schainOwner.address);
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker, fakeCommunityPool);
 
         tokenManagerERC721 =
@@ -94,9 +93,8 @@ describe("TokenManagerERC721", () => {
                 communityLocker,
                 fakeDepositBox
             );
-        await tokenManagerERC721.grantRole(await tokenManagerERC721.SKALE_FEATURES_SETTER_ROLE(), deployer.address);
-        await tokenManagerERC721.setSkaleFeaturesAddress(skaleFeatures.address);
-
+        await tokenManagerERC721.connect(deployer).grantRole(await tokenManagerERC721.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
+        await tokenManagerERC721.connect(deployer).grantRole(await tokenManagerERC721.AUTOMATIC_DEPLOY_ROLE(), schainOwner.address);
 
         tokenClone = await deployERC721OnChain("ELVIS", "ELV");
         token = await deployERC721OnChain("SKALE", "SKL");
@@ -116,8 +114,8 @@ describe("TokenManagerERC721", () => {
         const newDepositBox = user.address;
         expect(await tokenManagerERC721.depositBox()).to.equal(messages.address);
         await tokenManagerERC721.connect(user).changeDepositBoxAddress(newDepositBox)
-            .should.be.eventually.rejectedWith("Sender is not an Schain owner");
-        await tokenManagerERC721.connect(schainOwner).changeDepositBoxAddress(newDepositBox);
+            .should.be.eventually.rejectedWith("DEFAULT_ADMIN_ROLE is required");
+        await tokenManagerERC721.connect(deployer).changeDepositBoxAddress(newDepositBox);
         expect(await tokenManagerERC721.depositBox()).to.equal(newDepositBox);
     });
 
@@ -175,8 +173,8 @@ describe("TokenManagerERC721", () => {
     });
 
     it("should successfully call addERC721TokenByOwner", async () => {
-        await tokenManagerERC721.connect(deployer).addERC721TokenByOwner(token.address, tokenClone.address)
-            .should.be.eventually.rejectedWith("Sender is not an Schain owner");
+        await tokenManagerERC721.connect(user).addERC721TokenByOwner(token.address, tokenClone.address)
+            .should.be.eventually.rejectedWith("TOKEN_REGISTRAR_ROLE is required");
 
         await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(token.address, deployer.address)
             .should.be.eventually.rejectedWith("Given address is not a contract");

@@ -23,7 +23,7 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../../Messages.sol";
-import "../tokens/EthERC20.sol";
+import "../tokens/EthErc20.sol";
 import "../TokenManager.sol";
 
 
@@ -41,44 +41,27 @@ import "../TokenManager.sol";
  */
 contract TokenManagerEth is TokenManager {
 
-    EthERC20 private _ethErc20;
+    EthErc20 public ethErc20;
 
-    modifier receivedEth(uint256 amount) {
-        if (amount > 0) {
-            EthERC20(getEthErc20Address()).burnFrom(msg.sender, amount);
-        }
-        _;
-    }
+    /// Create a new token manager    
 
-    /// Create a new token manager
-
-    constructor(
-        string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
-        address newDepositBox
-    )
-        public
-        TokenManager(newChainName, newMessageProxy, newIMALinker, newCommunityLocker, newDepositBox)
-        // solhint-disable-next-line no-empty-blocks
-    { }
-
-    function setEthErc20Address(address newEthERC20Address) external {
+    function setEthErc20Address(EthErc20 newEthErc20Address) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
-        require(address(_ethErc20) != newEthERC20Address, "The same address");
-        _ethErc20 = EthERC20(newEthERC20Address);
+        require(ethErc20 != newEthErc20Address, "The same address");
+        ethErc20 = newEthErc20Address;
     }
 
     /**
      * @dev Performs an exit (post outgoing message) to Mainnet.
      */
-    function exitToMain(address to, uint256 amount) external receivedEth(amount) {
+    function exitToMain(address to, uint256 amount) external {
         require(to != address(0), "Incorrect receiver address");
-        getCommunityLocker().checkAllowedToSendMessage(to);
-        getMessageProxy().postOutgoingMessage(
+
+        _burnEthErc20(msg.sender, amount);
+        communityLocker.checkAllowedToSendMessage(to);
+        messageProxy.postOutgoingMessage(
             "Mainnet",
-            getDepositBoxEthAddress(),
+            depositBox,
             Messages.encodeTransferEthMessage(to, amount)
         );
     }
@@ -89,7 +72,6 @@ contract TokenManagerEth is TokenManager {
         uint256 amount
     )
         external
-        receivedEth(amount)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
@@ -98,7 +80,9 @@ contract TokenManagerEth is TokenManager {
         );
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
         require(to != address(0), "Incorrect receiver address");
-        getMessageProxy().postOutgoingMessage(
+
+        _burnEthErc20(msg.sender, amount);
+        messageProxy.postOutgoingMessage(
             targetSchainName,
             tokenManagers[targetSchainHash],
             Messages.encodeTransferEthMessage(to, amount)
@@ -127,10 +111,10 @@ contract TokenManagerEth is TokenManager {
         returns (bool)
     {
         require(
-            fromChainHash != getSchainHash() && 
+            fromChainHash != schainHash && 
                 (
                     fromChainHash == MAINNET_HASH ?
-                    sender == getDepositBoxEthAddress() :
+                    sender == depositBox :
                     sender == tokenManagers[fromChainHash]
                 ),
             "Receiver chain is incorrect"
@@ -138,25 +122,37 @@ contract TokenManagerEth is TokenManager {
         Messages.TransferEthMessage memory decodedMessage = Messages.decodeTransferEthMessage(data);
         address receiver = decodedMessage.receiver;
         require(receiver != address(0), "Incorrect receiver");
-        require(EthERC20(getEthErc20Address()).mint(receiver, decodedMessage.amount), "Mint error");
+        ethErc20.mint(receiver, decodedMessage.amount);
         return true;
     }
 
-    function getEthErc20Address() public view returns (EthERC20) {
-        if (address(_ethErc20) == address(0)) {
-            return EthERC20(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.EthERC20"
-                )
-            );
-        }
-        return _ethErc20;
+    function initialize(
+        string memory newChainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
+        address newDepositBox,
+        EthErc20 ethErc20Address
+    )
+        public
+        virtual
+        initializer
+    {
+        TokenManager.initializeTokenManager(
+            newChainName,
+            newMessageProxy,
+            newIMALinker,
+            newCommunityLocker,
+            newDepositBox
+        );
+        ethErc20 = ethErc20Address;
     }
 
-    function getDepositBoxEthAddress() public view returns (address) {
-        if (depositBox == address(0)) {
-            return getSkaleFeatures().getConfigVariableAddress("skaleConfig.contractSettings.IMA.DepositBoxEth");
+    // private
+
+    function _burnEthErc20(address account, uint amount) private {
+        if (amount > 0) {
+            ethErc20.forceBurn(account, amount);
         }
-        return depositBox;
-    }
+    }   
 }

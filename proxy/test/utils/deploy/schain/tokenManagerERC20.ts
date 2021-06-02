@@ -11,12 +11,13 @@ export async function deployTokenManagerERC20(
     newDepositBox: string
 ) {
     const factory = await ethers.getContractFactory(name);
-    const instance = await factory.deploy(
+    const instance = await factory.deploy() as TokenManagerERC20;
+    await instance.initialize(
         schainName,
         messageProxyForSchain,
         tokenManagerLinker.address,
         communityLocker.address,
         newDepositBox
-    ) as TokenManagerERC20;
+    );
     return instance;
 }

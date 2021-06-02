@@ -22,7 +22,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC20OnChain.sol";
@@ -47,25 +47,13 @@ contract TokenManagerERC20 is TokenManager {
     mapping(address => ERC20OnChain) public clonesErc20;
     
     // address of clone on schain => totalSupplyOnMainnet
-    mapping(IERC20 => uint) public totalSupplyOnMainnet;
+    mapping(IERC20Upgradeable => uint) public totalSupplyOnMainnet;
 
     event ERC20TokenAdded(address indexed erc20OnMainnet, address indexed erc20OnSchain);
 
     event ERC20TokenCreated(address indexed erc20OnMainnet, address indexed erc20OnSchain);
 
     event ERC20TokenReceived(address indexed erc20OnMainnet, address indexed erc20OnSchain, uint256 amount);
-
-    constructor(
-        string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
-        address newDepositBox
-    )
-        public
-        TokenManager(newChainName, newMessageProxy, newIMALinker, newCommunityLocker, newDepositBox)
-        // solhint-disable-next-line no-empty-blocks
-    { }
 
     function exitToMainERC20(
         address contractOnMainnet,
@@ -74,34 +62,9 @@ contract TokenManagerERC20 is TokenManager {
     )
         external
     {
-        require(to != address(0), "Incorrect receiver address");
-        getCommunityLocker().checkAllowedToSendMessage(to);
-        ERC20Burnable contractOnSchain = clonesErc20[contractOnMainnet];
-        require(address(contractOnSchain).isContract(), "No token clone on schain");
-        require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
-        require(
-            contractOnSchain.allowance(
-                msg.sender,
-                address(this)
-            ) >= amount,
-            "Transfer is not approved by token holder"
-        );
-        require(
-            contractOnSchain.transferFrom(
-                msg.sender,
-                address(this),
-                amount
-            ),
-            "Could not transfer ERC20 Token"
-        );
+        communityLocker.checkAllowedToSendMessage(to);
 
-        contractOnSchain.burn(amount);
-
-        getMessageProxy().postOutgoingMessage(
-            MAINNET_NAME,
-            getDepositBoxERC20Address(),
-            Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
-        );
+        _exit(MAINNET_NAME, depositBox, contractOnMainnet, to, amount);
     }
 
     function transferToSchainERC20(
@@ -112,39 +75,11 @@ contract TokenManagerERC20 is TokenManager {
     )
         external
     {
-        require(to != address(0), "Incorrect receiver address");
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        require(
-            targetSchainHash != MAINNET_HASH,
-            "This function is not for transferring to Mainnet"
-        );
+        require(targetSchainHash != MAINNET_HASH, "This function is not for transferring to Mainnet");
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
-        ERC20Burnable contractOnSchain = clonesErc20[contractOnMainnet];
-        require(address(contractOnSchain).isContract(), "No token clone on schain");
-        require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
-        require(
-            contractOnSchain.allowance(
-                msg.sender,
-                address(this)
-            ) >= amount,
-            "Transfer is not approved by token holder"
-        );
-        require(
-            contractOnSchain.transferFrom(
-                msg.sender,
-                address(this),
-                amount
-            ),
-            "Could not transfer ERC20 Token"
-        );
 
-        contractOnSchain.burn(amount);
-
-        getMessageProxy().postOutgoingMessage(
-            targetSchainName,
-            tokenManagers[targetSchainHash],
-            Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
-        );
+        _exit(targetSchainName, tokenManagers[targetSchainHash], contractOnMainnet, to, amount);
     }
 
     /**
@@ -169,10 +104,10 @@ contract TokenManagerERC20 is TokenManager {
         returns (bool)
     {
         require(
-            fromChainHash != getSchainHash() && 
+            fromChainHash != schainHash && 
                 (
                     fromChainHash == MAINNET_HASH ?
-                    sender == getDepositBoxERC20Address() :
+                    sender == depositBox :
                     sender == tokenManagers[fromChainHash]
                 ),
             "Receiver chain is incorrect"
@@ -196,24 +131,35 @@ contract TokenManagerERC20 is TokenManager {
         address erc20OnMainnet,
         ERC20OnChain erc20OnSchain
      )
-        external 
+        external
+        onlyTokenRegistrar
     {
-        require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
-        require(
-            address(erc20OnSchain).isContract(),
-            "Given address is not a contract"
-        );
+        require(address(erc20OnSchain).isContract(), "Given address is not a contract");
         require(erc20OnSchain.totalSupply() == 0, "TotalSupply is not zero");
+        
         clonesErc20[erc20OnMainnet] = erc20OnSchain;
         emit ERC20TokenAdded(erc20OnMainnet, address(erc20OnSchain));
     }
 
-    function getDepositBoxERC20Address() public view returns (address) {
-        if (depositBox == address(0)) {
-            return getSkaleFeatures().getConfigVariableAddress("skaleConfig.contractSettings.IMA.DepositBoxERC20");
-        }
-        return depositBox;
+    function initialize(
+        string memory newChainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
+        address newDepositBox
+    )
+        public        
+    {
+        TokenManager.initializeTokenManager(
+            newChainName,
+            newMessageProxy,
+            newIMALinker,
+            newCommunityLocker,
+            newDepositBox
+        );
     }
+
+    // private
 
     /**
      * @dev Allows TokenManager to send ERC20 tokens.
@@ -264,4 +210,40 @@ contract TokenManagerERC20 is TokenManager {
         return true;
     }
 
+    function _exit(
+        string memory chainName,
+        address messageReceiver,
+        address contractOnMainnet,
+        address to,
+        uint256 amount
+    )
+        private
+    {
+        require(to != address(0), "Incorrect receiver address");
+        ERC20BurnableUpgradeable contractOnSchain = clonesErc20[contractOnMainnet];
+        require(address(contractOnSchain).isContract(), "No token clone on schain");
+        require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
+        require(
+            contractOnSchain.allowance(
+                msg.sender,
+                address(this)
+            ) >= amount,
+            "Transfer is not approved by token holder"
+        );
+        require(
+            contractOnSchain.transferFrom(
+                msg.sender,
+                address(this),
+                amount
+            ),
+            "Could not transfer ERC20 Token"
+        );
+
+        contractOnSchain.burn(amount);
+        messageProxy.postOutgoingMessage(
+            chainName,
+            messageReceiver,
+            Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
+        );
+    }
 }

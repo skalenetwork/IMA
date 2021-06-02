@@ -34,7 +34,6 @@ import {
     MessageProxyForSchainTester,
     MessagesTester
 } from "../typechain";
-import { randomString, stringValue } from "./utils/helper";
 
 
 chai.should();
@@ -50,9 +49,11 @@ import { deployMessages } from "./utils/deploy/messages";
 
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber } from "ethers";
 
 import { assert, expect } from "chai";
+import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
+import { randomString, stringValue } from "./utils/helper";
+import { BigNumber } from "ethers";
 
 describe("TokenManagerLinker", () => {
     let deployer: SignerWithAddress;
@@ -75,12 +76,14 @@ describe("TokenManagerLinker", () => {
     });
 
     beforeEach(async () => {
-        messageProxy = await deployMessageProxyForSchainTester(schainName);
-        linker = await deployTokenManagerLinker(messageProxy, deployer.address);
+        const keyStorage = await deployKeyStorageMock();
+        messageProxy = await deployMessageProxyForSchainTester(keyStorage.address, schainName);
+        const fakeLinker = deployer.address;
+        linker = await deployTokenManagerLinker(messageProxy, fakeLinker);
         fakeDepositBox = linker.address;
         fakeCommunityPool = linker.address;
         communityLocker = await deployCommunityLocker(schainName, messageProxy.address, linker, fakeCommunityPool);
-        tokenManagerEth = await deployTokenManagerEth(schainName, messageProxy.address, linker, communityLocker, fakeDepositBox);
+        tokenManagerEth = await deployTokenManagerEth(schainName, messageProxy.address, linker, communityLocker, fakeDepositBox, "0x0000000000000000000000000000000000000000");
         tokenManagerERC20 = await deployTokenManagerERC20(schainName, messageProxy.address, linker, communityLocker, fakeDepositBox);
         tokenManagerERC721 = await deployTokenManagerERC721(schainName, messageProxy.address, linker, communityLocker, fakeDepositBox);
         messages = await deployMessages();

@@ -22,11 +22,11 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20BurnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 
-contract ERC20OnChain is AccessControl, ERC20Burnable {
+contract ERC20OnChain is AccessControlUpgradeable, ERC20BurnableUpgradeable {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -35,8 +35,10 @@ contract ERC20OnChain is AccessControl, ERC20Burnable {
         string memory contractSymbol
     )
         public
-        ERC20(contractName, contractSymbol)        
     {
+        AccessControlUpgradeable.__AccessControl_init();
+        ERC20Upgradeable.__ERC20_init(contractName, contractSymbol);
+        ERC20BurnableUpgradeable.__ERC20Burnable_init();
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
         _setupRole(MINTER_ROLE, _msgSender());
     }
