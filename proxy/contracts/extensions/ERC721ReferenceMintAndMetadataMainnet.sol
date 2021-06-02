@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   ReceiverMock.sol - SKALE Interchain Messaging Agent
+ *   ERC721ReferenceMintAndMetadataMainnet.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
- *   @author Dmytro Stebaiev
+ *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published
@@ -19,14 +19,16 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721MetadataUpgradeable.sol";
 import "../interfaces/IMessageReceiver.sol";
 
 
-contract ReceiverMock is IMessageReceiver {
+// This contract runs on the main net and accepts deposits
+contract ERC721ReferenceMintAndMetadataMainnet is IMessageReceiver {
+
     function postMessage(
         bytes32,
         address,
@@ -34,7 +36,7 @@ contract ReceiverMock is IMessageReceiver {
     )
         external
         override
-        returns (address) 
+        returns (address)
     {
         return address(0);
     }

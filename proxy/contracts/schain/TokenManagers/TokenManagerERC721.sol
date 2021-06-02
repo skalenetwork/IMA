@@ -92,7 +92,7 @@ contract TokenManagerERC721 is TokenManager {
         external
         override
         onlyMessageProxy
-        returns (bool)
+        returns (address)
     {
         require(
             fromChainHash != schainHash && 
@@ -104,15 +104,16 @@ contract TokenManagerERC721 is TokenManager {
             "Receiver chain is incorrect"
         );
         Messages.MessageType operation = Messages.getMessageType(data);
+        address receiver = address(0);
         if (
             operation == Messages.MessageType.TRANSFER_ERC721_AND_TOKEN_INFO ||
             operation == Messages.MessageType.TRANSFER_ERC721
         ) {
-            _sendERC721(data);
+            receiver = _sendERC721(data);
         } else {
             revert("MessageType is unknown");
         }
-        return true;
+        return receiver;
     }
 
     /**
@@ -156,7 +157,7 @@ contract TokenManagerERC721 is TokenManager {
      *  
      * Emits a {ERC721TokenCreated} event if to address = 0.
      */
-    function _sendERC721(bytes calldata data) private {
+    function _sendERC721(bytes calldata data) private returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
         address token;
@@ -185,6 +186,7 @@ contract TokenManagerERC721 is TokenManager {
         require(address(contractOnSchain).isContract(), "Given address is not a contract");
         contractOnSchain.mint(receiver, tokenId);
         emit ERC721TokenReceived(token, address(contractOnSchain), tokenId);
+        return receiver;
     }
 
     function _exit(

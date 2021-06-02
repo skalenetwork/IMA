@@ -155,7 +155,7 @@ contract TokenManagerERC1155 is TokenManager {
         external
         override
         onlyMessageProxy
-        returns (bool)
+        returns (address)
     {
         require(
             fromChainHash != schainHash && 
@@ -167,20 +167,21 @@ contract TokenManagerERC1155 is TokenManager {
             "Receiver chain is incorrect"
         );
         Messages.MessageType operation = Messages.getMessageType(data);
+        address receiver = address(0);
         if (
             operation == Messages.MessageType.TRANSFER_ERC1155 ||
             operation == Messages.MessageType.TRANSFER_ERC1155_AND_TOKEN_INFO
         ) {
-            _sendERC1155(data);
+            receiver = _sendERC1155(data);
         } else if (
             operation == Messages.MessageType.TRANSFER_ERC1155_BATCH ||
             operation == Messages.MessageType.TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO
         ) {
-            _sendERC1155Batch(data);
+            receiver = _sendERC1155Batch(data);
         } else {
             revert("MessageType is unknown");
         }
-        return true;
+        return receiver;
     }
 
     /**
@@ -223,7 +224,7 @@ contract TokenManagerERC1155 is TokenManager {
      *  
      * Emits a {ERC1155TokenCreated} event if to address = 0.
      */
-    function _sendERC1155(bytes calldata data) private {
+    function _sendERC1155(bytes calldata data) private returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
         address token;
@@ -254,6 +255,7 @@ contract TokenManagerERC1155 is TokenManager {
         require(address(contractOnSchain).isContract(), "Given address is not a contract");
         contractOnSchain.mint(receiver, id, amount, "");
         emit ERC1155TokenReceived(token, address(contractOnSchain), _asSingletonArray(id), _asSingletonArray(amount));
+        return receiver;
     }
 
     /**
@@ -261,7 +263,7 @@ contract TokenManagerERC1155 is TokenManager {
      *  
      * Emits a {ERC1155TokenCreated} event if to address = 0.
      */
-    function _sendERC1155Batch(bytes calldata data) private {
+    function _sendERC1155Batch(bytes calldata data) private returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
         address token;
@@ -292,6 +294,7 @@ contract TokenManagerERC1155 is TokenManager {
         require(address(contractOnSchain).isContract(), "Given address is not a contract");
         contractOnSchain.mintBatch(receiver, ids, amounts, "");
         emit ERC1155TokenReceived(token, address(contractOnSchain), ids, amounts);
+        return receiver;
     }
 
     function _asSingletonArray(uint256 element) private pure returns (uint256[] memory array) {

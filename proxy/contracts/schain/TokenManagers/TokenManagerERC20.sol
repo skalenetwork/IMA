@@ -101,7 +101,7 @@ contract TokenManagerERC20 is TokenManager {
         external
         override
         onlyMessageProxy
-        returns (bool)
+        returns (address)
     {
         require(
             fromChainHash != schainHash && 
@@ -113,15 +113,16 @@ contract TokenManagerERC20 is TokenManager {
             "Receiver chain is incorrect"
         );
         Messages.MessageType operation = Messages.getMessageType(data);
+        address receiver = address(0);
         if (
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOKEN_INFO ||
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY
         ) {
-            require(_sendERC20(data), "Failed to send ERC20");
+            receiver = _sendERC20(data);
         } else {
             revert("MessageType is unknown");
         }
-        return true;
+        return receiver;
     }
 
     /**
@@ -167,7 +168,7 @@ contract TokenManagerERC20 is TokenManager {
      * Emits a {ERC20TokenCreated} event if token does not exist.
      * Emits a {ERC20TokenReceived} event on success.
      */
-    function _sendERC20(bytes calldata data) private returns (bool) {        
+    function _sendERC20(bytes calldata data) private returns (address) {        
         Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
         address token;
@@ -207,7 +208,7 @@ contract TokenManagerERC20 is TokenManager {
         );
         contractOnSchain.mint(receiver, amount);
         emit ERC20TokenReceived(token, address(contractOnSchain), amount);
-        return true;
+        return receiver;
     }
 
     function _exit(

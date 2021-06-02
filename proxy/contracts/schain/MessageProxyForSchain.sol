@@ -25,15 +25,7 @@ pragma experimental ABIEncoderV2;
 import "./bls/FieldOperations.sol";
 import "./bls/SkaleVerifier.sol";
 import "./KeyStorage.sol";
-interface IContractReceiverForSchain {
-    function postMessage(
-        bytes32 fromChainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        returns (bool);
-}
+import "../interfaces/IMessageReceiver.sol";
 
 
 contract MessageProxyForSchain is AccessControlUpgradeable {
@@ -364,26 +356,26 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         uint counter
     )
         private
-        returns (bool)
+        returns (address)
     {
-        try IContractReceiverForSchain(message.destinationContract).postMessage{gas: gasLimit}(
+        try IMessageReceiver(message.destinationContract).postMessage{gas: gasLimit}(
             fromChainHash,
             message.sender,
             message.data
-        ) returns (bool success) {
-            return success;
+        ) returns (address receiver) {
+            return receiver;
         } catch Error(string memory reason) {
             emit PostMessageError(
                 counter,
                 bytes(reason)
             );
-            return false;
+            return address(0);
         } catch (bytes memory revertData) {
             emit PostMessageError(
                 counter,
                 revertData
             );
-            return false;
+            return address(0);
         }
     }
 

@@ -31,7 +31,7 @@ contract MessageProxyForSchainTester is MessageProxyForSchain {
     }
 
     function postMessage(
-        IContractReceiverForSchain targetContract,
+        IMessageReceiver targetContract,
         bytes32 fromSchainHash,
         address sender,
         bytes calldata data

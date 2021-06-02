@@ -25,6 +25,7 @@ pragma experimental ABIEncoderV2;
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
 import "./CommunityLocker.sol";
+import "../interfaces/IMessageReceiver.sol";
 
 
 /**
@@ -34,7 +35,7 @@ import "./CommunityLocker.sol";
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-abstract contract TokenManager is AccessControlUpgradeable {
+abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
@@ -65,15 +66,6 @@ abstract contract TokenManager is AccessControlUpgradeable {
         require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
         _;
     }
-
-    function postMessage(
-        bytes32 fromChainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        virtual
-        returns (bool);
 
     /**
      * @dev Allows Schain owner turn on automatic deploy on schain.
