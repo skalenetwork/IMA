@@ -10,11 +10,7 @@ export async function deployCommunityLocker(
     communityPool: string
 ) {
     const factory = await ethers.getContractFactory(name);
-    const instance = await factory.deploy(
-        schainName,
-        messageProxyForSchain,
-        tokenManagerLinker.address,
-        communityPool
-    ) as CommunityLocker;
+    const instance = await factory.deploy() as CommunityLocker;
+    await instance.initialize(schainName, messageProxyForSchain, tokenManagerLinker.address, communityPool)
     return instance;
 }

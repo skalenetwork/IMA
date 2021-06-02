@@ -34,9 +34,9 @@ import {
     MessageProxyForSchain,
     MessageProxyForSchainWithoutSignature,
     MessagesTester,
-    SkaleFeaturesMock,
     ReceiverGasLimitMainnetMock,
     ReceiverGasLimitSchainMock,
+    KeyStorageMock,
 } from "../typechain/";
 
 import { randomString, stringValue } from "./utils/helper";
@@ -54,10 +54,9 @@ import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 
-import { deployMessageProxyForSchain } from "./utils/deploy/schain/messageProxyForSchain";
 import { deployMessageProxyForMainnetTester } from "./utils/deploy/test/messageProxyForMainnetTester";
 import { deployMessages } from "./utils/deploy/messages";
-import { deploySkaleFeaturesMock } from "./utils/deploy/test/skaleFeaturesMock";
+import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
@@ -65,6 +64,7 @@ import { BigNumber } from "ethers";
 
 import { assert, expect } from "chai";
 import { MessageProxyForSchainTester } from "../typechain/MessageProxyForSchainTester";
+import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 
 describe("MessageProxy", () => {
     let deployer: SignerWithAddress;
@@ -72,6 +72,7 @@ describe("MessageProxy", () => {
     let client: SignerWithAddress;
     let customer: SignerWithAddress;
 
+    let keyStorage: KeyStorageMock;
     let messageProxyForSchain: MessageProxyForSchainTester;
 
     let depositBox: DepositBoxEth;
@@ -512,7 +513,8 @@ describe("MessageProxy", () => {
     describe("MessageProxy for schain", async () => {
 
         beforeEach(async () => {
-            messageProxyForSchain = await deployMessageProxyForSchain("MyChain");
+            keyStorage = await deployKeyStorageMock();
+            messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, "Base schain");
             messages = await deployMessages();
             caller = await deployMessageProxyForMainnetTester();
             const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
@@ -659,11 +661,7 @@ describe("MessageProxy", () => {
                     b: "0x256f39ba1d0ae9d402321f6a4f8c46dac3e8bae3d83b23b85262203a400d178e"
                 }
             }
-            const skaleFeatures = await deploySkaleFeaturesMock();
-            await skaleFeatures.setBlsCommonPublicKey(blsCommonPublicKey);
-            const skaleFeaturesSetterRole = await messageProxyForSchain.SKALE_FEATURES_SETTER_ROLE();
-            await messageProxyForSchain.connect(deployer).grantRole(skaleFeaturesSetterRole, deployer.address);
-            await messageProxyForSchain.setSkaleFeaturesAddress(skaleFeatures.address);
+            await keyStorage.setBlsCommonPublicKey(blsCommonPublicKey);
 
             const newBLSSignature: [BigNumber, BigNumber] = [
                 BigNumber.from("0x2dedd4eaeac95881fbcaa4146f95a438494545c607bd57d560aa1d13d2679db8"),
@@ -726,7 +724,8 @@ describe("MessageProxy", () => {
 
         it("should check gas limit issue", async () => {
             const messageProxyForSchainWithoutSignatureFactory = await ethers.getContractFactory("MessageProxyForSchainWithoutSignature");
-            const messageProxyForSchainWithoutSignature = await messageProxyForSchainWithoutSignatureFactory.deploy("MyChain2") as MessageProxyForSchainWithoutSignature;
+            const messageProxyForSchainWithoutSignature = await messageProxyForSchainWithoutSignatureFactory.deploy() as MessageProxyForSchainWithoutSignature;
+            await messageProxyForSchainWithoutSignature.initialize(deployer.address, "MyChain2");
             messages = await deployMessages();
             caller = await deployMessageProxyForMainnetTester();
             const chainConnectorRole = await messageProxyForSchainWithoutSignature.CHAIN_CONNECTOR_ROLE();

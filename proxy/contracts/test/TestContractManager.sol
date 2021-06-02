@@ -22,12 +22,12 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
 
 
 contract ContractManager is IContractManager {
-    using Address for address;
+    using AddressUpgradeable for address;
 
     // mapping of actual smart contracts addresses
     mapping (bytes32 => address) public contracts;

@@ -31,7 +31,6 @@ import {
     DepositBoxERC20,
     DepositBoxERC721,
     DepositBoxERC1155,
-    EthERC20,
     ERC721OnChain,
     ERC1155OnChain,
     Linker,
@@ -58,7 +57,6 @@ import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProx
 import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
-import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 import { deployMessages } from "./utils/deploy/messages";
 import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
 import { deployERC721OnChain } from "./utils/deploy/erc721OnChain";

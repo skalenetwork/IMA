@@ -22,11 +22,11 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 
 import "../Messages.sol";
 import "../interfaces/IMessageProxy.sol";
-import "./SkaleFeaturesClient.sol";
 import "./TokenManager.sol";
 
 
@@ -34,34 +34,20 @@ import "./TokenManager.sol";
  * @title TokenManagerLinker
  * @dev Runs on Schain
  */
-contract TokenManagerLinker is SkaleFeaturesClient {
+contract TokenManagerLinker is AccessControlUpgradeable, IContractReceiverForSchain {
 
-    using SafeMath for uint;
+    using SafeMathUpgradeable for uint;
 
+    string constant public MAINNET_NAME = "Mainnet";
+    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
     bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
 
     IMessageProxy public messageProxy;
-    TokenManager[] private _tokenManagers;
-
-    bool public interchainConnections;
-
     address public linkerAddress;
-    string constant public MAINNET_NAME = "Mainnet";
-    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+    TokenManager[] public tokenManagers;	
+    bool public interchainConnections;    
 
     event InterchainConnectionAllowed(bool isAllowed);
-
-    constructor(
-        address newMessageProxyAddress,
-        address newLinkerAddress
-    )
-        public
-    {
-        messageProxy = IMessageProxy(newMessageProxyAddress);
-        linkerAddress = newLinkerAddress;
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(REGISTRAR_ROLE, msg.sender);
-    }
 
     modifier onlyRegistrar() {
         require(hasRole(REGISTRAR_ROLE, msg.sender), "REGISTRAR_ROLE is required");
@@ -69,22 +55,22 @@ contract TokenManagerLinker is SkaleFeaturesClient {
     }
 
     function registerTokenManager(TokenManager newTokenManager) external onlyRegistrar {
-        _tokenManagers.push(newTokenManager);
+        tokenManagers.push(newTokenManager);
     }
 
     function removeTokenManager(TokenManager tokenManagerAddress) external onlyRegistrar {
         uint index;
-        uint length = _tokenManagers.length;
+        uint length = tokenManagers.length;
         for (index = 0; index < length; index++) {
-            if (_tokenManagers[index] == tokenManagerAddress) {
+            if (tokenManagers[index] == tokenManagerAddress) {
                 break;
             }
         }
         if (index < length) {
             if (index < length.sub(1)) {
-                _tokenManagers[index] = _tokenManagers[length.sub(1)];
+                tokenManagers[index] = tokenManagers[length.sub(1)];
             }
-            _tokenManagers.pop();
+            tokenManagers.pop();
         }
     }
 
@@ -96,11 +82,11 @@ contract TokenManagerLinker is SkaleFeaturesClient {
         onlyRegistrar
     {
         require(interchainConnections, "Interchain connection not allowed");
-        require(tokenManagerAddresses.length == _tokenManagers.length, "Incorrect number of addresses");
+        require(tokenManagerAddresses.length == tokenManagers.length, "Incorrect number of addresses");
         for (uint i = 0; i < tokenManagerAddresses.length; i++) {
-            _tokenManagers[i].addTokenManager(schainName, tokenManagerAddresses[i]);
+            tokenManagers[i].addTokenManager(schainName, tokenManagerAddresses[i]);
         }
-        getMessageProxy().addConnectedChain(schainName);
+        messageProxy.addConnectedChain(schainName);
     }
 
     function postMessage(
@@ -109,10 +95,11 @@ contract TokenManagerLinker is SkaleFeaturesClient {
         bytes calldata data
     )
         external
+        override
         returns (bool)
     {
-        require(msg.sender == address(getMessageProxy()), "Sender is not a message proxy");
-        require(sender == getLinkerAddress(), "Sender from Mainnet is incorrect");
+        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
+        require(sender == linkerAddress, "Sender from Mainnet is incorrect");
         require(fromChainHash == MAINNET_HASH, "Source chain name should be Mainnet");
         Messages.MessageType operation = Messages.getMessageType(data);
         require(
@@ -127,18 +114,18 @@ contract TokenManagerLinker is SkaleFeaturesClient {
     }
 
     function disconnectSchain(string calldata schainName) external onlyRegistrar {
-        uint length = _tokenManagers.length;
+        uint length = tokenManagers.length;
         for (uint i = 0; i < length; i++) {
-            _tokenManagers[i].removeTokenManager(schainName);
+            tokenManagers[i].removeTokenManager(schainName);
         }
-        getMessageProxy().removeConnectedChain(schainName);
+        messageProxy.removeConnectedChain(schainName);
     }
 
     function hasTokenManager(TokenManager tokenManager) external view returns (bool) {
         uint index;
-        uint length = _tokenManagers.length;
+        uint length = tokenManagers.length;
         for (index = 0; index < length; index++) {
-            if (_tokenManagers[index] == tokenManager) {
+            if (tokenManagers[index] == tokenManager) {
                 return true;
             }
         }
@@ -146,31 +133,23 @@ contract TokenManagerLinker is SkaleFeaturesClient {
     }
 
     function hasSchain(string calldata schainName) external view returns (bool connected) {
-        uint length = _tokenManagers.length;
+        uint length = tokenManagers.length;
         connected = true;
         for (uint i = 0; i < length; i++) {
-            connected = connected && _tokenManagers[i].hasTokenManager(schainName);
+            connected = connected && tokenManagers[i].hasTokenManager(schainName);
         }
-        connected = connected && getMessageProxy().isConnectedChain(schainName);
+        connected = connected && messageProxy.isConnectedChain(schainName);
     }
 
-    function getMessageProxy() public view returns (IMessageProxy) {
-        if (address(messageProxy) == address(0)) {
-            return IMessageProxy(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.MessageProxy"
-                )
-            );
-        }
-        return messageProxy;
-    }
-
-    function getLinkerAddress() public view returns (address) {
-        if (linkerAddress == address(0)) {
-            return getSkaleFeatures().getConfigVariableAddress(
-                "skaleConfig.contractSettings.IMA.Linker"
-            );
-        }
-        return linkerAddress;
-    }
+    function initialize(IMessageProxy newMessageProxyAddress, address linker)
+        public
+        virtual
+        initializer
+    {
+        AccessControlUpgradeable.__AccessControl_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(REGISTRAR_ROLE, msg.sender);
+        messageProxy = newMessageProxyAddress;    
+	    linkerAddress = linker;
+    }    
 }

@@ -24,8 +24,9 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+
 import "../Messages.sol";
-import "./SkaleFeaturesClient.sol";
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
 import "../mainnet/CommunityPool.sol";
@@ -34,16 +35,17 @@ import "../mainnet/CommunityPool.sol";
  * @title CommunityLocker
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract CommunityLocker is SkaleFeaturesClient {
+contract CommunityLocker is AccessControlUpgradeable {
+
+    string constant public MAINNET_NAME = "Mainnet";
+    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
 
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
     address public communityPool;
 
     bytes32 public schainHash;
-    uint public timeLimitPerMessage = 5 minutes;
-    string constant public MAINNET_NAME = "Mainnet";
-    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+    uint public timeLimitPerMessage;
 
     mapping(address => bool) private _unfrozenUsers;
     mapping(address => uint) private _lastMessageTimeStamp;
@@ -51,22 +53,7 @@ contract CommunityLocker is SkaleFeaturesClient {
     event UserUnfrozed(
         bytes32 schainHash,
         address user
-    );
-
-    constructor(
-        string memory newSchainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        address newCommunityPool
-    )
-        public
-    {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        schainHash = keccak256(abi.encodePacked(newSchainName));
-        messageProxy = newMessageProxy;
-        tokenManagerLinker = newIMALinker;
-        communityPool = newCommunityPool;
-    }
+    );    
 
     function postMessage(
         bytes32 fromChainHash,
@@ -76,20 +63,20 @@ contract CommunityLocker is SkaleFeaturesClient {
         external
         returns (bool)
     {
-        require(msg.sender == address(getMessageProxy()), "Sender is not a message proxy");
-        require(sender == getCommunityPoolAddress(), "Sender should be CommunityPool");
-        require(fromChainHash == MAINNET_HASH, "Source chain name should be Mainnet");
+        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
+        require(sender == communityPool, "Sender must be CommunityPool");
+        require(fromChainHash == MAINNET_HASH, "Source chain name must be Mainnet");
         Messages.MessageType operation = Messages.getMessageType(data);
         require(operation == Messages.MessageType.FREEZE_STATE, "The message should contain a frozen state");
         Messages.FreezeStateMessage memory message = Messages.decodeFreezeStateMessage(data);
         require(_unfrozenUsers[message.receiver] != message.isUnfrozen, "Freezing states must be different");
         _unfrozenUsers[message.receiver] = message.isUnfrozen;
-        emit UserUnfrozed(getSchainHash(), message.receiver);
+        emit UserUnfrozed(schainHash, message.receiver);
         return true;
     }
 
     function checkAllowedToSendMessage(address receiver) external {
-        getTokenManagerLinker().hasTokenManager(TokenManager(msg.sender));
+        tokenManagerLinker.hasTokenManager(TokenManager(msg.sender));
         require(_unfrozenUsers[receiver], "Recipient must be unfrozen");
         require(
             _lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
@@ -99,58 +86,27 @@ contract CommunityLocker is SkaleFeaturesClient {
     }
 
     function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || _isSchainOwner(msg.sender), "Not authorized caller");
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
         timeLimitPerMessage = newTimeLimitPerMessage;
     }
 
-    function getTokenManagerLinker() public view returns (TokenManagerLinker) {
-        if (address(tokenManagerLinker) == address(0)) {
-            return TokenManagerLinker(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.TokenManagerLinker"
-                )
-            );
-        }
-        return tokenManagerLinker;
-    }
-
-    function getMessageProxy() public view returns (MessageProxyForSchain) {
-        if (address(messageProxy) == address(0)) {
-            return MessageProxyForSchain(
-                getSkaleFeatures().getConfigVariableAddress(
-                    "skaleConfig.contractSettings.IMA.MessageProxyForSchain"
-                )
-            );
-        }
-        return messageProxy;
-    }
-
-    function getSchainHash() public view returns (bytes32) {
-        if (schainHash == bytes32(0)) {
-            return keccak256(
-                abi.encodePacked(
-                    getSkaleFeatures().getConfigVariableString("skaleConfig.sChain.schainName")
-                )
-            );
-        }
-        return schainHash;
-    }
-
-
-    function getCommunityPoolAddress() public view returns (address) {
-        if (communityPool == address(0)) {
-            return getSkaleFeatures().getConfigVariableAddress("skaleConfig.contractSettings.IMA.CommunityPool");
-        }
-        return communityPool;
-    }
-
-    /**
-     * @dev Checks whether sender is owner of SKALE chain
-     */
-    function _isSchainOwner(address sender) internal view returns (bool) {
-        return sender == getSkaleFeatures().getConfigVariableAddress(
-            "skaleConfig.contractSettings.IMA.ownerAddress"
-        );
+    function initialize(
+        string memory newSchainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newTokenManagerLinker,
+        address newCommunityPool
+    )
+        public
+        virtual
+        initializer
+    {
+        AccessControlUpgradeable.__AccessControl_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        messageProxy = newMessageProxy;
+        tokenManagerLinker = newTokenManagerLinker;
+        schainHash = keccak256(abi.encodePacked(newSchainName));
+        timeLimitPerMessage = 5 minutes;
+	communityPool = newCommunityPool;
     }
 
 }

@@ -31,7 +31,7 @@ import "./FieldOperations.sol";
  */
 library SkaleVerifier {
     using Fp2Operations for Fp2Operations.Fp2Point;
-    using SafeMath for uint;
+    using SafeMathUpgradeable for uint;
 
 
     /**
