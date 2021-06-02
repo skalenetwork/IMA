@@ -101,7 +101,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
 
     mapping( bytes32 => mapping( address => bool) ) public registryContracts;
 
-    uint256 public gasLimit = 1000000;
+    uint256 public gasLimit = 3000000;
 
     event OutgoingMessage(
         bytes32 indexed dstChainHash,
@@ -262,6 +262,13 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
+    /**
+     * @dev Sets gasLimit to new value
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
+     */
     function setNewGasLimit(uint256 newGasLimit) external {
         require(
             hasRole(CONSTANT_SETTER_ROLE, msg.sender) ||

@@ -343,16 +343,37 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
+    /**
+     * @dev Sets gasLimit to new value
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
+     */
     function setNewGasLimit(uint256 newGasLimit) external {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         gasLimit = newGasLimit;
     }
 
+    /**
+     * @dev Sets basicPostIncomingMessagesTx to new value
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
+     */
     function setNewBasicPostIncomingMessagesTx(uint256 newBasicPostIncomingMessagesTx) external {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         basicPostIncomingMessagesTx = newBasicPostIncomingMessagesTx;
     }
 
+    /**
+     * @dev Sets messageGasCost to new value
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
+     */
     function setNewMessageGasCost(uint256 newMessageGasCost) external {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         messageGasCost = newMessageGasCost;
