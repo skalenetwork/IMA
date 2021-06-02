@@ -1,5 +1,5 @@
 from ima_predeployed.addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, TOKEN_MANAGER_ERC20_ADDRESS, \
-    TOKEN_MANAGER_ERC721_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS
+    TOKEN_MANAGER_ERC721_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS, TOKEN_MANAGER_ERC1155_ADDRESS
 from tools import w3
 from ..contract_generator import ContractGenerator, next_slot
 
@@ -46,5 +46,8 @@ class TokenManagerLinkerGenerator(ContractGenerator):
         self._write_address(self.MESSAGE_PROXY_SLOT, MESSAGE_PROXY_FOR_SCHAIN_ADDRESS)
         self._write_address(self.LINKER_ADDRESS_SLOT, linker_addres)
         self._write_addresses_array(
-            self.TOKEN_MANAGERS_SLOT,
-            [TOKEN_MANAGER_ETH_ADDRESS, TOKEN_MANAGER_ERC20_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS])
+            self.TOKEN_MANAGERS_SLOT, [
+                TOKEN_MANAGER_ETH_ADDRESS,
+                TOKEN_MANAGER_ERC20_ADDRESS,
+                TOKEN_MANAGER_ERC721_ADDRESS,
+                TOKEN_MANAGER_ERC1155_ADDRESS])
