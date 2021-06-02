@@ -85,6 +85,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
     bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
+    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
     KeyStorage public keyStorage;
     bytes32 public schainHash;
@@ -98,6 +99,8 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
     mapping(bytes32 => uint) private _idxTail;
 
     mapping( bytes32 => mapping( address => bool) ) public registryContracts;
+
+    uint256 public gasLimit;
 
     event OutgoingMessage(
         bytes32 indexed dstChainHash,
@@ -138,6 +141,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
             true
         );
 	    schainHash = keccak256(abi.encodePacked(schainName));
+        gasLimit = 3000000;
     }
 
     // Registration state detection
@@ -261,6 +265,18 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
+    /**
+     * @dev Sets gasLimit to new value
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
+     */
+    function setNewGasLimit(uint256 newGasLimit) external {
+        require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
+        gasLimit = newGasLimit;
+    }
+
     function registerExtraContract(string calldata schainName, address contractOnSchain) external {
         bytes32 chainHash = keccak256(abi.encodePacked(schainName));
         require(
@@ -350,7 +366,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         private
         returns (bool)
     {
-        try IContractReceiverForSchain(message.destinationContract).postMessage(
+        try IContractReceiverForSchain(message.destinationContract).postMessage{gas: gasLimit}(
             fromChainHash,
             message.sender,
             message.data
