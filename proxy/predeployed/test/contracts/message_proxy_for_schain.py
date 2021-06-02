@@ -6,13 +6,38 @@ from tools import load_abi, w3
 def check_message_proxy_for_schain(owner_address, schain_name):
     message_proxy_for_schain = w3.eth.contract(address=MESSAGE_PROXY_FOR_SCHAIN_ADDRESS,
                                                abi=load_abi(MessageProxyForSchainGenerator.ARTIFACT_FILENAME))
-    assert message_proxy_for_schain.functions.getRoleMember(
-        MessageProxyForSchainGenerator.DEFAULT_ADMIN_ROLE, 0).call() == owner_address
-    assert message_proxy_for_schain.functions.hasRole(
-        MessageProxyForSchainGenerator.DEFAULT_ADMIN_ROLE, owner_address).call()
-    assert message_proxy_for_schain.functions.keyStorage().call() == KEY_STORAGE_ADDRESS
-    assert message_proxy_for_schain.functions.schainHash().call() == w3.solidityKeccak(['string'], [schain_name])
-    assert message_proxy_for_schain.functions.getIncomingMessagesCounter('Mainnet').call() == 0
-    assert message_proxy_for_schain.functions.getOutgoingMessagesCounter('Mainnet').call() == 0
-    assert message_proxy_for_schain.functions.isConnectedChain('Mainnet').call()
-    assert message_proxy_for_schain.functions.gasLimit().call() == 3000000
+    try:
+        assert message_proxy_for_schain.functions.getRoleMember(
+            MessageProxyForSchainGenerator.DEFAULT_ADMIN_ROLE, 0).call() == owner_address, "Owner is wrong"
+    except AssertionError as error:
+        raise error
+
+    try:
+        assert message_proxy_for_schain.functions.hasRole(
+            MessageProxyForSchainGenerator.DEFAULT_ADMIN_ROLE, owner_address).call(), "Main owner is wrong"
+    except AssertionError as error:
+        raise error
+    try:
+        assert message_proxy_for_schain.functions.keyStorage().call() == KEY_STORAGE_ADDRESS, "KeyStorage address is wrong"
+    except AssertionError as error:
+        raise error
+    try:
+        assert message_proxy_for_schain.functions.schainHash().call() == w3.solidityKeccak(['string'], [schain_name]), "SchainHash is wrong"
+    except AssertionError as error:
+        raise error
+    try:
+        assert message_proxy_for_schain.functions.getIncomingMessagesCounter('Mainnet').call() == 0, "Incoming message counter is wrong"
+    except AssertionError as error:
+        raise error
+    try:
+        assert message_proxy_for_schain.functions.getOutgoingMessagesCounter('Mainnet').call() == 0, "Outgoing message counter is wrong"
+    except AssertionError as error:
+        raise error
+    try:
+        assert message_proxy_for_schain.functions.isConnectedChain('Mainnet').call(), "Mainnet is not connected"
+    except AssertionError as error:
+        raise error
+    try:
+        assert message_proxy_for_schain.functions.gasLimit().call() == 3000000, "Gas limit is wrong"
+    except AssertionError as error:
+        raise error
