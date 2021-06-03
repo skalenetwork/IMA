@@ -1,18 +1,19 @@
 name: Build and publish
 
-on:
-  pull_request:
-    types: [closed]
-    branches:
-      - master
-      - develop
-      - beta
-      - stable
+# on:
+#   pull_request:
+#     types: [closed]
+#     branches:
+#       - master
+#       - develop
+#       - beta
+#       - stable
+on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged
+    # if: github.event.pull_request.merged
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
@@ -57,12 +58,12 @@ jobs:
         export VERSION=$(bash ./scripts/calculate_version.sh)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
         echo "Version $VERSION"    
-        echo ------------ download binaries
-        LIB_BLS_RELEASE_TAG=${{ secrets.LIB_BLS_RELEASE_TAG }} bash ./scripts/download_binaries.sh
-        export RELEASE=true
-        echo "RELEASE=$RELEASE" >> $GITHUB_ENV
-        echo ------------ docker image
-        bash ./scripts/build_image.sh ${{ secrets.DOCKER_USERNAME }} ${{ secrets.DOCKER_PASSWORD }} #|| echo "----> Looks like deploy failed"
+    #     echo ------------ download binaries
+    #     LIB_BLS_RELEASE_TAG=${{ secrets.LIB_BLS_RELEASE_TAG }} bash ./scripts/download_binaries.sh
+    #     export RELEASE=true
+    #     echo "RELEASE=$RELEASE" >> $GITHUB_ENV
+    #     echo ------------ docker image
+    #     bash ./scripts/build_image.sh ${{ secrets.DOCKER_USERNAME }} ${{ secrets.DOCKER_PASSWORD }} #|| echo "----> Looks like deploy failed"
 
     - name: Prepare for pip package building
       run: |
@@ -80,12 +81,23 @@ jobs:
       run: |        
         ./predeployed/scripts/build_package.sh
 
-    - name: Publish predeployed pip package
-      working-directory: ${{env.PROXY_DIR}}
+    # - name: Publish predeployed pip package
+    #   working-directory: ${{env.PROXY_DIR}}
+    #   env:
+    #     PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+    #   run: |        
+    #     ./predeployed/scripts/publish_package.sh
+
+    - name: Generate ABIs
+      working-directory: ${{env.PROXY_DIR}}/predeployed
       env:
-        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        VERSION: ${{ env.VERSION }}
       run: |        
-        ./predeployed/scripts/publish_package.sh
+        python3 -m venv scripts/venv
+        source scripts/venv/bin/activate
+        pip install dist/ima_predeployed-*.whl
+        mkdir data
+        scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
 
     - name: Create Release
       id: create_release
@@ -106,3 +118,12 @@ jobs:
       with:
         release_id: ${{ steps.create_release.outputs.id }}
         assets_path: proxy/predeployed/dist/
+
+    - name: Upload Release Assets
+      id: upload-static-data
+      uses: dwenegar/upload-release-assets@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_id: ${{ steps.create_release.outputs.id }}
+        assets_path: proxy/predeployed/data/

@@ -124,6 +124,63 @@ def generate_contracts(
     }
 
 
+def generate_abi_key(name: str, address: str, abi: list) -> dict:
+    return {
+        name + '_address': address,
+        name + '_abi': abi
+    }
+
+
+def generate_abi() -> dict:
+    return {
+        **generate_abi_key(
+            'proxy_admin',
+            PROXY_ADMIN_ADDRESS,
+            ContractGenerator(ProxyAdminGenerator.ARTIFACT_FILENAME).abi),
+        **generate_abi_key(
+            'message_proxy_chain',
+            MESSAGE_PROXY_FOR_SCHAIN_ADDRESS,
+            ContractGenerator(MessageProxyForSchainGenerator.ARTIFACT_FILENAME).abi),
+        **generate_abi_key(
+            'key_storage',
+            KEY_STORAGE_ADDRESS,
+            ContractGenerator(KeyStorageGenerator.ARTIFACT_FILENAME).abi),
+        **generate_abi_key(
+            'community_locker',
+            COMMUNITY_LOCKER_ADDRESS,
+            ContractGenerator(CommunityLockerGenerator.ARTIFACT_FILENAME).abi),
+        **generate_abi_key(
+            'token_manager_linker',
+            TOKEN_MANAGER_LINKER_ADDRESS,
+            ContractGenerator(TokenManagerLinkerGenerator.ARTIFACT_FILENAME).abi),
+        **generate_abi_key(
+            'token_manager_eth',
+            TOKEN_MANAGER_ETH_ADDRESS,
+            ContractGenerator(TokenManagerEthGenerator.ARTIFACT_FILENAME).abi),
+        **generate_abi_key(
+            'token_manager_erc20',
+            TOKEN_MANAGER_ERC20_ADDRESS,
+            ContractGenerator(TokenManagerErc20Generator.ARTIFACT_FILENAME).abi),
+        **generate_abi_key(
+            'token_manager_erc721',
+            TOKEN_MANAGER_ERC721_ADDRESS,
+            ContractGenerator(TokenManagerErc721Generator.ARTIFACT_FILENAME).abi),
+        **generate_abi_key(
+            'token_manager_erc1155',
+            TOKEN_MANAGER_ERC1155_ADDRESS,
+            ContractGenerator(TokenManagerErc1155Generator.ARTIFACT_FILENAME).abi),
+        **generate_abi_key(
+            'eth_erc20',
+            ETH_ERC20_ADDRESS,
+            ContractGenerator(EthErc20Generator.ARTIFACT_FILENAME).abi),
+        **{
+            'ERC20OnChain_abi': ContractGenerator('ERC20OnChain.json').abi,
+            'ERC721OnChain_abi': ContractGenerator('ERC721OnChain.json').abi,
+            'ERC1155OnChain_abi': ContractGenerator('ERC1155OnChain.json').abi
+        }
+    }
+
+
 def main() -> None:
     contracts_dir = os.path.join(os.path.dirname(__file__), 'artifacts')
     proxy_admin_path = os.path.join(contracts_dir, 'ProxyAdmin.json')    
