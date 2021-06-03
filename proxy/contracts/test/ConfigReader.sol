@@ -106,7 +106,10 @@ library ConfigReader {
         require(success, "Get config string failed");
     }
 
-    function getConfigPermissionFlag(address a, string memory strConfigVariableName)
+    function getConfigPermissionFlag(
+        address a,
+        string memory strConfigVariableName
+    )
         public
         view
         virtual

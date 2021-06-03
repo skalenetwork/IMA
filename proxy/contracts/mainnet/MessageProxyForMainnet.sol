@@ -349,29 +349,29 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     }
 
     /**
-     * @dev Sets headerMessageGasCost
+     * @dev Sets headerMessageGasCost to a new value
      * 
      * Requirements:
      * 
-     * - `msg.sender` must be granted as MESSAGE_GAS_COST_SETTER_ROLE.
+     * - `msg.sender` must be granted as CONSTANT_SETTER_ROLE.
      */
     function setNewHeaderMessageGasCost(uint256 newHeaderMessageGasCost) external onlyConstantSetter {
         headerMessageGasCost = newHeaderMessageGasCost;
     }
 
     /**
-     * @dev Sets messageGasCost
+     * @dev Sets messageGasCost to a new value
      * 
      * Requirements:
      * 
-     * - `msg.sender` must be granted as MESSAGE_GAS_COST_SETTER_ROLE.
+     * - `msg.sender` must be granted as CONSTANT_SETTER_ROLE.
      */
     function setNewMessageGasCost(uint256 newMessageGasCost) external onlyConstantSetter {
         messageGasCost = newMessageGasCost;
     }
 
     /**
-     * @dev Sets gasLimit to new value
+     * @dev Sets gasLimit to a new value
      * 
      * Requirements:
      * 
