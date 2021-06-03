@@ -117,20 +117,20 @@ describe("MessageProxy", () => {
         });
 
         it("should set constants", async () => {
-            const basicPostIncomingMessagesTxPrevious = (await messageProxyForMainnet.basicPostIncomingMessagesTx()).toNumber();
+            const headerMessageGasCostPrevious = (await messageProxyForMainnet.headerMessageGasCost()).toNumber();
             const messageGasCostPrevious = (await messageProxyForMainnet.messageGasCost()).toNumber();
             const gasLimitPrevious = (await messageProxyForMainnet.gasLimit()).toNumber();
 
-            const basicPostIncomingMessagesTxNew = 5;
+            const headerMessageGasCostNew = 5;
             const messageGasCostNew = 6;
             const gasLimitNew = 7;
 
-            expect((await messageProxyForMainnet.basicPostIncomingMessagesTx()).toNumber()).to.equal(basicPostIncomingMessagesTxPrevious);
+            expect((await messageProxyForMainnet.headerMessageGasCost()).toNumber()).to.equal(headerMessageGasCostPrevious);
             expect((await messageProxyForMainnet.messageGasCost()).toNumber()).to.equal(messageGasCostPrevious);
             expect((await messageProxyForMainnet.gasLimit()).toNumber()).to.equal(gasLimitPrevious);
 
-            await messageProxyForMainnet.connect(user).setNewBasicPostIncomingMessagesTx(
-                basicPostIncomingMessagesTxNew
+            await messageProxyForMainnet.connect(user).setNewHeaderMessageGasCost(
+                headerMessageGasCostNew
             ).should.be.eventually.rejectedWith("Not enough permissions to set constant");
             await messageProxyForMainnet.connect(user).setNewMessageGasCost(
                 messageGasCostNew
@@ -142,19 +142,19 @@ describe("MessageProxy", () => {
             const constantSetterRole = await messageProxyForMainnet.CONSTANT_SETTER_ROLE();
             await messageProxyForMainnet.connect(deployer).grantRole(constantSetterRole, user.address);
 
-            await messageProxyForMainnet.connect(user).setNewBasicPostIncomingMessagesTx(basicPostIncomingMessagesTxNew);
+            await messageProxyForMainnet.connect(user).setNewHeaderMessageGasCost(headerMessageGasCostNew);
             await messageProxyForMainnet.connect(user).setNewMessageGasCost(messageGasCostNew);
             await messageProxyForMainnet.connect(user).setNewGasLimit(gasLimitNew);
 
-            expect((await messageProxyForMainnet.basicPostIncomingMessagesTx()).toNumber()).to.equal(basicPostIncomingMessagesTxNew);
+            expect((await messageProxyForMainnet.headerMessageGasCost()).toNumber()).to.equal(headerMessageGasCostNew);
             expect((await messageProxyForMainnet.messageGasCost()).toNumber()).to.equal(messageGasCostNew);
             expect((await messageProxyForMainnet.gasLimit()).toNumber()).to.equal(gasLimitNew);
 
-            await messageProxyForMainnet.connect(user).setNewBasicPostIncomingMessagesTx(basicPostIncomingMessagesTxPrevious);
+            await messageProxyForMainnet.connect(user).setNewHeaderMessageGasCost(headerMessageGasCostPrevious);
             await messageProxyForMainnet.connect(user).setNewMessageGasCost(messageGasCostPrevious);
             await messageProxyForMainnet.connect(user).setNewGasLimit(gasLimitPrevious);
 
-            expect((await messageProxyForMainnet.basicPostIncomingMessagesTx()).toNumber()).to.equal(basicPostIncomingMessagesTxPrevious);
+            expect((await messageProxyForMainnet.headerMessageGasCost()).toNumber()).to.equal(headerMessageGasCostPrevious);
             expect((await messageProxyForMainnet.messageGasCost()).toNumber()).to.equal(messageGasCostPrevious);
             expect((await messageProxyForMainnet.gasLimit()).toNumber()).to.equal(gasLimitPrevious);
 

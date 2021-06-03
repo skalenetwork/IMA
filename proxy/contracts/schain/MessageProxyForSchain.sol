@@ -291,7 +291,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
     function registerExtraContractForAll(address contractOnSchain) external {
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
-            "Not enough permissions to register extra contract for all"
+            "Not enough permissions to register extra contract for all chains"
         );
         require(contractOnSchain.isContract(), "Given address is not a contract");
         require(!registryContracts[bytes32(0)][contractOnSchain], "Extra contract is already registered");
@@ -312,7 +312,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
     function removeExtraContractForAll(address contractOnSchain) external {
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
-            "Not enough permissions to remove extra contract for all"
+            "Not enough permissions to remove extra contract for all chains"
         );
         require(contractOnSchain.isContract(),"Given address is not a contract");
         require(registryContracts[bytes32(0)][contractOnSchain], "Extra contract is already removed");

@@ -131,6 +131,8 @@ async function main() {
     ) as Linker;
     await linker.deployTransaction.wait();
     await (await messageProxyForMainnet.registerExtraContractForAll(linker.address)).wait();
+    const chainConnectorRole = await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE();
+    await (await messageProxyForMainnet.grantRole(chainConnectorRole, linker.address)).wait();
     console.log("Proxy Contract", linkerName, "deployed to", linker.address);
     deployed.set(
         linkerName,
