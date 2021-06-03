@@ -87,6 +87,17 @@ jobs:
       run: |        
         ./predeployed/scripts/publish_package.sh
 
+    - name: Generate ABIs
+      working-directory: ${{env.PROXY_DIR}}/predeployed
+      env:
+        VERSION: ${{ env.VERSION }}
+      run: |        
+        python3 -m venv scripts/venv
+        source scripts/venv/bin/activate
+        pip install dist/ima_predeployed-*.whl
+        mkdir data
+        scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -106,3 +117,12 @@ jobs:
       with:
         release_id: ${{ steps.create_release.outputs.id }}
         assets_path: proxy/predeployed/dist/
+
+    - name: Upload Release Assets
+      id: upload-static-data
+      uses: dwenegar/upload-release-assets@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_id: ${{ steps.create_release.outputs.id }}
+        assets_path: proxy/predeployed/data/

@@ -37,6 +37,7 @@ class ContractGenerator:
         with open(artifacts_path, encoding='utf-8') as fp:
             contract = json.load(fp)
             self.bytecode = contract['deployedBytecode']
+            self.abi = contract['abi']
             self.storage = {}
 
     def generate_contract(self, balance: int = 0, nonce: int = 0) -> dict:

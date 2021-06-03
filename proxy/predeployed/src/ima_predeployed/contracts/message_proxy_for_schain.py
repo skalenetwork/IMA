@@ -1,7 +1,6 @@
 from ..contract_generator import ContractGenerator, calculate_mapping_value_slot, calculate_array_value_slot
 from ..addresses import KEY_STORAGE_ADDRESS
 from web3 import Web3
-from tools import w3
 
 
 class MessageProxyForSchainGenerator(ContractGenerator):
@@ -49,7 +48,7 @@ class MessageProxyForSchainGenerator(ContractGenerator):
         self._write_uint256(self.INITIALIZED_SLOT, 1)
         self._setup_role(self.ROLES_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
         self._write_address(self.KEY_STORAGE_SLOT, KEY_STORAGE_ADDRESS)
-        self._write_bytes32(self.SCHAIN_HASH_SLOT, w3.solidityKeccak(['string'], [schain_name]))
+        self._write_bytes32(self.SCHAIN_HASH_SLOT, Web3.solidityKeccak(['string'], [schain_name]))
 
         connected_chain_info_slot = calculate_mapping_value_slot(
             self.CONNECTED_CHAINS_SLOT, self.MAINNET_HASH, 'bytes32')

@@ -8,8 +8,8 @@ def calculate_version(release_version):
     if '-' not in release_version:
         return release_version
     parts = release_version.strip().split('-')
-    [ main_part, tail_part ] = [parts[0], '-'.join(parts[1:])]
-    [ branch, build_number ] = tail_part.split('.')
+    [main_part, tail_part] = [parts[0], '-'.join(parts[1:])]
+    [branch, build_number] = tail_part.split('.')
     if branch == 'stable':
         if int(build_number) == 0:
             return main_part
@@ -24,12 +24,12 @@ def calculate_version(release_version):
 
 
 def main():
-    VERSION_KEY = 'VERSION'
-    if VERSION_KEY not in os.environ or not os.environ[VERSION_KEY]:
+    version_key = 'VERSION'
+    if version_key not in os.environ or not os.environ[version_key]:
         print('VERSION environment variable is not set', file=sys.stderr)
         exit(1)
     
-    print(calculate_version(os.environ[VERSION_KEY]))
+    print(calculate_version(os.environ[version_key]))
 
 
 if __name__ == '__main__':
