@@ -29,7 +29,7 @@ import "./PrecompiledMock.sol";
 
 
 contract SkaleVerifierMock {
-    using SafeMath for uint256;
+    using SafeMathUpgradeable for uint256;
 
     /**
     * @dev Verifies a BLS signature.

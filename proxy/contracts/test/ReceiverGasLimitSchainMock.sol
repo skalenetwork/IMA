@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   EthERC20Tester.sol - SKALE Interchain Messaging Agent
+ *   ReceiverMock.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Dmytro Stebaiev
  *
@@ -23,16 +23,22 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../schain/tokens/EthERC20.sol";
+import "../schain/MessageProxyForSchain.sol";
 
 
-contract EthERC20Tester is EthERC20 {
-
-    constructor(address tokenManagerEthAddress) public EthERC20(tokenManagerEthAddress) 
-        // solhint-disable-next-line no-empty-blocks
-    { }
-
-    function setTokenManagerEthAddress(address newTokenManagerEthAddress) external {
-        tokenManagerEth = newTokenManagerEthAddress;
+contract ReceiverGasLimitSchainMock is IContractReceiverForSchain {
+    uint public a = 0;
+    function postMessage(
+        bytes32,
+        address,
+        bytes calldata
+    )
+        external
+        override
+        returns (bool) 
+    {
+        while(true) {
+            a++;
+        }
     }
 }

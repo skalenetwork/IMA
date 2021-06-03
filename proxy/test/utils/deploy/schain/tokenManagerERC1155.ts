@@ -11,12 +11,12 @@ export async function deployTokenManagerERC1155(
     newDepositBox: string
 ) {
     const factory = await ethers.getContractFactory(name);
-    const instance = await factory.deploy(
+    const instance = await factory.deploy() as TokenManagerERC1155;
+    await instance.initialize(
         schainName,
         messageProxyForSchain,
         tokenManagerLinker.address,
         communityLocker.address,
-        newDepositBox
-    ) as TokenManagerERC1155;
+        newDepositBox)
     return instance;
 }

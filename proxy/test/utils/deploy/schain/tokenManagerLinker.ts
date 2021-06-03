@@ -6,6 +6,7 @@ export async function deployTokenManagerLinker(
     newLinkerAddress: string
 ) {
     const factory = await ethers.getContractFactory("TokenManagerLinker");
-    const instance = await factory.deploy(messageProxyForSchain.address, newLinkerAddress) as TokenManagerLinker;
+    const instance = await factory.deploy() as TokenManagerLinker;
+    await instance.initialize(messageProxyForSchain.address, newLinkerAddress);
     return instance;
 }

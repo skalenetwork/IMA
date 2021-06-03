@@ -22,13 +22,13 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 
 import "./Precompiled.sol";
 
 
 library Fp2Operations {
-    using SafeMath for uint;
+    using SafeMathUpgradeable for uint;
 
     struct Fp2Point {
         uint a;
@@ -121,7 +121,7 @@ library Fp2Operations {
 }
 
 library G1Operations {
-    using SafeMath for uint;
+    using SafeMathUpgradeable for uint;
     using Fp2Operations for Fp2Operations.Fp2Point;
 
     function getG1Generator() internal pure returns (Fp2Operations.Fp2Point memory) {
@@ -155,7 +155,7 @@ library G1Operations {
 
 
 library G2Operations {
-    using SafeMath for uint;
+    using SafeMathUpgradeable for uint;
     using Fp2Operations for Fp2Operations.Fp2Point;
 
     struct G2Point {

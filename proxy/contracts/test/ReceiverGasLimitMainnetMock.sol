@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   TestKeyStorage.sol - SKALE Interchain Messaging Agent
+ *   ReceiverMock.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
- *   @author Artem Payvin
+ *   @author Dmytro Stebaiev
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published
@@ -23,18 +23,23 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../schain/bls/FieldOperations.sol";
+import "../interfaces/IMessageReceiver.sol";
 
 
-contract KeyStorage {
 
-    mapping(bytes32 => G2Operations.G2Point) private _schainsPublicKeys;
-
-    function setCommonPublicKey(bytes32 schainHash, G2Operations.G2Point memory value) external {
-        _schainsPublicKeys[schainHash] = value;
-    }
-
-    function getCommonPublicKey(bytes32 schainHash) external view returns (G2Operations.G2Point memory) {
-        return _schainsPublicKeys[schainHash];
+contract ReceiverGasLimitMainnetMock is IMessageReceiver {
+    uint public a = 0;
+    function postMessage(
+        bytes32,
+        address,
+        bytes calldata
+    )
+        external
+        override
+        returns (address) 
+    {
+        while(true) {
+            a++;
+        }
     }
 }

@@ -88,7 +88,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
     bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
-    bytes32 public constant MESSAGE_GAS_COST_SETTER_ROLE = keccak256("MESSAGE_GAS_COST_SETTER_ROLE");
+    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
     address public communityPoolAddress;
 
@@ -97,14 +97,15 @@ contract MessageProxyForMainnet is SkaleManagerClient {
 
     uint256 public headerMessageGasCost;
     uint256 public messageGasCost;
+    uint256 public gasLimit;
 
     modifier onlyDebugger() {
         require(hasRole(DEBUGGER_ROLE, msg.sender), "Access denied");
         _;
     }
 
-    modifier onlyMessageGasCostSetter() {
-        require(hasRole(MESSAGE_GAS_COST_SETTER_ROLE, msg.sender), "Access denied");
+    modifier onlyConstantSetter() {
+        require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         _;
     }
 
@@ -295,6 +296,16 @@ contract MessageProxyForMainnet is SkaleManagerClient {
             .div(messages.length);
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
+            if (
+                !registryContracts[fromSchainHash][messages[i].destinationContract] &&
+                !registryContracts[bytes32(0)][messages[i].destinationContract]
+            ) {
+                emit PostMessageError(
+                    startingCounter + i,
+                    bytes("Destination contract is not registered")
+                );
+                continue;
+            }
             address receiver = _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
             if (receiver == address(0)) 
                 continue;
@@ -318,7 +329,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
      * 
      * - `msg.sender` must be owner.
      */
-    function incrementIncomingCounter(string calldata schainName) external onlyDebugger{
+    function incrementIncomingCounter(string calldata schainName) external onlyDebugger {
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 
             connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
     }
@@ -344,7 +355,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
      * 
      * - `msg.sender` must be granted as MESSAGE_GAS_COST_SETTER_ROLE.
      */
-    function setHeaderMessageGasCost(uint256 newHeaderMessageGasCost) external onlyMessageGasCostSetter {
+    function setNewHeaderMessageGasCost(uint256 newHeaderMessageGasCost) external onlyConstantSetter {
         headerMessageGasCost = newHeaderMessageGasCost;
     }
 
@@ -355,8 +366,19 @@ contract MessageProxyForMainnet is SkaleManagerClient {
      * 
      * - `msg.sender` must be granted as MESSAGE_GAS_COST_SETTER_ROLE.
      */
-    function setMessageGasCost(uint256 newMessageGasCost) external onlyMessageGasCostSetter {
+    function setNewMessageGasCost(uint256 newMessageGasCost) external onlyConstantSetter {
         messageGasCost = newMessageGasCost;
+    }
+
+    /**
+     * @dev Sets gasLimit to new value
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
+     */
+    function setNewGasLimit(uint256 newGasLimit) external onlyConstantSetter {
+        gasLimit = newGasLimit;
     }
 
     /**
@@ -426,6 +448,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         SkaleManagerClient.initialize(contractManagerOfSkaleManager);
         headerMessageGasCost = 70000;
         messageGasCost = 8790;
+        gasLimit = 1000000;
     }
 
     /**
@@ -452,7 +475,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         private
         returns (address)
     {
-        try IMessageReceiver(message.destinationContract).postMessage(
+        try IMessageReceiver(message.destinationContract).postMessage{gas: gasLimit}(
             schainHash,
             message.sender,
             message.data

@@ -22,7 +22,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC1155OnChain.sol";
@@ -50,19 +50,7 @@ contract TokenManagerERC1155 is TokenManager {
         address indexed erc1155OnSchain,
         uint256[] ids,
         uint256[] amounts
-    );
-
-    constructor(
-        string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
-        address newDepositBox
-    )
-        public
-        TokenManager(newChainName, newMessageProxy, newIMALinker, newCommunityLocker, newDepositBox)
-        // solhint-disable-next-line no-empty-blocks
-    { }    
+    );  
 
     function exitToMainERC1155(
         address contractOnMainnet,
@@ -73,13 +61,13 @@ contract TokenManagerERC1155 is TokenManager {
         external
     {
         require(to != address(0), "Incorrect receiver address");
-        ERC1155Burnable contractOnSchain = clonesErc1155[contractOnMainnet];
-        getCommunityLocker().checkAllowedToSendMessage(to);
+        ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
+        communityLocker.checkAllowedToSendMessage(to);
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
         contractOnSchain.burn(msg.sender, id, amount);
         bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);
-        getMessageProxy().postOutgoingMessage(MAINNET_NAME, getDepositBoxERC1155Address(), data);
+        messageProxy.postOutgoingMessage(MAINNET_NAME, depositBox, data);
     }
 
     function exitToMainERC1155Batch(
@@ -91,13 +79,13 @@ contract TokenManagerERC1155 is TokenManager {
         external
     {
         require(to != address(0), "Incorrect receiver address");
-        ERC1155Burnable contractOnSchain = clonesErc1155[contractOnMainnet];
-        getCommunityLocker().checkAllowedToSendMessage(to);
+        ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
+        communityLocker.checkAllowedToSendMessage(to);
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
         contractOnSchain.burnBatch(msg.sender, ids, amounts);
         bytes memory data = Messages.encodeTransferErc1155BatchMessage(contractOnMainnet, to, ids, amounts);
-        getMessageProxy().postOutgoingMessage(MAINNET_NAME, getDepositBoxERC1155Address(), data);
+        messageProxy.postOutgoingMessage(MAINNET_NAME, depositBox, data);
     }
 
     function transferToSchainERC1155(
@@ -116,12 +104,12 @@ contract TokenManagerERC1155 is TokenManager {
             "This function is not for transferring to Mainnet"
         );
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
-        ERC1155Burnable contractOnSchain = clonesErc1155[contractOnMainnet];
+        ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
         contractOnSchain.burn(msg.sender, id, amount);
         bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);    
-        getMessageProxy().postOutgoingMessage(targetSchainName, tokenManagers[targetSchainHash], data);
+        messageProxy.postOutgoingMessage(targetSchainName, tokenManagers[targetSchainHash], data);
     }
 
     function transferToSchainERC1155Batch(
@@ -140,12 +128,12 @@ contract TokenManagerERC1155 is TokenManager {
             "This function is not for transferring to Mainnet"
         );
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
-        ERC1155Burnable contractOnSchain = clonesErc1155[contractOnMainnet];
+        ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
         contractOnSchain.burnBatch(msg.sender, ids, amounts);
         bytes memory data = Messages.encodeTransferErc1155BatchMessage(contractOnMainnet, to, ids, amounts);
-        getMessageProxy().postOutgoingMessage(targetSchainName, tokenManagers[targetSchainHash], data);
+        messageProxy.postOutgoingMessage(targetSchainName, tokenManagers[targetSchainHash], data);
     }
 
     /**
@@ -170,10 +158,10 @@ contract TokenManagerERC1155 is TokenManager {
         returns (bool)
     {
         require(
-            fromChainHash != getSchainHash() && 
+            fromChainHash != schainHash && 
             (
                 fromChainHash == MAINNET_HASH ?
-                sender == getDepositBoxERC1155Address() :
+                sender == depositBox :
                 sender == tokenManagers[fromChainHash]
             ),
             "Receiver chain is incorrect"
@@ -203,21 +191,30 @@ contract TokenManagerERC1155 is TokenManager {
         ERC1155OnChain erc1155OnSchain
     )
         external
+        onlyTokenRegistrar
     {
-        require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
-        require(
-            address(erc1155OnSchain).isContract(),
-            "Given address is not a contract"
-        );
+        require(address(erc1155OnSchain).isContract(), "Given address is not a contract");
         clonesErc1155[erc1155OnMainnet] = erc1155OnSchain;
         emit ERC1155TokenAdded(erc1155OnMainnet, address(erc1155OnSchain));
     }
 
-    function getDepositBoxERC1155Address() public view returns (address) {
-        if (depositBox == address(0)) {
-            return getSkaleFeatures().getConfigVariableAddress("skaleConfig.contractSettings.IMA.DepositBoxERC1155");
-        }
-        return depositBox;
+    function initialize(
+        string memory newChainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
+        address newDepositBox
+    )
+        public
+        initializer
+    {
+        TokenManager.initializeTokenManager(
+            newChainName,
+            newMessageProxy,
+            newIMALinker,
+            newCommunityLocker,
+            newDepositBox
+        );
     }
 
 

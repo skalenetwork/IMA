@@ -36,6 +36,12 @@ proxy/coverage.json
 # tmp file after precompiled contracts generation
 proxy/data/precompiled.json.file
 
+proxy/predeployed/build
+proxy/predeployed/dist
+proxy/predeployed/src/ima_predeployed/artifacts
+*.egg-info
+proxy/predeployed/test/genesis.json
+
 # nyc test coverage
 .nyc_output
 
