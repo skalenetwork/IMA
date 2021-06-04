@@ -33,6 +33,9 @@ const ethereumjs_tx = require( "ethereumjs-tx" );
 const ethereumjs_wallet = require( "ethereumjs-wallet" );
 const ethereumjs_util = require( "ethereumjs-util" );
 
+const Redis = require( "ioredis" );
+let redis = null;
+
 const log = require( "../skale-log/log.js" );
 const cc = log.cc;
 cc.enable( false );
@@ -456,33 +459,97 @@ function get_account_connectivity_info( joAccount ) {
     return joACI;
 }
 
-async function wait_for_transaction_receipt( details, w3, txHash, nMaxWaitAttempts, nSleepMilliseconds ) {
-    if( w3 == null || w3 == undefined || txHash == null || txHash == undefined || typeof txHash != "string" || txHash.length == 0 )
+// async function wait_for_transaction_receipt( details, w3, txHash, nMaxWaitAttempts, nSleepMilliseconds ) {
+//     if( w3 == null || w3 == undefined || txHash == null || txHash == undefined || typeof txHash != "string" || txHash.length == 0 )
+//         return null;
+//     nMaxWaitAttempts = nMaxWaitAttempts || 100;
+//     nSleepMilliseconds = nSleepMilliseconds || 5000;
+//     let idxAttempt;
+//     for( idxAttempt = 0; idxAttempt < nMaxWaitAttempts; ++ idxAttempt ) {
+//         try {
+//             const joReceipt = await get_web3_transactionReceipt( details, 10, w3, txHash );
+//             if( joReceipt != null ) {
+//                 details.write(
+//                     cc.debug( "Got " ) + cc.notice( txHash ) +
+//                     cc.debug( " transaction receipt: " ) + cc.j( joReceipt ) +
+//                     "\n" );
+//                 return joReceipt;
+//             }
+//         } catch ( err ) {
+//         }
+//         details.write(
+//             cc.debug( "Attempt " ) + cc.info( idxAttempt ) + cc.debug( " of " ) + cc.info( nMaxWaitAttempts ) +
+//             cc.debug( " done, sleeping " ) + cc.info( nSleepMilliseconds ) +
+//             cc.debug( " milliseconds while waiting for " ) + cc.notice( txHash ) +
+//             cc.debug( " transaction receipt..." ) +
+//             "\n" );
+//         await sleep( nSleepMilliseconds );
+//     }
+//     return null;
+// }
+
+const g_tm_pool = "transactions";
+
+const tm_gen_random_hex = size => [ ...Array( size ) ].map( () => Math.floor( Math.random() * 16 ).toString( 16 ) ).join( "" );
+
+function tm_make_id() {
+    const prefix = "tx-";
+    const unique = tm_gen_random_hex( 16 );
+    return prefix + unique;
+}
+
+function tm_make_record( tx = {}, score ) {
+    const status = "PROPOSED";
+    return JSON.stringify( {
+        "score": score,
+        "status": status,
+        ...tx
+    } );
+}
+
+function tm_make_score( priority ) {
+    const ts = parseInt( Date.now() / 1000 );
+    return priority * Math.pow( 10, ts.toString().length ) + ts;
+}
+
+async function tm_send( details, tx, priority = 5 ) {
+    details.write( cc.debug( "TM - sending tx " ) + cc.j( tx ) + "\n" );
+    const id = tm_make_id();
+    const score = tm_make_score( priority );
+    const record = tm_make_record( tx, score );
+    details.write( cc.debug( "TM - Sending score: " ) + cc.info( score ) + cc.debug( ", record: " ) + cc.info( record ) + "\n" );
+    await redis.multi()
+        .set( id, record )
+        .zadd( g_tm_pool, score, id )
+        .exec();
+    return id;
+}
+
+function tm_is_finished( record ) {
+    if( record == null )
         return null;
-    nMaxWaitAttempts = nMaxWaitAttempts || 100;
-    nSleepMilliseconds = nSleepMilliseconds || 5000;
-    let idxAttempt;
-    for( idxAttempt = 0; idxAttempt < nMaxWaitAttempts; ++ idxAttempt ) {
-        try {
-            const joReceipt = await get_web3_transactionReceipt( details, 10, w3, txHash );
-            if( joReceipt != null ) {
-                details.write(
-                    cc.debug( "Got " ) + cc.notice( txHash ) +
-                    cc.debug( " transaction receipt: " ) + cc.j( joReceipt ) +
-                    "\n" );
-                return joReceipt;
-            }
-        } catch ( err ) {
-        }
-        details.write(
-            cc.debug( "Attempt " ) + cc.info( idxAttempt ) + cc.debug( " of " ) + cc.info( nMaxWaitAttempts ) +
-            cc.debug( " done, sleeping " ) + cc.info( nSleepMilliseconds ) +
-            cc.debug( " milliseconds while waiting for " ) + cc.notice( txHash ) +
-            cc.debug( " transaction receipt..." ) +
-            "\n" );
-        await sleep( nSleepMilliseconds );
-    }
+    const status = "status" in record ? record.status : null;
+    return [ "SUCCESS", "FAILED", "DROPPED" ].includes( status );
+}
+
+async function tm_get_record( tx_id ) {
+    const r = await redis.get( tx_id );
+    if( r != null )
+        return JSON.parse( r );
     return null;
+}
+
+async function tm_wait( details, tx_id, w3 ) {
+    details.write( cc.debug( "TM - waiting for TX ID: " ) + cc.info( tx_id ) + cc.debug( "..." ) + "\n" );
+    let hash;
+    while( hash === undefined ) {
+        const r = await tm_get_record( tx_id );
+        if( tm_is_finished( r ) )
+            hash = r.tx_hash;
+    }
+    details.write( cc.debug( "TM - TX hash is " ) + cc.info( hash ) + "\n" );
+    // return await w3.eth.getTransactionReceipt( hash );
+    return await get_web3_transactionReceipt( details, 10, w3, hash );
 }
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
@@ -493,6 +560,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
     };
     switch ( joSR.joACI.strType ) {
     case "tm": {
+        /*
         details.write(
             cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
             cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
@@ -525,28 +593,52 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 "transaction_dict": JSON.stringify( txAdjusted )
             };
             details.write( cc.debug( "Calling Transaction Manager to sign-and-send with " ) + cc.j( txAdjusted ) + "\n" );
-            await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
-                if( err ) {
-                    const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager failed, error: " ) + cc.warning( err ) + "\n";
-                    if( verbose_get() >= RV_VERBOSE.error )
-                        log.write( s );
-                    details.write( s );
-                    return; // process.exit( 156 );
-                }
-                details.write( cc.debug( "Transaction Manager sign-and-send result is: " ) + cc.j( joOut ) + "\n" );
-                if( joOut && "data" in joOut && joOut.data && "transaction_hash" in joOut.data )
-                    joSR.txHashSent = "" + joOut.data.transaction_hash;
-                else {
-                    const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager returned bad answer: " ) + cc.j( joOut ) + "\n";
-                    if( verbose_get() >= RV_VERBOSE.error )
-                        log.write( s );
-                    details.write( s );
-                    return; // process.exit( 156 );
-                }
-            } );
+            await joCall.call(
+                joIn,
+                // async
+                function( joIn, joOut, err ) {
+                    if( err ) {
+                        const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager failed, error: " ) + cc.warning( err ) + "\n";
+                        if( verbose_get() >= RV_VERBOSE.error )
+                            log.write( s );
+                        details.write( s );
+                        return; // process.exit( 156 );
+                    }
+                    details.write( cc.debug( "Transaction Manager sign-and-send result is: " ) + cc.j( joOut ) + "\n" );
+                    if( joOut && "data" in joOut && joOut.data && "transaction_hash" in joOut.data )
+                        joSR.txHashSent = "" + joOut.data.transaction_hash;
+                    else {
+                        const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager returned bad answer: " ) + cc.j( joOut ) + "\n";
+                        if( verbose_get() >= RV_VERBOSE.error )
+                            log.write( s );
+                        details.write( s );
+                        return; // process.exit( 156 );
+                    }
+                } );
         } );
         await sleep( 5000 );
         await wait_for_transaction_receipt( details, w3, joSR.txHashSent );
+        */
+        details.write(
+            cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
+            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
+            cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+        );
+        const txAdjusted = JSON.parse( JSON.stringify( rawTx ) ); // tx // rawTx
+        if( "chainId" in txAdjusted )
+            delete txAdjusted.chainId;
+        if( "gasLimit" in txAdjusted && ( ! ( "gas" in txAdjusted ) ) ) {
+            txAdjusted.gas = txAdjusted.gasLimit;
+            delete txAdjusted.gasLimit;
+        }
+        if( redis == null )
+            redis = new Redis( joAccount.strTransactionManagerURL );
+        const priority = 5;
+        const tx_id = await tm_send( details, txAdjusted, priority );
+        const joReceipt = await tm_wait( details, tx_id, w3 );
+        joSR.txHashSent = "" + joReceipt.transactionHash;
+        joSR.joReceipt = joReceipt;
+        joSR.tm_tx_id = tx_id;
     } break;
     case "sgx": {
         details.write(
