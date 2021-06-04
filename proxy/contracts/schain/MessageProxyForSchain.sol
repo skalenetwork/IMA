@@ -237,18 +237,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
             startingCounter == connectedChains[fromChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
         for (uint256 i = 0; i < messages.length; i++) {
-            if (
-                !registryContracts[fromChainHash][messages[i].destinationContract] &&
-                !registryContracts[bytes32(0)][messages[i].destinationContract]
-            ) {
-                emit PostMessageError(
-                    startingCounter + i,
-                    bytes("Destination contract is not registered")
-                );
-                continue;
-            } else {
-                _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
-            }
+            _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
         }
         connectedChains[fromChainHash].incomingMessageCounter 
             = connectedChains[fromChainHash].incomingMessageCounter.add(uint256(messages.length));
