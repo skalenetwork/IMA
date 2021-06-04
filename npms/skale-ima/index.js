@@ -633,7 +633,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         }
         if( redis == null )
             redis = new Redis( joAccount.strTransactionManagerURL );
-        const priority = 5;
+        const priority = joAccount.tm_priority || 5;
         const tx_id = await tm_send( details, txAdjusted, priority );
         const joReceipt = await tm_wait( details, tx_id, w3 );
         joSR.txHashSent = "" + joReceipt.transactionHash;
