@@ -481,7 +481,7 @@ describe("MessageProxy", () => {
             let a = await receiverMock.a();
             expect(a.toNumber()).be.equal(0);
 
-            let res = await (await messageProxyForMainnet
+            const res = await (await messageProxyForMainnet
                 .connect(deployer)
                 .postIncomingMessages(
                     schainName,
@@ -748,7 +748,7 @@ describe("MessageProxy", () => {
             let a = await receiverMock.a();
             expect(a.toNumber()).be.equal(0);
 
-            let res = await (await messageProxyForSchainWithoutSignature
+            const res = await (await messageProxyForSchainWithoutSignature
                 .connect(deployer)
                 .postIncomingMessages(
                     "Mainnet",
