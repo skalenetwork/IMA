@@ -1163,7 +1163,7 @@
         },
         {
             "type": "function",
-            "name": "unconnectSchain",
+            "name": "disconnectSchain",
             "constant": false,
             "payable": false,
             "inputs": [
