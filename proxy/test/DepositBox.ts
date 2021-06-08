@@ -243,7 +243,7 @@ describe("DepositBox", () => {
                 const res = await depositBoxERC20
                     .connect(deployer)
                     .depositERC20(schainName, erc20.address, deployer.address, 1);
-                // console.log("Gas for depoositERC20:", res.receipt.gasUsed);
+                // console.log("Gas for depositERC20:", res.receipt.gasUsed);
             });
         });
 
@@ -325,7 +325,7 @@ describe("DepositBox", () => {
                 const res = await (await depositBoxERC721
                     .connect(deployer)
                     .depositERC721(schainName, contractHere, to, tokenId2)).wait();
-                // console.log("Gas for depoositERC721:", res.receipt.gasUsed);
+                // console.log("Gas for depositERC721:", res.receipt.gasUsed);
                 // expectation
                 expect(await eRC721OnChain.ownerOf(tokenId)).to.equal(depositBoxERC721.address);
                 expect(await eRC721OnChain.ownerOf(tokenId2)).to.equal(depositBoxERC721.address);
@@ -424,7 +424,7 @@ describe("DepositBox", () => {
                 const res = await (await depositBoxERC1155
                     .connect(deployer)
                     .depositERC1155(schainName, contractHere, to, id2, amount2)).wait();
-                // console.log("Gas for depoositERC1155:", res.receipt.gasUsed);
+                // console.log("Gas for depositERC1155:", res.receipt.gasUsed);
                 // expectation
                 expect(BigNumber.from(await eRC1155OnChain.balanceOf(depositBoxERC1155.address, id)).toNumber()).to.equal(amount);
                 expect(BigNumber.from(await eRC1155OnChain.balanceOf(depositBoxERC1155.address, id2)).toNumber()).to.equal(amount2);
@@ -479,7 +479,7 @@ describe("DepositBox", () => {
                 const res = await (await depositBoxERC1155
                     .connect(deployer)
                     .depositERC1155Batch(schainName, contractHere, to, ids2, amounts2)).wait();
-                // console.log("Gas for depoositERC1155:", res.receipt.gasUsed);
+                // console.log("Gas for depositERC1155:", res.receipt.gasUsed);
                 // expectation
                 const balanceIds = await eRC1155OnChain.balanceOfBatch([depositBoxERC1155.address, depositBoxERC1155.address, depositBoxERC1155.address], ids);
                 const balanceIds2 = await eRC1155OnChain.balanceOfBatch([depositBoxERC1155.address, depositBoxERC1155.address, depositBoxERC1155.address], ids2);
