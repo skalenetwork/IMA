@@ -1,0 +1,5 @@
+name: ima
+title: Interchain Messaging Agent
+version: 1.0.x
+nav:
+  - modules/ROOT/nav.adoc

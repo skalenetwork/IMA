@@ -1,0 +1,138 @@
+= Message Proxy
+
+The MessageProxy contract sends messages to any contract. The IMA system uses MessageProxy to send Eth, ERC20, ERC721 transfer messages to DepositBox and TokenManager contracts, and is expandable to support other messages and contracts.
+
+== Architecture
+
+* MessageProxy contracts are deployed on Mainnet and each SKALE Chain.
+* Contracts are registered to MessageProxy, allowing them to interact with the IMA Agent.
+* Messages sent via `postOutgoingMessage` are processed by the IMA Agent, a containerized nodejs script operating on each SKALE Node and listening for events on the SKALE Chain and Mainnet. 
+* When the Agent receives an Outgoing Message on either blockchain, it sends the message onward via `postIncomingMessage` to another MessageProxy contract on the destination chain to which it's sent.
+* You can view how `postOutgoingMessage` is used by DepositBox and TokenManager when a transfer is initiated to another chain (Mainnet or SKALE Chain).
+
+== Implementation
+
+First, your contracts must be registered to MessageProxy on Mainnet and on your SKALE Chain. This enables the Agent to interact with your specific contracts.
+
+To send messages via MessageProxy, your sending contract(s) on the SKALE Chain or Mainnet need to call `postOutgoingMessage` on the MessageProxy to send messages through the Agent. You need to pass in the parameters for destinationChainID, destination contract address, and the data to be sent. If you send messages from Schain to Mainnet, you must call MessageProxyOnSchain's `postOutgoingMessage` and include destinationChainID = "Mainnet" and the receiving contract address on Mainnet.
+
+To receive messages via MessageProxy, your receiving contract(s) need to implement `postMessage` logic (see PostMessage section below).
+
+When the IMA Agent receives a message from `postOutgoingMessage`, the agent calls `postIncomingMessage` on the destination chain's MessageProxy contract, and this `postIncomingMessage` executes the `postMessage` function in your contract.
+
+.To register contracts with MessageProxy on Mainnet:
+
+* Add extra mainnet contract by calling `registerExtraContract("Mainnet", [CONTRACT_ADDRESS_ON_MAINNET])`
+* Remove extra mainnet contract by calling `removeExtraContract("Mainnet", [CONTRACT_ADDRESS_ON_MAINNET])`.
+
+.To register contracts with MessageProxy on SKALE Chain:
+
+* Add extra SKALE Chain contract by calling `registerExtraContract([SKALE_CHAIN_NAME], [CONTRACT_ADDRESS_ON_SCHAIN])`.
+* Remove extra SKALE Chain contract by calling `removeExtraContract([SKALE_CHAIN_NAME], [CONTRACT_ADDRESS_ON_SCHAIN])`.
+
+.To send messages from SKALE Chain to Mainnet
+
+* Your SKALE Chain contract(s) must call `postOutgoingMessage("Mainnet", [RECEIVING_CONTRACT_ADDRESS_ON_MAINNET], [ETH_AMOUNT], [FINAL RECEIVER/CONTRACT ADDRESS], [DATA])`
+* The receiving contract address on mainnet must implement a `postMessage` function.
+
+.To send messages from Mainnet to SKALE Chain:
+
+* Your Mainnet contract(s) must call `postOutgoingMessage([SKALE_CHAIN_NAME], [RECEIVING_CONTRACT_ADDRESS_ON_SCHAIN], [ETH_AMOUNT], [FINAL RECEIVER/CONTRACT ADDRESS_ON_SCHAIN], [DATA])`
+* The receiving contract address on SKALE Chain must implement a `postMessage` function.
+
+.To send only data
+
+You only need to pass the [SKALE_CHAIN_NAME], [RECEIVING_CONTRACT_ADDRESS], and [DATA] parameters and implement the postMessage logic in the receiving contract to handle the data. The [FINAL RECEIVER/CONTRACT ADDRESS_ON_SCHAIN] and [AMOUNT] parameters can be ignored.
+
+== PostMessage
+
+See below for instructions to implement postMessage in receiving contracts:
+
+1. Add the interface:
+
+```solidity
+interface Proxy {
+    function postOutgoingMessage(
+        string calldata dstChainID, 
+        address dstContract, 
+        uint256 amount, 
+        address to, 
+        bytes calldata data
+    ) 
+        external;
+}
+```
+
+[start=2]
+2. Add the postMessage function to process incoming messages from the Agent.
+
+```solidity
+function postMessage(
+    address sender, 
+    string memory fromSchainID, 
+    address payable to, 
+    uint256 amount, 
+    bytes memory data
+) 
+    public 
+{
+    [add in your processing logic]
+}
+```
+
+[start=3]
+3. Add the address of MessageProxyOnMainnet or MessageProxyOnSchain.
+
+== Methods
+
+=== MessageProxyForMainnet
+
+.registerExtraContract
+
+Adds extra contract to skale-chain - means that MessageProxyForMainnet will not revert messages from this contract to given schainName - otherwise revert
+
+Calling from SchainOwner or EXTRA_CONTRACT_REGISTRAR_ROLE
+
+.removeExtraContract
+
+removes extra contract to skale-chain - means that MessageProxyForMainnet will revert messages from this contract to given schainName
+
+Calling from SchainOwner or EXTRA_CONTRACT_REGISTRAR_ROLE
+
+.registerExtraContractForAll
+
+adds extra contract to all skale-chains(already connected or would be connected) - means that MessageProxyForMainnet will not revert messages from this contract to all schains
+
+Calling only from EXTRA_CONTRACT_REGISTRAR_ROLE
+
+.removeExtraContractForAll
+
+Removes extra contract from all skale-chains(already connected or would be connected) - means that MessageProxyForMainnet will revert messages from this contract to all schains
+
+Calling only from EXTRA_CONTRACT_REGISTRAR_ROLE
+
+=== MessageProxyForSchain
+
+.registerExtraContract
+
+Adds extra contract to skale-chain or “Mainnet” - means that MessageProxyForSchain will not revert messages from this contract to given schainName or “Mainnet” - otherwise revert
+
+Calling from SchainOwner or EXTRA_CONTRACT_REGISTRAR_ROLE
+
+.removeExtraContract
+
+Removes extra contract to skale-chain or “Mainnet” - means that MessageProxyForSchain will revert messages from this contract to given schainName or “Mainnet”
+
+Calling from SchainOwner or EXTRA_CONTRACT_REGISTRAR_ROLE
+
+.registerExtraContractForAll
+
+Adds extra contract to all skale-chains and “Mainnet”(already connected or would be connected) - means that MessageProxyForSchain will not revert messages from this contract to all schains and “Mainnet”
+
+Calling only from EXTRA_CONTRACT_REGISTRAR_ROLE
+
+.removeExtraContractForAll
+
+Removes extra contract from all skale-chains and “Mainnet”(already connected or would be connected) - means that MessageProxyForSchain will revert messages from this contract to all schains and “Mainnet”
+
+Calling only from EXTRA_CONTRACT_REGISTRAR_ROLE (edited) 

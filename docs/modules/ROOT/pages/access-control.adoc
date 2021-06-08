@@ -1,0 +1,242 @@
+= IMA Access Control
+
+== Introduction
+
+The SKALE Chain owner has special permissions to configure SKALE Chain access control. The owner may choose a permissive policy, restricting access to only certain users and/or tokens, or may choose a permissionless policy, enabling any user and/or tokens. This access control includes several features: 
+
+.SKALE Chain ETH
+    * controlling how users access SKALE Chain ETH to perform transactions.
+
+.IMA token exchange
+    * controlling which tokens transfer between Mainnet and SKALE Chains.
+
+This document describes how SKALE Chain owners can set permissions for IMA token exchange.
+
+IMA permissions include:
+
+* Enable/disable IMA token whitelist on mainnet (default: enabled)
+* Enable/disable automatic deployment on schain (default: disabled)
+* AddERC20TokenByOwner on mainnet and on schain
+* AddERC721TokenByOwner on mainnet and on schain
+
+== Enable or Disable the Whitelist
+
+The token whitelist allows the Schain owner to allow token exchange through IMA and a SKALE chain. For example, a decentralized exchange may prefer to disable the whitelist to allow any token transfer. A dApp using only one token may enable the whitelist to allow only a single token exchange. 
+
+To disable the whitelist, the owner executes `disableWhitelist` in LockAndDataForMainnetERC20 or LockAndDataForMainnetERC721 contracts, and pass in the schainName as the only argument. For example:
+
+[tabs]
+====
+Python::
++
+--
+
+[source,python]
+----
+lock_and_data_for_mainnet_erc20 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc20')
+disable = lock_and_data_for_mainnet_erc20.encodeABI(fn_name="disableWhitelist", args=[schainName])
+
+signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
+        nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
+        gasPrice=self.web3_mainnet.eth.gasPrice,
+        gas=200000,
+        to=lock_and_data_for_mainnet_erc20.address,
+        value=0,
+        data = disable
+    ),
+    from_key)
+
+self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+----
+--
+====
+
+To re-enable the whitelist:
+
+[tabs]
+====
+Python::
++
+--
+
+[source,python]
+----
+lock_and_data_for_mainnet_erc20 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc20')
+enable = lock_and_data_for_mainnet_erc20.encodeABI(fn_name="enableWhitelist", args=[schainName])
+
+signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
+        nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
+        gasPrice=self.web3_mainnet.eth.gasPrice,
+        gas=200000,
+        to=lock_and_data_for_mainnet_erc20.address,
+        value=0,
+        data = enable
+    ),
+    from_key)
+
+self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+----
+--
+====
+
+== Adding tokens with Enabled Whitelist
+
+If the whitelist is enabled, the SKALE chain owner must authorize each token for the schain. 
+
+You can use `addERC20TokenByOwner` and `addERC721TokenByOwner` functions available in LockAndData contracts on both Mainnet and each Schain.
+
+The recommended process is
+
+1. Deploy the ERC20 or ERC721 token contract on the SKALE chain.
+2. Add the token to LockAndData on the Schain.
+3. Grant the token's minter role to LockAndData on the Schain.
+4. Add the token to LockAndData on Mainnet.
+
+=== Adding tokens to LockAndDataForSchain
+
+NOTE: `addERC20TokenByOwner` and `addERC721TokenByOwner` on the LockAndDataForSchain takes 3 arguments. When enabling transfers to mainnet, `schainName` is set to "Mainnet". When enabling transfers to another schain, `schainName` is set to the other schain name.
+
+==== Adding ERC20
+
+[tabs]
+====
+Python::
++
+--
+
+[source,python]
+----
+lock_and_data_for_schain_erc20 = self._get_contract_on_schain('lock_and_data_for_schain_erc20')
+addERC20Schain = lock_and_data_for_schain_erc20.encodeABI(fn_name="addERC20TokenByOwner", args=[schainName, erc20MainnetAddress, erc20SchainAddress])
+
+signed_txn = self.web3_schain.eth.account.signTransaction(dict(
+        nonce=self.web3_schain.eth.getTransactionCount(sender_address),
+        gasPrice=self.web3_schain.eth.gasPrice,
+        gas=200000,
+        to=lock_and_data_for_schain_erc20.address,
+        value=0,
+        data = addERC20Schain
+    ),
+    from_key)
+
+self.web3_schain.eth.sendRawTransaction(signed_txn.rawTransaction)
+----
+--
+====
+
+==== Adding ERC721
+
+[tabs]
+====
+Python::
++
+--
+
+[source,python]
+----
+lock_and_data_for_schain_erc721 = self._get_contract_on_schain('lock_and_data_for_schain_erc721')
+addERC721Schain = lock_and_data_for_schain_erc721.encodeABI(fn_name="addERC721TokenByOwner", args=[schainName, erc721MainnetAddress, erc721SchainAddress])
+
+signed_txn = self.web3_schain.eth.account.signTransaction(dict(
+        nonce=self.web3_schain.eth.getTransactionCount(sender_address),
+        gasPrice=self.web3_schain.eth.gasPrice,
+        gas=200000,
+        to=lock_and_data_for_schain_erc721.address,
+        value=0,
+        data = addERC721Schain
+    ),
+    from_key)
+
+self.web3_schain.eth.sendRawTransaction(signed_txn.rawTransaction)
+----
+--
+====
+
+=== Assign Schain LockAndData as Minter and Burner role
+
+You need to assign LockAndData as the minter and burner for the deployed token on the schain. For AccessControl supported ERC20/ERC721, you can use apply the following pseudocode:
+
+[tabs]
+====
+Python::
++
+--
+
+[source,python]
+----
+newERC20 = deployERC20(deployer)
+minterRoleERC20 = newERC20.MINTER_ROLE()
+newERC20.grantRole(minterRoleERC20, lock_and_data_for_schain_erc20.address)
+----
+--
+====
+
+=== Adding tokens to LockAndDataForMainnet
+
+NOTE: `addERC20TokenByOwner` and `addERC721TokenByOwner` on the LockAndDataForMainnet takes 2 arguments: schainName and erc20Mainnet/erc721Mainnet address.
+
+==== Adding ERC20
+
+[tabs]
+====
+Python::
++
+--
+
+[source,python]
+----
+lock_and_data_for_mainnet_erc20 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc20')
+addERC20Mainnet = lock_and_data_for_mainnet_erc20.encodeABI(fn_name="addERC20TokenByOwner", args=[schainName, erc20MainnetAddress])
+
+signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
+        nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
+        gasPrice=self.web3_mainnet.eth.gasPrice,
+        gas=200000,
+        to=lock_and_data_for_mainnet_erc20.address,
+        value=0,
+        data = addERC20Mainnet
+    ),
+    from_key)
+
+self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+----
+--
+====
+
+==== Adding ERC721
+
+NOTE: `addERC721TokenByOwner` on the LockAndDataForMainnet takes 2 arguments: schainName and erc721Mainnet address.
+
+[tabs]
+====
+Python::
++
+--
+
+[source,python]
+----
+lock_and_data_for_mainnet_erc721 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc721')
+addERC721Mainnet = lock_and_data_for_mainnet_erc721.encodeABI(fn_name="addERC721TokenByOwner", args=[schainName, erc721MainnetAddress])
+
+signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
+        nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
+        gasPrice=self.web3_mainnet.eth.gasPrice,
+        gas=200000,
+        to=lock_and_data_for_mainnet_erc721.address,
+        value=0,
+        data = addERC20Mainnet
+    ),
+    from_key)
+
+self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+----
+--
+====
+
+== Automatic deployment
+
+Automatic deployment is disabled by default and requires that the SKALE Chain owner deploys the token contract on the schain. 
+
+If enabled, then tokens are automatically deployed on the schain by the TokenFactory contract after a token is received through DepositBox on mainnet.
+
+NOTE: Automatic deployment is currently not supported by skaled.

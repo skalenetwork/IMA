@@ -1,0 +1,30 @@
+= Getting Started with IMA 
+
+The IMA bridge between SKALE and Ethereum allows users to transfer tokens across chains. The SKALE IMA bridge supports ETH, ERC20, and ERC721 out of the box. IMA can be expanded to any arbitrary message or token standard using MessageProxy.
+
+IMA consists of three parts:
+
+1. IMA contracts on Ethereum.
+2. IMA contracts pre-deployed on your SKALE Chain.
+3. IMA Agent - a containerized service on each SKALE Chain node that relays messages between Ethereum and your SKALE Chain.
+
+Developing with IMA is easy. You will only need to interact with the IMA contracts on Ethereum and your SKALE Chain. The IMA Agent works behind the scenes to relay messages between Ethereum and SKALE.
+
+The high-level flow between Ethereum and SKALE Chains consists of the following:
+
+* Tokens that leave Ethereum are locked, and the same number of tokens are minted on a SKALE Chain.
+* Tokens that leave SKALE are burned, and then unlocked on Ethereum to complete the transfer.
+
+Deposits and withdraws take only seconds, and are secured using BLS Threshold signatures and secure enclaves from the 16 validator-nodes that support the SKALE Chain.
+
+== Key Concepts for the SKALE IMA Bridge
+
+* Token contracts on Ethereum are deployed and registered on SKALE chains. 
+
+* In order for an Ethereum Mainnet token contract to work with IMA on your SKALE Chain, **the token contract copy deployed on SKALE may need to be modified to include MINTABLE and BURNABLE functions**. SKALE Chain IMA contracts need to mint and burn the token on SKALE chains to maintain the 1:1 peg with Ethereum. If the token is already using OpenZeppelin's framework, you can do this by importing ERC20Mintable/ERC721Mintable and ERC20Burnable/ERC721Burnable contracts that extend the functionality to include mintable and burnable functions. You can also do this by manually modifying the contract by adding mintable and burnable functions.
+
+* The SKALE Chain contracts "LockAndData.." must be assigned the minter role for your modified token contract. This enables IMA to mint token clones as the tokens are Locked on mainnet contracts.
+
+* When using ERC721s, be careful with *MINT_ID*. This is the mapping between Mainnet and SKALE Chain ERC721s. Improper or corrupt mapping may cause loss of ERC721.
+
+* Be sure to use Web3.js 1.3.5.  Don't use any Web3.js 2.x.x

@@ -1,0 +1,636 @@
+= Managing ERC20
+
+As a SKALE Chain Owner, there are two main steps to managing ERC20 through IMA:
+
+1.  xref:setup[One-time setup and map your ERC20 tokens to your SKALE Chain]
+2.  xref:transfer[Transferring ERC20 using IMA]
+
+Once you have completed step 1 to setup and map your ERC20 tokens, you can then setup transfer flow to allow end-users to transfer ERC20 tokens between Ethereum and your SKALE Chain.
+
+[[setup]]
+== Setup and Map ERC20 Transfers
+
+The following one-time setup for each ERC20 token is required for SKALE Chains with a default access control policy (default settings are: whitelisting enabled, automatic deployment disabled). For more information on IMA access control, xref:access-control.adoc[see here].
+
+To see a complete Javascript sandbox version of setup, map, and transfer, see <https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-u4tdt>
+
+
+=== 1. Review the token contract
+
+First, review the Mainnet ERC20 token implementation and (if needed) modify a SKALE Chain version of the contract to include Mintable and Burnable functions. These functions are required to dynamically mint and burn the token on the SKALE chain in response to deposit and exit on the Mainnet.
+
+==== Example Mainnet contract
+
+```javascript
+pragma solidity >=0.4.22 <0.6.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
+
+interface tokenRecipient {
+    function receiveApproval(address _from, uint256 _value, address _token, bytes calldata _extraData) external;
+}
+
+contract MyERC20 is ERC20, ERC20Detailed, ERC20Mintable{
+
+    constructor(
+    uint256 _amount,
+    string memory _name,
+    string memory _symbol,
+    uint256 _decimals
+
+  )
+    ERC20Detailed(_name, _symbol, 18)
+    public
+  {
+    require(_amount > 0, "amount has to be greater than 0");
+    _mint(msg.sender, _amount.mul(10 ** uint256(_decimals)));
+    }
+}
+```
+
+==== Example Modified SKALE Chain contract
+
+```javascript
+pragma solidity >=0.4.22 <0.6.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
+
+contract MyERC20 is ERC20Burnable, ERC20Detailed, ERC20Mintable {
+
+    constructor(
+      string memory _name,
+      string memory _symbol,
+      uint256 _decimals
+    )
+    ERC20Detailed(_name, _symbol, 18)
+    public
+    {
+    }
+}
+```
+
+If you aren't using OpenZeppelin's framework, then you can simply manually add https://github.com/OpenZeppelin/openzeppelin-contracts/blob/c3178ff942f9f487b9fda2c648aa19e633560adb/contracts/token/ERC20/ERC20.sol#L233[Mintable] and https://github.com/OpenZeppelin/openzeppelin-contracts/blob/c3178ff942f9f487b9fda2c648aa19e633560adb/contracts/token/ERC20/ERC20.sol#L254[Burnable] functions, and finally https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v2.5.1/contracts/access/roles/MinterRole.sol[add MINTER_ROLE access control]. 
+
+=== 2. Add a Minter Role
+
+Now you need to add the pre-deployed LockAndDataForSchainERC20 contact on your SKALE Chain as the MINTER_ROLE for the modified SKALE Chain contract. With OpenZeppelin's framework, you simply need to execute an AddMinter transaction on the SKALE chain token contract.
+
+==== Example Add Minter Role 
+
+[tabs]
+====
+Javascript::
++
+--
+
+[source,javascript]
+----
+import Common from "ethereumjs-common";
+const Tx = require("ethereumjs-tx").Transaction;
+const Web3 = require("web3");
+
+export function addMinter() {
+  let schainABIs = require("./contracts/schain_ABIs.json");
+  let schainERC20ABI = require("./contracts/schain_ERC20_ABI.json");
+
+  let contractOwnerPrivateKey = new Buffer(
+    process.env.REACT_APP_INSECURE_CONTRACT_OWNER_PRIVATE_KEY,
+    "hex"
+  );
+  let contractOwnerAccount =
+    process.env.REACT_APP_INSECURE_CONTRACT_OWNER_ACCOUNT;
+
+  let schainEndpoint = process.env.REACT_APP_INSECURE_SKALE_CHAIN;
+  let chainId = process.env.REACT_APP_INSECURE_CHAIN_ID;
+
+  const customCommon = Common.forCustomChain(
+    "mainnet",
+    {
+      name: "skale-network",
+      chainId: chainId
+    },
+    "istanbul"
+  );
+
+  const erc20ABI = schainERC20ABI.erc20_abi;
+  const erc20Address = schainERC20ABI.erc20_address;
+
+  const lockAndDataForSchainERC20Address =
+    schainABIs.lock_and_data_for_schain_erc20_address;
+
+  const web3ForSchain = new Web3(schainEndpoint);
+
+  let schainERC20Contract = new web3ForSchain.eth.Contract(
+    erc20ABI,
+    erc20Address
+  );
+
+  /**
+   * Uses the openzeppelin ERC20Mintable
+   * contract function addMinter
+   * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC20
+   */
+let addMinter = schainERC20Contract.methods
+    .addMinter(lockAndDataForSchainERC20Address)
+    .encodeABI();
+
+  web3ForSchain.eth.getTransactionCount(contractOwnerAccount).then((nonce) => {
+    //create raw transaction
+    const rawTxAddMinter = {
+      chainId: chainId,
+      from: contractOwnerAccount,
+      nonce: nonce,
+      data: addMinter,
+      to: erc20Address,
+      gasPrice: 100000000000,
+      gas: 8000000,
+      value: 0
+    };
+    //sign transaction
+    const txAddMinter = new Tx(rawTxAddMinter, { common: customCommon });
+    txAddMinter.sign(contractOwnerPrivateKey);
+
+    const serializedTxAddMinter = txAddMinter.serialize();
+
+    //send signed transaction (add minter)
+    web3ForSchain.eth
+      .sendSignedTransaction("0x" + serializedTxAddMinter.toString("hex"))
+      .on("receipt", (receipt) => {
+        console.log(receipt);
+      })
+      .catch(console.error);
+  });
+----
+--
+====
+
+For a Javascript sandbox of the minter implementation, see <https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-u4tdt?file=/src/addMinter.js>
+
+
+=== 3. Register Mainnet contract to IMA
+
+Third, you need to register the Mainnet token contract into IMA on Mainnet using the addERC20TokenByOwner method in the LockAndDataForMainnet contract.
+
+[tabs]
+====
+Javascript::
++
+--
+
+[source,javascript]
+----
+const Web3 = require("web3");
+const Tx = require("ethereumjs-tx").Transaction;
+
+export function registerOnMainnet() {
+  let rinkebyABIs = require("./contracts/rinkeby_ABIs.json");
+  let rinkebyERC20ABI = require("./contracts/rinkeby_ERC20_ABI.json");
+
+  let privateKey = new Buffer(
+    process.env.REACT_APP_INSECURE_SCHAIN_OWNER_PRIVATE_KEY,
+    "hex"
+  );
+  let erc20OwnerForMainnet =
+    process.env.REACT_APP_INSECURE_SCHAIN_OWNER_ACCOUNT;
+
+  let rinkeby = process.env.REACT_APP_INSECURE_RINKEBY;
+  let schainName = process.env.REACT_APP_INSECURE_CHAIN_NAME;
+  let chainId = process.env.REACT_APP_INSECURE_RINKEBY_CHAIN_ID;
+
+  const lockAndDataAddress =
+    rinkebyABIs.lock_and_data_for_mainnet_erc20_address;
+  const lockAndDataBoxABI = rinkebyABIs.lock_and_data_for_mainnet_erc20_abi;
+
+  const erc20AddressOnMainnet = rinkebyERC20ABI.erc20_address;
+
+  const web3ForMainnet = new Web3(rinkeby);
+
+  let LockAndDataForMainnet = new web3ForMainnet.eth.Contract(
+    lockAndDataBoxABI,
+    lockAndDataAddress
+  );
+
+  /**
+   * Uses the SKALE LockAndDataForMainnetERC20
+   * contract function addERC20TokenByOwner
+   */
+let addERC20TokenByOwner = LockAndDataForMainnet.methods
+    .addERC20TokenByOwner(schainName, erc20AddressOnMainnet)
+    .encodeABI();
+
+  web3ForMainnet.eth.getTransactionCount(erc20OwnerForMainnet).then((nonce) => {
+    const rawTxAddERC20TokenByOwner = {
+      chainId: chainId,
+      from: erc20OwnerForMainnet,
+      nonce: "0x" + nonce.toString(16),
+      data: addERC20TokenByOwner,
+      to: lockAndDataAddress,
+      gas: 6500000,
+      gasPrice: 100000000000,
+      value: web3ForMainnet.utils.toHex(
+        web3ForMainnet.utils.toWei("0", "ether")
+      )
+    };
+
+    //sign transaction
+    const txAddERC20TokenByOwner = new Tx(rawTxAddERC20TokenByOwner, {
+      chain: "rinkeby",
+      hardfork: "petersburg"
+    });
+
+    txAddERC20TokenByOwner.sign(privateKey);
+
+    const serializedTxDeposit = txAddERC20TokenByOwner.serialize();
+
+    //send signed transaction (addERC20TokenByOwner)
+    web3ForMainnet.eth
+      .sendSignedTransaction("0x" + serializedTxDeposit.toString("hex"))
+      .on("receipt", (receipt) => {
+        console.log(receipt);
+      })
+      .catch(console.error);
+  });
+----
+--
+====
+
+For a Javascript sandbox version of registering contracts on Mainnet, see <https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-u4tdt?file=/src/addERC20TokenByOwner.js>
+
+=== 4. Register SKALE Chain contract to IMA
+
+Finally, you need to register the (modified) token contract on the SKALE chain IMA using the addERC20TokenByOwner method in LockAndDataForSchain contract. Note that you need to register the contract on Mainnet first, so that the registration on the SKALE Chain can reference the Mainnet token address.
+
+[tabs]
+====
+Javascript::
++
+--
+
+[source,javascript]
+----
+import Common from "ethereumjs-common";
+const Web3 = require("web3");
+const Tx = require("ethereumjs-tx").Transaction;
+
+export function registerOnSchain() {
+  let schainABIs = require("./contracts/schain_ABIs.json");
+  let schainERC20ABI = require("./contracts/schain_ERC20_ABI.json");
+  let rinkebyERC20ABI = require("./contracts/rinkeby_ERC20_ABI.json");
+
+  let privateKey = new Buffer(
+    process.env.REACT_APP_INSECURE_SCHAIN_OWNER_PRIVATE_KEY,
+    "hex"
+  );
+  let erc20OwnerForSchain = process.env.REACT_APP_INSECURE_SCHAIN_OWNER_ACCOUNT;
+
+  let schain = process.env.REACT_APP_INSECURE_SKALE_CHAIN;
+  let chainId = process.env.REACT_APP_INSECURE_CHAIN_ID;
+
+  const customCommon = Common.forCustomChain(
+    "mainnet",
+    {
+      name: "skale-network",
+      chainId: chainId
+    },
+    "istanbul"
+  );
+
+  const lockAndDataAddress = schainABIs.lock_and_data_for_schain_erc20_address;
+  const lockAndDataBoxABI = schainABIs.lock_and_data_for_schain_erc20_abi;
+
+  const erc20AddressOnMainnet = rinkebyERC20ABI.erc20_address;
+  const erc20AddressOnSchain = schainERC20ABI.erc20_address;
+
+  const web3ForSchain = new Web3(schain);
+
+  let LockAndDataForSchain = new web3ForSchain.eth.Contract(
+    lockAndDataBoxABI,
+    lockAndDataAddress
+  );
+
+  /**
+   * Uses the SKALE LockAndDataForMainnetERC20
+   * contract function addERC20TokenByOwner
+   */
+let addERC20TokenByOwner = LockAndDataForSchain.methods
+    .addERC20TokenByOwner(
+      "Mainnet",
+      erc20AddressOnMainnet,
+      erc20AddressOnSchain
+    )
+    .encodeABI();
+
+  web3ForSchain.eth.getTransactionCount(erc20OwnerForSchain).then((nonce) => {
+    const rawTxAddERC20TokenByOwner = {
+      from: erc20OwnerForSchain,
+      nonce: "0x" + nonce.toString(16),
+      data: addERC20TokenByOwner,
+      to: lockAndDataAddress,
+      gas: 6500000,
+      gasPrice: 100000000000,
+      value: web3ForSchain.utils.toHex(web3ForSchain.utils.toWei("0", "ether"))
+    };
+
+    //sign transaction
+    const txAddERC20TokenByOwner = new Tx(rawTxAddERC20TokenByOwner);
+
+    txAddERC20TokenByOwner.sign(privateKey);
+
+    const serializedTxDeposit = txAddERC20TokenByOwner.serialize();
+
+    //send signed transaction (addERC20TokenByOwner)
+    web3ForSchain.eth
+      .sendSignedTransaction("0x" + serializedTxDeposit.toString("hex"))
+      .on("receipt", (receipt) => {
+        console.log(receipt);
+      })
+      .catch(console.error);
+  });
+----
+--
+====
+
+For a Javascript sandbox version of registering contracts on your SKALE Chain, see <https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-u4tdt?file=/src/schain_addERC20TokenByOwner.js>
+
+== Get Started with ERC20 Transfer
+
+The Interchain Messaging Agent can be used for managing ERC20 tokens between Ethereum and SKALE.  The following steps guide you through a complete transfer from Ethereum to SKALE and back. Be sure to follow any one-time setup and mapping steps described xref:setup[here] before initiating transfers.
+
+https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-u4tdt[Live ERC20 IMA Demo]
+
+=== 1. Deposit ERC20 on Ethereum
+
+To send ERC20 tokens from a user's wallet to the IMA Deposit Box on Ethereum, you will need to use the https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/DepositBox.sol#L89[depositERC20] function within the **DepositBox** IMA contract on Ethereum.  
+
+This method is called from Ethereum to lock ERC20 tokens and move ERC20 tokens into a Deposit Box.  
+
+The **DepositBox** contract is on Rinkeby testnet. To get the ABIs to interact with IMA on Rinkeby, check out the https://github.com/skalenetwork/skale-network/tree/master/releases/rinkeby/IMA[current release page].  
+
+[tabs]
+====
+Javascript::
++
+--
+
+[source,javascript]
+----
+const Web3 = require('web3');
+const Tx = require('ethereumjs-tx').Transaction;
+
+let rinkebyABIs = "[YOUR_SKALE_ABIs_ON_RINKEBY]";
+let rinkebyERC20ABI = "[YOUR_ERC20_ABI_ON_RINKEBY]";
+
+let privateKeyForMainnet = new Buffer("[YOUR_MAINNET_ACCOUNT_PRIVATE_KEY]", 'hex')
+
+let accountForMainnet = "[YOUR_MAINNET_ACCOUNT_ADDRESS]";
+let accountForSchain = "[YOUR_SCHAIN_ACCOUNT_ADDRESS]";
+
+let rinkeby = "[RINKEBY_ENDPOINT]";
+let schainName = "[YOUR_SKALE_CHAIN_NAME]";
+let chainId = "RINKEBY_CHAIN_ID";
+
+const depositBoxAddress = rinkebyABIs.deposit_box_address;
+const depositBoxABI = rinkebyABIs.deposit_box_abi;
+
+const erc20ABI = rinkebyERC20ABI.zhelcoin_abi;
+const erc20Address = rinkebyERC20ABI.erc20_address;
+
+const web3ForMainnet = new Web3(rinkeby);
+
+let depositBox = new web3ForMainnet.eth.Contract(
+  depositBoxABI,
+  depositBoxAddress
+);
+
+let contractERC20 = new web3ForMainnet.eth.Contract(erc20ABI, erc20Address);
+
+let approve = contractERC20.methods
+  .approve(
+    depositBoxAddress,
+    web3ForMainnet.utils.toHex(web3ForMainnet.utils.toWei("1", "ether"))
+  )
+  .encodeABI();
+
+let deposit = depositBox.methods
+  .depositERC20(
+    schainName,
+    erc20Address,
+    accountForSchain,
+    web3ForMainnet.utils.toHex(web3ForMainnet.utils.toWei("1", "ether"))
+  )
+  .encodeABI();
+
+web3ForMainnet.eth.getTransactionCount(accountForMainnet).then(nonce => {
+  //create raw transaction
+  const rawTxApprove = {
+    chainId: chainId,
+    from: accountForMainnet,
+    nonce: "0x" + nonce.toString(16),
+    data: approve,
+    to: erc20Address,
+    gas: 6500000,
+    gasPrice: 100000000000
+  };
+
+  //sign transaction
+  const txApprove = new Tx(rawTxApprove, {
+    chain: "rinkeby",
+    hardfork: "petersburg"
+  });
+  txApprove.sign(privateKeyForMainnet);
+
+  const serializedTxApprove = txApprove.serialize();
+
+  //send signed transaction (approve)
+  web3ForMainnet.eth
+    .sendSignedTransaction("0x" + serializedTxApprove.toString("hex"))
+    .on("receipt", receipt => {
+      console.log(receipt);
+      web3ForMainnet.eth
+        .getTransactionCount(accountForMainnet)
+        .then(nonce => {
+          const rawTxDeposit = {
+            chainId: chainId,
+            from: accountForMainnet,
+            nonce: "0x" + nonce.toString(16),
+            data: deposit,
+            to: depositBoxAddress,
+            gas: 6500000,
+            gasPrice: 100000000000,
+            value: web3ForMainnet.utils.toHex(
+              web3ForMainnet.utils.toWei("0.5", "ether")
+            )
+          };
+
+          //sign transaction
+          const txDeposit = new Tx(rawTxDeposit, {
+              chain: "rinkeby",
+              hardfork: "petersburg"
+            });
+
+          txDeposit.sign(privateKeyForMainnet);
+
+          const serializedTxDeposit = txDeposit.serialize();
+
+          //send signed transaction (deposit)
+          web3ForMainnet.eth
+            .sendSignedTransaction("0x" + serializedTxDeposit.toString("hex"))
+            .on("receipt", receipt => {
+              console.log(receipt);
+            })
+            .catch(console.error);
+        });
+    })
+    .catch(console.error);
+});
+----
+--
+====
+
+=== 2. Exit from SKALE Chain
+
+To send ERC20 tokens back to Ethereum, you will need to use the exitToMain function within the **TokenManager** IMA contract on the SKALE Chain.  
+
+This method is called from the SKALE Chain to send funds and move the token back to Ethereum.  
+
+The **TokenManager** IMA contract is pre-deployed to your SKALE Chain. Please reach out to your account manager to receive the ABIs specific for your SKALE Chain.  
+
+[tabs]
+====
+Javascript::
++
+--
+
+[source,javascript]
+----
+const Web3 = require('web3');
+import Common from "ethereumjs-common";
+const Tx = require('ethereumjs-tx').Transaction;
+
+let schainABIs = "[YOUR_SKALE_CHAIN_ABIs]";
+let rinkebyERC20ABI = "[YOUR_RINKEBY_ERC20_ABI]";
+let schainERC20ABI = "[YOUR_SKALE_CHAIN_ERC20_ABI]";
+
+let privateKeyForSchain = new Buffer('[YOUR_SCHAIN_ADDRESS_PRIVATE_KEY]', 'hex')
+
+let accountForMainnet = "[YOUR_MAINNET_ADDRESS]";
+let accountForSchain = "[YOUR_SCHAIN_ADDRESS]";
+let schainEndpoint = "[YOUR_SKALE_CHAIN_ENDPOINT]";
+let chainId = "YOUR_SCHAIN_CHAIN_ID";
+
+const customCommon = Common.forCustomChain(
+    "mainnet",
+    {
+      name: "skale-network",
+      chainId: chainId
+    },
+    "istanbul"
+  );
+
+const tokenManagerAddress = schainABIs.token_manager_address;
+const tokenManagerABI = schainABIs.token_manager_abi;
+
+const schainERC20ABI = schainERC20ABI.erc20_abi;
+const schainERC20Address = schainERC20ABI.erc20_address;
+
+const erc20AddressOnMainnet = rinkebyERC20ABI.erc20_address;
+
+const web3ForSchain = new Web3(schainEndpoint);
+
+let tokenManager = new web3ForSchain.eth.Contract(
+  tokenManagerABI,
+  tokenManagerAddress
+);
+
+let contractERC20 = new web3ForSchain.eth.Contract(
+  schainERC20ABI, 
+  schainERC20Address
+);
+
+//approve the ERC20 transfer 
+let approve = contractERC20.methods
+  .approve(
+    tokenManagerAddress,
+    web3ForSchain.utils.toHex(web3ForSchain.utils.toWei("1", "ether"))
+  )
+  .encodeABI();
+
+/**
+   * Uses the SKALE TokenManager
+   * contract function exitToMainERC20
+   */
+let exit = tokenManager.methods
+  .exitToMainERC20(
+    erc20AddressOnMainnet,
+    accountForMainnet,
+    web3ForSchain.utils.toHex(web3ForSchain.utils.toWei("1", "ether")),
+    web3ForSchain.utils.toHex(web3ForSchain.utils.toWei("0.5", "ether"))
+  )
+  .encodeABI();
+
+//get nonce
+web3ForSchain.eth.getTransactionCount(accountForSchain).then(nonce => {
+  
+  //create raw transaction (approval)
+  const rawTxApprove = {
+    chainId: chainId,
+    from: accountForSchain,
+    nonce: "0x" + nonce.toString(16),
+    data: approve,
+    to: erc20Address,
+    gasPrice: 100000000000,
+    gas: 8000000
+  };
+
+  //sign transaction (approval)
+  const txApprove = new Tx(rawTxApprove, { common: customCommon });
+  txApprove.sign(privateKeyForSchain);
+
+  //serialize transaction  (approval)
+  const serializedTxApprove = txApprove.serialize();
+
+  //send signed transaction (approval)
+  web3ForSchain.eth
+    .sendSignedTransaction("0x" + serializedTxApprove.toString("hex"))
+    .on("receipt", receipt => {
+      console.log(receipt);
+
+      //get next nonce
+      web3ForSchain.eth.getTransactionCount(accountForSchain).then(nonce => {
+        
+        //create raw transaction (exit)
+        const rawTxExit = {
+          chainId: chainId,
+          from: accountForSchain,
+          nonce: "0x" + nonce.toString(16),
+          data: exit,
+          to: tokenManagerAddress,
+          gasPrice: 100000000000,
+          gas: 8000000,
+          value: 0
+        };
+
+        //sign transaction (exit)
+        const txExit = new Tx(rawTxExit, { common: customCommon });
+        txExit.sign(privateKeyForSchain);
+
+        const serializedTxExit = txExit.serialize();
+
+        //send signed transaction (exit)
+        web3ForSchain.eth
+          .sendSignedTransaction("0x" + serializedTxExit.toString("hex"))
+          .on("receipt", receipt => {
+            console.log(receipt);
+          })
+          .catch(console.error);
+      });
+    })
+    .catch(console.error);
+});
+----
+--
+====
