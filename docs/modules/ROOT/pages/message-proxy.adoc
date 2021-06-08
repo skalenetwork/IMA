@@ -48,7 +48,8 @@ You only need to pass the [SKALE_CHAIN_NAME], [RECEIVING_CONTRACT_ADDRESS], and 
 
 See below for instructions to implement postMessage in receiving contracts:
 
-1. Add the interface:
+[start=1]
+. Add the interface:
 
 ```solidity
 interface Proxy {
@@ -64,7 +65,7 @@ interface Proxy {
 ```
 
 [start=2]
-2. Add the postMessage function to process incoming messages from the Agent.
+. Add the postMessage function to process incoming messages from the Agent.
 
 ```solidity
 function postMessage(
@@ -81,7 +82,7 @@ function postMessage(
 ```
 
 [start=3]
-3. Add the address of MessageProxyOnMainnet or MessageProxyOnSchain.
+. Add the address of MessageProxyOnMainnet or MessageProxyOnSchain.
 
 == Methods
 

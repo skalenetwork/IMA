@@ -4,7 +4,7 @@ The Interchain Messaging Agent can be used for managing ETH between Ethereum and
 
 <button>[Live ETH IMA Demo](https://codesandbox.io/s/skale-interchain-messaging-agent-eth-zm6hz)</button>
 
-1. Deposit ETH on Ethereum
+. Deposit ETH on Ethereum
 
 To send ETH from a user's wallet to the IMA Deposit Box on Ethereum, you will need to use the deposit function within the **DepositBox** IMA Contract on Ethereum.  
   
@@ -85,7 +85,8 @@ web3.eth.getTransactionCount(account).then(nonce => {
 --
 ====
 
-2. Exit from SKALE Chain
+[start=2]
+. Exit from SKALE Chain
 
 To send ETH back to Ethereum, you will need to use the exitToMain function within the  **TokenManager** contract on the SKALE Chain.  
   
@@ -162,7 +163,8 @@ web3.eth.getTransactionCount(account).then(nonce => {
 --
 ====
 
-3. Release ETH to User
+[start=3]
+. Release ETH to User
 
 To release funds to the end user on Ethereum, you will need to use the getMyEth function within the  **LockAndDataForMainnet** contract on Ethereum.  
   

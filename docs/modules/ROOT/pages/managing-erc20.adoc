@@ -15,11 +15,11 @@ The following one-time setup for each ERC20 token is required for SKALE Chains w
 To see a complete Javascript sandbox version of setup, map, and transfer, see <https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-u4tdt>
 
 
-=== 1. Review the token contract
+. Review the token contract
 
 First, review the Mainnet ERC20 token implementation and (if needed) modify a SKALE Chain version of the contract to include Mintable and Burnable functions. These functions are required to dynamically mint and burn the token on the SKALE chain in response to deposit and exit on the Mainnet.
 
-==== Example Mainnet contract
+=== Example Mainnet contract
 
 ```javascript
 pragma solidity >=0.4.22 <0.6.0;
@@ -75,11 +75,12 @@ contract MyERC20 is ERC20Burnable, ERC20Detailed, ERC20Mintable {
 
 If you aren't using OpenZeppelin's framework, then you can simply manually add https://github.com/OpenZeppelin/openzeppelin-contracts/blob/c3178ff942f9f487b9fda2c648aa19e633560adb/contracts/token/ERC20/ERC20.sol#L233[Mintable] and https://github.com/OpenZeppelin/openzeppelin-contracts/blob/c3178ff942f9f487b9fda2c648aa19e633560adb/contracts/token/ERC20/ERC20.sol#L254[Burnable] functions, and finally https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v2.5.1/contracts/access/roles/MinterRole.sol[add MINTER_ROLE access control]. 
 
-=== 2. Add a Minter Role
+[start=2]
+. Add a Minter Role
 
 Now you need to add the pre-deployed LockAndDataForSchainERC20 contact on your SKALE Chain as the MINTER_ROLE for the modified SKALE Chain contract. With OpenZeppelin's framework, you simply need to execute an AddMinter transaction on the SKALE chain token contract.
 
-==== Example Add Minter Role 
+=== Example Add Minter Role 
 
 [tabs]
 ====
@@ -170,8 +171,8 @@ let addMinter = schainERC20Contract.methods
 
 For a Javascript sandbox of the minter implementation, see <https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-u4tdt?file=/src/addMinter.js>
 
-
-=== 3. Register Mainnet contract to IMA
+[start=3]
+. Register Mainnet contract to IMA
 
 Third, you need to register the Mainnet token contract into IMA on Mainnet using the addERC20TokenByOwner method in the LockAndDataForMainnet contract.
 
@@ -260,7 +261,8 @@ let addERC20TokenByOwner = LockAndDataForMainnet.methods
 
 For a Javascript sandbox version of registering contracts on Mainnet, see <https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-u4tdt?file=/src/addERC20TokenByOwner.js>
 
-=== 4. Register SKALE Chain contract to IMA
+[start=4]
+. Register SKALE Chain contract to IMA
 
 Finally, you need to register the (modified) token contract on the SKALE chain IMA using the addERC20TokenByOwner method in LockAndDataForSchain contract. Note that you need to register the contract on Mainnet first, so that the registration on the SKALE Chain can reference the Mainnet token address.
 
@@ -362,7 +364,7 @@ The Interchain Messaging Agent can be used for managing ERC20 tokens between Eth
 
 https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-u4tdt[Live ERC20 IMA Demo]
 
-=== 1. Deposit ERC20 on Ethereum
+. Deposit ERC20 on Ethereum
 
 To send ERC20 tokens from a user's wallet to the IMA Deposit Box on Ethereum, you will need to use the https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/DepositBox.sol#L89[depositERC20] function within the **DepositBox** IMA contract on Ethereum.  
 
@@ -491,7 +493,8 @@ web3ForMainnet.eth.getTransactionCount(accountForMainnet).then(nonce => {
 --
 ====
 
-=== 2. Exit from SKALE Chain
+[start=2]
+. Exit from SKALE Chain
 
 To send ERC20 tokens back to Ethereum, you will need to use the exitToMain function within the **TokenManager** IMA contract on the SKALE Chain.  
 
