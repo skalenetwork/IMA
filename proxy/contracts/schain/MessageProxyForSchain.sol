@@ -97,8 +97,8 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
     mapping(bytes32 => uint) private _idxHead;
     //      schainHash  => tail of unprocessed messages
     mapping(bytes32 => uint) private _idxTail;
-
-    mapping( bytes32 => mapping( address => bool) ) public registryContracts;
+    //   schainHash => contract address => allowed
+    mapping(bytes32 => mapping(address => bool)) public registryContracts;
 
     uint256 public gasLimit;
 
@@ -142,6 +142,9 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         );
 	    schainHash = keccak256(abi.encodePacked(schainName));
         gasLimit = 3000000;
+
+        // In predeployed mode all token managers and community locker
+        // will be added to registryContracts
     }
 
     // Registration state detection

@@ -1,5 +1,5 @@
 from ..contract_generator import ContractGenerator, calculate_mapping_value_slot, calculate_array_value_slot
-from ..addresses import KEY_STORAGE_ADDRESS
+from ..addresses import COMMUNITY_LOCKER_ADDRESS, KEY_STORAGE_ADDRESS, TOKEN_MANAGER_ERC1155_ADDRESS, TOKEN_MANAGER_ERC20_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS
 from web3 import Web3
 
 
@@ -8,6 +8,7 @@ class MessageProxyForSchainGenerator(ContractGenerator):
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
     MAINNET_HASH = Web3.solidityKeccak(['string'], ['Mainnet'])
     GAS_LIMIT = 3000000
+    ANY_SCHAIN = (0).to_bytes(32, 'big')
 
     # ---------- storage ----------
     # --------Initializable--------
@@ -37,6 +38,7 @@ class MessageProxyForSchainGenerator(ContractGenerator):
     SCHAIN_HASH_SLOT = 102
     CONNECTED_CHAINS_SLOT = 103
     GAS_LIMIT_SLOT = 108
+    REGISTRY_CONTRACTS_SLOT = 107
 
     def __init__(self, deployer_address: str, schain_name: str):
         super().__init__(self.ARTIFACT_FILENAME)
@@ -55,3 +57,16 @@ class MessageProxyForSchainGenerator(ContractGenerator):
         inited_slot = connected_chain_info_slot + 2
         self._write_uint256(inited_slot, 1)
         self._write_uint256(self.GAS_LIMIT_SLOT, self.GAS_LIMIT)
+
+        any_schain_contracts_slot = calculate_mapping_value_slot(
+            self.REGISTRY_CONTRACTS_SLOT, self.ANY_SCHAIN, 'bytes32')
+        allowed_contracts = [
+            TOKEN_MANAGER_ETH_ADDRESS,
+            TOKEN_MANAGER_ERC20_ADDRESS,
+            TOKEN_MANAGER_ERC721_ADDRESS,
+            TOKEN_MANAGER_ERC1155_ADDRESS,
+            COMMUNITY_LOCKER_ADDRESS ]
+        for contract in allowed_contracts:
+            contract_slot = calculate_mapping_value_slot(
+                any_schain_contracts_slot, contract, 'address')
+            self._write_uint256(contract_slot, 1)
