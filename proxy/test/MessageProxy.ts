@@ -480,27 +480,16 @@ describe("MessageProxy", () => {
                 hashB: HashB,
             };
 
-            let res = await (await messageProxyForMainnet
-                .connect(deployer)
-                .postIncomingMessages(
-                    schainName,
-                    startingCounter,
-                    outgoingMessages,
-                    sign,
-                    0,
-                )).wait();
-            expect(res.gasUsed.toNumber()).to.be.lessThan(1000000);
-
             await messageProxyForMainnet.registerExtraContract(schainName, receiverMock.address);
 
             let a = await receiverMock.a();
             expect(a.toNumber()).be.equal(0);
 
-            res = await (await messageProxyForMainnet
+            const res = await (await messageProxyForMainnet
                 .connect(deployer)
                 .postIncomingMessages(
                     schainName,
-                    startingCounter + 1,
+                    startingCounter,
                     outgoingMessages,
                     sign,
                     0,
@@ -758,27 +747,16 @@ describe("MessageProxy", () => {
                 hashB: HashB,
             };
 
-            let res = await (await messageProxyForSchainWithoutSignature
-                .connect(deployer)
-                .postIncomingMessages(
-                    "Mainnet",
-                    startingCounter,
-                    outgoingMessages,
-                    sign,
-                    0,
-                )).wait();
-            expect(res.gasUsed.toNumber()).to.be.lessThan(1000000);
-
             await messageProxyForSchainWithoutSignature.registerExtraContract("Mainnet", receiverMock.address);
 
             let a = await receiverMock.a();
             expect(a.toNumber()).be.equal(0);
 
-            res = await (await messageProxyForSchainWithoutSignature
+            const res = await (await messageProxyForSchainWithoutSignature
                 .connect(deployer)
                 .postIncomingMessages(
                     "Mainnet",
-                    startingCounter + 1,
+                    startingCounter,
                     outgoingMessages,
                     sign,
                     0,

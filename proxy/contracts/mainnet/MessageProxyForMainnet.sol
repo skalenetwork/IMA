@@ -297,16 +297,6 @@ contract MessageProxyForMainnet is SkaleManagerClient {
             .div(messages.length);
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
-            if (
-                !registryContracts[fromSchainHash][messages[i].destinationContract] &&
-                !registryContracts[bytes32(0)][messages[i].destinationContract]
-            ) {
-                emit PostMessageError(
-                    startingCounter + i,
-                    bytes("Destination contract is not registered")
-                );
-                continue;
-            }
             address receiver = _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
             if (receiver == address(0)) 
                 continue;

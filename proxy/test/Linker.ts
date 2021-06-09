@@ -169,7 +169,7 @@ describe("Linker", () => {
         expect(await linker.hasSchain(schainName)).to.equal(true);
     });
 
-    it("should invoke `unconnectSchain` without mistakes", async () => {
+    it("should invoke `disconnectSchain` without mistakes", async () => {
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const tokenManagerAddress = user.address;
 
@@ -182,8 +182,8 @@ describe("Linker", () => {
 
         expect(await linker.hasSchain(schainName)).to.equal(true);
 
-        await linker.connect(user).unconnectSchain(schainName).should.be.rejected;
-        await linker.connect(deployer).unconnectSchain(schainName);
+        await linker.connect(user).disconnectSchain(schainName).should.be.rejected;
+        await linker.connect(deployer).disconnectSchain(schainName);
 
         expect(await linker.hasSchain(schainName)).to.equal(false);
     });

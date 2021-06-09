@@ -198,7 +198,7 @@ describe("TokenManagerLinker", () => {
             expect(await linker.hasSchain(newSchainName)).to.equal(true);
         });
 
-        it("should invoke `unconnectSchain` without mistakes", async () => {
+        it("should invoke `disconnectSchain` without mistakes", async () => {
             const nullAddress = "0x0000000000000000000000000000000000000000";
             const tokenManagerAddress = user.address;
 

@@ -47,42 +47,42 @@ def generate_contracts(
     community_locker = UpgradeableContractGenerator(
         COMMUNITY_LOCKER_IMPLEMENTATION_ADDRESS,
         PROXY_ADMIN_ADDRESS,
-        CommunityLockerGenerator(owner_address, schain_name, contracts_on_mainnet['community_pool'])
+        CommunityLockerGenerator(owner_address, schain_name, contracts_on_mainnet['community_pool_address'])
     )
 
     token_manager_linker_implementation = ContractGenerator(TokenManagerLinkerGenerator.ARTIFACT_FILENAME)
     token_manager_linker = UpgradeableContractGenerator(
         TOKEN_MANAGER_LINKER_IMPLEMENTATION_ADDRESS,
         PROXY_ADMIN_ADDRESS,
-        TokenManagerLinkerGenerator(owner_address, contracts_on_mainnet['linker'])
+        TokenManagerLinkerGenerator(owner_address, contracts_on_mainnet['linker_address'])
     )
 
     token_manager_eth_implementation = ContractGenerator(TokenManagerEthGenerator.ARTIFACT_FILENAME)
     token_manager_eth = UpgradeableContractGenerator(
         TOKEN_MANAGER_ETH_IMPLEMENTATION_ADDRESS,
         PROXY_ADMIN_ADDRESS,
-        TokenManagerEthGenerator(owner_address, contracts_on_mainnet['eth_deposit_box'], schain_name)
+        TokenManagerEthGenerator(owner_address, contracts_on_mainnet['deposit_box_eth_address'], schain_name)
     )
 
     token_manager_erc20_implementation = ContractGenerator(TokenManagerErc20Generator.ARTIFACT_FILENAME)
     token_manager_erc20 = UpgradeableContractGenerator(
         TOKEN_MANAGER_ERC20_IMPLEMENTATION_ADDRESS,
         PROXY_ADMIN_ADDRESS,
-        TokenManagerErc20Generator(owner_address, contracts_on_mainnet['erc20_deposit_box'], schain_name)
+        TokenManagerErc20Generator(owner_address, contracts_on_mainnet['deposit_box_erc20_address'], schain_name)
     )
 
     token_manager_erc721_implementation = ContractGenerator(TokenManagerErc721Generator.ARTIFACT_FILENAME)
     token_manager_erc721 = UpgradeableContractGenerator(
         TOKEN_MANAGER_ERC721_IMPLEMENTATION_ADDRESS,
         PROXY_ADMIN_ADDRESS,
-        TokenManagerErc721Generator(owner_address, contracts_on_mainnet['erc721_deposit_box'], schain_name)
+        TokenManagerErc721Generator(owner_address, contracts_on_mainnet['deposit_box_erc721_address'], schain_name)
     )
 
     token_manager_erc1155_implementation = ContractGenerator(TokenManagerErc1155Generator.ARTIFACT_FILENAME)
     token_manager_erc1155 = UpgradeableContractGenerator(
         TOKEN_MANAGER_ERC1155_IMPLEMENTATION_ADDRESS,
         PROXY_ADMIN_ADDRESS,
-        TokenManagerErc1155Generator(owner_address, contracts_on_mainnet['erc1155_deposit_box'], schain_name)
+        TokenManagerErc1155Generator(owner_address, contracts_on_mainnet['deposit_box_erc1155_address'], schain_name)
     )
 
     eth_erc20_implementation = ContractGenerator(EthErc20Generator.ARTIFACT_FILENAME)
