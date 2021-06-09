@@ -1,5 +1,5 @@
-from ..contract_generator import ContractGenerator, calculate_mapping_value_slot, calculate_array_value_slot
-from ..addresses import COMMUNITY_LOCKER_ADDRESS, KEY_STORAGE_ADDRESS, TOKEN_MANAGER_ERC1155_ADDRESS, TOKEN_MANAGER_ERC20_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS
+from ..contract_generator import ContractGenerator, calculate_mapping_value_slot, calculate_array_value_slot, next_slot
+from ..addresses import COMMUNITY_LOCKER_ADDRESS, KEY_STORAGE_ADDRESS, MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, TOKEN_MANAGER_ERC1155_ADDRESS, TOKEN_MANAGER_ERC20_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS
 from web3 import Web3
 
 
@@ -35,10 +35,10 @@ class MessageProxyForSchainGenerator(ContractGenerator):
     INITIALIZED_SLOT = 0
     ROLES_SLOT = 51
     KEY_STORAGE_SLOT = 101
-    SCHAIN_HASH_SLOT = 102
-    CONNECTED_CHAINS_SLOT = 103
-    GAS_LIMIT_SLOT = 108
+    SCHAIN_HASH_SLOT = next_slot(KEY_STORAGE_SLOT)
+    CONNECTED_CHAINS_SLOT = next_slot(SCHAIN_HASH_SLOT)
     REGISTRY_CONTRACTS_SLOT = 107
+    GAS_LIMIT_SLOT = next_slot(REGISTRY_CONTRACTS_SLOT)
 
     def __init__(self, deployer_address: str, schain_name: str):
         super().__init__(self.ARTIFACT_FILENAME)
@@ -65,8 +65,8 @@ class MessageProxyForSchainGenerator(ContractGenerator):
             TOKEN_MANAGER_ERC20_ADDRESS,
             TOKEN_MANAGER_ERC721_ADDRESS,
             TOKEN_MANAGER_ERC1155_ADDRESS,
-            COMMUNITY_LOCKER_ADDRESS ]
+            COMMUNITY_LOCKER_ADDRESS]
         for contract in allowed_contracts:
             contract_slot = calculate_mapping_value_slot(
-                any_schain_contracts_slot, contract, 'address')
+                any_schain_contracts_slot, int(contract, 16).to_bytes(32, 'big'), 'bytes32')
             self._write_uint256(contract_slot, 1)
