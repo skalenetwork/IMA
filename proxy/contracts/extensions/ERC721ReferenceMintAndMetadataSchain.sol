@@ -45,23 +45,11 @@ contract ERC721ReferenceMintAndMetadataSchain is IMessageReceiver {
         );
         IERC721MetadataUpgradeable(erc721Contract).transferFrom(msg.sender, address(this), tokenId);
         IERC721MetadataUpgradeable(erc721Contract).burn(tokenId);
-        bytes memory data = _encodeData(receiver, tokenId);    
+        bytes memory data = abi.encode(
+            receiver,
+            tokenId,
+            IERC721MetadataUpgradeable(erc721Contract).tokenURI(tokenId)
+        );
         messageProxy.postOutgoingMessage("Mainnet", receiverContractOnMainnet, data);
-    }
-
-    function _encodeData(address receiver, uint256 tokenId) private returns (bytes memory data) {
-        data = abi.encode(receiver, tokenId, IERC721MetadataUpgradeable(erc721Contract).tokenURI(tokenId));
-    }
-
-    function postMessage(
-        bytes32,
-        address,
-        bytes calldata
-    )
-        external
-        override
-        returns (address)
-    {
-        return address(0);
     }
 }

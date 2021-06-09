@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   ERC721ReferenceMintAndMetadataMainnet.sol - SKALE Interchain Messaging Agent
+ *   MessageProxySender.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -20,27 +20,16 @@
  */
 
 pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721MetadataUpgradeable.sol";
-import "../interfaces/IMessageReceiver.sol";
+import "./MessageProxyConnect.sol";
 
+abstract contract MessageProxySender is MessageProxyConnect {
 
-// This contract runs on the main net and accepts deposits
-contract ERC721ReferenceMintAndMetadataMainnet is IMessageReceiver {
-
-    address public erc721Contract;
-    address public senderContractOnSchain;
-
-    function postMessage(
-        bytes32,
-        address,
-        bytes calldata
-    )
-        external
-        override
-        returns (address)
-    {
-        
+    function sendMessage(
+        string calldata targetSchainName,
+        address targetContract,
+        bytes calldata data
+    ) external {
+        IMessageProxy(messageProxyAddress).postOutgoingMessage(targetSchainName, targetContract, data);
     }
 }
