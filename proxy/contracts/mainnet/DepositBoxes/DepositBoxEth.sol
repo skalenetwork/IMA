@@ -24,7 +24,7 @@ pragma experimental ABIEncoderV2;
 
 import "../DepositBox.sol";
 import "../../Messages.sol";
-import "hardhat/console.sol";
+
 
 
 // This contract runs on the main net and accepts deposits
