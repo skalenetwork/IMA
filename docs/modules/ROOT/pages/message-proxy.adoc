@@ -44,8 +44,7 @@ When the IMA Agent receives a message from `postOutgoingMessage`, the agent call
 
 See below for instructions to implement postMessage in receiving contracts:
 
-:sectnums:
-=== Add the interface:
+=== 1. Add the interface
 
 ```solidity
 interface Proxy {
@@ -60,7 +59,9 @@ interface Proxy {
 }
 ```
 
-=== Add the postMessage function to process incoming messages from the Agent.
+=== 2. Add postMessage()
+
+Add postMessage to allow processing of incoming messages from MessageProxy.
 
 ```solidity
 function postMessage(
@@ -76,8 +77,7 @@ function postMessage(
 }
 ```
 
-=== Add the address of MessageProxyOnMainnet or MessageProxyOnSchain.
-:sectnums!:
+=== 3. Add MessageProxyOnMainnet/MessageProxyOnSchain address
 
 == Methods
 
