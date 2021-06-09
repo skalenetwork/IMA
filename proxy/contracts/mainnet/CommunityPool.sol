@@ -28,7 +28,7 @@ import "../Messages.sol";
 import "./MessageProxyForMainnet.sol";
 import "../interfaces/IMainnetContract.sol";
 import "./Linker.sol";
-
+import "hardhat/console.sol";
 /**
  * @title CommunityPool
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes

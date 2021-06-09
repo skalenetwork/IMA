@@ -64,6 +64,7 @@ contract DepositBoxERC721 is DepositBox {
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address tokenManagerAddress = tokenManagerERC721Addresses[schainHash];
+        require(to != address(0), "Receiver address cannot be null");
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(
             IERC721Upgradeable(contractOnMainnet).getApproved(tokenId) == address(this),

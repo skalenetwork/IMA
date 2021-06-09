@@ -70,6 +70,7 @@ contract DepositBoxERC20 is DepositBox {
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address tokenManagerAddress = tokenManagerERC20Addresses[schainHash];
+        require(to != address(0), "Receiver address cannot be null");
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(
             IERC20Metadata(contractOnMainnet).allowance(msg.sender, address(this)) >= amount,

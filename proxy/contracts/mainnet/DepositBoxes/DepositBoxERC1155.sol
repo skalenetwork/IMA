@@ -93,6 +93,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address tokenManagerAddress = tokenManagerERC1155Addresses[schainHash];
+        require(to != address(0), "Receiver address cannot be null");
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(
             IERC1155Upgradeable(contractOnMainnet).isApprovedForAll(msg.sender, address(this)),
@@ -124,6 +125,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address tokenManagerAddress = tokenManagerERC1155Addresses[schainHash];
+        require(to != address(0), "Receiver address cannot be null");
         require(tokenManagerAddress != address(0), "Unconnected chain");
         require(
             IERC1155Upgradeable(contractOnMainnet).isApprovedForAll(msg.sender, address(this)),

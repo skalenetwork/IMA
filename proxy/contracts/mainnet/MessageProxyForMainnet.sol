@@ -27,6 +27,7 @@ import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 
 import "../interfaces/IMessageReceiver.sol";
 import "./SkaleManagerClient.sol";
+import "hardhat/console.sol";
 
 interface ICommunityPool {
     function refundGasByUser(

@@ -24,6 +24,7 @@ pragma experimental ABIEncoderV2;
 
 import "../DepositBox.sol";
 import "../../Messages.sol";
+import "hardhat/console.sol";
 
 
 // This contract runs on the main net and accepts deposits
@@ -105,7 +106,7 @@ contract DepositBoxEth is DepositBox {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address tokenManagerAddress = tokenManagerEthAddresses[schainHash];
         require(tokenManagerAddress != address(0), "Unconnected chain");
-        require(to != address(0), "Community Pool is not available");
+        require(to != address(0), "Receiver address cannot be null");
         if (!linker.interchainConnections(schainHash))
             _saveTransferredAmount(schainHash, msg.value);
         messageProxy.postOutgoingMessage(
