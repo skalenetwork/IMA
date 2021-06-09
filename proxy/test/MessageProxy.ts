@@ -238,7 +238,6 @@ describe("MessageProxy", () => {
                 data: await messages.encodeTransferEthMessage(client.address, 0),
             };
 
-            
             const message2 = {
                 destinationContract: depositBox.address,
                 sender: deployer.address,

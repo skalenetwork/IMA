@@ -110,7 +110,6 @@ describe("CommunityPool", () => {
 
     });
 
-    
     it("should links with contract on schain", async () => {
         const fakeContractOnSchain = user.address;
         await communityPool.addSchainContract(schainName, fakeContractOnSchain);
