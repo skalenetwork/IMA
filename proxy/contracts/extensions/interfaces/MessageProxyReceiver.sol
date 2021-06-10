@@ -24,6 +24,5 @@ pragma solidity 0.6.12;
 import "./MessageProxyConnect.sol";
 import "../../interfaces/IMessageReceiver.sol";
 
-abstract contract MessageProxyReceiver is MessageProxyConnect, IMessageReceiver {
-
-}
+// solhint-disable-next-line no-empty-blocks
+abstract contract MessageProxyReceiver is MessageProxyConnect, IMessageReceiver {}
