@@ -110,6 +110,8 @@ describe("DepositBox", () => {
         depositBoxERC1155 = await deployDepositBoxERC1155(contractManager, linker, messageProxy);
         communityPool = await deployCommunityPool(contractManager, linker, messageProxy);
         await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), linker.address);
+        await messageProxy.grantRole(await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
+        await initializeSchain(contractManager, schainName, user.address, 1, 1);
         await messageProxy.registerExtraContract(schainName, depositBoxEth.address);
         await messageProxy.registerExtraContract(schainName, depositBoxERC20.address);
         await messageProxy.registerExtraContract(schainName, depositBoxERC721.address);
@@ -172,18 +174,19 @@ describe("DepositBox", () => {
         it("should get funds after kill", async () => {
             const wei = "20000000000000000";
             const wei2 = "40000000000000000";
+            await initializeSchain(contractManager, schainName, user2.address, 1, 1);
             await linker
                 .connect(deployer)
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address, deployer.address]);
             await depositBoxEth
                 .connect(deployer)
                 .deposit(schainName, deployer.address, { value: wei });
-            await depositBoxEth.getFunds(schainName, user.address, wei).should.be.eventually.rejectedWith("Schain is not killed");
+            await depositBoxEth.connect(user2).getFunds(schainName, user.address, wei).should.be.eventually.rejectedWith("Schain is not killed");
             await linker.connect(deployer).kill(schainName);
-            await linker.connect(user).kill(schainName);
+            await linker.connect(user2).kill(schainName);
             const userBalanceBefore = await web3.eth.getBalance(user.address);
-            await depositBoxEth.connect(deployer).getFunds(schainName, user.address, wei2).should.be.eventually.rejectedWith("Incorrect amount");
-            await depositBoxEth.connect(deployer).getFunds(schainName, user.address, wei);
+            await depositBoxEth.connect(user2).getFunds(schainName, user.address, wei2).should.be.eventually.rejectedWith("Incorrect amount");
+            await depositBoxEth.connect(user2).getFunds(schainName, user.address, wei);
             expect(BigNumber.from(await web3.eth.getBalance(user.address)).toString()).to.equal(BigNumber.from(userBalanceBefore).add(BigNumber.from(wei)).toString());
         });
     });
@@ -217,7 +220,7 @@ describe("DepositBox", () => {
                 // preparation
                 const error = "DepositBox was not approved for ERC20 token";
                 // await erc20.connect(deployer).mint(user.address, "1000000000");
-                await depositBoxERC20.disableWhitelist(schainName);
+                await depositBoxERC20.connect(user).disableWhitelist(schainName);
                 // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
                 // execution/expectation
                 await depositBoxERC20
@@ -236,7 +239,7 @@ describe("DepositBox", () => {
                 await depositBoxERC20
                     .connect(deployer)
                     .depositERC20(schainName, erc20.address, deployer.address, 1).should.be.eventually.rejectedWith("Whitelist is enabled");
-                await depositBoxERC20.disableWhitelist(schainName);
+                await depositBoxERC20.connect(user).disableWhitelist(schainName);
                 await depositBoxERC20
                     .connect(deployer)
                     .depositERC20(schainName, erc20.address, deployer.address, 1);
@@ -250,15 +253,15 @@ describe("DepositBox", () => {
         it("should get funds after kill", async () => {
             await erc20.connect(deployer).mint(deployer.address, "1000000000");
             await erc20.connect(deployer).approve(depositBoxERC20.address, "1000000");
-            await depositBoxERC20.disableWhitelist(schainName);
+            await depositBoxERC20.connect(user).disableWhitelist(schainName);
             await depositBoxERC20
                 .connect(deployer)
                 .depositERC20(schainName, erc20.address, deployer.address, 1);
-            await depositBoxERC20.getFunds(schainName, erc20.address, user.address, 1).should.be.eventually.rejectedWith("Schain is not killed");
+            await depositBoxERC20.connect(user).getFunds(schainName, erc20.address, user.address, 1).should.be.eventually.rejectedWith("Schain is not killed");
             await linker.connect(deployer).kill(schainName);
             await linker.connect(user).kill(schainName);
-            await depositBoxERC20.getFunds(schainName, erc20.address, user.address, 2).should.be.eventually.rejectedWith("Incorrect amount");
-            await depositBoxERC20.connect(deployer).getFunds(schainName, erc20.address, user.address, 1);
+            await depositBoxERC20.connect(user).getFunds(schainName, erc20.address, user.address, 2).should.be.eventually.rejectedWith("Incorrect amount");
+            await depositBoxERC20.connect(user).getFunds(schainName, erc20.address, user.address, 1);
             expect(BigNumber.from(await erc20.balanceOf(user.address)).toString()).to.equal("1");
         });
     });
@@ -318,7 +321,7 @@ describe("DepositBox", () => {
                 await depositBoxERC721
                     .connect(deployer)
                     .depositERC721(schainName, contractHere, to, tokenId).should.be.eventually.rejectedWith("Whitelist is enabled");
-                await depositBoxERC721.disableWhitelist(schainName);
+                await depositBoxERC721.connect(user).disableWhitelist(schainName);
                 await depositBoxERC721
                     .connect(deployer)
                     .depositERC721(schainName, contractHere, to, tokenId);
@@ -339,15 +342,15 @@ describe("DepositBox", () => {
                 .connect(deployer)
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address, deployer.address]);
             await eRC721OnChain.connect(deployer).approve(depositBoxERC721.address, tokenId);
-            await depositBoxERC721.disableWhitelist(schainName);
+            await depositBoxERC721.connect(user).disableWhitelist(schainName);
             await depositBoxERC721
                 .connect(deployer)
                 .depositERC721(schainName, eRC721OnChain.address, deployer.address, tokenId);
-            await depositBoxERC721.getFunds(schainName, eRC721OnChain.address, user.address, tokenId).should.be.eventually.rejectedWith("Schain is not killed");
+            await depositBoxERC721.connect(user).getFunds(schainName, eRC721OnChain.address, user.address, tokenId).should.be.eventually.rejectedWith("Schain is not killed");
             await linker.connect(deployer).kill(schainName);
             await linker.connect(user).kill(schainName);
-            await depositBoxERC721.getFunds(schainName, eRC721OnChain.address, user.address, tokenId2).should.be.eventually.rejectedWith("Incorrect tokenId");
-            await depositBoxERC721.connect(deployer).getFunds(schainName, eRC721OnChain.address, user.address, tokenId);
+            await depositBoxERC721.connect(user).getFunds(schainName, eRC721OnChain.address, user.address, tokenId2).should.be.eventually.rejectedWith("Incorrect tokenId");
+            await depositBoxERC721.connect(user).getFunds(schainName, eRC721OnChain.address, user.address, tokenId);
             expect(await eRC721OnChain.ownerOf(tokenId)).to.equal(user.address);
         });
     });
@@ -417,7 +420,7 @@ describe("DepositBox", () => {
                 await depositBoxERC1155
                     .connect(deployer)
                     .depositERC1155(schainName, contractHere, to, id, amount).should.be.eventually.rejectedWith("Whitelist is enabled");
-                await depositBoxERC1155.disableWhitelist(schainName);
+                await depositBoxERC1155.connect(user).disableWhitelist(schainName);
                 await depositBoxERC1155
                     .connect(deployer)
                     .depositERC1155(schainName, contractHere, to, id, amount);
@@ -472,7 +475,7 @@ describe("DepositBox", () => {
                 await depositBoxERC1155
                     .connect(deployer)
                     .depositERC1155Batch(schainName, contractHere, to, ids, amounts).should.be.eventually.rejectedWith("Whitelist is enabled");
-                await depositBoxERC1155.disableWhitelist(schainName);
+                await depositBoxERC1155.connect(user).disableWhitelist(schainName);
                 await depositBoxERC1155
                     .connect(deployer)
                     .depositERC1155Batch(schainName, contractHere, to, ids, amounts);
@@ -554,7 +557,7 @@ describe("DepositBox", () => {
             };
             // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
             // to avoid `Incorrect sender` error
-            await messageProxy.connect(deployer).addConnectedChain(schainName);
+            await messageProxy.connect(user).addConnectedChain(schainName);
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
             await communityPool
@@ -854,7 +857,7 @@ describe("DepositBox", () => {
             // transfer tokenId from `deployer` to `depositBoxERC721`
             await eRC721OnChain.connect(deployer).transferFrom(deployer.address, depositBoxERC721.address, tokenId);
             // get data from `receiveERC721`
-            await depositBoxERC721.disableWhitelist(schainName);
+            await depositBoxERC721.connect(user2).disableWhitelist(schainName);
             // execution
             // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
             // to avoid `Incorrect sender` error
@@ -908,7 +911,7 @@ describe("DepositBox", () => {
             // transfer tokenId from `deployer` to `depositBoxERC1155`
             // await eRC1155OnChain.connect(deployer).transferFrom(deployer.address, depositBoxERC1155.address, tokenId);
             // get data from `receiveERC1155`
-            await depositBoxERC1155.disableWhitelist(schainName);
+            await depositBoxERC1155.connect(user2).disableWhitelist(schainName);
             await depositBoxERC1155
                 .connect(deployer)
                 .depositERC1155(schainName, contractHere, to, id, amount);
@@ -965,7 +968,7 @@ describe("DepositBox", () => {
             // transfer tokenId from `deployer` to `depositBoxERC1155`
             // await eRC1155OnChain.connect(deployer).transferFrom(deployer.address, depositBoxERC1155.address, tokenId);
             // get data from `receiveERC1155`
-            await depositBoxERC1155.disableWhitelist(schainName);
+            await depositBoxERC1155.connect(user2).disableWhitelist(schainName);
             await depositBoxERC1155
                 .connect(deployer)
                 .depositERC1155Batch(schainName, contractHere, to, ids, amounts);

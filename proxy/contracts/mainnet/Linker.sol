@@ -125,8 +125,7 @@ contract Linker is SkaleManagerClient {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(LINKER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
+            isSchainOwner(msg.sender, schainHash), "Not authorized caller"
         );
         require(schainLinks[schainHash] == address(0), "SKALE chain is already set");
         require(contractOnSchain != address(0), "Incorrect address for contract on Schain");
@@ -137,8 +136,7 @@ contract Linker is SkaleManagerClient {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(LINKER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
+            isSchainOwner(msg.sender, schainHash), "Not authorized caller"
         );
         require(schainLinks[schainHash] != address(0), "SKALE chain is not set");
         delete schainLinks[schainHash];

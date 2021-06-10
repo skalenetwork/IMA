@@ -14,6 +14,9 @@ chai.should();
 chai.use((chaiAsPromised as any));
 chai.use(chaiAlmost(0.000000000002));
 
+import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
+
+
 import { deployLinker } from "./utils/deploy/mainnet/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
 import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
@@ -45,12 +48,20 @@ describe("CommunityPool", () => {
         [deployer, user, node] = await ethers.getSigners();
     });
 
+    async function grantRoles() {
+        const CHAIN_CONNECTOR_ROLE = await messageProxy.CHAIN_CONNECTOR_ROLE();
+        await messageProxy.grantRole(CHAIN_CONNECTOR_ROLE, deployer.address);
+        const EXTRA_CONTRACT_REGISTRAR_ROLE = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
+        await messageProxy.grantRole(EXTRA_CONTRACT_REGISTRAR_ROLE, deployer.address);
+    }
+
     beforeEach(async () => {
         contractManager = await deployContractManager(contractManagerAddress);
         messageProxy = await deployMessageProxyForMainnet(contractManager);
         linker = await deployLinker(messageProxy, contractManager);
         communityPool = await deployCommunityPool(contractManager, linker, messageProxy);
         minTransactionGas = await communityPool.minTransactionGas();
+        await grantRoles();
     });
 
     it("should not allow to withdraw from user wallet if CommunityPool is not registered for all chains", async () => {
@@ -90,15 +101,20 @@ describe("CommunityPool", () => {
         it("should recharge wallet if user passed enough money", async () => {
             const amount = minTransactionGas.mul(gasPrice);
             await communityPool.connect(user).rechargeUserWallet(schainName, { value: amount.toString(), gasPrice });
-            const userBalance = await communityPool.connect(user).getBalance(schainName);
+            let userBalance = await communityPool.connect(user).getBalance(schainName);
             userBalance.should.be.deep.equal(amount);
+            await communityPool.connect(user).rechargeUserWallet(schainName, { value: amount.toString(), gasPrice });
+            userBalance = await communityPool.connect(user).getBalance(schainName);
+            userBalance.should.be.deep.equal(amount.mul(2));
+            expect(await messageProxy.getOutgoingMessagesCounter(schainName)).deep.equal(BigNumber.from(1));
         });
 
         it("should allow to withdraw money", async () => {
             const amount = minTransactionGas.mul(gasPrice).toNumber();
-            await communityPool.connect(user).rechargeUserWallet(schainName, { value: amount.toString(), gasPrice });
+            await communityPool.connect(user).rechargeUserWallet(schainName, { value: (amount + 1).toString(), gasPrice });
+            expect(await messageProxy.getOutgoingMessagesCounter(schainName)).deep.equal(BigNumber.from(1));
 
-            await communityPool.connect(user).withdrawFunds(schainName, amount +1 )
+            await communityPool.connect(user).withdrawFunds(schainName, amount + 2 )
                 .should.be.eventually.rejectedWith("Balance is too low");
 
             const balanceBefore = await getBalance(user.address);
@@ -106,6 +122,11 @@ describe("CommunityPool", () => {
             const balanceAfter = await getBalance(user.address);
             const transactionFee = tx.gasUsed.mul(gasPrice).toNumber();
             (balanceAfter + transactionFee / 1e18).should.be.almost(balanceBefore + amount / 1e18);
+
+            await communityPool.connect(user).withdrawFunds(schainName, 1, { gasPrice });
+
+            expect(await messageProxy.getOutgoingMessagesCounter(schainName)).deep.equal(BigNumber.from(2));
+
         });
 
     });
@@ -113,6 +134,11 @@ describe("CommunityPool", () => {
     it("should add link to contract on schain", async () => {
         const fakeContractOnSchain = user.address;
         const nullAddress = "0x0000000000000000000000000000000000000000";
+
+        await communityPool.addSchainContract(schainName, fakeContractOnSchain)
+            .should.be.eventually.rejectedWith("Not authorized caller");
+
+        await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
         await communityPool.addSchainContract(schainName, nullAddress)
             .should.be.eventually.rejectedWith("Incorrect address for contract on Schain");
 
@@ -125,9 +151,15 @@ describe("CommunityPool", () => {
 
     it("should remove link to contract on schain", async () => {
         const fakeContractOnSchain = user.address;
-        await communityPool.addSchainContract(schainName, fakeContractOnSchain);
+        await initializeSchain(contractManager, schainName, user.address,  1, 1);
+        await communityPool.connect(user).addSchainContract(schainName, fakeContractOnSchain);
         expect(await communityPool.hasSchainContract(schainName)).to.be.true;
+        await communityPool.removeSchainContract(schainName)
+            .should.be.eventually.rejectedWith("Not authorized caller");
+
+        await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
         await communityPool.removeSchainContract(schainName);
+
         expect(await communityPool.hasSchainContract(schainName)).to.be.false;
         await communityPool.removeSchainContract(schainName)
             .should.be.eventually.rejectedWith("SKALE chain is not set");
@@ -143,6 +175,15 @@ describe("CommunityPool", () => {
         expect(await communityPool.hasSchainContract(schainName)).to.be.false;
         await communityPool.connect(user).removeSchainContract(schainName)
             .should.be.eventually.rejectedWith("SKALE chain is not set");
+    });
+
+    it("should set new minimal transaction gas", async () => {
+        const newMinTransactionGas = BigNumber.from(100);
+        const CONSTANT_SETTER_ROLE  = await communityPool.CONSTANT_SETTER_ROLE();
+        await communityPool.grantRole(CONSTANT_SETTER_ROLE, deployer.address);
+        expect(await communityPool.minTransactionGas()).to.be.deep.equal(BigNumber.from(1000000));
+        await communityPool.setMinTransactionGas(newMinTransactionGas);
+        expect(await communityPool.minTransactionGas()).to.be.deep.equal(newMinTransactionGas);
     });
 
 });

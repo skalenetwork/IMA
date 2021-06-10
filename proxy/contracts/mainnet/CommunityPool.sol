@@ -43,6 +43,7 @@ contract CommunityPool is SkaleManagerClient {
 
     uint public minTransactionGas;
     bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
+    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
     function refundGasByUser(
         bytes32 schainHash,
@@ -122,6 +123,11 @@ contract CommunityPool is SkaleManagerClient {
         );
         require(schainLinks[schainHash] != address(0), "SKALE chain is not set");
         delete schainLinks[schainHash];
+    }
+
+    function setMinTransactionGas(uint newMinTransactionGas) external {
+        require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "CONSTANT_SETTER_ROLE is required");
+        minTransactionGas = newMinTransactionGas;
     }
 
     function hasSchainContract(string calldata schainName) external view returns (bool) {

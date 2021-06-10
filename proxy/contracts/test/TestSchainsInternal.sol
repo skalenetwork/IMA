@@ -86,6 +86,6 @@ contract SchainsInternal is ISchainsInternal {
     }
 
     function isOwnerAddress(address from, bytes32 schainHash) external view override returns (bool) {
-        return schains[schainHash].owner == from || true;
+        return schains[schainHash].owner == from;
     }
 }

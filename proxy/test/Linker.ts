@@ -83,8 +83,11 @@ describe("Linker", () => {
         await linker.removeMainnetContract(depositBoxEth.address);
         await linker.removeMainnetContract(depositBoxERC20.address);
         await linker.removeMainnetContract(depositBoxERC721.address);
-        const extraContractRegistrarRole = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
-        await messageProxy.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
+        await linker.grantRole(await linker.LINKER_ROLE(), deployer.address);
+        await linker.grantRole(await linker.LINKER_ROLE(), linker.address);
+        await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), linker.address);
+        await messageProxy.grantRole(await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
+        await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
         await messageProxy.registerExtraContractForAll(linker.address);
     });
 
@@ -258,7 +261,7 @@ describe("Linker", () => {
 
     it("should kill schain by schain owner first", async () => {
         // schain owner is user
-        initializeSchain(contractManager, schainName, user.address, 1, 1);
+        await initializeSchain(contractManager, schainName, user.address, 1, 1);
         await linker.connect(deployer).connectSchain(schainName, []);
         expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
         expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(0);
@@ -273,7 +276,7 @@ describe("Linker", () => {
 
     it("should kill schain by deployer first", async () => {
         // schain owner is user
-        initializeSchain(contractManager, schainName, user.address, 1, 1);
+        await initializeSchain(contractManager, schainName, user.address, 1, 1);
         await linker.connect(deployer).connectSchain(schainName, []);
         expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
         expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(0);
@@ -287,26 +290,26 @@ describe("Linker", () => {
 
     it("should not kill schain if interchain connection allowed", async () => {
         // schain owner is user
-        initializeSchain(contractManager, schainName, user.address, 1, 1);
+        await initializeSchain(contractManager, schainName, user.address, 1, 1);
         await linker.connect(deployer).connectSchain(schainName, []);
-        await linker.connect(deployer).allowInterchainConnections(schainName);
+        await linker.connect(user).allowInterchainConnections(schainName);
         expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
         expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(0);
-        await linker.connect(deployer).kill(schainName).should.be.eventually.rejectedWith("Interchain connections turned on");
+        await linker.connect(user).kill(schainName).should.be.eventually.rejectedWith("Interchain connections turned on");
     });
 
     it("should not allow interchain connection during kill process", async () => {
         // schain owner is user
-        initializeSchain(contractManager, schainName, user.address, 1, 1);
+        await initializeSchain(contractManager, schainName, user.address, 1, 1);
         await linker.connect(deployer).connectSchain(schainName, []);
         expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
         expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(0);
         await linker.connect(deployer).kill(schainName);
-        await linker.connect(deployer).allowInterchainConnections(schainName).should.be.eventually.rejectedWith("Schain is in kill process");
+        await linker.connect(user).allowInterchainConnections(schainName).should.be.eventually.rejectedWith("Schain is in kill process");
         expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(true);
         expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(2);
         await linker.connect(user).kill(schainName);
-        await linker.connect(deployer).allowInterchainConnections(schainName).should.be.eventually.rejectedWith("Schain is in kill process");
+        await linker.connect(user).allowInterchainConnections(schainName).should.be.eventually.rejectedWith("Schain is in kill process");
         expect(await linker.isNotKilled(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(false);
         expect(await linker.statuses(stringValue(web3.utils.soliditySha3(schainName)))).to.equal(3);
     });

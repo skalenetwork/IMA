@@ -117,6 +117,8 @@ describe("MessageProxy", () => {
             depositBox = await deployDepositBoxEth(contractManager, imaLinker, messageProxyForMainnet);
             messages = await deployMessages();
             communityPool = await deployCommunityPool(contractManager, imaLinker, messageProxyForMainnet);
+            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
+            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE(), deployer.address);
             gasPrice = (await messageProxyForMainnet.registerExtraContract(schainName, caller.address)).gasPrice;
         });
 
@@ -165,11 +167,11 @@ describe("MessageProxy", () => {
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
-            const someCainID = randomString(10);
-            const isConnectedChain = await messageProxyForMainnet.isConnectedChain(someCainID);
+            const newSchainName = randomString(10);
+            const isConnectedChain = await messageProxyForMainnet.isConnectedChain(newSchainName);
             isConnectedChain.should.be.deep.equal(Boolean(false));
-            await messageProxyForMainnet.connect(deployer).addConnectedChain(someCainID);
-            const connectedChain = await messageProxyForMainnet.isConnectedChain(someCainID);
+            await messageProxyForMainnet.connect(deployer).addConnectedChain(newSchainName);
+            const connectedChain = await messageProxyForMainnet.isConnectedChain(newSchainName);
             connectedChain.should.be.deep.equal(Boolean(true));
             // // main net does not have a public key and is implicitly connected:
             // await messageProxyForMainnet.isConnectedChain("Mainnet").should.be.rejected;
