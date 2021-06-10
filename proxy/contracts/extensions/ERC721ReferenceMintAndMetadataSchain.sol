@@ -56,12 +56,21 @@ contract ERC721ReferenceMintAndMetadataSchain is MessageProxySender {
             "Not allowed ERC721 Token"
         );
         ERC721OnChain(erc721ContractOnSchain).transferFrom(msg.sender, address(this), tokenId);
+        string memory tokenURI = ERC721OnChain(erc721ContractOnSchain).tokenURI(tokenId);
         ERC721OnChain(erc721ContractOnSchain).burn(tokenId);
-        bytes memory data = abi.encode(
-            receiver,
-            tokenId,
-            ERC721OnChain(erc721ContractOnSchain).tokenURI(tokenId)
-        );
+        bytes memory data = encodeParams(receiver, tokenId, tokenURI);
         _sendMessage("Mainnet", receiverContractOnMainnet, data);
+    }
+
+    function encodeParams(
+        address receiver,
+        uint256 tokenId,
+        string memory tokenURI
+    )
+        public
+        pure
+        returns (bytes memory data)
+    {
+        data = abi.encode(receiver, tokenId, tokenURI);
     }
 }

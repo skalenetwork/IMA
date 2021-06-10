@@ -73,8 +73,9 @@ contract ERC721ReferenceMintAndMetadataMainnet is MessageProxyReceiver {
         uint256 tokenId;
         string memory tokenURI;
         (to, tokenId, tokenURI) = abi.decode(data, (address, uint256, string));
-        ERC721OnChain(erc721ContractOnMainnet).mint(to, tokenId);
+        ERC721OnChain(erc721ContractOnMainnet).mint(address(this), tokenId);
         ERC721OnChain(erc721ContractOnMainnet).setTokenURI(tokenId, tokenURI);
-        return to;
+        ERC721OnChain(erc721ContractOnMainnet).transferFrom(address(this), to, tokenId);
+        return address(0);
     }
 }
