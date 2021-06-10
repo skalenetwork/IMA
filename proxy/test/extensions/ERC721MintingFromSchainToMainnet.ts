@@ -99,9 +99,6 @@ describe("ERC721MintingFromSchainToMainnet", () => {
     let schainOwner: SignerWithAddress;
 
     let imaLinker: Linker;
-    let depositBoxEth: DepositBoxEth;
-    let depositBoxERC20: DepositBoxERC20;
-    let depositBoxERC721: DepositBoxERC721;
     let communityPool: CommunityPool;
     let messageProxyForMainnet: MessageProxyForMainnet;
 
@@ -112,18 +109,9 @@ describe("ERC721MintingFromSchainToMainnet", () => {
     let schainsInternal: SchainsInternal;
     let skaleVerifier: SkaleVerifierMock;
     let wallets: Wallets;
-
-    let tokenManagerEth: TokenManagerEth;
-    let tokenManagerERC20: TokenManagerERC20;
-    let tokenManagerERC721: TokenManagerERC721;
     let tokenManagerLinker: TokenManagerLinker;
     let communityLocker: CommunityLocker;
-    let ethERC20: EthErc20;
     let messageProxyForSchain: MessageProxyForSchain;
-    let messages: MessagesTester;
-
-    let ERC20TokenOnMainnet: ERC20OnChain;
-    let ERC20TokenOnSchain: ERC20OnChain;
     let ERC721TokenOnMainnet: ERC721OnChain;
     let ERC721TokenOnSchain: ERC721OnChain;
 
@@ -223,8 +211,6 @@ describe("ERC721MintingFromSchainToMainnet", () => {
         // await messageProxyForMainnet.registerExtraContractForAll(depositBoxERC20.address)
         // await messageProxyForMainnet.registerExtraContractForAll(depositBoxERC721.address)
         // await messageProxyForMainnet.registerExtraContractForAll(communityPool.address)
-
-        messages = await deployMessages();
 
         // IMA schain part deployment
         messageProxyForSchain = await deployMessageProxyForSchain(keyStorage.address, schainName);
