@@ -1,14 +1,14 @@
 from ima_predeployed.addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, TOKEN_MANAGER_LINKER_ADDRESS, \
     COMMUNITY_LOCKER_ADDRESS
 from ima_predeployed.contract_generator import ContractGenerator, next_slot
-from tools import w3
+from web3 import Web3
 
 
 class TokenManagerGenerator(ContractGenerator):
     ARTIFACT_FILENAME = "TokenManager.json"
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
-    AUTOMATIC_DEPLOY_ROLE = w3.solidityKeccak(['string'], ['AUTOMATIC_DEPLOY_ROLE'])
-    TOKEN_REGISTRAR_ROLE = w3.solidityKeccak(['string'], ['TOKEN_REGISTRAR_ROLE'])
+    AUTOMATIC_DEPLOY_ROLE = Web3.solidityKeccak(['string'], ['AUTOMATIC_DEPLOY_ROLE'])
+    TOKEN_REGISTRAR_ROLE = Web3.solidityKeccak(['string'], ['TOKEN_REGISTRAR_ROLE'])
 
     # ---------- storage ----------
     # --------Initializable--------
@@ -54,5 +54,5 @@ class TokenManagerGenerator(ContractGenerator):
         self._write_address(self.MESSAGE_PROXY_SLOT, MESSAGE_PROXY_FOR_SCHAIN_ADDRESS)
         self._write_address(self.TOKEN_MANAGER_LINKER_SLOT, TOKEN_MANAGER_LINKER_ADDRESS)
         self._write_address(self.COMMUNITY_LOCKER_SLOT, COMMUNITY_LOCKER_ADDRESS)
-        self._write_bytes32(self.SCHAIN_HASH_SLOT, w3.solidityKeccak(['string'], [schain_name]))
+        self._write_bytes32(self.SCHAIN_HASH_SLOT, Web3.solidityKeccak(['string'], [schain_name]))
         self._write_address(self.DEPOSIT_BOX_SLOT, deposit_box_address)

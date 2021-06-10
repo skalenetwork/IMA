@@ -29,6 +29,8 @@ import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
 import { Contract } from '@ethersproject/contracts';
+import { CommunityLocker, EthErc20, KeyStorage, MessageProxyForSchain, TokenManagerERC20, TokenManagerERC721, TokenManagerEth, TokenManagerLinker } from '../typechain';
+import { TokenManagerERC1155 } from '../typechain/TokenManagerERC1155';
 
 export function getContractKeyInAbiFile(contract: string) {
     return contract.replace(/([a-zA-Z])(?=[A-Z])/g, '$1_').toLowerCase();
@@ -135,22 +137,29 @@ async function main() {
 
     console.log("Deploy KeyStorage");
     const keyStorageFactory = await ethers.getContractFactory("KeyStorage");
-    const keyStorage = await upgrades.deployProxy(keyStorageFactory);
+    const keyStorage = await upgrades.deployProxy(keyStorageFactory) as KeyStorage;
+    await keyStorage.deployTransaction.wait();
 
     console.log("Deploy MessageProxyForSchain");
-    const messageProxy = await upgrades.deployProxy(messageProxyFactory, [keyStorage.address, schainName]);
+    const messageProxy = await upgrades.deployProxy(messageProxyFactory, [keyStorage.address, schainName]) as MessageProxyForSchain;
+    await messageProxy.deployTransaction.wait();
     deployed.set( "MessageProxyForSchain", { address: messageProxy.address, interface: messageProxy.interface } );
     console.log("Contract MessageProxyForSchain deployed to", messageProxy.address);
 
     console.log("Deploy TokenManagerLinker");
     const tokenManagerLinkerFactory = await ethers.getContractFactory("TokenManagerLinker");
-    const tokenManagerLinker = await upgrades.deployProxy(tokenManagerLinkerFactory, [ messageProxy.address, linkerAddress ] );
+    const tokenManagerLinker = await upgrades.deployProxy(tokenManagerLinkerFactory, [ messageProxy.address, linkerAddress ] ) as TokenManagerLinker;
+    await tokenManagerLinker.deployTransaction.wait();
     deployed.set( "TokenManagerLinker", { address: tokenManagerLinker.address, interface: tokenManagerLinker.interface } );
     console.log("Contract TokenManagerLinker deployed to", tokenManagerLinker.address);
 
     console.log("Deploy CommunityLocker");
     const communityLockerFactory = await ethers.getContractFactory("CommunityLocker");
-    const communityLocker = await upgrades.deployProxy(communityLockerFactory, [ schainName, messageProxy.address, tokenManagerLinker.address, communityPoolAddress ]);
+    const communityLocker = await upgrades.deployProxy(
+        communityLockerFactory,
+        [ schainName, messageProxy.address, tokenManagerLinker.address, communityPoolAddress ]
+    ) as CommunityLocker;
+    await communityLocker.deployTransaction.wait();
     deployed.set( "CommunityLocker", { address: communityLocker.address, interface: communityLocker.interface });
     console.log("Contract CommunityLocker deployed to", communityLocker.address);
 
@@ -163,7 +172,8 @@ async function main() {
         communityLocker.address,
         depositBoxEthAddress,
         "0x0000000000000000000000000000000000000000"
-    ]);
+    ]) as TokenManagerEth;
+    await tokenManagerEth.deployTransaction.wait();
     deployed.set( "TokenManagerEth", { address: tokenManagerEth.address, interface: tokenManagerEth.interface } );
     console.log("Contract TokenManagerEth deployed to", tokenManagerEth.address);
 
@@ -175,7 +185,8 @@ async function main() {
         tokenManagerLinker.address,
         communityLocker.address,
         depositBoxERC20Address
-    ]);
+    ]) as TokenManagerERC20;
+    await tokenManagerERC20.deployTransaction.wait();
     deployed.set( "TokenManagerERC20", { address: tokenManagerERC20.address, interface: tokenManagerERC20.interface } );
     console.log("Contract TokenManagerERC20 deployed to", tokenManagerERC20.address);
 
@@ -187,7 +198,8 @@ async function main() {
         tokenManagerLinker.address,
         communityLocker.address,
         depositBoxERC721Address
-    ]);
+    ]) as TokenManagerERC721;
+    await tokenManagerERC721.deployTransaction.wait();
     deployed.set( "TokenManagerERC721", { address: tokenManagerERC721.address, interface: tokenManagerERC721.interface } );
     console.log("Contract TokenManagerERC721 deployed to", tokenManagerERC721.address);
 
@@ -199,13 +211,15 @@ async function main() {
         tokenManagerLinker.address,
         communityLocker.address,
         depositBoxERC1155Address
-    ]);
+    ]) as TokenManagerERC1155;
+    await tokenManagerERC1155.deployTransaction.wait();
     deployed.set( "TokenManagerERC1155", { address: tokenManagerERC1155.address, interface: tokenManagerERC1155.interface } );
     console.log("Contract TokenManagerERC1155 deployed to", tokenManagerERC1155.address);
 
     console.log("Deploy EthErc20");
     const ethERC20Factory = await ethers.getContractFactory("EthErc20");
-    const ethERC20 = await upgrades.deployProxy(ethERC20Factory, [ tokenManagerEth.address ]);
+    const ethERC20 = await upgrades.deployProxy(ethERC20Factory, [ tokenManagerEth.address ]) as EthErc20;
+    await ethERC20.deployTransaction.wait();
     deployed.set( "EthErc20", { address: ethERC20.address, interface: ethERC20.interface } );
     console.log("Contract EthErc20 deployed to", ethERC20.address);
 

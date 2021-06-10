@@ -1,13 +1,13 @@
 from ima_predeployed.addresses import TOKEN_MANAGER_ETH_ADDRESS
 from ima_predeployed.contract_generator import ContractGenerator, next_slot
-from tools import w3
+from web3 import Web3
 
 
 class EthErc20Generator(ContractGenerator):
     ARTIFACT_FILENAME = "EthErc20.json"
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
-    MINTER_ROLE = w3.solidityKeccak(['string'], ['MINTER_ROLE'])
-    BURNER_ROLE = w3.solidityKeccak(['string'], ['BURNER_ROLE'])
+    MINTER_ROLE = Web3.solidityKeccak(['string'], ['MINTER_ROLE'])
+    BURNER_ROLE = Web3.solidityKeccak(['string'], ['BURNER_ROLE'])
     NAME = 'ERC20 Ether Clone'
     SYMBOL = 'ETHC'
     DECIMALS = 18

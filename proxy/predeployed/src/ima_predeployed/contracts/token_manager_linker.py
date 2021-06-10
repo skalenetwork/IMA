@@ -1,13 +1,13 @@
 from ima_predeployed.addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, TOKEN_MANAGER_ERC20_ADDRESS, \
     TOKEN_MANAGER_ERC721_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS, TOKEN_MANAGER_ERC1155_ADDRESS
-from tools import w3
+from web3 import Web3
 from ..contract_generator import ContractGenerator, next_slot
 
 
 class TokenManagerLinkerGenerator(ContractGenerator):
     ARTIFACT_FILENAME = "TokenManagerLinker.json"
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
-    REGISTRAR_ROLE = w3.solidityKeccak(['string'], ['REGISTRAR_ROLE'])
+    REGISTRAR_ROLE = Web3.solidityKeccak(['string'], ['REGISTRAR_ROLE'])
 
     # ---------- storage ----------
     # --------Initializable--------

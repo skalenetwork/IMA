@@ -218,8 +218,10 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "addr-erc1155-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) + cc.debug( "..." ) + cc.notice( "Explicit ERC1155 address in " ) + cc.note( "S-chain" ) + cc.notice( " for Web3." ) );
             //
             console.log( cc.sunny( "USER ACCOUNT" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "tm-url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "..........." ) + cc.notice( "Transaction Manager server URL for Main-net. Value is automatically loaded from the " ) + cc.warning( "TRANSACTION_MANAGER_URL_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "tm-url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "..........." ) + cc.notice( "Transaction Manager server URL for Main-net. Value is automatically loaded from the " ) + cc.warning( "TRANSACTION_MANAGER_URL_ETHEREUM" ) + cc.notice( " environment variable if not specified. Example: " ) + cc.bright( "redis://@127.0.0.1:6379" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "tm-url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "............" ) + cc.notice( "Transaction Manager server URL for S-chain. Value is automatically loaded from the " ) + cc.warning( "TRANSACTION_MANAGER_URL_S_CHAIN" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "tm-priority-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "......" ) + cc.notice( "Transaction Manager priority for Main-net. Value is automatically loaded from the " ) + cc.warning( "TRANSACTION_MANAGER_PRIORITY_ETHEREUM" ) + cc.notice( " environment variable if not specified. Default is 5." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "tm-priority-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "......." ) + cc.notice( "Transaction Manager priority for S-chain. Value is automatically loaded from the " ) + cc.warning( "TRANSACTION_MANAGER_PRIORITY_ETHEREUM" ) + cc.notice( " environment variable if not specified. Default is 5." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( ".........." ) + cc.notice( "SGX server URL for Main-net. Value is automatically loaded from the " ) + cc.warning( "SGX_URL_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "..........." ) + cc.notice( "SGX server URL for S-chain. Value is automatically loaded from the " ) + cc.warning( "SGX_URL_S_CHAIN" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ecdsa-key-main-net" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "..." ) + cc.notice( "SGX/ECDSA key name for Main-net. Value is automatically loaded from the " ) + cc.warning( "SGX_KEY_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
@@ -432,6 +434,16 @@ function parse( joExternalHandlers, argv ) {
             if( strURL.indexOf( "/sign-and-send" ) < 0 )
                 strURL += "/sign-and-send";
             imaState.joAccount_s_chain.strTransactionManagerURL = strURL;
+            continue;
+        }
+        if( joArg.name == "tm-priority-main-net" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.joAccount_main_net.tm_priority = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
+        if( joArg.name == "tm-priority-s-chain" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.joAccount_s_chain.tm_priority = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "sgx-url-main-net" ) {
