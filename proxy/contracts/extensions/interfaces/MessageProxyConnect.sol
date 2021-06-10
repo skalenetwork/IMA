@@ -24,14 +24,14 @@ pragma solidity 0.6.12;
 import "../../interfaces/IMessageProxy.sol";
 
 abstract contract MessageProxyConnect {
-    address public messageProxyAddress;
+    IMessageProxy public messageProxy;
 
     modifier onlyMessageProxy() {
-        require(msg.sender == messageProxyAddress, "Sender is not a message proxy");
+        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
         _;
     }
 
     constructor(address newMessageProxyAddress) public {
-        messageProxyAddress = newMessageProxyAddress
+        messageProxy = IMessageProxy(newMessageProxyAddress);
     }
 }

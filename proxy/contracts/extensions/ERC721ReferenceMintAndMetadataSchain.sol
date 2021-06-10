@@ -22,8 +22,8 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721MetadataUpgradeable.sol";
-import "../interfaces/IMessageReceiver.sol";
+import "../schain/tokens/ERC721OnChain.sol";
+import "./interfaces/MessageProxySender.sol";
 
 
 /**
@@ -33,23 +33,35 @@ import "../interfaces/IMessageReceiver.sol";
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-contract ERC721ReferenceMintAndMetadataSchain is IMessageReceiver {
+contract ERC721ReferenceMintAndMetadataSchain is MessageProxySender {
 
-    address public erc721Contract;
+    address public erc721ContractOnSchain;
     address public receiverContractOnMainnet;
+
+    constructor(
+        address newMessageProxyAddress,
+        address newErc721ContractOnSchain,
+        address newReceiverContractOnMainnet
+    )
+        public
+        MessageProxyConnect(newMessageProxyAddress)
+    {
+        erc721ContractOnSchain = newErc721ContractOnSchain;
+        receiverContractOnMainnet = newReceiverContractOnMainnet;
+    }
 
     function sendTokenToMainnet(address receiver, uint256 tokenId) external {
         require(
-            IERC721MetadataUpgradeable(erc721Contract).getApproved(tokenId) == address(this),
+            ERC721OnChain(erc721ContractOnSchain).getApproved(tokenId) == address(this),
             "Not allowed ERC721 Token"
         );
-        IERC721MetadataUpgradeable(erc721Contract).transferFrom(msg.sender, address(this), tokenId);
-        IERC721MetadataUpgradeable(erc721Contract).burn(tokenId);
+        ERC721OnChain(erc721ContractOnSchain).transferFrom(msg.sender, address(this), tokenId);
+        ERC721OnChain(erc721ContractOnSchain).burn(tokenId);
         bytes memory data = abi.encode(
             receiver,
             tokenId,
-            IERC721MetadataUpgradeable(erc721Contract).tokenURI(tokenId)
+            ERC721OnChain(erc721ContractOnSchain).tokenURI(tokenId)
         );
-        messageProxy.postOutgoingMessage("Mainnet", receiverContractOnMainnet, data);
+        _sendMessage("Mainnet", receiverContractOnMainnet, data);
     }
 }

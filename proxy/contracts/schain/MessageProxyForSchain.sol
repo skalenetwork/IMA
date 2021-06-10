@@ -148,6 +148,21 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
     }
 
     /**
+     * @dev Checks whether contract is currently connected to
+     * send messages to chain or receive messages from chain.
+     */
+    function isContractRegistered(
+        string calldata schainName,
+        address contractAddress
+    )
+        external
+        view
+        returns (bool)
+    {
+        return registryContracts[keccak256(abi.encodePacked(schainName))][contractAddress];
+    }
+
+    /**
      * This is called by  schain owner.
      * On mainnet, SkaleManager will call it every time a SKALE chain is
      * created. Therefore, any SKALE chain is always connected to the main chain.

@@ -211,6 +211,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
 
     function registerExtraContract(string calldata schainName, address contractOnMainnet) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(schainHash != keccak256(abi.encodePacked("Mainnet")), "Schain hash can not be equal Mainnet");
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash),
@@ -237,6 +238,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
 
     function removeExtraContract(string calldata schainName, address contractOnMainnet) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(schainHash != keccak256(abi.encodePacked("Mainnet")), "Schain hash can not be equal Mainnet");
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash),
@@ -404,6 +406,21 @@ contract MessageProxyForMainnet is SkaleManagerClient {
             return false;
         }
         return true;
+    }
+
+    /**
+     * @dev Checks whether contract is currently connected to
+     * send messages to chain or receive messages from chain.
+     */
+    function isContractRegistered(
+        string calldata schainName,
+        address contractAddress
+    )
+        external
+        view
+        returns (bool)
+    {
+        return registryContracts[keccak256(abi.encodePacked(schainName))][contractAddress];
     }
 
     /**

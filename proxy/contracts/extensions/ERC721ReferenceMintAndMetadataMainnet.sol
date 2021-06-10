@@ -22,25 +22,59 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721MetadataUpgradeable.sol";
-import "../interfaces/IMessageReceiver.sol";
+import "../schain/tokens/ERC721OnChain.sol";
+import "./interfaces/MessageProxyReceiver.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract ERC721ReferenceMintAndMetadataMainnet is IMessageReceiver {
+contract ERC721ReferenceMintAndMetadataMainnet is MessageProxyReceiver {
 
-    address public erc721Contract;
+    address public erc721ContractOnMainnet;
     address public senderContractOnSchain;
+    string public schainName;
+
+    address public owner;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Sender is not an owner");
+        _;
+    }
+
+    constructor(
+        address newMessageProxyAddress,
+        address newErc721Contract,
+        string memory newSchainName
+    )
+        public
+        MessageProxyConnect(newMessageProxyAddress)
+    {
+        erc721ContractOnMainnet = newErc721Contract;
+        schainName = newSchainName;
+        owner = msg.sender;
+    }
+
+    function setSenderContractOnSchain(address newSenderContractOnSchain) external onlyOwner {
+        senderContractOnSchain = newSenderContractOnSchain;
+    }
 
     function postMessage(
-        bytes32,
-        address,
-        bytes calldata
+        bytes32 schainHash,
+        address sender,
+        bytes calldata data
     )
         external
         override
+        onlyMessageProxy
         returns (address)
     {
-        
+        require(schainHash == keccak256(abi.encodePacked(schainName)), "Incorrect name of schain");
+        require(sender == senderContractOnSchain, "Incorrect sender contract");
+        address to;
+        uint256 tokenId;
+        string memory tokenURI;
+        (to, tokenId, tokenURI) = abi.decode(data, (address, uint256, string));
+        ERC721OnChain(erc721ContractOnMainnet).mint(to, tokenId);
+        ERC721OnChain(erc721ContractOnMainnet).setTokenURI(tokenId, tokenURI);
+        return to;
     }
 }
