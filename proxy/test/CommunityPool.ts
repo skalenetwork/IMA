@@ -110,10 +110,17 @@ describe("CommunityPool", () => {
 
     });
 
-    it("should links with contract on schain", async () => {
+    it("should add link to contract on schain", async () => {
         const fakeContractOnSchain = user.address;
+        const nullAddress = "0x0000000000000000000000000000000000000000";
+        await communityPool.addSchainContract(schainName, nullAddress)
+            .should.be.eventually.rejectedWith("Incorrect address for contract on Schain");
+
         await communityPool.addSchainContract(schainName, fakeContractOnSchain);
+
         expect(await communityPool.hasSchainContract(schainName)).to.be.true;
+        await communityPool.addSchainContract(schainName, fakeContractOnSchain)
+            .should.be.eventually.rejectedWith("SKALE chain is already set");
     });
 
     it("should remove link to contract on schain", async () => {
@@ -122,6 +129,20 @@ describe("CommunityPool", () => {
         expect(await communityPool.hasSchainContract(schainName)).to.be.true;
         await communityPool.removeSchainContract(schainName);
         expect(await communityPool.hasSchainContract(schainName)).to.be.false;
+        await communityPool.removeSchainContract(schainName)
+            .should.be.eventually.rejectedWith("SKALE chain is not set");
+    });
+
+    it("should add and remove link to contract on schain as LINKER_ROLE", async () => {
+        const fakeContractOnSchain = user.address;
+        const LINKER_ROLE = await communityPool.LINKER_ROLE();
+        await communityPool.grantRole(LINKER_ROLE, user.address);
+        await communityPool.connect(user).addSchainContract(schainName, fakeContractOnSchain);
+        expect(await communityPool.hasSchainContract(schainName)).to.be.true;
+        await communityPool.connect(user).removeSchainContract(schainName);
+        expect(await communityPool.hasSchainContract(schainName)).to.be.false;
+        await communityPool.connect(user).removeSchainContract(schainName)
+            .should.be.eventually.rejectedWith("SKALE chain is not set");
     });
 
 });

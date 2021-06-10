@@ -83,7 +83,6 @@ contract Linker is SkaleManagerClient {
         messageProxy.postOutgoingMessage(
             schainHash,
             schainLinks[schainHash],
-            // Messages.encodeFreezeStateMessage(address(messageProxy), false)
             Messages.encodeInterchainConnectionMessage(true)
         );
     }

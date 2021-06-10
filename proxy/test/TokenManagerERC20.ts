@@ -95,7 +95,7 @@ describe("TokenManagerERC20", () => {
         await tokenManagerErc20.connect(deployer).grantRole(await tokenManagerErc20.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
         await tokenManagerErc20.connect(deployer).grantRole(await tokenManagerErc20.AUTOMATIC_DEPLOY_ROLE(), schainOwner.address);
         await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
-        const data = await messages.encodeFreezeStateMessage(user.address, true);
+        const data = await messages.encodeActivateUserMessage(user.address);
         await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, fakeCommunityPool, data);
 
         const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
