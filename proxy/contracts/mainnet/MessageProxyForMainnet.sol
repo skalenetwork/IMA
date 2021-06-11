@@ -216,7 +216,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
 
     function registerExtraContract(string calldata schainName, address contractOnMainnet) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(schainHash != keccak256(abi.encodePacked("Mainnet")), "Schain hash can not be equal Mainnet");
+        require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash),
@@ -243,7 +243,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
 
     function removeExtraContract(string calldata schainName, address contractOnMainnet) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(schainHash != keccak256(abi.encodePacked("Mainnet")), "Schain hash can not be equal Mainnet");
+        require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash),
@@ -390,14 +390,8 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         view
         returns (bool)
     {
-        require(
-            keccak256(abi.encodePacked(schainName)) !=
-            keccak256(abi.encodePacked("Mainnet")),
-            "Schain id can not be equal Mainnet"); // main net does not have a public key and is implicitly connected
-        if ( ! connectedChains[keccak256(abi.encodePacked(schainName))].inited ) {
-            return false;
-        }
-        return true;
+        require(keccak256(abi.encodePacked(schainName)) != MAINNET_HASH, "Schain id can not be equal Mainnet");
+        return connectedChains[keccak256(abi.encodePacked(schainName))].inited;
     }
 
     /**
