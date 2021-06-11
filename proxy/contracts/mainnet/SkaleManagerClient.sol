@@ -26,7 +26,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
-import "hardhat/console.sol";
+
 
 /**
  * @title SkaleManagerClient - contract that knows ContractManager
