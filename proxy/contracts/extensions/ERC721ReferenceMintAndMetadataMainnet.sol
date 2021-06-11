@@ -23,11 +23,11 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../schain/tokens/ERC721OnChain.sol";
-import "./interfaces/MessageProxyReceiver.sol";
+import "./interfaces/MessageReceiver.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract ERC721ReferenceMintAndMetadataMainnet is MessageProxyReceiver {
+contract ERC721ReferenceMintAndMetadataMainnet is MessageReceiver {
 
     address public erc721ContractOnMainnet;
     address public senderContractOnSchain;
@@ -46,7 +46,7 @@ contract ERC721ReferenceMintAndMetadataMainnet is MessageProxyReceiver {
         string memory newSchainName
     )
         public
-        MessageProxyConnect(newMessageProxyAddress)
+        MessageProxyClient(newMessageProxyAddress)
     {
         erc721ContractOnMainnet = newErc721Contract;
         schainName = newSchainName;

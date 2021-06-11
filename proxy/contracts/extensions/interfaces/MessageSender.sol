@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxySender.sol - SKALE Interchain Messaging Agent
+ *   MessageSender.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -21,9 +21,9 @@
 
 pragma solidity 0.6.12;
 
-import "./MessageProxyConnect.sol";
+import "./MessageProxyClient.sol";
 
-abstract contract MessageProxySender is MessageProxyConnect {
+abstract contract MessageSender is MessageProxyClient {
 
     function _sendMessage(
         string memory targetSchainName,

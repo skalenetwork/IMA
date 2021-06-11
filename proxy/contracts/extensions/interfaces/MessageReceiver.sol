@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxyReceiver.sol - SKALE Interchain Messaging Agent
+ *   MessageReceiver.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -21,8 +21,8 @@
 
 pragma solidity 0.6.12;
 
-import "./MessageProxyConnect.sol";
+import "./MessageProxyClient.sol";
 import "../../interfaces/IMessageReceiver.sol";
 
 // solhint-disable-next-line no-empty-blocks
-abstract contract MessageProxyReceiver is MessageProxyConnect, IMessageReceiver {}
+abstract contract MessageReceiver is MessageProxyClient, IMessageReceiver {}

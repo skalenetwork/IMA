@@ -23,7 +23,7 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../schain/tokens/ERC721OnChain.sol";
-import "./interfaces/MessageProxySender.sol";
+import "./interfaces/MessageSender.sol";
 
 
 /**
@@ -33,7 +33,7 @@ import "./interfaces/MessageProxySender.sol";
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-contract ERC721ReferenceMintAndMetadataSchain is MessageProxySender {
+contract ERC721ReferenceMintAndMetadataSchain is MessageSender {
 
     address public erc721ContractOnSchain;
     address public receiverContractOnMainnet;
@@ -44,7 +44,7 @@ contract ERC721ReferenceMintAndMetadataSchain is MessageProxySender {
         address newReceiverContractOnMainnet
     )
         public
-        MessageProxyConnect(newMessageProxyAddress)
+        MessageProxyClient(newMessageProxyAddress)
     {
         erc721ContractOnSchain = newErc721ContractOnSchain;
         receiverContractOnMainnet = newReceiverContractOnMainnet;
