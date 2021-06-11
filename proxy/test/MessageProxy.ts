@@ -263,9 +263,20 @@ describe("MessageProxy", () => {
                     outgoingMessages,
                     sign,
                     0,
-                ).should.be.rejected;
+                ).should.be.eventually.rejectedWith("Chain is not initialized");
 
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
+
+            await messageProxyForMainnet
+                .connect(deployer)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter,
+                    outgoingMessages,
+                    sign,
+                    0,
+                ).should.be.eventually.rejectedWith("User should be active");
+
             await communityPool.connect(client).rechargeUserWallet(schainName, {value: amountWei.toString()});
 
             await messageProxyForMainnet

@@ -5,7 +5,7 @@ import {
     MessageProxyForMainnet,
     CommunityPool
 } from "../typechain";
-import { randomString } from "./utils/helper";
+import { stringValue } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
@@ -48,20 +48,17 @@ describe("CommunityPool", () => {
         [deployer, user, node] = await ethers.getSigners();
     });
 
-    async function grantRoles() {
-        const CHAIN_CONNECTOR_ROLE = await messageProxy.CHAIN_CONNECTOR_ROLE();
-        await messageProxy.grantRole(CHAIN_CONNECTOR_ROLE, deployer.address);
-        const EXTRA_CONTRACT_REGISTRAR_ROLE = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
-        await messageProxy.grantRole(EXTRA_CONTRACT_REGISTRAR_ROLE, deployer.address);
-    }
-
     beforeEach(async () => {
         contractManager = await deployContractManager(contractManagerAddress);
         messageProxy = await deployMessageProxyForMainnet(contractManager);
         linker = await deployLinker(messageProxy, contractManager);
         communityPool = await deployCommunityPool(contractManager, linker, messageProxy);
         minTransactionGas = await communityPool.minTransactionGas();
-        await grantRoles();
+
+        const CHAIN_CONNECTOR_ROLE = await messageProxy.CHAIN_CONNECTOR_ROLE();
+        await messageProxy.grantRole(CHAIN_CONNECTOR_ROLE, deployer.address);
+        const EXTRA_CONTRACT_REGISTRAR_ROLE = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
+        await messageProxy.grantRole(EXTRA_CONTRACT_REGISTRAR_ROLE, deployer.address);
     });
 
     it("should not allow to withdraw from user wallet if CommunityPool is not registered for all chains", async () => {
@@ -182,8 +179,16 @@ describe("CommunityPool", () => {
         const CONSTANT_SETTER_ROLE  = await communityPool.CONSTANT_SETTER_ROLE();
         await communityPool.grantRole(CONSTANT_SETTER_ROLE, deployer.address);
         expect(await communityPool.minTransactionGas()).to.be.deep.equal(BigNumber.from(1000000));
+        await communityPool.connect(user).setMinTransactionGas(newMinTransactionGas)
+            .should.be.eventually.rejectedWith("CONSTANT_SETTER_ROLE is required");
         await communityPool.setMinTransactionGas(newMinTransactionGas);
         expect(await communityPool.minTransactionGas()).to.be.deep.equal(newMinTransactionGas);
+    });
+
+    it("should set rejected when call refundGasByUser not from messageProxy contract", async () => {
+        const schainHash = stringValue(web3.utils.soliditySha3("Schain"));
+        await communityPool.connect(deployer).refundGasByUser(schainHash, node.address, user.address, 0)
+            .should.be.eventually.rejectedWith("Sender is not a MessageProxy");
     });
 
 });
