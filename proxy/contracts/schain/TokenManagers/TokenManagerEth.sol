@@ -108,7 +108,7 @@ contract TokenManagerEth is TokenManager {
         external
         override
         onlyMessageProxy
-        returns (bool)
+        returns (address)
     {
         require(
             fromChainHash != schainHash && 
@@ -123,7 +123,7 @@ contract TokenManagerEth is TokenManager {
         address receiver = decodedMessage.receiver;
         require(receiver != address(0), "Incorrect receiver");
         ethErc20.mint(receiver, decodedMessage.amount);
-        return true;
+        return receiver;
     }
 
     function initialize(

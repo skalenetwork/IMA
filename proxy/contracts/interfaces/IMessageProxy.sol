@@ -22,14 +22,19 @@
 pragma solidity 0.6.12;
 
 interface IMessageProxy {
+    // internal functions can be executed from specific key
+    function addConnectedChain(string calldata schainName) external;
+    function removeConnectedChain(string calldata schainName) external;
+
     function postOutgoingMessage(
         string calldata targetSchainName,
         address targetContract,
         bytes calldata data
-    )
-        external;
-
-    function addConnectedChain(string calldata schainName) external;
-    function removeConnectedChain(string calldata schainName) external;
+    ) external;
+    function registerExtraContract(string calldata schainName, address contractOnMainnet) external;
+    function removeExtraContract(string calldata schainName, address contractOnMainnet) external;
     function isConnectedChain(string calldata schainName) external view returns (bool);
+    function isContractRegistered(string calldata schainName, address contractAddress) external view returns (bool);
+    function getOutgoingMessagesCounter(string calldata targetSchainName) external view returns (uint256);
+    function getIncomingMessagesCounter(string calldata fromSchainName) external view returns (uint256);
 }
