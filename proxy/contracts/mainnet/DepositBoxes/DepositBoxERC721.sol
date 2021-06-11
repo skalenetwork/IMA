@@ -263,17 +263,6 @@ contract DepositBoxERC721 is DepositBox {
     }
 
     /**
-     * @dev Allows DepositBox to send ERC721 tokens.
-     */
-    function _sendERC721(bytes calldata data) private returns (bool) {
-        Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
-        require(message.token.isContract(), "Given address is not a contract");
-        require(IERC721Upgradeable(message.token).ownerOf(message.tokenId) == address(this), "Incorrect tokenId");
-        IERC721Upgradeable(message.token).transferFrom(address(this), message.receiver, message.tokenId);
-        return true;
-    }
-
-    /**
      * @dev Allows ERC721ModuleForMainnet to add an ERC721 token to
      * LockAndDataForMainnetERC721.
      */

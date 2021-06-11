@@ -24,7 +24,6 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
-import "./bls/FieldOperations.sol";
 import "./bls/SkaleVerifier.sol";
 import "./KeyStorage.sol";
 interface IContractReceiverForSchain {

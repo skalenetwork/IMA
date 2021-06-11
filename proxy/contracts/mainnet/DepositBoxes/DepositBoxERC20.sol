@@ -297,20 +297,6 @@ contract DepositBoxERC20 is DepositBox {
     }
 
     /**
-     * @dev Allows DepositBox to send ERC20 tokens.
-     */
-    function _sendERC20(bytes calldata data) private returns (bool) {
-        Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
-        require(message.token.isContract(), "Given address is not a contract");
-        require(IERC20Metadata(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
-        require(
-            IERC20Metadata(message.token).transfer(message.receiver, message.amount),
-            "Something went wrong with `transfer` in ERC20"
-        );
-        return true;
-    }
-
-    /**
      * @dev Allows ERC20Module to add an ERC20 token to LockAndDataForMainnetERC20.
      */
     function _addERC20ForSchain(string calldata schainName, address erc20OnMainnet) private {
