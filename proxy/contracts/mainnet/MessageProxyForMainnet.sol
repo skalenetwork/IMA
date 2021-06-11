@@ -198,7 +198,8 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     function setCommunityPool(address newCommunityPoolAddress) external {
         require(
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );  
+        );
+        require(newCommunityPoolAddress != address(0), "CommunityPool address has to be set");
         communityPoolAddress = newCommunityPoolAddress;
     }
 

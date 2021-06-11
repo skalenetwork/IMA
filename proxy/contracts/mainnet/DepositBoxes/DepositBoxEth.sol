@@ -169,6 +169,7 @@ contract DepositBoxEth is DepositBox {
         onlySchainOwner(schainName)
         whenKilled(keccak256(abi.encodePacked(schainName)))
     {
+        require(receiver != address(0), "Receiver address has to be set");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(transferredAmount[schainHash] >= amount, "Incorrect amount");
         _removeTransferredAmount(schainHash, amount);

@@ -140,6 +140,7 @@ abstract contract TokenManager is AccessControlUpgradeable {
      */
     function changeDepositBoxAddress(address newDepositBox) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
+        require(newDepositBox != address(0), "DepositBox address has to be set");
         depositBox = newDepositBox;
     }
 
@@ -161,6 +162,8 @@ abstract contract TokenManager is AccessControlUpgradeable {
         virtual
         initializer
     {
+        require(newDepositBox != address(0), "DepositBox address has to be set");
+
         AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(AUTOMATIC_DEPLOY_ROLE, msg.sender);

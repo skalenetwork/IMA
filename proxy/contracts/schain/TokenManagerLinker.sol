@@ -146,6 +146,8 @@ contract TokenManagerLinker is AccessControlUpgradeable, IContractReceiverForSch
         virtual
         initializer
     {
+        require(linker != address(0), "Linker address has to be set");
+
         AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(REGISTRAR_ROLE, msg.sender);

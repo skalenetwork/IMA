@@ -106,13 +106,14 @@ contract CommunityLocker is AccessControlUpgradeable {
         virtual
         initializer
     {
+        require(newCommunityPool != address(0), "Node address has to be set");
         AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         messageProxy = newMessageProxy;
         tokenManagerLinker = newTokenManagerLinker;
         schainHash = keccak256(abi.encodePacked(newSchainName));
         timeLimitPerMessage = 5 minutes;
-	communityPool = newCommunityPool;
+	    communityPool = newCommunityPool;
     }
 
 }
