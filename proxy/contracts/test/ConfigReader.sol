@@ -110,7 +110,6 @@ library ConfigReader {
     )
         public
         view
-        virtual
         returns (uint256 rv)
     {
         uint256 fmp = FREE_MEM_PTR;

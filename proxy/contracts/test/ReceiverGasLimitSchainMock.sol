@@ -20,7 +20,7 @@
  */
 
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.4;
 pragma experimental ABIEncoderV2;
 
 import "../schain/MessageProxyForSchain.sol";
@@ -40,5 +40,6 @@ contract ReceiverGasLimitSchainMock is IContractReceiverForSchain {
         while(true) {
             a++;
         }
+        return false;
     }
 }
