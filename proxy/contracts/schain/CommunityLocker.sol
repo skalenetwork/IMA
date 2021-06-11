@@ -27,15 +27,16 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 import "../Messages.sol";
+import "../mainnet/CommunityPool.sol";
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
-import "../mainnet/CommunityPool.sol";
+
 
 /**
  * @title CommunityLocker
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract CommunityLocker is AccessControlUpgradeable {
+contract CommunityLocker is IContractReceiverForSchain, AccessControlUpgradeable {
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
@@ -66,6 +67,7 @@ contract CommunityLocker is AccessControlUpgradeable {
         bytes calldata data
     )
         external
+        override
         returns (bool)
     {
         require(msg.sender == address(messageProxy), "Sender is not a message proxy");

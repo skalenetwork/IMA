@@ -21,15 +21,10 @@
 
 pragma solidity 0.8.4;
 
-interface IMainnetContract {
+import "./IMessageReceiver.sol";
 
-    function postMessage(
-        bytes32 schainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        returns (address);
+
+interface IMainnetContract is IMessageReceiver {
 
     function addSchainContract(string calldata schainName, address newSchainContract) external;
 
