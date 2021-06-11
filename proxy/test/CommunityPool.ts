@@ -51,7 +51,7 @@ describe("CommunityPool", () => {
     beforeEach(async () => {
         contractManager = await deployContractManager(contractManagerAddress);
         messageProxy = await deployMessageProxyForMainnet(contractManager);
-        linker = await deployLinker(messageProxy, contractManager);
+        linker = await deployLinker(contractManager, messageProxy);
         communityPool = await deployCommunityPool(contractManager, linker, messageProxy);
         minTransactionGas = await communityPool.minTransactionGas();
 
@@ -137,7 +137,7 @@ describe("CommunityPool", () => {
 
         await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
         await communityPool.addSchainContract(schainName, nullAddress)
-            .should.be.eventually.rejectedWith("Incorrect address for contract on Schain");
+            .should.be.eventually.rejectedWith("Incorrect address of contract receiver on Schain");
 
         await communityPool.addSchainContract(schainName, fakeContractOnSchain);
 

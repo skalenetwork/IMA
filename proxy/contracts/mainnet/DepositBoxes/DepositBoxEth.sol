@@ -32,86 +32,29 @@ contract DepositBoxEth is DepositBox {
 
     using SafeMathUpgradeable for uint;
 
-    // uint256 public gasConsumption;
-
-    mapping(bytes32 => address) public tokenManagerEthAddresses;
-
     mapping(address => uint256) public approveTransfers;
 
     mapping(bytes32 => uint256) public transferredAmount;
-
-    modifier rightTransaction(string memory schainName) {
-        require(
-            keccak256(abi.encodePacked(schainName)) != keccak256(abi.encodePacked("Mainnet")),
-            "SKALE chain name is incorrect"
-        );
-        _;
-    }
 
     receive() external payable {
         revert("Use deposit function");
     }
 
-    /**
-     * @dev Adds a TokenManagerEth address to
-     * DepositBoxEth.
-     *
-     * Requirements:
-     *
-     * - `msg.sender` must be schain owner or contract owner
-     * = or imaLinker contract.
-     * - SKALE chain must not already be added.
-     * - TokenManager address must be non-zero.
-     */
-    function addSchainContract(string calldata schainName, address newTokenManagerEthAddress) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(tokenManagerEthAddresses[schainHash] == address(0), "SKALE chain is already set");
-        require(newTokenManagerEthAddress != address(0), "Incorrect Token Manager address");
-
-        tokenManagerEthAddresses[schainHash] = newTokenManagerEthAddress;
-    }
-
-    /**
-     * @dev Allows Owner to remove a TokenManagerEth on SKALE chain
-     * from DepositBoxEth.
-     *
-     * Requirements:
-     *
-     * - `msg.sender` must be schain owner or contract owner
-     * - SKALE chain must already be set.
-     */
-    function removeSchainContract(string calldata schainName) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(tokenManagerEthAddresses[schainHash] != address(0), "SKALE chain is not set");
-
-        delete tokenManagerEthAddresses[schainHash];
-    }
-
     function deposit(string memory schainName, address to)
         external
         payable
+        rightTransaction(schainName, to)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
-        // receivedEth
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        address tokenManagerAddress = tokenManagerEthAddresses[schainHash];
-        require(tokenManagerAddress != address(0), "Unconnected chain");
+        address contractReceiver = schainLinks[schainHash];
+        require(contractReceiver != address(0), "Unconnected chain");
         require(to != address(0), "Receiver address cannot be null");
         if (!linker.interchainConnections(schainHash))
             _saveTransferredAmount(schainHash, msg.value);
         messageProxy.postOutgoingMessage(
             schainHash,
-            tokenManagerAddress,
+            contractReceiver,
             Messages.encodeTransferEthMessage(to, msg.value)
         );
     }
@@ -122,14 +65,13 @@ contract DepositBoxEth is DepositBox {
         bytes calldata data
     )
         external
-        override
         onlyMessageProxy
         whenNotKilled(schainHash)
         returns (address)
     {
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&
-            sender == tokenManagerEthAddresses[schainHash],
+            sender == schainLinks[schainHash],
             "Receiver chain is incorrect"
         );
         Messages.TransferEthMessage memory message = Messages.decodeTransferEthMessage(data);
@@ -172,13 +114,6 @@ contract DepositBoxEth is DepositBox {
         require(transferredAmount[schainHash] >= amount, "Incorrect amount");
         _removeTransferredAmount(schainHash, amount);
         receiver.transfer(amount);
-    }
-
-    /**
-     * @dev Checks whether depositBoxEth is connected to a SKALE chain TokenManagerEth.
-     */
-    function hasSchainContract(string calldata schainName) external view override returns (bool) {
-        return tokenManagerEthAddresses[keccak256(abi.encodePacked(schainName))] != address(0);
     }
 
     /// Create a new deposit box

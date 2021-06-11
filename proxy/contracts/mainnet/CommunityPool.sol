@@ -33,16 +33,12 @@ import "./Linker.sol";
  * @title CommunityPool
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract CommunityPool is SkaleManagerClient {
-
-    MessageProxyForMainnet public messageProxy;
+contract CommunityPool is Twin {
 
     mapping(address => mapping(bytes32 => uint)) private _userWallets;
     mapping(address => bool) public activeUsers;
-    mapping(bytes32 => address) public schainLinks;
 
     uint public minTransactionGas;
-    bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
     function refundGasByUser(
@@ -52,8 +48,8 @@ contract CommunityPool is SkaleManagerClient {
         uint gas
     ) 
         external
+        onlyMessageProxy
     {
-        require(msg.sender == address(messageProxy),  "Sender is not a MessageProxy");
         require(activeUsers[user], "User should be active");
         uint amount = tx.gasprice * gas;
         _userWallets[user][schainHash] = _userWallets[user][schainHash].sub(amount);
@@ -104,34 +100,9 @@ contract CommunityPool is SkaleManagerClient {
         msg.sender.transfer(amount);
     }
 
-    function addSchainContract(string calldata schainName, address contractOnSchain) external {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(LINKER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash), "Not authorized caller"
-        );
-        require(schainLinks[schainHash] == address(0), "SKALE chain is already set");
-        require(contractOnSchain != address(0), "Incorrect address for contract on Schain");
-        schainLinks[schainHash] = contractOnSchain;
-    }
-
-    function removeSchainContract(string calldata schainName) external {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(LINKER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash), "Not authorized caller"
-        );
-        require(schainLinks[schainHash] != address(0), "SKALE chain is not set");
-        delete schainLinks[schainHash];
-    }
-
     function setMinTransactionGas(uint newMinTransactionGas) external {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "CONSTANT_SETTER_ROLE is required");
         minTransactionGas = newMinTransactionGas;
-    }
-
-    function hasSchainContract(string calldata schainName) external view returns (bool) {
-        return schainLinks[keccak256(abi.encodePacked(schainName))] != address(0);
     }
 
     function getBalance(string calldata schainName) external view returns (uint) {
@@ -141,15 +112,13 @@ contract CommunityPool is SkaleManagerClient {
     function initialize(
         IContractManager contractManagerOfSkaleManager,
         Linker linker,
-        MessageProxyForMainnet newMessageProxy
+        MessageProxyForMainnet messageProxy
     )
         public
         initializer
     {
-        SkaleManagerClient.initialize(contractManagerOfSkaleManager);
-        AccessControlUpgradeable.__AccessControl_init();
+        Twin.initialize(contractManagerOfSkaleManager, messageProxy);
         _setupRole(LINKER_ROLE, address(linker));
-        messageProxy = newMessageProxy;
         minTransactionGas = 1000000;
     }
 }

@@ -31,26 +31,11 @@ import "../../Messages.sol";
 // This contract runs on the main net and accepts deposits
 contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
 
-    // uint256 public gasConsumption;
-
-    mapping(bytes32 => address) public tokenManagerERC1155Addresses;
-
-    mapping(bytes32 => mapping(address => bool)) public schainToERC1155;
-    mapping(bytes32 => bool) public withoutWhitelist;
-
     /**
      * @dev Emitted when token is mapped.
      */
     event ERC1155TokenAdded(string schainName, address indexed contractOnMainnet);
     event ERC1155TokenReady(address indexed contractOnMainnet, uint256[] ids, uint256[] amounts);
-
-    modifier rightTransaction(string memory schainName) {
-        require(
-            keccak256(abi.encodePacked(schainName)) != keccak256(abi.encodePacked("Mainnet")),
-            "SKALE chain name is incorrect"
-        );
-        _;
-    }
 
     function onERC1155Received(
         address operator,
@@ -90,11 +75,11 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         uint256 amount
     )
         external
+        rightTransaction(schainName, to)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        address tokenManagerAddress = tokenManagerERC1155Addresses[schainHash];
-        require(to != address(0), "Receiver address cannot be null");
-        require(tokenManagerAddress != address(0), "Unconnected chain");
+        address contractReceiver = schainLinks[schainHash];
+        require(contractReceiver != address(0), "Unconnected chain");
         require(
             IERC1155Upgradeable(contractOnMainnet).isApprovedForAll(msg.sender, address(this)),
             "DepositBox was not approved for ERC1155 token"
@@ -109,7 +94,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         IERC1155Upgradeable(contractOnMainnet).safeTransferFrom(msg.sender, address(this), id, amount, "");
         messageProxy.postOutgoingMessage(
             schainHash,
-            tokenManagerAddress,
+            contractReceiver,
             data
         );
     }
@@ -124,9 +109,9 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         external
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        address tokenManagerAddress = tokenManagerERC1155Addresses[schainHash];
+        address contractReceiver = schainLinks[schainHash];
         require(to != address(0), "Receiver address cannot be null");
-        require(tokenManagerAddress != address(0), "Unconnected chain");
+        require(contractReceiver != address(0), "Unconnected chain");
         require(
             IERC1155Upgradeable(contractOnMainnet).isApprovedForAll(msg.sender, address(this)),
             "DepositBox was not approved for ERC1155 token Batch"
@@ -141,51 +126,9 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         IERC1155Upgradeable(contractOnMainnet).safeBatchTransferFrom(msg.sender, address(this), ids, amounts, "");
         messageProxy.postOutgoingMessage(
             schainHash,
-            tokenManagerAddress,
+            contractReceiver,
             data
         );
-    }
-
-    /**
-     * @dev Adds a TokenManagerERC1155 address to
-     * DepositBoxERC1155.
-     *
-     * Requirements:
-     *
-     * - `msg.sender` must be schain owner or contract owner.
-     * - SKALE chain must not already be added.
-     * - TokenManager address must be non-zero.
-     */
-    function addSchainContract(string calldata schainName, address newTokenManagerERC1155Address) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash), "Not authorized caller"
-        );
-        require(tokenManagerERC1155Addresses[schainHash] == address(0), "SKALE chain is already set");
-        require(newTokenManagerERC1155Address != address(0), "Incorrect Token Manager address");
-
-        tokenManagerERC1155Addresses[schainHash] = newTokenManagerERC1155Address;
-    }
-
-    /**
-     * @dev Allows Owner to remove a TokenManagerERC1155 on SKALE chain
-     * from DepositBoxERC1155.
-     *
-     * Requirements:
-     *
-     * - `msg.sender` must be schain owner or contract owner
-     * - SKALE chain must already be set.
-     */
-    function removeSchainContract(string calldata schainName) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash), "Not authorized caller"
-        );        
-        require(tokenManagerERC1155Addresses[schainHash] != address(0), "SKALE chain is not set");
-
-        delete tokenManagerERC1155Addresses[schainHash];
     }
 
     function postMessage(
@@ -194,13 +137,12 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         bytes calldata data
     )
         external
-        override
         onlyMessageProxy
         returns (address receiver)
     {
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&
-            sender == tokenManagerERC1155Addresses[schainHash],
+            sender == schainLinks[schainHash],
             "Receiver chain is incorrect"
         );
         Messages.MessageType operation = Messages.getMessageType(data);
@@ -242,36 +184,17 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc1155OnMainnet.isContract(), "Given address is not a contract");
         // require(!withoutWhitelist[schainHash], "Whitelist is enabled");
-        schainToERC1155[schainHash][erc1155OnMainnet] = true;
+        schainToERC[schainHash][erc1155OnMainnet] = true;
         emit ERC1155TokenAdded(schainName, erc1155OnMainnet);
     }
 
-    /**
-     * @dev Allows Schain owner turn on whitelist of tokens.
-     */
-    function enableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
-        withoutWhitelist[keccak256(abi.encodePacked(schainName))] = false;
-    }
 
-    /**
-     * @dev Allows Schain owner turn off whitelist of tokens.
-     */
-    function disableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
-        withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
-    }
 
     /**
      * @dev Should return true if token in whitelist.
      */
-    function getSchainToERC1155(string calldata schainName, address erc1155OnMainnet) external view returns (bool) {
-        return schainToERC1155[keccak256(abi.encodePacked(schainName))][erc1155OnMainnet];
-    }
-
-    /**
-     * @dev Checks whether depositBoxERC1155 is connected to a SKALE chain TokenManagerERC1155.
-     */
-    function hasSchainContract(string calldata schainName) external view override returns (bool) {
-        return tokenManagerERC1155Addresses[keccak256(abi.encodePacked(schainName))] != address(0);
+    function getSchainToERC(string calldata schainName, address erc1155OnMainnet) external view returns (bool) {
+        return schainToERC[keccak256(abi.encodePacked(schainName))][erc1155OnMainnet];
     }
 
     /// Create a new deposit box
@@ -303,7 +226,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         private
         returns (bytes memory data)
     {
-        bool isERC1155AddedToSchain = schainToERC1155[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
+        bool isERC1155AddedToSchain = schainToERC[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
         if (!isERC1155AddedToSchain) {
             _addERC1155ForSchain(schainName, contractOnMainnet);
             data = Messages.encodeTransferErc1155AndTokenInfoMessage(
@@ -336,7 +259,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         private
         returns (bytes memory data)
     {
-        bool isERC1155AddedToSchain = schainToERC1155[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
+        bool isERC1155AddedToSchain = schainToERC[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
         if (!isERC1155AddedToSchain) {
             _addERC1155ForSchain(schainName, contractOnMainnet);
             data = Messages.encodeTransferErc1155BatchAndTokenInfoMessage(
@@ -360,7 +283,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc1155OnMainnet.isContract(), "Given address is not a contract");
         require(withoutWhitelist[schainHash], "Whitelist is enabled");
-        schainToERC1155[schainHash][erc1155OnMainnet] = true;
+        schainToERC[schainHash][erc1155OnMainnet] = true;
         emit ERC1155TokenAdded(schainName, erc1155OnMainnet);
     }
 

@@ -103,7 +103,7 @@ describe("DepositBox", () => {
     beforeEach(async () => {
         contractManager = await deployContractManager(contractManagerAddress);
         messageProxy = await deployMessageProxyForMainnet(contractManager);
-        linker = await deployLinker(messageProxy, contractManager);
+        linker = await deployLinker(contractManager, messageProxy);
         depositBoxEth = await deployDepositBoxEth(contractManager, linker, messageProxy);
         depositBoxERC20 = await deployDepositBoxERC20(contractManager, linker, messageProxy);
         depositBoxERC721 = await deployDepositBoxERC721(contractManager, linker, messageProxy);
@@ -131,9 +131,9 @@ describe("DepositBox", () => {
                 .should.be.eventually.rejectedWith(error);
         });
 
-        it("should rejected with `Unconnected chain` when invoke `deposit`", async () => {
+        it("should rejected with `SKALE chain name cannot be Mainnet` when invoke `deposit`", async () => {
             // preparation
-            const error = "Unconnected chain";
+            const error = "SKALE chain name cannot be Mainnet";
             const newSchainName = "Mainnet";
             // execution/expectation
             await depositBoxEth
@@ -149,11 +149,11 @@ describe("DepositBox", () => {
             // to avoid the `Not enough money` error
             const wei = "20000000000000000";
             // add schain to avoid the `Unconnected chain` error
-            const chain = await linker
+            await linker
                 .connect(deployer)
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address, deployer.address]);
             // execution
-            const tx = await depositBoxEth
+            await depositBoxEth
                 .connect(deployer)
                 .deposit(schainName, deployer.address, { value: wei });
             // console.log("Gas for deposit:", tx.receipt.gasUsed);

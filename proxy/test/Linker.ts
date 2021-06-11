@@ -76,7 +76,7 @@ describe("Linker", () => {
         contractManager = await deployContractManager(contractManagerAddress);
         // contractManagerAddress = contractManager.address;
         messageProxy = await deployMessageProxyForMainnet(contractManager);
-        linker = await deployLinker(messageProxy, contractManager);
+        linker = await deployLinker(contractManager, messageProxy);
         depositBoxEth = await deployDepositBoxEth(contractManager, linker, messageProxy);
         depositBoxERC20 = await deployDepositBoxERC20(contractManager, linker, messageProxy);
         depositBoxERC721 = await deployDepositBoxERC721(contractManager, linker, messageProxy);
@@ -123,7 +123,7 @@ describe("Linker", () => {
         expect(await linker.hasSchain(schainName)).to.equal(false);
 
         await linker.connect(deployer).connectSchain(schainName, [nullAddress])
-            .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+            .should.be.eventually.rejectedWith("Incorrect address of contract receiver on Schain");
 
         await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress])
 
@@ -165,7 +165,7 @@ describe("Linker", () => {
         expect(await linker.hasSchain(schainName)).to.equal(false);
 
         await linker.connect(deployer).connectSchain(schainName, [nullAddress, tokenManagerAddress, nullAddress, tokenManagerAddress])
-            .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+            .should.be.eventually.rejectedWith("Incorrect address of contract receiver on Schain");
 
         await linker.connect(deployer).connectSchain(schainName, [tokenManagerAddress, tokenManagerAddress, tokenManagerAddress, tokenManagerAddress])
 
