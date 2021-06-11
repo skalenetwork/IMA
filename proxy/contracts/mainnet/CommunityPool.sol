@@ -57,6 +57,7 @@ contract CommunityPool is SkaleManagerClient {
     {
         require(msg.sender == address(messageProxy),  "Sender is not a MessageProxy");
         require(_unfrozenUsers[user], "User should be unfrozen");
+        require(node != address(0), "Node address must be set");
         uint amount = tx.gasprice * gas;
         _userWallets[user][schainHash] = _userWallets[user][schainHash].sub(amount);
         if (_userWallets[user][schainHash] < minTransactionGas * tx.gasprice) {
