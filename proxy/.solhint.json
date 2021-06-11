@@ -19,6 +19,7 @@
     "contract-name-camelcase": "error",
     "ordering": "error",
     "avoid-tx-origin": "error",
-    "const-name-snakecase": "error"
+    "const-name-snakecase": "error",
+    "func-visibility": ["error", {"ignoreConstructors":true} ]
   }
 }
