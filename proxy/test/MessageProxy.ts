@@ -32,7 +32,10 @@ import {
     MessageProxyForMainnet,
     MessageProxyForMainnetTester,
     MessageProxyForSchain,
+    MessageProxyForSchainWithoutSignature,
     MessagesTester,
+    ReceiverGasLimitMainnetMock,
+    ReceiverGasLimitSchainMock,
     KeyStorageMock,
 } from "../typechain/";
 
@@ -111,6 +114,50 @@ describe("MessageProxy", () => {
             depositBox = await deployDepositBoxEth(contractManager, imaLinker, messageProxyForMainnet);
             messages = await deployMessages();
             await messageProxyForMainnet.registerExtraContract(schainName, caller.address);
+        });
+
+        it("should set constants", async () => {
+            const headerMessageGasCostPrevious = (await messageProxyForMainnet.headerMessageGasCost()).toNumber();
+            const messageGasCostPrevious = (await messageProxyForMainnet.messageGasCost()).toNumber();
+            const gasLimitPrevious = (await messageProxyForMainnet.gasLimit()).toNumber();
+
+            const headerMessageGasCostNew = 5;
+            const messageGasCostNew = 6;
+            const gasLimitNew = 7;
+
+            expect((await messageProxyForMainnet.headerMessageGasCost()).toNumber()).to.equal(headerMessageGasCostPrevious);
+            expect((await messageProxyForMainnet.messageGasCost()).toNumber()).to.equal(messageGasCostPrevious);
+            expect((await messageProxyForMainnet.gasLimit()).toNumber()).to.equal(gasLimitPrevious);
+
+            await messageProxyForMainnet.connect(user).setNewHeaderMessageGasCost(
+                headerMessageGasCostNew
+            ).should.be.eventually.rejectedWith("Not enough permissions to set constant");
+            await messageProxyForMainnet.connect(user).setNewMessageGasCost(
+                messageGasCostNew
+            ).should.be.eventually.rejectedWith("Not enough permissions to set constant");
+            await messageProxyForMainnet.connect(user).setNewGasLimit(
+                gasLimitNew
+            ).should.be.eventually.rejectedWith("Not enough permissions to set constant");
+
+            const constantSetterRole = await messageProxyForMainnet.CONSTANT_SETTER_ROLE();
+            await messageProxyForMainnet.connect(deployer).grantRole(constantSetterRole, user.address);
+
+            await messageProxyForMainnet.connect(user).setNewHeaderMessageGasCost(headerMessageGasCostNew);
+            await messageProxyForMainnet.connect(user).setNewMessageGasCost(messageGasCostNew);
+            await messageProxyForMainnet.connect(user).setNewGasLimit(gasLimitNew);
+
+            expect((await messageProxyForMainnet.headerMessageGasCost()).toNumber()).to.equal(headerMessageGasCostNew);
+            expect((await messageProxyForMainnet.messageGasCost()).toNumber()).to.equal(messageGasCostNew);
+            expect((await messageProxyForMainnet.gasLimit()).toNumber()).to.equal(gasLimitNew);
+
+            await messageProxyForMainnet.connect(user).setNewHeaderMessageGasCost(headerMessageGasCostPrevious);
+            await messageProxyForMainnet.connect(user).setNewMessageGasCost(messageGasCostPrevious);
+            await messageProxyForMainnet.connect(user).setNewGasLimit(gasLimitPrevious);
+
+            expect((await messageProxyForMainnet.headerMessageGasCost()).toNumber()).to.equal(headerMessageGasCostPrevious);
+            expect((await messageProxyForMainnet.messageGasCost()).toNumber()).to.equal(messageGasCostPrevious);
+            expect((await messageProxyForMainnet.gasLimit()).toNumber()).to.equal(gasLimitPrevious);
+
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -403,6 +450,53 @@ describe("MessageProxy", () => {
             newOutgoingMessagesCounter.should.be.deep.equal(BigNumber.from(0));
         });
 
+        it("should check gas limit issue", async () => {
+            await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+            await setCommonPublicKey(contractManager, schainName);
+            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.DEBUGGER_ROLE(), deployer.address);
+            await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
+
+            const receiverMockFactory = await ethers.getContractFactory("ReceiverGasLimitMainnetMock");
+            const receiverMock = await receiverMockFactory.deploy() as ReceiverGasLimitMainnetMock;
+
+            const startingCounter = 0;
+            const message1 = {
+                amount: 0,
+                data: "0x11",
+                destinationContract: receiverMock.address,
+                sender: deployer.address,
+                to: client.address
+            };
+
+            const outgoingMessages = [message1];
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
+
+            await messageProxyForMainnet.registerExtraContract(schainName, receiverMock.address);
+
+            let a = await receiverMock.a();
+            expect(a.toNumber()).be.equal(0);
+
+            const res = await (await messageProxyForMainnet
+                .connect(deployer)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter,
+                    outgoingMessages,
+                    sign,
+                    0,
+                )).wait();
+
+            a = await receiverMock.a();
+            expect(a.toNumber()).be.equal(0);
+            expect(res.gasUsed.toNumber()).to.be.greaterThan(1000000);
+
+        });
+
     });
 
     describe("MessageProxy for schain", async () => {
@@ -417,6 +511,30 @@ describe("MessageProxy", () => {
             const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
             await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
             await messageProxyForSchain.registerExtraContract(schainName, caller.address);
+        });
+
+        it("should set constants", async () => {
+            const gasLimitPrevious = (await messageProxyForSchain.gasLimit()).toNumber();
+
+            const gasLimitNew = 7;
+
+            expect((await messageProxyForSchain.gasLimit()).toNumber()).to.equal(gasLimitPrevious);
+
+            await messageProxyForSchain.connect(user).setNewGasLimit(
+                gasLimitNew
+            ).should.be.eventually.rejectedWith();
+
+            const constantSetterRole = await messageProxyForSchain.CONSTANT_SETTER_ROLE();
+            await messageProxyForSchain.connect(deployer).grantRole(constantSetterRole, user.address);
+
+            await messageProxyForSchain.connect(user).setNewGasLimit(gasLimitNew);
+
+            expect((await messageProxyForSchain.gasLimit()).toNumber()).to.equal(gasLimitNew);
+
+            await messageProxyForSchain.connect(user).setNewGasLimit(gasLimitPrevious);
+
+            expect((await messageProxyForSchain.gasLimit()).toNumber()).to.equal(gasLimitPrevious);
+
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
@@ -591,6 +709,59 @@ describe("MessageProxy", () => {
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+        });
+
+        it("should check gas limit issue", async () => {
+            const messageProxyForSchainWithoutSignatureFactory = await ethers.getContractFactory("MessageProxyForSchainWithoutSignature");
+            const messageProxyForSchainWithoutSignature = await messageProxyForSchainWithoutSignatureFactory.deploy() as MessageProxyForSchainWithoutSignature;
+            await messageProxyForSchainWithoutSignature.initialize(deployer.address, "MyChain2");
+            messages = await deployMessages();
+            caller = await deployMessageProxyForMainnetTester();
+            const chainConnectorRole = await messageProxyForSchainWithoutSignature.CHAIN_CONNECTOR_ROLE();
+            await messageProxyForSchainWithoutSignature.connect(deployer).grantRole(chainConnectorRole, deployer.address);
+            const extraContractRegistrarRole = await messageProxyForSchainWithoutSignature.EXTRA_CONTRACT_REGISTRAR_ROLE();
+            await messageProxyForSchainWithoutSignature.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
+            await messageProxyForSchainWithoutSignature.registerExtraContract(schainName, caller.address);
+
+            const receiverMockFactory = await ethers.getContractFactory("ReceiverGasLimitSchainMock");
+            const receiverMock = await receiverMockFactory.deploy() as ReceiverGasLimitSchainMock;
+
+            const startingCounter = 0;
+            const message1 = {
+                amount: 0,
+                data: "0x11",
+                destinationContract: receiverMock.address,
+                sender: deployer.address,
+                to: client.address
+            };
+
+            const outgoingMessages = [message1];
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
+
+            await messageProxyForSchainWithoutSignature.registerExtraContract("Mainnet", receiverMock.address);
+
+            let a = await receiverMock.a();
+            expect(a.toNumber()).be.equal(0);
+
+            const res = await (await messageProxyForSchainWithoutSignature
+                .connect(deployer)
+                .postIncomingMessages(
+                    "Mainnet",
+                    startingCounter,
+                    outgoingMessages,
+                    sign,
+                    0,
+                )).wait();
+
+            a = await receiverMock.a();
+            expect(a.toNumber()).be.equal(0);
+            expect(res.gasUsed.toNumber()).to.be.greaterThan(1000000);
+
         });
 
     });

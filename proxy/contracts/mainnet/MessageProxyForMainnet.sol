@@ -93,17 +93,24 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
     bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
+    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
     address public communityPoolAddress;
 
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     mapping(bytes32 => mapping(address => bool)) public registryContracts;
 
-    uint256 public constant BASIC_POST_INCOMING_MESSAGES_TX = 70000;
-    uint256 public constant MESSAGE_GAS_COST = 8790;
+    uint256 public headerMessageGasCost;
+    uint256 public messageGasCost;
+    uint256 public gasLimit;
 
     modifier onlyDebugger() {
         require(hasRole(DEBUGGER_ROLE, msg.sender), "Access denied");
+        _;
+    }
+
+    modifier onlyConstantSetter() {
+        require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         _;
     }
 
@@ -141,7 +148,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         require(
             hasRole(CHAIN_CONNECTOR_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash),
-            "Not enough permissions to remove extra contract"
+            "Not enough permissions to add connected chain"
         );
         require(!connectedChains[schainHash].inited,"Chain is already connected");
         connectedChains[schainHash] = ConnectedChainInfo({
@@ -168,7 +175,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         require(
             hasRole(CHAIN_CONNECTOR_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash),
-            "Not enough permissions to remove extra contract"
+            "Not enough permissions to remove connected chain"
         );
         delete connectedChains[schainHash];
     }
@@ -231,7 +238,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     function registerExtraContractForAll(address contractOnMainnet) external {
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
-            "Not enough permissions to register extra contract"
+            "Not enough permissions to register extra contract for all chains"
         );
         require(contractOnMainnet.isContract(), "Given address is not a contract");
         require(!registryContracts[bytes32(0)][contractOnMainnet], "Extra contract is already registered");
@@ -253,7 +260,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     function removeExtraContractForAll(address contractOnMainnet) external {
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
-            "Not enough permissions to remove extra contract"
+            "Not enough permissions to remove extra contract for all chains"
         );
         require(contractOnMainnet.isContract(), "Given address is not a contract");
         require(registryContracts[bytes32(0)][contractOnMainnet], "Extra contract does not exist");
@@ -289,21 +296,11 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         require(_verifyMessages(fromSchainName, _hashedArray(messages), sign), "Signature is not verified");
         uint additionalGasPerMessage = 
             (gasTotal.sub(gasleft())
-            .add(BASIC_POST_INCOMING_MESSAGES_TX)
-            .add(messages.length * MESSAGE_GAS_COST))
+            .add(headerMessageGasCost)
+            .add(messages.length * messageGasCost))
             .div(messages.length);
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
-            if (
-                !registryContracts[fromSchainHash][messages[i].destinationContract] &&
-                !registryContracts[bytes32(0)][messages[i].destinationContract]
-            ) {
-                emit PostMessageError(
-                    startingCounter + i,
-                    bytes("Destination contract is not registered")
-                );
-                continue;
-            }
             address receiver = _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
             if (receiver == address(0)) 
                 continue;
@@ -327,7 +324,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
      * 
      * - `msg.sender` must be owner.
      */
-    function incrementIncomingCounter(string calldata schainName) external onlyDebugger{
+    function incrementIncomingCounter(string calldata schainName) external onlyDebugger {
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 
             connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
     }
@@ -344,6 +341,39 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     function setCountersToZero(string calldata schainName) external onlyDebugger {
         connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
+    }
+
+    /**
+     * @dev Sets headerMessageGasCost to a new value
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted as CONSTANT_SETTER_ROLE.
+     */
+    function setNewHeaderMessageGasCost(uint256 newHeaderMessageGasCost) external onlyConstantSetter {
+        headerMessageGasCost = newHeaderMessageGasCost;
+    }
+
+    /**
+     * @dev Sets messageGasCost to a new value
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted as CONSTANT_SETTER_ROLE.
+     */
+    function setNewMessageGasCost(uint256 newMessageGasCost) external onlyConstantSetter {
+        messageGasCost = newMessageGasCost;
+    }
+
+    /**
+     * @dev Sets gasLimit to a new value
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
+     */
+    function setNewGasLimit(uint256 newGasLimit) external onlyConstantSetter {
+        gasLimit = newGasLimit;
     }
 
     /**
@@ -411,6 +441,9 @@ contract MessageProxyForMainnet is SkaleManagerClient {
 
     function initialize(IContractManager contractManagerOfSkaleManager) public virtual override initializer {
         SkaleManagerClient.initialize(contractManagerOfSkaleManager);
+        headerMessageGasCost = 70000;
+        messageGasCost = 8790;
+        gasLimit = 1000000;
     }
 
     /**
@@ -437,7 +470,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         private
         returns (address)
     {
-        try IMessageReceiver(message.destinationContract).postMessage(
+        try IMessageReceiver(message.destinationContract).postMessage{gas: gasLimit}(
             schainHash,
             message.sender,
             message.data

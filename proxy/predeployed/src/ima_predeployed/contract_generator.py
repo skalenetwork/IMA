@@ -37,20 +37,18 @@ class ContractGenerator:
         with open(artifacts_path, encoding='utf-8') as fp:
             contract = json.load(fp)
             self.bytecode = contract['deployedBytecode']
+            self.abi = contract['abi']
             self.storage = {}
 
     def generate_contract(self, balance: int = 0, nonce: int = 0) -> dict:
         assert isinstance(self.bytecode, str)
         assert isinstance(self.storage, dict)
-        contract = {
+        return {
             'code': self.bytecode,
-            'balance': str(balance)
+            'balance': str(balance),
+            'nonce': str(nonce),
+            'storage': self.storage
         }
-        if self.storage:
-            contract['storage'] = self.storage
-        if nonce > 0:
-            contract['nonce'] = nonce
-        return contract
 
     # private
 

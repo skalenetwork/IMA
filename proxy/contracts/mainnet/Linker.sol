@@ -114,7 +114,7 @@ contract Linker is SkaleManagerClient {
         }
     }
 
-    function unconnectSchain(string calldata schainName) external onlyLinker {
+    function disconnectSchain(string calldata schainName) external onlyLinker {
         uint length = _mainnetContracts.length();
         for (uint i = 0; i < length; i++) {
             IMainnetContract(_mainnetContracts.at(i)).removeSchainContract(schainName);

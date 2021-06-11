@@ -87,6 +87,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
     bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
+    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
     KeyStorage public keyStorage;
     bytes32 public schainHash;
@@ -98,8 +99,10 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
     mapping(bytes32 => uint) private _idxHead;
     //      schainHash  => tail of unprocessed messages
     mapping(bytes32 => uint) private _idxTail;
+    //   schainHash => contract address => allowed
+    mapping(bytes32 => mapping(address => bool)) public registryContracts;
 
-    mapping( bytes32 => mapping( address => bool) ) public registryContracts;
+    uint256 public gasLimit;
 
     event OutgoingMessage(
         bytes32 indexed dstChainHash,
@@ -140,6 +143,10 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
             true
         );
 	    schainHash = keccak256(abi.encodePacked(schainName));
+        gasLimit = 3000000;
+
+        // In predeployed mode all token managers and community locker
+        // will be added to registryContracts
     }
 
     // Registration state detection
@@ -235,18 +242,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
             startingCounter == connectedChains[fromChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
         for (uint256 i = 0; i < messages.length; i++) {
-            if (
-                !registryContracts[fromChainHash][messages[i].destinationContract] &&
-                !registryContracts[bytes32(0)][messages[i].destinationContract]
-            ) {
-                emit PostMessageError(
-                    startingCounter + i,
-                    bytes("Destination contract is not registered")
-                );
-                continue;
-            } else {
-                _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
-            }
+            _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
         }
         connectedChains[fromChainHash].incomingMessageCounter 
             = connectedChains[fromChainHash].incomingMessageCounter.add(uint256(messages.length));
@@ -263,6 +259,18 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
+    /**
+     * @dev Sets gasLimit to new value
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
+     */
+    function setNewGasLimit(uint256 newGasLimit) external {
+        require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
+        gasLimit = newGasLimit;
+    }
+
     function registerExtraContract(string calldata schainName, address contractOnSchain) external {
         bytes32 chainHash = keccak256(abi.encodePacked(schainName));
         require(
@@ -277,7 +285,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
     function registerExtraContractForAll(address contractOnSchain) external {
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
-            "Not enough permissions to register extra contract for all"
+            "Not enough permissions to register extra contract for all chains"
         );
         require(contractOnSchain.isContract(), "Given address is not a contract");
         require(!registryContracts[bytes32(0)][contractOnSchain], "Extra contract is already registered");
@@ -298,7 +306,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
     function removeExtraContractForAll(address contractOnSchain) external {
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
-            "Not enough permissions to remove extra contract for all"
+            "Not enough permissions to remove extra contract for all chains"
         );
         require(contractOnSchain.isContract(),"Given address is not a contract");
         require(registryContracts[bytes32(0)][contractOnSchain], "Extra contract is already removed");
@@ -352,7 +360,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         private
         returns (bool)
     {
-        try IContractReceiverForSchain(message.destinationContract).postMessage(
+        try IContractReceiverForSchain(message.destinationContract).postMessage{gas: gasLimit}(
             fromChainHash,
             message.sender,
             message.data
