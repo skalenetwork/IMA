@@ -324,58 +324,6 @@ describe("ERC721MintingFromSchainToMainnet", () => {
         }
     });
 
-    it("should not POST message if not registered", async () => {
-        await ERC721TokenOnSchain.connect(user).setTokenURI(1, "MyToken1");
-        await ERC721TokenOnSchain.connect(user).approve(extensionSchain.address, 1);
-        await messageProxyForSchain.connect(deployer).registerExtraContract("Mainnet", extensionSchain.address);
-        const res = await (await extensionSchain.connect(user).sendTokenToMainnet(user.address, 1)).wait();
-        let dataToPost = "0x";
-        if (!res.events) {
-            assert("No events were emitted");
-        } else {
-            const last = res.events.length - 1;
-            dataToPost = res.events[last].data;
-        }
-        const message = {
-            data: dataToPost,
-            destinationContract: extensionMainnet.address,
-            sender: extensionSchain.address,
-        };
-
-        // prepare BLS signature
-        // P.s. this is test signature from test of SkaleManager.SkaleVerifier - please do not use it!!!
-        const BlsSignature: [BigNumber, BigNumber] = [
-            BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
-            BigNumber.from("493565443574555904019191451171395204672818649274520396086461475162723833781"),
-        ];
-        const HashA = "3080491942974172654518861600747466851589809241462384879086673256057179400078";
-        const HashB = "15163860114293529009901628456926790077787470245128337652112878212941459329347";
-        const Counter = 0;
-        const sign = {
-            blsSignature: BlsSignature,
-            counter: Counter,
-            hashA: HashA,
-            hashB: HashB,
-        };
-
-        const resPost = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
-            schainName,
-            0,
-            [message],
-            sign,
-            5
-        )).wait();
-        if (!resPost.events) {
-            assert("No events were emitted");
-        } else {
-            const last = resPost.events.length - 1;
-            expect(resPost.events[last]?.event).to.equal("PostMessageError");
-            expect(
-                Buffer.from(resPost.events[last]?.data.slice(-128).slice(0, parseInt(resPost.events[last]?.data.slice(66, 130), 16) * 2), 'hex').toString()
-            ).to.equal("Destination contract is not registered")
-        }
-    });
-
     it("should POST message for token 1", async () => {
         const dataToPost = await extensionSchain.connect(user).encodeParams(user.address, 1, "MyToken1");
         const message = {
@@ -400,7 +348,6 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             hashB: HashB,
         };
 
-        await messageProxyForMainnet.connect(deployer).registerExtraContract(schainName, extensionMainnet.address);
         const resPost = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             0,
@@ -436,7 +383,6 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             hashB: HashB,
         };
 
-        await messageProxyForMainnet.connect(deployer).registerExtraContract(schainName, extensionMainnet.address);
         const resPost = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             0,
