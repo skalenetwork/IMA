@@ -130,6 +130,21 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         bytes message
     );
 
+    event GasCostMessageHeaderWasChanged(
+        uint256 oldValue,
+        uint256 newValue
+    );
+
+    event GasCostMessageWasChanged(
+        uint256 oldValue,
+        uint256 newValue
+    );
+
+    event GasLimitWasChanged(
+        uint256 oldValue,
+        uint256 newValue
+    );
+
     /**
      * @dev Allows LockAndData to add a `schainName`.
      * 
@@ -351,6 +366,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
      * - `msg.sender` must be granted as CONSTANT_SETTER_ROLE.
      */
     function setNewHeaderMessageGasCost(uint256 newHeaderMessageGasCost) external onlyConstantSetter {
+        emit GasCostMessageHeaderWasChanged(headerMessageGasCost, newHeaderMessageGasCost);
         headerMessageGasCost = newHeaderMessageGasCost;
     }
 
@@ -362,6 +378,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
      * - `msg.sender` must be granted as CONSTANT_SETTER_ROLE.
      */
     function setNewMessageGasCost(uint256 newMessageGasCost) external onlyConstantSetter {
+        emit GasCostMessageWasChanged(messageGasCost, newMessageGasCost);
         messageGasCost = newMessageGasCost;
     }
 
@@ -373,6 +390,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
      * - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
      */
     function setNewGasLimit(uint256 newGasLimit) external onlyConstantSetter {
+        emit GasLimitWasChanged(gasLimit, newGasLimit);
         gasLimit = newGasLimit;
     }
 

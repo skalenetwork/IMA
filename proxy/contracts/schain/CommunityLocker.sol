@@ -53,7 +53,12 @@ contract CommunityLocker is AccessControlUpgradeable {
     event UserUnfroze(
         bytes32 schainHash,
         address user
-    );    
+    );  
+
+    event TimeLimitPerMessageWasChanged(
+        uint256 oldValue,
+        uint256 newValue
+    );
 
     function postMessage(
         bytes32 fromChainHash,
@@ -87,6 +92,7 @@ contract CommunityLocker is AccessControlUpgradeable {
 
     function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
+        emit TimeLimitPerMessageWasChanged(timeLimitPerMessage, newTimeLimitPerMessage);
         timeLimitPerMessage = newTimeLimitPerMessage;
     }
 
