@@ -49,7 +49,6 @@ contract DepositBoxEth is DepositBox {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
-        require(to != address(0), "Receiver address cannot be null");
         if (!linker.interchainConnections(schainHash))
             _saveTransferredAmount(schainHash, msg.value);
         messageProxy.postOutgoingMessage(
@@ -97,7 +96,7 @@ contract DepositBoxEth is DepositBox {
     function getMyEth() external {
         require(
             address(this).balance >= approveTransfers[msg.sender],
-            "Not enough ETH. in `DepositBox.getMyEth`"
+            "Not enough ETH in DepositBox"
         );
         require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
         uint256 amount = approveTransfers[msg.sender];

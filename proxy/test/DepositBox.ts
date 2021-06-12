@@ -117,6 +117,7 @@ describe("DepositBox", () => {
         await messageProxy.registerExtraContract(schainName, depositBoxERC721.address);
         await messageProxy.registerExtraContract(schainName, depositBoxERC1155.address);
         await messageProxy.registerExtraContract(schainName, communityPool.address);
+        await messageProxy.registerExtraContract(schainName, linker.address);
     });
 
     describe("tests for `deposit` function", async () => {
@@ -716,12 +717,11 @@ describe("DepositBox", () => {
         });
 
         it("should transfer eth", async () => {
-            //  preparation
-            // for transfer eth bytesData should be equal `0x01`. See the `.fallbackOperationTypeConvert` function
+
             const senderFromSchain = deployer.address;
-            const minTransactionGas = (await communityPool.minTransactionGas()).toNumber();
             const wei = "30000000000000000";
             const bytesData = await messages.encodeTransferEthMessage(user.address, wei);
+            const schainHash = stringValue(web3.utils.soliditySha3(schainName));
 
             await setCommonPublicKey(contractManager, schainName);
 
@@ -737,31 +737,34 @@ describe("DepositBox", () => {
                 destinationContract: depositBoxEth.address,
                 sender: senderFromSchain,
             };
-            // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
-            // to avoid `Incorrect sender` error
-            // await lockAndDataForMainnet.setContract("MessageProxy", deployer);
-            // add schain to avoid the `Receiver chain is incorrect` error
 
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
-            const chain = await linker
+
+            await linker
                 .connect(deployer)
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address, deployer.address]);
+
+            await linker.allowInterchainConnections(schainName);
+
             await communityPool
                 .connect(user)
                 .rechargeUserWallet(schainName, { value: wei });
-            // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
+
             await depositBoxEth
                 .connect(deployer)
                 .deposit(schainName, user.address, { value: wei });
-            // execution
+
+            expect(await depositBoxEth.transferredAmount(schainHash)).to.be.deep.equal(BigNumber.from(0));
+
             const balanceBefore = await getBalance(deployer.address);
             await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign, 0);
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
-            // console.log("Gas for postMessage Eth:", res.receipt.gasUsed);
-            // expectation
-            await depositBoxEth.approveTransfers(user.address);
+
+            await depositBoxEth.connect(user2).getMyEth()
+                .should.be.eventually.rejectedWith("User has insufficient ETH");
+            await depositBoxEth.connect(user).getMyEth();
         });
 
         it("should transfer ERC20 token", async () => {
