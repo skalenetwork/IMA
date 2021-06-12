@@ -155,17 +155,9 @@ contract TokenManagerERC1155 is TokenManager {
         external
         override
         onlyMessageProxy
+        checkReceiverChain(fromChainHash, sender)
         returns (bool)
     {
-        require(
-            fromChainHash != schainHash && 
-            (
-                fromChainHash == MAINNET_HASH ?
-                sender == depositBox :
-                sender == tokenManagers[fromChainHash]
-            ),
-            "Receiver chain is incorrect"
-        );
         Messages.MessageType operation = Messages.getMessageType(data);
         if (
             operation == Messages.MessageType.TRANSFER_ERC1155 ||

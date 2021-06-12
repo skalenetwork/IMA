@@ -101,17 +101,9 @@ contract TokenManagerERC20 is TokenManager {
         external
         override
         onlyMessageProxy
+        checkReceiverChain(fromChainHash, sender)
         returns (bool)
     {
-        require(
-            fromChainHash != schainHash && 
-                (
-                    fromChainHash == MAINNET_HASH ?
-                    sender == depositBox :
-                    sender == tokenManagers[fromChainHash]
-                ),
-            "Receiver chain is incorrect"
-        );
         Messages.MessageType operation = Messages.getMessageType(data);
         if (
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOKEN_INFO ||

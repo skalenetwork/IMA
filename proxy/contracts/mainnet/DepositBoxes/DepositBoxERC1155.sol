@@ -138,13 +138,9 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     )
         external
         onlyMessageProxy
+        checkReceiverChain(schainHash, sender)
         returns (address receiver)
     {
-        require(
-            schainHash != keccak256(abi.encodePacked("Mainnet")) &&
-            sender == schainLinks[schainHash],
-            "Receiver chain is incorrect"
-        );
         Messages.MessageType operation = Messages.getMessageType(data);
         if (operation == Messages.MessageType.TRANSFER_ERC1155) {
             Messages.TransferErc1155Message memory message = Messages.decodeTransferErc1155Message(data);

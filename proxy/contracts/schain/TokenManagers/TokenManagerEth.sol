@@ -108,17 +108,9 @@ contract TokenManagerEth is TokenManager {
         external
         override
         onlyMessageProxy
+        checkReceiverChain(fromChainHash, sender)
         returns (bool)
     {
-        require(
-            fromChainHash != schainHash && 
-                (
-                    fromChainHash == MAINNET_HASH ?
-                    sender == depositBox :
-                    sender == tokenManagers[fromChainHash]
-                ),
-            "Receiver chain is incorrect"
-        );
         Messages.TransferEthMessage memory decodedMessage = Messages.decodeTransferEthMessage(data);
         address receiver = decodedMessage.receiver;
         require(receiver != address(0), "Incorrect receiver");

@@ -79,13 +79,9 @@ contract DepositBoxERC721 is DepositBox {
         external
         onlyMessageProxy
         whenNotKilled(schainHash)
+        checkReceiverChain(schainHash, sender)
         returns (address)
     {
-        require(
-            schainHash != keccak256(abi.encodePacked("Mainnet")) &&
-            sender == schainLinks[schainHash],
-            "Receiver chain is incorrect"
-        );
         Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
         require(message.token.isContract(), "Given address is not a contract");
         require(IERC721Upgradeable(message.token).ownerOf(message.tokenId) == address(this), "Incorrect tokenId");

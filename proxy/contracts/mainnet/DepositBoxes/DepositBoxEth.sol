@@ -66,13 +66,9 @@ contract DepositBoxEth is DepositBox {
         external
         onlyMessageProxy
         whenNotKilled(schainHash)
+        checkReceiverChain(schainHash, sender)
         returns (address)
     {
-        require(
-            schainHash != keccak256(abi.encodePacked("Mainnet")) &&
-            sender == schainLinks[schainHash],
-            "Receiver chain is incorrect"
-        );
         Messages.TransferEthMessage memory message = Messages.decodeTransferEthMessage(data);
         require(
             message.amount <= address(this).balance,

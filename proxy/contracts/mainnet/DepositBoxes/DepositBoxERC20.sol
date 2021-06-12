@@ -33,7 +33,7 @@ contract DepositBoxERC20 is DepositBox {
     mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
 
     /**
-     * @dev Emitted when token is mapped in LockAndDataForMainnetERC20.
+     * @dev Emitted when token is mapped in DepositBoxERC20.
      */
     event ERC20TokenAdded(string schainName, address indexed contractOnMainnet);
     
@@ -68,13 +68,10 @@ contract DepositBoxERC20 is DepositBox {
         );
         if (!linker.interchainConnections(schainHash))
             _saveTransferredAmount(schainHash, contractOnMainnet, amount);
-        require(
-            IERC20Metadata(contractOnMainnet).transferFrom(
-                msg.sender,
-                address(this),
-                amount
-            ),
-            "Could not transfer ERC20 Token"
+        IERC20Metadata(contractOnMainnet).transferFrom(
+            msg.sender,
+            address(this),
+            amount
         );
         messageProxy.postOutgoingMessage(
             schainHash,
@@ -91,27 +88,20 @@ contract DepositBoxERC20 is DepositBox {
         external
         onlyMessageProxy
         whenNotKilled(schainHash)
+        checkReceiverChain(schainHash, sender)
         returns (address)
     {
-        require(
-            schainHash != keccak256(abi.encodePacked("Mainnet")) &&
-            sender == schainLinks[schainHash],
-            "Receiver chain is incorrect"
-        );
         Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
         require(message.token.isContract(), "Given address is not a contract");
         require(IERC20Metadata(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
         if (!linker.interchainConnections(schainHash))
             _removeTransferredAmount(schainHash, message.token, message.amount);
-        require(
-            IERC20Metadata(message.token).transfer(message.receiver, message.amount),
-            "Something went wrong with `transfer` in ERC20"
-        );
+        IERC20Metadata(message.token).transfer(message.receiver, message.amount);
         return message.receiver;
     }
 
     /**
-     * @dev Allows Schain owner to add an ERC20 token to LockAndDataForMainnetERC20.
+     * @dev Allows Schain owner to add an ERC20 token to DepositBoxERC20.
      */
     function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet)
         external
@@ -170,7 +160,7 @@ contract DepositBoxERC20 is DepositBox {
     /**
      * @dev Allows DepositBox to receive ERC20 tokens.
      * 
-     * Emits an {ERC20TokenAdded} event on token mapping in LockAndDataForMainnetERC20.
+     * Emits an {ERC20TokenAdded} event on token mapping in DepositBoxERC20.
      * Emits an {ERC20TokenReady} event.
      * 
      * Requirements:
@@ -211,7 +201,7 @@ contract DepositBoxERC20 is DepositBox {
     }
 
     /**
-     * @dev Allows ERC20Module to add an ERC20 token to LockAndDataForMainnetERC20.
+     * @dev Allows ERC20Module to add an ERC20 token to DepositBoxERC20.
      */
     function _addERC20ForSchain(string calldata schainName, address erc20OnMainnet) private {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));

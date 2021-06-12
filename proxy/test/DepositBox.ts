@@ -39,7 +39,7 @@ import {
     ERC20OnChain,
     CommunityPool
 } from "../typechain";
-import { randomString, stringValue } from "./utils/helper";
+import { randomString, stringFromHex, stringValue } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
@@ -505,6 +505,7 @@ describe("DepositBox", () => {
         // let eRC20ModuleForMainnet: ERC20ModuleForMainnetInstance;
         // let lockAndDataForMainnetERC20: LockAndDataForMainnetERC20Instance;
         let erc20: ERC20OnChain;
+        let erc20Clone: ERC20OnChain;
         // let eRC721ModuleForMainnet: ERC721ModuleForMainnet;
         // let lockAndDataForMainnetERC721: LockAndDataForMainnetERC721;
         let eRC721OnChain: ERC721OnChain;
@@ -515,6 +516,7 @@ describe("DepositBox", () => {
             // eRC20ModuleForMainnet = await deployERC20ModuleForMainnet(lockAndDataForMainnet);
             // lockAndDataForMainnetERC20 = await deployLockAndDataForMainnetERC20(lockAndDataForMainnet);
             erc20 = await deployERC20OnChain("D2-token", "D2",);
+            erc20Clone = await deployERC20OnChain("Token", "T",);
             // eRC721ModuleForMainnet = await deployERC721ModuleForMainnet(lockAndDataForMainnet);
             // lockAndDataForMainnetERC721 = await deployLockAndDataForMainnetERC721(lockAndDataForMainnet);
             eRC721OnChain = await deployERC721OnChain("ERC721OnChain", "ERC721");
@@ -769,10 +771,11 @@ describe("DepositBox", () => {
 
         it("should transfer ERC20 token", async () => {
             //  preparation
-            const contractHere = erc20.address;
+            const ercOnSchain = erc20.address;
+            const fakeErc20OnSchain = erc20Clone.address;
+            const schainHash = stringValue(web3.utils.soliditySha3(schainName));
             const amount = 10;
             const to = user.address;
-            const to0 = "0x0000000000000000000000000000000000000000"; // ERC20 address
             const senderFromSchain = deployer.address;
             const wei = 1e18.toString();
 
@@ -784,41 +787,63 @@ describe("DepositBox", () => {
             };
 
             const message = {
-                data: await messages.encodeTransferErc20Message(contractHere, to, amount),
+                data: await messages.encodeTransferErc20Message(ercOnSchain, to, amount),
+                destinationContract: depositBoxERC20.address,
+                sender: senderFromSchain
+            };
+            const messageWithWrongTokenAddress = {
+                data: await messages.encodeTransferErc20Message(user2.address, to, amount),
+                destinationContract: depositBoxERC20.address,
+                sender: senderFromSchain
+            };
+
+            const messageWithNotMintedToken = {
+                data: await messages.encodeTransferErc20Message(fakeErc20OnSchain, to, amount),
                 destinationContract: depositBoxERC20.address,
                 sender: senderFromSchain
             };
 
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
+
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, user.address, amount)
+                .should.be.eventually.rejectedWith("Unconnected chain");
+
             await linker
                 .connect(deployer)
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address, deployer.address]);
+
+            await linker.allowInterchainConnections(schainName);
             await communityPool
                 .connect(user)
                 .rechargeUserWallet(schainName, { value: wei });
 
-            // mint some quantity of ERC20 tokens for `deployer` address
-            await erc20.connect(deployer).mint(user.address, amount);
-            /**
-             * transfer more than `amount` quantity of ERC20 tokens
-             * for `depositBoxERC20` to avoid `Not enough money`
-             */
-            await erc20.connect(user).approve(depositBoxERC20.address, amount);
-            // get data from `receiveERC20`
             await depositBoxERC20.disableWhitelist(schainName);
+            await erc20.connect(deployer).mint(user.address, amount);
+
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, user.address, amount)
+                .should.be.eventually.rejectedWith("DepositBox was not approved for ERC20 token");
+            await erc20.connect(user).approve(depositBoxERC20.address, amount);
 
             await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, user.address, amount);
-            // execution
-            // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
-            // to avoid `Incorrect sender` error
+            expect(await depositBoxEth.transferredAmount(schainHash)).to.be.deep.equal(BigNumber.from(0));
+
+            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress, messageWithNotMintedToken], sign, 0)).wait();
+            if (res.events) {
+                assert.equal(res.events[0].event, "PostMessageError");
+                assert.equal(stringFromHex(res.events[0].args?.message), "Given address is not a contract");
+                assert.equal(res.events[1].event, "PostMessageError");
+                assert.equal(stringFromHex(res.events[1].args?.message), "Not enough money");
+            } else {
+                assert(false, "No events were emitted");
+            }
+
             const balanceBefore = await getBalance(deployer.address);
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign, 0)).wait();
+            await messageProxy.connect(deployer).postIncomingMessages(schainName, 2, [message], sign, 0);
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
-            // console.log("Gas for postMessage ERC20:", res.receipt.gasUsed);
-            // expectation
+
             (await erc20.balanceOf(user.address)).toString().should.be.equal(amount.toString());
         });
 

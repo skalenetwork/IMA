@@ -59,6 +59,15 @@ abstract contract DepositBox is Twin {
         _;
     }
 
+    modifier checkReceiverChain(bytes32 schainHash, address sender) {
+        require(
+            schainHash != keccak256(abi.encodePacked("Mainnet")) &&
+            sender == schainLinks[schainHash],
+            "Receiver chain is incorrect"
+        );
+        _;
+    }
+
     /**
      * @dev Allows Schain owner turn on whitelist of tokens.
      */

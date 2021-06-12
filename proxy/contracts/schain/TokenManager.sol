@@ -66,6 +66,19 @@ abstract contract TokenManager is AccessControlUpgradeable {
         _;
     }
 
+    modifier checkReceiverChain(bytes32 fromChainHash, address sender) {
+        require(
+            fromChainHash != schainHash && 
+                (
+                    fromChainHash == MAINNET_HASH ?
+                    sender == depositBox :
+                    sender == tokenManagers[fromChainHash]
+                ),
+            "Receiver chain is incorrect"
+        );
+        _;
+    }
+
     function postMessage(
         bytes32 fromChainHash,
         address sender,
