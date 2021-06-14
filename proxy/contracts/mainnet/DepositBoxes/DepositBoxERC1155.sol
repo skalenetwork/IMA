@@ -31,6 +31,10 @@ import "../../Messages.sol";
 // This contract runs on the main net and accepts deposits
 contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
 
+
+    // schainHash => address of ERC on Mainnet
+    mapping(bytes32 => mapping(address => bool)) public schainToERC1155;
+
     /**
      * @dev Emitted when token is mapped.
      */
@@ -179,8 +183,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc1155OnMainnet.isContract(), "Given address is not a contract");
-        // require(!withoutWhitelist[schainHash], "Whitelist is enabled");
-        schainToERC[schainHash][erc1155OnMainnet] = true;
+        schainToERC1155[schainHash][erc1155OnMainnet] = true;
         emit ERC1155TokenAdded(schainName, erc1155OnMainnet);
     }
 
@@ -189,8 +192,8 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     /**
      * @dev Should return true if token in whitelist.
      */
-    function getSchainToERC(string calldata schainName, address erc1155OnMainnet) external view returns (bool) {
-        return schainToERC[keccak256(abi.encodePacked(schainName))][erc1155OnMainnet];
+    function getschainToERC1155(string calldata schainName, address erc1155OnMainnet) external view returns (bool) {
+        return schainToERC1155[keccak256(abi.encodePacked(schainName))][erc1155OnMainnet];
     }
 
     /// Create a new deposit box
@@ -222,7 +225,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         private
         returns (bytes memory data)
     {
-        bool isERC1155AddedToSchain = schainToERC[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
+        bool isERC1155AddedToSchain = schainToERC1155[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
         if (!isERC1155AddedToSchain) {
             _addERC1155ForSchain(schainName, contractOnMainnet);
             data = Messages.encodeTransferErc1155AndTokenInfoMessage(
@@ -255,7 +258,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         private
         returns (bytes memory data)
     {
-        bool isERC1155AddedToSchain = schainToERC[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
+        bool isERC1155AddedToSchain = schainToERC1155[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
         if (!isERC1155AddedToSchain) {
             _addERC1155ForSchain(schainName, contractOnMainnet);
             data = Messages.encodeTransferErc1155BatchAndTokenInfoMessage(
@@ -279,7 +282,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc1155OnMainnet.isContract(), "Given address is not a contract");
         require(withoutWhitelist[schainHash], "Whitelist is enabled");
-        schainToERC[schainHash][erc1155OnMainnet] = true;
+        schainToERC1155[schainHash][erc1155OnMainnet] = true;
         emit ERC1155TokenAdded(schainName, erc1155OnMainnet);
     }
 

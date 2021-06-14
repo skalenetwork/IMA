@@ -30,6 +30,8 @@ import "../../Messages.sol";
 // This contract runs on the main net and accepts deposits
 contract DepositBoxERC721 is DepositBox {
 
+    // schainHash => address of ERC on Mainnet
+    mapping(bytes32 => mapping(address => bool)) public schainToERC721;
     mapping(address => mapping(uint256 => bytes32)) public transferredAmount;
 
     /**
@@ -101,8 +103,7 @@ contract DepositBoxERC721 is DepositBox {
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
-        // require(!withoutWhitelist[schainHash], "Whitelist is enabled");
-        schainToERC[schainHash][erc721OnMainnet] = true;
+        schainToERC721[schainHash][erc721OnMainnet] = true;
         emit ERC721TokenAdded(schainName, erc721OnMainnet);
     }
 
@@ -120,8 +121,8 @@ contract DepositBoxERC721 is DepositBox {
     /**
      * @dev Should return true if token in whitelist.
      */
-    function getSchainToERC(string calldata schainName, address erc721OnMainnet) external view returns (bool) {
-        return schainToERC[keccak256(abi.encodePacked(schainName))][erc721OnMainnet];
+    function getSchainToERC721(string calldata schainName, address erc721OnMainnet) external view returns (bool) {
+        return schainToERC721[keccak256(abi.encodePacked(schainName))][erc721OnMainnet];
     }
 
     /// Create a new deposit box
@@ -159,7 +160,7 @@ contract DepositBoxERC721 is DepositBox {
         private
         returns (bytes memory data)
     {
-        bool isERC721AddedToSchain = schainToERC[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
+        bool isERC721AddedToSchain = schainToERC721[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
         if (!isERC721AddedToSchain) {
             _addERC721ForSchain(schainName, contractOnMainnet);
             emit ERC721TokenAdded(schainName, contractOnMainnet);
@@ -183,7 +184,7 @@ contract DepositBoxERC721 is DepositBox {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
         require(withoutWhitelist[schainHash], "Whitelist is enabled");
-        schainToERC[schainHash][erc721OnMainnet] = true;
+        schainToERC721[schainHash][erc721OnMainnet] = true;
         emit ERC721TokenAdded(schainName, erc721OnMainnet);
     }
 

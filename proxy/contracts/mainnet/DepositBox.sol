@@ -34,8 +34,6 @@ abstract contract DepositBox is Twin {
 
     Linker public linker;
 
-    // schainHash => address of ERC on Mainnet
-    mapping(bytes32 => mapping(address => bool)) public schainToERC;
     mapping(bytes32 => bool) public withoutWhitelist;
 
     bytes32 public constant DEPOSIT_BOX_MANAGER_ROLE = keccak256("DEPOSIT_BOX_MANAGER_ROLE");
@@ -81,7 +79,7 @@ abstract contract DepositBox is Twin {
     function disableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
         withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
     }
-    
+
     function initialize(
         IContractManager contractManagerOfSkaleManager,
         Linker newLinker,

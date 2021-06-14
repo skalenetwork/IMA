@@ -265,6 +265,21 @@ describe("DepositBox", () => {
             await depositBoxERC20.connect(user).getFunds(schainName, erc20.address, user.address, 1);
             expect(BigNumber.from(await erc20.balanceOf(user.address)).toString()).to.equal("1");
         });
+
+        it("should add erc token by schain owner", async () => {
+            const fakeERC20Contract = deployer.address;
+            await depositBoxERC20.connect(user).addERC20TokenByOwner(schainName, fakeERC20Contract)
+                .should.be.eventually.rejectedWith("Given address is not a contract");
+            await depositBoxERC20.connect(user).addERC20TokenByOwner(schainName, erc20.address);
+            expect(await depositBoxERC20.getSchainToERC20(schainName, erc20.address)).to.be.equal(true);
+        });
+
+        it("should not allow to add token by schain owner if schain killed", async () => {
+            await linker.connect(deployer).kill(schainName);
+            await linker.connect(user).kill(schainName);
+            await depositBoxERC20.connect(user).addERC20TokenByOwner(schainName, erc20.address)
+                .should.be.eventually.rejectedWith("Schain is killed");
+        });
     });
 
     describe("tests with `ERC721`", async () => {
@@ -813,20 +828,23 @@ describe("DepositBox", () => {
                 .connect(deployer)
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address, deployer.address, deployer.address]);
 
-            await linker.allowInterchainConnections(schainName);
             await communityPool
                 .connect(user)
                 .rechargeUserWallet(schainName, { value: wei });
 
             await depositBoxERC20.disableWhitelist(schainName);
-            await erc20.connect(deployer).mint(user.address, amount);
+            await erc20.connect(deployer).mint(user.address, amount*2);
 
             await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, user.address, amount)
                 .should.be.eventually.rejectedWith("DepositBox was not approved for ERC20 token");
-            await erc20.connect(user).approve(depositBoxERC20.address, amount);
+            await erc20.connect(user).approve(depositBoxERC20.address, amount*2);
 
             await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, user.address, amount);
-            expect(await depositBoxEth.transferredAmount(schainHash)).to.be.deep.equal(BigNumber.from(0));
+
+            // await linker.allowInterchainConnections(schainName);
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, user.address, amount);
+
+            // expect(await depositBoxEth.transferredAmount(schainHash)).to.be.deep.equal(BigNumber.from(0));
 
             const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress, messageWithNotMintedToken], sign, 0)).wait();
             if (res.events) {
