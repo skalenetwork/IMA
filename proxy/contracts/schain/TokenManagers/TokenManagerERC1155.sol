@@ -60,9 +60,8 @@ contract TokenManagerERC1155 is TokenManager {
     )
         external
     {
-        require(to != address(0), "Incorrect receiver address");
-        ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
-        communityLocker.checkAllowedToSendMessage(to);
+         communityLocker.checkAllowedToSendMessage(to);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, id, amount);
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
         contractOnSchain.burn(msg.sender, id, amount);
@@ -295,6 +294,43 @@ contract TokenManagerERC1155 is TokenManager {
         contractOnSchain.mintBatch(receiver, ids, amounts, "");
         emit ERC1155TokenReceived(token, address(contractOnSchain), ids, amounts);
         return receiver;
+    }
+
+    function _exit(
+        bytes32 chainHash,
+        address messageReceiver,
+        address contractOnMainnet,
+        address to,
+        uint256 tokenId
+    )
+        private
+    {
+        require(to != address(0), "Incorrect receiver address");
+        ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
+        require(address(contractOnSchain).isContract(), "No token clone on schain");
+        require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
+        contractOnSchain.burn(msg.sender, id, amount);
+        bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);        
+        messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
+    }
+
+    function _exitBatch(
+        bytes32 chainHash,
+        address messageReceiver,
+        address contractOnMainnet,
+        address to,
+        uint256 tokenId
+    )
+        private
+    {
+        require(to != address(0), "Incorrect receiver address");
+        ERC721BurnableUpgradeable contractOnSchain = clonesErc721[contractOnMainnet];
+        require(address(contractOnSchain).isContract(), "No token clone on schain");
+        require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
+        contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
+        contractOnSchain.burn(tokenId);
+        bytes memory data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);    
+        messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
     }
 
     function _asSingletonArray(uint256 element) private pure returns (uint256[] memory array) {

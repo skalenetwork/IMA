@@ -53,7 +53,7 @@ contract TokenManagerERC721 is TokenManager {
         external
     {
         communityLocker.checkAllowedToSendMessage(to);
-        _exit(MAINNET_NAME, depositBox, contractOnMainnet, to, tokenId);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, tokenId);
     }
 
     function transferToSchainERC721(
@@ -70,7 +70,7 @@ contract TokenManagerERC721 is TokenManager {
             "This function is not for transferring to Mainnet"
         );
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
-        _exit(targetSchainName, tokenManagers[targetSchainHash], contractOnMainnet, to, tokenId);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, tokenId);
     }
 
     /**
@@ -190,7 +190,7 @@ contract TokenManagerERC721 is TokenManager {
     }
 
     function _exit(
-        string memory chainName,
+        bytes32 chainHash,
         address messageReceiver,
         address contractOnMainnet,
         address to,
@@ -205,6 +205,6 @@ contract TokenManagerERC721 is TokenManager {
         contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
         contractOnSchain.burn(tokenId);
         bytes memory data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);    
-        messageProxy.postOutgoingMessage(chainName, messageReceiver, data);
+        messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
     }
 }

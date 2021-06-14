@@ -47,7 +47,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
      */
 
     struct OutgoingMessageData {
-        string dstChain;
+        bytes32 dstChain;
         uint256 msgCounter;
         address srcContract;
         address dstContract;
@@ -205,13 +205,12 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
 
     // This is called by a smart contract that wants to make a cross-chain call
     function postOutgoingMessage(
-        string calldata targetChainName,
+        bytes32 targetChainHash,
         address dstContract,
         bytes calldata data
     )
         external
     {
-        bytes32 targetChainHash = keccak256(abi.encodePacked(targetChainName));
         require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
         require(
             registryContracts[bytes32(0)][msg.sender] || 
@@ -222,7 +221,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
             = connectedChains[targetChainHash].outgoingMessageCounter.add(1);
         _pushOutgoingMessageData(
             OutgoingMessageData(
-                targetChainName,
+                targetChainHash,
                 connectedChains[targetChainHash].outgoingMessageCounter - 1,
                 msg.sender,
                 dstContract,
@@ -351,8 +350,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         view
         returns (bool isValidMessage)
     {
-        bytes32 chainHash = keccak256(abi.encodePacked(message.dstChain));
-        bytes32 messageDataHash = _outgoingMessageDataHash[chainHash][message.msgCounter];
+        bytes32 messageDataHash = _outgoingMessageDataHash[message.dstChain][message.msgCounter];
         if (messageDataHash == _hashOfMessage(message))
             isValidMessage = true;
     }
@@ -388,7 +386,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
 
     function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
         bytes memory data = abi.encodePacked(
-            bytes32(keccak256(abi.encodePacked(message.dstChain))),
+            message.dstChain,
             bytes32(message.msgCounter),
             bytes32(bytes20(message.srcContract)),
             bytes32(bytes20(message.dstContract)),
