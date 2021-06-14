@@ -233,9 +233,10 @@ describe("DepositBox", () => {
             it("should invoke `depositERC20` without mistakes", async () => {
                 // preparation
                 // mint some quantity of ERC20 tokens for `deployer` address
-                await erc20.connect(deployer).mint(deployer.address, "1000000000");
+                const amount = 10;
+                await erc20.connect(deployer).mint(deployer.address, amount);
                 // approve some quantity of ERC20 tokens for `depositBoxEth` address
-                await erc20.connect(deployer).approve(depositBoxERC20.address, "1000000");
+                await erc20.connect(deployer).approve(depositBoxERC20.address, amount);
                 // execution
                 await depositBoxERC20
                     .connect(deployer)
@@ -244,10 +245,25 @@ describe("DepositBox", () => {
                 await depositBoxERC20
                     .connect(deployer)
                     .depositERC20(schainName, erc20.address, deployer.address, 1);
-                const res = await depositBoxERC20
+                await depositBoxERC20
                     .connect(deployer)
                     .depositERC20(schainName, erc20.address, deployer.address, 1);
                 // console.log("Gas for depositERC20:", res.receipt.gasUsed);
+            });
+
+            it("should invoke `depositERC20` without mistakes", async () => {
+                // preparation
+                // mint some quantity of ERC20 tokens for `deployer` address
+                const amount = 10;
+                await erc20.connect(deployer).mint(deployer.address, amount);
+                // approve some quantity of ERC20 tokens for `depositBoxEth` address
+                await erc20.connect(deployer).approve(depositBoxERC20.address, amount+1);
+
+                await depositBoxERC20.connect(user).disableWhitelist(schainName);
+                await depositBoxERC20
+                    .connect(deployer)
+                    .depositERC20(schainName, erc20.address, deployer.address, amount+1)
+                    .should.be.eventually.rejectedWith("Amount is incorrect");
             });
         });
 
@@ -841,11 +857,6 @@ describe("DepositBox", () => {
 
             await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, user.address, amount);
 
-            // await linker.allowInterchainConnections(schainName);
-            await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, user.address, amount);
-
-            // expect(await depositBoxEth.transferredAmount(schainHash)).to.be.deep.equal(BigNumber.from(0));
-
             const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress, messageWithNotMintedToken], sign, 0)).wait();
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
@@ -862,7 +873,14 @@ describe("DepositBox", () => {
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
 
-            (await erc20.balanceOf(user.address)).toString().should.be.equal(amount.toString());
+            await linker.allowInterchainConnections(schainName);
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, user.address, amount);
+            await messageProxy.connect(deployer).postIncomingMessages(schainName, 3, [message], sign, 0);
+            expect(await depositBoxEth.transferredAmount(schainHash)).to.be.deep.equal(BigNumber.from(0));
+
+            (await erc20.balanceOf(user.address)).toString().should.be.equal((amount*2).toString());
+
+
         });
 
         it("should transfer ERC721 token", async () => {
