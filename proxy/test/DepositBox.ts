@@ -207,6 +207,7 @@ describe("DepositBox", () => {
             it("should rejected with `Whitelist is enabled`", async () => {
                 // preparation
                 const error = "Whitelist is enabled";
+                await depositBoxERC20.connect(user).enableWhitelist(schainName);
                 await erc20.connect(deployer).mint(user.address, "1000000000");
                 await erc20.connect(deployer).approve(depositBoxERC20.address, "1000000");
                 // set `DepositBox` contract to avoid the `Not allowed` error in LockAndDataForMainnet.sol
@@ -251,7 +252,7 @@ describe("DepositBox", () => {
                 // console.log("Gas for depositERC20:", res.receipt.gasUsed);
             });
 
-            it("should invoke `depositERC20` without mistakes", async () => {
+            it("should rejected with `Amount is incorrect`", async () => {
                 // preparation
                 // mint some quantity of ERC20 tokens for `deployer` address
                 const amount = 10;
@@ -264,6 +265,23 @@ describe("DepositBox", () => {
                     .connect(deployer)
                     .depositERC20(schainName, erc20.address, deployer.address, amount+1)
                     .should.be.eventually.rejectedWith("Amount is incorrect");
+            });
+
+            it("should rejected with `Receiver address cannot be null`", async () => {
+                // preparation
+                // mint some quantity of ERC20 tokens for `deployer` address
+                const amount = 10;
+                const to0 = "0x0000000000000000000000000000000000000000";
+
+                await erc20.connect(deployer).mint(deployer.address, amount);
+                // approve some quantity of ERC20 tokens for `depositBoxEth` address
+                await erc20.connect(deployer).approve(depositBoxERC20.address, amount);
+
+                await depositBoxERC20.connect(user).disableWhitelist(schainName);
+                await depositBoxERC20
+                    .connect(deployer)
+                    .depositERC20(schainName, erc20.address, to0, amount)
+                    .should.be.eventually.rejectedWith("Receiver address cannot be null");
             });
         });
 
