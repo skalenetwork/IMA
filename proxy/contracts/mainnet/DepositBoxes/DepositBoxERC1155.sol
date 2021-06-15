@@ -184,8 +184,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         _addERC1155ForSchain(schainName, erc1155OnMainnet);
     }
 
-
-
     /**
      * @dev Should return true if token in whitelist.
      */
@@ -214,7 +212,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
      */
     function _receiveERC1155(
         string calldata schainName,
-        address contractOnMainnet,
+        address erc1155OnMainnet,
         address to,
         uint256 id,
         uint256 amount
@@ -222,22 +220,23 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         private
         returns (bytes memory data)
     {
-        bool isERC1155AddedToSchain = schainToERC1155[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        bool isERC1155AddedToSchain = schainToERC1155[schainHash][erc1155OnMainnet];
         if (!isERC1155AddedToSchain) {
-            _addERC1155ForSchain(schainName, contractOnMainnet);
+            require(withoutWhitelist[schainHash], "Whitelist is enabled");
+            _addERC1155ForSchain(schainName, erc1155OnMainnet);
             data = Messages.encodeTransferErc1155AndTokenInfoMessage(
-                contractOnMainnet,
+                erc1155OnMainnet,
                 to,
                 id,
                 amount,
-                _getTokenInfo(IERC1155MetadataURIUpgradeable(contractOnMainnet))
+                _getTokenInfo(IERC1155MetadataURIUpgradeable(erc1155OnMainnet))
             );
-            emit ERC1155TokenAdded(schainName, contractOnMainnet);
         } else {
-            data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);
+            data = Messages.encodeTransferErc1155Message(erc1155OnMainnet, to, id, amount);
         }
         
-        emit ERC1155TokenReady(contractOnMainnet, _asSingletonArray(id), _asSingletonArray(amount));
+        emit ERC1155TokenReady(erc1155OnMainnet, _asSingletonArray(id), _asSingletonArray(amount));
     }
 
     /**
