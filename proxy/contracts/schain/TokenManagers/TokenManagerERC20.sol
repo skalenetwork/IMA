@@ -128,7 +128,6 @@ contract TokenManagerERC20 is TokenManager {
     {
         require(address(erc20OnSchain).isContract(), "Given address is not a contract");
         require(erc20OnSchain.totalSupply() == 0, "TotalSupply is not zero");
-        
         clonesErc20[erc20OnMainnet] = erc20OnSchain;
         emit ERC20TokenAdded(erc20OnMainnet, address(erc20OnSchain));
     }
@@ -222,15 +221,7 @@ contract TokenManagerERC20 is TokenManager {
             ) >= amount,
             "Transfer is not approved by token holder"
         );
-        require(
-            contractOnSchain.transferFrom(
-                msg.sender,
-                address(this),
-                amount
-            ),
-            "Could not transfer ERC20 Token"
-        );
-
+        contractOnSchain.transferFrom(msg.sender, address(this), amount);
         contractOnSchain.burn(amount);
         messageProxy.postOutgoingMessage(
             chainName,

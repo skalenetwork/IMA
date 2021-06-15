@@ -94,7 +94,6 @@ describe("TokenManagerERC20", () => {
 
         await tokenManagerErc20.connect(deployer).grantRole(await tokenManagerErc20.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
         await tokenManagerErc20.connect(deployer).grantRole(await tokenManagerErc20.AUTOMATIC_DEPLOY_ROLE(), schainOwner.address);
-        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
         const data = await messages.encodeActivateUserMessage(user.address);
         await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, fakeCommunityPool, data);
 
@@ -158,8 +157,10 @@ describe("TokenManagerERC20", () => {
         const error = "Insufficient funds";
         const amount = 10;
         // execution/expectation
+        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
+
         await erc20OnChain.connect(user).approve(tokenManagerErc20.address, amount);
-        const res = await tokenManagerErc20
+        await tokenManagerErc20
             .connect(user)
             .exitToMainERC20(erc20OnMainnet.address, user.address, amount)
             .should.be.eventually.rejectedWith(error);
@@ -197,6 +198,7 @@ describe("TokenManagerERC20", () => {
     it("should reject with `Transfer is not approved by token holder` when invoke `exitToMainERC20`", async () => {
         const error = "Transfer is not approved by token holder";
         const amount = 20;
+        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
 
         // invoke `grantRole` before `sendERC20` to avoid `MinterRole: caller does not have the Minter role` exception
         const minterRole = await erc20OnChain.MINTER_ROLE();
@@ -216,21 +218,13 @@ describe("TokenManagerERC20", () => {
         const amountReduceCost = "8000000000000000";
         const amountEth = BigNumber.from("60000000000000000");
         await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerErc20.address);
+        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
 
-        // // invoke `setTotalSupplyOnMainnet` before `mint` to avoid `SafeMath: subtraction overflow` exception:
-        // await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
-
-        // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
         await erc20OnChain.connect(deployer).mint(user.address, amountMint);
-
-        // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
         await erc20OnChain.connect(user).approve(tokenManagerErc20.address, amountMint);
 
-        // add schain:
-        // await lockAndDataForSchain.addSchain(schainName, tokenManager.address, {from: deployer});
-
         // execution:
-        const res = await tokenManagerErc20
+        await tokenManagerErc20
             .connect(user)
             .exitToMainERC20(erc20OnMainnet.address, user.address, amountReduceCost);
 
@@ -244,29 +238,32 @@ describe("TokenManagerERC20", () => {
         const amountReduceCost = "8000000000000000";
         const newSchainName = randomString(10);
         await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
 
         // add connected chain:
         await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
         await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
-        // invoke `setTotalSupplyOnMainnet` before `mint` to avoid `SafeMath: subtraction overflow` exception:
-        // await eRC20OnChain.setTotalSupplyOnMainnet(amount, {from: deployer});
-        // invoke `mint` to avoid `SafeMath: subtraction overflow` exception on `exitToMainERC20` function:
-        await erc20OnChain.connect(deployer).mint(user.address, amount);
 
-        // invoke `approve` to avoid `Not allowed ERC20 Token` exception on `exitToMainERC20` function:
+        await erc20OnChain.connect(deployer).mint(user.address, amount);
         await erc20OnChain.connect(user).approve(tokenManagerErc20.address, amount);
 
-        // execution:
         await tokenManagerErc20
             .connect(user)
             .transferToSchainERC20(newSchainName, erc20OnMainnet.address, user.address, amountReduceCost)
             .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
-        await tokenManagerErc20.connect(deployer).addTokenManager(newSchainName, tokenManagerErc20.address);
+        await tokenManagerErc20
+            .connect(user)
+            .transferToSchainERC20("Mainnet", erc20OnMainnet.address, user.address, amountReduceCost)
+            .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
 
+        await tokenManagerErc20.addTokenManager(newSchainName, tokenManagerErc20.address);
+
+        // execution:
         await tokenManagerErc20
             .connect(user)
             .transferToSchainERC20(newSchainName, erc20OnMainnet.address, user.address, amountReduceCost);
+
         // expectation:
         const outgoingMessagesCounter = BigNumber.from(
             await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
@@ -274,7 +271,68 @@ describe("TokenManagerERC20", () => {
     });
 
     describe("tests for `postMessage` function", async () => {
-        it("should transfer ERC20 token", async () => {
+        it("should transfer ERC20 token with token info", async () => {
+            //  preparation
+            const remoteTokenManagerAddress = fakeDepositBox;
+            const fromSchainName = randomString(10);
+            const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
+            await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
+            await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
+
+            const amount = 10;
+            const to = user.address;
+            await erc20OnMainnet.mint(deployer.address, amount);
+            const data = await messages.encodeTransferErc20AndTokenInfoMessage(
+                erc20OnMainnet.address,
+                to,
+                amount,
+                (await erc20OnMainnet.totalSupply()).toNumber(),
+                {
+                    name: await erc20OnMainnet.name(),
+                    symbol: await erc20OnMainnet.symbol(),
+                    decimals: BigNumber.from(await erc20OnMainnet.decimals()).toString()
+                }
+            );
+            await tokenManagerErc20.connect(schainOwner).enableAutomaticDeploy();
+
+            // execution
+            await messageProxyForSchain.postMessage(tokenManagerErc20.address, fromSchainHash, remoteTokenManagerAddress, data);
+            // expectation
+            const addressERC20OnSchain = await tokenManagerErc20.clonesErc20(erc20OnMainnet.address);
+            const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
+            expect(parseInt((await targetErc20OnChain.functions.balanceOf(to)).toString(), 10))
+                .to.be.equal(amount);
+        });
+
+        it("should transfer ERC20 token to schain when token add by schain owner", async () => {
+            //  preparation
+            const remoteTokenManagerAddress = fakeDepositBox;
+            const fromSchainName = randomString(10);
+            const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
+            await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
+            await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
+
+            const amount = 10;
+            const to = user.address;
+            await erc20OnMainnet.mint(deployer.address, amount);
+            const data = await messages.encodeTransferErc20AndTotalSupplyMessage(
+                erc20OnMainnet.address,
+                to,
+                amount,
+                (await erc20OnMainnet.totalSupply()).toNumber()
+            );
+            await tokenManagerErc20.connect(schainOwner).enableAutomaticDeploy();
+
+            // execution
+            await messageProxyForSchain.postMessage(tokenManagerErc20.address, fromSchainHash, remoteTokenManagerAddress, data);
+            // expectation
+            const addressERC20OnSchain = await tokenManagerErc20.clonesErc20(erc20OnMainnet.address);
+            const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
+            expect(parseInt((await targetErc20OnChain.functions.balanceOf(to)).toString(), 10))
+                .to.be.equal(amount);
+        });
+
+        it("should should transfer token to schain and automaticaly deploy", async () => {
             //  preparation
             const remoteTokenManagerAddress = fakeDepositBox;
             const fromSchainName = randomString(10);
@@ -295,10 +353,15 @@ describe("TokenManagerERC20", () => {
                     decimals: BigNumber.from(await erc20OnMainnet.decimals()).toString()
                 }
             );
+
+            await messageProxyForSchain.postMessage(tokenManagerErc20.address, fromSchainHash, remoteTokenManagerAddress, data)
+                .should.be.eventually.rejectedWith("Automatic deploy is disabled");
+
             await tokenManagerErc20.connect(schainOwner).enableAutomaticDeploy();
 
             // execution
             await messageProxyForSchain.postMessage(tokenManagerErc20.address, fromSchainHash, remoteTokenManagerAddress, data);
+
             // expectation
             const addressERC20OnSchain = await tokenManagerErc20.clonesErc20(erc20OnMainnet.address);
             const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;

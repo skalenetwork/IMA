@@ -181,7 +181,7 @@ describe("DepositBoxERC1155", () => {
                 await depositBoxERC1155
                     .connect(deployer)
                     .depositERC1155(schainName, contractHere, to, id, amount);
-                const res = await (await depositBoxERC1155
+                await (await depositBoxERC1155
                     .connect(deployer)
                     .depositERC1155(schainName, contractHere, to, id2, amount2)).wait();
                 // console.log("Gas for depositERC1155:", res.receipt.gasUsed);
