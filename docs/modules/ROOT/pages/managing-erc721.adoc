@@ -342,7 +342,7 @@ https://codesandbox.io/s/erc721-transfer-skale-interchain-messaging-agent-forked
 
 === 1. Deposit ERC721 on Ethereum
 
-To send ERC721 tokens from a user's wallet to the IMA Deposit Box on Ethereum, you will need to use the https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/DepositBoxERC721.sol#L142[depositERC721] function within the **DepositBoxERC721** IMA contract on Ethereum.
+To send ERC721 tokens from a user's wallet to the IMA Deposit Box on Ethereum, you will need to use the https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/mainnet/DepositBoxes/DepositBoxERC721.sol#L43[depositERC721] function within the **DepositBoxERC721** IMA contract on Ethereum.
 
 This method is called from Ethereum to move ERC721 tokens into a Deposit Box.  
 

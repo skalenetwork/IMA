@@ -368,11 +368,11 @@ let addERC1155TokenByOwner = TokenManager.methods
 
 The Interchain Messaging Agent can be used for managing ERC1155 tokens between Ethereum and SKALE.  The following steps guide you through a complete transfer from Ethereum to SKALE and back. Be sure to follow any one-time setup and mapping steps described xref:setup[here].
 
-https://codesandbox.io/s/erc1155-transfer-skale-interchain-messaging-agent-forked-hwexm[Live ERC1155 IMA Demo]
+https://codesandbox.io/s/erc1155-transfer-skale-interchain-messaging-agent-forked-nmie4[Live ERC1155 IMA Demo]
 
 === 1. Deposit ERC1155 on Ethereum
 
-To send ERC1155 tokens from a user's wallet to the IMA Deposit Box on Ethereum, you will need to use the https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/DepositBoxERC1155.sol#L142[depositERC1155] function within the **DepositBoxERC1155** IMA contract on Ethereum.
+To send ERC1155 tokens from a user's wallet to the IMA Deposit Box on Ethereum, you will need to use the https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/mainnet/DepositBoxes/DepositBoxERC1155.sol#L74[depositERC1155] function within the **DepositBoxERC1155** IMA contract on Ethereum.
 
 This method is called from Ethereum to move ERC1155 tokens into a Deposit Box.  
 

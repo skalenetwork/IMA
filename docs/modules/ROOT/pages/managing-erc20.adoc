@@ -362,7 +362,7 @@ https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-forked-
 
 === 1. Deposit ERC20 on Ethereum
 
-To send ERC20 tokens from a user's wallet to the IMA Deposit Box on Ethereum, you will need to use the https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/DepositBox.sol#L89[depositERC20] function within the **DepositBoxERC20** IMA contract on Ethereum.  
+To send ERC20 tokens from a user's wallet to the IMA Deposit Box on Ethereum, you will need to use the https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/mainnet/DepositBoxes/DepositBoxERC20.sol#L48[depositERC20] function within the **DepositBoxERC20** IMA contract on Ethereum.  
 
 This method is called from Ethereum to move ERC20 tokens into a Deposit Box.  
 
