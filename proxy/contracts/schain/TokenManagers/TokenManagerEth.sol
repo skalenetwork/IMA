@@ -133,12 +133,6 @@ contract TokenManagerEth is TokenManager {
 
     // private
 
-    function _burnEthErc20(address account, uint amount) private {
-        if (amount > 0) {
-            ethErc20.forceBurn(account, amount);
-        }
-    }
-
     function _exit(
         bytes32 chainHash,
         address messageReceiver,
@@ -149,10 +143,9 @@ contract TokenManagerEth is TokenManager {
     {
         require(to != address(0), "Incorrect receiver address");
 
-        // if (amount > 0) {
-        //     ethErc20.forceBurn(account, amount);
-        // }
-        _burnEthErc20(msg.sender, amount);
+        if (amount > 0) {
+            ethErc20.forceBurn(msg.sender, amount);
+        }
         bytes memory data = Messages.encodeTransferEthMessage(to, amount);
         messageProxy.postOutgoingMessage(
             chainHash,
