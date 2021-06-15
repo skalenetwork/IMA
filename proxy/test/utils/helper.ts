@@ -42,31 +42,30 @@ export function createBytes32(str: string) {
 
 export function stringToHex(str: string, hex: any) {
     try {
-      hex = unescape(encodeURIComponent(str))
-      .split("").map((v) => {
-        return v.charCodeAt(0).toString(16);
-      }).join("");
+        hex = unescape(encodeURIComponent(str))
+            .split("").map((v) => {
+                return v.charCodeAt(0).toString(16);
+            }).join("");
     } catch (e) {
-      hex = str;
-      console.log("invalid text input: " + str);
+        hex = str;
+        console.log("invalid text input: " + str);
     }
     return hex;
 }
 
-export function stringFromHex(hex: string, str: string) {
-    try {
-      str = decodeURIComponent(hex.replace(/(..)/g, "%$1"));
-    } catch (e) {
-      str = hex;
-      console.log("invalid hex input: " + hex);
+export function stringFromHex(value: string) {
+    const hex = value.toString().slice(2);
+    let str = '';
+    for (let n = 0; n < hex.length; n += 2) {
+        str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
     }
     return str;
 }
 
 export function stringValue(value: string | null | undefined) {
-  if (value) {
-      return value;
-  } else {
-      return "";
-  }
+    if (value) {
+        return value;
+    } else {
+        return "";
+    }
 }

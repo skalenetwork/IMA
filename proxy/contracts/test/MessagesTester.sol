@@ -76,8 +76,12 @@ contract MessagesTester {
         return Messages.encodeTransferErc721AndTokenInfoMessage(token, receiver, tokenId, tokenInfo);
     }
 
-    function encodeFreezeStateMessage(address receiver, bool isUnfrozen) external pure returns (bytes memory) {
-        return Messages.encodeFreezeStateMessage(receiver, isUnfrozen);
+    function encodeActivateUserMessage(address receiver) external pure returns (bytes memory) {
+        return Messages.encodeActivateUserMessage(receiver);
+    }
+
+    function encodeLockUserMessage(address receiver) external pure returns (bytes memory) {
+        return Messages.encodeLockUserMessage(receiver);
     }
 
     function encodeInterchainConnectionMessage(bool isAllowed) external pure returns (bytes memory) {

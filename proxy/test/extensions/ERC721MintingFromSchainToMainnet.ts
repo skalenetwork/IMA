@@ -200,13 +200,15 @@ describe("ERC721MintingFromSchainToMainnet", () => {
 
         // IMA mainnet part deployment
         messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
-        imaLinker = await deployLinker(messageProxyForMainnet, contractManager);
+        imaLinker = await deployLinker(contractManager, messageProxyForMainnet);
         communityPool = await deployCommunityPool(contractManager, imaLinker, messageProxyForMainnet);
         // depositBoxEth = await deployDepositBoxEth(contractManager, imaLinker, messageProxyForMainnet);
         // depositBoxERC20 = await deployDepositBoxERC20(contractManager, imaLinker, messageProxyForMainnet);
         // depositBoxERC721 = await deployDepositBoxERC721(contractManager, imaLinker, messageProxyForMainnet);
         const extraContractRegistrarRole = await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE();
+        const chainConnectorRole2 = await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE();
         await messageProxyForMainnet.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
+        await messageProxyForMainnet.connect(deployer).grantRole(chainConnectorRole2, imaLinker.address);
         // await messageProxyForMainnet.registerExtraContractForAll(depositBoxEth.address)
         // await messageProxyForMainnet.registerExtraContractForAll(depositBoxERC20.address)
         // await messageProxyForMainnet.registerExtraContractForAll(depositBoxERC721.address)
@@ -249,7 +251,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
         // await lockAndDataForSchain.setContract("TokenFactory", tokenFactory.address);
 
         // IMA registration
-        await imaLinker.connectSchain(schainName, [communityLocker.address]);
+        await imaLinker.connectSchain(schainName, [communityLocker.address, tokenManagerLinker.address]);
         // await communityPool.connect(user).rechargeUserWallet(schainName, { value: 1e18.toString() });
         // await lockAndDataForSchain.addDepositBox(depositBoxEth.address);
         // await lockAndDataForSchain.addDepositBox(depositBoxERC20.address);

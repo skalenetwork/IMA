@@ -33,16 +33,13 @@ import "./Linker.sol";
  * @title CommunityPool
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract CommunityPool is SkaleManagerClient {
-
-    MessageProxyForMainnet public messageProxy;
+contract CommunityPool is Twin {
 
     mapping(address => mapping(bytes32 => uint)) private _userWallets;
-    mapping(address => mapping(bytes32 => bool)) private _unfrozenUsers;
-    mapping(bytes32 => address) public schainLinks;
+    mapping(address => mapping(bytes32 => bool)) public activeUsers;
 
     uint public minTransactionGas;
-    bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
+    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
     function refundGasByUser(
         bytes32 schainHash,
@@ -51,17 +48,17 @@ contract CommunityPool is SkaleManagerClient {
         uint gas
     ) 
         external
+        onlyMessageProxy
     {
-        require(msg.sender == address(messageProxy),  "Sender is not a MessageProxy");
-        require(_unfrozenUsers[user][schainHash], "User should be unfrozen");
+        require(activeUsers[user][schainHash], "User should be active");
         uint amount = tx.gasprice * gas;
         _userWallets[user][schainHash] = _userWallets[user][schainHash].sub(amount);
         if (_userWallets[user][schainHash] < minTransactionGas * tx.gasprice) {
-            _unfrozenUsers[user][schainHash] = false;
+            activeUsers[user][schainHash] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
-                Messages.encodeFreezeStateMessage(user, false)
+                Messages.encodeLockUserMessage(user)
             );
         }
         node.transfer(amount);
@@ -75,12 +72,12 @@ contract CommunityPool is SkaleManagerClient {
             "Not enough money for transaction"
         );
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].add(msg.value);
-        if (!_unfrozenUsers[msg.sender][schainHash]) {
-            _unfrozenUsers[msg.sender][schainHash] = true;
+        if (!activeUsers[msg.sender][schainHash]) {
+            activeUsers[msg.sender][schainHash] = true;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
-                Messages.encodeFreezeStateMessage(msg.sender, true)
+                Messages.encodeActivateUserMessage(msg.sender)
             );
         }
     }
@@ -89,42 +86,23 @@ contract CommunityPool is SkaleManagerClient {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].sub(amount);
-        if (_userWallets[msg.sender][schainHash] < minTransactionGas * tx.gasprice 
-            && _unfrozenUsers[msg.sender][schainHash]) {
+        if (
+            _userWallets[msg.sender][schainHash] < minTransactionGas * tx.gasprice &&
+            activeUsers[msg.sender][schainHash]
+        ) {
+            activeUsers[msg.sender][schainHash] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
-                Messages.encodeFreezeStateMessage(msg.sender, true)
+                Messages.encodeLockUserMessage(msg.sender)
             );
         }
         msg.sender.transfer(amount);
     }
 
-    function addSchainContract(string calldata schainName, address contractOnSchain) external {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(LINKER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(schainLinks[schainHash] == address(0), "SKALE chain is already set");
-        require(contractOnSchain != address(0), "Incorrect address for contract on Schain");
-        schainLinks[schainHash] = contractOnSchain;
-    }
-
-    function removeSchainContract(string calldata schainName) external {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(LINKER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(schainLinks[schainHash] != address(0), "SKALE chain is not set");
-        delete schainLinks[schainHash];
-    }
-
-    function hasSchainContract(string calldata schainName) external view returns (bool) {
-        return schainLinks[keccak256(abi.encodePacked(schainName))] != address(0);
+    function setMinTransactionGas(uint newMinTransactionGas) external {
+        require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "CONSTANT_SETTER_ROLE is required");
+        minTransactionGas = newMinTransactionGas;
     }
 
     function getBalance(string calldata schainName) external view returns (uint) {
@@ -134,15 +112,13 @@ contract CommunityPool is SkaleManagerClient {
     function initialize(
         IContractManager contractManagerOfSkaleManager,
         Linker linker,
-        MessageProxyForMainnet newMessageProxy
+        MessageProxyForMainnet messageProxy
     )
         public
         initializer
     {
-        SkaleManagerClient.initialize(contractManagerOfSkaleManager);
-        AccessControlUpgradeable.__AccessControl_init();
+        Twin.initialize(contractManagerOfSkaleManager, messageProxy);
         _setupRole(LINKER_ROLE, address(linker));
-        messageProxy = newMessageProxy;
         minTransactionGas = 1000000;
     }
 }

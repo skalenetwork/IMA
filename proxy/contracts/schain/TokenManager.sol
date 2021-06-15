@@ -67,6 +67,31 @@ abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
         _;
     }
 
+    modifier rightTransaction(string memory targetSchainName, address to) {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        require(
+            targetSchainHash != MAINNET_HASH,
+            "This function is not for transferring to Mainnet"
+        );
+        require(to != address(0), "Incorrect receiver address");
+        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
+        _;
+    }
+
+    modifier checkReceiverChain(bytes32 fromChainHash, address sender) {
+        require(
+            fromChainHash != schainHash && 
+                (
+                    fromChainHash == MAINNET_HASH ?
+                    sender == depositBox :
+                    sender == tokenManagers[fromChainHash]
+                ),
+            "Receiver chain is incorrect"
+        );
+        _;
+    }
+
+
     /**
      * @dev Allows Schain owner turn on automatic deploy on schain.
      */

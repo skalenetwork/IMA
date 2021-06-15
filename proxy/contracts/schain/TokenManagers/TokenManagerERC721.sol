@@ -63,10 +63,9 @@ contract TokenManagerERC721 is TokenManager {
         uint256 tokenId
     ) 
         external
+        rightTransaction(targetSchainName, to)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        require(targetSchainHash != MAINNET_HASH, "This function is not for transferring to Mainnet");
-        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, tokenId);
     }
 
@@ -89,17 +88,9 @@ contract TokenManagerERC721 is TokenManager {
         external
         override
         onlyMessageProxy
+        checkReceiverChain(fromChainHash, sender)
         returns (address)
     {
-        require(
-            fromChainHash != schainHash && 
-            (
-                fromChainHash == MAINNET_HASH ?
-                sender == depositBox :
-                sender == tokenManagers[fromChainHash]
-            ),
-            "Receiver chain is incorrect"
-        );
         Messages.MessageType operation = Messages.getMessageType(data);
         address receiver = address(0);
         if (
@@ -124,7 +115,6 @@ contract TokenManagerERC721 is TokenManager {
         onlyTokenRegistrar
     {
         require(address(erc721OnSchain).isContract(), "Given address is not a contract");
-        
         clonesErc721[erc721OnMainnet] = erc721OnSchain;
         emit ERC721TokenAdded(erc721OnMainnet, address(erc721OnSchain));
     }
@@ -180,7 +170,6 @@ contract TokenManagerERC721 is TokenManager {
                 emit ERC721TokenCreated(token, address(contractOnSchain));
             }
         }
-        require(address(contractOnSchain).isContract(), "Given address is not a contract");
         contractOnSchain.mint(receiver, tokenId);
         emit ERC721TokenReceived(token, address(contractOnSchain), tokenId);
         return receiver;
@@ -195,7 +184,6 @@ contract TokenManagerERC721 is TokenManager {
     )
         private
     {
-        require(to != address(0), "Incorrect receiver address");
         ERC721BurnableUpgradeable contractOnSchain = clonesErc721[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");

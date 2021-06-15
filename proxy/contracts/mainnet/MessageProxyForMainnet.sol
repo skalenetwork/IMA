@@ -28,6 +28,7 @@ import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 import "../interfaces/IMessageReceiver.sol";
 import "./SkaleManagerClient.sol";
 
+
 interface ICommunityPool {
     function refundGasByUser(
         bytes32 schainHash,

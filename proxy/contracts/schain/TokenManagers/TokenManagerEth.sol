@@ -65,10 +65,9 @@ contract TokenManagerEth is TokenManager {
         uint256 amount
     )
         external
+        rightTransaction(targetSchainName, to)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        require(targetSchainHash != MAINNET_HASH, "This function is not for transferring to Mainnet");
-        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
         _exit(targetSchainHash, tokenManagers[targetSchainHash], to, amount);
     }
 
@@ -91,17 +90,9 @@ contract TokenManagerEth is TokenManager {
         external
         override
         onlyMessageProxy
+        checkReceiverChain(fromChainHash, sender)
         returns (address)
     {
-        require(
-            fromChainHash != schainHash && 
-                (
-                    fromChainHash == MAINNET_HASH ?
-                    sender == depositBox :
-                    sender == tokenManagers[fromChainHash]
-                ),
-            "Receiver chain is incorrect"
-        );
         Messages.TransferEthMessage memory decodedMessage = Messages.decodeTransferEthMessage(data);
         address receiver = decodedMessage.receiver;
         require(receiver != address(0), "Incorrect receiver");
