@@ -96,9 +96,8 @@ contract TokenManagerERC1155 is TokenManager {
         uint256 amount
     ) 
         external
-        rightTransaction(targetSchainName)
+        rightTransaction(targetSchainName, to)
     {
-        require(to != address(0), "Incorrect receiver address");
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
@@ -116,9 +115,8 @@ contract TokenManagerERC1155 is TokenManager {
         uint256[] memory amounts
     ) 
         external
-        rightTransaction(targetSchainName)
+        rightTransaction(targetSchainName, to)
     {
-        require(to != address(0), "Incorrect receiver address");
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");

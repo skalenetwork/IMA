@@ -60,7 +60,6 @@ describe("TokenManagerERC721", () => {
 
     const schainName = "V-chain";
     const tokenId = 1;
-    const schainId = web3.utils.soliditySha3(schainName);
     const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
     let to: string;
     let token: ERC721OnChain;
@@ -184,9 +183,13 @@ describe("TokenManagerERC721", () => {
 
     it("should successfully call transferToSchainERC721", async () => {
         const newSchainName = randomString(10);
-        const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
-        await messageProxyForSchain.grantRole(chainConnectorRole, deployer.address);
-        await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+        const to0 = "0x0000000000000000000000000000000000000000";
+        await tokenManagerERC721.connect(user).transferToSchainERC721(newSchainName, token.address, to0, tokenId)
+            .should.be.eventually.rejectedWith("Incorrect receiver address");
+
+        await messageProxyForSchain.grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+        await messageProxyForSchain.addConnectedChain(newSchainName);
 
         await tokenManagerERC721
             .connect(deployer)
@@ -265,6 +268,16 @@ describe("TokenManagerERC721", () => {
             const erc721OnChain = (await ethers.getContractFactory("ERC721OnChain")).attach(addressERC721OnSchain) as ERC721OnChain;
             expect((await erc721OnChain.functions.ownerOf(tokenId))[0]).to.be.equal(to);
         });
-    });
 
+        it("should reject if message type is known", async () => {
+            const fakeDepositBox = messages;
+            const data = "0x0000000000000000000000000000000000000000000000000000000000000001"+
+            "000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"+
+            "00000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8"+
+            "0000000000000000000000000000000000000000000000000000000000000001";
+            await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox.address, data)
+                .should.be.eventually.rejectedWith("MessageType is unknown");
+
+        });
+    });
 });

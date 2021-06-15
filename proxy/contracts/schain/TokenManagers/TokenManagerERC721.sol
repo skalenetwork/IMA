@@ -63,7 +63,7 @@ contract TokenManagerERC721 is TokenManager {
         uint256 tokenId
     ) 
         external
-        rightTransaction(targetSchainName)
+        rightTransaction(targetSchainName, to)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         _exit(targetSchainName, tokenManagers[targetSchainHash], contractOnMainnet, to, tokenId);
@@ -182,7 +182,6 @@ contract TokenManagerERC721 is TokenManager {
     )
         private
     {
-        require(to != address(0), "Incorrect receiver address");
         ERC721BurnableUpgradeable contractOnSchain = clonesErc721[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");

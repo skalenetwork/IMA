@@ -72,10 +72,9 @@ contract TokenManagerEth is TokenManager {
         uint256 amount
     )
         external
-        rightTransaction(targetSchainName)
+        rightTransaction(targetSchainName, to)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        require(to != address(0), "Incorrect receiver address");
         _burnEthErc20(msg.sender, amount);
         messageProxy.postOutgoingMessage(
             targetSchainName,

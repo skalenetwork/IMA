@@ -66,12 +66,13 @@ abstract contract TokenManager is AccessControlUpgradeable {
         _;
     }
 
-    modifier rightTransaction(string memory targetSchainName) {
+    modifier rightTransaction(string memory targetSchainName, address to) {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
             targetSchainHash != MAINNET_HASH,
             "This function is not for transferring to Mainnet"
         );
+        require(to != address(0), "Incorrect receiver address");
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
         _;
     }

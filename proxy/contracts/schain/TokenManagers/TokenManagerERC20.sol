@@ -74,7 +74,7 @@ contract TokenManagerERC20 is TokenManager {
         uint256 amount
     )
         external
-        rightTransaction(targetSchainName)
+        rightTransaction(targetSchainName, to)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         _exit(targetSchainName, tokenManagers[targetSchainHash], contractOnMainnet, to, amount);
@@ -206,7 +206,6 @@ contract TokenManagerERC20 is TokenManager {
     )
         private
     {
-        require(to != address(0), "Incorrect receiver address");
         ERC20BurnableUpgradeable contractOnSchain = clonesErc20[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
