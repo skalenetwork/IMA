@@ -200,7 +200,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
 
         // IMA mainnet part deployment
         messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
-        imaLinker = await deployLinker(messageProxyForMainnet, contractManager);
+        imaLinker = await deployLinker(contractManager, messageProxyForMainnet);
         communityPool = await deployCommunityPool(contractManager, imaLinker, messageProxyForMainnet);
         // depositBoxEth = await deployDepositBoxEth(contractManager, imaLinker, messageProxyForMainnet);
         // depositBoxERC20 = await deployDepositBoxERC20(contractManager, imaLinker, messageProxyForMainnet);
