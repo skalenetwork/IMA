@@ -91,14 +91,6 @@ abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
         _;
     }
 
-    function postMessage(
-        bytes32 fromChainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        virtual
-        returns (bool);
 
     /**
      * @dev Allows Schain owner turn on automatic deploy on schain.
