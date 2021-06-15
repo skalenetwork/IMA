@@ -60,7 +60,7 @@ contract TokenManagerEth is TokenManager {
         _burnEthErc20(msg.sender, amount);
         communityLocker.checkAllowedToSendMessage(to);
         messageProxy.postOutgoingMessage(
-            "Mainnet",
+            MAINNET_HASH,
             depositBox,
             Messages.encodeTransferEthMessage(to, amount)
         );
@@ -83,7 +83,7 @@ contract TokenManagerEth is TokenManager {
 
         _burnEthErc20(msg.sender, amount);
         messageProxy.postOutgoingMessage(
-            targetSchainName,
+            targetSchainHash,
             tokenManagers[targetSchainHash],
             Messages.encodeTransferEthMessage(to, amount)
         );
