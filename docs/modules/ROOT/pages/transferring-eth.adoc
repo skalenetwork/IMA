@@ -95,79 +95,10 @@ To send ETH back to Ethereum, you will need to use the exitToMain function withi
   
 This method is called from the SKALE Chain to send funds and move the token back to Ethereum.
 
-Note that the SKALE Chain user:
+Note that the SKALE Chain user must have:
 
-* will need to have skETH to conduct the exitToMain transaction on the SKALE Chain TokenManager contract
-* will need to have a sufficient balance of ETH in the Community Pool to initiate the exit to Ethereum.
-
-=== Recharge Community Pool
-
-If the user does not have funds in the Community Pool, IMA will freeze the user from exits until the pool has sufficient balance to fund the exit process.
-
-The **CommunityPool** contract is on Rinkeby. Check out the https://github.com/skalenetwork/skale-network/tree/master/releases/rinkeby/IMA[current release page] for ABIs.
-
-[tabs]
-====
-Javascript::
-+
---
-[source,javascript]
-----
-const Web3 = require("web3");
-const Tx = require("ethereumjs-tx").Transaction;
-
-const communityPoolAddress = rinkebyABIs.community_pool_address;
-const communityPoolABI = rinkebyABIs.community_pool_abi;
-
-const web3 = new Web3(rinkeby);
-
-let CommunityPool = new web3.eth.Contract(
-  communityPoolABI,
-  communityPoolAddress
-);
-
-let registerMainnetCommunityPool = CommunityPool.methods
-    .rechargeUserWallet(schainName)
-    .encodeABI();
-
-web3.eth.getTransactionCount(accountForMainnet).then((nonce) => {
-  //create raw transaction
-  const rawRechargeUserWallet = {
-    chainId: chainId,
-    from: accountForMainnet,
-    nonce: "0x" + nonce.toString(16),
-    data: registerMainnetCommunityPool,
-    to: communityPoolAddress,
-    gas: 6500000,
-    gasPrice: 1000000000,
-    value: web3.utils.toHex(web3.utils.toWei("0.5", "ether")) // Recharge pool with 0.5 ETH
-  };
-
-const txRechargeUserWallet = new Tx(rawRechargeUserWallet, {
-      chain: "rinkeby",
-      hardfork: "petersburg"
-    });
-    txRechargeUserWallet.sign(privateKey);
-
-//serialize transaction
-const serializedRechargeUserWallet = txRechargeUserWallet.serialize();
-
-//send signed transaction
-web3.eth
-  .sendSignedTransaction(
-    "0x" + serializedRechargeUserWallet.toString("hex")
-  )
-  .on("receipt", (receipt) => {
-    //record receipt to console
-    console.log(receipt);
-  })
-  .catch(console.error);
-});
-----
---
-====
-
-=== Exit To Main
+* skETH to conduct the exitToMain transaction on the SKALE Chain TokenManager contract.
+* a sufficient balance of ETH in the Community Pool to initiate the exit to Ethereum *xref:funding-exits.adoc[See Funding Exits].
 
 The **TokenManager** contract is on your SKALE Chain. Check out the https://github.com/skalenetwork/skale-network/tree/master/releases/rinkeby/IMA[current release page] for ABIs.
 

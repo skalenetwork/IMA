@@ -1,3 +1,651 @@
 = Managing ERC1155
 
-TODO
+As a SKALE Chain Owner, there are two main steps to managing ERC1155 through IMA:
+
+1.  xref:setup[One-time setup and map your ERC1155 tokens to your SKALE Chain]
+2.  xref:transfer[Transferring ERC1155 using IMA]
+
+Once you have completed step 1 to setup and map your ERC1155 tokens, you can then setup transfer flow to allow end-users to transfer ERC1155 tokens between Ethereum and your SKALE Chain.
+
+[[setup]]
+== Setup and Map ERC1155 Transfers
+
+The following one-time setup for each ERC1155 token is required for SKALE Chains with a default access control policy (default settings are: whitelisting enabled, automatic deployment disabled). For more information on IMA access control, xref:access-control.adoc[see here].
+
+=== 1. Review the token contract
+
+First, review the Mainnet ERC1155 token implementation and (if needed) modify a SKALE Chain version of the contract to include Mintable and Burnable functions. These functions are required to dynamically mint and burn the token on the SKALE chain in response to deposit and exit on the Mainnet.
+
+[discrete]
+==== Example Mainnet contract
+
+```javascript
+pragma solidity 0.6.12;
+
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Burnable.sol";
+
+contract ERC1155OnChain is ERC1155Burnable {
+
+    event MinterAdded(address indexed account);
+
+    constructor(
+        string memory uri
+    )
+        public
+        ERC1155(uri)
+    {
+    }
+
+    function mint(
+        address account,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    )
+        public
+    {
+        _mint(account, id, amount, data);
+    }
+
+    function mintBatch(
+        address account,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    )
+        public
+    {
+        _mintBatch(account, ids, amounts, data);
+    }
+
+    function addMinter(address account) external {
+        emit MinterAdded(account);
+    }
+}
+```
+
+[discrete]
+==== Example Modified SKALE Chain contract
+
+```javascript
+pragma solidity 0.6.12;
+
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Burnable.sol";
+
+contract ERC1155OnChain is ERC1155Burnable {
+
+    event MinterAdded(address indexed account);
+
+    constructor(
+        string memory uri
+    )
+        public
+        ERC1155(uri)
+    {
+    }
+
+    function mint(
+        address account,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    )
+        public
+    {
+        _mint(account, id, amount, data);
+    }
+
+    function mintBatch(
+        address account,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    )
+        public
+    {
+        _mintBatch(account, ids, amounts, data);
+    }
+
+    function addMinter(address account) external {
+        emit MinterAdded(account);
+    }
+}
+```
+
+If you aren't using OpenZeppelin's framework, then you can manually add Mintable and Burnable functions, and finally [add MINTER_ROLE access control](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v2.5.1/contracts/access/roles/MinterRole.sol). Be sure that the main mint and burn functions have `public` visibility with the private _mint and _burn functions as `internal` visibility. 
+
+For a set of examples for IMA SKALE-Chain side suitable tokens, see the https://github.com/skalenetwork/IMA/tree/develop/proxy/test-tokens[IMA test-tokens folder].
+
+=== 2. Add a Minter Role
+
+Now you need to add the pre-deployed TokenManagerERC1155 contact on your SKALE Chain as the MINTER_ROLE for the modified SKALE Chain contract. With OpenZeppelin's framework, you simply need to execute an AddMinter transaction on the SKALE chain token contract.
+
+[discrete]
+==== Example Add Minter Role 
+
+[tabs]
+====
+Javascript::
++
+--
+
+[source,javascript]
+----
+import Common from "ethereumjs-common";
+const Tx = require("ethereumjs-tx").Transaction;
+const Web3 = require("web3");
+
+let schainABIs = "[YOUR_SKALE_CHAIN_ABIs]";
+let schainERC1155ABI = "[YOUR_SCHAIN_ERC1155_ABI]";
+let chainId = "[YOUR_SKALE_CHAIN_CHAIN_ID]";
+
+const customCommon = Common.forCustomChain(
+    "mainnet",
+    {
+      name: "skale-network",
+      chainId: chainId
+    },
+    "istanbul"
+  );
+
+let contractOwnerPrivateKey = new Buffer("[YOUR_PRIVATE_KEY]", 'hex');
+
+let contractOwnerAccount = "[CONTRACT_OWNER_ACCOUNT]"; // SKALE Chain owner or authorized deployer account
+
+let schainEndpoint = "[YOUR_SKALE_CHAIN_ENDPOINT]";
+
+const erc1155ABI = schainERC1155ABI.erc1155_abi;
+const erc1155Address = schainERC1155ABI.erc1155_address;
+
+const tokenManagerAddress = schainABIs.token_manager_erc1155_address;
+
+const web3ForSchain = new Web3(schainEndpoint);
+
+let schainERC1155Contract = new web3ForSchain.eth.Contract(
+    erc1155ABI,
+    erc1155Address
+);
+
+let addMinter = schainERC1155Contract.methods
+    .addMinter(tokenManagerAddress)
+    .encodeABI();
+
+  web3ForSchain.eth.getTransactionCount(contractOwnerAccount).then((nonce) => {
+    //create raw transaction
+    const rawTxAddMinter = {
+      from: contractOwnerAccount,
+      nonce: nonce,
+      data: addMinter,
+      to: erc1155Address,
+      gasPrice: 100000000000,
+      gas: 8000000
+    };
+    //sign transaction
+    const txAddMinter = new Tx(rawTxAddMinter, { common: customCommon });
+    txAddMinter.sign(contractOwnerPrivateKey);
+
+    const serializedTxAddMinter = txAddMinter.serialize();
+
+    //send signed transaction (add minter)
+    web3ForSchain.eth
+      .sendSignedTransaction("0x" + serializedTxAddMinter.toString("hex"))
+      .on("receipt", (receipt) => {
+        console.log(receipt);
+      })
+      .catch(console.error);
+  });
+----
+--
+====
+
+=== 3. Register Mainnet contract to IMA
+
+Third, you need to register the Mainnet token contract into IMA on Mainnet using the addERC1155TokenByOwner method in the DepositBoxERC1155 contract:
+
+[tabs]
+====
+Javascript::
++
+--
+
+[source,javascript]
+----
+const Web3 = require("web3");
+const Tx = require("ethereumjs-tx").Transaction;
+
+let rinkebyABIs = "[YOUR_RINKEBY_ABIs]";
+let rinkebyERC1155ABI = "[YOUR_RINKEBY_ERC1155_ABI]";
+
+let privateKey = new Buffer("[YOUR_PRIVATE_KEY]", 'hex');
+
+let erc1155OwnerForMainnet = "[YOUR_ERC1155_MAINNET_OWNER]";
+
+let rinkeby = "[YOUR_RINKEBY_ENDPOINT]";
+let schainName = "[YOUR_SKALE_CHAIN_NAME]";
+let chainId = "[YOUR_RINKEBY_CHAIN_ID]";
+
+const depositBoxAddress = rinkebyABIs.deposit_box_erc1155_address;
+const depositBoxABI = rinkebyABIs.deposit_box_erc1155_abi;
+
+const erc1155AddressOnMainnet = rinkebyERC1155ABI.erc1155_address;
+
+const web3ForMainnet = new Web3(rinkeby);
+
+let DepositBox = new web3ForMainnet.eth.Contract(
+  depositBoxABI,  
+  depositBoxAddress
+);
+
+/**
+   * Uses the SKALE DepositBox_ERC1155
+   * contract function addERC1155TokenByOwner
+   */
+  let addERC1155TokenByOwner = DepositBox.methods
+    .addERC1155TokenByOwner(schainName, erc1155AddressOnMainnet)
+    .encodeABI();
+
+  web3ForMainnet.eth.getTransactionCount(erc1155AddressOnMainnet).then((nonce) => {
+    const rawTxAddERC1155TokenByOwner = {
+      chainId: chainId,
+      from: erc1155OwnerForMainnet,
+      nonce: "0x" + nonce.toString(16),
+      data: addERC1155TokenByOwner,
+      to: depositBoxAddress,
+      gas: 6500000,
+      gasPrice: 100000000000
+    };
+
+    //sign transaction
+    const txAddERC1155TokenByOwner = new Tx(rawTxAddERC1155TokenByOwner, {
+        chain: "rinkeby",
+        hardfork: "petersburg"
+      });
+
+    txAddERC1155TokenByOwner.sign(privateKey);
+
+    const serializedTxDeposit = txAddERC1155TokenByOwner.serialize();
+
+    //send signed transaction (addERC1155TokenByOwner)
+    web3ForMainnet.eth
+      .sendSignedTransaction("0x" + serializedTxDeposit.toString("hex"))
+      .on("receipt", (receipt) => {
+        console.log(receipt);
+      })
+      .catch(console.error);
+  });
+----
+--
+====
+
+=== 4. Register SKALE Chain contract to IMA
+
+Finally, you need to register the (modified) token contract on the SKALE chain IMA using the addERC1155TokenByOwner method in TokenManagerERC1155 contract. Note that you need to register the contract on Mainnet first, so that the registration on the SKALE Chain can reference the Mainnet token address.
+
+[tabs]
+====
+Javascript::
++
+--
+
+[source,javascript]
+----
+import Common from "ethereumjs-common";
+const Web3 = require("web3");
+const Tx = require("ethereumjs-tx").Transaction;
+
+let schainABIs = "[YOUR_SKALE_CHAIN_ABIs]";
+let schainERC1155ABI = "[YOUR_SCHAIN_ERC1155_ABI]";
+let rinkebyERC1155ABI = "[YOUR_RINKEBY_ERC1155_ABI]";
+
+let privateKey = new Buffer("[YOUR_PRIVATE_KEY]", 'hex');
+
+let erc1155OwnerForSchain = "[YOUR_SCHAIN_ADDRESS]";
+
+let schainEndpoint = "[YOUR_SKALE_CHAIN_ENDPOINT]";
+let chainId = "[YOUR_SKALE_CHAIN_CHAIN_ID]";
+
+const customCommon = Common.forCustomChain(
+    "mainnet",
+    {
+      name: "skale-network",
+      chainId: chainId
+    },
+    "istanbul"
+  );
+
+const tokenManagerAddress = schainABIs.token_manager_erc1155_address;
+const tokenManagerABI = schainABIs.token_manager_erc1155_abi;
+
+const erc1155AddressOnMainnet = rinkebyERC1155ABI.erc1155_address;
+const erc1155AddressOnSchain = schainERC1155ABI.erc1155_address;
+
+const web3ForSchain = new Web3(schainEndpoint);
+
+let TokenManager = new web3ForSchain.eth.Contract(
+    tokenManagerABI,
+    tokenManagerAddress
+);
+
+let addERC1155TokenByOwner = TokenManager.methods
+    .addERC1155TokenByOwner(
+      erc1155AddressOnMainnet,
+      erc1155AddressOnSchain
+    )
+    .encodeABI();
+
+  web3ForSchain.eth.getTransactionCount(erc1155OwnerForSchain).then((nonce) => {
+    const rawTxAddERC1155TokenByOwner = {
+      from: erc1155OwnerForSchain,
+      nonce: "0x" + nonce.toString(16),
+      data: addERC1155TokenByOwner,
+      to: tokenManagerAddress,
+      gas: 6500000,
+      gasPrice: 100000000000
+    };
+
+    //sign transaction
+    const txAddERC1155TokenByOwner = new Tx(rawTxAddERC1155TokenByOwner, {
+      common: customCommon
+    });
+
+    txAddERC1155TokenByOwner.sign(privateKey);
+
+    const serializedTxDeposit = txAddERC1155TokenByOwner.serialize();
+
+    web3ForSchain.eth
+      .sendSignedTransaction("0x" + serializedTxDeposit.toString("hex"))
+      .on("receipt", (receipt) => {
+        console.log(receipt);
+      })
+      .catch(console.error);
+  });
+----
+--
+====
+
+[[transfer]]
+== Get Started with ERC1155 Transfer
+
+The Interchain Messaging Agent can be used for managing ERC1155 tokens between Ethereum and SKALE.  The following steps guide you through a complete transfer from Ethereum to SKALE and back. Be sure to follow any one-time setup and mapping steps described xref:setup[here].
+
+https://codesandbox.io/s/erc1155-transfer-skale-interchain-messaging-agent-forked-hwexm[Live ERC1155 IMA Demo]
+
+=== 1. Deposit ERC1155 on Ethereum
+
+To send ERC1155 tokens from a user's wallet to the IMA Deposit Box on Ethereum, you will need to use the https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/DepositBoxERC1155.sol#L142[depositERC1155] function within the **DepositBoxERC1155** IMA contract on Ethereum.
+
+This method is called from Ethereum to move ERC1155 tokens into a Deposit Box.  
+
+The **DepositBoxERC1155** IMA contract is currently deployed to the Rinkeby testnet. To get the ABIs to interact with IMA on Rinkeby, check out the https://github.com/skalenetwork/skale-network/tree/master/releases/rinkeby/IMA[current release page].  
+
+[discrete]
+==== Example Code
+
+[tabs]
+====
+Javascript::
++
+--
+
+[source,javascript]
+----
+const Web3 = require('web3');
+const Tx = require('ethereumjs-tx').Transaction;
+
+let rinkebyABIs = "[YOUR_SKALE_ABIs_ON_RINKEBY]";
+let rinkebyERC1155ABI = "[YOUR_ERC1155_ABI_ON_RINKEBY]";
+
+let privateKey = new Buffer("[YOUR_PRIVATE_KEY]", "hex");
+let accountForMainnet = "[YOUR_ACCOUNT_ADDRESS]";
+let accountForSchain = "[YOUR_ACCOUNT_ADDRESS]";
+
+let rinkeby = "[RINKEBY_ENDPOINT]";
+let schainName = "[YOUR_SKALE_CHAIN_NAME]";
+let chainId = "YOUR_RINKEBY_CHAIN_ID";
+
+let mintId = "[ERC1155_MINT_ID]";
+
+const depositBoxAddress = rinkebyABIs.deposit_box_erc1155_address;
+const depositBoxABI = rinkebyABIs.deposit_box_erc1155_abi;
+
+const erc1155ABI = rinkebyERC1155ABI.erc1155_abi;
+const erc1155Address = rinkebyERC1155ABI.erc1155_address;
+
+const web3ForMainnet = new Web3(rinkeby);
+
+let depositBox = new web3ForMainnet.eth.Contract(
+depositBoxABI,
+depositBoxAddress
+);
+
+let contractERC1155 = new web3ForMainnet.eth.Contract(
+erc1155ABI,
+erc1155Address
+);
+
+/**
+   * Uses the openzeppelin ERC1155
+   * contract function approve
+   * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155
+   */
+let approve = contractERC1155.methods
+  .approve(depositBoxAddress, "TRUE")
+  .encodeABI();
+
+let deposit = depositBox.methods
+.depositERC1155(
+    schainName,
+    erc1155Address,
+    accountForSchain,
+    mintId,
+    web3ForMainnet.utils.toHex(web3ForMainnet.utils.toWei("1", "ether"))
+.encodeABI();
+
+web3ForMainnet.eth.getTransactionCount(accountForMainnet).then((nonce) => {
+//create raw transaction
+const rawTxApprove = {
+  chainId: chainId,
+  from: accountForMainnet,
+  nonce: "0x" + nonce.toString(16),
+  data: approve,
+  to: erc1155Address,
+  gas: 6500000,
+  gasPrice: 100000000000
+};
+//sign transaction
+const txApprove = new Tx(rawTxApprove, {
+      chain: "rinkeby",
+      hardfork: "petersburg"
+    });
+txTransfer.sign(privateKey);
+
+const serializedTxTransfer = txApprove.serialize();
+
+//send signed transaction (approve)
+web3ForMainnet.eth
+  .sendSignedTransaction("0x" + serializedTxTransfer.toString("hex"))
+  .on("receipt", (receipt) => {
+    console.log(receipt);
+    web3ForMainnet.eth
+      .getTransactionCount(accountForMainnet)
+      .then((nonce) => {
+        const rawTxDeposit = {
+          chainId: chainId,
+          from: accountForMainnet,
+          nonce: "0x" + nonce.toString(16),
+          data: deposit,
+          to: depositBoxAddress,
+          gas: 6500000,
+          gasPrice: 100000000000
+        };
+
+        //sign transaction
+        const txDeposit = new Tx(rawTxDeposit, {
+          chain: "rinkeby",
+          hardfork: "petersburg"
+        });
+
+        txDeposit.sign(privateKey);
+
+        const serializedTxDeposit = txDeposit.serialize();
+
+        //send signed transaction (deposit)
+        web3ForMainnet.eth
+          .sendSignedTransaction("0x" + serializedTxDeposit.toString("hex"))
+          .on("receipt", receipt => {
+            console.log(receipt);
+          })
+          .catch(console.error);
+      });
+  })
+  .catch(console.error);
+});
+----
+--
+====
+
+=== 2. Exit from SKALE Chain
+
+To send ERC1155 tokens back to Ethereum, you will need to use the exitToMainERC1155 function within the **TokenManagerERC1155** IMA  contract on the SKALE Chain.  
+
+This method is called from the SKALE Chain to send funds and move the token back to Ethereum.  
+
+Note that the SKALE Chain user must have:
+
+* skETH to conduct the exitToMain transaction on the SKALE Chain TokenManager contract.
+* a sufficient balance of ETH in the Community Pool to initiate the exit to Ethereum *xref:funding-exits.adoc[See Funding Exits].
+
+The **TokenManagerERC1155** IMA contract is pre-deployed to your SKALE Chain. Please reach out to your account manager to receive the ABIs specific for your SKALE Chain.  
+
+[discrete]
+==== Example Code
+
+[tabs]
+====
+Javascript::
++
+--
+
+[source,javascript]
+----
+const Web3 = require('web3');
+const Common = require('ethereumjs-common');
+const Tx = require('ethereumjs-tx').Transaction;
+
+let schainABIs = "[YOUR_SKALE_CHAIN_ABIs]");
+let rinkebyERC1155ABI = "[YOUR_RINKEBY_ERC1155_ABI]";
+let schainERC1155ABI = "[YOUR_SKALE_CHAIN_ERC1155_ABI]";
+
+let privateKey = new Buffer('[YOUR_PRIVATE_KEY]', 'hex');
+let accountForMainnet = "[YOUR_MAINNET_ACCOUNT_ADDRESS]";
+let accountForSchain = "[YOUR_SCHAIN_ACCOUNT_ADDRESS]";
+let schainEndpoint = "[YOUR_SKALE_CHAIN_ENDPOINT]";
+let chainId = "[YOUR_SKALE_CHAIN_CHAIN_ID]";
+
+const customCommon = Common.forCustomChain(
+    "mainnet",
+    {
+      name: "skale-network",
+      chainId: chainId
+    },
+    "istanbul"
+  );
+
+let mintId = "[ERC1155_MINT_ID]";
+
+const tokenManagerAddress = schainABIs.token_manager_erc1155_address;
+const tokenManagerABI = schainABIs.token_manager_erc1155_abi;
+
+const erc1155ABI = schainERC1155ABI.erc1155_abi;
+
+const erc1155Address = schainERC1155ABI.erc1155_address;
+const erc1155AddressRinkeby = rinkebyERC1155ABI.erc1155_address;
+
+const web3ForSchain = new Web3(schainEndpoint);
+
+let tokenManager = new web3ForSchain.eth.Contract(
+  tokenManagerABI,
+  tokenManagerAddress
+);
+
+let contractERC1155 = new web3ForSchain.eth.Contract(
+  erc1155ABI, 
+  erc1155Address
+);
+
+/**
+   * Uses the openzeppelin ERC1155
+   * contract function transfer
+   * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC1155
+   */
+let approve = contractERC1155.methods
+  .approve(tokenManagerAddress, "TRUE")
+  .encodeABI();
+
+let exit = tokenManager.methods
+  .exitToMainERC1155(
+    erc1155AddressRinkeby,
+    accountForMainnet,
+    mintId,
+    web3ForSchain.utils.toHex(web3ForSchain.utils.toWei("1", "ether")
+  )
+  .encodeABI();
+
+//get nonce
+web3ForSchain.eth.getTransactionCount(accountForSchain).then((nonce) => {
+  
+  //create raw transaction (approval)
+  const rawTxApprove = {
+    from: accountForSchain,
+    nonce: "0x" + nonce.toString(16),
+    data: approve,
+    to: erc1155Address,
+    gasPrice: 100000000000,
+    gas: 8000000
+  };
+
+  //sign transaction
+  const TxApprove = new Tx(rawTxApprove, { common: customCommon });
+    TxApprove.sign(privateKey);
+
+  const serializedTxApprove = TxApprove.serialize();
+
+  //send signed transaction (approval)
+  web3ForSchain.eth
+    .sendSignedTransaction("0x" + serializedTxApprove.toString("hex"))
+    .on("receipt", receipt => {
+      console.log(receipt);
+
+      //get next nonce
+      web3ForSchain.eth.getTransactionCount(accountForSchain).then(nonce => {
+        
+        //create raw transaction (exit)
+        const rawTxExit = {
+          from: accountForSchain,
+          nonce: "0x" + nonce.toString(16),
+          data: exit,
+          to: tokenManagerAddress,
+          gasPrice: 100000000000,
+          gas: 8000000
+        };
+
+        //sign transaction (exit)
+        const txExit = new Tx(rawTxExit, { common: customCommon });
+        txExit.sign(privateKey);
+
+        const serializedTxExit = txExit.serialize();
+
+        //send signed transaction (exit)
+        web3ForSchain.eth
+          .sendSignedTransaction("0x" + serializedTxExit.toString("hex"))
+          .on("receipt", receipt => {
+            console.log(receipt);
+          })
+          .catch(console.error);
+      });
+    })
+    .catch(console.error);
+});
+----
+--
+====

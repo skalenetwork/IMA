@@ -92,7 +92,7 @@ For a set of examples for IMA SKALE-Chain side suitable tokens, see the https://
 
 === 2. Add a Minter Role
 
-Now you need to add the pre-deployed LockAndDataForSchainERC721 contact on your SKALE Chain as the MINTER_ROLE for the modified SKALE Chain contract. With OpenZeppelin's framework, you simply need to execute an AddMinter transaction on the SKALE chain token contract.
+Now you need to add the pre-deployed TokenManagerERC721 contact on your SKALE Chain as the MINTER_ROLE for the modified SKALE Chain contract. With OpenZeppelin's framework, you simply need to execute an AddMinter transaction on the SKALE chain token contract.
 
 [discrete]
 ==== Example Add Minter Role 
@@ -131,8 +131,7 @@ let schainEndpoint = "[YOUR_SKALE_CHAIN_ENDPOINT]";
 const erc721ABI = schainERC721ABI.erc721_abi;
 const erc721Address = schainERC721ABI.erc721_address;
 
-const lockAndDataForSchainERC721Address =
-  schainABIs.lock_and_data_for_schain_erc721_address;
+const tokenManagerAddress = schainABIs.token_manager_erc721_address;
 
 const web3ForSchain = new Web3(schainEndpoint);
 
@@ -142,7 +141,7 @@ let schainERC721Contract = new web3ForSchain.eth.Contract(
 );
 
 let addMinter = schainERC721Contract.methods
-    .addMinter(lockAndDataForSchainERC721Address)
+    .addMinter(tokenManagerAddress)
     .encodeABI();
 
   web3ForSchain.eth.getTransactionCount(contractOwnerAccount).then((nonce) => {
@@ -153,8 +152,7 @@ let addMinter = schainERC721Contract.methods
       data: addMinter,
       to: erc721Address,
       gasPrice: 100000000000,
-      gas: 8000000,
-      value: 0
+      gas: 8000000
     };
     //sign transaction
     const txAddMinter = new Tx(rawTxAddMinter, { common: customCommon });
@@ -176,7 +174,7 @@ let addMinter = schainERC721Contract.methods
 
 === 3. Register Mainnet contract to IMA
 
-Third, you need to register the Mainnet token contract into IMA on Mainnet using the addERC20TokenByOwner method in the LockAndDataForMainnet contract:
+Third, you need to register the Mainnet token contract into IMA on Mainnet using the addERC721TokenByOwner method in the DepositBoxERC721 contract:
 
 [tabs]
 ====
@@ -200,35 +198,31 @@ let rinkeby = "[YOUR_RINKEBY_ENDPOINT]";
 let schainName = "[YOUR_SKALE_CHAIN_NAME]";
 let chainId = "[YOUR_RINKEBY_CHAIN_ID]";
 
-const lockAndDataAddress =
-  rinkebyABIs.lock_and_data_for_mainnet_erc721_address;
-const lockAndDataBoxABI = rinkebyABIs.lock_and_data_for_mainnet_erc721_abi;
+const depositBoxAddress = rinkebyABIs.deposit_box_erc721_address;
+const depositBoxABI = rinkebyABIs.deposit_box_erc721_abi;
 
 const erc721AddressOnMainnet = rinkebyERC721ABI.erc721_address;
 
 const web3ForMainnet = new Web3(rinkeby);
 
-let LockAndDataForMainnet = new web3ForMainnet.eth.Contract(
-  lockAndDataBoxABI,
-  lockAndDataAddress
+let DepositBox = new web3ForMainnet.eth.Contract(
+  depositBoxABI,  
+  depositBoxAddress
 );
 
-let addERC721TokenByOwner = LockAndDataForMainnet.methods
+let addERC721TokenByOwner = DepositBox.methods
     .addERC721TokenByOwner(schainName, erc721AddressOnMainnet)
     .encodeABI();
 
   web3ForMainnet.eth.getTransactionCount(erc721OwnerForMainnet).then((nonce) => {
-    const rawTxAddERC20TokenByOwner = {
+    const rawTxAddERC721TokenByOwner = {
       chainId: chainId,
       from: erc721OwnerForMainnet,
       nonce: "0x" + nonce.toString(16),
       data: addERC721TokenByOwner,
-      to: lockAndDataAddress,
+      to: depositBoxAddress,
       gas: 6500000,
-      gasPrice: 100000000000,
-      value: web3ForMainnet.utils.toHex(
-        web3ForMainnet.utils.toWei("0", "ether")
-      )
+      gasPrice: 100000000000
     };
 
     //sign transaction
@@ -241,7 +235,7 @@ let addERC721TokenByOwner = LockAndDataForMainnet.methods
 
     const serializedTxDeposit = txAddERC721TokenByOwner.serialize();
 
-    //send signed transaction (addERC20TokenByOwner)
+    //send signed transaction (addERC721TokenByOwner)
     web3ForMainnet.eth
       .sendSignedTransaction("0x" + serializedTxDeposit.toString("hex"))
       .on("receipt", (receipt) => {
@@ -255,7 +249,7 @@ let addERC721TokenByOwner = LockAndDataForMainnet.methods
 
 === 4. Register SKALE Chain contract to IMA
 
-Finally, you need to register the (modified) token contract on the SKALE chain IMA using the addERC721TokenByOwner method in LockAndDataForSchain contract. Note that you need to register the contract on Mainnet first, so that the registration on the SKALE Chain can reference the Mainnet token address.
+Finally, you need to register the (modified) token contract on the SKALE chain IMA using the addERC721TokenByOwner method in TokenManagerERC721 contract. Note that you need to register the contract on Mainnet first, so that the registration on the SKALE Chain can reference the Mainnet token address.
 
 [tabs]
 ====
@@ -289,22 +283,21 @@ const customCommon = Common.forCustomChain(
     "istanbul"
   );
 
-const lockAndDataAddress = schainABIs.lock_and_data_for_schain_erc721_address;
-const lockAndDataBoxABI = schainABIs.lock_and_data_for_schain_erc721_abi;
+const tokenManagerAddress = schainABIs.token_manager_erc721_address;
+const tokenManagerABI = schainABIs.token_manager_erc721_abi;
 
 const erc721AddressOnMainnet = rinkebyERC721ABI.erc721_address;
 const erc721AddressOnSchain = schainERC721ABI.erc721_address;
 
 const web3ForSchain = new Web3(schainEndpoint);
 
-let LockAndDataForSchain = new web3ForSchain.eth.Contract(
-  lockAndDataBoxABI,
-  lockAndDataAddress
+let TokenManager = new web3ForSchain.eth.Contract(
+    tokenManagerABI,
+    tokenManagerAddress
 );
 
-let addERC721TokenByOwner = LockAndDataForSchain.methods
+let addERC721TokenByOwner = TokenManager.methods
     .addERC721TokenByOwner(
-      "Mainnet",
       erc721AddressOnMainnet,
       erc721AddressOnSchain
     )
@@ -315,10 +308,9 @@ let addERC721TokenByOwner = LockAndDataForSchain.methods
       from: erc721OwnerForSchain,
       nonce: "0x" + nonce.toString(16),
       data: addERC721TokenByOwner,
-      to: lockAndDataAddress,
+      to: tokenManagerAddress,
       gas: 6500000,
-      gasPrice: 100000000000,
-      value: web3ForSchain.utils.toHex(web3ForSchain.utils.toWei("0", "ether"))
+      gasPrice: 100000000000
     };
 
     //sign transaction
@@ -346,15 +338,15 @@ let addERC721TokenByOwner = LockAndDataForSchain.methods
 
 The Interchain Messaging Agent can be used for managing ERC721 tokens between Ethereum and SKALE.  The following steps guide you through a complete transfer from Ethereum to SKALE and back. Be sure to follow any one-time setup and mapping steps described xref:setup[here].
 
-https://codesandbox.io/s/erc721-transfer-skale-interchain-messaging-agent-222wy[Live ERC721 IMA Demo]
+https://codesandbox.io/s/erc721-transfer-skale-interchain-messaging-agent-forked-hwexm[Live ERC721 IMA Demo]
 
 === 1. Deposit ERC721 on Ethereum
 
-To send ERC721 tokens from a user's wallet to the IMA Deposit Box on Ethereum, you will need to use the https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/DepositBox.sol#L142[depositERC721] function within the **DepositBox** IMA contract on Ethereum.
+To send ERC721 tokens from a user's wallet to the IMA Deposit Box on Ethereum, you will need to use the https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/DepositBoxERC721.sol#L142[depositERC721] function within the **DepositBoxERC721** IMA contract on Ethereum.
 
-This method is called from Ethereum to lock ERC721 tokens and move ERC721 tokens into a Deposit Box.  
+This method is called from Ethereum to move ERC721 tokens into a Deposit Box.  
 
-The **DepositBox** IMA contract is currently deployed to the Rinkeby testnet. To get the ABIs to interact with IMA on Rinkeby, check out the https://github.com/skalenetwork/skale-network/tree/master/releases/rinkeby/IMA[current release page].  
+The **DepositBoxERC721** IMA contract is currently deployed to the Rinkeby testnet. To get the ABIs to interact with IMA on Rinkeby, check out the https://github.com/skalenetwork/skale-network/tree/master/releases/rinkeby/IMA[current release page].  
 
 [discrete]
 ==== Example Code
@@ -383,8 +375,8 @@ let chainId = "YOUR_RINKEBY_CHAIN_ID";
 
 let mintId = "[ERC721_MINT_ID]";
 
-const depositBoxAddress = rinkebyABIs.deposit_box_address;
-const depositBoxABI = rinkebyABIs.deposit_box_abi;
+const depositBoxAddress = rinkebyABIs.deposit_box_erc721_address;
+const depositBoxABI = rinkebyABIs.deposit_box_erc721_abi;
 
 const erc721ABI = rinkebyERC721ABI.erc721_abi;
 const erc721Address = rinkebyERC721ABI.erc721_address;
@@ -403,16 +395,12 @@ erc721Address
 
 /**
    * Uses the openzeppelin ERC721
-   * contract function transferFrom
+   * contract function approve
    * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC721
    */
-let transfer = contractERC721.methods
-    .transferFrom(
-      accountForMainnet,
-      depositBoxAddress,
-      mintId
-    )
-    .encodeABI();
+let approve = contractERC721.methods
+  .approve(depositBoxAddress, process.env.REACT_APP_MINT_ID)
+  .encodeABI();
 
 let deposit = depositBox.methods
 .depositERC721(schainName, erc721Address, accountForSchain, mintId)
@@ -420,23 +408,23 @@ let deposit = depositBox.methods
 
 web3ForMainnet.eth.getTransactionCount(accountForMainnet).then((nonce) => {
 //create raw transaction
-const rawTxTransfer = {
+const rawTxApprove = {
   chainId: chainId,
   from: accountForMainnet,
   nonce: "0x" + nonce.toString(16),
-  data: transfer,
+  data: approve,
   to: erc721Address,
   gas: 6500000,
   gasPrice: 100000000000
 };
 //sign transaction
-const txTransfer = new Tx(rawTxTransfer, {
+const txApprove = new Tx(rawTxApprove, {
       chain: "rinkeby",
       hardfork: "petersburg"
     });
 txTransfer.sign(privateKey);
 
-const serializedTxTransfer = txTransfer.serialize();
+const serializedTxTransfer = txApprove.serialize();
 
 //send signed transaction (approve)
 web3ForMainnet.eth
@@ -453,10 +441,7 @@ web3ForMainnet.eth
           data: deposit,
           to: depositBoxAddress,
           gas: 6500000,
-          gasPrice: 100000000000,
-          value: web3ForMainnet.utils.toHex(
-            web3ForMainnet.utils.toWei("0.1", "ether")
-          )
+          gasPrice: 100000000000
         };
 
         //sign transaction
@@ -486,11 +471,16 @@ web3ForMainnet.eth
 
 === 2. Exit from SKALE Chain
 
-To send ERC721 tokens back to Ethereum, you will need to use the exitToMain function within the **TokenManager** IMA  contract on the SKALE Chain.  
+To send ERC721 tokens back to Ethereum, you will need to use the exitToMainERC721 function within the **TokenManagerERC721** IMA  contract on the SKALE Chain.  
 
 This method is called from the SKALE Chain to send funds and move the token back to Ethereum.  
 
-The **TokenManager** IMA contract is pre-deployed to your SKALE Chain. Please reach out to your account manager to receive the ABIs specific for your SKALE Chain.  
+Note that the SKALE Chain user must have:
+
+* skETH to conduct the exitToMain transaction on the SKALE Chain TokenManager contract.
+* a sufficient balance of ETH in the Community Pool to initiate the exit to Ethereum *xref:funding-exits.adoc[See Funding Exits].
+
+The **TokenManagerERC721** IMA contract is pre-deployed to your SKALE Chain. Please reach out to your account manager to receive the ABIs specific for your SKALE Chain.  
 
 [discrete]
 ==== Example Code
@@ -528,8 +518,8 @@ const customCommon = Common.forCustomChain(
 
 let mintId = "[ERC721_MINT_ID]";
 
-const tokenManagerAddress = schainABIs.token_manager_address;
-const tokenManagerABI = schainABIs.token_manager_abi;
+const tokenManagerAddress = schainABIs.token_manager_erc721_address;
+const tokenManagerABI = schainABIs.token_manager_erc721_abi;
 
 const erc721ABI = schainERC721ABI.erc721_abi;
 
@@ -548,20 +538,20 @@ let contractERC721 = new web3ForSchain.eth.Contract(
   erc721Address
 );
 
-let transfer = contractERC721.methods
-    .transferFrom(
-      accountForSchain,
-      tokenManagerAddress,
-      mintId
-    )
-    .encodeABI();
+/**
+   * Uses the openzeppelin ERC721
+   * contract function transfer
+   * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC721
+   */
+let approve = contractERC721.methods
+  .approve(tokenManagerAddress, process.env.REACT_APP_MINT_ID)
+  .encodeABI();
 
 let exit = tokenManager.methods
   .exitToMainERC721(
     erc721AddressRinkeby,
     accountForMainnet,
-    mintId,
-    web3ForSchain.utils.toHex(web3ForSchain.utils.toWei("0.5", "ether"))
+    mintId
   )
   .encodeABI();
 
@@ -569,24 +559,24 @@ let exit = tokenManager.methods
 web3ForSchain.eth.getTransactionCount(accountForSchain).then((nonce) => {
   
   //create raw transaction (approval)
-  const rawTxTransfer = {
+  const rawTxApprove = {
     from: accountForSchain,
     nonce: "0x" + nonce.toString(16),
-    data: transfer,
+    data: approve,
     to: erc721Address,
     gasPrice: 100000000000,
     gas: 8000000
   };
 
   //sign transaction
-  const txTransfer = new Tx(rawTxTransfer, { common: customCommon });
-    txTransfer.sign(privateKey);
+  const TxApprove = new Tx(rawTxApprove, { common: customCommon });
+    TxApprove.sign(privateKey);
 
-  const serializedTxTransfer = txTransfer.serialize();
+  const serializedTxApprove = TxApprove.serialize();
 
   //send signed transaction (approval)
   web3ForSchain.eth
-    .sendSignedTransaction("0x" + serializedTxTransfer.toString("hex"))
+    .sendSignedTransaction("0x" + serializedTxApprove.toString("hex"))
     .on("receipt", receipt => {
       console.log(receipt);
 
@@ -600,8 +590,7 @@ web3ForSchain.eth.getTransactionCount(accountForSchain).then((nonce) => {
           data: exit,
           to: tokenManagerAddress,
           gasPrice: 100000000000,
-          gas: 8000000,
-          value: 0
+          gas: 8000000
         };
 
         //sign transaction (exit)
