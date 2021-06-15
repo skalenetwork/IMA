@@ -55,15 +55,8 @@ contract TokenManagerEth is TokenManager {
      * @dev Performs an exit (post outgoing message) to Mainnet.
      */
     function exitToMain(address to, uint256 amount) external {
-        require(to != address(0), "Incorrect receiver address");
-
-        _burnEthErc20(msg.sender, amount);
         communityLocker.checkAllowedToSendMessage(to);
-        messageProxy.postOutgoingMessage(
-            "Mainnet",
-            depositBox,
-            Messages.encodeTransferEthMessage(to, amount)
-        );
+        _exit(MAINNET_HASH, depositBox, to, amount);
     }
 
     function transferToSchain(
@@ -74,19 +67,9 @@ contract TokenManagerEth is TokenManager {
         external
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        require(
-            targetSchainHash != MAINNET_HASH,
-            "This function is not for transferring to Mainnet"
-        );
+        require(targetSchainHash != MAINNET_HASH, "This function is not for transferring to Mainnet");
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
-        require(to != address(0), "Incorrect receiver address");
-
-        _burnEthErc20(msg.sender, amount);
-        messageProxy.postOutgoingMessage(
-            targetSchainName,
-            tokenManagers[targetSchainHash],
-            Messages.encodeTransferEthMessage(to, amount)
-        );
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], to, amount);
     }
 
     /**
@@ -150,9 +133,24 @@ contract TokenManagerEth is TokenManager {
 
     // private
 
-    function _burnEthErc20(address account, uint amount) private {
+    function _exit(
+        bytes32 chainHash,
+        address messageReceiver,
+        address to,
+        uint256 amount
+    )
+        private
+    {
+        require(to != address(0), "Incorrect receiver address");
+
         if (amount > 0) {
-            ethErc20.forceBurn(account, amount);
+            ethErc20.forceBurn(msg.sender, amount);
         }
-    }   
+        bytes memory data = Messages.encodeTransferEthMessage(to, amount);
+        messageProxy.postOutgoingMessage(
+            chainHash,
+            messageReceiver,
+            data
+        );
+    }
 }

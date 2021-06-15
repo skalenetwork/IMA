@@ -63,8 +63,7 @@ contract TokenManagerERC20 is TokenManager {
         external
     {
         communityLocker.checkAllowedToSendMessage(to);
-
-        _exit(MAINNET_NAME, depositBox, contractOnMainnet, to, amount);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, amount);
     }
 
     function transferToSchainERC20(
@@ -78,8 +77,7 @@ contract TokenManagerERC20 is TokenManager {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(targetSchainHash != MAINNET_HASH, "This function is not for transferring to Mainnet");
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
-
-        _exit(targetSchainName, tokenManagers[targetSchainHash], contractOnMainnet, to, amount);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, amount);
     }
 
     /**
@@ -212,7 +210,7 @@ contract TokenManagerERC20 is TokenManager {
     }
 
     function _exit(
-        string memory chainName,
+        bytes32 chainHash,
         address messageReceiver,
         address contractOnMainnet,
         address to,
@@ -242,7 +240,7 @@ contract TokenManagerERC20 is TokenManager {
 
         contractOnSchain.burn(amount);
         messageProxy.postOutgoingMessage(
-            chainName,
+            chainHash,
             messageReceiver,
             Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
         );

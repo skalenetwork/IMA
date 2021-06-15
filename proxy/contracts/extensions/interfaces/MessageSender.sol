@@ -26,10 +26,10 @@ import "./MessageProxyClient.sol";
 abstract contract MessageSender is MessageProxyClient {
 
     function _sendMessage(
-        string memory targetSchainName,
+        string memory targetChainName,
         address targetContract,
         bytes memory data
     ) internal {
-        messageProxy.postOutgoingMessage(targetSchainName, targetContract, data);
+        messageProxy.postOutgoingMessage(keccak256(abi.encodePacked(targetChainName)), targetContract, data);
     }
 }

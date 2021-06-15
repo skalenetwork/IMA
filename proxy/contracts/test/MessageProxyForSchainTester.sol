@@ -43,12 +43,12 @@ contract MessageProxyForSchainTester is MessageProxyForSchain {
 
     function postOutgoingMessageTester(
         MessageProxyForSchain targetContract,
-        string calldata targetChainName,
+        bytes32 targetChainHash,
         address dstContract,
         bytes calldata data
     )
     external
     {
-        targetContract.postOutgoingMessage(targetChainName, dstContract, data);
+        targetContract.postOutgoingMessage(targetChainHash, dstContract, data);
     }
 }
