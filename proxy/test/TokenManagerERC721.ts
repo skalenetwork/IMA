@@ -50,7 +50,7 @@ import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber } from "ethers";
 
-import { assert, expect } from "chai";
+import { assert, expect, should } from "chai";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
 describe("TokenManagerERC721", () => {
@@ -223,24 +223,48 @@ describe("TokenManagerERC721", () => {
         outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
     });
 
-    it("should transfer ERC721 token through `postMessage` function", async () => {
-        //  preparation
-        const fakeDepositBox = messages;
-        const data = await messages.encodeTransferErc721AndTokenInfoMessage(
-            token.address,
-            to,
-            tokenId,
-            {
-                name: await token.name(),
-                symbol: await token.symbol()
-            }
-        );
+    describe("tests for `postMessage` function", async () => {
 
-        await tokenManagerERC721.connect(schainOwner).enableAutomaticDeploy();
-        await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox.address, data);
-        const addressERC721OnSchain = await tokenManagerERC721.clonesErc721(token.address);
-        const erc721OnChain = await (await ethers.getContractFactory("ERC721OnChain")).attach(addressERC721OnSchain) as ERC721OnChain;
-        expect((await erc721OnChain.functions.ownerOf(tokenId))[0]).to.be.equal(to);
+        it("should transfer ERC721 token token with token info", async () => {
+            //  preparation
+            const fakeDepositBox = messages;
+            const data = await messages.encodeTransferErc721AndTokenInfoMessage(
+                token.address,
+                to,
+                tokenId,
+                {
+                    name: await token.name(),
+                    symbol: await token.symbol()
+                }
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox.address, data)
+                .should.be.eventually.rejectedWith("Automatic deploy is disabled");
+
+            await tokenManagerERC721.connect(schainOwner).enableAutomaticDeploy();
+            await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox.address, data);
+            const addressERC721OnSchain = await tokenManagerERC721.clonesErc721(token.address);
+            const erc721OnChain = await (await ethers.getContractFactory("ERC721OnChain")).attach(addressERC721OnSchain) as ERC721OnChain;
+            expect((await erc721OnChain.functions.ownerOf(tokenId))[0]).to.be.equal(to);
+        });
+
+        it("should transfer ERC721 token on schain", async () => {
+            //  preparation
+            await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(token.address, tokenClone.address);
+            await tokenClone.connect(deployer).grantRole(await tokenClone.MINTER_ROLE(), tokenManagerERC721.address);
+
+            const fakeDepositBox = messages;
+            const data = await messages.encodeTransferErc721Message(
+                token.address,
+                to,
+                tokenId
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox.address, data);
+            const addressERC721OnSchain = await tokenManagerERC721.clonesErc721(token.address);
+            const erc721OnChain = (await ethers.getContractFactory("ERC721OnChain")).attach(addressERC721OnSchain) as ERC721OnChain;
+            expect((await erc721OnChain.functions.ownerOf(tokenId))[0]).to.be.equal(to);
+        });
     });
 
 });

@@ -72,15 +72,10 @@ contract TokenManagerEth is TokenManager {
         uint256 amount
     )
         external
+        rightTransaction(targetSchainName)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        require(
-            targetSchainHash != MAINNET_HASH,
-            "This function is not for transferring to Mainnet"
-        );
-        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
         require(to != address(0), "Incorrect receiver address");
-
         _burnEthErc20(msg.sender, amount);
         messageProxy.postOutgoingMessage(
             targetSchainName,

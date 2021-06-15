@@ -74,11 +74,9 @@ contract TokenManagerERC20 is TokenManager {
         uint256 amount
     )
         external
+        rightTransaction(targetSchainName)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        require(targetSchainHash != MAINNET_HASH, "This function is not for transferring to Mainnet");
-        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
-
         _exit(targetSchainName, tokenManagers[targetSchainHash], contractOnMainnet, to, amount);
     }
 
@@ -109,7 +107,7 @@ contract TokenManagerERC20 is TokenManager {
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOKEN_INFO ||
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY
         ) {
-            require(_sendERC20(data), "Failed to send ERC20");
+            _sendERC20(data);
         } else {
             revert("MessageType is unknown");
         }
@@ -188,7 +186,6 @@ contract TokenManagerERC20 is TokenManager {
                 emit ERC20TokenCreated(token, address(contractOnSchain));
             }
         }
-        require(address(contractOnSchain).isContract(), "Given address is not a contract");
         if (totalSupply != totalSupplyOnMainnet[contractOnSchain]) {
             totalSupplyOnMainnet[contractOnSchain] = totalSupply;
         }
@@ -198,7 +195,6 @@ contract TokenManagerERC20 is TokenManager {
         );
         contractOnSchain.mint(receiver, amount);
         emit ERC20TokenReceived(token, address(contractOnSchain), amount);
-        return true;
     }
 
     function _exit(

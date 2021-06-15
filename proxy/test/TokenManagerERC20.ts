@@ -142,7 +142,6 @@ describe("TokenManagerERC20", () => {
         } else {
             newAddress = "0x" + res.events[res.events.length - 1].topics[2].slice(-40);
             const newERC20Contract = await (await ethers.getContractFactory("ERC20OnChain")).attach(newAddress) as ERC20OnChain;
-            // console.log(newERC20Contract);
             let balance = await newERC20Contract.functions.balanceOf(to);
             parseInt(balance.toString(), 10).should.be.equal(amount);
             // expectation
@@ -273,14 +272,14 @@ describe("TokenManagerERC20", () => {
     describe("tests for `postMessage` function", async () => {
         it("should transfer ERC20 token with token info", async () => {
             //  preparation
+            const amount = 10;
+            const to = user.address;
             const remoteTokenManagerAddress = fakeDepositBox;
             const fromSchainName = randomString(10);
             const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
             await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
 
-            const amount = 10;
-            const to = user.address;
             await erc20OnMainnet.mint(deployer.address, amount);
             const data = await messages.encodeTransferErc20AndTokenInfoMessage(
                 erc20OnMainnet.address,
