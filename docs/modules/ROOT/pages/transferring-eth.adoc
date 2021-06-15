@@ -1,8 +1,10 @@
 = Transferring ETH
 
-The Interchain Messaging Agent can be used for managing ETH between Ethereum and SKALE.  The following three steps guide you through a complete transfer from Ethereum to SKALE and back. Unlike managing ERC20, ERC721, and ERC1155, ETH is natively supported so there is no need for you to setup and map ETH on your SKALE Chain.
+You can use the Interchain Messaging Agent for managing ETH between Ethereum and SKALE.  The following three steps guide you through a complete transfer from Ethereum to SKALE and back. Unlike ERC20, ERC721, and ERC1155, ETH is natively supported so there is no need for you to set up and map ETH on your SKALE Chain.
 
-https://codesandbox.io/s/skale-interchain-messaging-agent-eth-zm6hz[Live ETH IMA Demo]
+Also, note that the following steps apply to transferring Ethereum ETH to SKALE Chains, rather than describing SKALE Chain ETH (skETH), which has no monetary value and is used exclusively on SKALE Chains.
+
+https://codesandbox.io/s/eth-skale-interchain-messaging-agent-forked-7tzr7[Live ETH IMA Demo]
 
 :sectnums:
 == Deposit ETH on Ethereum
@@ -17,7 +19,7 @@ Be sure you are using web3.js version 1.3.5. Don't use web3.js 2.x.x.
 
 [tabs]
 ====
-Javascript::
+Web3 Javascript::
 +
 --
 
@@ -30,7 +32,8 @@ let rinkebyABIs = require("[YOUR_SKALE_ABIs_ON_RINKEBY]");
 let privateKey = new Buffer('[YOUR_PRIVATE_KEY]', 'hex')
 let account = "[YOUR_ACCOUNT_ADDRESS]";
 let rinkeby = "[RINKEBY_ENDPOINT]";
-let schainID = "[YOUR_SKALE_CHAIN_ID]";
+let schainName = "[YOUR_SKALE_CHAIN_NAME]";
+let chainID = "[ETHEREUM_CHAIN_ID]";
 
 const depositBoxAddress = rinkebyABIs.deposit_box_address;
 const depositBoxABI = rinkebyABIs.deposit_box_abi;
@@ -45,17 +48,17 @@ let contract = new web3.eth.Contract(depositBoxABI, depositBoxAddress);
  */
 let deposit = contract.methods
   .deposit(
-    schainID,
+    schainName,
     account,
-    web3.utils.fromAscii("[YOUR_MESSAGE]")   // optional message
     )
   .encodeABI();
 
 //get nonce
 web3.eth.getTransactionCount(account).then(nonce => {
   
-  //create raw transaction
+  //create raw transaction to send 1 ETH
   const rawTx = {
+    chainId: chainId,
     from: account,
     nonce: "0x" + nonce.toString(16),
     data: deposit,
@@ -88,9 +91,83 @@ web3.eth.getTransactionCount(account).then(nonce => {
 
 == Exit from SKALE Chain
 
-To send ETH back to Ethereum, you will need to use the exitToMain function within the  **TokenManager** contract on the SKALE Chain.  
+To send ETH back to Ethereum, you will need to use the exitToMain function within the **TokenManager** contract on the SKALE Chain.  
   
-This method is called from the SKALE Chain to send funds and move the token back to Ethereum.  
+This method is called from the SKALE Chain to send funds and move the token back to Ethereum.
+
+Note that the SKALE Chain user:
+
+* will need to have skETH to conduct the exitToMain transaction on the SKALE Chain TokenManager contract
+* will need to have a sufficient balance of ETH in the Community Pool to initiate the exit to Ethereum.
+
+=== Recharge Community Pool
+
+If the user does not have funds in the Community Pool, IMA will freeze the user from exits until the pool has sufficient balance to fund the exit process.
+
+The **CommunityPool** contract is on Rinkeby. Check out the https://github.com/skalenetwork/skale-network/tree/master/releases/rinkeby/IMA[current release page] for ABIs.
+
+[tabs]
+====
+Javascript::
++
+--
+[source,javascript]
+----
+const Web3 = require("web3");
+const Tx = require("ethereumjs-tx").Transaction;
+
+const communityPoolAddress = rinkebyABIs.community_pool_address;
+const communityPoolABI = rinkebyABIs.community_pool_abi;
+
+const web3 = new Web3(rinkeby);
+
+let CommunityPool = new web3.eth.Contract(
+  communityPoolABI,
+  communityPoolAddress
+);
+
+let registerMainnetCommunityPool = CommunityPool.methods
+    .rechargeUserWallet(schainName)
+    .encodeABI();
+
+web3.eth.getTransactionCount(accountForMainnet).then((nonce) => {
+  //create raw transaction
+  const rawRechargeUserWallet = {
+    chainId: chainId,
+    from: accountForMainnet,
+    nonce: "0x" + nonce.toString(16),
+    data: registerMainnetCommunityPool,
+    to: communityPoolAddress,
+    gas: 6500000,
+    gasPrice: 1000000000,
+    value: web3.utils.toHex(web3.utils.toWei("0.5", "ether")) // Recharge pool with 0.5 ETH
+  };
+
+const txRechargeUserWallet = new Tx(rawRechargeUserWallet, {
+      chain: "rinkeby",
+      hardfork: "petersburg"
+    });
+    txRechargeUserWallet.sign(privateKey);
+
+//serialize transaction
+const serializedRechargeUserWallet = txRechargeUserWallet.serialize();
+
+//send signed transaction
+web3.eth
+  .sendSignedTransaction(
+    "0x" + serializedRechargeUserWallet.toString("hex")
+  )
+  .on("receipt", (receipt) => {
+    //record receipt to console
+    console.log(receipt);
+  })
+  .catch(console.error);
+});
+----
+--
+====
+
+=== Exit To Main
 
 The **TokenManager** contract is on your SKALE Chain. Check out the https://github.com/skalenetwork/skale-network/tree/master/releases/rinkeby/IMA[current release page] for ABIs.
 
@@ -103,15 +180,15 @@ Javascript::
 [source,javascript]
 ----
 const Web3 = require('web3');
-const Tx = require('ethereumjs-tx');
+const Tx = require('ethereumjs-tx').Transaction;
 
 let schainABIs = require("[YOUR_SKALE_CHAIN_ABIs]");
 let privateKey = new Buffer('[YOUR_PRIVATE_KEY]', 'hex')
 let account = "[YOUR_ACCOUNT_ADDRESS]";
 let schainEndpoint = "[YOUR_SKALE_CHAIN_ENDPOINT]";
 
-const tokenManagerAddress = schainABIs.token_manager_address;
-const tokenManagerABI = schainABIs.token_manager_abi;
+const tokenManagerAddress = schainABIs.token_manager_eth_address;
+const tokenManagerABI = schainABIs.token_manager_eth_abi;
 
 const web3 = new Web3(new Web3.providers.HttpProvider(schainEndpoint));
 
@@ -125,22 +202,23 @@ let contract = new web3.eth.Contract(
  * exitToMain(address to)
  */
 let exitToMain = contract.methods.exitToMain(
-    account, web3.utils.toWei('1', 'ether'), 
-    web3.utils.fromAscii("[YOUR_MESSAGE]")   // optional message
-).encodeABI();  
+    account,
+    web3.utils.toWei('1', 'ether')
+  )
+  .encodeABI();  
 
 //get nonce
-web3.eth.getTransactionCount(account).then(nonce => {
+web3.eth.getTransactionCount(account).then((nonce) => {
   //create raw transaction
   const rawTx = {
-    nonce: nonce,
+    chainId: chainId,
+    nonce: "0x" + nonce.toString(16),
     from: account, 
     nonce: "0x" + nonce.toString(16),
     data : exitToMain,
     to: tokenManagerAddress,
-    gasPrice: 0,
-    gas: 8000000,
-    value: 0
+    gasPrice: 100000000000,
+    gas: 8000000
   }
 
   //sign transaction
@@ -157,84 +235,6 @@ web3.eth.getTransactionCount(account).then(nonce => {
       console.log(receipt);
    }).
     catch(console.error);
-});
-
-----
---
-====
-
-== Release ETH to User
-
-To release funds to the end user on Ethereum, you will need to use the getMyEth function within the  **LockAndDataForMainnet** contract on Ethereum.  
-  
-This method is called from Ethereum to release tokens back to the end user.  
-
-The **LockAndDataForMainnet** contract is deployed to Rinkeby. Check out the https://github.com/skalenetwork/skale-network/tree/master/releases/rinkeby/IMA[current release page] for ABIs.
-
-[tabs]
-====
-Javascript::
-+
---
-
-[source,javascript]
-----
-const Web3 = require('web3');
-const Tx = require('ethereumjs-tx');
-
-let rinkebyABIs = require("[YOUR_SKALE_ABIs_ON_RINKEBY]");
-let privateKey = new Buffer('[YOUR_PRIVATE_KEY]', 'hex')
-let account = "[YOUR_ACCOUNT_ADDRESS]";
-let rinkeby = "[RINKEBY_ENDPOINT]";
-
-const lockAndDataForMainnetAddress =
-  rinkebyABIs.lock_and_data_for_mainnet_address;
-
-const lockAndDataForMainnetABI = 
-  rinkebyABIs.lock_and_data_for_mainnet_abi;
-
-const web3 = new Web3(rinkeby);
-
-let LockAndDataForMainnet = new web3.eth.Contract(
-  lockAndDataForMainnetABI,
-  lockAndDataForMainnetAddress
-);
-
-/* 
- * prepare the smart contract function 
- * exitToMain(address to)
- */
-let getMyEth = LockAndDataForMainnet.methods.getMyEth().encodeABI();
-
-//get nonce
-web3.eth.getTransactionCount(account).then(nonce => {
-  
-  //create raw transaction
-  const rawTxGetMyEth = {
-    from: account,
-    nonce: "0x" + nonce.toString(16),
-    data: getMyEth,
-    to: lockAndDataForMainnetAddress,
-    gas: 6500000,
-    gasPrice: 100000000000,
-    value: 0
-  };
-
-  //sign transaction
-  const txGetMyEth = new Tx(rawTxGetMyEth);
-  txGetMyEth.sign(privateKey);
-
-  //serialize transaction
-  const serializedTxGetMyEth = txGetMyEth.serialize();
-
-  //send signed transaction
-  web3.eth
-    .sendSignedTransaction("0x" + serializedTxGetMyEth.toString("hex"))
-    .on("receipt", receipt => {
-      //record receipt to console
-      console.log(receipt);
-    })
-    .catch(console.error);
 });
 
 ----
