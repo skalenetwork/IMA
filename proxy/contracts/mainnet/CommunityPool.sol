@@ -38,7 +38,7 @@ contract CommunityPool is SkaleManagerClient {
     MessageProxyForMainnet public messageProxy;
 
     mapping(address => mapping(bytes32 => uint)) private _userWallets;
-    mapping(address => bool) private _unfrozenUsers;
+    mapping(address => mapping(bytes32 => bool)) private _unfrozenUsers;
     mapping(bytes32 => address) public schainLinks;
 
     uint public minTransactionGas;
@@ -53,11 +53,11 @@ contract CommunityPool is SkaleManagerClient {
         external
     {
         require(msg.sender == address(messageProxy),  "Sender is not a MessageProxy");
-        require(_unfrozenUsers[user], "User should be unfrozen");
+        require(_unfrozenUsers[user][schainHash], "User should be unfrozen");
         uint amount = tx.gasprice * gas;
         _userWallets[user][schainHash] = _userWallets[user][schainHash].sub(amount);
         if (_userWallets[user][schainHash] < minTransactionGas * tx.gasprice) {
-            _unfrozenUsers[user] = false;
+            _unfrozenUsers[user][schainHash] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
@@ -75,8 +75,8 @@ contract CommunityPool is SkaleManagerClient {
             "Not enough money for transaction"
         );
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].add(msg.value);
-        if (!_unfrozenUsers[msg.sender]) {
-            _unfrozenUsers[msg.sender] = true;
+        if (!_unfrozenUsers[msg.sender][schainHash]) {
+            _unfrozenUsers[msg.sender][schainHash] = true;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
@@ -90,7 +90,7 @@ contract CommunityPool is SkaleManagerClient {
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].sub(amount);
         if (_userWallets[msg.sender][schainHash] < minTransactionGas * tx.gasprice 
-            && _unfrozenUsers[msg.sender]) {
+            && _unfrozenUsers[msg.sender][schainHash]) {
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
