@@ -97,13 +97,13 @@ contract TokenManagerERC1155 is TokenManager {
     ) 
         external
     {
-        require(to != address(0), "Incorrect receiver address");
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
             targetSchainHash != MAINNET_HASH,
             "This function is not for transferring to Mainnet"
         );
-        _exit(targetSchainHash, depositBox, contractOnMainnet, to, id, amount);
+        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, id, amount);
         // require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
         // ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
         // require(address(contractOnSchain).isContract(), "No token clone on schain");
@@ -122,13 +122,13 @@ contract TokenManagerERC1155 is TokenManager {
     ) 
         external
     {
-        require(to != address(0), "Incorrect receiver address");
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
             targetSchainHash != MAINNET_HASH,
             "This function is not for transferring to Mainnet"
         );
-        _exitBatch(targetSchainHash, depositBox, contractOnMainnet, to, ids, amounts);
+        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
+        _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, ids, amounts);
         // require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
         // ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
         // require(address(contractOnSchain).isContract(), "No token clone on schain");

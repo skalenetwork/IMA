@@ -27,7 +27,7 @@ interface IMessageProxy {
     function removeConnectedChain(string calldata schainName) external;
 
     function postOutgoingMessage(
-        string calldata targetSchainName,
+        bytes32 targetChainHash,
         address targetContract,
         bytes calldata data
     ) external;

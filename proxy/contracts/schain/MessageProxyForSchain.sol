@@ -396,7 +396,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
     }
 
     function _pushOutgoingMessageData(OutgoingMessageData memory d) private {
-        bytes32 dstChainHash = keccak256(abi.encodePacked(d.dstChain));
+        bytes32 dstChainHash = d.dstChain;
         emit OutgoingMessage(
             dstChainHash,
             d.msgCounter,
