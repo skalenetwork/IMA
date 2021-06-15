@@ -303,6 +303,18 @@ function log_arg_to_str() {
     return s;
 }
 
+const getCircularReplacerForJsonStringify = () => {
+    const seen = new WeakSet();
+    return ( key, value ) => {
+        if( typeof value === "object" && value !== null ) {
+            if( seen.has( value ) )
+                return;
+            seen.add( value );
+        }
+        return value;
+    };
+};
+
 // Traverses a javascript object, and deletes all circular values
 // @param source object to remove circular references from
 // @param censoredMessage optional: what to put instead of censored values
@@ -404,8 +416,25 @@ const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
         return r + ( pEnd || "" );
     },
     prettyPrintConsole: ( obj ) => {
-        if( !g_bEnabled )
+        if( !g_bEnabled ) {
+            if( obj === null )
+                return "null";
+            if( obj === undefined )
+                return "undefined";
+            try {
+                const s = JSON.stringify( obj );
+                return s;
+            } catch ( err ) { }
+            try {
+                const s = JSON.stringify( obj, getCircularReplacerForJsonStringify() );
+                return s;
+            } catch ( err ) { }
+            try {
+                const s = obj.toString();
+                return s;
+            } catch ( err ) { }
             return obj;
+        }
         const jsonLine = /^( *)("[\w]+": )?("[^"]*"|[\w.+-]*)?([,[{])?$/mg;
         const tmp = JSON.stringify( obj, ( jsonColorizer.cntCensoredMax > 0 ) ? jsonColorizer.censor( obj ) : null, 4 );
         const s = tmp ? tmp.replace( jsonLine, jsonColorizer.replacerConsole ) : ( "" + tmp );
@@ -632,5 +661,6 @@ module.exports = {
     u: function( x ) {
         return url_colorized( x );
     },
-    safeURL: safeURL
+    safeURL: safeURL,
+    getCircularReplacerForJsonStringify: getCircularReplacerForJsonStringify
 }; // module.exports

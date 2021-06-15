@@ -734,10 +734,9 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         tx.sign( key ); // arg is privateKey as buffer
     } break;
     default: {
-        const s =
-            cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
-            cc.error( " bad credentials information specified for " ) + cc.warning( strFriendlyChainName ) +
-            cc.error( " chain, no explicit SGX and no explicit private key found" ) + "\n";
+        const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
+            cc.error( " bad credentials information specified, no explicit SGX and no explicit private key found, account is: " ) +
+            cc.j( joAccount ) + "\n";
         details.write( s );
         log.write( s );
         if( isExitIfEmpty ) {
