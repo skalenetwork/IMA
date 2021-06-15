@@ -127,7 +127,7 @@ async function main() {
     console.log("Deploy", linkerName);
     const linkerFactory = await getContractFactory(linkerName);
     const linker = (
-        await upgrades.deployProxy(linkerFactory, [deployed.get(messageProxyForMainnetName)?.address, contractManager?.address], { initializer: 'initialize(address,address)' })
+        await upgrades.deployProxy(linkerFactory, [contractManager?.address, deployed.get(messageProxyForMainnetName)?.address], { initializer: 'initialize(address,address)' })
     ) as Linker;
     await linker.deployTransaction.wait();
     await (await messageProxyForMainnet.registerExtraContractForAll(linker.address)).wait();
