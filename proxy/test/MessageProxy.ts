@@ -577,6 +577,38 @@ describe("MessageProxy", () => {
             // .should.be.rejectedWith("SKALE chain name is incorrect. Inside in MessageProxy");
         });
 
+        it("should move incoming counter", async () => {
+            await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
+            const isConnectedChain = await messageProxyForSchain.isConnectedChain(schainName);
+            isConnectedChain.should.be.deep.equal(Boolean(true));
+            await messageProxyForSchain.grantRole(await messageProxyForSchain.DEBUGGER_ROLE(), deployer.address);
+
+            // chain can't be connected twice:
+            const incomingMessages = BigNumber.from(
+                await messageProxyForSchain.connect(deployer).getIncomingMessagesCounter(schainName),
+            );
+
+            // main net does not have a public key and is implicitly connected:
+            await messageProxyForSchain.connect(deployer).moveIncomingCounter(schainName);
+
+            const newIncomingMessages = BigNumber.from(
+                await messageProxyForSchain.connect(deployer).getIncomingMessagesCounter(schainName),
+            );
+
+            newIncomingMessages.should.be.deep.equal(BigNumber.from(incomingMessages).add(BigNumber.from(1)));
+
+            await messageProxyForSchain.connect(deployer).setCountersToZero(schainName);
+
+            const newIncomingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getIncomingMessagesCounter(schainName));
+            newIncomingMessagesCounter.should.be.deep.equal(BigNumber.from(0));
+
+            const newOutgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(schainName)
+            );
+            newOutgoingMessagesCounter.should.be.deep.equal(BigNumber.from(0));
+        });
+
         it("should remove connected chain", async () => {
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
             const connectedChain = await messageProxyForSchain.isConnectedChain(schainName);
