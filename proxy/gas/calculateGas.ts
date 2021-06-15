@@ -218,6 +218,7 @@ describe("Gas calculation", () => {
         await messageProxyForMainnet.registerExtraContractForAll(depositBoxERC20.address)
         await messageProxyForMainnet.registerExtraContractForAll(depositBoxERC721.address)
         await messageProxyForMainnet.registerExtraContractForAll(communityPool.address)
+        await messageProxyForMainnet.registerExtraContractForAll(imaLinker.address)
 
         messages = await deployMessages();
 
@@ -259,7 +260,7 @@ describe("Gas calculation", () => {
 
         // IMA registration
         await messageProxyForMainnet.grantRole(await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE(), imaLinker.address);
-        await imaLinker.connectSchain(schainName, [communityLocker.address, tokenManagerEth.address, tokenManagerERC20.address, tokenManagerERC721.address]);
+        await imaLinker.connectSchain(schainName, [tokenManagerLinker.address, communityLocker.address, tokenManagerEth.address, tokenManagerERC20.address, tokenManagerERC721.address]);
         await communityPool.connect(user).rechargeUserWallet(schainName, { value: 1e18.toString() });
         // await lockAndDataForSchain.addDepositBox(depositBoxEth.address);
         // await lockAndDataForSchain.addDepositBox(depositBoxERC20.address);
