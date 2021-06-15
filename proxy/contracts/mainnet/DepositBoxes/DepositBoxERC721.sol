@@ -42,7 +42,7 @@ contract DepositBoxERC721 is DepositBox {
 
     function depositERC721(
         string calldata schainName,
-        address contractOnMainnet,
+        address erc721OnMainnet,
         address to,
         uint256 tokenId
     )
@@ -54,18 +54,18 @@ contract DepositBoxERC721 is DepositBox {
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
         require(
-            IERC721Upgradeable(contractOnMainnet).getApproved(tokenId) == address(this),
+            IERC721Upgradeable(erc721OnMainnet).getApproved(tokenId) == address(this),
             "DepositBox was not approved for ERC721 token"
         );
         bytes memory data = _receiveERC721(
             schainName,
-            contractOnMainnet,
+            erc721OnMainnet,
             to,
             tokenId
         );
         if (!linker.interchainConnections(schainHash))
-            _saveTransferredAmount(schainHash, contractOnMainnet, tokenId);
-        IERC721Upgradeable(contractOnMainnet).transferFrom(msg.sender, address(this), tokenId);
+            _saveTransferredAmount(schainHash, erc721OnMainnet, tokenId);
+        IERC721Upgradeable(erc721OnMainnet).transferFrom(msg.sender, address(this), tokenId);
         messageProxy.postOutgoingMessage(
             schainHash,
             contractReceiver,
@@ -101,10 +101,7 @@ contract DepositBoxERC721 is DepositBox {
         onlySchainOwner(schainName)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(erc721OnMainnet.isContract(), "Given address is not a contract");
-        schainToERC721[schainHash][erc721OnMainnet] = true;
-        emit ERC721TokenAdded(schainName, erc721OnMainnet);
+        _addERC721ForSchain(schainName, erc721OnMainnet);
     }
 
     function getFunds(string calldata schainName, address erc721OnMainnet, address receiver, uint tokenId)
@@ -153,27 +150,28 @@ contract DepositBoxERC721 is DepositBox {
      */
     function _receiveERC721(
         string calldata schainName,
-        address contractOnMainnet,
+        address erc721OnMainnet,
         address to,
         uint256 tokenId
     )
         private
         returns (bytes memory data)
     {
-        bool isERC721AddedToSchain = schainToERC721[keccak256(abi.encodePacked(schainName))][contractOnMainnet];
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        bool isERC721AddedToSchain = schainToERC721[schainHash][erc721OnMainnet];
         if (!isERC721AddedToSchain) {
-            _addERC721ForSchain(schainName, contractOnMainnet);
-            emit ERC721TokenAdded(schainName, contractOnMainnet);
+            require(withoutWhitelist[schainHash], "Whitelist is enabled");
+            _addERC721ForSchain(schainName, erc721OnMainnet);
             data = Messages.encodeTransferErc721AndTokenInfoMessage(
-                contractOnMainnet,
+                erc721OnMainnet,
                 to,
                 tokenId,
-                _getTokenInfo(IERC721MetadataUpgradeable(contractOnMainnet))
+                _getTokenInfo(IERC721MetadataUpgradeable(erc721OnMainnet))
             );
         } else {
-            data = Messages.encodeTransferErc721Message(contractOnMainnet, to, tokenId);
+            data = Messages.encodeTransferErc721Message(erc721OnMainnet, to, tokenId);
         }
-        emit ERC721TokenReady(contractOnMainnet, tokenId);
+        emit ERC721TokenReady(erc721OnMainnet, tokenId);
     }
 
     /**
@@ -183,7 +181,6 @@ contract DepositBoxERC721 is DepositBox {
     function _addERC721ForSchain(string calldata schainName, address erc721OnMainnet) private {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
-        require(withoutWhitelist[schainHash], "Whitelist is enabled");
         schainToERC721[schainHash][erc721OnMainnet] = true;
         emit ERC721TokenAdded(schainName, erc721OnMainnet);
     }

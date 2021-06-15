@@ -141,5 +141,6 @@ contract Linker is Twin {
     {
         Twin.initialize(contractManagerOfSkaleManager, messageProxy);
         _setupRole(LINKER_ROLE, msg.sender);
+        _setupRole(LINKER_ROLE, address(this));
     }
 }

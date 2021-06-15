@@ -83,6 +83,7 @@ describe("Linker", () => {
         await linker.removeMainnetContract(depositBoxEth.address);
         await linker.removeMainnetContract(depositBoxERC20.address);
         await linker.removeMainnetContract(depositBoxERC721.address);
+        await linker.removeMainnetContract(linker.address);
         await linker.grantRole(await linker.LINKER_ROLE(), deployer.address);
         await linker.grantRole(await linker.LINKER_ROLE(), linker.address);
         await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), linker.address);
