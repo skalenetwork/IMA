@@ -1,6 +1,6 @@
 = Getting Started with IMA 
 
-The IMA bridge between SKALE and Ethereum allows users to transfer tokens across chains. The SKALE IMA bridge supports ETH, ERC20, and ERC721 out of the box. IMA can be expanded to any arbitrary message or token standard using MessageProxy.
+The IMA bridge between SKALE and Ethereum allows users to transfer tokens across chains. The SKALE IMA bridge supports ETH, ERC20, ERC721, and ERC1155 out of the box. IMA can be expanded to any arbitrary message or token standard using MessageProxy.
 
 IMA consists of three parts:
 
@@ -21,9 +21,9 @@ Deposits and withdraws take only seconds, and are secured using BLS Threshold si
 
 * Token contracts on Ethereum are deployed and registered on SKALE chains. 
 
-* In order for an Ethereum Mainnet token contract to work with IMA on your SKALE Chain, **the token contract copy deployed on SKALE may need to be modified to include MINTABLE and BURNABLE functions**. SKALE Chain IMA contracts need to mint and burn the token on SKALE chains to maintain the 1:1 peg with Ethereum. If the token is already using OpenZeppelin's framework, you can do this by importing ERC20Mintable/ERC721Mintable and ERC20Burnable/ERC721Burnable contracts that extend the functionality to include mintable and burnable functions. You can also do this by manually modifying the contract by adding mintable and burnable functions.
+* In order for an Ethereum Mainnet token contract to work with IMA on your SKALE Chain, **the token contract copy deployed on SKALE may need to be modified to include MINTABLE and BURNABLE functions**. SKALE Chain IMA contracts need to mint and burn the token on SKALE chains to maintain the 1:1 peg with Ethereum. If the token is already using OpenZeppelin's framework, you can do this by importing Mintable and Burnable contracts that extend the functionality to include mintable and burnable functions. You can also do this by manually modifying the contract by adding mintable and burnable functions.
 
-* The SKALE Chain contracts "LockAndData.." must be assigned the minter role for your modified token contract. This enables IMA to mint token clones as the tokens are Locked on mainnet contracts.
+* The SKALE Chain contracts "TokenManager.." must be assigned the minter role for your modified token contract. This enables IMA to mint token clones as the tokens are Locked on mainnet contracts.
 
 * When using ERC721s, be careful with *MINT_ID*. This is the mapping between Mainnet and SKALE Chain ERC721s. Improper or corrupt mapping may cause loss of ERC721.
 

@@ -33,14 +33,14 @@ Python::
 
 [source,python]
 ----
-lock_and_data_for_mainnet_erc20 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc20')
-disable = lock_and_data_for_mainnet_erc20.encodeABI(fn_name="disableWhitelist", args=[schainName])
+deposit_box_erc20 = self._get_contract_on_mainnet('deposit_box_erc20')
+disable = deposit_box_erc20.encodeABI(fn_name="disableWhitelist", args=[schainName])
 
 signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
         nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
         gasPrice=self.web3_mainnet.eth.gasPrice,
         gas=200000,
-        to=lock_and_data_for_mainnet_erc20.address,
+        to=deposit_box_erc20.address,
         value=0,
         data = disable
     ),
@@ -61,14 +61,14 @@ Python::
 
 [source,python]
 ----
-lock_and_data_for_mainnet_erc20 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc20')
-enable = lock_and_data_for_mainnet_erc20.encodeABI(fn_name="enableWhitelist", args=[schainName])
+deposit_box_erc20 = self._get_contract_on_mainnet('deposit_box_erc20')
+enable = deposit_box_erc20.encodeABI(fn_name="enableWhitelist", args=[schainName])
 
 signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
         nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
         gasPrice=self.web3_mainnet.eth.gasPrice,
         gas=200000,
-        to=lock_and_data_for_mainnet_erc20.address,
+        to=deposit_box_erc20.address,
         value=0,
         data = enable
     ),
@@ -83,18 +83,16 @@ self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
 If the whitelist is enabled, the SKALE chain owner must authorize each token for the schain. 
 
-You can use `addERC20TokenByOwner` and `addERC721TokenByOwner` functions available in LockAndData contracts on both Mainnet and each Schain.
+You can use `addERC20TokenByOwner` and `addERC721TokenByOwner` functions available in DepositBox... and TokenManager... contracts on both Mainnet and each Schain.
 
 The recommended process is
 
 1. Deploy the ERC20 or ERC721 token contract on the SKALE chain.
-2. Add the token to LockAndData on the Schain.
-3. Grant the token's minter role to LockAndData on the Schain.
-4. Add the token to LockAndData on Mainnet.
+2. Add the token to TokenManager... on the Schain.
+3. Grant the token's minter role to LockATokenManager...ndData on the Schain.
+4. Add the token to DepositBox... on Mainnet.
 
-=== Adding tokens to LockAndDataForSchain
-
-NOTE: `addERC20TokenByOwner` and `addERC721TokenByOwner` on the LockAndDataForSchain takes 3 arguments. When enabling transfers to mainnet, `schainName` is set to "Mainnet". When enabling transfers to another schain, `schainName` is set to the other schain name.
+=== Adding tokens to TokenManager
 
 ==== Adding ERC20
 
@@ -106,14 +104,14 @@ Python::
 
 [source,python]
 ----
-lock_and_data_for_schain_erc20 = self._get_contract_on_schain('lock_and_data_for_schain_erc20')
-addERC20Schain = lock_and_data_for_schain_erc20.encodeABI(fn_name="addERC20TokenByOwner", args=[schainName, erc20MainnetAddress, erc20SchainAddress])
+token_manager_erc20 = self._get_contract_on_schain('token_manager_erc20')
+addERC20Schain = token_manager_erc20.encodeABI(fn_name="addERC20TokenByOwner", args=[erc20MainnetAddress, erc20SchainAddress])
 
 signed_txn = self.web3_schain.eth.account.signTransaction(dict(
         nonce=self.web3_schain.eth.getTransactionCount(sender_address),
         gasPrice=self.web3_schain.eth.gasPrice,
         gas=200000,
-        to=lock_and_data_for_schain_erc20.address,
+        to=token_manager_erc20.address,
         value=0,
         data = addERC20Schain
     ),
@@ -134,14 +132,14 @@ Python::
 
 [source,python]
 ----
-lock_and_data_for_schain_erc721 = self._get_contract_on_schain('lock_and_data_for_schain_erc721')
-addERC721Schain = lock_and_data_for_schain_erc721.encodeABI(fn_name="addERC721TokenByOwner", args=[schainName, erc721MainnetAddress, erc721SchainAddress])
+token_manager_erc721 = self._get_contract_on_schain('token_manager_erc721')
+addERC721Schain = token_manager_erc721.encodeABI(fn_name="addERC721TokenByOwner", args=[erc721MainnetAddress, erc721SchainAddress])
 
 signed_txn = self.web3_schain.eth.account.signTransaction(dict(
         nonce=self.web3_schain.eth.getTransactionCount(sender_address),
         gasPrice=self.web3_schain.eth.gasPrice,
         gas=200000,
-        to=lock_and_data_for_schain_erc721.address,
+        to=token_manager_erc721.address,
         value=0,
         data = addERC721Schain
     ),
@@ -152,9 +150,9 @@ self.web3_schain.eth.sendRawTransaction(signed_txn.rawTransaction)
 --
 ====
 
-=== Assign Schain LockAndData as Minter and Burner role
+=== Assign Schain TokenManager as Minter and Burner role
 
-You need to assign LockAndData as the minter and burner for the deployed token on the schain. For AccessControl supported ERC20/ERC721, you can use apply the following pseudocode:
+You need to assign TokenManager as the minter and burner for the deployed token on the schain. For AccessControl supported ERC20/ERC721, you can use apply the following pseudocode:
 
 [tabs]
 ====
@@ -166,14 +164,14 @@ Python::
 ----
 newERC20 = deployERC20(deployer)
 minterRoleERC20 = newERC20.MINTER_ROLE()
-newERC20.grantRole(minterRoleERC20, lock_and_data_for_schain_erc20.address)
+newERC20.grantRole(minterRoleERC20, token_manager_erc20.address)
 ----
 --
 ====
 
-=== Adding tokens to LockAndDataForMainnet
+=== Adding tokens to DepositBox
 
-NOTE: `addERC20TokenByOwner` and `addERC721TokenByOwner` on the LockAndDataForMainnet takes 2 arguments: schainName and erc20Mainnet/erc721Mainnet address.
+NOTE: `addERC20TokenByOwner` and `addERC721TokenByOwner` on the DepositBox takes 2 arguments: schainName and erc20Mainnet/erc721Mainnet address.
 
 ==== Adding ERC20
 
@@ -185,14 +183,14 @@ Python::
 
 [source,python]
 ----
-lock_and_data_for_mainnet_erc20 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc20')
-addERC20Mainnet = lock_and_data_for_mainnet_erc20.encodeABI(fn_name="addERC20TokenByOwner", args=[schainName, erc20MainnetAddress])
+deposit_box_erc20 = self._get_contract_on_mainnet('deposit_box_erc20')
+addERC20Mainnet = deposit_box_erc20.encodeABI(fn_name="addERC20TokenByOwner", args=[schainName, erc20MainnetAddress])
 
 signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
         nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
         gasPrice=self.web3_mainnet.eth.gasPrice,
         gas=200000,
-        to=lock_and_data_for_mainnet_erc20.address,
+        to=deposit_box_erc20.address,
         value=0,
         data = addERC20Mainnet
     ),
@@ -205,7 +203,7 @@ self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
 ==== Adding ERC721
 
-NOTE: `addERC721TokenByOwner` on the LockAndDataForMainnet takes 2 arguments: schainName and erc721Mainnet address.
+NOTE: `addERC721TokenByOwner` on the DepositBox takes 2 arguments: schainName and erc721Mainnet address.
 
 [tabs]
 ====
@@ -215,14 +213,14 @@ Python::
 
 [source,python]
 ----
-lock_and_data_for_mainnet_erc721 = self._get_contract_on_mainnet('lock_and_data_for_mainnet_erc721')
-addERC721Mainnet = lock_and_data_for_mainnet_erc721.encodeABI(fn_name="addERC721TokenByOwner", args=[schainName, erc721MainnetAddress])
+deposit_box_erc721 = self._get_contract_on_mainnet('deposit_box_erc721')
+addERC721Mainnet = deposit_box_erc721.encodeABI(fn_name="addERC721TokenByOwner", args=[schainName, erc721MainnetAddress])
 
 signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
         nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
         gasPrice=self.web3_mainnet.eth.gasPrice,
         gas=200000,
-        to=lock_and_data_for_mainnet_erc721.address,
+        to=deposit_box_erc721.address,
         value=0,
         data = addERC20Mainnet
     ),
@@ -239,4 +237,3 @@ Automatic deployment is disabled by default and requires that the SKALE Chain ow
 
 If enabled, then tokens are automatically deployed on the schain by the TokenFactory contract after a token is received through DepositBox on mainnet.
 
-NOTE: Automatic deployment is currently not supported by skaled.
