@@ -62,11 +62,6 @@ contract TokenManagerERC1155 is TokenManager {
     {
          communityLocker.checkAllowedToSendMessage(to);
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, id, amount);
-        // require(address(contractOnSchain).isContract(), "No token clone on schain");
-        // require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
-        // contractOnSchain.burn(msg.sender, id, amount);
-        // bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);
-        // messageProxy.postOutgoingMessage(MAINNET_NAME, depositBox, data);
     }
 
     function exitToMainERC1155Batch(
@@ -77,15 +72,8 @@ contract TokenManagerERC1155 is TokenManager {
     )
         external
     {
-        // require(to != address(0), "Incorrect receiver address");
-        // ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
         communityLocker.checkAllowedToSendMessage(to);
         _exitBatch(MAINNET_HASH, depositBox, contractOnMainnet, to, ids, amounts);
-        // require(address(contractOnSchain).isContract(), "No token clone on schain");
-        // require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
-        // contractOnSchain.burnBatch(msg.sender, ids, amounts);
-        // bytes memory data = Messages.encodeTransferErc1155BatchMessage(contractOnMainnet, to, ids, amounts);
-        // messageProxy.postOutgoingMessage(MAINNET_NAME, depositBox, data);
     }
 
     function transferToSchainERC1155(
@@ -98,19 +86,9 @@ contract TokenManagerERC1155 is TokenManager {
         external
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        require(
-            targetSchainHash != MAINNET_HASH,
-            "This function is not for transferring to Mainnet"
-        );
+        require(targetSchainHash != MAINNET_HASH, "This function is not for transferring to Mainnet");
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, id, amount);
-        // require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
-        // ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
-        // require(address(contractOnSchain).isContract(), "No token clone on schain");
-        // require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
-        // contractOnSchain.burn(msg.sender, id, amount);
-        // bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);    
-        // messageProxy.postOutgoingMessage(targetSchainName, tokenManagers[targetSchainHash], data);
     }
 
     function transferToSchainERC1155Batch(
@@ -123,19 +101,9 @@ contract TokenManagerERC1155 is TokenManager {
         external
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        require(
-            targetSchainHash != MAINNET_HASH,
-            "This function is not for transferring to Mainnet"
-        );
+        require(targetSchainHash != MAINNET_HASH, "This function is not for transferring to Mainnet");
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
         _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, ids, amounts);
-        // require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
-        // ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
-        // require(address(contractOnSchain).isContract(), "No token clone on schain");
-        // require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
-        // contractOnSchain.burnBatch(msg.sender, ids, amounts);
-        // bytes memory data = Messages.encodeTransferErc1155BatchMessage(contractOnMainnet, to, ids, amounts);
-        // messageProxy.postOutgoingMessage(targetSchainName, tokenManagers[targetSchainHash], data);
     }
 
     /**

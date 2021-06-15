@@ -63,7 +63,6 @@ contract TokenManagerERC20 is TokenManager {
         external
     {
         communityLocker.checkAllowedToSendMessage(to);
-
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, amount);
     }
 
@@ -78,7 +77,6 @@ contract TokenManagerERC20 is TokenManager {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(targetSchainHash != MAINNET_HASH, "This function is not for transferring to Mainnet");
         require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
-
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, amount);
     }
 
