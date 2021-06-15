@@ -63,8 +63,7 @@ contract TokenManagerERC20 is TokenManager {
         external
     {
         communityLocker.checkAllowedToSendMessage(to);
-
-        _exit(MAINNET_NAME, depositBox, contractOnMainnet, to, amount);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, amount);
     }
 
     function transferToSchainERC20(
@@ -77,7 +76,7 @@ contract TokenManagerERC20 is TokenManager {
         rightTransaction(targetSchainName, to)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        _exit(targetSchainName, tokenManagers[targetSchainHash], contractOnMainnet, to, amount);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, amount);
     }
 
     /**
@@ -100,18 +99,19 @@ contract TokenManagerERC20 is TokenManager {
         override
         onlyMessageProxy
         checkReceiverChain(fromChainHash, sender)
-        returns (bool)
+        returns (address)
     {
         Messages.MessageType operation = Messages.getMessageType(data);
+        address receiver = address(0);
         if (
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOKEN_INFO ||
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY
         ) {
-            _sendERC20(data);
+            receiver = _sendERC20(data);
         } else {
             revert("MessageType is unknown");
         }
-        return true;
+        return receiver;
     }
 
     /**
@@ -156,7 +156,7 @@ contract TokenManagerERC20 is TokenManager {
      * Emits a {ERC20TokenCreated} event if token does not exist.
      * Emits a {ERC20TokenReceived} event on success.
      */
-    function _sendERC20(bytes calldata data) private returns (bool) {        
+    function _sendERC20(bytes calldata data) private returns (address) {        
         Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
         address token;
@@ -195,10 +195,11 @@ contract TokenManagerERC20 is TokenManager {
         );
         contractOnSchain.mint(receiver, amount);
         emit ERC20TokenReceived(token, address(contractOnSchain), amount);
+        return receiver;
     }
 
     function _exit(
-        string memory chainName,
+        bytes32 chainHash,
         address messageReceiver,
         address contractOnMainnet,
         address to,
@@ -219,7 +220,7 @@ contract TokenManagerERC20 is TokenManager {
         contractOnSchain.transferFrom(msg.sender, address(this), amount);
         contractOnSchain.burn(amount);
         messageProxy.postOutgoingMessage(
-            chainName,
+            chainHash,
             messageReceiver,
             Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
         );

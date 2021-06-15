@@ -27,6 +27,7 @@ import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 
 import "../Messages.sol";
 import "../interfaces/IMessageProxy.sol";
+import "../interfaces/IMessageReceiver.sol";
 import "./TokenManager.sol";
 
 
@@ -34,7 +35,7 @@ import "./TokenManager.sol";
  * @title TokenManagerLinker
  * @dev Runs on Schain
  */
-contract TokenManagerLinker is AccessControlUpgradeable, IContractReceiverForSchain {
+contract TokenManagerLinker is AccessControlUpgradeable, IMessageReceiver {
 
     using SafeMathUpgradeable for uint;
 
@@ -96,7 +97,7 @@ contract TokenManagerLinker is AccessControlUpgradeable, IContractReceiverForSch
     )
         external
         override
-        returns (bool)
+        returns (address)
     {
         require(msg.sender == address(messageProxy), "Sender is not a message proxy");
         require(sender == linkerAddress, "Sender from Mainnet is incorrect");
@@ -110,7 +111,7 @@ contract TokenManagerLinker is AccessControlUpgradeable, IContractReceiverForSch
         require(interchainConnections != message.isAllowed, "Interchain connection state should be different");
         interchainConnections = message.isAllowed;
         emit InterchainConnectionAllowed(message.isAllowed);
-        return true;
+        return address(0);
     }
 
     function disconnectSchain(string calldata schainName) external onlyRegistrar {

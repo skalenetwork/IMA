@@ -631,12 +631,12 @@ describe("MessageProxy", () => {
             const addressTo = user.address;
             const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
             await caller
-                .postOutgoingMessageTester2(messageProxyForSchain.address, schainName, contractAddress, bytesData)
+                .postOutgoingMessageTester2(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData)
                 .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
             await caller
-                .postOutgoingMessageTester2(messageProxyForSchain.address, schainName, contractAddress, bytesData);
+                .postOutgoingMessageTester2(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData);
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
@@ -753,7 +753,7 @@ describe("MessageProxy", () => {
             outgoingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
 
             await caller
-                .postOutgoingMessageTester2(messageProxyForSchain.address, schainName, depositBox.address, bytesData);
+                .postOutgoingMessageTester2(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), depositBox.address, bytesData);
 
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
