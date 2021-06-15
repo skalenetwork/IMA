@@ -49,13 +49,10 @@ See below for instructions to implement postMessage in receiving contracts:
 ```solidity
 interface Proxy {
     function postOutgoingMessage(
-        string calldata dstChainID, 
-        address dstContract, 
-        uint256 amount, 
-        address to, 
+        bytes32 targetChainHash,
+        address targetContract,
         bytes calldata data
-    ) 
-        external;
+    ) external;
 }
 ```
 
@@ -65,13 +62,12 @@ Add postMessage to allow processing of incoming messages from MessageProxy.
 
 ```solidity
 function postMessage(
-    address sender, 
-    string memory fromSchainID, 
-    address payable to, 
-    uint256 amount, 
-    bytes memory data
-) 
-    public 
+    bytes32 schainHash,
+    address sender,
+    bytes calldata data
+    )
+    external
+    returns (address)
 {
     [add in your processing logic]
 }
