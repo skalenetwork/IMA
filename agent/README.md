@@ -314,7 +314,7 @@ node ./main.js --verbose=9 --expose --colors \
     --abi-main-net=../proxy/data/proxyMainnet.json \
     --abi-s-chain=../proxy/data/proxySchain_Bob.json \
     --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
-    --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852
+    --address-s-chain=$ACCOUNT_FOR_SCHAIN
 ```
 
 Notice: The command above does payment from Main-net and that is why we need to specify private key for source account inside Main-net blockchain using the **--key-main-net** command line argument. Target S-chain account is specified as address with the **--address-s-chain** command line argument. We don't need to specify private key for target account.
@@ -563,6 +563,36 @@ Same as ERC20 above. But use **1155** instead of **20** in command names. Also u
 Similar to ERC1155 single token transfer.Use **--tids** to specify ERC1155 token ids in form of array `[1,2,3]` to send withing **--amounts** as array `[100,200,300]` with number of appropriate ERC1155 tokens to sent.
 
 ## Other options and commands
+
+### Show asset balances and owners
+
+You can asl **IMA Agent** to show ETH and, optionally, various token balances and/or ERC721 token owners:
+
+```shell
+node ./main.js --verbose=9 --expose --colors \
+    --show-balance \
+    --tids="[1,2,3] \
+    --url-main-net=$URL_W3_ETHEREUM \
+    --url-s-chain=$URL_W3_S_CHAIN \
+    --id-main-net=Mainnet \
+    --id-s-chain=Bob \
+    --cid-main-net=-4 \
+    --cid-s-chain=-4 \
+    --abi-main-net=../proxy/data/proxyMainnet.json \
+    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --address-main-net=$ACCOUNT_FOR_ETHEREUM \
+    --address-s-chain=$ACCOUNT_FOR_SCHAIN \
+    --erc20-main-net=.....path-to.....ERC20.abi.mn.json \
+    --erc20-s-chain=.....path-to.....ERC20.abi.sc00.json \
+    --erc721-main-net=.....path-to.....ERC721.abi.mn.json \
+    --erc721-s-chain=.....path-to.....ERC721.abi.sc00.json \
+    --erc1155-main-net=.....path-to.....ERC1155.abi.mn.json \
+    --erc1155-s-chain=.....path-to.....ERC1155.abi.sc00.json
+```
+
+Example command above will always show: real ETH on Main Net, ETH user can receive on Main Net, real ETH on S-Chain, stored as ERC20 and local S-Chain ETH.
+
+The token balances and owners display is optional and depends on set of ABI and token IDs (`--tids`) arguments provided.
 
 ### Browse S-Chain network
 
