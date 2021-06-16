@@ -1475,12 +1475,12 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
             // imaState.jo_deposit_box_erc721, // only main net
             imaState.jo_linker,
             imaState.joAccount_main_net,
-            imaState.jo_token_manager_linker, // only s-chain
             imaState.jo_token_manager_eth, // only s-chain
             imaState.jo_token_manager_erc20, // only s-chain
             imaState.jo_token_manager_erc721, // only s-chain
             imaState.jo_token_manager_erc1155, // only s-chain
             imaState.jo_community_locker, // only s-chain
+            imaState.jo_token_manager_linker, // only s-chain
             imaState.strChainName_s_chain,
             imaState.cid_main_net,
             imaState.tc_main_net //,
