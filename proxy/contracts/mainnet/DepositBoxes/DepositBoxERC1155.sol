@@ -34,6 +34,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
 
     // schainHash => address of ERC on Mainnet
     mapping(bytes32 => mapping(address => bool)) public schainToERC1155;
+    mapping(bytes32 => mapping(address => mapping(uint256 => uint256))) public transferredAmount;
 
     /**
      * @dev Emitted when token is mapped.
@@ -95,6 +96,8 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
             id,
             amount
         );
+        if (!linker.interchainConnections(schainHash))
+            _saveTransferredAmount(schainHash, erc1155OnMainnet, _asSingletonArray(id), _asSingletonArray(amount));
         IERC1155Upgradeable(erc1155OnMainnet).safeTransferFrom(msg.sender, address(this), id, amount, "");
         messageProxy.postOutgoingMessage(
             schainHash,
@@ -127,6 +130,8 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
             ids,
             amounts
         );
+        if (!linker.interchainConnections(schainHash))
+            _saveTransferredAmount(schainHash, erc1155OnMainnet, ids, amounts);
         IERC1155Upgradeable(erc1155OnMainnet).safeBatchTransferFrom(msg.sender, address(this), ids, amounts, "");
         messageProxy.postOutgoingMessage(
             schainHash,
@@ -149,6 +154,8 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         if (operation == Messages.MessageType.TRANSFER_ERC1155) {
             Messages.TransferErc1155Message memory message = Messages.decodeTransferErc1155Message(data);
             require(message.token.isContract(), "Given address is not a contract");
+            if (!linker.interchainConnections(schainHash))
+                _removeTransferredAmount(schainHash, message.token, _asSingletonArray(message.id), _asSingletonArray(message.amount));
             IERC1155Upgradeable(message.token).safeTransferFrom(
                 address(this),
                 message.receiver,
@@ -160,6 +167,8 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         } else if (operation == Messages.MessageType.TRANSFER_ERC1155_BATCH) {
             Messages.TransferErc1155BatchMessage memory message = Messages.decodeTransferErc1155BatchMessage(data);
             require(message.token.isContract(), "Given address is not a contract");
+            if (!linker.interchainConnections(schainHash))
+                _removeTransferredAmount(schainHash, message.token, message.ids, message.amounts);
             IERC1155Upgradeable(message.token).safeBatchTransferFrom(
                 address(this),
                 message.receiver,
@@ -184,6 +193,32 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         _addERC1155ForSchain(schainName, erc1155OnMainnet);
     }
 
+    function getFunds(
+        string calldata schainName,
+        address erc1155OnMainnet,
+        address receiver,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    )
+        external
+        onlySchainOwner(schainName)
+        whenKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(ids.length == amounts.length, "Incorrect length of arrays");
+        for (uint256 i = 0; i < ids.length; i++) {
+            require(transferredAmount[schainHash][erc1155OnMainnet][ids[i]] >= amounts[i], "Incorrect amount");
+        }
+        _removeTransferredAmount(schainHash, erc1155OnMainnet, ids, amounts);
+        IERC1155Upgradeable(erc1155OnMainnet).safeBatchTransferFrom(
+            address(this),
+            receiver,
+            ids,
+            amounts,
+            ""
+        );
+    }
+
     /**
      * @dev Should return true if token in whitelist.
      */
@@ -203,6 +238,30 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     {
         DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
         __ERC1155Receiver_init();
+    }
+
+    function _saveTransferredAmount(
+        bytes32 schainHash,
+        address erc1155Token,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) private {
+        require(ids.length == amounts.length, "Incorrect length of arrays");
+        for (uint256 i = 0; i < ids.length; i++)
+            transferredAmount[schainHash][erc1155Token][ids[i]] =
+                transferredAmount[schainHash][erc1155Token][ids[i]].add(amounts[i]);
+    }
+
+    function _removeTransferredAmount(
+        bytes32 schainHash,
+        address erc1155Token,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) private {
+        require(ids.length == amounts.length, "Incorrect length of arrays");
+        for (uint256 i = 0; i < ids.length; i++)
+            transferredAmount[schainHash][erc1155Token][ids[i]] =
+                transferredAmount[schainHash][erc1155Token][ids[i]].sub(amounts[i]);
     }
 
     /**
