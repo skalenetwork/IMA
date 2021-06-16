@@ -4494,6 +4494,97 @@ const tc_s_chain = new TransactionCustomizer( null, 1.25 );
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+async function balanceETH(
+    isMainNet,
+    w3,
+    cid,
+    joAccount,
+    contractERC20
+) {
+    strLogPrefix = cc.info( "balanceETH() call" ) + " ";
+    try {
+        const strAddress = joAccount.address( w3 );
+        if( ( !isMainNet ) && contractERC20 ) {
+            const balance = await contractERC20.methods.balanceOf( strAddress ).call( { from: strAddress } );
+            return balance;
+        }
+        const balance = await w3.eth.getBalance( strAddress );
+        return balance;
+    } catch ( err ) {
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( strLogPrefix + cc.fatal( "ERROR:" ) + " " + cc.error( err ) + "\n" );
+    }
+    return "<no-data-or-error>";
+}
+
+async function balanceERC20(
+    isMainNet,
+    w3,
+    cid,
+    joAccount,
+    strCoinName,
+    joABI
+) {
+    strLogPrefix = cc.info( "balanceETH() call" ) + " ";
+    try {
+        const strAddress = joAccount.address( w3 );
+        const contractERC20 = new w3.eth.Contract( joABI[strCoinName + "_abi"], joABI[strCoinName + "_address"] );
+        const balance = await contractERC20.methods.balanceOf( strAddress ).call( { from: strAddress } );
+        return balance;
+    } catch ( err ) {
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( strLogPrefix + cc.fatal( "ERROR:" ) + " " + cc.error( err ) + "\n" );
+    }
+    return "<no-data-or-error>";
+}
+
+async function ownerOfERC721(
+    isMainNet,
+    w3,
+    cid,
+    joAccount,
+    strCoinName,
+    joABI,
+    idToken
+) {
+    strLogPrefix = cc.info( "ownerOfERC721() call" ) + " ";
+    try {
+        const strAddress = joAccount.address( w3 );
+        const contractERC721 = new w3.eth.Contract( joABI[strCoinName + "_abi"], joABI[strCoinName + "_address"] );
+        const owner = await contractERC721.methods.ownerOf( idToken ).call( { from: strAddress } );
+        return owner;
+    } catch ( err ) {
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( strLogPrefix + cc.fatal( "ERROR:" ) + " " + cc.error( err ) + "\n" );
+    }
+    return "<no-data-or-error>";
+}
+
+async function balanceERC1155(
+    isMainNet,
+    w3,
+    cid,
+    joAccount,
+    strCoinName,
+    joABI,
+    idToken
+) {
+    strLogPrefix = cc.info( "balanceERC1155() call" ) + " ";
+    try {
+        const strAddress = joAccount.address( w3 );
+        const contractERC1155 = new w3.eth.Contract( joABI[strCoinName + "_abi"], joABI[strCoinName + "_address"] );
+        const balance = await contractERC1155.methods.balanceOf( strAddress, idToken ).call( { from: strAddress } );
+        return balance;
+    } catch ( err ) {
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( strLogPrefix + cc.fatal( "ERROR:" ) + " " + cc.error( err ) + "\n" );
+    }
+    return "<no-data-or-error>";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 module.exports.longSeparator = g_mtaStrLongSeparator;
 module.exports.noop = noop;
 module.exports.cc = cc;
@@ -4569,6 +4660,11 @@ module.exports.getWaitForNextBlockOnSChain = getWaitForNextBlockOnSChain;
 module.exports.setWaitForNextBlockOnSChain = setWaitForNextBlockOnSChain;
 module.exports.get_web3_blockNumber = get_web3_blockNumber;
 module.exports.get_web3_pastEvents = get_web3_pastEvents;
+
+module.exports.balanceETH = balanceETH;
+module.exports.balanceERC20 = balanceERC20;
+module.exports.ownerOfERC721 = ownerOfERC721;
+module.exports.balanceERC1155 = balanceERC1155;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
