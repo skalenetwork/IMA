@@ -36,7 +36,7 @@ import "./Linker.sol";
 contract CommunityPool is Twin {
 
     mapping(address => mapping(bytes32 => uint)) private _userWallets;
-    mapping(address => bool) public activeUsers;
+    mapping(address => mapping(bytes32 => bool)) public activeUsers;
 
     uint public minTransactionGas;
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
@@ -50,11 +50,11 @@ contract CommunityPool is Twin {
         external
         onlyMessageProxy
     {
-        require(activeUsers[user], "User should be active");
+        require(activeUsers[user][schainHash], "User should be active");
         uint amount = tx.gasprice * gas;
         _userWallets[user][schainHash] = _userWallets[user][schainHash].sub(amount);
         if (_userWallets[user][schainHash] < minTransactionGas * tx.gasprice) {
-            activeUsers[user] = false;
+            activeUsers[user][schainHash] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
@@ -72,8 +72,8 @@ contract CommunityPool is Twin {
             "Not enough money for transaction"
         );
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].add(msg.value);
-        if (!activeUsers[msg.sender]) {
-            activeUsers[msg.sender] = true;
+        if (!activeUsers[msg.sender][schainHash]) {
+            activeUsers[msg.sender][schainHash] = true;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
@@ -88,9 +88,9 @@ contract CommunityPool is Twin {
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].sub(amount);
         if (
             _userWallets[msg.sender][schainHash] < minTransactionGas * tx.gasprice &&
-            activeUsers[msg.sender]
+            activeUsers[msg.sender][schainHash]
         ) {
-            activeUsers[msg.sender] = false;
+            activeUsers[msg.sender][schainHash] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],

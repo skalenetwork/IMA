@@ -5,6 +5,7 @@ import {
     MessageProxyForMainnet,
     CommunityPool
 } from "../typechain";
+
 import { stringValue } from "./utils/helper";
 
 import chai = require("chai");
@@ -25,7 +26,7 @@ import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
-import { expect } from "chai";
+import { assert, expect } from "chai";
 
 async function getBalance(address: string) {
     return parseFloat(web3.utils.fromWei(await web3.eth.getBalance(address)));
@@ -160,6 +161,50 @@ describe("CommunityPool", () => {
         expect(await communityPool.hasSchainContract(schainName)).to.be.false;
         await communityPool.removeSchainContract(schainName)
             .should.be.eventually.rejectedWith("SKALE chain is not set");
+    });
+
+    it("should recharge wallet for couple chains", async () => {
+        await messageProxy.registerExtraContract(schainName, communityPool.address);
+        await messageProxy.registerExtraContract("schainName2", communityPool.address);
+        const tx = await messageProxy.addConnectedChain(schainName);
+        await messageProxy.addConnectedChain("schainName2");
+        const gasPrice = tx.gasPrice;
+        const wei = minTransactionGas.mul(gasPrice);
+        const wei2 = minTransactionGas.mul(gasPrice).mul(2);
+        const res1 = await (await communityPool.connect(user).rechargeUserWallet(schainName, { value: wei.toString(), gasPrice })).wait();
+        const res2 = await (await communityPool.connect(user).rechargeUserWallet("schainName2", { value: wei2.toString(), gasPrice })).wait();
+        const userBalance = await communityPool.connect(user).getBalance(schainName);
+        userBalance.should.be.deep.equal(wei);
+        const userBalance2 = await communityPool.connect(user).getBalance("schainName2");
+        userBalance2.should.be.deep.equal(wei2);
+
+        if (!res1.events) {
+            assert("No events were emitted");
+        } else {
+            const last = res1.events.length - 1;
+            expect(res1.events[last]?.topics[0]).to.equal(stringValue(web3.utils.soliditySha3("OutgoingMessage(bytes32,uint256,address,address,bytes)")));
+            expect(res1.events[last]?.topics[1]).to.equal(stringValue(web3.utils.soliditySha3(schainName)));
+            expect(BigNumber.from(res1.events[last]?.topics[2]).toString()).to.equal("0");
+        }
+
+        if (!res2.events) {
+            assert("No events were emitted");
+        } else {
+            const last = res2.events.length - 1;
+            expect(res2.events[last]?.topics[0]).to.equal(stringValue(web3.utils.soliditySha3("OutgoingMessage(bytes32,uint256,address,address,bytes)")));
+            expect(res2.events[last]?.topics[1]).to.equal(stringValue(web3.utils.soliditySha3("schainName2")));
+            expect(BigNumber.from(res2.events[last]?.topics[2]).toString()).to.equal("0");
+        }
+
+        const res3 = await (await communityPool.connect(user).rechargeUserWallet(schainName, { value: wei.toString(), gasPrice })).wait();
+        expect(res3.events).to.be.empty;
+    });
+
+    it("should allow to withdraw money", async () => {
+        await messageProxy.registerExtraContract(schainName, communityPool.address);
+        const gasPrice = (await messageProxy.addConnectedChain(schainName)).gasPrice;
+        const wei = minTransactionGas.mul(gasPrice).toNumber();
+        await communityPool.connect(user).rechargeUserWallet(schainName, { value: wei.toString(), gasPrice });
     });
 
     it("should add and remove link to contract on schain as LINKER_ROLE", async () => {
