@@ -158,7 +158,12 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
             Messages.TransferErc1155Message memory message = Messages.decodeTransferErc1155Message(data);
             require(message.token.isContract(), "Given address is not a contract");
             if (!linker.interchainConnections(schainHash))
-                _removeTransferredAmount(schainHash, message.token, _asSingletonArray(message.id), _asSingletonArray(message.amount));
+                _removeTransferredAmount(
+                    schainHash,
+                    message.token,
+                    _asSingletonArray(message.id),
+                    _asSingletonArray(message.amount)
+                );
             IERC1155Upgradeable(message.token).safeTransferFrom(
                 address(this),
                 message.receiver,
