@@ -590,12 +590,7 @@ node ./main.js --verbose=9 --expose --colors \
     --erc1155-s-chain=.....path-to.....ERC1155.abi.sc00.json
 ```
 
-Example command above will always show:
-
-- Real ETH on Main Net
-- Eth user can receive on Main Net
-- Real ETH on S-Chain, stored as ERC20
-- Local S-Chain ETH
+Example command above will always show: real ETH on Main Net, ETH user can receive on Main Net, real ETH on S-Chain, stored as ERC20 and local S-Chain ETH.
 
 The token balances and owners display is optional and depends on set of ABI and token IDs (`--tids`) arguments provided.
 
