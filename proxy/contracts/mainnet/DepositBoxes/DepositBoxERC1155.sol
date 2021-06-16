@@ -81,6 +81,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     )
         external
         rightTransaction(schainName, to)
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address contractReceiver = schainLinks[schainHash];
@@ -114,10 +115,11 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         uint256[] calldata amounts
     )
         external
+        rightTransaction(schainName, to)
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address contractReceiver = schainLinks[schainHash];
-        require(to != address(0), "Receiver address cannot be null");
         require(contractReceiver != address(0), "Unconnected chain");
         require(
             IERC1155Upgradeable(erc1155OnMainnet).isApprovedForAll(msg.sender, address(this)),
@@ -147,6 +149,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     )
         external
         onlyMessageProxy
+        whenNotKilled(schainHash)
         checkReceiverChain(schainHash, sender)
         returns (address receiver)
     {
@@ -189,6 +192,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     )
         external
         onlySchainOwner(schainName)
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         _addERC1155ForSchain(schainName, erc1155OnMainnet);
     }
