@@ -130,6 +130,7 @@ async function main() {
         await upgrades.deployProxy(linkerFactory, [contractManager?.address, deployed.get(messageProxyForMainnetName)?.address], { initializer: 'initialize(address,address)' })
     ) as Linker;
     await linker.deployTransaction.wait();
+    await (await linker.registerMainnetContract(linker.address)).wait();
     await (await messageProxyForMainnet.registerExtraContractForAll(linker.address)).wait();
     const chainConnectorRole = await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE();
     await (await messageProxyForMainnet.grantRole(chainConnectorRole, linker.address)).wait();
