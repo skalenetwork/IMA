@@ -346,7 +346,7 @@ describe("DepositBoxERC1155", () => {
             // execution
             // to avoid `Incorrect sender` error
             const balanceBefore = await getBalance(deployer.address);
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign, 0)).wait();
+            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
@@ -402,7 +402,7 @@ describe("DepositBoxERC1155", () => {
             // execution
             // to avoid `Incorrect sender` error
             const balanceBefore = await getBalance(deployer.address);
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign, 0)).wait();
+            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
