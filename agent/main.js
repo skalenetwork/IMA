@@ -247,16 +247,6 @@ imaCLI.parse( {
             }
         } );
     },
-    // "register2": function() {
-    //     imaState.arrActions.push( {
-    //         "name": "Registration step 2, register Main-net deposit box on S-Chain",
-    //         "fn": async function() {
-    //             if( ! imaState.bNoWaitSChainStarted )
-    //                 await wait_until_s_chain_started(); // register_step2
-    //             return await register_step2( true );
-    //         }
-    //     } );
-    // },
     "check-registration": function() {
         imaState.arrActions.push( {
             "name": "Full registration status check(all steps)",
@@ -862,11 +852,6 @@ imaCLI.parse( {
                         return false;
                     isPrintSummaryRegistrationCosts = true;
                 }
-                // if( !await check_registration_step2() ) {
-                //     if( !await register_step2( false ) )
-                //         return false;
-                //     isPrintSummaryRegistrationCosts = true;
-                // }
                 if( isPrintSummaryRegistrationCosts )
                     print_summary_registration_costs();
                 return await run_transfer_loop();
@@ -1500,74 +1485,9 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
     }
     return true;
 }
-// async function register_step2( isPrintSummaryRegistrationCosts ) {
-//     const strLogPrefix = cc.info( "Reg 2:" ) + " ";
-//     // let jarrReceipts2A = "true";
-//     // const bRetVal2A = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 2A
-//     //     imaState.w3_s_chain,
-//     //     imaState.jo_deposit_box_eth, // only main net
-//     //     imaState.jo_deposit_box_erc20, // only main net
-//     //     imaState.jo_deposit_box_erc721, // only main net
-//     //     imaState.jo_token_manager_linker,
-//     //     imaState.joAccount_s_chain
-//     // );
-//     //console.log( "----------- bRetVal2A is", bRetVal2A );
-//     // if( !bRetVal2A ) {
-//     //     jarrReceipts2A = await IMA.register_main_net_depositBox_on_s_chain( // step 2A
-//     //         imaState.w3_s_chain,
-//     //         // imaState.jo_token_manager - only s-chain
-//     //         imaState.jo_deposit_box_eth, // only main net
-//     //         imaState.jo_deposit_box_erc20, // only main net
-//     //         imaState.jo_deposit_box_erc721, // only main net
-//     //         imaState.jo_token_manager_linker,
-//     //         imaState.joAccount_s_chain,
-//     //         imaState.cid_s_chain,
-//     //         imaState.tc_s_chain
-//     //     );
-//     // }
-//     //console.log( "----------- jarrReceipts2A is", jarrReceipts2A );
-//     // const bSuccess2A = ( jarrReceipts2A != null && jarrReceipts2A.length > 0 ) ? true : false;
-//     //console.log( "----------- bSuccess2A is", bSuccess2A );
-//     // if( bSuccess2A && ( !bRetVal2A ) )
-//     //     g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts2A );
-//     let jarrReceipts = "true";
-//     const bRetVal = await IMA.check_is_registered_main_net_on_s_chain( // step
-//         imaState.w3_s_chain,
-//         imaState.jo_message_proxy_s_chain,
-//         imaState.joAccount_s_chain,
-//         imaState.strChainName_main_net
-//     );
-//     //console.log( "----------- bRetVal is", bRetVal );
-//     if( !bRetVal ) {
-//         jarrReceipts = await IMA.register_main_net_on_s_chain( // step
-//             imaState.w3_s_chain,
-//             imaState.jo_message_proxy_s_chain,
-//             imaState.joAccount_s_chain,
-//             imaState.strChainName_main_net,
-//             imaState.cid_s_chain,
-//             imaState.tc_s_chain
-//         );
-//     }
-//     //console.log( "----------- jarrReceipts is", jarrReceipts );
-//     const bSuccess = ( jarrReceipts != null && jarrReceipts.length > 0 ) ? true : false;
-//     //console.log( "----------- bSuccess is", bSuccess );
-//     if( bSuccess && ( !bRetVal ) )
-//         g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts );
-//     // const bSuccess = ( bSuccess2A && bSuccess2B ) ? true : false;
-//     if( isPrintSummaryRegistrationCosts )
-//         print_summary_registration_costs();
-//     if( !bSuccess ) {
-//         const nRetCode = 164;
-//         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register Main-net deposit box on S-Chain, will return code " ) + cc.warning( nRetCode ) + "\n" );
-//         process.exit( nRetCode ); // 164
-//     }
-//     return true;
-// }
 async function register_all( isPrintSummaryRegistrationCosts ) {
     if( !await register_step1( false ) )
         return false;
-    // if( !await register_step2( false ) )
-    //     return false;
     if( isPrintSummaryRegistrationCosts )
         print_summary_registration_costs();
     return true;
@@ -1575,11 +1495,6 @@ async function register_all( isPrintSummaryRegistrationCosts ) {
 
 async function check_registration_all() {
     const b1 = await check_registration_step1();
-    // const b2 = await check_registration_step2()ж
-    // if( !( b1 && b2 ) )
-    //     return false;
-
-    // return true;
     return b1;
 }
 async function check_registration_step1() {

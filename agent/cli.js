@@ -277,8 +277,6 @@ function parse( joExternalHandlers, argv ) {
             console.log( cc.sunny( "REGISTRATION" ) + cc.info( " commands:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "register" ) + cc.debug( "......................" ) + cc.note( "Register" ) + cc.notice( "(perform all steps)" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "register1" ) + cc.debug( "....................." ) + cc.note( "Perform registration step 1" ) + cc.notice( " - register S-Chain on Main-net." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "register2" ) + cc.debug( "....................." ) + cc.note( "Perform registration step 2" ) + cc.notice( " - register S-Chain in deposit box." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "register3" ) + cc.debug( "....................." ) + cc.note( "Perform registration step 3" ) + cc.notice( " - register Main-net deposit box on S-Chain." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration" ) + cc.debug( "............" ) + cc.note( "Registration status check" ) + cc.notice( "(perform all steps)" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration1" ) + cc.debug( "..........." ) + cc.note( "Perform registration status check step 1" ) + cc.notice( " - register S-Chain on Main-net." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration2" ) + cc.debug( "..........." ) + cc.note( "Perform registration status check step 2" ) + cc.notice( " - register S-Chain in deposit box." ) );
@@ -902,8 +900,6 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "register" ||
             joArg.name == "register1" ||
-            joArg.name == "register2" ||
-            joArg.name == "register3" ||
             joArg.name == "check-registration" ||
             joArg.name == "check-registration1" ||
             joArg.name == "check-registration2" ||
