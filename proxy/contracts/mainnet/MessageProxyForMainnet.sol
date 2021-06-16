@@ -279,8 +279,8 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         string calldata fromSchainName,
         uint256 startingCounter,
         Message[] calldata messages,
-        Signature calldata sign,
-        uint256
+        Signature calldata sign //,
+        // uint256
     )
         external
     {

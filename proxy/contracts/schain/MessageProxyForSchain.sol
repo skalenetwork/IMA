@@ -234,8 +234,8 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         string calldata fromChainName,
         uint256 startingCounter,
         Message[] calldata messages,
-        Signature calldata signature,
-        uint256 idxLastToPopNotIncluding
+        Signature calldata signature //,
+        // uint256 idxLastToPopNotIncluding
     )
         external
     {
@@ -250,7 +250,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         }
         connectedChains[fromChainHash].incomingMessageCounter 
             = connectedChains[fromChainHash].incomingMessageCounter.add(uint256(messages.length));
-        _popOutgoingMessageData(fromChainHash, idxLastToPopNotIncluding);
+        // _popOutgoingMessageData(fromChainHash, idxLastToPopNotIncluding);
     }
 
     function moveIncomingCounter(string calldata schainName) external onlyDebugger {
@@ -408,27 +408,27 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         _idxTail[dstChainHash] = _idxTail[dstChainHash].add(1);
     }
 
-    /**
-     * @dev Pop outgoing message from outgoingMessageData array.
-     */
-    function _popOutgoingMessageData(
-        bytes32 chainHash,
-        uint256 idxLastToPopNotIncluding
-    )
-        private
-        returns (uint256 cntDeleted)
-    {
-        cntDeleted = 0;
-        uint idxTail = _idxTail[chainHash];
-        for (uint256 i = _idxHead[chainHash]; i < idxLastToPopNotIncluding; ++ i ) {
-            if (i >= idxTail)
-                break;
-            delete _outgoingMessageDataHash[chainHash][i];
-            ++ cntDeleted;
-        }
-        if (cntDeleted > 0)
-            _idxHead[chainHash] = _idxHead[chainHash].add(cntDeleted);
-    }
+    // /**
+    //  * @dev Pop outgoing message from outgoingMessageData array.
+    //  */
+    // function _popOutgoingMessageData(
+    //     bytes32 chainHash,
+    //     uint256 idxLastToPopNotIncluding
+    // )
+    //     private
+    //     returns (uint256 cntDeleted)
+    // {
+    //     cntDeleted = 0;
+    //     uint idxTail = _idxTail[chainHash];
+    //     for (uint256 i = _idxHead[chainHash]; i < idxLastToPopNotIncluding; ++ i ) {
+    //         if (i >= idxTail)
+    //             break;
+    //         delete _outgoingMessageDataHash[chainHash][i];
+    //         ++ cntDeleted;
+    //     }
+    //     if (cntDeleted > 0)
+    //         _idxHead[chainHash] = _idxHead[chainHash].add(cntDeleted);
+    // }
 
     /**
      * @dev Returns hash of message array.
