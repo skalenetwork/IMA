@@ -255,6 +255,39 @@ describe("DepositBoxERC1155", () => {
                 expect(balanceIds2Number).to.deep.equal(amounts2);
             });
         });
+
+        it("should get funds after kill", async () => {
+            await linker
+                    .connect(deployer)
+                    .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
+            await erc1155.connect(deployer).mint(deployer.address, 4, 100, "0x");
+            await erc1155.connect(deployer).setApprovalForAll(depositBoxERC1155.address, true);
+            await depositBoxERC1155.connect(user).disableWhitelist(schainName);
+            await depositBoxERC1155
+                .connect(deployer)
+                .depositERC1155(schainName, erc1155.address, deployer.address, 4, 50);
+            await depositBoxERC1155.connect(user).getFunds(schainName, erc1155.address, user.address, [4], [50]).should.be.eventually.rejectedWith("Schain is not killed");
+            await linker.connect(deployer).kill(schainName);
+            await linker.connect(user).kill(schainName);
+            await depositBoxERC1155.connect(user).getFunds(schainName, erc1155.address, user.address, [4], [60]).should.be.eventually.rejectedWith("Incorrect amount");
+            await depositBoxERC1155.connect(user).getFunds(schainName, erc1155.address, user.address, [4], [50]);
+            expect(BigNumber.from(await erc1155.balanceOf(user.address, 4)).toString()).to.equal("50");
+        });
+
+        it("should add erc token by schain owner", async () => {
+            const fakeERC1155Contract = deployer.address;
+            await depositBoxERC1155.connect(user).addERC1155TokenByOwner(schainName, fakeERC1155Contract)
+                .should.be.eventually.rejectedWith("Given address is not a contract");
+            await depositBoxERC1155.connect(user).addERC1155TokenByOwner(schainName, erc1155.address);
+            expect(await depositBoxERC1155.getSchainToERC1155(schainName, erc1155.address)).to.be.equal(true);
+        });
+
+        it("should not allow to add token by schain owner if schain killed", async () => {
+            await linker.connect(deployer).kill(schainName);
+            await linker.connect(user).kill(schainName);
+            await depositBoxERC1155.connect(user).addERC1155TokenByOwner(schainName, erc1155.address)
+                .should.be.eventually.rejectedWith("Schain is killed");
+        });
     });
 
     describe("tests for `postMessage` function", async () => {
