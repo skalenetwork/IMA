@@ -365,31 +365,9 @@ describe("MessageProxy", () => {
             incomingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
         });
 
-        it("should move incoming counter", async () => {
-            await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
-            const isConnectedChain = await messageProxyForMainnet.isConnectedChain(schainName);
-            isConnectedChain.should.be.deep.equal(Boolean(true));
-            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.DEBUGGER_ROLE(), deployer.address);
-
-            // chain can't be connected twice:
-            const incomingMessages = BigNumber.from(
-                await messageProxyForMainnet.connect(deployer).getIncomingMessagesCounter(schainName),
-            );
-
-            // main net does not have a public key and is implicitly connected:
-            await messageProxyForMainnet.connect(deployer).incrementIncomingCounter(schainName);
-
-            const newIncomingMessages = BigNumber.from(
-                await messageProxyForMainnet.connect(deployer).getIncomingMessagesCounter(schainName),
-            );
-
-            newIncomingMessages.should.be.deep.equal(BigNumber.from(incomingMessages).add(BigNumber.from(1)));
-        });
-
         it("should get incoming messages counter", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
-            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.DEBUGGER_ROLE(), deployer.address);
 
             const startingCounter = 0;
             const message1 = {
@@ -454,23 +432,11 @@ describe("MessageProxy", () => {
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
-
-            await messageProxyForMainnet.connect(deployer).setCountersToZero(schainName);
-
-            const newIncomingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
-            newIncomingMessagesCounter.should.be.deep.equal(BigNumber.from(0));
-
-            const newOutgoingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName)
-            );
-            newOutgoingMessagesCounter.should.be.deep.equal(BigNumber.from(0));
         });
 
         it("should check gas limit issue", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
-            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.DEBUGGER_ROLE(), deployer.address);
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
 
             const receiverMockFactory = await ethers.getContractFactory("ReceiverGasLimitMainnetMock");
@@ -575,38 +541,6 @@ describe("MessageProxy", () => {
             // main net does not have a public key and is implicitly connected:
             // await messageProxyForSchain.connect(deployer).addConnectedChain("Mainnet")
             // .should.be.rejectedWith("SKALE chain name is incorrect. Inside in MessageProxy");
-        });
-
-        it("should move incoming counter", async () => {
-            await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
-            const isConnectedChain = await messageProxyForSchain.isConnectedChain(schainName);
-            isConnectedChain.should.be.deep.equal(Boolean(true));
-            await messageProxyForSchain.grantRole(await messageProxyForSchain.DEBUGGER_ROLE(), deployer.address);
-
-            // chain can't be connected twice:
-            const incomingMessages = BigNumber.from(
-                await messageProxyForSchain.connect(deployer).getIncomingMessagesCounter(schainName),
-            );
-
-            // main net does not have a public key and is implicitly connected:
-            await messageProxyForSchain.connect(deployer).moveIncomingCounter(schainName);
-
-            const newIncomingMessages = BigNumber.from(
-                await messageProxyForSchain.connect(deployer).getIncomingMessagesCounter(schainName),
-            );
-
-            newIncomingMessages.should.be.deep.equal(BigNumber.from(incomingMessages).add(BigNumber.from(1)));
-
-            await messageProxyForSchain.connect(deployer).setCountersToZero(schainName);
-
-            const newIncomingMessagesCounter = BigNumber.from(
-                await messageProxyForSchain.getIncomingMessagesCounter(schainName));
-            newIncomingMessagesCounter.should.be.deep.equal(BigNumber.from(0));
-
-            const newOutgoingMessagesCounter = BigNumber.from(
-                await messageProxyForSchain.getOutgoingMessagesCounter(schainName)
-            );
-            newOutgoingMessagesCounter.should.be.deep.equal(BigNumber.from(0));
         });
 
         it("should remove connected chain", async () => {
