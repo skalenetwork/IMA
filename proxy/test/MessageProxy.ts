@@ -368,7 +368,6 @@ describe("MessageProxy", () => {
         it("should get incoming messages counter", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
-            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.DEBUGGER_ROLE(), deployer.address);
 
             const startingCounter = 0;
             const message1 = {
@@ -438,7 +437,6 @@ describe("MessageProxy", () => {
         it("should check gas limit issue", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
-            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.DEBUGGER_ROLE(), deployer.address);
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
 
             const receiverMockFactory = await ethers.getContractFactory("ReceiverGasLimitMainnetMock");

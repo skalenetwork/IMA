@@ -87,7 +87,6 @@ contract MessageProxyForMainnet is SkaleManagerClient {
 
     bytes32 public constant MAINNET_HASH = keccak256(abi.encodePacked("Mainnet"));
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
-    bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
@@ -99,11 +98,6 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     uint256 public headerMessageGasCost;
     uint256 public messageGasCost;
     uint256 public gasLimit;
-
-    modifier onlyDebugger() {
-        require(hasRole(DEBUGGER_ROLE, msg.sender), "Access denied");
-        _;
-    }
 
     modifier onlyConstantSetter() {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
