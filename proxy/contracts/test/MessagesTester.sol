@@ -75,4 +75,54 @@ contract MessagesTester {
     ) external pure returns (bytes memory) {
         return Messages.encodeTransferErc721AndTokenInfoMessage(token, receiver, tokenId, tokenInfo);
     }
+
+    function encodeActivateUserMessage(address receiver) external pure returns (bytes memory) {
+        return Messages.encodeActivateUserMessage(receiver);
+    }
+
+    function encodeLockUserMessage(address receiver) external pure returns (bytes memory) {
+        return Messages.encodeLockUserMessage(receiver);
+    }
+
+    function encodeInterchainConnectionMessage(bool isAllowed) external pure returns (bytes memory) {
+        return Messages.encodeInterchainConnectionMessage(isAllowed);
+    }
+
+    function encodeTransferErc1155Message(
+        address token,
+        address receiver,
+        uint256 id,
+        uint256 amount
+    ) external pure returns (bytes memory) {
+        return Messages.encodeTransferErc1155Message(token, receiver, id, amount);
+    }
+
+    function encodeTransferErc1155AndTokenInfoMessage(
+        address token,
+        address receiver,
+        uint256 id,
+        uint256 amount,
+        Messages.Erc1155TokenInfo memory tokenInfo
+    ) external pure returns (bytes memory) {
+        return Messages.encodeTransferErc1155AndTokenInfoMessage(token, receiver, id, amount, tokenInfo);
+    }
+
+    function encodeTransferErc1155BatchMessage(
+        address token,
+        address receiver,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) external pure returns (bytes memory) {
+        return Messages.encodeTransferErc1155BatchMessage(token, receiver, ids, amounts);
+    }
+
+    function encodeTransferErc1155BatchAndTokenInfoMessage(
+        address token,
+        address receiver,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        Messages.Erc1155TokenInfo memory tokenInfo
+    ) external pure returns (bytes memory) {
+        return Messages.encodeTransferErc1155BatchAndTokenInfoMessage(token, receiver, ids, amounts, tokenInfo);
+    }
 }

@@ -24,23 +24,13 @@ pragma experimental ABIEncoderV2;
 
 import "./bls/FieldOperations.sol";
 import "./bls/SkaleVerifier.sol";
-import "./SkaleFeaturesClient.sol";
+import "./KeyStorage.sol";
+import "../interfaces/IMessageReceiver.sol";
 
 
-interface IContractReceiverForSchain {
-    function postMessage(
-        string calldata schainID,
-        address sender,
-        bytes calldata data
-    )
-        external
-        returns (bool);
-}
+contract MessageProxyForSchain is AccessControlUpgradeable {
 
-
-contract MessageProxyForSchain is SkaleFeaturesClient {
-
-    using SafeMath for uint;
+    using SafeMathUpgradeable for uint;
 
     /**
      * 16 Agents
@@ -57,7 +47,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
      */
 
     struct OutgoingMessageData {
-        string dstChain;
+        bytes32 dstChain;
         uint256 msgCounter;
         address srcContract;
         address dstContract;
@@ -84,18 +74,24 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         uint256 counter;
     }
 
-    bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
+    bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
+    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
-    bool public mainnetConnected;
+    KeyStorage public keyStorage;
+    bytes32 public schainHash;
 
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
-    //      chainID  =>      message_id  => MessageData
+    //      schainHash  =>      message_id  => MessageData
     mapping(bytes32 => mapping(uint256 => bytes32)) private _outgoingMessageDataHash;
-    //      chainID  => head of unprocessed messages
+    //      schainHash  => head of unprocessed messages
     mapping(bytes32 => uint) private _idxHead;
-    //      chainID  => tail of unprocessed messages
+    //      schainHash  => tail of unprocessed messages
     mapping(bytes32 => uint) private _idxTail;
+    //   schainHash => contract address => allowed
+    mapping(bytes32 => mapping(address => bool)) public registryContracts;
+
+    uint256 public gasLimit;
 
     event OutgoingMessage(
         bytes32 indexed dstChainHash,
@@ -110,60 +106,57 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         bytes message
     );
 
-    modifier connectMainnet() {
-        if (!mainnetConnected) {
-            connectedChains[
-                keccak256(abi.encodePacked("Mainnet"))
-            ] = ConnectedChainInfo(
-                0,
-                0,
-                true
-            );
-            mainnetConnected = true;
-        }
-        _;
-    }
-
-    modifier onlyDebugger() {
-        require(hasRole(DEBUGGER_ROLE, msg.sender), "DEBUGGER_ROLE is required");
-        _;
-    }
-
     modifier onlyChainConnector() {
         require(hasRole(CHAIN_CONNECTOR_ROLE, msg.sender), "CHAIN_CONNECTOR_ROLE is required");
         _;
     }
 
-    /// Create a new message proxy
-
-    constructor(string memory newChainID) public {
-        if (keccak256(abi.encodePacked(newChainID)) !=
-            keccak256(abi.encodePacked("Mainnet"))
-        ) {
-            connectedChains[
-                keccak256(abi.encodePacked("Mainnet"))
-            ] = ConnectedChainInfo(
-                0,
-                0,
-                true
-            );
-            mainnetConnected = true;
-        }
+    function initialize(KeyStorage blsKeyStorage, string memory schainName)
+        public
+        virtual
+        initializer
+    {
+        AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        keyStorage = blsKeyStorage;
+        connectedChains[
+            keccak256(abi.encodePacked("Mainnet"))
+        ] = ConnectedChainInfo(
+            0,
+            0,
+            true
+        );
+	    schainHash = keccak256(abi.encodePacked(schainName));
+        gasLimit = 3000000;
+
+        // In predeployed mode all token managers and community locker
+        // will be added to registryContracts
     }
 
     // Registration state detection
     function isConnectedChain(
-        string calldata someChainID
+        string calldata schainName
     )
         external
         view
         returns (bool)
     {
-        if (! connectedChains[keccak256(abi.encodePacked(someChainID))].inited) {
-            return false;
-        }
-        return true;
+        return connectedChains[keccak256(abi.encodePacked(schainName))].inited;
+    }
+
+    /**
+     * @dev Checks whether contract is currently connected to
+     * send messages to chain or receive messages from chain.
+     */
+    function isContractRegistered(
+        string calldata schainName,
+        address contractAddress
+    )
+        external
+        view
+        returns (bool)
+    {
+        return registryContracts[keccak256(abi.encodePacked(schainName))][contractAddress];
     }
 
     /**
@@ -173,57 +166,57 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
      * To connect to other chains, the owner needs to explicitly call this function
      */
     function addConnectedChain(
-        string calldata newChainID
+        string calldata chainName
     )
         external
-        connectMainnet
         onlyChainConnector
     {
-        if (keccak256(abi.encodePacked(newChainID)) ==
-            keccak256(abi.encodePacked("Mainnet")))
-            return;
+        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
+        require(chainHash != schainHash, "Schain cannot connect itself");
         require(
-            !connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
+            !connectedChains[chainHash].inited,
             "Chain is already connected"
         );
-        connectedChains[
-            keccak256(abi.encodePacked(newChainID))
-        ] = ConnectedChainInfo({
+        connectedChains[chainHash] = ConnectedChainInfo({
             incomingMessageCounter: 0,
             outgoingMessageCounter: 0,
             inited: true
         });
     }
 
-    function removeConnectedChain(string calldata newChainID) external onlyChainConnector {
+    function removeConnectedChain(string calldata schainName) external onlyChainConnector {
+        bytes32 chainHash = keccak256(abi.encodePacked(schainName));
         require(
-            keccak256(abi.encodePacked(newChainID)) !=
-            keccak256(abi.encodePacked("Mainnet")),
-            "New chain id can not be equal Mainnet"
+            chainHash != keccak256(abi.encodePacked("Mainnet")),
+            "New chain hash cannot be equal to Mainnet"
         );
         require(
-            connectedChains[keccak256(abi.encodePacked(newChainID))].inited,
+            connectedChains[chainHash].inited,
             "Chain is not initialized"
         );
-        delete connectedChains[keccak256(abi.encodePacked(newChainID))];
+        delete connectedChains[chainHash];
     }
 
     // This is called by a smart contract that wants to make a cross-chain call
     function postOutgoingMessage(
-        string calldata dstChainID,
+        bytes32 targetChainHash,
         address dstContract,
         bytes calldata data
     )
         external
     {
-        bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
-        require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
-        connectedChains[dstChainHash].outgoingMessageCounter
-            = connectedChains[dstChainHash].outgoingMessageCounter.add(1);
+        require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
+        require(
+            registryContracts[bytes32(0)][msg.sender] || 
+            registryContracts[targetChainHash][msg.sender],
+            "Sender contract is not registered"
+        );
+        connectedChains[targetChainHash].outgoingMessageCounter
+            = connectedChains[targetChainHash].outgoingMessageCounter.add(1);
         _pushOutgoingMessageData(
             OutgoingMessageData(
-                dstChainID,
-                connectedChains[dstChainHash].outgoingMessageCounter - 1,
+                targetChainHash,
+                connectedChains[targetChainHash].outgoingMessageCounter - 1,
                 msg.sender,
                 dstContract,
                 data
@@ -231,12 +224,89 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         );
     }
 
-    function getOutgoingMessagesCounter(string calldata dstChainID)
+    function postIncomingMessages(
+        string calldata fromChainName,
+        uint256 startingCounter,
+        Message[] calldata messages,
+        Signature calldata signature //,
+        // uint256 idxLastToPopNotIncluding
+    )
+        external
+    {
+        bytes32 fromChainHash = keccak256(abi.encodePacked(fromChainName));
+        require(_verifyMessages(_hashedArray(messages), signature), "Signature is not verified");
+        require(connectedChains[fromChainHash].inited, "Chain is not initialized");
+        require(
+            startingCounter == connectedChains[fromChainHash].incomingMessageCounter,
+            "Starting counter is not qual to incoming message counter");
+        for (uint256 i = 0; i < messages.length; i++) {
+            _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
+        }
+        connectedChains[fromChainHash].incomingMessageCounter 
+            = connectedChains[fromChainHash].incomingMessageCounter.add(uint256(messages.length));
+        // _popOutgoingMessageData(fromChainHash, idxLastToPopNotIncluding);
+    }
+
+    /**
+     * @dev Sets gasLimit to new value
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
+     */
+    function setNewGasLimit(uint256 newGasLimit) external {
+        require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
+        gasLimit = newGasLimit;
+    }
+
+    function registerExtraContract(string calldata schainName, address contractOnSchain) external {
+        bytes32 chainHash = keccak256(abi.encodePacked(schainName));
+        require(
+            hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
+            "Not enough permissions to register extra contract"
+        );
+        require(contractOnSchain.isContract(), "Given address is not a contract");
+        require(!registryContracts[chainHash][contractOnSchain], "Extra contract is already registered");
+        registryContracts[chainHash][contractOnSchain] = true;
+    }
+
+    function registerExtraContractForAll(address contractOnSchain) external {
+        require(
+            hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
+            "Not enough permissions to register extra contract for all chains"
+        );
+        require(contractOnSchain.isContract(), "Given address is not a contract");
+        require(!registryContracts[bytes32(0)][contractOnSchain], "Extra contract is already registered");
+        registryContracts[bytes32(0)][contractOnSchain] = true;
+    }
+
+    function removeExtraContract(string calldata schainName, address contractOnSchain) external {
+        bytes32 chainHash = keccak256(abi.encodePacked(schainName));
+        require(
+            hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
+            "Not enough permissions to remove extra contract"
+        );
+        require(contractOnSchain.isContract(),"Given address is not a contract");
+        require(registryContracts[chainHash][contractOnSchain], "Extra contract is already removed");
+        delete registryContracts[chainHash][contractOnSchain];
+    }
+
+    function removeExtraContractForAll(address contractOnSchain) external {
+        require(
+            hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender),
+            "Not enough permissions to remove extra contract for all chains"
+        );
+        require(contractOnSchain.isContract(),"Given address is not a contract");
+        require(registryContracts[bytes32(0)][contractOnSchain], "Extra contract is already removed");
+        delete registryContracts[bytes32(0)][contractOnSchain];
+    }
+
+    function getOutgoingMessagesCounter(string calldata targetSchainName)
         external
         view
         returns (uint256)
     {
-        bytes32 dstChainHash = keccak256(abi.encodePacked(dstChainID));
+        bytes32 dstChainHash = keccak256(abi.encodePacked(targetSchainName));
 
         if (!connectedChains[dstChainHash].inited)
             return 0;
@@ -244,51 +314,17 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         return connectedChains[dstChainHash].outgoingMessageCounter;
     }
 
-    function getIncomingMessagesCounter(string calldata srcChainID)
+    function getIncomingMessagesCounter(string calldata fromSchainName)
         external
         view
         returns (uint256)
     {
-        bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
+        bytes32 srcChainHash = keccak256(abi.encodePacked(fromSchainName));
 
         if (!connectedChains[srcChainHash].inited)
             return 0;
 
         return connectedChains[srcChainHash].incomingMessageCounter;
-    }
-
-    function postIncomingMessages(
-        string calldata srcChainID,
-        uint256 startingCounter,
-        Message[] calldata messages,
-        Signature calldata signature,
-        uint256 idxLastToPopNotIncluding
-    )
-        external
-        connectMainnet
-    {
-        bytes32 srcChainHash = keccak256(abi.encodePacked(srcChainID));
-        require(_verifyMessages(_hashedArray(messages), signature), "Signature is not verified");
-        require(connectedChains[srcChainHash].inited, "Chain is not initialized");
-        require(
-            startingCounter == connectedChains[srcChainHash].incomingMessageCounter,
-            "Starting counter is not qual to incoming message counter");
-        for (uint256 i = 0; i < messages.length; i++) {
-            _callReceiverContract(srcChainID, messages[i], startingCounter + 1);
-        }
-        connectedChains[srcChainHash].incomingMessageCounter 
-            = connectedChains[srcChainHash].incomingMessageCounter.add(uint256(messages.length));
-        _popOutgoingMessageData(srcChainHash, idxLastToPopNotIncluding);
-    }
-
-    function moveIncomingCounter(string calldata schainName) external onlyDebugger {
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter =
-            connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
-    }
-
-    function setCountersToZero(string calldata schainName) external onlyDebugger {
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
-        connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
     function verifyOutgoingMessageData(
@@ -298,44 +334,43 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         view
         returns (bool isValidMessage)
     {
-        bytes32 chainId = keccak256(abi.encodePacked(message.dstChain));
-        bytes32 messageDataHash = _outgoingMessageDataHash[chainId][message.msgCounter];
+        bytes32 messageDataHash = _outgoingMessageDataHash[message.dstChain][message.msgCounter];
         if (messageDataHash == _hashOfMessage(message))
             isValidMessage = true;
     }
 
     function _callReceiverContract(
-        string memory srcChainID,
+        bytes32 fromChainHash,
         Message calldata message,
         uint counter
     )
         private
-        returns (bool)
+        returns (address)
     {
-        try IContractReceiverForSchain(message.destinationContract).postMessage(
-            srcChainID,
+        try IMessageReceiver(message.destinationContract).postMessage{gas: gasLimit}(
+            fromChainHash,
             message.sender,
             message.data
-        ) returns (bool success) {
-            return success;
+        ) returns (address receiver) {
+            return receiver;
         } catch Error(string memory reason) {
             emit PostMessageError(
                 counter,
                 bytes(reason)
             );
-            return false;
+            return address(0);
         } catch (bytes memory revertData) {
             emit PostMessageError(
                 counter,
                 revertData
             );
-            return false;
+            return address(0);
         }
     }
 
     function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
         bytes memory data = abi.encodePacked(
-            bytes32(keccak256(abi.encodePacked(message.dstChain))),
+            message.dstChain,
             bytes32(message.msgCounter),
             bytes32(bytes20(message.srcContract)),
             bytes32(bytes20(message.dstContract)),
@@ -345,7 +380,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
     }
 
     function _pushOutgoingMessageData(OutgoingMessageData memory d) private {
-        bytes32 dstChainHash = keccak256(abi.encodePacked(d.dstChain));
+        bytes32 dstChainHash = d.dstChain;
         emit OutgoingMessage(
             dstChainHash,
             d.msgCounter,
@@ -357,27 +392,27 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
         _idxTail[dstChainHash] = _idxTail[dstChainHash].add(1);
     }
 
-    /**
-     * @dev Pop outgoing message from outgoingMessageData array.
-     */
-    function _popOutgoingMessageData(
-        bytes32 chainId,
-        uint256 idxLastToPopNotIncluding
-    )
-        private
-        returns (uint256 cntDeleted)
-    {
-        cntDeleted = 0;
-        uint idxTail = _idxTail[chainId];
-        for (uint256 i = _idxHead[chainId]; i < idxLastToPopNotIncluding; ++ i ) {
-            if (i >= idxTail)
-                break;
-            delete _outgoingMessageDataHash[chainId][i];
-            ++ cntDeleted;
-        }
-        if (cntDeleted > 0)
-            _idxHead[chainId] = _idxHead[chainId].add(cntDeleted);
-    }
+    // /**
+    //  * @dev Pop outgoing message from outgoingMessageData array.
+    //  */
+    // function _popOutgoingMessageData(
+    //     bytes32 chainHash,
+    //     uint256 idxLastToPopNotIncluding
+    // )
+    //     private
+    //     returns (uint256 cntDeleted)
+    // {
+    //     cntDeleted = 0;
+    //     uint idxTail = _idxTail[chainHash];
+    //     for (uint256 i = _idxHead[chainHash]; i < idxLastToPopNotIncluding; ++ i ) {
+    //         if (i >= idxTail)
+    //             break;
+    //         delete _outgoingMessageDataHash[chainHash][i];
+    //         ++ cntDeleted;
+    //     }
+    //     if (cntDeleted > 0)
+    //         _idxHead[chainHash] = _idxHead[chainHash].add(cntDeleted);
+    // }
 
     /**
      * @dev Returns hash of message array.
@@ -418,21 +453,7 @@ contract MessageProxyForSchain is SkaleFeaturesClient {
             signature.counter,
             signature.hashA,
             signature.hashB,
-            _getBlsCommonPublicKey()
+            keyStorage.getBlsCommonPublicKey()
         );
-    }
-
-    function _getBlsCommonPublicKey() private view returns (G2Operations.G2Point memory) {
-        SkaleFeatures skaleFeature = getSkaleFeatures();
-        return G2Operations.G2Point({
-            x: Fp2Operations.Fp2Point({
-                a: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey0"),
-                b: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey1")
-            }),
-            y: Fp2Operations.Fp2Point({
-                a: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey2"),
-                b: skaleFeature.getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey3")
-            })
-        });
     }
 }

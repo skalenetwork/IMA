@@ -20,13 +20,15 @@
  */
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
-import "../interfaces/IDepositBox.sol";
+import "../interfaces/IMainnetContract.sol";
+import "../Messages.sol";
+import "./Twin.sol";
 
 import "./MessageProxyForMainnet.sol";
 
@@ -36,60 +38,109 @@ import "./MessageProxyForMainnet.sol";
  * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
  * balances of ETH tokens received through DepositBox.
  */
-contract Linker is AccessControlUpgradeable {
+contract Linker is Twin {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     using SafeMathUpgradeable for uint;
 
-    bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
+    enum KillProcess {Active, PartiallyKilledBySchainOwner, PartiallyKilledByContractOwner, Killed}
+    EnumerableSetUpgradeable.AddressSet private _mainnetContracts;
 
-    EnumerableSetUpgradeable.AddressSet private _depositBoxes;
-    MessageProxyForMainnet public messageProxy;
+    mapping(bytes32 => bool) public interchainConnections;
+    mapping(bytes32 => KillProcess) public statuses;
 
     modifier onlyLinker() {
         require(hasRole(LINKER_ROLE, msg.sender), "Linker role is required");
         _;
     }
 
-    function registerDepositBox(address newDepositBoxAddress) external onlyLinker {
-        _depositBoxes.add(newDepositBoxAddress);
+    function registerMainnetContract(address newMainnetContract) external onlyLinker {
+        _mainnetContracts.add(newMainnetContract);
     }
 
-    function removeDepositBox(address depositBoxAddress) external onlyLinker {
-        _depositBoxes.remove(depositBoxAddress);
+    function removeMainnetContract(address mainnetContract) external onlyLinker {
+        _mainnetContracts.remove(mainnetContract);
     }
 
-    function connectSchain(string calldata schainName, address[] calldata tokenManagerAddresses) external onlyLinker {
-        require(tokenManagerAddresses.length == _depositBoxes.length(), "Incorrect number of addresses");
-        for (uint i = 0; i < tokenManagerAddresses.length; i++) {
-            IDepositBox(_depositBoxes.at(i)).addTokenManager(schainName, tokenManagerAddresses[i]);
+    function connectSchain(string calldata schainName, address[] calldata schainContracts) external onlyLinker {
+        require(schainContracts.length == _mainnetContracts.length(), "Incorrect number of addresses");
+        for (uint i = 0; i < schainContracts.length; i++) {
+            IMainnetContract(_mainnetContracts.at(i)).addSchainContract(schainName, schainContracts[i]);
         }
         messageProxy.addConnectedChain(schainName);
     }
 
-    function unconnectSchain(string calldata schainName) external onlyLinker {
-        uint length = _depositBoxes.length();
+    function allowInterchainConnections(string calldata schainName) external onlySchainOwner(schainName) {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(statuses[schainHash] == KillProcess.Active, "Schain is in kill process");
+        interchainConnections[schainHash] = true;
+        messageProxy.postOutgoingMessage(
+            schainHash,
+            schainLinks[schainHash],
+            Messages.encodeInterchainConnectionMessage(true)
+        );
+    }
+
+    function kill(string calldata schainName) external {
+        require(!interchainConnections[keccak256(abi.encodePacked(schainName))], "Interchain connections turned on");
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        if (statuses[schainHash] == KillProcess.Active) {
+            if (hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
+                statuses[schainHash] = KillProcess.PartiallyKilledByContractOwner;
+            } else if (isSchainOwner(msg.sender, schainHash)) {
+                statuses[schainHash] = KillProcess.PartiallyKilledBySchainOwner;
+            } else {
+                revert("Not allowed");
+            }
+        } else if (
+            (
+                statuses[schainHash] == KillProcess.PartiallyKilledBySchainOwner &&
+                hasRole(DEFAULT_ADMIN_ROLE, msg.sender)
+            ) || (
+                statuses[schainHash] == KillProcess.PartiallyKilledByContractOwner &&
+                isSchainOwner(msg.sender, schainHash)
+            )
+        ) {
+            statuses[schainHash] = KillProcess.Killed;
+        } else {
+            revert("Already killed or incorrect sender");
+        }
+    }
+
+    function disconnectSchain(string calldata schainName) external onlyLinker {
+        uint length = _mainnetContracts.length();
         for (uint i = 0; i < length; i++) {
-            IDepositBox(_depositBoxes.at(i)).removeTokenManager(schainName);
+            IMainnetContract(_mainnetContracts.at(i)).removeSchainContract(schainName);
         }
         messageProxy.removeConnectedChain(schainName);
     }
 
-    function hasDepositBox(address depositBoxAddress) external view returns (bool) {
-        return _depositBoxes.contains(depositBoxAddress);
+    function isNotKilled(bytes32 schainHash) external view returns (bool) {
+        return statuses[schainHash] != KillProcess.Killed;
+    }
+
+    function hasMainnetContract(address mainnetContract) external view returns (bool) {
+        return _mainnetContracts.contains(mainnetContract);
     }
 
     function hasSchain(string calldata schainName) external view returns (bool connected) {
-        uint length = _depositBoxes.length();
+        uint length = _mainnetContracts.length();
         connected = messageProxy.isConnectedChain(schainName);
         for (uint i = 0; connected && i < length; i++) {
-            connected = connected && IDepositBox(_depositBoxes.at(i)).hasTokenManager(schainName);
+            connected = connected && IMainnetContract(_mainnetContracts.at(i)).hasSchainContract(schainName);
         }
     }
 
-    function initialize(address messageProxyAddress) public initializer {
-        AccessControlUpgradeable.__AccessControl_init();
+    function initialize(
+        IContractManager contractManagerOfSkaleManager,
+        MessageProxyForMainnet messageProxy
+    )
+        public
+        override
+        initializer
+    {
+        Twin.initialize(contractManagerOfSkaleManager, messageProxy);
         _setupRole(LINKER_ROLE, msg.sender);
-        messageProxy = MessageProxyForMainnet(messageProxyAddress);
+        _setupRole(LINKER_ROLE, address(this));
     }
 }

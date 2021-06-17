@@ -30,6 +30,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 // const url = require( "url" );
 // const os = require( "os" );
 const ws = require( "ws" ); // https://www.npmjs.com/package/ws
+const { cc } = require( "../npms/skale-ima" );
 global.IMA = require( "../npms/skale-ima" );
 global.w3mod = IMA.w3mod;
 global.ethereumjs_tx = IMA.ethereumjs_tx;
@@ -78,6 +79,12 @@ global.imaState = {
     "strCoinNameErc721_main_net": "", // in-JSON coin name
     "strCoinNameErc721_s_chain": "", // in-JSON coin name
 
+    "joErc1155_main_net": null,
+    "joErc1155_s_chain": null,
+    "strAddrErc1155_explicit": "",
+    "strCoinNameErc1155_main_net": "", // in-JSON coin name
+    "strCoinNameErc1155_s_chain": "", // in-JSON coin name
+
     "strPathAbiJson_main_net": imaUtils.normalizePath( "../proxy/data/proxyMainnet.json" ), // "./abi_main_net.json"
     "strPathAbiJson_s_chain": imaUtils.normalizePath( "../proxy/data/proxySchain.json" ), // "./abi_s_chain.json"
 
@@ -90,8 +97,8 @@ global.imaState = {
     "strURL_main_net": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ), // example: "http://127.0.0.1:8545"
     "strURL_s_chain": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ), // example: "http://127.0.0.1:2231"
 
-    "strChainID_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
-    "strChainID_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
+    "strChainName_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
+    "strChainName_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
     "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
     "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
 
@@ -100,6 +107,9 @@ global.imaState = {
 
     "strPathJsonErc721_main_net": "",
     "strPathJsonErc721_s_chain": "",
+
+    "strPathJsonErc1155_main_net": "",
+    "strPathJsonErc1155_s_chain": "",
 
     "nAmountOfWei": 0,
     "nAmountOfToken": 0,
@@ -126,13 +136,17 @@ global.imaState = {
     "w3_main_net": null,
     "w3_s_chain": null,
 
+    "jo_community_pool": null, // only main net
     "jo_deposit_box_eth": null, // only main net
     "jo_deposit_box_erc20": null, // only main net
     "jo_deposit_box_erc721": null, // only main net
+    "jo_deposit_box_erc1155": null, // only main net
     "jo_linker": null, // only main net
     "jo_token_manager_eth": null, // only s-chain
     "jo_token_manager_erc20": null, // only s-chain
     "jo_token_manager_erc721": null, // only s-chain
+    "jo_token_manager_erc1155": null, // only s-chain
+    "jo_community_locker": null, // only s-chain
     "jo_message_proxy_main_net": null,
     "jo_message_proxy_s_chain": null,
     "jo_token_manager_linker": null,
@@ -155,6 +169,7 @@ global.imaState = {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
         "address": IMA.owaspUtils.fn_address_impl_,
         "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
+        "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_ETHEREUM ) || 5,
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_ETHEREUM || "" ).toString().trim(),
@@ -164,6 +179,7 @@ global.imaState = {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
         "address": IMA.owaspUtils.fn_address_impl_,
         "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
+        "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN ) || 5,
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
@@ -186,6 +202,12 @@ global.imaState = {
     },
 
     "nMonitoringPort": 0, // 0 - default, means monitoring server is disabled
+
+    "strReimbursementChain": "",
+    "isShowReimbursementBalance": false,
+    "nReimbursementRecharge": 0,
+    "nReimbursementWithdraw": 0,
+    "nReimbursementRange": -1, // < 0 - do not change anything
 
     "arrActions": [] // array of actions to run
 };
@@ -225,16 +247,6 @@ imaCLI.parse( {
             }
         } );
     },
-    // "register2": function() {
-    //     imaState.arrActions.push( {
-    //         "name": "Registration step 2, register Main-net deposit box on S-Chain",
-    //         "fn": async function() {
-    //             if( ! imaState.bNoWaitSChainStarted )
-    //                 await wait_until_s_chain_started(); // register_step2
-    //             return await register_step2( true );
-    //         }
-    //     } );
-    // },
     "check-registration": function() {
         imaState.arrActions.push( {
             "name": "Full registration status check(all steps)",
@@ -274,6 +286,200 @@ imaCLI.parse( {
     //         }
     //     } );
     // },
+    "show-balance": function() {
+        imaState.arrActions.push( {
+            "name": "show balance",
+            "fn": async function() {
+                const arrBalancesMN = [], arrBalancesSC = [];
+                arrBalancesMN.push( {
+                    assetName: "RealETH",
+                    balance: await IMA.balanceETH(
+                        true, // isMainNet
+                        imaState.w3_main_net,
+                        imaState.cid_main_net,
+                        imaState.joAccount_main_net
+                    )
+                } );
+                arrBalancesMN.push( {
+                    assetName: "CanReceiveETH",
+                    balance: await IMA.view_eth_payment_from_s_chain_on_main_net(
+                        imaState.w3_main_net,
+                        imaState.joAccount_main_net,
+                        imaState.jo_deposit_box_eth
+                    )
+                } );
+                arrBalancesSC.push( {
+                    assetName: "RealETH",
+                    assetAddress: imaState.eth_erc20.options.address,
+                    balance: await IMA.balanceETH(
+                        false, // isMainNet
+                        imaState.w3_s_chain,
+                        imaState.cid_s_chain,
+                        imaState.joAccount_s_chain,
+                        imaState.eth_erc20
+                    )
+                } );
+                arrBalancesSC.push( {
+                    assetName: "FakeETH",
+                    balance: await IMA.balanceETH(
+                        true, // isMainNet here is true, but we do call S-Chain
+                        imaState.w3_s_chain,
+                        imaState.cid_s_chain,
+                        imaState.joAccount_s_chain
+                    )
+                } );
+                if( imaState.strCoinNameErc20_main_net.length > 0 ) {
+                    arrBalancesMN.push( {
+                        assetName: "ERC20",
+                        assetAddress: imaState.joErc20_main_net[imaState.strCoinNameErc20_main_net + "_address"],
+                        balance: await IMA.balanceERC20(
+                            true, // isMainNet
+                            imaState.w3_main_net,
+                            imaState.cid_main_net,
+                            imaState.joAccount_main_net,
+                            imaState.strCoinNameErc20_main_net,
+                            imaState.joErc20_main_net
+                        )
+                    } );
+                }
+                if( imaState.strCoinNameErc20_s_chain.length > 0 ) {
+                    arrBalancesSC.push( {
+                        assetName: "ERC20",
+                        assetAddress: imaState.joErc20_s_chain[imaState.strCoinNameErc20_main_net + "_address"],
+                        balance: await IMA.balanceERC20(
+                            false, // isMainNet
+                            imaState.w3_s_chain,
+                            imaState.cid_s_chain,
+                            imaState.joAccount_s_chain,
+                            imaState.strCoinNameErc20_s_chain,
+                            imaState.joErc20_s_chain
+                        )
+                    } );
+                }
+                const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
+                if( imaState.have_idToken )
+                    idTokens.push( imaState.idToken );
+                if( idTokens.length > 0 ) {
+                    if( imaState.strCoinNameErc721_main_net.length > 0 ) {
+                        for( let i = 0; i < idTokens.length; ++ i ) {
+                            const idToken = idTokens[i];
+                            arrBalancesMN.push( {
+                                assetName: "ERC721",
+                                assetAddress: imaState.joErc721_main_net[imaState.strCoinNameErc721_main_net + "_address"],
+                                idToken: idToken,
+                                owner: await IMA.ownerOfERC721(
+                                    true, // isMainNet
+                                    imaState.w3_main_net,
+                                    imaState.cid_main_net,
+                                    imaState.joAccount_main_net,
+                                    imaState.strCoinNameErc721_main_net,
+                                    imaState.joErc721_main_net,
+                                    idToken
+                                )
+                            } );
+                        }
+                    }
+                    if( imaState.strCoinNameErc721_s_chain.length > 0 ) {
+                        for( let i = 0; i < idTokens.length; ++ i ) {
+                            const idToken = idTokens[i];
+                            arrBalancesSC.push( {
+                                assetName: "ERC721",
+                                assetAddress: imaState.joErc721_s_chain[imaState.strCoinNameErc721_s_chain + "_address"],
+                                idToken: idToken,
+                                owner: await IMA.ownerOfERC721(
+                                    false, // isMainNet
+                                    imaState.w3_s_chain,
+                                    imaState.cid_s_chain,
+                                    imaState.joAccount_s_chain,
+                                    imaState.strCoinNameErc721_s_chain,
+                                    imaState.joErc721_s_chain,
+                                    idToken
+                                )
+                            } );
+                        }
+                    }
+                    if( imaState.strCoinNameErc1155_main_net.length > 0 ) {
+                        for( let i = 0; i < idTokens.length; ++ i ) {
+                            const idToken = idTokens[i];
+                            arrBalancesMN.push( {
+                                assetName: "ERC1155",
+                                assetAddress: imaState.joErc1155_main_net[imaState.strCoinNameErc1155_main_net + "_address"],
+                                idToken: idToken,
+                                balance: await IMA.balanceERC1155(
+                                    true, // isMainNet
+                                    imaState.w3_main_net,
+                                    imaState.cid_main_net,
+                                    imaState.joAccount_main_net,
+                                    imaState.strCoinNameErc1155_main_net,
+                                    imaState.joErc1155_main_net,
+                                    idToken
+                                )
+                            } );
+                        }
+                    }
+                    if( imaState.strCoinNameErc1155_s_chain.length > 0 ) {
+                        for( let i = 0; i < idTokens.length; ++ i ) {
+                            const idToken = idTokens[i];
+                            arrBalancesSC.push( {
+                                assetName: "ERC1155",
+                                assetAddress: imaState.joErc1155_s_chain[imaState.strCoinNameErc1155_s_chain + "_address"],
+                                idToken: idToken,
+                                balance: await IMA.balanceERC1155(
+                                    false, // isMainNet
+                                    imaState.w3_s_chain,
+                                    imaState.cid_s_chain,
+                                    imaState.joAccount_s_chain,
+                                    imaState.strCoinNameErc1155_s_chain,
+                                    imaState.joErc1155_s_chain,
+                                    idToken
+                                )
+                            } );
+                        }
+                    }
+                } // if( idTokens.length > 0 )
+                const format_balance_info = function( bi, strAddress ) {
+                    let s = "";
+                    s += cc.attention( bi.assetName );
+                    if( "assetAddress" in bi && typeof bi.assetAddress == "string" && bi.assetAddress.length > 0 )
+                        s += cc.normal( "/" ) + cc.notice( bi.assetAddress );
+                    if( "idToken" in bi )
+                        s += cc.normal( " token ID " ) + cc.notice( bi.idToken );
+                    s += cc.normal( ( bi.assetName == "ERC721" ) ? " owner is " : " balance is " );
+                    s += ( bi.assetName == "ERC721" ) ? cc.bright( bi.owner ) : cc.sunny( bi.balance );
+                    if( bi.assetName == "ERC721" ) {
+                        const isSame = ( bi.owner.trim().toLowerCase() == strAddress.trim().toLowerCase() );
+                        s += " " + ( isSame ? cc.success( "same" ) : cc.error( "different" ) );
+                    }
+                    return s;
+                };
+                if( arrBalancesMN.length > 0 || arrBalancesSC.length > 0 ) {
+                    if( arrBalancesMN.length > 0 ) {
+                        const strAddress = imaState.joAccount_main_net.address( imaState.w3_main_net );
+                        log.write( cc.sunny( "Main Net" ) + " " +
+                            cc.bright( arrBalancesMN.length > 1 ? "balances" : "balance" ) +
+                            cc.bright( " of " ) + cc.notice( strAddress ) +
+                            cc.bright( ":" ) + "\n" );
+                        for( let i = 0; i < arrBalancesMN.length; ++ i ) {
+                            const bi = arrBalancesMN[i];
+                            log.write( "    " + format_balance_info( bi, strAddress ) + "\n" );
+                        }
+                    }
+                    if( arrBalancesSC.length > 0 ) {
+                        const strAddress = imaState.joAccount_s_chain.address( imaState.w3_s_chain );
+                        log.write( cc.sunny( "S-Chain" ) + " " +
+                            cc.bright( arrBalancesMN.length > 1 ? "balances" : "balance" ) +
+                            cc.bright( " of " ) + cc.notice( strAddress ) +
+                            cc.bright( ":" ) + "\n" );
+                        for( let i = 0; i < arrBalancesSC.length; ++ i ) {
+                            const bi = arrBalancesSC[i];
+                            log.write( "    " + format_balance_info( bi, strAddress ) + "\n" );
+                        }
+                    }
+                } else
+                    log.write( cc.warning( "No balances to scan." ) );
+            }
+        } );
+    },
     "m2s-payment": function() {
         imaState.arrActions.push( {
             "name": "one M->S single payment",
@@ -292,7 +498,7 @@ imaCLI.parse( {
                         imaState.joAccount_s_chain,
                         imaState.jo_deposit_box_erc721, // only main net
                         imaState.jo_message_proxy_main_net, // for checking logs
-                        imaState.strChainID_s_chain,
+                        imaState.strChainName_s_chain,
                         imaState.idToken, // which ERC721 token id to send
                         imaState.nAmountOfWei, // how much WEI money to send
                         imaState.jo_token_manager_erc721, // only s-chain
@@ -317,7 +523,7 @@ imaCLI.parse( {
                         imaState.joAccount_s_chain,
                         imaState.jo_deposit_box_erc20, // only main net
                         imaState.jo_message_proxy_main_net, // for checking logs
-                        imaState.strChainID_s_chain,
+                        imaState.strChainName_s_chain,
                         imaState.nAmountOfToken, // how much ERC20 tokens to send
                         imaState.nAmountOfWei, // how much WEI money to send
                         imaState.jo_token_manager_erc20, // only s-chain
@@ -325,6 +531,66 @@ imaCLI.parse( {
                         imaState.joErc20_main_net,
                         imaState.strCoinNameErc20_s_chain,
                         imaState.joErc20_s_chain,
+                        imaState.tc_main_net
+                    );
+                }
+                if(
+                    imaState.strCoinNameErc1155_main_net.length > 0 &&
+                    imaState.idToken && imaState.idToken !== null && imaState.idToken !== undefined &&
+                    imaState.nAmountOfToken && imaState.nAmountOfToken !== null && imaState.nAmountOfToken !== undefined &&
+                    ( !imaState.idTokens || imaState.idTokens === null || imaState.idTokens === undefined ) &&
+                    ( !imaState.nAmountOfTokens || imaState.nAmountOfTokens === null || imaState.nAmountOfTokens === undefined )
+                ) {
+                    // ERC1155 payment
+                    log.write( cc.info( "one M->S single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + " " + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
+                    return await IMA.do_erc1155_payment_from_main_net(
+                        imaState.w3_main_net,
+                        imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
+                        imaState.joAccount_main_net,
+                        imaState.joAccount_s_chain,
+                        imaState.jo_deposit_box_erc1155, // only main net
+                        imaState.jo_message_proxy_main_net, // for checking logs
+                        imaState.strChainName_s_chain,
+                        imaState.idToken, // which ERC1155 token id to send
+                        imaState.nAmountOfToken, // which ERC1155 token amount to send
+                        imaState.nAmountOfWei, // how much WEI money to send
+                        imaState.jo_token_manager_erc1155, // only s-chain
+                        imaState.strCoinNameErc1155_main_net,
+                        imaState.joErc1155_main_net,
+                        imaState.strCoinNameErc1155_s_chain,
+                        imaState.joErc1155_s_chain,
+                        imaState.tc_main_net
+                    );
+                }
+                if(
+                    imaState.strCoinNameErc1155_main_net.length > 0 &&
+                    imaState.idTokens && imaState.idTokens !== null && imaState.idTokens !== undefined &&
+                    imaState.nAmountOfTokens && imaState.nAmountOfTokens !== null && imaState.nAmountOfTokens !== undefined &&
+                    ( !imaState.idToken || imaState.idToken === null || imaState.idToken === undefined ) &&
+                    ( !imaState.nAmountOfToken || imaState.nAmountOfToken === null || imaState.nAmountOfToken === undefined )
+                ) {
+                    // ERC1155 Batch payment
+                    log.write( cc.info( "one M->S single ERC1155 Batch payment: " ) + cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.nAmountOfTokens ) + "\n" ); // just print value
+                    return await IMA.do_erc1155_batch_payment_from_main_net(
+                        imaState.w3_main_net,
+                        imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
+                        imaState.joAccount_main_net,
+                        imaState.joAccount_s_chain,
+                        imaState.jo_deposit_box_erc1155, // only main net
+                        imaState.jo_message_proxy_main_net, // for checking logs
+                        imaState.strChainName_s_chain,
+                        imaState.idTokens, // which ERC1155 token id to send
+                        imaState.nAmountOfTokens, // which ERC1155 token amount to send
+                        imaState.nAmountOfWei, // how much WEI money to send
+                        imaState.jo_token_manager_erc1155, // only s-chain
+                        imaState.strCoinNameErc1155_main_net,
+                        imaState.joErc1155_main_net,
+                        imaState.strCoinNameErc1155_s_chain,
+                        imaState.joErc1155_s_chain,
                         imaState.tc_main_net
                     );
                 }
@@ -337,7 +603,7 @@ imaCLI.parse( {
                     imaState.joAccount_s_chain,
                     imaState.jo_deposit_box_eth, // only main net
                     imaState.jo_message_proxy_main_net, // for checking logs
-                    imaState.strChainID_s_chain,
+                    imaState.strChainName_s_chain,
                     imaState.nAmountOfWei, // how much WEI money to send
                     imaState.tc_main_net
                 );
@@ -389,6 +655,64 @@ imaCLI.parse( {
                         imaState.joErc20_main_net,
                         imaState.strCoinNameErc20_s_chain,
                         imaState.joErc20_s_chain,
+                        imaState.tc_s_chain
+                    );
+                }
+                if(
+                    imaState.strCoinNameErc1155_s_chain.length > 0 &&
+                    imaState.idToken && imaState.idToken !== null && imaState.idToken !== undefined &&
+                    imaState.nAmountOfToken && imaState.nAmountOfToken !== null && imaState.nAmountOfToken !== undefined &&
+                    ( !imaState.idTokens || imaState.idTokens === null || imaState.idTokens === undefined ) &&
+                    ( !imaState.nAmountOfTokens || imaState.nAmountOfTokens === null || imaState.nAmountOfTokens === undefined )
+                ) {
+                    // ERC1155 payment
+                    log.write( cc.info( "one S->M single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + " " + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
+                    return await IMA.do_erc1155_payment_from_s_chain(
+                        imaState.w3_main_net,
+                        imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
+                        imaState.joAccount_s_chain,
+                        imaState.joAccount_main_net,
+                        imaState.jo_token_manager_erc1155, // only s-chain
+                        imaState.jo_message_proxy_s_chain, // for checking logs
+                        imaState.jo_deposit_box_erc1155, // only main net
+                        imaState.idToken, // which ERC1155 token id to send
+                        imaState.nAmountOfToken, // which ERC1155 token amount to send
+                        imaState.nAmountOfWei, // how much WEI money to send
+                        imaState.strCoinNameErc1155_main_net,
+                        imaState.joErc1155_main_net,
+                        imaState.strCoinNameErc1155_s_chain,
+                        imaState.joErc1155_s_chain,
+                        imaState.tc_s_chain
+                    );
+                }
+                if(
+                    imaState.strCoinNameErc1155_s_chain.length > 0 &&
+                    imaState.idTokens && imaState.idTokens !== null && imaState.idTokens !== undefined &&
+                    imaState.nAmountOfTokens && imaState.nAmountOfTokens !== null && imaState.nAmountOfTokens !== undefined &&
+                    ( !imaState.idToken || imaState.idToken === null || imaState.idToken === undefined ) &&
+                    ( !imaState.nAmountOfToken || imaState.nAmountOfToken === null || imaState.nAmountOfToken === undefined )
+                ) {
+                    // ERC1155 payment
+                    log.write( cc.info( "one S->M single ERC1155 payment: " ) + cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.nAmountOfTokens ) + "\n" ); // just print value
+                    return await IMA.do_erc1155_batch_payment_from_s_chain(
+                        imaState.w3_main_net,
+                        imaState.w3_s_chain,
+                        imaState.cid_main_net,
+                        imaState.cid_s_chain,
+                        imaState.joAccount_s_chain,
+                        imaState.joAccount_main_net,
+                        imaState.jo_token_manager_erc1155, // only s-chain
+                        imaState.jo_message_proxy_s_chain, // for checking logs
+                        imaState.jo_deposit_box_erc1155, // only main net
+                        imaState.idTokens, // which ERC1155 token id to send
+                        imaState.nAmountOfTokens, // which ERC1155 token amount to send
+                        imaState.nAmountOfWei, // how much WEI money to send
+                        imaState.strCoinNameErc1155_main_net,
+                        imaState.joErc1155_main_net,
+                        imaState.strCoinNameErc1155_s_chain,
+                        imaState.joErc1155_s_chain,
                         imaState.tc_s_chain
                     );
                 }
@@ -456,8 +780,8 @@ imaCLI.parse( {
                     imaState.jo_message_proxy_s_chain,
                     //
                     imaState.joAccount_s_chain,
-                    imaState.strChainID_main_net,
-                    imaState.strChainID_s_chain,
+                    imaState.strChainName_main_net,
+                    imaState.strChainName_s_chain,
                     imaState.cid_main_net,
                     imaState.cid_s_chain,
                     null, // imaState.jo_deposit_box, // for logs validation on mainnet
@@ -488,8 +812,8 @@ imaCLI.parse( {
                     imaState.jo_message_proxy_main_net,
                     //
                     imaState.joAccount_main_net,
-                    imaState.strChainID_s_chain,
-                    imaState.strChainID_main_net,
+                    imaState.strChainName_s_chain,
+                    imaState.strChainName_main_net,
                     imaState.cid_s_chain,
                     imaState.cid_main_net,
                     imaState.jo_deposit_box_eth, // for logs validation on mainnet
@@ -528,11 +852,6 @@ imaCLI.parse( {
                         return false;
                     isPrintSummaryRegistrationCosts = true;
                 }
-                // if( !await check_registration_step2() ) {
-                //     if( !await register_step2( false ) )
-                //         return false;
-                //     isPrintSummaryRegistrationCosts = true;
-                // }
                 if( isPrintSummaryRegistrationCosts )
                     print_summary_registration_costs();
                 return await run_transfer_loop();
@@ -605,6 +924,89 @@ imaCLI.parse( {
         } );
     }
 } );
+
+// "strReimbursementChain": "",
+let haveReimbursementCommands = false;
+if( imaState.isShowReimbursementBalance ) {
+    haveReimbursementCommands = true;
+    imaState.arrActions.push( {
+        "name": "Gas Reimbursement - Show Balance",
+        "fn": async function() {
+            await IMA.reimbursement_show_balance(
+                imaState.w3_main_net,
+                imaState.jo_community_pool,
+                imaState.joAccount_main_net,
+                imaState.strChainName_main_net,
+                imaState.cid_main_net,
+                imaState.tc_main_net,
+                imaState.strReimbursementChain,
+                true
+            );
+            return true;
+        }
+    } );
+}
+if( imaState.nReimbursementRecharge ) {
+    haveReimbursementCommands = true;
+    imaState.arrActions.push( {
+        "name": "Gas Reimbursement - Recharge User Wallet",
+        "fn": async function() {
+            await IMA.reimbursement_wallet_recharge(
+                imaState.w3_main_net,
+                imaState.jo_community_pool,
+                imaState.joAccount_main_net,
+                imaState.strChainName_main_net,
+                imaState.cid_main_net,
+                imaState.tc_main_net,
+                imaState.strReimbursementChain,
+                imaState.nReimbursementRecharge
+            );
+            return true;
+        }
+    } );
+}
+if( imaState.nReimbursementWithdraw ) {
+    haveReimbursementCommands = true;
+    imaState.arrActions.push( {
+        "name": "Gas Reimbursement - Withdraw User Wallet",
+        "fn": async function() {
+            await IMA.reimbursement_wallet_withdraw(
+                imaState.w3_main_net,
+                imaState.jo_community_pool,
+                imaState.joAccount_main_net,
+                imaState.strChainName_main_net,
+                imaState.cid_main_net,
+                imaState.tc_main_net,
+                imaState.strReimbursementChain,
+                imaState.nReimbursementWithdraw
+            );
+            return true;
+        }
+    } );
+}
+if( haveReimbursementCommands ) {
+    if( imaState.strReimbursementChain == "" ) {
+        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing value for " ) + cc.warning( "reimbursement-chain" ) + cc.error( " parameter, must be non-empty chain name" ) + "\n" );
+        process.exit( 130 );
+    }
+}
+if( imaState.nReimbursementRange >= 0 ) {
+    imaState.arrActions.push( {
+        "name": "Gas Reimbursement - Set Minimal time interval from S2M transfers",
+        "fn": async function() {
+            await IMA.reimbursement_set_range(
+                imaState.w3_s_chain,
+                imaState.jo_community_locker,
+                imaState.joAccount_s_chain,
+                imaState.strChainName_s_chain,
+                imaState.cid_s_chain,
+                imaState.tc_s_chain,
+                imaState.nReimbursementRange
+            );
+            return true;
+        }
+    } );
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -896,8 +1298,8 @@ if( imaState.nMonitoringPort > 0 ) {
                             "strURL_main_net",
                             "strURL_s_chain",
 
-                            "strChainID_main_net",
-                            "strChainID_s_chain",
+                            "strChainName_main_net",
+                            "strChainName_s_chain",
                             "cid_main_net",
                             "cid_s_chain",
 
@@ -1048,7 +1450,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
         imaState.w3_main_net,
         imaState.jo_linker,
         imaState.joAccount_main_net,
-        imaState.strChainID_s_chain
+        imaState.strChainName_s_chain
     );
     if( !bRetVal ) {
         jarrReceipts = await IMA.register_s_chain_in_deposit_boxes( // step 1
@@ -1061,7 +1463,10 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
             imaState.jo_token_manager_eth, // only s-chain
             imaState.jo_token_manager_erc20, // only s-chain
             imaState.jo_token_manager_erc721, // only s-chain
-            imaState.strChainID_s_chain,
+            imaState.jo_token_manager_erc1155, // only s-chain
+            imaState.jo_community_locker, // only s-chain
+            imaState.jo_token_manager_linker, // only s-chain
+            imaState.strChainName_s_chain,
             imaState.cid_main_net,
             imaState.tc_main_net //,
             // cntWaitAttempts,
@@ -1080,74 +1485,9 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
     }
     return true;
 }
-// async function register_step2( isPrintSummaryRegistrationCosts ) {
-//     const strLogPrefix = cc.info( "Reg 2:" ) + " ";
-//     // let jarrReceipts2A = "true";
-//     // const bRetVal2A = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 2A
-//     //     imaState.w3_s_chain,
-//     //     imaState.jo_deposit_box_eth, // only main net
-//     //     imaState.jo_deposit_box_erc20, // only main net
-//     //     imaState.jo_deposit_box_erc721, // only main net
-//     //     imaState.jo_token_manager_linker,
-//     //     imaState.joAccount_s_chain
-//     // );
-//     //console.log( "----------- bRetVal2A is", bRetVal2A );
-//     // if( !bRetVal2A ) {
-//     //     jarrReceipts2A = await IMA.register_main_net_depositBox_on_s_chain( // step 2A
-//     //         imaState.w3_s_chain,
-//     //         // imaState.jo_token_manager - only s-chain
-//     //         imaState.jo_deposit_box_eth, // only main net
-//     //         imaState.jo_deposit_box_erc20, // only main net
-//     //         imaState.jo_deposit_box_erc721, // only main net
-//     //         imaState.jo_token_manager_linker,
-//     //         imaState.joAccount_s_chain,
-//     //         imaState.cid_s_chain,
-//     //         imaState.tc_s_chain
-//     //     );
-//     // }
-//     //console.log( "----------- jarrReceipts2A is", jarrReceipts2A );
-//     // const bSuccess2A = ( jarrReceipts2A != null && jarrReceipts2A.length > 0 ) ? true : false;
-//     //console.log( "----------- bSuccess2A is", bSuccess2A );
-//     // if( bSuccess2A && ( !bRetVal2A ) )
-//     //     g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts2A );
-//     let jarrReceipts = "true";
-//     const bRetVal = await IMA.check_is_registered_main_net_on_s_chain( // step
-//         imaState.w3_s_chain,
-//         imaState.jo_message_proxy_s_chain,
-//         imaState.joAccount_s_chain,
-//         imaState.strChainID_main_net
-//     );
-//     //console.log( "----------- bRetVal is", bRetVal );
-//     if( !bRetVal ) {
-//         jarrReceipts = await IMA.register_main_net_on_s_chain( // step
-//             imaState.w3_s_chain,
-//             imaState.jo_message_proxy_s_chain,
-//             imaState.joAccount_s_chain,
-//             imaState.strChainID_main_net,
-//             imaState.cid_s_chain,
-//             imaState.tc_s_chain
-//         );
-//     }
-//     //console.log( "----------- jarrReceipts is", jarrReceipts );
-//     const bSuccess = ( jarrReceipts != null && jarrReceipts.length > 0 ) ? true : false;
-//     //console.log( "----------- bSuccess is", bSuccess );
-//     if( bSuccess && ( !bRetVal ) )
-//         g_registrationCostInfo.sc = g_registrationCostInfo.sc.concat( g_registrationCostInfo.sc, jarrReceipts );
-//     // const bSuccess = ( bSuccess2A && bSuccess2B ) ? true : false;
-//     if( isPrintSummaryRegistrationCosts )
-//         print_summary_registration_costs();
-//     if( !bSuccess ) {
-//         const nRetCode = 164;
-//         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register Main-net deposit box on S-Chain, will return code " ) + cc.warning( nRetCode ) + "\n" );
-//         process.exit( nRetCode ); // 164
-//     }
-//     return true;
-// }
 async function register_all( isPrintSummaryRegistrationCosts ) {
     if( !await register_step1( false ) )
         return false;
-    // if( !await register_step2( false ) )
-    //     return false;
     if( isPrintSummaryRegistrationCosts )
         print_summary_registration_costs();
     return true;
@@ -1155,11 +1495,6 @@ async function register_all( isPrintSummaryRegistrationCosts ) {
 
 async function check_registration_all() {
     const b1 = await check_registration_step1();
-    // const b2 = await check_registration_step2()ж
-    // if( !( b1 && b2 ) )
-    //     return false;
-
-    // return true;
     return b1;
 }
 async function check_registration_step1() {
@@ -1167,7 +1502,7 @@ async function check_registration_step1() {
         imaState.w3_main_net,
         imaState.jo_linker,
         imaState.joAccount_main_net,
-        imaState.strChainID_s_chain
+        imaState.strChainName_s_chain
     );
     return bRetVal;
 }
@@ -1184,7 +1519,7 @@ async function check_registration_step1() {
 //         imaState.w3_s_chain,
 //         imaState.jo_message_proxy_s_chain,
 //         imaState.joAccount_s_chain,
-//         imaState.strChainID_main_net
+//         imaState.strChainName_main_net
 //     );
 //     // const bRetVal = ( bRetVal2A && bRetVal2B ) ? true : false;
 //     return bRetVal;
@@ -1274,8 +1609,8 @@ async function single_transfer_loop() {
         imaState.jo_message_proxy_s_chain,
         //
         imaState.joAccount_s_chain,
-        imaState.strChainID_main_net,
-        imaState.strChainID_s_chain,
+        imaState.strChainName_main_net,
+        imaState.strChainName_s_chain,
         imaState.cid_main_net,
         imaState.cid_s_chain,
         null, // imaState.jo_deposit_box - for logs validation on mainnet
@@ -1303,8 +1638,8 @@ async function single_transfer_loop() {
         imaState.jo_message_proxy_main_net,
         //
         imaState.joAccount_main_net,
-        imaState.strChainID_s_chain,
-        imaState.strChainID_main_net,
+        imaState.strChainName_s_chain,
+        imaState.strChainName_main_net,
         imaState.cid_s_chain,
         imaState.cid_main_net,
         imaState.jo_deposit_box_eth, // for logs validation on mainnet

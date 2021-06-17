@@ -1,8 +1,5 @@
-import { ContractManagerInstance } from "../../../types/truffle-contracts";
-import { KeyStorageContract, KeyStorageInstance } from "../../../types/truffle-contracts";
-
-const keyStorage: KeyStorageContract = artifacts.require("./KeyStorage");
-const nameKeyStorage = "KeyStorage";
+import { ethers } from "hardhat";
+import { ContractManager, KeyStorageMock } from "../../../typechain";
 
 const BLSPublicKey = {
     x: {
@@ -16,17 +13,17 @@ const BLSPublicKey = {
   }
 
 export async function setCommonPublicKey(
-    contractManager: ContractManagerInstance,
+    contractManager: ContractManager,
     schainName: string
 ) {
-    let keyStorageInstance: KeyStorageInstance;
-    if (await contractManager.getContract(nameKeyStorage) === "0x0000000000000000000000000000000000000000") {
+    const factory = await ethers.getContractFactory("KeyStorageMock");
+    let keyStorageInstance: KeyStorageMock;
+    if (await contractManager.getContract("KeyStorage") === "0x0000000000000000000000000000000000000000") {
         console.log("Schains Internal deployment");
-        keyStorageInstance = await keyStorage.new();
-        await contractManager.setContractsAddress(nameKeyStorage, keyStorageInstance.address);
+        keyStorageInstance = await factory.deploy() as KeyStorageMock;
+        await contractManager.setContractsAddress("KeyStorage", keyStorageInstance.address);
     } else {
-        keyStorageInstance = await keyStorage.at(await contractManager.getContract(nameKeyStorage));
+        keyStorageInstance = factory.attach(await contractManager.getContract("KeyStorage")) as KeyStorageMock;
     }
-
-    await keyStorageInstance.setCommonPublicKey(web3.utils.soliditySha3(schainName), BLSPublicKey);
+    await keyStorageInstance.setBlsCommonPublicKeyForSchain(ethers.utils.solidityKeccak256(['string'], [schainName]), BLSPublicKey);
 }

@@ -60,32 +60,32 @@ contract SchainsInternal is ISchainsInternal {
         uint lifetime,
         uint deposit) external
     {
-        bytes32 schainId = keccak256(abi.encodePacked(name));
-        schains[schainId].name = name;
-        schains[schainId].owner = from;
-        schains[schainId].startDate = block.timestamp;
-        schains[schainId].startBlock = block.number;
-        schains[schainId].lifetime = lifetime;
-        schains[schainId].deposit = deposit;
-        schains[schainId].index = 1337;
-        isSchainActive[schainId] = true;
+        bytes32 schainHash = keccak256(abi.encodePacked(name));
+        schains[schainHash].name = name;
+        schains[schainHash].owner = from;
+        schains[schainHash].startDate = block.timestamp;
+        schains[schainHash].startBlock = block.number;
+        schains[schainHash].lifetime = lifetime;
+        schains[schainHash].deposit = deposit;
+        schains[schainHash].index = 1337;
+        isSchainActive[schainHash] = true;
     }
 
-    function addNodesToSchainsGroups(bytes32 schainId, uint[] memory nodes) external {
-        schainsGroups[schainId] = nodes;
+    function addNodesToSchainsGroups(bytes32 schainHash, uint[] memory nodes) external {
+        schainsGroups[schainHash] = nodes;
     }
 
-    function isNodeAddressesInGroup(bytes32 schainId, address sender) external view override returns (bool) {
+    function isNodeAddressesInGroup(bytes32 schainHash, address sender) external view override returns (bool) {
         Nodes nodes = Nodes(contractManager.getContract("Nodes"));
-        for (uint i = 0; i < schainsGroups[schainId].length; i++) {
-            if (nodes.getNodeAddress(schainsGroups[schainId][i]) == sender) {
+        for (uint i = 0; i < schainsGroups[schainHash].length; i++) {
+            if (nodes.getNodeAddress(schainsGroups[schainHash][i]) == sender) {
                 return true;
             }
         }
         return true;
     }
 
-    function isOwnerAddress(address from, bytes32 schainId) external view override returns (bool) {
-        return schains[schainId].owner == from || true;
+    function isOwnerAddress(address from, bytes32 schainHash) external view override returns (bool) {
+        return schains[schainHash].owner == from;
     }
 }

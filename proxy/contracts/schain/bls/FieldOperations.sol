@@ -22,13 +22,13 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 
 import "./Precompiled.sol";
 
 
 library Fp2Operations {
-    using SafeMath for uint;
+    using SafeMathUpgradeable for uint;
 
     struct Fp2Point {
         uint a;
@@ -93,21 +93,6 @@ library Fp2Operations {
         return Fp2Point({ a: mult, b: addmod(ab, ab, p) });
     }
 
-    function inverseFp2(Fp2Point memory value) internal view returns (Fp2Point memory result) {
-        uint p = P;
-        uint t0 = mulmod(value.a, value.a, p);
-        uint t1 = mulmod(value.b, value.b, p);
-        uint t2 = mulmod(p - 1, t1, p);
-        if (t0 >= t2) {
-            t2 = addmod(t0, p - t2, p);
-        } else {
-            t2 = (p - addmod(t2, p - t0, p)).mod(p);
-        }
-        uint t3 = Precompiled.bigModExp(t2, p - 2, p);
-        result.a = mulmod(value.a, t3, p);
-        result.b = (p - mulmod(value.b, t3, p)).mod(p);
-    }
-
     function isEqual(
         Fp2Point memory value1,
         Fp2Point memory value2
@@ -121,7 +106,7 @@ library Fp2Operations {
 }
 
 library G1Operations {
-    using SafeMath for uint;
+    using SafeMathUpgradeable for uint;
     using Fp2Operations for Fp2Operations.Fp2Point;
 
     function getG1Generator() internal pure returns (Fp2Operations.Fp2Point memory) {
@@ -155,7 +140,7 @@ library G1Operations {
 
 
 library G2Operations {
-    using SafeMath for uint;
+    using SafeMathUpgradeable for uint;
     using Fp2Operations for Fp2Operations.Fp2Point;
 
     struct G2Point {
@@ -230,33 +215,6 @@ library G2Operations {
 
     function isG2Zero(G2Point memory value) internal pure returns (bool) {
         return value.x.a == 0 && value.x.b == 0 && value.y.a == 1 && value.y.b == 0;
-        // return isG2ZeroPoint(value.x, value.y);
-    }
-
-    function addG2(
-        G2Point memory value1,
-        G2Point memory value2
-    )
-        internal
-        view
-        returns (G2Point memory sum)
-    {
-        if (isG2Zero(value1)) {
-            return value2;
-        }
-        if (isG2Zero(value2)) {
-            return value1;
-        }
-        if (isEqual(value1, value2)) {
-            return doubleG2(value1);
-        }
-
-        Fp2Operations.Fp2Point memory s = value2.y.minusFp2(value1.y).mulFp2(value2.x.minusFp2(value1.x).inverseFp2());
-        sum.x = s.squaredFp2().minusFp2(value1.x.addFp2(value2.x));
-        sum.y = value1.y.addFp2(s.mulFp2(sum.x.minusFp2(value1.x)));
-        uint p = Fp2Operations.P;
-        sum.y.a = (p - sum.y.a).mod(p);
-        sum.y.b = (p - sum.y.b).mod(p);
     }
 
     function isEqual(
@@ -268,23 +226,5 @@ library G2Operations {
         returns (bool)
     {
         return value1.x.isEqual(value2.x) && value1.y.isEqual(value2.y);
-    }
-
-    function doubleG2(G2Point memory value)
-        internal
-        view
-        returns (G2Point memory result)
-    {
-        if (isG2Zero(value)) {
-            return value;
-        } else {
-            Fp2Operations.Fp2Point memory s =
-                value.x.squaredFp2().scalarMulFp2(3).mulFp2(value.y.scalarMulFp2(2).inverseFp2());
-            result.x = s.squaredFp2().minusFp2(value.x.addFp2(value.x));
-            result.y = value.y.addFp2(s.mulFp2(result.x.minusFp2(value.x)));
-            uint p = Fp2Operations.P;
-            result.y.a = (p - result.y.a).mod(p);
-            result.y.b = (p - result.y.b).mod(p);
-        }
     }
 }

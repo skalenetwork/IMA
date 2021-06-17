@@ -1,38 +1,33 @@
-import { ContractManagerInstance } from "../../../types/truffle-contracts";
-import { SchainsInternalContract, SchainsInternalInstance } from "../../../types/truffle-contracts";
+import { ethers } from "hardhat";
+import { ContractManager, SchainsInternal } from "../../../typechain";
 
-const schainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
 const nameSchainsInternal = "SchainsInternal";
 
 export async function initializeSchain(
-    contractManager: ContractManagerInstance,
+    contractManager: ContractManager,
     schainName: string,
     owner: string,
     lifetime: number,
     deposit: number
 ) {
-    let schainsInternalInstance: SchainsInternalInstance;
-    if (await contractManager.getContract(nameSchainsInternal) === "0x0000000000000000000000000000000000000000") {
-        console.log("Schains Internal deployment");
-        schainsInternalInstance = await schainsInternal.new();
-        await contractManager.setContractsAddress(nameSchainsInternal, schainsInternalInstance.address);
-    } else {
-        schainsInternalInstance = await schainsInternal.at(await contractManager.getContract(nameSchainsInternal));
-    }
-    await schainsInternalInstance.initializeSchain(schainName, owner, lifetime, deposit);
+    const schainsInternalFactory = await ethers.getContractFactory("SchainsInternal");
+    const schainsInternalAddres = await contractManager.getContract("SchainsInternal");
+    const schainsInternal = schainsInternalFactory.attach(schainsInternalAddres) as SchainsInternal;
+    await schainsInternal.initializeSchain(schainName, owner, lifetime, deposit);
 }
 
 export async function isSchainActive(
-    contractManager: ContractManagerInstance,
+    contractManager: ContractManager,
     schainName: string
 ) {
-    let schainsInternalInstance: SchainsInternalInstance;
+    const factory = await ethers.getContractFactory(nameSchainsInternal);
+    let schainsInternalInstance: SchainsInternal;
     if (await contractManager.getContract(nameSchainsInternal) === "0x0000000000000000000000000000000000000000") {
         console.log("Schains Internal deployment");
-        schainsInternalInstance = await schainsInternal.new();
+        schainsInternalInstance = await factory.deploy() as SchainsInternal;
         await contractManager.setContractsAddress(nameSchainsInternal, schainsInternalInstance.address);
     } else {
-        schainsInternalInstance = await schainsInternal.at(await contractManager.getContract(nameSchainsInternal));
+        schainsInternalInstance = await factory.attach(await contractManager.getContract(nameSchainsInternal)) as SchainsInternal;
     }
-    return await schainsInternalInstance.isSchainActive(web3.utils.soliditySha3(schainName));
+    return await schainsInternalInstance.isSchainActive(ethers.utils.solidityKeccak256(['string'], [schainName]));
 }

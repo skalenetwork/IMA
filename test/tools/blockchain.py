@@ -98,6 +98,21 @@ class BlockChain:
             from_key)
         self.web3_schain.eth.sendRawTransaction(signed_txn.rawTransaction)
 
+    def enableAutomaticDeployERC1155(self, from_key, schainName):
+        sender_address = self.key_to_address(from_key)
+        token_manager_erc1155 = self._get_contract_on_schain('token_manager_erc1155')
+        enable = token_manager_erc1155.encodeABI(fn_name="enableAutomaticDeploy", args=[])
+        signed_txn = self.web3_schain.eth.account.signTransaction(dict(
+                nonce=self.web3_schain.eth.getTransactionCount(sender_address),
+                gasPrice=self.web3_schain.eth.gasPrice,
+                gas=200000,
+                to=token_manager_erc1155.address,
+                value=0,
+                data = enable
+            ),
+            from_key)
+        self.web3_schain.eth.sendRawTransaction(signed_txn.rawTransaction)
+
     def disableWhitelistERC20(self, from_key, schainName):
         sender_address = self.key_to_address(from_key)
         deposit_box_erc20 = self._get_contract_on_mainnet('deposit_box_erc20')
@@ -122,6 +137,21 @@ class BlockChain:
                 gasPrice=self.web3_mainnet.eth.gasPrice,
                 gas=200000,
                 to=deposit_box_erc721.address,
+                value=0,
+                data = disable
+            ),
+            from_key)
+        self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+
+    def disableWhitelistERC1155(self, from_key, schainName):
+        sender_address = self.key_to_address(from_key)
+        deposit_box_erc1155 = self._get_contract_on_mainnet('deposit_box_erc1155')
+        disable = deposit_box_erc1155.encodeABI(fn_name="disableWhitelist", args=[schainName])
+        signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
+                nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
+                gasPrice=self.web3_mainnet.eth.gasPrice,
+                gas=200000,
+                to=deposit_box_erc1155.address,
                 value=0,
                 data = disable
             ),
@@ -158,6 +188,21 @@ class BlockChain:
             from_key)
         self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
+    def addERC1155TokenByOwner(self, from_key, schainName, erc20Address):
+        sender_address = self.key_to_address(from_key)
+        deposit_box_erc1155 = self._get_contract_on_mainnet('deposit_box_erc1155')
+        disable = deposit_box_erc1155.encodeABI(fn_name="addERC1155TokenByOwner", args=[schainName, erc20Address])
+        signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
+                nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
+                gasPrice=self.web3_mainnet.eth.gasPrice,
+                gas=200000,
+                to=deposit_box_erc1155.address,
+                value=0,
+                data = disable
+            ),
+            from_key)
+        self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+
     def add_eth_cost(self, from_key, amount):
         sender_address = self.key_to_address(from_key)
         token_manager = self._get_contract_on_schain('token_manager')
@@ -187,6 +232,36 @@ class BlockChain:
 
         self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
+    def recharge_user_wallet(self, from_key, schainName, amount_wei):
+        sender_address = self.key_to_address(from_key)
+        community_pool = self._get_contract_on_mainnet('community_pool')
+        recharge_abi = community_pool.encodeABI(fn_name="rechargeUserWallet", args=[schainName])
+        signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
+                nonce=self.web3_mainnet.eth.getTransactionCount(sender_address),
+                gasPrice=self.web3_mainnet.eth.gasPrice,
+                gas=200000,
+                to=community_pool.address,
+                value=amount_wei,
+                data = recharge_abi
+            ),
+            from_key)
+        self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+
+    def set_time_limit_per_message(self, from_key, time_limit):
+        sender_address = self.key_to_address(from_key)
+        community_locker = self._get_contract_on_schain('community_locker')
+        time_limit_abi = community_locker.encodeABI(fn_name="setTimeLimitPerMessage", args=[time_limit])
+        signed_txn = self.web3_schain.eth.account.signTransaction(dict(
+                nonce=self.web3_schain.eth.getTransactionCount(sender_address),
+                gasPrice=self.web3_schain.eth.gasPrice,
+                gas=200000,
+                to=community_locker.address,
+                value=0,
+                data=time_limit_abi
+            ),
+            from_key)
+        self.web3_schain.eth.sendRawTransaction(signed_txn.rawTransaction)
+
     def deploy_erc20_on_mainnet(self, private_key, name, symbol, decimals):
         return self._deploy_contract_to_mainnet(self.config.test_root + '/resources/ERC20MintableDetailed.json',
                                                 [name, symbol, decimals],
@@ -194,6 +269,11 @@ class BlockChain:
     def deploy_erc721_on_mainnet(self, private_key, name, symbol):
         return self._deploy_contract_to_mainnet(self.config.test_root + '/resources/ERC721FullMetadataMintable.json',
                                                 [name, symbol],
+                                                private_key)
+
+    def deploy_erc1155_on_mainnet(self, private_key, uri):
+        return self._deploy_contract_to_mainnet(self.config.test_root + '/resources/ERC1155BurnableMintable.json',
+                                                [uri],
                                                 private_key)
 
     def get_transactions_count_on_mainnet(self, address):
@@ -204,7 +284,7 @@ class BlockChain:
         erc20_address = lock_erc20.functions.clonesErc20(erc20_address_mainnet).call()
         if erc20_address == '0x0000000000000000000000000000000000000000':
             raise ValueError('No such token')
-        with open(self.config.proxy_root + '/build/contracts/ERC20OnChain.json') as erc20_on_chain_file:
+        with open(self.config.proxy_root + '/artifacts/contracts/schain/tokens/ERC20OnChain.sol/ERC20OnChain.json') as erc20_on_chain_file:
             erc20_on_chain_json = json.load(erc20_on_chain_file)
             return self.web3_schain.eth.contract(address=erc20_address, abi=erc20_on_chain_json['abi'])
 
@@ -213,9 +293,18 @@ class BlockChain:
         erc721_address = lock_erc721.functions.clonesErc721(erc721_address_mainnet).call()
         if erc721_address == '0x0000000000000000000000000000000000000000':
             raise ValueError('No such token')
-        with open(self.config.proxy_root + '/build/contracts/ERC721OnChain.json') as erc721_on_chain_file:
+        with open(self.config.proxy_root + '/artifacts/contracts/schain/tokens/ERC721OnChain.sol/ERC721OnChain.json') as erc721_on_chain_file:
             erc721_on_chain_json = json.load(erc721_on_chain_file)
             return self.web3_schain.eth.contract(address=erc721_address, abi=erc721_on_chain_json['abi'])
+
+    def get_erc1155_on_schain(self, schain_name, erc1155_address_mainnet):
+        lock_erc1155 = self._get_contract_on_schain('token_manager_erc1155')
+        erc1155_address = lock_erc1155.functions.clonesErc1155(erc1155_address_mainnet).call()
+        if erc1155_address == '0x0000000000000000000000000000000000000000':
+            raise ValueError('No such token')
+        with open(self.config.proxy_root + '/artifacts/contracts/schain/tokens/ERC1155OnChain.sol/ERC1155OnChain.json') as erc1155_on_chain_file:
+            erc1155_on_chain_json = json.load(erc1155_on_chain_file)
+            return self.web3_schain.eth.contract(address=erc1155_address, abi=erc1155_on_chain_json['abi'])
 
     def get_erc20_on_mainnet(self, index):
         lock_erc20 = self._get_contract_on_mainnet('deposit_box_erc20')
@@ -234,6 +323,15 @@ class BlockChain:
         with open(self.config.test_resource_dir + '/ERC721FullMetadataMintable.json') as erc721_file:
             erc721_on_mainnet_json = json.load(erc721_file)
             return self.web3_schain.eth.contract(address=erc721_address, abi=erc721_on_mainnet_json['abi'])
+
+    def get_erc1155_on_mainnet(self, index):
+        lock_erc1155 = self._get_contract_on_mainnet('deposit_box_erc1155')
+        erc1155_address = lock_erc1155.functions.erc1155Tokens(index).call()
+        if erc1155_address == '0x0000000000000000000000000000000000000000':
+            raise ValueError('No such token')
+        with open(self.config.test_resource_dir + '/ERC1155BurnableMintable.json') as erc1155_file:
+            erc1155_on_mainnet_json = json.load(erc1155_file)
+            return self.web3_schain.eth.contract(address=erc1155_address, abi=erc1155_on_mainnet_json['abi'])
 
     # private
 

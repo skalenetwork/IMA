@@ -79,6 +79,12 @@ global.imaState = {
     "strCoinNameErc721_main_net": "", // in-JSON coin name
     "strCoinNameErc721_s_chain": "", // in-JSON coin name
 
+    "joErc1155_main_net": null,
+    "joErc1155_s_chain": null,
+    "strAddrErc1155_explicit": "",
+    "strCoinNameErc1155_main_net": "", // in-JSON coin name
+    "strCoinNameErc1155_s_chain": "", // in-JSON coin name
+
     // "strPathAbiJson_main_net": imaUtils.normalizePath( "../proxy/data/proxyMainnet.json" ),
     // "strPathAbiJson_s_chain": imaUtils.normalizePath( "../proxy/data/proxySchain_Bob.json" ),
     "strPathAbiJson_main_net": imaUtils.normalizePath( "./agent-test-data/proxyMainnet.json" ),
@@ -93,8 +99,8 @@ global.imaState = {
     "strURL_main_net": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM || "http://127.0.0.1:8545" ), // example: "http://127.0.0.1:8545
     "strURL_s_chain": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN || "http://127.0.0.1:15000" ),
 
-    "strChainID_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
-    "strChainID_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "Bob" ).toString().trim(),
+    "strChainName_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
+    "strChainName_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "Bob" ).toString().trim(),
     "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
     "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
 
@@ -104,9 +110,15 @@ global.imaState = {
     "strPathJsonErc721_main_net": "",
     "strPathJsonErc721_s_chain": "",
 
+    "strPathJsonErc1155_main_net": "",
+    "strPathJsonErc1155_s_chain": "",
+
     "nAmountOfWei": 0,
     "nAmountOfToken": 0,
     "idToken": 0,
+    "idTokens": [],
+    "have_idToken": false,
+    "have_idTokens": false,
 
     "nTransferBlockSizeM2S": 4, // 10
     "nTransferBlockSizeS2M": 4, // 10
@@ -132,6 +144,7 @@ global.imaState = {
     "jo_deposit_box_eth": null, // only main net
     "jo_deposit_box_erc20": null, // only main net
     "jo_deposit_box_erc721": null, // only main net
+    "jo_deposit_box_erc1155": null, // only main net
     "jo_token_manager": null, // only s-chain
     "jo_message_proxy_main_net": null,
     "jo_message_proxy_s_chain": null,
@@ -582,7 +595,7 @@ describe( "CLI", function() {
                 "privateKey": owaspUtils.toEthPrivateKey( "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
                 "address": IMA.owaspUtils.fn_address_impl_
             };
-            assert.equal( imaCLI.ensure_have_chain_credentials( imaState.strChainID_s_chain, joAccount_test, isExitIfEmpty, isPrintValue ), true );
+            assert.equal( imaCLI.ensure_have_chain_credentials( imaState.strChainName_s_chain, joAccount_test, isExitIfEmpty, isPrintValue ), true );
         } );
 
     } );
@@ -604,8 +617,8 @@ describe( "CLI", function() {
                 "--verbose=9",
                 "--url-main-net=" + imaState.strURL_main_net,
                 "--url-s-chain=" + imaState.strURL_s_chain,
-                "--id-main-net=" + imaState.strChainID_main_net,
-                "--id-s-chain=" + imaState.strChainID_s_chain,
+                "--id-main-net=" + imaState.strChainName_main_net,
+                "--id-s-chain=" + imaState.strChainName_s_chain,
                 "--cid-main-net=" + imaState.cid_main_net,
                 "--cid-s-chain=" + imaState.cid_s_chain,
                 "--address-main-net=" + imaState.joAccount_main_net.address(),
@@ -616,6 +629,7 @@ describe( "CLI", function() {
                 "--abi-s-chain=" + imaState.strPathAbiJson_s_chain,
                 // --erc721-main-net --erc721-s-chain --addr-erc721-s-chain
                 // --erc20-main-net --erc20-s-chain --addr-erc20-s-chain
+                // --erc1155-main-net --erc1155-s-chain --addr-erc1155-s-chain
                 "--sleep-between-tx=5000",
                 "--wait-next-block=true",
                 // --value...
@@ -808,7 +822,7 @@ describe( "Agent Utils Module", function() {
     describe( "ABI JSON Helpers", function() {
 
         it( "Find ABI entries", function() {
-            const strName = imaState.strChainID_s_chain;
+            const strName = imaState.strChainName_s_chain;
             const strFile = imaState.strPathAbiJson_s_chain;
             const joABI = imaUtils.jsonFileLoad( strFile, { error: "file \"" + strFile + "\"was not loaded" } );
             const strKey = "token_manager_linker_address";
@@ -823,6 +837,8 @@ describe( "Agent Utils Module", function() {
                 "token_manager_erc20_abi",
                 "token_manager_erc721_address",
                 "token_manager_erc721_abi",
+                "token_manager_erc1155_address",
+                "token_manager_erc1155_abi",
                 "message_proxy_chain_address",
                 "message_proxy_chain_abi"
             ];

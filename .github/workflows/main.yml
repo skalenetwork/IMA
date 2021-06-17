@@ -67,12 +67,35 @@ jobs:
     - name: Slither checks
       working-directory: ${{env.working-directory}}
       run: yarn slither
+
+    - name: Gas calculation test
+      working-directory: ${{env.working-directory}}
+      run: npx hardhat test gas/calculateGas.ts
     
     - name: Run tests
       working-directory: ${{env.working-directory}}
       run: |
-        npx buidler coverage --solcoverjs .solcover.js
+        npx hardhat coverage --solcoverjs .solcover.js
         bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"         
+
+    - name: Install geth
+      run: |
+        sudo add-apt-repository -y ppa:ethereum/ethereum
+        sudo apt install ethereum
+    
+    - name: Build predeployed pip package
+      working-directory: ${{env.working-directory}}
+      env:
+        VERSION: "0.0.0"
+      run: |
+        python3 -m pip install --upgrade build
+        ./predeployed/scripts/build_package.sh
+
+    - name: Test predeployed pip package
+      working-directory: ${{env.working-directory}}
+      run: |
+        ./predeployed/test/prepare_environment.sh
+        ./predeployed/test/test.sh
 
   test-agent:
     # The type of runner that the job will run on
@@ -292,7 +315,7 @@ jobs:
     - name: Start background ganache
       run: |
         cd proxy
-        NODE_OPTIONS="--max_old_space_size=3072" npx ganache-cli --gasLimit 12000000 --quiet --acctKeys ../test/accounts.json &
+        NODE_OPTIONS="--max_old_space_size=3072" npx ganache-cli --gasLimit 12000000 --quiet --allowUnlimitedContractSize --acctKeys ../test/accounts.json &
 
     - name: Prepare test (PY part)
       working-directory: ${{env.working-directory}}

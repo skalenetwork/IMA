@@ -22,9 +22,6 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-
-import "../interfaces/IDepositBox.sol";
 import "./Linker.sol";
 import "./MessageProxyForMainnet.sol";
 
@@ -33,29 +30,67 @@ import "./MessageProxyForMainnet.sol";
  * @title ProxyConnectorMainnet - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-abstract contract DepositBox is SkaleManagerClient, AccessControlUpgradeable, IDepositBox {
+abstract contract DepositBox is Twin {
+
+    Linker public linker;
+
+    mapping(bytes32 => bool) public withoutWhitelist;
 
     bytes32 public constant DEPOSIT_BOX_MANAGER_ROLE = keccak256("DEPOSIT_BOX_MANAGER_ROLE");
 
-    MessageProxyForMainnet public messageProxy;
-
-    modifier onlyMessageProxy() {
-        require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
+    modifier whenNotKilled(bytes32 schainHash) {
+        require(linker.isNotKilled(schainHash), "Schain is killed");
         _;
     }
-    
+
+    modifier whenKilled(bytes32 schainHash) {
+        require(!linker.isNotKilled(schainHash), "Schain is not killed");
+        _;
+    }
+
+    modifier rightTransaction(string memory schainName, address to) {
+        require(
+            keccak256(abi.encodePacked(schainName)) != keccak256(abi.encodePacked("Mainnet")),
+            "SKALE chain name cannot be Mainnet"
+        );
+        require(to != address(0), "Receiver address cannot be null");
+        _;
+    }
+
+    modifier checkReceiverChain(bytes32 schainHash, address sender) {
+        require(
+            schainHash != keccak256(abi.encodePacked("Mainnet")) &&
+            sender == schainLinks[schainHash],
+            "Receiver chain is incorrect"
+        );
+        _;
+    }
+
+    /**
+     * @dev Allows Schain owner turn on whitelist of tokens.
+     */
+    function enableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
+        withoutWhitelist[keccak256(abi.encodePacked(schainName))] = false;
+    }
+
+    /**
+     * @dev Allows Schain owner turn off whitelist of tokens.
+     */
+    function disableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
+        withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
+    }
+
     function initialize(
         IContractManager contractManagerOfSkaleManager,
-        Linker linkerAddress,
-        MessageProxyForMainnet messageProxyAddress
+        Linker newLinker,
+        MessageProxyForMainnet messageProxy
     )
         public
         virtual
         initializer
     {
-        SkaleManagerClient.initialize(contractManagerOfSkaleManager);
-        AccessControlUpgradeable.__AccessControl_init();
-        _setupRole(DEPOSIT_BOX_MANAGER_ROLE, address(linkerAddress));
-        messageProxy = messageProxyAddress;
+        Twin.initialize(contractManagerOfSkaleManager, messageProxy);
+        _setupRole(LINKER_ROLE, address(newLinker));
+        linker = newLinker;
     }
 }

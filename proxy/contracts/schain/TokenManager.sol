@@ -23,8 +23,9 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "./MessageProxyForSchain.sol";
-import "./SkaleFeaturesClient.sol";
 import "./TokenManagerLinker.sol";
+import "./CommunityLocker.sol";
+import "../interfaces/IMessageReceiver.sol";
 
 
 /**
@@ -34,59 +35,74 @@ import "./TokenManagerLinker.sol";
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-abstract contract TokenManager is SkaleFeaturesClient {
+abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
+
+    string constant public MAINNET_NAME = "Mainnet";
+    bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+
+    bytes32 public constant AUTOMATIC_DEPLOY_ROLE = keccak256("AUTOMATIC_DEPLOY_ROLE");
+    bytes32 public constant TOKEN_REGISTRAR_ROLE = keccak256("TOKEN_REGISTRAR_ROLE");
 
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
-    bytes32 public schainId;
+    CommunityLocker public communityLocker;
+    bytes32 public schainHash;
     address public depositBox;
     bool public automaticDeploy;
 
-    mapping(bytes32 => address) public tokenManagers;
+    mapping(bytes32 => address) public tokenManagers;    
 
-    string constant public MAINNET_NAME = "Mainnet";
-    bytes32 constant public MAINNET_ID = keccak256(abi.encodePacked(MAINNET_NAME));
-
-    modifier onlySchainOwner() {
-        require(_isSchainOwner(msg.sender), "Sender is not an Schain owner");
+    modifier onlyAutomaticDeploy() {
+        require(hasRole(AUTOMATIC_DEPLOY_ROLE, msg.sender), "AUTOMATIC_DEPLOY_ROLE is required");
         _;
     }
 
-    constructor(
-        string memory newSchainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        address newDepositBox
-    )
-        public
-    {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        schainId = keccak256(abi.encodePacked(newSchainName));
-        messageProxy = newMessageProxy;
-        tokenManagerLinker = newIMALinker;
-        depositBox = newDepositBox;
+    modifier onlyTokenRegistrar() {
+        require(hasRole(TOKEN_REGISTRAR_ROLE, msg.sender), "TOKEN_REGISTRAR_ROLE is required");
+        _;
     }
 
-    function postMessage(
-        string calldata fromSchainID,
-        address sender,
-        bytes calldata data
-    )
-        external
-        virtual
-        returns (bool);
+    modifier onlyMessageProxy() {
+        require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
+        _;
+    }
+
+    modifier rightTransaction(string memory targetSchainName, address to) {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        require(
+            targetSchainHash != MAINNET_HASH,
+            "This function is not for transferring to Mainnet"
+        );
+        require(to != address(0), "Incorrect receiver address");
+        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
+        _;
+    }
+
+    modifier checkReceiverChain(bytes32 fromChainHash, address sender) {
+        require(
+            fromChainHash != schainHash && 
+                (
+                    fromChainHash == MAINNET_HASH ?
+                    sender == depositBox :
+                    sender == tokenManagers[fromChainHash]
+                ),
+            "Receiver chain is incorrect"
+        );
+        _;
+    }
+
 
     /**
      * @dev Allows Schain owner turn on automatic deploy on schain.
      */
-    function enableAutomaticDeploy() external onlySchainOwner {
+    function enableAutomaticDeploy() external onlyAutomaticDeploy {
         automaticDeploy = true;
     }
 
     /**
      * @dev Allows Schain owner turn off automatic deploy on schain.
      */
-    function disableAutomaticDeploy() external onlySchainOwner {
+    function disableAutomaticDeploy() external onlyAutomaticDeploy {
         automaticDeploy = false;
     }
 
@@ -104,13 +120,12 @@ abstract contract TokenManager is SkaleFeaturesClient {
     function addTokenManager(string calldata schainName, address newTokenManager) external {
         require(
             msg.sender == address(tokenManagerLinker) ||
-            _isSchainOwner(msg.sender) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(tokenManagers[schainHash] == address(0), "Token Manager is already set");
+        bytes32 newSchainHash = keccak256(abi.encodePacked(schainName));
+        require(tokenManagers[newSchainHash] == address(0), "Token Manager is already set");
         require(newTokenManager != address(0), "Incorrect Token Manager address");
-        tokenManagers[schainHash] = newTokenManager;
+        tokenManagers[newSchainHash] = newTokenManager;
     }
 
     /**
@@ -125,12 +140,11 @@ abstract contract TokenManager is SkaleFeaturesClient {
     function removeTokenManager(string calldata schainName) external {
         require(
             msg.sender == address(tokenManagerLinker) ||
-            _isSchainOwner(msg.sender) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(tokenManagers[schainHash] != address(0), "Token Manager is not set");
-        delete tokenManagers[schainHash];
+        bytes32 newSchainHash = keccak256(abi.encodePacked(schainName));
+        require(tokenManagers[newSchainHash] != address(0), "Token Manager is not set");
+        delete tokenManagers[newSchainHash];
     }
 
     /**
@@ -141,7 +155,8 @@ abstract contract TokenManager is SkaleFeaturesClient {
      *
      * - `msg.sender` must be schain owner
      */
-    function changeDepositBoxAddress(address newDepositBox) external onlySchainOwner {
+    function changeDepositBoxAddress(address newDepositBox) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
         depositBox = newDepositBox;
     }
 
@@ -152,14 +167,26 @@ abstract contract TokenManager is SkaleFeaturesClient {
         return tokenManagers[keccak256(abi.encodePacked(schainName))] != address(0);
     }
 
-    // private
+    function initializeTokenManager(
+        string memory newSchainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
+        address newDepositBox
+    )
+        public
+        virtual
+        initializer
+    {
+        AccessControlUpgradeable.__AccessControl_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(AUTOMATIC_DEPLOY_ROLE, msg.sender);
+        _setupRole(TOKEN_REGISTRAR_ROLE, msg.sender);
 
-    /**
-     * @dev Checks whether sender is owner of SKALE chain
-     */
-    function _isSchainOwner(address sender) internal view returns (bool) {
-        return sender == getSkaleFeatures().getConfigVariableAddress(
-            "skaleConfig.contractSettings.IMA.ownerAddress"
-        );
+        schainHash = keccak256(abi.encodePacked(newSchainName));
+        messageProxy = newMessageProxy;
+        tokenManagerLinker = newIMALinker;
+        communityLocker = newCommunityLocker;        
+        depositBox = newDepositBox;
     }
 }

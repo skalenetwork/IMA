@@ -26,9 +26,13 @@ import "../schain/MessageProxyForSchain.sol";
 
 contract MessageProxyForSchainWithoutSignature is MessageProxyForSchain {
 
-    constructor(string memory newChainID) public MessageProxyForSchain(newChainID)
-    // solhint-disable-next-line no-empty-blocks
-    { }
+    function initialize(KeyStorage, string memory schainName)
+        public
+        override
+        initializer
+    {
+        MessageProxyForSchain.initialize(KeyStorage(0), schainName);
+    }
 
     function _verifyMessages(
         bytes32,

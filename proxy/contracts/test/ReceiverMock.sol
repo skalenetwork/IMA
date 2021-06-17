@@ -23,19 +23,19 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "../schain/MessageProxyForSchain.sol";
+import "../interfaces/IMessageReceiver.sol";
 
 
-contract ReceiverMock is IContractReceiverForSchain {
+contract ReceiverMock is IMessageReceiver {
     function postMessage(
-        string calldata,
+        bytes32,
         address,
         bytes calldata
     )
         external
         override
-        returns (bool) 
+        returns (address) 
     {
-        return true;
+        return address(0);
     }
 }

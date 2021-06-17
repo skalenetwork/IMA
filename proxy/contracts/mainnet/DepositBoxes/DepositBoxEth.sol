@@ -26,86 +26,34 @@ import "../DepositBox.sol";
 import "../../Messages.sol";
 
 
+
 // This contract runs on the main net and accepts deposits
 contract DepositBoxEth is DepositBox {
 
     using SafeMathUpgradeable for uint;
 
-    // uint256 public gasConsumption;
-
-    mapping(bytes32 => address) public tokenManagerEthAddresses;
-
     mapping(address => uint256) public approveTransfers;
 
-    modifier rightTransaction(string memory schainID) {
-        require(
-            keccak256(abi.encodePacked(schainID)) != keccak256(abi.encodePacked("Mainnet")),
-            "SKALE chain name is incorrect"
-        );
-        _;
-    }
+    mapping(bytes32 => uint256) public transferredAmount;
 
     receive() external payable {
         revert("Use deposit function");
     }
 
-    /**
-     * @dev Adds a TokenManagerEth address to
-     * DepositBoxEth.
-     *
-     * Requirements:
-     *
-     * - `msg.sender` must be schain owner or contract owner
-     * = or imaLinker contract.
-     * - SKALE chain must not already be added.
-     * - TokenManager address must be non-zero.
-     */
-    function addTokenManager(string calldata schainName, address newTokenManagerEthAddress) external override {
-        bytes32 schainId = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainId) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(tokenManagerEthAddresses[schainId] == address(0), "SKALE chain is already set");
-        require(newTokenManagerEthAddress != address(0), "Incorrect Token Manager address");
-
-        tokenManagerEthAddresses[schainId] = newTokenManagerEthAddress;
-    }
-
-    /**
-     * @dev Allows Owner to remove a TokenManagerEth on SKALE chain
-     * from DepositBoxEth.
-     *
-     * Requirements:
-     *
-     * - `msg.sender` must be schain owner or contract owner
-     * - SKALE chain must already be set.
-     */
-    function removeTokenManager(string calldata schainName) external override {
-        bytes32 schainId = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainId) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(tokenManagerEthAddresses[schainId] != address(0), "SKALE chain is not set");
-
-        delete tokenManagerEthAddresses[schainId];
-    }
-
-    function deposit(string memory schainID, address to)
+    function deposit(string memory schainName, address to)
         external
         payable
-        // receivedEth
+        rightTransaction(schainName, to)
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainID));
-        address tokenManagerAddress = tokenManagerEthAddresses[schainHash];
-        require(tokenManagerAddress != address(0), "Unconnected chain");
-        require(to != address(0), "Community Pool is not available");
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        address contractReceiver = schainLinks[schainHash];
+        require(contractReceiver != address(0), "Unconnected chain");
+        if (!linker.interchainConnections(schainHash))
+            _saveTransferredAmount(schainHash, msg.value);
         messageProxy.postOutgoingMessage(
             schainHash,
-            tokenManagerAddress,
+            contractReceiver,
             Messages.encodeTransferEthMessage(to, msg.value)
         );
     }
@@ -116,28 +64,21 @@ contract DepositBoxEth is DepositBox {
         bytes calldata data
     )
         external
-        override
         onlyMessageProxy
-        returns (bool)
+        whenNotKilled(schainHash)
+        checkReceiverChain(schainHash, sender)
+        returns (address)
     {
+        Messages.TransferEthMessage memory message = Messages.decodeTransferEthMessage(data);
         require(
-            schainHash != keccak256(abi.encodePacked("Mainnet")) &&
-            sender == tokenManagerEthAddresses[schainHash],
-            "Receiver chain is incorrect"
-        );
-        Messages.TransferEthMessage memory decodedMessage = Messages.decodeTransferEthMessage(data);
-        require(
-            decodedMessage.amount <= address(this).balance,
+            message.amount <= address(this).balance,
             "Not enough money to finish this transaction"
         );
-        approveTransfers[decodedMessage.receiver] =
-            approveTransfers[decodedMessage.receiver].add(decodedMessage.amount);
-        // TODO add gas reimbusement
-        // uint256 txFee = gasConsumption * tx.gasprice;
-        // require(amount >= txFee, "Not enough funds to recover gas");
-        // TODO add gas reimbusement
-        // imaLinker.rechargeSchainWallet(schainId, txFee);
-        return true;
+        approveTransfers[message.receiver] =
+            approveTransfers[message.receiver].add(message.amount);
+        if (!linker.interchainConnections(schainHash))
+            _removeTransferredAmount(schainHash, message.amount);
+        return message.receiver;
     }
 
     /**
@@ -151,7 +92,7 @@ contract DepositBoxEth is DepositBox {
     function getMyEth() external {
         require(
             address(this).balance >= approveTransfers[msg.sender],
-            "Not enough ETH. in `DepositBox.getMyEth`"
+            "Not enough ETH in DepositBox"
         );
         require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
         uint256 amount = approveTransfers[msg.sender];
@@ -159,23 +100,35 @@ contract DepositBoxEth is DepositBox {
         msg.sender.transfer(amount);
     }
 
-    /**
-     * @dev Checks whether depositBoxEth is connected to a SKALE chain TokenManagerEth.
-     */
-    function hasTokenManager(string calldata schainID) external view override returns (bool) {
-        return tokenManagerEthAddresses[keccak256(abi.encodePacked(schainID))] != address(0);
+    function getFunds(string calldata schainName, address payable receiver, uint amount)
+        external
+        onlySchainOwner(schainName)
+        whenKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(transferredAmount[schainHash] >= amount, "Incorrect amount");
+        _removeTransferredAmount(schainHash, amount);
+        receiver.transfer(amount);
     }
 
     /// Create a new deposit box
     function initialize(
-        IContractManager newContractManagerOfSkaleManager,        
-        Linker newLinkerAddress,
-        MessageProxyForMainnet newMessageProxyAddress
+        IContractManager contractManagerOfSkaleManager,        
+        Linker linker,
+        MessageProxyForMainnet messageProxy
     )
         public
         override
         initializer
     {
-        DepositBox.initialize(newContractManagerOfSkaleManager, newLinkerAddress, newMessageProxyAddress);
+        DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
+    }
+
+    function _saveTransferredAmount(bytes32 schainHash, uint256 amount) private {
+        transferredAmount[schainHash] = transferredAmount[schainHash].add(amount);
+    }
+
+    function _removeTransferredAmount(bytes32 schainHash, uint256 amount) private {
+        transferredAmount[schainHash] = transferredAmount[schainHash].sub(amount);
     }
 }

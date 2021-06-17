@@ -31,7 +31,13 @@ library Messages {
         TRANSFER_ERC20_AND_TOTAL_SUPPLY,
         TRANSFER_ERC20_AND_TOKEN_INFO,
         TRANSFER_ERC721,
-        TRANSFER_ERC721_AND_TOKEN_INFO
+        TRANSFER_ERC721_AND_TOKEN_INFO,
+        USER_STATUS,
+        INTERCHAIN_CONNECTION,
+        TRANSFER_ERC1155,
+        TRANSFER_ERC1155_AND_TOKEN_INFO,
+        TRANSFER_ERC1155_BATCH,
+        TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO
     }
 
     struct BaseMessage {
@@ -42,6 +48,12 @@ library Messages {
         BaseMessage message;
         address receiver;
         uint256 amount;
+    }
+
+    struct UserStatusMessage {
+        BaseMessage message;
+        address receiver;
+        bool isActive;
     }
 
     struct TransferErc20Message {
@@ -85,12 +97,45 @@ library Messages {
         Erc721TokenInfo tokenInfo;
     }
 
-    function getMessageType(bytes memory data) internal pure returns (MessageType) {
+    struct InterchainConnectionMessage {
+        BaseMessage message;
+        bool isAllowed;
+    }
+
+    struct TransferErc1155Message {
+        BaseMessage message;
+        address token;
+        address receiver;
+        uint256 id;
+        uint256 amount;
+    }
+
+    struct TransferErc1155BatchMessage {
+        BaseMessage message;
+        address token;
+        address receiver;
+        uint256[] ids;
+        uint256[] amounts;
+    }
+
+    struct Erc1155TokenInfo {
+        string uri;
+    }
+
+    struct TransferErc1155AndTokenInfoMessage {
+        TransferErc1155Message baseErc1155transfer;
+        Erc1155TokenInfo tokenInfo;
+    }
+
+    struct TransferErc1155BatchAndTokenInfoMessage {
+        TransferErc1155BatchMessage baseErc1155Batchtransfer;
+        Erc1155TokenInfo tokenInfo;
+    }
+
+    function getMessageType(bytes calldata data) internal pure returns (MessageType) {
         uint256 firstWord = abi.decode(data, (uint256));
-        if (firstWord == 32) {
-            Messages.MessageType messageType;
-            (, messageType) = abi.decode(data, (uint256, Messages.MessageType));
-            return messageType;
+        if (firstWord % 32 == 0) {
+            return getMessageType(data[firstWord:]);
         } else {
             return abi.decode(data, (Messages.MessageType));
         }
@@ -106,7 +151,7 @@ library Messages {
     }
 
     function decodeTransferEthMessage(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferEthMessage memory) {
         require(getMessageType(data) == MessageType.TRANSFER_ETH, "Message type is not ETH transfer");
         return abi.decode(data, (TransferEthMessage));
@@ -145,14 +190,14 @@ library Messages {
     }
 
     function decodeTransferErc20Message(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferErc20Message memory) {
         require(getMessageType(data) == MessageType.TRANSFER_ERC20, "Message type is not ERC20 transfer");
         return abi.decode(data, (TransferErc20Message));
     }
 
     function decodeTransferErc20AndTotalSupplyMessage(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferErc20AndTotalSupplyMessage memory) {
         require(
             getMessageType(data) == MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY,
@@ -182,7 +227,7 @@ library Messages {
     }
 
     function decodeTransferErc20AndTokenInfoMessage(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferErc20AndTokenInfoMessage memory) {
         require(
             getMessageType(data) == MessageType.TRANSFER_ERC20_AND_TOKEN_INFO,
@@ -206,7 +251,7 @@ library Messages {
     }
 
     function decodeTransferErc721Message(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferErc721Message memory) {
         require(getMessageType(data) == MessageType.TRANSFER_ERC721, "Message type is not ERC721 transfer");
         return abi.decode(data, (TransferErc721Message));
@@ -231,7 +276,7 @@ library Messages {
     }
 
     function decodeTransferErc721AndTokenInfoMessage(
-        bytes memory data
+        bytes calldata data
     ) internal pure returns (TransferErc721AndTokenInfoMessage memory) {
         require(
             getMessageType(data) == MessageType.TRANSFER_ERC721_AND_TOKEN_INFO,
@@ -239,4 +284,153 @@ library Messages {
         );
         return abi.decode(data, (TransferErc721AndTokenInfoMessage));
     }
+
+    function encodeActivateUserMessage(address receiver) internal pure returns (bytes memory){
+        return _encodeUserStatusMessage(receiver, true);
+    }
+
+    function encodeLockUserMessage(address receiver) internal pure returns (bytes memory){
+        return _encodeUserStatusMessage(receiver, false);
+    }
+
+    function decodeUserStatusMessage(bytes calldata data) internal pure returns (UserStatusMessage memory) {
+        require(getMessageType(data) == MessageType.USER_STATUS, "Message type is not User Status");
+        return abi.decode(data, (UserStatusMessage));
+    }
+
+    function encodeInterchainConnectionMessage(bool isAllowed) internal pure returns (bytes memory) {
+        InterchainConnectionMessage memory message = InterchainConnectionMessage(
+            BaseMessage(MessageType.INTERCHAIN_CONNECTION),
+            isAllowed
+        );
+        return abi.encode(message);
+    }
+
+    function decodeInterchainConnectionMessage(bytes calldata data)
+        internal
+        pure
+        returns (InterchainConnectionMessage memory)
+    {
+        require(getMessageType(data) == MessageType.INTERCHAIN_CONNECTION, "Message type is not Interchain connection");
+        return abi.decode(data, (InterchainConnectionMessage));
+    }
+
+    function encodeTransferErc1155Message(
+        address token,
+        address receiver,
+        uint256 id,
+        uint256 amount
+    ) internal pure returns (bytes memory) {
+        TransferErc1155Message memory message = TransferErc1155Message(
+            BaseMessage(MessageType.TRANSFER_ERC1155),
+            token,
+            receiver,
+            id,
+            amount
+        );
+        return abi.encode(message);
+    }
+
+    function decodeTransferErc1155Message(
+        bytes calldata data
+    ) internal pure returns (TransferErc1155Message memory) {
+        require(getMessageType(data) == MessageType.TRANSFER_ERC1155, "Message type is not ERC1155 transfer");
+        return abi.decode(data, (TransferErc1155Message));
+    }
+
+    function encodeTransferErc1155AndTokenInfoMessage(
+        address token,
+        address receiver,
+        uint256 id,
+        uint256 amount,
+        Erc1155TokenInfo memory tokenInfo
+    ) internal pure returns (bytes memory) {
+        TransferErc1155AndTokenInfoMessage memory message = TransferErc1155AndTokenInfoMessage(
+            TransferErc1155Message(
+                BaseMessage(MessageType.TRANSFER_ERC1155_AND_TOKEN_INFO),
+                token,
+                receiver,
+                id,
+                amount
+            ),
+            tokenInfo
+        );
+        return abi.encode(message);
+    }
+
+    function decodeTransferErc1155AndTokenInfoMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc1155AndTokenInfoMessage memory) {
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC1155_AND_TOKEN_INFO,
+            "Message type is not ERC1155AndTokenInfo transfer"
+        );
+        return abi.decode(data, (TransferErc1155AndTokenInfoMessage));
+    }
+
+    function encodeTransferErc1155BatchMessage(
+        address token,
+        address receiver,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) internal pure returns (bytes memory) {
+        TransferErc1155BatchMessage memory message = TransferErc1155BatchMessage(
+            BaseMessage(MessageType.TRANSFER_ERC1155_BATCH),
+            token,
+            receiver,
+            ids,
+            amounts
+        );
+        return abi.encode(message);
+    }
+
+    function decodeTransferErc1155BatchMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc1155BatchMessage memory) {
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC1155_BATCH,
+            "Message type is not ERC1155Batch transfer"
+        );
+        return abi.decode(data, (TransferErc1155BatchMessage));
+    }
+
+    function encodeTransferErc1155BatchAndTokenInfoMessage(
+        address token,
+        address receiver,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        Erc1155TokenInfo memory tokenInfo
+    ) internal pure returns (bytes memory) {
+        TransferErc1155BatchAndTokenInfoMessage memory message = TransferErc1155BatchAndTokenInfoMessage(
+            TransferErc1155BatchMessage(
+                BaseMessage(MessageType.TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO),
+                token,
+                receiver,
+                ids,
+                amounts
+            ),
+            tokenInfo
+        );
+        return abi.encode(message);
+    }
+
+    function decodeTransferErc1155BatchAndTokenInfoMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc1155BatchAndTokenInfoMessage memory) {
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO,
+            "Message type is not ERC1155BatchAndTokenInfo transfer"
+        );
+        return abi.decode(data, (TransferErc1155BatchAndTokenInfoMessage));
+    }
+
+    function _encodeUserStatusMessage(address receiver, bool isActive) private pure returns (bytes memory) {
+        UserStatusMessage memory message = UserStatusMessage(
+            BaseMessage(MessageType.USER_STATUS),
+            receiver,
+            isActive
+        );
+        return abi.encode(message);
+    }
+
 }

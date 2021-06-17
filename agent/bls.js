@@ -388,12 +388,12 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
         w3 = imaState.w3_main_net;
         joMessageProxy = imaState.jo_message_proxy_main_net;
         joAccount = imaState.joAccount_main_net;
-        joChainName = imaState.strChainID_s_chain;
+        joChainName = imaState.strChainName_s_chain;
     } else if( strDirection == "S2M" ) {
         w3 = imaState.w3_s_chain;
         joMessageProxy = imaState.jo_message_proxy_s_chain;
         joAccount = imaState.joAccount_s_chain;
-        joChainName = imaState.strChainID_main_net;
+        joChainName = imaState.strChainName_main_net;
     }
     const strCallerAccountAddress = joAccount.address( w3 );
     details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " message correctness validation through call to " ) +
@@ -410,7 +410,7 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
             try {
                 // const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
                 const outgoingMessageData = {
-                    dstChain: joChainName,
+                    dstChainHash: w3.utils.soliditySha3( joChainName ),
                     msgCounter: idxMessage,
                     srcContract: joMessage.sender,
                     dstContract: joMessage.destinationContract,
@@ -511,13 +511,13 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) + "\n" );
                 return;
             }
-            let dstChainID = ""; let srcChainID = "";
+            let targetChainName = ""; let fromChainName = "";
             if( strDirection == "M2S" ) {
-                dstChainID = "" + ( imaState.strChainID_s_chain ? imaState.strChainID_s_chain : "" );
-                srcChainID = "" + ( imaState.strChainID_main_net ? imaState.strChainID_main_net : "" );
+                targetChainName = "" + ( imaState.strChainName_s_chain ? imaState.strChainName_s_chain : "" );
+                fromChainName = "" + ( imaState.strChainName_main_net ? imaState.strChainName_main_net : "" );
             } else {
-                dstChainID = "" + ( imaState.strChainID_main_net ? imaState.strChainID_main_net : "" );
-                srcChainID = "" + ( imaState.strChainID_s_chain ? imaState.strChainID_s_chain : "" );
+                targetChainName = "" + ( imaState.strChainName_main_net ? imaState.strChainName_main_net : "" );
+                fromChainName = "" + ( imaState.strChainName_s_chain ? imaState.strChainName_s_chain : "" );
             }
 
             await joCall.call( {
@@ -525,8 +525,8 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 params: {
                     direction: "" + strDirection,
                     startMessageIdx: nIdxCurrentMsgBlockStart,
-                    dstChainID: dstChainID,
-                    srcChainID: srcChainID,
+                    dstChainID: targetChainName,
+                    srcChainID: fromChainName,
                     messages: jarrMessages
                 }
             }, function( joIn, joOut, err ) {
