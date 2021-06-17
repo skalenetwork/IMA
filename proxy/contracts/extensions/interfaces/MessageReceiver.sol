@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   ReceiverMock.sol - SKALE Interchain Messaging Agent
+ *   MessageReceiver.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
- *   @author Dmytro Stebaiev
+ *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published
@@ -19,23 +19,10 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
 
-import "../interfaces/IMessageReceiver.sol";
+import "./MessageProxyClient.sol";
+import "../../interfaces/IMessageReceiver.sol";
 
-
-contract ReceiverMock is IMessageReceiver {
-    function postMessage(
-        bytes32,
-        address,
-        bytes calldata
-    )
-        external
-        override
-        returns (address) 
-    {
-        return address(0);
-    }
-}
+// solhint-disable-next-line no-empty-blocks
+abstract contract MessageReceiver is MessageProxyClient, IMessageReceiver {}

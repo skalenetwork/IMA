@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   ReceiverMock.sol - SKALE Interchain Messaging Agent
+ *   MessageProxyClient.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
- *   @author Dmytro Stebaiev
+ *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published
@@ -19,23 +19,19 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
 
-import "../interfaces/IMessageReceiver.sol";
+import "../../interfaces/IMessageProxy.sol";
 
+abstract contract MessageProxyClient {
+    IMessageProxy public messageProxy;
 
-contract ReceiverMock is IMessageReceiver {
-    function postMessage(
-        bytes32,
-        address,
-        bytes calldata
-    )
-        external
-        override
-        returns (address) 
-    {
-        return address(0);
+    modifier onlyMessageProxy() {
+        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
+        _;
+    }
+
+    constructor(address newMessageProxyAddress) public {
+        messageProxy = IMessageProxy(newMessageProxyAddress);
     }
 }

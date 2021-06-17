@@ -41,8 +41,7 @@ contract SkaleManagerClient is Initializable, AccessControlUpgradeable {
 
     modifier onlySchainOwner(string memory schainName) {
         require(
-            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))),
             "Sender is not an Schain owner"
         );
         _;
