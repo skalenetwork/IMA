@@ -3904,8 +3904,8 @@ async function do_transfer(
                     chain_id_src,
                     nIdxCurrentMsgBlockStart,
                     jarrMessages, // messages
-                    sign, // bls signature components
-                    idxLastToPopNotIncluding
+                    sign //, // bls signature components
+                    // idxLastToPopNotIncluding
                 );
                 const dataTx_postIncomingMessages = methodWithArguments_postIncomingMessages.encodeABI(); // the encoded ABI of the method
                 //
