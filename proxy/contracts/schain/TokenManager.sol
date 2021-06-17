@@ -25,6 +25,7 @@ pragma experimental ABIEncoderV2;
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
 import "./CommunityLocker.sol";
+import "../interfaces/IMessageReceiver.sol";
 
 
 /**
@@ -34,7 +35,7 @@ import "./CommunityLocker.sol";
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-abstract contract TokenManager is AccessControlUpgradeable {
+abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
@@ -66,14 +67,30 @@ abstract contract TokenManager is AccessControlUpgradeable {
         _;
     }
 
-    function postMessage(
-        bytes32 fromChainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        virtual
-        returns (bool);
+    modifier rightTransaction(string memory targetSchainName, address to) {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        require(
+            targetSchainHash != MAINNET_HASH,
+            "This function is not for transferring to Mainnet"
+        );
+        require(to != address(0), "Incorrect receiver address");
+        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
+        _;
+    }
+
+    modifier checkReceiverChain(bytes32 fromChainHash, address sender) {
+        require(
+            fromChainHash != schainHash && 
+                (
+                    fromChainHash == MAINNET_HASH ?
+                    sender == depositBox :
+                    sender == tokenManagers[fromChainHash]
+                ),
+            "Receiver chain is incorrect"
+        );
+        _;
+    }
+
 
     /**
      * @dev Allows Schain owner turn on automatic deploy on schain.

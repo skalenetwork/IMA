@@ -97,7 +97,7 @@ describe("TokenManagerLinker", () => {
     it("should allow interchain connection", async () => {
         await linker.connect(deployer).connectSchain(schainName, []).should.be.eventually.rejectedWith("Interchain connection not allowed");
         const data = await messages.encodeInterchainConnectionMessage(true);
-        const data2 = await messages.encodeFreezeStateMessage(user.address, true);
+        const data2 = await messages.encodeActivateUserMessage(user.address);
         const data3 = await messages.encodeInterchainConnectionMessage(false);
         await messageProxy.connect(deployer).postMessage(linker.address, stringValue(web3.utils.soliditySha3("NotMainnet")), deployer.address, data).should.be.eventually.rejectedWith("Source chain name should be Mainnet");
         await messageProxy.connect(deployer).postMessage(linker.address, stringValue(web3.utils.soliditySha3("Mainnet")), fakeDepositBox, data).should.be.eventually.rejectedWith("Sender from Mainnet is incorrect");

@@ -28,6 +28,7 @@ import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 import "../interfaces/IMessageReceiver.sol";
 import "./SkaleManagerClient.sol";
 
+
 interface ICommunityPool {
     function refundGasByUser(
         bytes32 schainHash,
@@ -86,7 +87,6 @@ contract MessageProxyForMainnet is SkaleManagerClient {
 
     bytes32 public constant MAINNET_HASH = keccak256(abi.encodePacked("Mainnet"));
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
-    bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
@@ -98,11 +98,6 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     uint256 public headerMessageGasCost;
     uint256 public messageGasCost;
     uint256 public gasLimit;
-
-    modifier onlyDebugger() {
-        require(hasRole(DEBUGGER_ROLE, msg.sender), "Access denied");
-        _;
-    }
 
     modifier onlyConstantSetter() {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
@@ -216,6 +211,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
 
     function registerExtraContract(string calldata schainName, address contractOnMainnet) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash),
@@ -242,6 +238,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
 
     function removeExtraContract(string calldata schainName, address contractOnMainnet) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
             isSchainOwner(msg.sender, schainHash),
@@ -276,8 +273,8 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         string calldata fromSchainName,
         uint256 startingCounter,
         Message[] calldata messages,
-        Signature calldata sign,
-        uint256
+        Signature calldata sign //,
+        // uint256
     )
         external
     {
@@ -308,34 +305,6 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         }
         connectedChains[fromSchainHash].incomingMessageCounter = 
             connectedChains[fromSchainHash].incomingMessageCounter.add(uint256(messages.length));
-    }
-
-    /**
-     * @dev Increments incoming message counter. 
-     * 
-     * Note: Test function. TODO: remove in production.
-     * 
-     * Requirements:
-     * 
-     * - `msg.sender` must be owner.
-     */
-    function incrementIncomingCounter(string calldata schainName) external onlyDebugger {
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 
-            connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
-    }
-
-    /**
-     * @dev Sets the incoming and outgoing message counters to zero. 
-     * 
-     * Note: Test function. TODO: remove in production.
-     * 
-     * Requirements:
-     * 
-     * - `msg.sender` must be owner.
-     */
-    function setCountersToZero(string calldata schainName) external onlyDebugger {
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
-        connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
     /**
@@ -388,14 +357,23 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         view
         returns (bool)
     {
-        require(
-            keccak256(abi.encodePacked(schainName)) !=
-            keccak256(abi.encodePacked("Mainnet")),
-            "Schain id can not be equal Mainnet"); // main net does not have a public key and is implicitly connected
-        if ( ! connectedChains[keccak256(abi.encodePacked(schainName))].inited ) {
-            return false;
-        }
-        return true;
+        require(keccak256(abi.encodePacked(schainName)) != MAINNET_HASH, "Schain id can not be equal Mainnet");
+        return connectedChains[keccak256(abi.encodePacked(schainName))].inited;
+    }
+
+    /**
+     * @dev Checks whether contract is currently connected to
+     * send messages to chain or receive messages from chain.
+     */
+    function isContractRegistered(
+        string calldata schainName,
+        address contractAddress
+    )
+        external
+        view
+        returns (bool)
+    {
+        return registryContracts[keccak256(abi.encodePacked(schainName))][contractAddress];
     }
 
     /**

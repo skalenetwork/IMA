@@ -116,6 +116,9 @@ global.imaState = {
     "nAmountOfWei": 0,
     "nAmountOfToken": 0,
     "idToken": 0,
+    "idTokens": [],
+    "have_idToken": false,
+    "have_idTokens": false,
 
     "nTransferBlockSizeM2S": 4, // 10
     "nTransferBlockSizeS2M": 4, // 10
