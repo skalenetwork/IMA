@@ -306,7 +306,7 @@ describe("DepositBoxERC20", () => {
 
             await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, user.address, amount);
 
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress, messageWithNotMintedToken], sign, 0)).wait();
+            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress, messageWithNotMintedToken], sign)).wait();
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
                 assert.equal(stringFromHex(res.events[0].args?.message), "Given address is not a contract");
@@ -317,14 +317,14 @@ describe("DepositBoxERC20", () => {
             }
 
             const balanceBefore = await getBalance(deployer.address);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 2, [message], sign, 0);
+            await messageProxy.connect(deployer).postIncomingMessages(schainName, 2, [message], sign);
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
 
             await linker.allowInterchainConnections(schainName);
             await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, user.address, amount);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 3, [message], sign, 0);
+            await messageProxy.connect(deployer).postIncomingMessages(schainName, 3, [message], sign);
             expect(await depositBoxERC20.transferredAmount(schainHash, erc20.address)).to.be.deep.equal(BigNumber.from(0));
 
             (await erc20.balanceOf(user.address)).toString().should.be.equal((amount * 2).toString());

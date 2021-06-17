@@ -494,8 +494,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         // console.log("First exit eth cost:", res.gasUsed.toNumber());
         // res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -572,8 +571,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -583,8 +581,7 @@ describe("Gas calculation", () => {
             schainName,
             1,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -594,8 +591,7 @@ describe("Gas calculation", () => {
             schainName,
             2,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -605,8 +601,7 @@ describe("Gas calculation", () => {
             schainName,
             3,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Forth exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -616,8 +611,7 @@ describe("Gas calculation", () => {
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Fifth exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -660,40 +654,35 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First exit eth cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             1,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit eth cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             2,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third exit eth cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             3,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Forth exit eth cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Fifth exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -730,8 +719,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First exit eth cost:", res.gasUsed.toNumber());
         await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"});
@@ -739,8 +727,7 @@ describe("Gas calculation", () => {
             schainName,
             1,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit eth cost:", res.gasUsed.toNumber());
         await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"});
@@ -748,8 +735,7 @@ describe("Gas calculation", () => {
             schainName,
             2,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third exit eth cost:", res.gasUsed.toNumber());
         await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"});
@@ -757,8 +743,7 @@ describe("Gas calculation", () => {
             schainName,
             3,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Forth exit eth cost:", res.gasUsed.toNumber());
         await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"});
@@ -766,8 +751,7 @@ describe("Gas calculation", () => {
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Fifth exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -810,8 +794,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 2 exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -820,8 +803,7 @@ describe("Gas calculation", () => {
             schainName,
             2,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -830,8 +812,7 @@ describe("Gas calculation", () => {
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third  exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -869,8 +850,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 2 exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -881,8 +861,7 @@ describe("Gas calculation", () => {
             schainName,
             2,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -892,8 +871,7 @@ describe("Gas calculation", () => {
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -936,24 +914,21 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 2 exit eth cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             2,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit eth cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -991,8 +966,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 2 exit eth cost:", res.gasUsed.toNumber());
         await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"});
@@ -1001,8 +975,7 @@ describe("Gas calculation", () => {
             schainName,
             2,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit eth cost:", res.gasUsed.toNumber());
         await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"});
@@ -1010,8 +983,7 @@ describe("Gas calculation", () => {
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -1054,8 +1026,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 3 exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -1064,8 +1035,7 @@ describe("Gas calculation", () => {
             schainName,
             3,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -1104,8 +1074,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 3 exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -1116,8 +1085,7 @@ describe("Gas calculation", () => {
             schainName,
             3,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -1160,16 +1128,14 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 3 exit eth cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             3,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -1208,8 +1174,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 3 exit eth cost:", res.gasUsed.toNumber());
         await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"});
@@ -1218,8 +1183,7 @@ describe("Gas calculation", () => {
             schainName,
             3,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -1262,8 +1226,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message, message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 4 exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -1272,8 +1235,7 @@ describe("Gas calculation", () => {
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -1313,8 +1275,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message, message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 4 exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -1324,8 +1285,7 @@ describe("Gas calculation", () => {
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -1368,16 +1328,14 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message, message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 4 exit eth cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -1417,8 +1375,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message, message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 4 exit eth cost:", res.gasUsed.toNumber());
         await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"});
@@ -1426,8 +1383,7 @@ describe("Gas calculation", () => {
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -1470,8 +1426,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message, message, message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 5 exit eth cost:", res.gasUsed.toNumber());
         res = await (await depositBoxEth.connect(user).getMyEth()).wait();
@@ -1530,40 +1485,35 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First exit erc20 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             1,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit erc20 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             2,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third exit erc20 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             3,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Forth exit erc20 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Fifth exit erc20 cost:", res.gasUsed.toNumber());
     });
@@ -1606,8 +1556,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First exit erc20 cost:", res.gasUsed.toNumber());
         await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1);
@@ -1615,8 +1564,7 @@ describe("Gas calculation", () => {
             schainName,
             1,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit erc20 cost:", res.gasUsed.toNumber());
         await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1);
@@ -1624,8 +1572,7 @@ describe("Gas calculation", () => {
             schainName,
             2,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third exit erc20 cost:", res.gasUsed.toNumber());
         await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1);
@@ -1633,8 +1580,7 @@ describe("Gas calculation", () => {
             schainName,
             3,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Forth exit erc20 cost:", res.gasUsed.toNumber());
         await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1);
@@ -1642,8 +1588,7 @@ describe("Gas calculation", () => {
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Fifth exit erc20 cost:", res.gasUsed.toNumber());
     });
@@ -1687,24 +1632,21 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 2 exit erc20 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             2,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit erc20 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third exit erc20 cost:", res.gasUsed.toNumber());
     });
@@ -1748,8 +1690,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 2 exit erc20 cost:", res.gasUsed.toNumber());
         await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1);
@@ -1758,8 +1699,7 @@ describe("Gas calculation", () => {
             schainName,
             2,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit erc20 cost:", res.gasUsed.toNumber());
         await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1);
@@ -1767,8 +1707,7 @@ describe("Gas calculation", () => {
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third exit erc20 cost:", res.gasUsed.toNumber());
     });
@@ -1812,16 +1751,14 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 3 exit erc20 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             3,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit erc20 cost:", res.gasUsed.toNumber());
     });
@@ -1866,8 +1803,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 3 exit erc20 cost:", res.gasUsed.toNumber());
         await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1);
@@ -1876,8 +1812,7 @@ describe("Gas calculation", () => {
             schainName,
             3,
             [message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit erc20 cost:", res.gasUsed.toNumber());
     });
@@ -1921,16 +1856,14 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message, message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 4 exit erc20 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit erc20 cost:", res.gasUsed.toNumber());
     });
@@ -1976,8 +1909,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message, message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 4 exit erc20 cost:", res.gasUsed.toNumber());
         await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1);
@@ -1985,8 +1917,7 @@ describe("Gas calculation", () => {
             schainName,
             4,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit erc20 cost:", res.gasUsed.toNumber());
     });
@@ -2030,8 +1961,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message, message, message, message, message],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 5 exit erc20 cost:", res.gasUsed.toNumber());
     });
@@ -2121,40 +2051,35 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message1],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First exit erc721 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             1,
             [message2],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit erc721 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             2,
             [message3],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third exit erc721 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             3,
             [message4],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Forth exit erc721 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             4,
             [message5],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Fifth exit erc721 cost:", res.gasUsed.toNumber());
     });
@@ -2237,8 +2162,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message1],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First exit erc721 cost:", res.gasUsed.toNumber());
         await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 2);
@@ -2246,8 +2170,7 @@ describe("Gas calculation", () => {
             schainName,
             1,
             [message2],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit erc721 cost:", res.gasUsed.toNumber());
         await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 3);
@@ -2255,8 +2178,7 @@ describe("Gas calculation", () => {
             schainName,
             2,
             [message3],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third exit erc721 cost:", res.gasUsed.toNumber());
         await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 4);
@@ -2264,8 +2186,7 @@ describe("Gas calculation", () => {
             schainName,
             3,
             [message4],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Forth exit erc721 cost:", res.gasUsed.toNumber());
         await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 5);
@@ -2273,8 +2194,7 @@ describe("Gas calculation", () => {
             schainName,
             4,
             [message5],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Fifth exit erc721 cost:", res.gasUsed.toNumber());
     });
@@ -2362,24 +2282,21 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message1, message2],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 2 exit erc721 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             2,
             [message3, message4],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit erc721 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             4,
             [message5],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third exit erc721 cost:", res.gasUsed.toNumber());
     });
@@ -2463,8 +2380,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message1, message2],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 2 exit erc721 cost:", res.gasUsed.toNumber());
         await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 3);
@@ -2473,8 +2389,7 @@ describe("Gas calculation", () => {
             schainName,
             2,
             [message3, message4],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit erc721 cost:", res.gasUsed.toNumber());
         await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 5);
@@ -2482,8 +2397,7 @@ describe("Gas calculation", () => {
             schainName,
             4,
             [message5],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Third exit erc721 cost:", res.gasUsed.toNumber());
     });
@@ -2571,16 +2485,14 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message1, message2, message3],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 3 exit erc721 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             3,
             [message4, message5],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit erc721 cost:", res.gasUsed.toNumber());
     });
@@ -2665,8 +2577,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message1, message2, message3],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 3 exit erc721 cost:", res.gasUsed.toNumber());
         await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 4);
@@ -2675,8 +2586,7 @@ describe("Gas calculation", () => {
             schainName,
             3,
             [message4, message5],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second 2 exit erc721 cost:", res.gasUsed.toNumber());
     });
@@ -2764,16 +2674,14 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message1, message2, message3, message4],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 4 exit erc721 cost:", res.gasUsed.toNumber());
         res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             4,
             [message5],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit erc721 cost:", res.gasUsed.toNumber());
     });
@@ -2859,8 +2767,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message1, message2, message3, message4],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 4 exit erc721 cost:", res.gasUsed.toNumber());
         await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 5);
@@ -2868,8 +2775,7 @@ describe("Gas calculation", () => {
             schainName,
             4,
             [message5],
-            sign,
-            5
+            sign
         )).wait();
         console.log("Second exit erc721 cost:", res.gasUsed.toNumber());
     });
@@ -2957,8 +2863,7 @@ describe("Gas calculation", () => {
             schainName,
             0,
             [message1, message2, message3, message4, message5],
-            sign,
-            5
+            sign
         )).wait();
         console.log("First 5 exit erc721 cost:", res.gasUsed.toNumber());
     });

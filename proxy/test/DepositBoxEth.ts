@@ -234,7 +234,7 @@ describe("DepositBoxEth", () => {
                 .rechargeUserWallet(schainName, { value: wei });
             // execution
 
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign, 0)).wait();
+            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
             // console.log(res.logs);
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
@@ -279,7 +279,7 @@ describe("DepositBoxEth", () => {
                     .connect(user)
                     .rechargeUserWallet(schainName, { value: wei });
                 // execution
-                const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign, 0)).wait();
+                const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
 
                 if (res.events) {
                     assert.equal(res.events[0].event, "PostMessageError");
@@ -324,7 +324,7 @@ describe("DepositBoxEth", () => {
             // to avoid `Incorrect sender` error
             // await lockAndDataForMainnet.setContract("MessageProxy", deployer);
             // execution
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign, 0)).wait();
+            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
 
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
@@ -373,7 +373,7 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .deposit(schainName, user.address, { value: wei });
             // execution
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign, 0)).wait();
+            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
 
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
@@ -425,7 +425,7 @@ describe("DepositBoxEth", () => {
             expect(await depositBoxEth.transferredAmount(schainHash)).to.be.deep.equal(BigNumber.from(0));
 
             const balanceBefore = await getBalance(deployer.address);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign, 0);
+            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);

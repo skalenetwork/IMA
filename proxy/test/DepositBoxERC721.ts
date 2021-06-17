@@ -268,7 +268,7 @@ describe("DepositBoxERC721", () => {
             await erc721.connect(deployer).transferFrom(deployer.address, depositBoxERC721.address, tokenId);
 
             const balanceBefore = await getBalance(deployer.address);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign, 0);
+            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
@@ -291,7 +291,7 @@ describe("DepositBoxERC721", () => {
             await erc721.connect(deployer).mint(deployer.address, tokenId);
             await erc721.connect(deployer).transferFrom(deployer.address, depositBoxERC721.address, tokenId);
 
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress], sign, 0)).wait();
+            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress], sign)).wait();
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
                 assert.equal(stringFromHex(res.events[0].args?.message), "Given address is not a contract");
@@ -313,7 +313,7 @@ describe("DepositBoxERC721", () => {
 
             await erc721.connect(deployer).mint(deployer.address, tokenId);
 
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress], sign, 0)).wait();
+            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress], sign)).wait();
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
                 assert.equal(stringFromHex(res.events[0].args?.message), "Incorrect tokenId");
@@ -344,7 +344,7 @@ describe("DepositBoxERC721", () => {
                 .depositERC721(schainName, erc721.address, deployer.address, tokenId);
 
             const balanceBefore = await getBalance(deployer.address);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign, 0);
+            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);

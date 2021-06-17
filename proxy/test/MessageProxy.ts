@@ -261,8 +261,7 @@ describe("MessageProxy", () => {
                     schainName,
                     startingCounter,
                     outgoingMessages,
-                    sign,
-                    0,
+                    sign
                 ).should.be.eventually.rejectedWith("Chain is not initialized");
 
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
@@ -273,8 +272,7 @@ describe("MessageProxy", () => {
                     schainName,
                     startingCounter,
                     outgoingMessages,
-                    sign,
-                    0,
+                    sign
                 ).should.be.eventually.rejectedWith("User should be active");
 
             await communityPool.connect(client).rechargeUserWallet(schainName, {value: amountWei.toString()});
@@ -285,8 +283,7 @@ describe("MessageProxy", () => {
                     schainName,
                     startingCounter,
                     outgoingMessages,
-                    sign,
-                    0,
+                    sign
                 );
             const incomingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
@@ -357,8 +354,7 @@ describe("MessageProxy", () => {
                     schainName,
                     startingCounter,
                     outgoingMessages,
-                    sign,
-                    0,
+                    sign
                 );
             const incomingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
@@ -407,8 +403,7 @@ describe("MessageProxy", () => {
                     schainName,
                     startingCounter,
                     outgoingMessages,
-                    sign,
-                    0,
+                    sign
                 );
             // console.log("Gas for postIncomingMessages Eth:", res.receipt.gasUsed);
             const incomingMessagesCounter = BigNumber.from(
@@ -470,8 +465,7 @@ describe("MessageProxy", () => {
                     schainName,
                     startingCounter,
                     outgoingMessages,
-                    sign,
-                    0,
+                    sign
                 )).wait();
 
             a = await receiverMock.a();
@@ -652,8 +646,7 @@ describe("MessageProxy", () => {
                 schainName,
                 startingCounter,
                 outgoingMessages,
-                sign,
-                0,
+                sign
             ).should.be.rejected;
 
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
@@ -664,8 +657,7 @@ describe("MessageProxy", () => {
                 schainName,
                 startingCounter,
                 outgoingMessages,
-                sign,
-                0,
+                sign
             );
 
             (await messageProxyForSchain.getIncomingMessagesCounter(schainName)).toNumber().should.be.equal(2);
@@ -737,8 +729,7 @@ describe("MessageProxy", () => {
                     "Mainnet",
                     startingCounter,
                     outgoingMessages,
-                    sign,
-                    0,
+                    sign
                 )).wait();
 
             a = await receiverMock.a();

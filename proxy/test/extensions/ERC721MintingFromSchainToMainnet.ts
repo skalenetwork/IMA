@@ -354,8 +354,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             schainName,
             0,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         expect(await ERC721TokenOnMainnet.ownerOf(1)).to.equal(user.address);
         expect(await ERC721TokenOnMainnet.tokenURI(1)).to.equal("MyToken1");
@@ -389,8 +388,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             schainName,
             0,
             [message],
-            sign,
-            5
+            sign
         )).wait();
         expect(await ERC721TokenOnMainnet.ownerOf(5)).to.equal(user.address);
         expect(await ERC721TokenOnMainnet.tokenURI(5)).to.equal("MyToken5Unique");
