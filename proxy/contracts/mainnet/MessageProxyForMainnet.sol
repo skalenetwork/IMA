@@ -314,34 +314,6 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     }
 
     /**
-     * @dev Increments incoming message counter. 
-     * 
-     * Note: Test function. TODO: remove in production.
-     * 
-     * Requirements:
-     * 
-     * - `msg.sender` must be owner.
-     */
-    function incrementIncomingCounter(string calldata schainName) external onlyDebugger {
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 
-            connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
-    }
-
-    /**
-     * @dev Sets the incoming and outgoing message counters to zero. 
-     * 
-     * Note: Test function. TODO: remove in production.
-     * 
-     * Requirements:
-     * 
-     * - `msg.sender` must be owner.
-     */
-    function setCountersToZero(string calldata schainName) external onlyDebugger {
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
-        connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
-    }
-
-    /**
      * @dev Sets headerMessageGasCost to a new value
      * 
      * Requirements:

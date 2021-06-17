@@ -253,16 +253,6 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         _popOutgoingMessageData(fromChainHash, idxLastToPopNotIncluding);
     }
 
-    function moveIncomingCounter(string calldata schainName) external onlyDebugger {
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter =
-            connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
-    }
-
-    function setCountersToZero(string calldata schainName) external onlyDebugger {
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
-        connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
-    }
-
     /**
      * @dev Sets gasLimit to new value
      * 
