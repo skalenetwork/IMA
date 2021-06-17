@@ -24,7 +24,7 @@
         "@nomiclabs/hardhat-web3": "^2.0.0",
         "@openzeppelin/contracts-upgradeable": "^3.4.1",
         "@openzeppelin/hardhat-upgrades": "^1.6.0",
-        "@skalenetwork/skale-manager-interfaces": "^0.1.0",
+        "@skalenetwork/skale-manager-interfaces": "^0.1.1",
         "dotenv": "^10.0.0",
         "ethereumjs-tx": "2.1.2",
         "ethers": "^5.3.1",
