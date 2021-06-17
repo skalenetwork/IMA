@@ -74,7 +74,6 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         uint256 counter;
     }
 
-    bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
@@ -106,11 +105,6 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         uint256 indexed msgCounter,
         bytes message
     );
-
-    modifier onlyDebugger() {
-        require(hasRole(DEBUGGER_ROLE, msg.sender), "DEBUGGER_ROLE is required");
-        _;
-    }
 
     modifier onlyChainConnector() {
         require(hasRole(CHAIN_CONNECTOR_ROLE, msg.sender), "CHAIN_CONNECTOR_ROLE is required");
@@ -251,16 +245,6 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         connectedChains[fromChainHash].incomingMessageCounter 
             = connectedChains[fromChainHash].incomingMessageCounter.add(uint256(messages.length));
         _popOutgoingMessageData(fromChainHash, idxLastToPopNotIncluding);
-    }
-
-    function moveIncomingCounter(string calldata schainName) external onlyDebugger {
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter =
-            connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
-    }
-
-    function setCountersToZero(string calldata schainName) external onlyDebugger {
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
-        connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
     }
 
     /**
