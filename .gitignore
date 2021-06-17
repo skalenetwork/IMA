@@ -11,6 +11,10 @@ proxy/.openzeppelin/dev-*.json
 proxy/.openzeppelin/unknown-*.json
 proxy/.openzeppelin/.session
 
+# predeployed generator artificats
+proxy/predeployed/test/additional.json
+proxy/predeployed/version.txt
+
 # idea
 .DS_Store
 .idea
