@@ -487,7 +487,7 @@ describe("MessageProxy", () => {
                 await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
             });
-            
+
             it("should register extra contract for all", async () => {
                 const fakeContractOnSchain = deployer.address;
                 await messageProxyForMainnet.connect(user).registerExtraContractForAll(depositBox.address)
@@ -499,7 +499,7 @@ describe("MessageProxy", () => {
 
                 await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
                     .should.be.eventually.rejectedWith("Extra contract is already registered for all chains");
-                
+
                 await messageProxyForMainnet.registerExtraContractForAll(depositBox.address)
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
             });
@@ -829,7 +829,7 @@ describe("MessageProxy", () => {
                 await messageProxyForSchain.registerExtraContract(schainName, messages.address)
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
             });
-            
+
             it("should register extra contract for all", async () => {
                 const fakeContractOnSchain = deployer.address;
                 await messageProxyForSchain.connect(user).registerExtraContractForAll(messages.address)
