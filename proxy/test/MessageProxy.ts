@@ -482,7 +482,9 @@ describe("MessageProxy", () => {
                 await messageProxyForMainnet.registerExtraContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
+                expect(await messageProxyForMainnet.isContractRegistered(schainName, depositBox.address)).to.be.equal(false);
                 await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+                expect(await messageProxyForMainnet.isContractRegistered(schainName, depositBox.address)).to.be.equal(true);
 
                 await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
@@ -495,7 +497,9 @@ describe("MessageProxy", () => {
                 await messageProxyForMainnet.registerExtraContractForAll(fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
+                expect(await messageProxyForMainnet.isContractRegistered(schainName, depositBox.address)).to.be.equal(false);
                 await messageProxyForMainnet.registerExtraContractForAll(depositBox.address);
+                expect(await messageProxyForMainnet.isContractRegistered(schainName, depositBox.address)).to.be.equal(true);
 
                 await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
                     .should.be.eventually.rejectedWith("Extra contract is already registered for all chains");
@@ -516,6 +520,7 @@ describe("MessageProxy", () => {
 
                 await messageProxyForMainnet.removeExtraContract(schainName, depositBox.address)
                     .should.be.eventually.rejectedWith("Extra contract does not exist");
+                expect(await messageProxyForMainnet.isContractRegistered(schainName, depositBox.address)).to.be.equal(false);
             });
 
             it("should remove extra contract for all", async () => {
@@ -821,7 +826,9 @@ describe("MessageProxy", () => {
                 await messageProxyForSchain.registerExtraContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
+                expect(await messageProxyForSchain.isContractRegistered(schainName, messages.address)).to.be.equal(false);
                 await messageProxyForSchain.registerExtraContract(schainName, messages.address);
+                expect(await messageProxyForSchain.isContractRegistered(schainName, messages.address)).to.be.equal(true);
 
                 await messageProxyForSchain.registerExtraContract(schainName, messages.address)
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
@@ -834,7 +841,12 @@ describe("MessageProxy", () => {
                 await messageProxyForSchain.registerExtraContractForAll(fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
+                expect(await messageProxyForSchain.isContractRegistered(schainName, messages.address)).to.be.equal(false);
                 await messageProxyForSchain.registerExtraContractForAll(messages.address);
+                expect(await messageProxyForSchain.isContractRegistered(schainName, messages.address)).to.be.equal(true);
+
+                await messageProxyForSchain.registerExtraContract(schainName, messages.address)
+                .should.be.eventually.rejectedWith("Extra contract is already registered for all chains");
 
                 await messageProxyForSchain.registerExtraContractForAll(messages.address)
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
@@ -852,6 +864,7 @@ describe("MessageProxy", () => {
 
                 await messageProxyForSchain.removeExtraContract(schainName, messages.address)
                     .should.be.eventually.rejectedWith("Extra contract does not exist");
+                expect(await messageProxyForSchain.isContractRegistered(schainName, messages.address)).to.be.equal(false);
             });
 
             it("should remove extra contract for all", async () => {
