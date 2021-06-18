@@ -112,6 +112,7 @@ contract CommunityLocker is AccessControlUpgradeable {
     {
         AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(CONSTANT_SETTER_ROLE, msg.sender);
         messageProxy = newMessageProxy;
         tokenManagerLinker = newTokenManagerLinker;
         schainHash = keccak256(abi.encodePacked(newSchainName));
