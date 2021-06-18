@@ -106,6 +106,7 @@ describe("TokenManagerERC721", () => {
         const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
         await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
 
+        await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
         await communityLocker.setTimeLimitPerMessage(0);
     });
 

@@ -193,7 +193,7 @@ describe("TokenManagerERC20", () => {
 
         await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(eRC20OnMainnet2.address, deployer.address)
             .should.be.eventually.rejectedWith("Given address is not a contract");
-        
+
         await eRC20OnChain2.mint(user.address, 1);
 
         await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(eRC20OnMainnet2.address, eRC20OnChain2.address)
@@ -376,7 +376,6 @@ describe("TokenManagerERC20", () => {
         });
 
         it("should reject if message type is known", async () => {
-            const fakeDepositBox = messages;
             const data = "0x0000000000000000000000000000000000000000000000000000000000000001"+
             "000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"+
             "00000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8"+
