@@ -240,50 +240,113 @@ describe("TokenManagerERC1155", () => {
         outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
     });
 
-    it("should transfer ERC1155 token through `postMessage` function", async () => {
-        //  preparation
-        const fakeDepositBox = messages;
-        const data = await messages.encodeTransferErc1155AndTokenInfoMessage(
-            token.address,
-            to,
-            id,
-            amount,
-            {
-                uri: await token.uri(0)
-            }
-        );
+    describe("tests for `postMessage` function", async () => {
 
-        await tokenManagerERC1155.connect(schainOwner).enableAutomaticDeploy();
-        await messageProxyForSchain.postMessage(tokenManagerERC1155.address, mainnetId, fakeDepositBox.address, data);
-        const addressERC1155OnSchain = await tokenManagerERC1155.clonesErc1155(token.address);
-        const erc1155OnChain = await (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
-        expect(BigNumber.from((await erc1155OnChain.functions.balanceOf(to, id))[0]).toNumber()).to.be.equal(amount);
-    });
+        it("should transfer ERC1155 token through `postMessage` function with token info", async () => {
+            //  preparation
+            const fakeDepositBox = messages;
+            const data = await messages.encodeTransferErc1155AndTokenInfoMessage(
+                token.address,
+                to,
+                id,
+                amount,
+                {
+                    uri: await token.uri(0)
+                }
+            );
 
-    it("should transfer ERC1155 token batch through `postMessage` function", async () => {
-        //  preparation
-        const fakeDepositBox = messages;
-        const data = await messages.encodeTransferErc1155BatchAndTokenInfoMessage(
-            token.address,
-            to,
-            ids,
-            amounts,
-            {
-                uri: await token.uri(0)
-            }
-        );
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, mainnetId, fakeDepositBox.address, data)
+                .should.be.eventually.rejectedWith("Automatic deploy is disabled");
 
-        await tokenManagerERC1155.connect(schainOwner).enableAutomaticDeploy();
-        await messageProxyForSchain.postMessage(tokenManagerERC1155.address, mainnetId, fakeDepositBox.address, data);
-        const addressERC1155OnSchain = await tokenManagerERC1155.clonesErc1155(token.address);
-        const erc1155OnChain = await (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
-
-        const balanceIds = await erc1155OnChain.balanceOfBatch([to, to, to, to], ids);
-        const balanceIdsNumber: number[] = [];
-        balanceIds.forEach(element => {
-            balanceIdsNumber.push(BigNumber.from(element).toNumber())
+            await tokenManagerERC1155.connect(schainOwner).enableAutomaticDeploy();
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, mainnetId, fakeDepositBox.address, data);
+            const addressERC1155OnSchain = await tokenManagerERC1155.clonesErc1155(token.address);
+            const erc1155OnChain = (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
+            expect(BigNumber.from((await erc1155OnChain.functions.balanceOf(to, id))[0]).toNumber()).to.be.equal(amount);
         });
-        expect(balanceIdsNumber).to.deep.equal(amounts);
-    });
 
+        it("should transfer ERC1155 token on schain", async () => {
+            //  preparation
+            await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone.address);
+            await tokenClone.connect(deployer).grantRole(await tokenClone.MINTER_ROLE(), tokenManagerERC1155.address);
+
+            const fakeDepositBox = messages;
+            const data = await messages.encodeTransferErc1155Message(
+                token.address,
+                to,
+                id,
+                amount
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, mainnetId, fakeDepositBox.address, data);
+            const addressERC1155OnSchain = await tokenManagerERC1155.clonesErc1155(token.address);
+            const erc1155OnChain = (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
+            expect(BigNumber.from((await erc1155OnChain.functions.balanceOf(to, id))[0]).toNumber()).to.be.equal(amount);
+        });
+
+        it("should transfer ERC1155 token batch through `postMessage` function with token info", async () => {
+            //  preparation
+            const fakeDepositBox = messages;
+            const data = await messages.encodeTransferErc1155BatchAndTokenInfoMessage(
+                token.address,
+                to,
+                ids,
+                amounts,
+                {
+                    uri: await token.uri(0)
+                }
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, mainnetId, fakeDepositBox.address, data)
+                .should.be.eventually.rejectedWith("Automatic deploy is disabled");
+
+            await tokenManagerERC1155.connect(schainOwner).enableAutomaticDeploy();
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, mainnetId, fakeDepositBox.address, data);
+            const addressERC1155OnSchain = await tokenManagerERC1155.clonesErc1155(token.address);
+            const erc1155OnChain = await (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
+
+            const balanceIds = await erc1155OnChain.balanceOfBatch([to, to, to, to], ids);
+            const balanceIdsNumber: number[] = [];
+            balanceIds.forEach((element: any) => {
+                balanceIdsNumber.push(BigNumber.from(element).toNumber())
+            });
+            expect(balanceIdsNumber).to.deep.equal(amounts);
+        });
+
+        it("should transfer ERC1155 token batch on schain", async () => {
+            //  preparation
+            await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone.address);
+            await tokenClone.connect(deployer).grantRole(await tokenClone.MINTER_ROLE(), tokenManagerERC1155.address);
+
+            const fakeDepositBox = messages;
+            const data = await messages.encodeTransferErc1155BatchMessage(
+                token.address,
+                to,
+                ids,
+                amounts
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, mainnetId, fakeDepositBox.address, data);
+            const addressERC1155OnSchain = await tokenManagerERC1155.clonesErc1155(token.address);
+            const erc1155OnChain = (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
+            const balanceIds = await erc1155OnChain.balanceOfBatch([to, to, to, to], ids);
+            const balanceIdsNumber: number[] = [];
+            balanceIds.forEach((element: any) => {
+                balanceIdsNumber.push(BigNumber.from(element).toNumber())
+            });
+            expect(balanceIdsNumber).to.deep.equal(amounts);
+        });
+
+        it("should reject if message type is known", async () => {
+            const fakeDepositBox = messages;
+            const data = "0x0000000000000000000000000000000000000000000000000000000000000001"+
+            "000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"+
+            "00000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8"+
+            "0000000000000000000000000000000000000000000000000000000000000001";
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, mainnetId, fakeDepositBox.address, data)
+                .should.be.eventually.rejectedWith("MessageType is unknown");
+
+        });
+
+    });
 });
