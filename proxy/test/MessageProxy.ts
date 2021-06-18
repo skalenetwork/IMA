@@ -539,7 +539,7 @@ describe("MessageProxy", () => {
 
         beforeEach(async () => {
             keyStorage = await deployKeyStorageMock();
-            messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, "Base schain");
+            messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, schainName);
             messages = await deployMessages();
             caller = await deployMessageProxyForMainnetTester();
             const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
@@ -582,8 +582,6 @@ describe("MessageProxy", () => {
             await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
             const connectedChain = await messageProxyForSchain.isConnectedChain(newSchainName);
             connectedChain.should.be.deep.equal(Boolean(true));
-            // // main net does not have a public key and is implicitly connected:
-            // await messageProxyForSchain.isConnectedChain("Mainnet").should.be.rejected;
         });
 
         it("should add connected chain", async () => {
