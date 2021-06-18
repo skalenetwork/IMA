@@ -474,6 +474,65 @@ describe("MessageProxy", () => {
 
         });
 
+        describe("register and remove extra contracts", async () => {
+            it("should register extra contract", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForMainnet.connect(user).registerExtraContract(schainName,  depositBox.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to register extra contract");
+                await messageProxyForMainnet.registerExtraContract(schainName, fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Given address is not a contract");
+
+                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+
+                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
+                    .should.be.eventually.rejectedWith("Extra contract is already registered");
+            });
+            
+            it("should register extra contract for all", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForMainnet.connect(user).registerExtraContractForAll(depositBox.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to register extra contract for all chains");
+                await messageProxyForMainnet.registerExtraContractForAll(fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Given address is not a contract");
+
+                await messageProxyForMainnet.registerExtraContractForAll(depositBox.address);
+
+                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
+                    .should.be.eventually.rejectedWith("Extra contract is already registered for all chains");
+                
+                await messageProxyForMainnet.registerExtraContractForAll(depositBox.address)
+                    .should.be.eventually.rejectedWith("Extra contract is already registered");
+            });
+
+            it("should remove extra contract", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForMainnet.connect(user).removeExtraContract(schainName,  depositBox.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to remove extra contract");
+                await messageProxyForMainnet.removeExtraContract(schainName, fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Given address is not a contract");
+
+                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+                await messageProxyForMainnet.removeExtraContract(schainName, depositBox.address);
+
+                await messageProxyForMainnet.removeExtraContract(schainName, depositBox.address)
+                    .should.be.eventually.rejectedWith("Extra contract does not exist");
+            });
+
+            it("should remove extra contract for all", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForMainnet.connect(user).removeExtraContractForAll(depositBox.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to remove extra contract for all chains");
+                await messageProxyForMainnet.removeExtraContractForAll(fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Given address is not a contract");
+
+                await messageProxyForMainnet.registerExtraContractForAll(depositBox.address);
+                await messageProxyForMainnet.removeExtraContractForAll(depositBox.address);
+
+                await messageProxyForMainnet.removeExtraContractForAll(depositBox.address)
+                    .should.be.eventually.rejectedWith("Extra contract does not exist");
+            });
+        });
+
     });
 
     describe("MessageProxy for schain", async () => {
@@ -515,11 +574,13 @@ describe("MessageProxy", () => {
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
-            const someCainID = randomString(10);
-            const isConnectedChain = await messageProxyForSchain.isConnectedChain(someCainID);
+            const newSchainName = randomString(10);
+            const isConnectedChain = await messageProxyForSchain.isConnectedChain(newSchainName);
             isConnectedChain.should.be.deep.equal(Boolean(false));
-            await messageProxyForSchain.connect(deployer).addConnectedChain(someCainID);
-            const connectedChain = await messageProxyForSchain.isConnectedChain(someCainID);
+            await messageProxyForSchain.addConnectedChain(schainName)
+                .should.be.rejectedWith("Schain cannot connect itself");
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+            const connectedChain = await messageProxyForSchain.isConnectedChain(newSchainName);
             connectedChain.should.be.deep.equal(Boolean(true));
             // // main net does not have a public key and is implicitly connected:
             // await messageProxyForSchain.isConnectedChain("Mainnet").should.be.rejected;
@@ -527,30 +588,24 @@ describe("MessageProxy", () => {
 
         it("should add connected chain", async () => {
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
-            const isConnectedChain = await messageProxyForSchain.isConnectedChain(schainName);
-            isConnectedChain.should.be.deep.equal(Boolean(true));
+            expect(await messageProxyForSchain.isConnectedChain(schainName)).to.be.equal(true);
+
             // chain can't be connected twice:
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName)
                 .should.be.rejectedWith("Chain is already connected");
-            // main net does not have a public key and is implicitly connected:
-            // await messageProxyForSchain.connect(deployer).addConnectedChain("Mainnet")
-            // .should.be.rejectedWith("SKALE chain name is incorrect. Inside in MessageProxy");
         });
 
         it("should remove connected chain", async () => {
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
-            const connectedChain = await messageProxyForSchain.isConnectedChain(schainName);
-            connectedChain.should.be.deep.equal(Boolean(true));
-
+            expect(await messageProxyForSchain.isConnectedChain(schainName)).to.be.equal(true);
             // only owner can remove chain:
             await messageProxyForSchain.connect(user).removeConnectedChain(schainName).should.be.rejected;
-
             // main net can't be removed:
             await messageProxyForSchain.connect(deployer).removeConnectedChain("Mainnet").should.be.rejected;
-
             await messageProxyForSchain.connect(deployer).removeConnectedChain(schainName);
-            const notConnectedChain = await messageProxyForSchain.isConnectedChain(schainName);
-            notConnectedChain.should.be.deep.equal(Boolean(false));
+            expect(await messageProxyForSchain.isConnectedChain(schainName)).to.be.equal(false);
+            await messageProxyForSchain.connect(deployer).removeConnectedChain(schainName)
+                .should.be.rejectedWith("Chain is not initialized");
         });
 
         it("should post outgoing message", async () => {
@@ -641,15 +696,38 @@ describe("MessageProxy", () => {
                 hashB: "0x1a44d878121e17e3f136ddbbba438a38d2dd0fdea786b0a815157828c2154047",
             };
 
+            const fakeSign = {
+                blsSignature: newBLSSignature,
+                counter: 0,
+                hashA: "0x0000000000000000000000000000000000000000000000000000000000000000",
+                hashB: "0x0000000000000000000000000000000000000000000000000000000000000000",
+            }
+
+            await messageProxyForSchain.connect(deployer).postIncomingMessages(
+                schainName,
+                startingCounter,
+                outgoingMessages,
+                fakeSign
+            ).should.be.eventually.rejectedWith("Signature is not verified");
+
             // chain should be inited:
             await messageProxyForSchain.connect(deployer).postIncomingMessages(
                 schainName,
                 startingCounter,
                 outgoingMessages,
                 sign
-            ).should.be.rejected;
+            ).should.be.eventually.rejectedWith("Chain is not initialized");
+
+            (await messageProxyForSchain.getIncomingMessagesCounter(schainName)).toNumber().should.be.equal(0);
 
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
+
+            await messageProxyForSchain.connect(deployer).postIncomingMessages(
+                schainName,
+                startingCounter + 1,
+                outgoingMessages,
+                sign
+            ).should.be.eventually.rejectedWith("Starting counter is not qual to incoming message counter");
 
             (await messageProxyForSchain.getIncomingMessagesCounter(schainName)).toNumber().should.be.equal(0);
 
@@ -736,6 +814,62 @@ describe("MessageProxy", () => {
             expect(a.toNumber()).be.equal(0);
             expect(res.gasUsed.toNumber()).to.be.greaterThan(1000000);
 
+        });
+
+        describe("register and remove extra contracts", async () => {
+            it("should register extra contract", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForSchain.connect(user).registerExtraContract(schainName,  messages.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to register extra contract");
+                await messageProxyForSchain.registerExtraContract(schainName, fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Given address is not a contract");
+
+                await messageProxyForSchain.registerExtraContract(schainName, messages.address);
+
+                await messageProxyForSchain.registerExtraContract(schainName, messages.address)
+                    .should.be.eventually.rejectedWith("Extra contract is already registered");
+            });
+            
+            it("should register extra contract for all", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForSchain.connect(user).registerExtraContractForAll(messages.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to register extra contract for all chains");
+                await messageProxyForSchain.registerExtraContractForAll(fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Given address is not a contract");
+
+                await messageProxyForSchain.registerExtraContractForAll(messages.address);
+
+                await messageProxyForSchain.registerExtraContractForAll(messages.address)
+                    .should.be.eventually.rejectedWith("Extra contract is already registered");
+            });
+
+            it("should remove extra contract", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForSchain.connect(user).removeExtraContract(schainName,  messages.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to remove extra contract");
+                await messageProxyForSchain.removeExtraContract(schainName, fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Given address is not a contract");
+
+                await messageProxyForSchain.registerExtraContract(schainName, messages.address);
+                await messageProxyForSchain.removeExtraContract(schainName, messages.address);
+
+                await messageProxyForSchain.removeExtraContract(schainName, messages.address)
+                    .should.be.eventually.rejectedWith("Extra contract does not exist");
+            });
+
+            it("should remove extra contract for all", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForSchain.connect(user).removeExtraContractForAll(messages.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to remove extra contract for all chains");
+                await messageProxyForSchain.removeExtraContractForAll(fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Given address is not a contract");
+
+                await messageProxyForSchain.registerExtraContractForAll(messages.address);
+                await messageProxyForSchain.removeExtraContractForAll(messages.address);
+
+                await messageProxyForSchain.removeExtraContractForAll(messages.address)
+                    .should.be.eventually.rejectedWith("Extra contract does not exist");
+            });
         });
 
     });

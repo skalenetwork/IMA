@@ -287,7 +287,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
             "Not enough permissions to remove extra contract"
         );
         require(contractOnSchain.isContract(),"Given address is not a contract");
-        require(registryContracts[chainHash][contractOnSchain], "Extra contract is already removed");
+        require(registryContracts[chainHash][contractOnSchain], "Extra contract does not exist");
         delete registryContracts[chainHash][contractOnSchain];
     }
 
@@ -297,7 +297,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
             "Not enough permissions to remove extra contract for all chains"
         );
         require(contractOnSchain.isContract(),"Given address is not a contract");
-        require(registryContracts[bytes32(0)][contractOnSchain], "Extra contract is already removed");
+        require(registryContracts[bytes32(0)][contractOnSchain], "Extra contract does not exist");
         delete registryContracts[bytes32(0)][contractOnSchain];
     }
 
