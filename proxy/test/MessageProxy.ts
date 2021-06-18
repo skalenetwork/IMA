@@ -539,7 +539,7 @@ describe("MessageProxy", () => {
 
         beforeEach(async () => {
             keyStorage = await deployKeyStorageMock();
-            messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, schainName);
+            messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, "Base schain");
             messages = await deployMessages();
             caller = await deployMessageProxyForMainnetTester();
             const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
@@ -574,13 +574,12 @@ describe("MessageProxy", () => {
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
-            const newSchainName = randomString(10);
-            const isConnectedChain = await messageProxyForSchain.isConnectedChain(newSchainName);
+            const isConnectedChain = await messageProxyForSchain.isConnectedChain(schainName);
             isConnectedChain.should.be.deep.equal(Boolean(false));
-            await messageProxyForSchain.addConnectedChain(schainName)
+            await messageProxyForSchain.addConnectedChain("Base schain")
                 .should.be.rejectedWith("Schain cannot connect itself");
-            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
-            const connectedChain = await messageProxyForSchain.isConnectedChain(newSchainName);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
+            const connectedChain = await messageProxyForSchain.isConnectedChain(schainName);
             connectedChain.should.be.deep.equal(Boolean(true));
         });
 
@@ -612,12 +611,12 @@ describe("MessageProxy", () => {
             const addressTo = user.address;
             const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
             await caller
-                .postOutgoingMessageTester2(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData)
+                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData)
                 .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
             await caller
-                .postOutgoingMessageTester2(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData);
+                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData);
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
@@ -755,7 +754,7 @@ describe("MessageProxy", () => {
             outgoingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
 
             await caller
-                .postOutgoingMessageTester2(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), depositBox.address, bytesData);
+                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), messages.address, bytesData);
 
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
