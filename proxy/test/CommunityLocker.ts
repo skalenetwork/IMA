@@ -108,10 +108,10 @@ describe("CommunityLocker", () => {
     });
 
     it("should time limit per message", async () => {
-        await communityLocker.setTimeLimitPerMessage(0)
+        await communityLocker.connect(user).setTimeLimitPerMessage(0)
             .should.be.eventually.rejectedWith("Not enough permissions to set constant");
-        await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
-        await communityLocker.setTimeLimitPerMessage(0);
+        await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), user.address);
+        await communityLocker.connect(user).setTimeLimitPerMessage(0);
         expect(await communityLocker.timeLimitPerMessage()).to.be.deep.equal(BigNumber.from(0));
     });
 });
