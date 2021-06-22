@@ -88,7 +88,7 @@ jobs:
       env:
         VERSION: "0.0.0"
       run: |
-        python3 -m pip install build=0.4.0
+        python3 -m pip install build==0.4.0
         ./predeployed/scripts/build_package.sh
 
     - name: Test predeployed pip package
