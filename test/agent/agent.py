@@ -82,8 +82,10 @@ class Agent:
         initial_approved, approved, balance, initial_balance = None, None, None, None
         start = time()
         if timeout > 0:
-            approved = self.blockchain.get_approved_amount(destination_address)
-            initial_approved = approved
+            balance = self.blockchain.get_balance_on_mainnet(destination_address)
+            initial_balance = balance
+            # approved = self.blockchain.get_approved_amount(destination_address)
+            # initial_approved = approved
 
         self._execute_command(
             's2m-payment',
@@ -95,24 +97,8 @@ class Agent:
         )
 
         if timeout > 0:
-            while not approved >= initial_approved + amount_wei - 6 * 10 ** 16:
-                approved = self.blockchain.get_approved_amount(destination_address)
-                debug(f'Approved: {approved}')
-
-                if time() > start + timeout:
-                    return
-                else:
-                    sleep(1)
-            balance = self.blockchain.get_balance_on_mainnet(destination_address)
-            initial_balance = balance
-            start = time()
-            debug(f'Initial balance: {initial_balance}')
-
-        # self._execute_command('s2m-receive', {'key-main-net': to_key})
-
-        if timeout > 0:
-            approximate_gas_spends = 3 * 10 ** 15
-            while not balance > initial_balance + approved - approximate_gas_spends:
+            approximate_gas_spends = 7 * 10 ** 16
+            while not balance >= initial_balance + amount_wei - approximate_gas_spends:
                 balance = self.blockchain.get_balance_on_mainnet(destination_address)
                 debug(f'Balance: {balance}')
 
@@ -120,6 +106,23 @@ class Agent:
                     return
                 else:
                     sleep(1)
+            # balance = self.blockchain.get_balance_on_mainnet(destination_address)
+            # initial_balance = balance
+            # start = time()
+            # debug(f'Initial balance: {initial_balance}')
+
+        # self._execute_command('s2m-receive', {'key-main-net': to_key})
+
+        # if timeout > 0:
+        #     approximate_gas_spends = 3 * 10 ** 15
+        #     while not balance > initial_balance + approved - approximate_gas_spends:
+        #         balance = self.blockchain.get_balance_on_mainnet(destination_address)
+        #         debug(f'Balance: {balance}')
+
+        #         if time() > start + timeout:
+        #             return
+        #         else:
+        #             sleep(1)
 
     def transfer_erc20_from_mainnet_to_schain(self, token_contract, from_key, to_key, amount, amount_wei, timeout=0):
         config_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}

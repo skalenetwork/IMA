@@ -64,9 +64,9 @@ class BlockChain:
                     new_amount = amount // value
         return new_amount, unit_name
 
-    def get_approved_amount(self, address):
-        deposit_box_eth = self._get_contract_on_mainnet('deposit_box_eth')
-        return deposit_box_eth.functions.approveTransfers(address).call()
+    # def get_approved_amount(self, address):
+    #     deposit_box_eth = self._get_contract_on_mainnet('deposit_box_eth')
+    #     return deposit_box_eth.functions.approveTransfers(address).call()
 
     def enableAutomaticDeployERC20(self, from_key, schainName):
         sender_address = self.key_to_address(from_key)
