@@ -231,6 +231,9 @@ async function main() {
     const chainConnectorRole = await messageProxy.CHAIN_CONNECTOR_ROLE();
     await messageProxy.grantRole( chainConnectorRole, tokenManagerLinker.address );
     console.log( "Grant CHAIN_CONNECTOR_ROLE to TokenManagerLinker", tokenManagerLinker.address, "in MessageProxyForSchain", messageProxy.address, "completed!\n" );
+    const constantSetterRole = await communityLocker.CONSTANT_SETTER_ROLE();
+    await communityLocker.grantRole(constantSetterRole. owner.address);
+    console.log("Grant CONSTANT_SETTER_ROLE to owner of schain");
 
     const schainOwner = new ethers.Wallet( process.env.PRIVATE_KEY_FOR_SCHAIN );
 
