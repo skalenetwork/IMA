@@ -108,7 +108,7 @@ class Agent:
             start = time()
             debug(f'Initial balance: {initial_balance}')
 
-        self._execute_command('s2m-receive', {'key-main-net': to_key})
+        # self._execute_command('s2m-receive', {'key-main-net': to_key})
 
         if timeout > 0:
             approximate_gas_spends = 3 * 10 ** 15

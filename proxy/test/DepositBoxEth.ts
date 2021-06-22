@@ -425,14 +425,13 @@ describe("DepositBoxEth", () => {
             expect(await depositBoxEth.transferredAmount(schainHash)).to.be.deep.equal(BigNumber.from(0));
 
             const balanceBefore = await getBalance(deployer.address);
+            const balanceBeforeUser = BigNumber.from(await web3.eth.getBalance(user.address));
             await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
             const balance = await getBalance(deployer.address);
+            const balanceUser = BigNumber.from(await web3.eth.getBalance(user.address));
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
-
-            await depositBoxEth.connect(user2).getMyEth()
-                .should.be.eventually.rejectedWith("User has insufficient ETH");
-            await depositBoxEth.connect(user).getMyEth();
+            balanceUser.toString().should.be.equal(balanceBeforeUser.add(BigNumber.from(wei)).toString());
         });
     });
 });
