@@ -72,7 +72,7 @@ contract MessageProxyForSchain is MessageProxy {
         virtual
         initializer
     {
-        MessageProxy.initializeMessageProxy();
+        MessageProxy.initializeMessageProxy(3000000);
         keyStorage = blsKeyStorage;
         connectedChains[
             MAINNET_HASH
@@ -82,7 +82,6 @@ contract MessageProxyForSchain is MessageProxy {
             true
         );
 	    schainHash = keccak256(abi.encodePacked(schainName));
-        gasLimit = 3000000;
 
         // In predeployed mode all token managers and community locker
         // will be added to registryContracts

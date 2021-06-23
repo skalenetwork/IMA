@@ -32,7 +32,7 @@ contract ERC1155OnChain is AccessControlUpgradeable, ERC1155BurnableUpgradeable 
 
     constructor(
         string memory uri
-    )
+    ) initializer
     {
         AccessControlUpgradeable.__AccessControl_init();
         ERC1155Upgradeable.__ERC1155_init(uri);

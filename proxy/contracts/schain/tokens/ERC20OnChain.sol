@@ -33,7 +33,7 @@ contract ERC20OnChain is AccessControlUpgradeable, ERC20BurnableUpgradeable {
     constructor(
         string memory contractName,
         string memory contractSymbol
-    )
+    ) initializer
     {
         AccessControlUpgradeable.__AccessControl_init();
         ERC20Upgradeable.__ERC20_init(contractName, contractSymbol);

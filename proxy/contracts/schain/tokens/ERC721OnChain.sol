@@ -34,7 +34,7 @@ contract ERC721OnChain is AccessControlUpgradeable, ERC721BurnableUpgradeable, E
     constructor(
         string memory contractName,
         string memory contractSymbol
-    )   
+    ) initializer
     {
         AccessControlUpgradeable.__AccessControl_init();
         ERC721Upgradeable.__ERC721_init(contractName, contractSymbol);
