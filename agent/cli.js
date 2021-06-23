@@ -322,11 +322,14 @@ function parse( joExternalHandlers, argv ) {
             console.log( cc.sunny( "PENDING TRANSACTIONS ANALYSIS" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "ptx" ) + cc.debug( "..........................." ) + cc.notice( "Enable pending transaction analysis to avoid transaction conflicts." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx" ) + cc.debug( "........................" ) + cc.notice( "Disable pending transaction analysis. Not recommended for slow and overloaded blockchains." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-attempt" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "...,........." ) + cc.notice( "Timeout in seconds to perform secondary pending transaction analysis." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-attempt" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.notice( "Timeout in seconds to perform secondary pending transaction analysis." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-ignore" ) + cc.debug( "...................." ) + cc.notice( "Ignore result of pending transaction analysis." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx-ignore" ) + cc.debug( "................." ) + cc.notice( "Do not ignore result of pending transaction analysis. Transfer loop will be delayed until pending transactions disappear." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-ignore2" ) + cc.debug( "..................." ) + cc.notice( "Ignore secondary result of pending transaction analysis." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx-ignore2" ) + cc.debug( "................" ) + cc.notice( "Do not ignore secondary result of pending transaction analysis. Transfer loop will be delayed until pending transactions disappear." ) );
+            //
+            console.log( cc.sunny( "IMA STATE" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "state-file" ) + cc.sunny( "=" ) + cc.info( "path" ) + cc.debug( "..............." ) + cc.notice( "Specifies path to IMA state file for optimized logs searches." ) );
             //
             console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "................." ) + cc.notice( "Sign transferred messages." ) );
@@ -833,6 +836,11 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "no-ptx-ignore2" ) {
             imaState.optsPendingTxAnalysis.isIgnore2 = false;
+            continue;
+        }
+        if( joArg.name == "state-file" ) {
+            imaState.optsStateFile.isEnabled = true;
+            imaState.optsStateFile.path = joArg.value;
             continue;
         }
         if( joArg.name == "log-size" ) {
