@@ -94,7 +94,7 @@ describe("CommunityLocker", () => {
 
         await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, data);
         await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, data)
-            .should.be.eventually.rejectedWith("User statuses must be different");
+            .should.be.eventually.rejectedWith("Active user statuses must be different");
         expect(await communityLocker.activeUsers(deployer.address)).to.be.equal(true);
     });
 
