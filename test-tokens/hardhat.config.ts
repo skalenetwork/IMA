@@ -151,7 +151,7 @@ const config: HardhatUserConfig = {
         gasPrice: getGasPrice(process.env.GASPRICE)
     },
     schain: {
-        url: getCustomUrl(process.env.URL_W3_S_CHAiN),
+        url: getCustomUrl(process.env.URL_W3_S_CHAIN),
         accounts: getCustomPrivateKey(process.env.PRIVATE_KEY_FOR_SCHAIN),
         gasPrice: getGasPrice(process.env.GASPRICE)
     }
