@@ -32,8 +32,6 @@ contract DepositBoxEth is DepositBox {
 
     using SafeMathUpgradeable for uint;
 
-    using AddressUpgradeable for address payable;
-
     mapping(bytes32 => uint256) public transferredAmount;
 
     receive() external payable {
@@ -76,7 +74,7 @@ contract DepositBoxEth is DepositBox {
         );
         if (!linker.interchainConnections(schainHash))
             _removeTransferredAmount(schainHash, message.amount);
-        payable(message.receiver).sendValue(message.amount);
+        payable(message.receiver).transfer(message.amount);
         return message.receiver;
     }
 
