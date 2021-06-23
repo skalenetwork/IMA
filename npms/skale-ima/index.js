@@ -3351,6 +3351,33 @@ function get_last_transfer_errors( textLog ) {
     return JSON.parse( JSON.stringify( g_arrLastTransferErrors ) );
 }
 
+async function init_ima_state_file( details, w3, strDirection, optsStateFile ) {
+    if( strDirection != "M2S" )
+        return;
+    if( ! ( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) )
+        return;
+    let isFileExist = false;
+    try {
+        if( fs.existsSync( optsStateFile.path ) )
+            isFileExist = true;
+    } catch ( err ) { }
+    if( isFileExist )
+        return;
+    let nBlockFrom = 0;
+    try {
+        nBlockFrom = await w3.eth.getBlockNumber();
+    } catch ( err ) { }
+    try {
+        const joStateForLogsSearch = {};
+        details.write( strLogPrefix + cc.normal( "(FIRST TIME) Saving next forecasted block number for logs search value " ) + cc.info( blockNumberNextForecast ) + "\n" );
+        const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
+        joStateForLogsSearch[strKeyName] = nBlockFrom;
+        const s = JSON.stringify( joStateForLogsSearch, null, 4 );
+        fs.writeFileSync( optsStateFile.path, s );
+    } catch ( err ) {
+    }
+}
+
 //
 // Do real money movement from main-net to S-chain by sniffing events
 // 1) main-net.MessageProxyForMainnet.getOutgoingMessagesCounter -> save to nOutMsgCnt
@@ -3401,6 +3428,7 @@ async function do_transfer(
     const details = log.createMemoryStream();
     const jarrReceipts = []; // do_transfer
     let bErrorInSigningMessages = false;
+    await init_ima_state_file( details, w3_src, strDirection, optsStateFile );
     const strLogPrefix = cc.info( "Transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
         details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
