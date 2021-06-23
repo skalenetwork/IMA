@@ -68,7 +68,7 @@ describe("TokenManagerEth", () => {
     let communityLocker: CommunityLocker;
     let fakeDepositBox: any;
     let fakeCommunityPool: any;
-    const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
+    const mainnetHash = stringValue(web3.utils.soliditySha3("Mainnet"));
 
     before(async () => {
         [deployer, user] = await ethers.getSigners();
@@ -96,7 +96,7 @@ describe("TokenManagerEth", () => {
         messages = await deployMessages();
 
         const data = await messages.encodeActivateUserMessage(user.address);
-        await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, fakeCommunityPool, data);
+        await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, data);
 
         const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
         await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
@@ -193,26 +193,25 @@ describe("TokenManagerEth", () => {
     });
 
     it("should send Eth to somebody on Mainnet, closed to Mainnet, called by schain", async () => {
-        const amount = BigNumber.from("600000000000000000");
-        const amountTo = BigNumber.from("20000000000000000");
-        const amountTo2 = BigNumber.from("60000000000000000");
-        const amountAfter = BigNumber.from("540000000000000000");
+        const amount = BigNumber.from("60");
+        const amountAfter = BigNumber.from("54");
+        const amountTo = BigNumber.from("6");
         const to = user.address;
         await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerEth.address);
 
-        await ethERC20.connect(deployer).grantRole(await ethERC20.MINTER_ROLE(), deployer.address);
-        await ethERC20.connect(deployer).mint(user.address, amount);
-
-        // transfer ownership of using ethERC20 contract method to tokenManagerEth contract address:
-        // await ethERC20.transferOwnership(tokenManagerEth.address, {from: deployer});
-
-        // send Eth:
-        // await tokenManagerEth.sendEth(user, amount, {from: deployer});
+        await ethERC20.grantRole(await ethERC20.MINTER_ROLE(), deployer.address);
+        await ethERC20.mint(user.address, amount);
 
         // send Eth to a client on Mainnet:
-        await tokenManagerEth.connect(user).exitToMain(to, amountTo2);
-        const balanceAfter = BigNumber.from(await ethERC20.balanceOf(user.address));
-        balanceAfter.should.be.deep.equal(amountAfter);
+        await tokenManagerEth.connect(user).exitToMain(to, amountTo);
+        expect(await ethERC20.balanceOf(user.address)).to.be.deep.equal(amountAfter);
+
+        await tokenManagerEth.connect(user).exitToMain(deployer.address, amountTo)
+            .should.be.eventually.rejectedWith("Recipient must be active");
+
+        await tokenManagerEth.connect(user).exitToMain(to, amountTo)
+            .should.be.eventually.rejectedWith("Trying to send messages too often");
+
     });
 
     it("should transfer to somebody on schain Eth and some data", async () => {

@@ -156,7 +156,8 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         view
         returns (bool)
     {
-        return registryContracts[keccak256(abi.encodePacked(schainName))][contractAddress];
+        return registryContracts[keccak256(abi.encodePacked(schainName))][contractAddress] ||
+               registryContracts[bytes32(0)][contractAddress];
     }
 
     /**
@@ -267,6 +268,10 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         );
         require(contractOnSchain.isContract(), "Given address is not a contract");
         require(!registryContracts[chainHash][contractOnSchain], "Extra contract is already registered");
+        require(
+            !registryContracts[bytes32(0)][contractOnSchain],
+            "Extra contract is already registered for all chains"
+        );
         registryContracts[chainHash][contractOnSchain] = true;
     }
 
@@ -287,7 +292,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
             "Not enough permissions to remove extra contract"
         );
         require(contractOnSchain.isContract(),"Given address is not a contract");
-        require(registryContracts[chainHash][contractOnSchain], "Extra contract is already removed");
+        require(registryContracts[chainHash][contractOnSchain], "Extra contract does not exist");
         delete registryContracts[chainHash][contractOnSchain];
     }
 
@@ -297,7 +302,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
             "Not enough permissions to remove extra contract for all chains"
         );
         require(contractOnSchain.isContract(),"Given address is not a contract");
-        require(registryContracts[bytes32(0)][contractOnSchain], "Extra contract is already removed");
+        require(registryContracts[bytes32(0)][contractOnSchain], "Extra contract does not exist");
         delete registryContracts[bytes32(0)][contractOnSchain];
     }
 

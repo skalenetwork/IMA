@@ -39,6 +39,7 @@ contract CommunityLocker is AccessControlUpgradeable {
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
@@ -66,7 +67,7 @@ contract CommunityLocker is AccessControlUpgradeable {
         bytes calldata data
     )
         external
-        returns (bool)
+        returns (address)
     {
         require(msg.sender == address(messageProxy), "Sender is not a message proxy");
         require(sender == communityPool, "Sender must be CommunityPool");
@@ -81,7 +82,7 @@ contract CommunityLocker is AccessControlUpgradeable {
         } else {
             emit LockUser(schainHash, message.receiver);
         }
-        return true;
+        return message.receiver;
     }
 
     function checkAllowedToSendMessage(address receiver) external {
@@ -95,7 +96,7 @@ contract CommunityLocker is AccessControlUpgradeable {
     }
 
     function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
+        require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         timeLimitPerMessage = newTimeLimitPerMessage;
     }
 
