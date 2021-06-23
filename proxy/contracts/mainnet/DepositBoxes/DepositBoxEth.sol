@@ -32,7 +32,7 @@ contract DepositBoxEth is DepositBox {
 
     using SafeMathUpgradeable for uint;
 
-    // mapping(address => uint256) public approveTransfers;
+    using AddressUpgradeable for address payable;
 
     mapping(bytes32 => uint256) public transferredAmount;
 
@@ -74,32 +74,11 @@ contract DepositBoxEth is DepositBox {
             message.amount <= address(this).balance,
             "Not enough money to finish this transaction"
         );
-        // approveTransfers[message.receiver] =
-        //     approveTransfers[message.receiver].add(message.amount);
         if (!linker.interchainConnections(schainHash))
             _removeTransferredAmount(schainHash, message.amount);
-        payable(message.receiver).transfer(message.amount);
+        payable(message.receiver).sendValue(message.amount);
         return message.receiver;
     }
-
-    // /**
-    //  * @dev Transfers a user's ETH.
-    //  *
-    //  * Requirements:
-    //  *
-    //  * - LockAndDataForMainnet must have sufficient ETH.
-    //  * - User must be approved for ETH transfer.
-    //  */
-    // function getMyEth() external {
-    //     require(
-    //         address(this).balance >= approveTransfers[msg.sender],
-    //         "Not enough ETH in DepositBox"
-    //     );
-    //     require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
-    //     uint256 amount = approveTransfers[msg.sender];
-    //     approveTransfers[msg.sender] = 0;
-    //     msg.sender.transfer(amount);
-    // }
 
     function getFunds(string calldata schainName, address payable receiver, uint amount)
         external
