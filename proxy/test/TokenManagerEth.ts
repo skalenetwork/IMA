@@ -95,7 +95,7 @@ describe("TokenManagerEth", () => {
         await tokenManagerEth.connect(deployer).setEthErc20Address(ethERC20.address);
         messages = await deployMessages();
 
-        const data = await messages.encodeFreezeStateMessage(user.address, true);
+        const data = await messages.encodeActivateUserMessage(user.address);
         await messageProxyForSchain.postMessage(communityLocker.address, mainnetId, fakeCommunityPool, data);
 
         const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();

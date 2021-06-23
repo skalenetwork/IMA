@@ -23,10 +23,10 @@
 pragma solidity 0.8.4;
 pragma experimental ABIEncoderV2;
 
-import "../schain/MessageProxyForSchain.sol";
+import "../interfaces/IMessageReceiver.sol";
 
 
-contract ReceiverGasLimitSchainMock is IContractReceiverForSchain {
+contract ReceiverGasLimitSchainMock is IMessageReceiver {
     uint public a = 0;
     function postMessage(
         bytes32,
@@ -35,11 +35,11 @@ contract ReceiverGasLimitSchainMock is IContractReceiverForSchain {
     )
         external
         override
-        returns (bool) 
+        returns (address) 
     {
         while(true) {
             a++;
         }
-        return false;
+        return address(0);
     }
 }

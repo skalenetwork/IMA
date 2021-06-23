@@ -40,13 +40,13 @@ contract MessageProxyForMainnetTester {
 
     function postOutgoingMessageTester2(
         MessageProxyForSchain messageProxyForSchain,
-        string memory targetChainName,
+        bytes32 targetChainHash,
         address targetContract,
         bytes calldata data
     )
         external
     {
-        messageProxyForSchain.postOutgoingMessage(targetChainName, targetContract, data);
+        messageProxyForSchain.postOutgoingMessage(targetChainHash, targetContract, data);
     }
 
     // function initialize2(IContractManager newContractManagerOfSkaleManager) public  {

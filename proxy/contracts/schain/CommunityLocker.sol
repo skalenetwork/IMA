@@ -36,7 +36,7 @@ import "./TokenManagerLinker.sol";
  * @title CommunityLocker
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract CommunityLocker is IContractReceiverForSchain, AccessControlUpgradeable {
+contract CommunityLocker is IMessageReceiver, AccessControlUpgradeable {
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
@@ -48,13 +48,18 @@ contract CommunityLocker is IContractReceiverForSchain, AccessControlUpgradeable
     bytes32 public schainHash;
     uint public timeLimitPerMessage;
 
-    mapping(address => bool) private _unfrozenUsers;
+    mapping(address => bool) public activeUsers;
     mapping(address => uint) private _lastMessageTimeStamp;
 
-    event UserUnfroze(
+    event ActivateUser(
         bytes32 schainHash,
         address user
-    );  
+    );
+
+    event LockUser(
+        bytes32 schainHash,
+        address user
+    ); 
 
     event TimeLimitPerMessageWasChanged(
         uint256 oldValue,
@@ -68,23 +73,27 @@ contract CommunityLocker is IContractReceiverForSchain, AccessControlUpgradeable
     )
         external
         override
-        returns (bool)
+        returns (address)
     {
         require(msg.sender == address(messageProxy), "Sender is not a message proxy");
         require(sender == communityPool, "Sender must be CommunityPool");
         require(fromChainHash == MAINNET_HASH, "Source chain name must be Mainnet");
         Messages.MessageType operation = Messages.getMessageType(data);
-        require(operation == Messages.MessageType.FREEZE_STATE, "The message should contain a frozen state");
-        Messages.FreezeStateMessage memory message = Messages.decodeFreezeStateMessage(data);
-        require(_unfrozenUsers[message.receiver] != message.isUnfrozen, "Freezing states must be different");
-        _unfrozenUsers[message.receiver] = message.isUnfrozen;
-        emit UserUnfroze(schainHash, message.receiver);
-        return true;
+        require(operation == Messages.MessageType.USER_STATUS, "The message should contain a status of user");
+        Messages.UserStatusMessage memory message = Messages.decodeUserStatusMessage(data);
+        require(activeUsers[message.receiver] != message.isActive, "User statuses must be different");
+        activeUsers[message.receiver] = message.isActive;
+        if (message.isActive) {
+            emit ActivateUser(schainHash, message.receiver);
+        } else {
+            emit LockUser(schainHash, message.receiver);
+        }
+        return address(1);
     }
 
     function checkAllowedToSendMessage(address receiver) external {
         tokenManagerLinker.hasTokenManager(TokenManager(msg.sender));
-        require(_unfrozenUsers[receiver], "Recipient must be unfrozen");
+        require(activeUsers[receiver], "Recipient must be active");
         require(
             _lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
             "Trying to send messages too often"
@@ -115,7 +124,7 @@ contract CommunityLocker is IContractReceiverForSchain, AccessControlUpgradeable
         tokenManagerLinker = newTokenManagerLinker;
         schainHash = keccak256(abi.encodePacked(newSchainName));
         timeLimitPerMessage = 5 minutes;
-	    communityPool = newCommunityPool;
+        communityPool = newCommunityPool;
     }
 
 }

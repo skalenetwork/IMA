@@ -26,15 +26,7 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "./bls/SkaleVerifier.sol";
 import "./KeyStorage.sol";
-interface IContractReceiverForSchain {
-    function postMessage(
-        bytes32 fromChainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        returns (bool);
-}
+import "../interfaces/IMessageReceiver.sol";
 
 
 contract MessageProxyForSchain is AccessControlUpgradeable {
@@ -56,7 +48,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
      */
 
     struct OutgoingMessageData {
-        string dstChain;
+        bytes32 dstChain;
         uint256 msgCounter;
         address srcContract;
         address dstContract;
@@ -83,7 +75,6 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         uint256 counter;
     }
 
-    bytes32 public constant DEBUGGER_ROLE = keccak256("DEBUGGER_ROLE");
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
@@ -115,11 +106,6 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         uint256 indexed msgCounter,
         bytes message
     );
-
-    modifier onlyDebugger() {
-        require(hasRole(DEBUGGER_ROLE, msg.sender), "DEBUGGER_ROLE is required");
-        _;
-    }
 
     modifier onlyChainConnector() {
         require(hasRole(CHAIN_CONNECTOR_ROLE, msg.sender), "CHAIN_CONNECTOR_ROLE is required");
@@ -157,6 +143,21 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         returns (bool)
     {
         return connectedChains[keccak256(abi.encodePacked(schainName))].inited;
+    }
+
+    /**
+     * @dev Checks whether contract is currently connected to
+     * send messages to chain or receive messages from chain.
+     */
+    function isContractRegistered(
+        string calldata schainName,
+        address contractAddress
+    )
+        external
+        view
+        returns (bool)
+    {
+        return registryContracts[keccak256(abi.encodePacked(schainName))][contractAddress];
     }
 
     /**
@@ -199,13 +200,12 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
 
     // This is called by a smart contract that wants to make a cross-chain call
     function postOutgoingMessage(
-        string calldata targetChainName,
+        bytes32 targetChainHash,
         address dstContract,
         bytes calldata data
     )
         external
     {
-        bytes32 targetChainHash = keccak256(abi.encodePacked(targetChainName));
         require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
         require(
             registryContracts[bytes32(0)][msg.sender] || 
@@ -216,7 +216,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
             = connectedChains[targetChainHash].outgoingMessageCounter.add(1);
         _pushOutgoingMessageData(
             OutgoingMessageData(
-                targetChainName,
+                targetChainHash,
                 connectedChains[targetChainHash].outgoingMessageCounter - 1,
                 msg.sender,
                 dstContract,
@@ -229,8 +229,8 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         string calldata fromChainName,
         uint256 startingCounter,
         Message[] calldata messages,
-        Signature calldata signature,
-        uint256 idxLastToPopNotIncluding
+        Signature calldata signature //,
+        // uint256 idxLastToPopNotIncluding
     )
         external
     {
@@ -245,17 +245,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         }
         connectedChains[fromChainHash].incomingMessageCounter 
             = connectedChains[fromChainHash].incomingMessageCounter.add(uint256(messages.length));
-        _popOutgoingMessageData(fromChainHash, idxLastToPopNotIncluding);
-    }
-
-    function moveIncomingCounter(string calldata schainName) external onlyDebugger {
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter =
-            connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter.add(1);
-    }
-
-    function setCountersToZero(string calldata schainName) external onlyDebugger {
-        connectedChains[keccak256(abi.encodePacked(schainName))].incomingMessageCounter = 0;
-        connectedChains[keccak256(abi.encodePacked(schainName))].outgoingMessageCounter = 0;
+        // _popOutgoingMessageData(fromChainHash, idxLastToPopNotIncluding);
     }
 
     /**
@@ -345,8 +335,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         view
         returns (bool isValidMessage)
     {
-        bytes32 chainHash = keccak256(abi.encodePacked(message.dstChain));
-        bytes32 messageDataHash = _outgoingMessageDataHash[chainHash][message.msgCounter];
+        bytes32 messageDataHash = _outgoingMessageDataHash[message.dstChain][message.msgCounter];
         if (messageDataHash == _hashOfMessage(message))
             isValidMessage = true;
     }
@@ -357,32 +346,32 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         uint counter
     )
         private
-        returns (bool)
+        returns (address)
     {
-        try IContractReceiverForSchain(message.destinationContract).postMessage{gas: gasLimit}(
+        try IMessageReceiver(message.destinationContract).postMessage{gas: gasLimit}(
             fromChainHash,
             message.sender,
             message.data
-        ) returns (bool success) {
-            return success;
+        ) returns (address receiver) {
+            return receiver;
         } catch Error(string memory reason) {
             emit PostMessageError(
                 counter,
                 bytes(reason)
             );
-            return false;
+            return address(0);
         } catch (bytes memory revertData) {
             emit PostMessageError(
                 counter,
                 revertData
             );
-            return false;
+            return address(0);
         }
     }
 
     function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
         bytes memory data = abi.encodePacked(
-            bytes32(keccak256(abi.encodePacked(message.dstChain))),
+            message.dstChain,
             bytes32(message.msgCounter),
             bytes32(bytes20(message.srcContract)),
             bytes32(bytes20(message.dstContract)),
@@ -392,7 +381,7 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
     }
 
     function _pushOutgoingMessageData(OutgoingMessageData memory d) private {
-        bytes32 dstChainHash = keccak256(abi.encodePacked(d.dstChain));
+        bytes32 dstChainHash = d.dstChain;
         emit OutgoingMessage(
             dstChainHash,
             d.msgCounter,
@@ -404,27 +393,27 @@ contract MessageProxyForSchain is AccessControlUpgradeable {
         _idxTail[dstChainHash] = _idxTail[dstChainHash].add(1);
     }
 
-    /**
-     * @dev Pop outgoing message from outgoingMessageData array.
-     */
-    function _popOutgoingMessageData(
-        bytes32 chainHash,
-        uint256 idxLastToPopNotIncluding
-    )
-        private
-        returns (uint256 cntDeleted)
-    {
-        cntDeleted = 0;
-        uint idxTail = _idxTail[chainHash];
-        for (uint256 i = _idxHead[chainHash]; i < idxLastToPopNotIncluding; ++ i ) {
-            if (i >= idxTail)
-                break;
-            delete _outgoingMessageDataHash[chainHash][i];
-            ++ cntDeleted;
-        }
-        if (cntDeleted > 0)
-            _idxHead[chainHash] = _idxHead[chainHash].add(cntDeleted);
-    }
+    // /**
+    //  * @dev Pop outgoing message from outgoingMessageData array.
+    //  */
+    // function _popOutgoingMessageData(
+    //     bytes32 chainHash,
+    //     uint256 idxLastToPopNotIncluding
+    // )
+    //     private
+    //     returns (uint256 cntDeleted)
+    // {
+    //     cntDeleted = 0;
+    //     uint idxTail = _idxTail[chainHash];
+    //     for (uint256 i = _idxHead[chainHash]; i < idxLastToPopNotIncluding; ++ i ) {
+    //         if (i >= idxTail)
+    //             break;
+    //         delete _outgoingMessageDataHash[chainHash][i];
+    //         ++ cntDeleted;
+    //     }
+    //     if (cntDeleted > 0)
+    //         _idxHead[chainHash] = _idxHead[chainHash].add(cntDeleted);
+    // }
 
     /**
      * @dev Returns hash of message array.

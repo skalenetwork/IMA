@@ -26,9 +26,9 @@ import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeab
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
-import "../Messages.sol";
-import "./SkaleManagerClient.sol";
 import "../interfaces/IMainnetContract.sol";
+import "../Messages.sol";
+import "./Twin.sol";
 
 import "./MessageProxyForMainnet.sol";
 
@@ -38,22 +38,16 @@ import "./MessageProxyForMainnet.sol";
  * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
  * balances of ETH tokens received through DepositBox.
  */
-contract Linker is SkaleManagerClient {
+contract Linker is Twin {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     using SafeMathUpgradeable for uint;
 
-    bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
-
+    enum KillProcess {Active, PartiallyKilledBySchainOwner, PartiallyKilledByContractOwner, Killed}
     EnumerableSetUpgradeable.AddressSet private _mainnetContracts;
-    MessageProxyForMainnet public messageProxy;
 
     mapping(bytes32 => bool) public interchainConnections;
-
-    enum KillProcess {Active, PartiallyKilledBySchainOwner, PartiallyKilledByContractOwner, Killed}
-
     mapping(bytes32 => KillProcess) public statuses;
-    mapping(bytes32 => address) public schainLinks;
 
     modifier onlyLinker() {
         require(hasRole(LINKER_ROLE, msg.sender), "Linker role is required");
@@ -83,7 +77,6 @@ contract Linker is SkaleManagerClient {
         messageProxy.postOutgoingMessage(
             schainHash,
             schainLinks[schainHash],
-            // Messages.encodeFreezeStateMessage(address(messageProxy), false)
             Messages.encodeInterchainConnectionMessage(true)
         );
     }
@@ -122,33 +115,6 @@ contract Linker is SkaleManagerClient {
         messageProxy.removeConnectedChain(schainName);
     }
 
-    function addSchainContract(string calldata schainName, address contractOnSchain) external {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(LINKER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(schainLinks[schainHash] == address(0), "SKALE chain is already set");
-        require(contractOnSchain != address(0), "Incorrect address for contract on Schain");
-        schainLinks[schainHash] = contractOnSchain;
-    }
-
-    function removeSchainContract(string calldata schainName) external {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(LINKER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(schainLinks[schainHash] != address(0), "SKALE chain is not set");
-        delete schainLinks[schainHash];
-    }
-
-    function hasSchainContract(string calldata schainName) external view returns (bool) {
-        return schainLinks[keccak256(abi.encodePacked(schainName))] != address(0);
-    }
-
     function isNotKilled(bytes32 schainHash) external view returns (bool) {
         return statuses[schainHash] != KillProcess.Killed;
     }
@@ -166,14 +132,15 @@ contract Linker is SkaleManagerClient {
     }
 
     function initialize(
-        address messageProxyAddress,
-        IContractManager newContractManagerOfSkaleManager
+        IContractManager contractManagerOfSkaleManager,
+        MessageProxyForMainnet messageProxy
     )
         public
+        override
         initializer
     {
-        SkaleManagerClient.initialize(newContractManagerOfSkaleManager);
+        Twin.initialize(contractManagerOfSkaleManager, messageProxy);
         _setupRole(LINKER_ROLE, msg.sender);
-        messageProxy = MessageProxyForMainnet(messageProxyAddress);
+        _setupRole(LINKER_ROLE, address(this));
     }
 }

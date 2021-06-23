@@ -21,8 +21,7 @@
 
 pragma solidity 0.8.4;
 
-import "./IMessageReceiver.sol";
-
+import "../interfaces/IMessageReceiver.sol";
 
 interface IMainnetContract is IMessageReceiver {
 

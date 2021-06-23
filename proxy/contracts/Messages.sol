@@ -32,7 +32,7 @@ library Messages {
         TRANSFER_ERC20_AND_TOKEN_INFO,
         TRANSFER_ERC721,
         TRANSFER_ERC721_AND_TOKEN_INFO,
-        FREEZE_STATE,
+        USER_STATUS,
         INTERCHAIN_CONNECTION,
         TRANSFER_ERC1155,
         TRANSFER_ERC1155_AND_TOKEN_INFO,
@@ -50,10 +50,10 @@ library Messages {
         uint256 amount;
     }
 
-    struct FreezeStateMessage {
+    struct UserStatusMessage {
         BaseMessage message;
         address receiver;
-        bool isUnfrozen;
+        bool isActive;
     }
 
     struct TransferErc20Message {
@@ -285,18 +285,17 @@ library Messages {
         return abi.decode(data, (TransferErc721AndTokenInfoMessage));
     }
 
-    function encodeFreezeStateMessage(address receiver, bool isUnfrozen) internal pure returns (bytes memory) {
-        FreezeStateMessage memory message = FreezeStateMessage(
-            BaseMessage(MessageType.FREEZE_STATE),
-            receiver,
-            isUnfrozen
-        );
-        return abi.encode(message);
+    function encodeActivateUserMessage(address receiver) internal pure returns (bytes memory){
+        return _encodeUserStatusMessage(receiver, true);
     }
 
-    function decodeFreezeStateMessage(bytes calldata data) internal pure returns (FreezeStateMessage memory) {
-        require(getMessageType(data) == MessageType.FREEZE_STATE, "Message type is not Freeze User");
-        return abi.decode(data, (FreezeStateMessage));
+    function encodeLockUserMessage(address receiver) internal pure returns (bytes memory){
+        return _encodeUserStatusMessage(receiver, false);
+    }
+
+    function decodeUserStatusMessage(bytes calldata data) internal pure returns (UserStatusMessage memory) {
+        require(getMessageType(data) == MessageType.USER_STATUS, "Message type is not User Status");
+        return abi.decode(data, (UserStatusMessage));
     }
 
     function encodeInterchainConnectionMessage(bool isAllowed) internal pure returns (bytes memory) {
@@ -424,4 +423,14 @@ library Messages {
         );
         return abi.decode(data, (TransferErc1155BatchAndTokenInfoMessage));
     }
+
+    function _encodeUserStatusMessage(address receiver, bool isActive) private pure returns (bytes memory) {
+        UserStatusMessage memory message = UserStatusMessage(
+            BaseMessage(MessageType.USER_STATUS),
+            receiver,
+            isActive
+        );
+        return abi.encode(message);
+    }
+
 }
