@@ -69,7 +69,7 @@ contract CommunityPool is Twin {
         require(
             msg.value.add(_userWallets[msg.sender][schainHash]) >=
                 minTransactionGas * tx.gasprice,
-            "Not enough money for transaction"
+            "Not enough ETH for transaction"
         );
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].add(msg.value);
         if (!activeUsers[msg.sender][schainHash]) {

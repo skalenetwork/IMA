@@ -47,7 +47,7 @@ contract TokenManagerEth is TokenManager {
 
     function setEthErc20Address(EthErc20 newEthErc20Address) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
-        require(ethErc20 != newEthErc20Address, "The same address");
+        require(ethErc20 != newEthErc20Address, "Must be new address");
         ethErc20 = newEthErc20Address;
     }
 
