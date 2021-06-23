@@ -153,7 +153,7 @@ describe("TokenManagerERC20", () => {
 
     it("should reject with `Insufficient funds` if token balance is too low", async () => {
         // preparation
-        const error = "Insufficient funds";
+        const error = "insufficient funds";
         const amount = 10;
         // execution/expectation
         await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
