@@ -25,9 +25,9 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 
-import "../Messages.sol";
-import "../interfaces/IMessageProxy.sol";
 import "../interfaces/IMessageReceiver.sol";
+import "../Messages.sol";
+import "../MessageProxy.sol";
 import "./TokenManager.sol";
 
 
@@ -43,7 +43,7 @@ contract TokenManagerLinker is AccessControlUpgradeable, IMessageReceiver {
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
     bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
 
-    IMessageProxy public messageProxy;
+    MessageProxy public messageProxy;
     address public linkerAddress;
     TokenManager[] public tokenManagers;	
     bool public interchainConnections;    
@@ -142,7 +142,7 @@ contract TokenManagerLinker is AccessControlUpgradeable, IMessageReceiver {
         connected = connected && messageProxy.isConnectedChain(schainName);
     }
 
-    function initialize(IMessageProxy newMessageProxyAddress, address linker)
+    function initialize(MessageProxy newMessageProxyAddress, address linker)
         public
         virtual
         initializer
