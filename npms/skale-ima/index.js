@@ -3499,7 +3499,7 @@ async function do_transfer(
                     nBlockFrom = 0;
                 }
             }
-            blockNumberNextForecast = nBlockFrom;
+            // blockNumberNextForecast = nBlockFrom;
 
             for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++nIdxCurrentMsg, ++idxInBlock, ++cntAccumulatedForBlock ) {
                 const idxProcessing = cntProcessed + idxInBlock;
