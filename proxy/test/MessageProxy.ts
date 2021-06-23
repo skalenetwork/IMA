@@ -668,11 +668,10 @@ describe("MessageProxy", () => {
             const addressTo = client.address;
             const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
 
+            await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
 
             // chain should be inited:
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(schainName)).should.be.deep.equal(BigNumber.from(0));
-
-            await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
 
             const outgoingMessagesCounter0 = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));

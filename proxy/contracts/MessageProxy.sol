@@ -101,6 +101,9 @@ abstract contract MessageProxy is AccessControlUpgradeable {
     function initializeMessageProxy(uint newGasLimit) public initializer {
         AccessControlUpgradeable.__AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(CHAIN_CONNECTOR_ROLE, msg.sender);
+        _setupRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender);
+        _setupRole(CONSTANT_SETTER_ROLE, msg.sender);
         gasLimit = newGasLimit;
     }
 

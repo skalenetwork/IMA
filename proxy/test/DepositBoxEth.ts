@@ -226,7 +226,7 @@ describe("DepositBoxEth", () => {
             };
             // redeploy depositBoxEth with `developer` address instead `messageProxyForMainnet.address`
             // to avoid `Incorrect sender` error
-            await messageProxy.connect(user).addConnectedChain(schainName);
+            await messageProxy.addConnectedChain(schainName);
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
             await communityPool

@@ -96,7 +96,7 @@ contract MessageProxyForSchain is MessageProxy {
     function addConnectedChain(string calldata chainName) external override {
         bytes32 chainHash = keccak256(abi.encodePacked(chainName));
         require(chainHash != schainHash, "Schain cannot connect itself");
-        _addConnectedChain(schainHash);
+        _addConnectedChain(chainHash);
     }
 
     function removeConnectedChain(string memory schainName) public override onlyChainConnector {
