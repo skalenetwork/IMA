@@ -20,7 +20,6 @@
  */
 
 pragma solidity 0.8.4;
-pragma experimental ABIEncoderV2;
 
 import "../../Messages.sol";
 import "../tokens/EthErc20.sol";

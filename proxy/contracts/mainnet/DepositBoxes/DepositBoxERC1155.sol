@@ -20,7 +20,6 @@
  */
 
 pragma solidity 0.8.4;
-pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/IERC1155MetadataURIUpgradeable.sol";
