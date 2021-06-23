@@ -373,7 +373,8 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         view
         returns (bool)
     {
-        return registryContracts[keccak256(abi.encodePacked(schainName))][contractAddress];
+        return registryContracts[keccak256(abi.encodePacked(schainName))][contractAddress] ||
+               registryContracts[bytes32(0)][contractAddress];
     }
 
     /**

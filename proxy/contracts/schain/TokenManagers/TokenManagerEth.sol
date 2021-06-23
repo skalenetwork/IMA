@@ -132,8 +132,6 @@ contract TokenManagerEth is TokenManager {
     )
         private
     {
-        require(to != address(0), "Incorrect receiver address");
-
         if (amount > 0) {
             ethErc20.forceBurn(msg.sender, amount);
         }
