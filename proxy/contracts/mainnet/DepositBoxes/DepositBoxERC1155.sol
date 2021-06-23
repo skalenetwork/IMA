@@ -153,6 +153,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         bytes calldata data
     )
         external
+        override
         onlyMessageProxy
         whenNotKilled(schainHash)
         checkReceiverChain(schainHash, sender)
@@ -262,7 +263,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         override(AccessControlUpgradeable, ERC1155ReceiverUpgradeable)
         returns (bool)
     {
-        return interfaceId == type(IMainnetContract).interfaceId
+        return interfaceId == type(Twin).interfaceId
             || super.supportsInterface(interfaceId);
     }
 

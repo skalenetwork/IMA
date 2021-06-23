@@ -26,7 +26,6 @@ import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeab
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
-import "../interfaces/IMainnetContract.sol";
 import "../Messages.sol";
 import "./Twin.sol";
 
@@ -65,7 +64,7 @@ contract Linker is Twin {
     function connectSchain(string calldata schainName, address[] calldata schainContracts) external onlyLinker {
         require(schainContracts.length == _mainnetContracts.length(), "Incorrect number of addresses");
         for (uint i = 0; i < schainContracts.length; i++) {
-            IMainnetContract(_mainnetContracts.at(i)).addSchainContract(schainName, schainContracts[i]);
+            Twin(_mainnetContracts.at(i)).addSchainContract(schainName, schainContracts[i]);
         }
         messageProxy.addConnectedChain(schainName);
     }
@@ -110,7 +109,7 @@ contract Linker is Twin {
     function disconnectSchain(string calldata schainName) external onlyLinker {
         uint length = _mainnetContracts.length();
         for (uint i = 0; i < length; i++) {
-            IMainnetContract(_mainnetContracts.at(i)).removeSchainContract(schainName);
+            Twin(_mainnetContracts.at(i)).removeSchainContract(schainName);
         }
         messageProxy.removeConnectedChain(schainName);
     }
@@ -127,7 +126,7 @@ contract Linker is Twin {
         uint length = _mainnetContracts.length();
         connected = messageProxy.isConnectedChain(schainName);
         for (uint i = 0; connected && i < length; i++) {
-            connected = connected && IMainnetContract(_mainnetContracts.at(i)).hasSchainContract(schainName);
+            connected = connected && Twin(_mainnetContracts.at(i)).hasSchainContract(schainName);
         }
     }
 

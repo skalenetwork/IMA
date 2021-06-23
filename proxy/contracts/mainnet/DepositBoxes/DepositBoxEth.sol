@@ -66,6 +66,7 @@ contract DepositBoxEth is DepositBox {
         bytes calldata data
     )
         external
+        override
         onlyMessageProxy
         whenNotKilled(schainHash)
         checkReceiverChain(schainHash, sender)

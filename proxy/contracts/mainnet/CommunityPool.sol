@@ -28,7 +28,6 @@ import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 
 import "../Messages.sol";
 import "./MessageProxyForMainnet.sol";
-import "../interfaces/IMainnetContract.sol";
 import "./Linker.sol";
 
 /**
@@ -37,11 +36,17 @@ import "./Linker.sol";
  */
 contract CommunityPool is Twin {
 
+    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
+
     mapping(address => mapping(bytes32 => uint)) private _userWallets;
     mapping(address => mapping(bytes32 => bool)) public activeUsers;
 
-    uint public minTransactionGas;
-    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
+    uint public minTransactionGas;    
+
+    event MinTransactionGasWasChanged(
+        uint oldValue,
+        uint newValue
+    );
 
     function refundGasByUser(
         bytes32 schainHash,
@@ -104,6 +109,7 @@ contract CommunityPool is Twin {
 
     function setMinTransactionGas(uint newMinTransactionGas) external {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "CONSTANT_SETTER_ROLE is required");
+        emit MinTransactionGasWasChanged(minTransactionGas, newMinTransactionGas);
         minTransactionGas = newMinTransactionGas;
     }
 

@@ -28,18 +28,10 @@ import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 
 import "../interfaces/IMessageReceiver.sol";
+import "../interfaces/IMessageProxy.sol";
 import "./SkaleManagerClient.sol";
+import "./CommunityPool.sol";
 
-
-interface ICommunityPool {
-    function refundGasByUser(
-        bytes32 schainHash,
-        address node,
-        address user,
-        uint256 gas
-    ) external;
-    function getBalance() external view returns (uint);
-}
 
 /**
  * @title Message Proxy for Mainnet
@@ -95,7 +87,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
-    address public communityPoolAddress;
+    CommunityPool public communityPool;
 
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     mapping(bytes32 => mapping(address => bool)) public registryContracts;
@@ -190,12 +182,10 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         delete connectedChains[schainHash];
     }
 
-    function setCommunityPool(address newCommunityPoolAddress) external {
-        require(
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(newCommunityPoolAddress != address(0), "CommunityPool address has to be set");
-        communityPoolAddress = newCommunityPoolAddress;
+    function setCommunityPool(CommunityPool newCommunityPoolAddress) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
+        require(address(newCommunityPoolAddress) != address(0), "CommunityPool address has to be set");
+        communityPool = newCommunityPoolAddress;
     }
 
     /**
@@ -294,8 +284,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         string calldata fromSchainName,
         uint256 startingCounter,
         Message[] calldata messages,
-        Signature calldata sign //,
-        // uint256
+        Signature calldata sign
     )
         external
     {
@@ -317,9 +306,9 @@ contract MessageProxyForMainnet is SkaleManagerClient {
             address receiver = _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
             if (receiver == address(0)) 
                 continue;
-            ICommunityPool(communityPoolAddress).refundGasByUser(
+            communityPool.refundGasByUser(
                 fromSchainHash,
-                msg.sender,
+                payable(msg.sender),
                 receiver,
                 gasTotal.sub(gasleft()).add(additionalGasPerMessage)
             );

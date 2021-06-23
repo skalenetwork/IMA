@@ -75,10 +75,13 @@ contract DepositBoxERC20 is DepositBox {
         );
         if (!linker.interchainConnections(schainHash))
             _saveTransferredAmount(schainHash, erc20OnMainnet, amount);
-        ERC20Upgradeable(erc20OnMainnet).transferFrom(
-            msg.sender,
-            address(this),
-            amount
+        require(
+            ERC20Upgradeable(erc20OnMainnet).transferFrom(
+                msg.sender,
+                address(this),
+                amount
+            ),
+            "Transfer was failed"
         );
         messageProxy.postOutgoingMessage(
             schainHash,
@@ -93,6 +96,7 @@ contract DepositBoxERC20 is DepositBox {
         bytes calldata data
     )
         external
+        override
         onlyMessageProxy
         whenNotKilled(schainHash)
         checkReceiverChain(schainHash, sender)
@@ -103,7 +107,10 @@ contract DepositBoxERC20 is DepositBox {
         require(ERC20Upgradeable(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
         if (!linker.interchainConnections(schainHash))
             _removeTransferredAmount(schainHash, message.token, message.amount);
-        ERC20Upgradeable(message.token).transfer(message.receiver, message.amount);
+        require(
+            ERC20Upgradeable(message.token).transfer(message.receiver, message.amount),
+            "Transfer was failed"
+        );
         return message.receiver;
     }
 
@@ -126,7 +133,10 @@ contract DepositBoxERC20 is DepositBox {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(transferredAmount[schainHash][erc20OnMainnet] >= amount, "Incorrect amount");
         _removeTransferredAmount(schainHash, erc20OnMainnet, amount);
-        ERC20Upgradeable(erc20OnMainnet).transfer(receiver, amount);
+        require(
+            ERC20Upgradeable(erc20OnMainnet).transfer(receiver, amount),
+            "Transfer was failed"
+        );
     }
 
     /**

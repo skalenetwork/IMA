@@ -52,6 +52,11 @@ abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
 
     mapping(bytes32 => address) public tokenManagers;    
 
+    event DepositBoxWasChanged(
+        address oldValue,
+        address newValue
+    );
+
     modifier onlyAutomaticDeploy() {
         require(hasRole(AUTOMATIC_DEPLOY_ROLE, msg.sender), "AUTOMATIC_DEPLOY_ROLE is required");
         _;
@@ -158,6 +163,7 @@ abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
     function changeDepositBoxAddress(address newDepositBox) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
         require(newDepositBox != address(0), "DepositBox address has to be set");
+        emit DepositBoxWasChanged(depositBox, newDepositBox);
         depositBox = newDepositBox;
     }
 
@@ -191,5 +197,7 @@ abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
         tokenManagerLinker = newIMALinker;
         communityLocker = newCommunityLocker;        
         depositBox = newDepositBox;
+
+        emit DepositBoxWasChanged(address(0), newDepositBox);
     }
 }

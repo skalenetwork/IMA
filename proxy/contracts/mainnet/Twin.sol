@@ -23,7 +23,6 @@
 
 pragma solidity 0.8.4;
 
-import "../interfaces/IMainnetContract.sol";
 import "./MessageProxyForMainnet.sol";
 import "./SkaleManagerClient.sol";
 

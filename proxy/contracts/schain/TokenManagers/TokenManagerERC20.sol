@@ -219,7 +219,10 @@ contract TokenManagerERC20 is TokenManager {
             ) >= amount,
             "Transfer is not approved by token holder"
         );
-        contractOnSchain.transferFrom(msg.sender, address(this), amount);
+        require(
+            contractOnSchain.transferFrom(msg.sender, address(this), amount),
+            "Transfer was failed"
+        );
         contractOnSchain.burn(amount);
         messageProxy.postOutgoingMessage(
             chainHash,

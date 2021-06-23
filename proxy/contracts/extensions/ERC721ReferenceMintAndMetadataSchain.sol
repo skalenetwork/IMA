@@ -45,6 +45,8 @@ contract ERC721ReferenceMintAndMetadataSchain is MessageSender {
     )
         MessageProxyClient(newMessageProxyAddress)
     {
+        require(newErc721ContractOnSchain != address(0), "ERC721 contract has to be set");
+        require(newReceiverContractOnMainnet != address(0), "Receiver contract has to be set");
         erc721ContractOnSchain = newErc721ContractOnSchain;
         receiverContractOnMainnet = newReceiverContractOnMainnet;
     }

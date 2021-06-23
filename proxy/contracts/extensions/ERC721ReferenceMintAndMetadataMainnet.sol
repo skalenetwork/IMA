@@ -47,12 +47,14 @@ contract ERC721ReferenceMintAndMetadataMainnet is MessageReceiver {
     )
         MessageProxyClient(newMessageProxyAddress)
     {
+        require(newErc721Contract != address(0), "ERC721 contract has to be set");
         erc721ContractOnMainnet = newErc721Contract;
         schainName = newSchainName;
         owner = msg.sender;
     }
 
     function setSenderContractOnSchain(address newSenderContractOnSchain) external onlyOwner {
+        require(newSenderContractOnSchain != address(0), "Sender contract has to be set");
         senderContractOnSchain = newSenderContractOnSchain;
     }
 
