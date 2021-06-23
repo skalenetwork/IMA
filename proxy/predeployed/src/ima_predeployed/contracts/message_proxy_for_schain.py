@@ -23,23 +23,25 @@ class MessageProxyForSchainGenerator(ContractGenerator):
     # 52:   __gap
     # ...   __gap
     # 100:  __gap
+    # ---------MessageProxy--------
+    # 101:  connectedChains
+    # 102:  registryContracts
+    # 103: gasLimit
     # ----MessageProxyForSchain----
-    # 101:  keyStorage
-    # 102:  schainHash
-    # 103:  connectedChains
-    # 104:  _outgoingMessageDataHash
-    # 105:  _idxHead
-    # 106:  _idxTail
-    # 107:  registryContracts
-    # 108: gasLimit
+    # 104:  keyStorage
+    # 105:  schainHash    
+    # 106:  _outgoingMessageDataHash
+    # 107:  _idxHead
+    # 108:  _idxTail
 
     INITIALIZED_SLOT = 0
     ROLES_SLOT = 51
-    KEY_STORAGE_SLOT = 101
-    SCHAIN_HASH_SLOT = next_slot(KEY_STORAGE_SLOT)
-    CONNECTED_CHAINS_SLOT = next_slot(SCHAIN_HASH_SLOT)
-    REGISTRY_CONTRACTS_SLOT = 107
+    CONNECTED_CHAINS_SLOT = 101
+    REGISTRY_CONTRACTS_SLOT = next_slot(CONNECTED_CHAINS_SLOT)
     GAS_LIMIT_SLOT = next_slot(REGISTRY_CONTRACTS_SLOT)
+    KEY_STORAGE_SLOT = next_slot(GAS_LIMIT_SLOT)
+    SCHAIN_HASH_SLOT = next_slot(KEY_STORAGE_SLOT)    
+    
 
     def __init__(self, deployer_address: str, schain_name: str):
         super().__init__(self.ARTIFACT_FILENAME)
