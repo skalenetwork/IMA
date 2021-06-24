@@ -9,6 +9,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 : "${MAINNET_PROXY_PATH?Need to set MAINNET_PROXY_PATH}"
 : "${SCHAIN_PROXY_PATH?Need to set SCHAIN_PROXY_PATH}"
 
+: "${STATE_FILE?Need to set STATE_FILE}"
+
 : "${SCHAIN_NAME?Need to set SCHAIN_NAME}"
 
 : "${SCHAIN_RPC_URL?Need to set SCHAIN_RPC_URL}"
@@ -70,6 +72,7 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --cid-s-chain=$CID_SCHAIN \
 --abi-main-net=$MAINNET_PROXY_PATH \
 --abi-s-chain=$SCHAIN_PROXY_PATH \
+--state-file=$STATE_FILE \
 --sgx-url-s-chain=$SGX_URL \
 --sgx-ecdsa-key-s-chain=$ECDSA_KEY_NAME \
 --sgx-ssl-key-s-chain=$SGX_SSL_KEY_PATH \
