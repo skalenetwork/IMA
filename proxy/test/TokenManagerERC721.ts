@@ -95,6 +95,7 @@ describe("TokenManagerERC721", () => {
             );
         await tokenManagerERC721.connect(deployer).grantRole(await tokenManagerERC721.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
         await tokenManagerERC721.connect(deployer).grantRole(await tokenManagerERC721.AUTOMATIC_DEPLOY_ROLE(), schainOwner.address);
+        await tokenManagerLinker.registerTokenManager(tokenManagerERC721.address);
 
         tokenClone = await deployERC721OnChain("ELVIS", "ELV");
         token = await deployERC721OnChain("SKALE", "SKL");
