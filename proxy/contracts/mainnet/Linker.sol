@@ -51,11 +51,11 @@ contract Linker is Twin {
     }
 
     function registerMainnetContract(address newMainnetContract) external onlyLinker {
-        _mainnetContracts.add(newMainnetContract);
+        require(_mainnetContracts.add(newMainnetContract), "The contracts was not registered");
     }
 
     function removeMainnetContract(address mainnetContract) external onlyLinker {
-        _mainnetContracts.remove(mainnetContract);
+        require(_mainnetContracts.remove(mainnetContract), "The contract was not removed");
     }
 
     function connectSchain(string calldata schainName, address[] calldata schainContracts) external onlyLinker {

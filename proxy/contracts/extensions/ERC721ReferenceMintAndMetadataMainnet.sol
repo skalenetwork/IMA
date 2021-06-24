@@ -74,7 +74,10 @@ contract ERC721ReferenceMintAndMetadataMainnet is MessageReceiver {
         string memory tokenURI;
         (to, tokenId, tokenURI) = abi.decode(data, (address, uint256, string));
         ERC721OnChain(erc721ContractOnMainnet).mint(address(this), tokenId);
-        ERC721OnChain(erc721ContractOnMainnet).setTokenURI(tokenId, tokenURI);
+        require(
+            ERC721OnChain(erc721ContractOnMainnet).setTokenURI(tokenId, tokenURI),
+            "Token URI was not set"
+        );
         ERC721OnChain(erc721ContractOnMainnet).transferFrom(address(this), to, tokenId);
         return address(0);
     }

@@ -92,7 +92,10 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
     }
 
     function checkAllowedToSendMessage(address receiver) external {
-        tokenManagerLinker.hasTokenManager(TokenManager(msg.sender));
+        require(
+            tokenManagerLinker.hasTokenManager(TokenManager(msg.sender)),
+            "Sender is not registered token manager"
+        );
         require(activeUsers[receiver], "Recipient must be active");
         require(
             _lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
