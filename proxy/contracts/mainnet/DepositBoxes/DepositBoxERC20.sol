@@ -145,15 +145,15 @@ contract DepositBoxERC20 is DepositBox {
 
     /// Create a new deposit box
     function initialize(
-        IContractManager contractManagerOfSkaleManager,
-        Linker linker,
-        MessageProxyForMainnet messageProxy
+        IContractManager contractManagerOfSkaleManagerValue,
+        Linker linkerValue,
+        MessageProxyForMainnet messageProxyValue
     )
         public
         override
         initializer
     {
-        DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
+        DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);
     }
 
     function _saveTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {

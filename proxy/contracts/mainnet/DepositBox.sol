@@ -81,15 +81,15 @@ abstract contract DepositBox is IMessageReceiver, Twin {
     }
 
     function initialize(
-        IContractManager contractManagerOfSkaleManager,
+        IContractManager contractManagerOfSkaleManagerValue,
         Linker newLinker,
-        MessageProxyForMainnet messageProxy
+        MessageProxyForMainnet messageProxyValue
     )
         public
         virtual
         initializer
     {
-        Twin.initialize(contractManagerOfSkaleManager, messageProxy);
+        Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
         _setupRole(LINKER_ROLE, address(newLinker));
         linker = newLinker;
     }

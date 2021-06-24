@@ -46,14 +46,14 @@ contract CommunityPool is Twin {
     );
 
     function initialize(
-        IContractManager contractManagerOfSkaleManager,
+        IContractManager contractManagerOfSkaleManagerValue,
         Linker linker,
-        MessageProxyForMainnet messageProxy
+        MessageProxyForMainnet messageProxyValue
     )
         external
         initializer
     {
-        Twin.initialize(contractManagerOfSkaleManager, messageProxy);
+        Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
         _setupRole(LINKER_ROLE, address(linker));
         minTransactionGas = 1e6;
     }

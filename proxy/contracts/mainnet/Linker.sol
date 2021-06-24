@@ -128,14 +128,14 @@ contract Linker is Twin {
     }
 
     function initialize(
-        IContractManager contractManagerOfSkaleManager,
-        MessageProxyForMainnet messageProxy
+        IContractManager contractManagerOfSkaleManagerValue,
+        MessageProxyForMainnet messageProxyValue
     )
         public
         override
         initializer
     {
-        Twin.initialize(contractManagerOfSkaleManager, messageProxy);
+        Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
         _setupRole(LINKER_ROLE, msg.sender);
         _setupRole(LINKER_ROLE, address(this));
     }

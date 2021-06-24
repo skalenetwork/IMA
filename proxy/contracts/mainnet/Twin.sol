@@ -82,14 +82,14 @@ abstract contract Twin is SkaleManagerClient {
     }
     
     function initialize(
-        IContractManager contractManagerOfSkaleManager,
+        IContractManager contractManagerOfSkaleManagerValue,
         MessageProxyForMainnet newMessageProxy
     )
         public
         virtual
         initializer
     {
-        SkaleManagerClient.initialize(contractManagerOfSkaleManager);
+        SkaleManagerClient.initialize(contractManagerOfSkaleManagerValue);
         messageProxy = newMessageProxy;
     }
 }
