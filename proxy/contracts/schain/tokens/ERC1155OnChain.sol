@@ -48,7 +48,7 @@ contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUp
         uint256 amount,
         bytes memory data
     )
-        public
+        external
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, id, amount, data);
@@ -60,7 +60,7 @@ contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUp
         uint256[] memory amounts,
         bytes memory data
     )
-        public
+        external
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mintBatch(account, ids, amounts, data);

@@ -116,7 +116,7 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
         TokenManagerLinker newTokenManagerLinker,
         address newCommunityPool
     )
-        public
+        external
         virtual
         initializer
     {

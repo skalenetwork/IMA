@@ -167,7 +167,7 @@ contract TokenManagerERC1155 is TokenManager {
         CommunityLocker newCommunityLocker,
         address newDepositBox
     )
-        public
+        external
         initializer
     {
         TokenManager.initializeTokenManager(

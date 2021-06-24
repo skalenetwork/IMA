@@ -138,7 +138,7 @@ contract TokenManagerERC20 is TokenManager {
         CommunityLocker newCommunityLocker,
         address newDepositBox
     )
-        public        
+        external        
     {
         TokenManager.initializeTokenManager(
             newChainName,

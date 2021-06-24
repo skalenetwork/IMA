@@ -54,7 +54,7 @@ contract ERC721OnChain is AccessControlEnumerableUpgradeable, ERC721BurnableUpgr
     }
 
     function mint(address account, uint256 tokenId)
-        public
+        external
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, tokenId);

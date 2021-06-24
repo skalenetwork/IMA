@@ -29,7 +29,16 @@ import "./bls/FieldOperations.sol";
 contract KeyStorage is AccessControlEnumerableUpgradeable {
 
     uint256 public constant FREE_MEM_PTR = 0x40;
-    uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;    
+    uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;
+
+    function initialize()
+        external
+        virtual
+        initializer
+    {
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 
     function getBlsCommonPublicKey() external view virtual returns (G2Operations.G2Point memory) {
         return G2Operations.G2Point({
@@ -42,15 +51,6 @@ contract KeyStorage is AccessControlEnumerableUpgradeable {
                 b: _getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey3")
             })
         });
-    }
-
-    function initialize()
-        public
-        virtual
-        initializer
-    {
-        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     // private

@@ -139,7 +139,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
     }
 
     function initialize(MessageProxy newMessageProxyAddress, address linker)
-        public
+        external
         virtual
         initializer
     {

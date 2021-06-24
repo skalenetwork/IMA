@@ -45,6 +45,19 @@ contract CommunityPool is Twin {
         uint newValue
     );
 
+    function initialize(
+        IContractManager contractManagerOfSkaleManager,
+        Linker linker,
+        MessageProxyForMainnet messageProxy
+    )
+        external
+        initializer
+    {
+        Twin.initialize(contractManagerOfSkaleManager, messageProxy);
+        _setupRole(LINKER_ROLE, address(linker));
+        minTransactionGas = 1000000;
+    }
+
     function refundGasByUser(
         bytes32 schainHash,
         address payable node,
@@ -112,18 +125,5 @@ contract CommunityPool is Twin {
 
     function getBalance(string calldata schainName) external view returns (uint) {
         return _userWallets[msg.sender][keccak256(abi.encodePacked(schainName))];
-    }
-
-    function initialize(
-        IContractManager contractManagerOfSkaleManager,
-        Linker linker,
-        MessageProxyForMainnet messageProxy
-    )
-        public
-        initializer
-    {
-        Twin.initialize(contractManagerOfSkaleManager, messageProxy);
-        _setupRole(LINKER_ROLE, address(linker));
-        minTransactionGas = 1000000;
     }
 }

@@ -107,7 +107,7 @@ contract TokenManagerEth is TokenManager {
         address newDepositBox,
         EthErc20 ethErc20Address
     )
-        public
+        external
         virtual
         initializer
     {

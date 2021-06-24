@@ -42,7 +42,7 @@ contract ERC20OnChain is AccessControlEnumerableUpgradeable, ERC20BurnableUpgrad
         _setupRole(MINTER_ROLE, _msgSender());
     }
 
-    function mint(address account, uint256 value) public {
+    function mint(address account, uint256 value) external {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, value);
     }

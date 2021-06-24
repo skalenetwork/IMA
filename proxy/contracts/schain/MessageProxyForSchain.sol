@@ -150,7 +150,7 @@ contract MessageProxyForSchain is MessageProxy {
     function verifyOutgoingMessageData(
         OutgoingMessageData memory message
     )
-        public
+        external
         view
         returns (bool isValidMessage)
     {

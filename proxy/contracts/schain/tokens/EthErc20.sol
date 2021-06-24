@@ -41,7 +41,7 @@ contract EthErc20 is AccessControlEnumerableUpgradeable, ERC20BurnableUpgradeabl
     }
 
     function initialize(address tokenManagerEthAddress)
-        public
+        external
         virtual
         initializer
     {
