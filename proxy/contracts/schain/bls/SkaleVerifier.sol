@@ -19,7 +19,7 @@
     along with SKALE Manager.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.8.4;
+pragma solidity 0.8.6;
 
 import "./Precompiled.sol";
 import "./FieldOperations.sol";

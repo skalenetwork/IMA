@@ -20,7 +20,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.4;
+pragma solidity 0.8.6;
 
 import "./Linker.sol";
 import "./MessageProxyForMainnet.sol";
