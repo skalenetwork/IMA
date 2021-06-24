@@ -23,8 +23,6 @@
 
 pragma solidity 0.8.4;
 
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
-
 import "../Messages.sol";
 import "./MessageProxyForMainnet.sol";
 import "./Linker.sol";

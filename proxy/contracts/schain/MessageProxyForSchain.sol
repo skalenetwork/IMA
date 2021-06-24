@@ -31,7 +31,6 @@ import "./KeyStorage.sol";
 
 contract MessageProxyForSchain is MessageProxy {
     using AddressUpgradeable for address;
-    using SafeMathUpgradeable for uint;
 
     /**
      * 16 Agents
@@ -145,8 +144,7 @@ contract MessageProxyForSchain is MessageProxy {
         for (uint256 i = 0; i < messages.length; i++) {
             _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
         }
-        connectedChains[fromChainHash].incomingMessageCounter 
-            = connectedChains[fromChainHash].incomingMessageCounter.add(uint256(messages.length));
+        connectedChains[fromChainHash].incomingMessageCounter += messages.length;
     }
 
     function verifyOutgoingMessageData(

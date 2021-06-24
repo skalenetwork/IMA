@@ -31,7 +31,6 @@ import "../../Messages.sol";
 // This contract runs on the main net and accepts deposits
 contract DepositBoxEth is DepositBox {
     using AddressUpgradeable for address;
-    using SafeMathUpgradeable for uint;
 
     mapping(address => uint256) public approveTransfers;
 
@@ -76,8 +75,7 @@ contract DepositBoxEth is DepositBox {
             message.amount <= address(this).balance,
             "Not enough money to finish this transaction"
         );
-        approveTransfers[message.receiver] =
-            approveTransfers[message.receiver].add(message.amount);
+        approveTransfers[message.receiver] += message.amount;
         if (!linker.interchainConnections(schainHash))
             _removeTransferredAmount(schainHash, message.amount);
         return message.receiver;
@@ -128,10 +126,10 @@ contract DepositBoxEth is DepositBox {
     }
 
     function _saveTransferredAmount(bytes32 schainHash, uint256 amount) private {
-        transferredAmount[schainHash] = transferredAmount[schainHash].add(amount);
+        transferredAmount[schainHash] += amount;
     }
 
     function _removeTransferredAmount(bytes32 schainHash, uint256 amount) private {
-        transferredAmount[schainHash] = transferredAmount[schainHash].sub(amount);
+        transferredAmount[schainHash] -= amount;
     }
 }

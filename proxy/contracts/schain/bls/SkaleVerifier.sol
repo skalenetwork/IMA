@@ -30,7 +30,6 @@ import "./FieldOperations.sol";
  */
 library SkaleVerifier {
     using Fp2Operations for Fp2Operations.Fp2Point;
-    using SafeMathUpgradeable for uint;
 
 
     /**
@@ -99,14 +98,14 @@ library SkaleVerifier {
             return false;
         }
         uint xCoord = uint(hash) % Fp2Operations.P;
-        xCoord = (xCoord.add(counter)) % Fp2Operations.P;
+        xCoord = (xCoord + counter) % Fp2Operations.P;
 
         uint ySquared = addmod(
             mulmod(mulmod(xCoord, xCoord, Fp2Operations.P), xCoord, Fp2Operations.P),
             3,
             Fp2Operations.P
         );
-        if (hashB < Fp2Operations.P.div(2) || mulmod(hashB, hashB, Fp2Operations.P) != ySquared || xCoord != hashA) {
+        if (hashB < Fp2Operations.P / 2 || mulmod(hashB, hashB, Fp2Operations.P) != ySquared || xCoord != hashA) {
             return false;
         }
 

@@ -22,7 +22,6 @@
 pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../../Messages.sol";
@@ -32,7 +31,6 @@ import "../DepositBox.sol";
 // This contract runs on the main net and accepts deposits
 contract DepositBoxERC20 is DepositBox {
     using AddressUpgradeable for address;
-    using SafeMathUpgradeable for uint;
 
         // schainHash => address of ERC on Mainnet
     mapping(bytes32 => mapping(address => bool)) public schainToERC20;
@@ -159,11 +157,11 @@ contract DepositBoxERC20 is DepositBox {
     }
 
     function _saveTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
-        transferredAmount[schainHash][erc20Token] = transferredAmount[schainHash][erc20Token].add(amount);
+        transferredAmount[schainHash][erc20Token] += amount;
     }
 
     function _removeTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
-        transferredAmount[schainHash][erc20Token] = transferredAmount[schainHash][erc20Token].sub(amount);
+        transferredAmount[schainHash][erc20Token] -= amount;
     }
 
     /**

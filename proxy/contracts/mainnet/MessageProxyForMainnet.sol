@@ -22,7 +22,6 @@
 pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 
@@ -45,7 +44,6 @@ import "./CommunityPool.sol";
 contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
 
     using AddressUpgradeable for address;
-    using SafeMathUpgradeable for uint256;
 
     /**
      * 16 Agents
@@ -137,10 +135,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
 
         require(_verifyMessages(fromSchainName, _hashedArray(messages), sign), "Signature is not verified");
         uint additionalGasPerMessage = 
-            (gasTotal.sub(gasleft())
-            .add(headerMessageGasCost)
-            .add(messages.length * messageGasCost))
-            .div(messages.length);
+            (gasTotal - gasleft() + headerMessageGasCost + messages.length * messageGasCost) / messages.length;
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
             address receiver = _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
@@ -150,11 +145,10 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
                 fromSchainHash,
                 payable(msg.sender),
                 receiver,
-                gasTotal.sub(gasleft()).add(additionalGasPerMessage)
+                gasTotal - gasleft() + additionalGasPerMessage
             );
         }
-        connectedChains[fromSchainHash].incomingMessageCounter = 
-            connectedChains[fromSchainHash].incomingMessageCounter.add(uint256(messages.length));
+        connectedChains[fromSchainHash].incomingMessageCounter += messages.length;
     }
 
     /**

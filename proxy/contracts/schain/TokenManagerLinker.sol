@@ -22,7 +22,6 @@
 pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 
 import "../interfaces/IMessageReceiver.sol";
 import "../Messages.sol";
@@ -35,8 +34,6 @@ import "./TokenManager.sol";
  * @dev Runs on Schain
  */
 contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageReceiver {
-
-    using SafeMathUpgradeable for uint;
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
@@ -67,8 +64,8 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
             }
         }
         if (index < length) {
-            if (index < length.sub(1)) {
-                tokenManagers[index] = tokenManagers[length.sub(1)];
+            if (index < length - 1) {
+                tokenManagers[index] = tokenManagers[length - 1];
             }
             tokenManagers.pop();
         }
