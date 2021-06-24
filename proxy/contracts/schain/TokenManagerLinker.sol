@@ -21,7 +21,7 @@
 
 pragma solidity 0.8.4;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 
 import "../interfaces/IMessageReceiver.sol";
@@ -34,7 +34,7 @@ import "./TokenManager.sol";
  * @title TokenManagerLinker
  * @dev Runs on Schain
  */
-contract TokenManagerLinker is AccessControlUpgradeable, IMessageReceiver {
+contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageReceiver {
 
     using SafeMathUpgradeable for uint;
 
@@ -148,7 +148,7 @@ contract TokenManagerLinker is AccessControlUpgradeable, IMessageReceiver {
     {
         require(linker != address(0), "Linker address has to be set");
 
-        AccessControlUpgradeable.__AccessControl_init();
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(REGISTRAR_ROLE, msg.sender);
         messageProxy = newMessageProxyAddress;    

@@ -21,13 +21,13 @@
 
 pragma solidity 0.8.4;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "./interfaces/IMessageReceiver.sol";
 
 
-abstract contract MessageProxy is AccessControlUpgradeable {
+abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     using AddressUpgradeable for address;
 
     bytes32 public constant MAINNET_HASH = keccak256(abi.encodePacked("Mainnet"));
@@ -99,7 +99,7 @@ abstract contract MessageProxy is AccessControlUpgradeable {
     }
 
     function initializeMessageProxy(uint newGasLimit) public initializer {
-        AccessControlUpgradeable.__AccessControl_init();
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(CHAIN_CONNECTOR_ROLE, msg.sender);
         _setupRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender);

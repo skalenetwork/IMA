@@ -34,7 +34,7 @@ import "../interfaces/IMessageReceiver.sol";
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
+abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageReceiver {
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
@@ -186,7 +186,7 @@ abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
     {
         require(newDepositBox != address(0), "DepositBox address has to be set");
 
-        AccessControlUpgradeable.__AccessControl_init();
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(AUTOMATIC_DEPLOY_ROLE, msg.sender);
         _setupRole(TOKEN_REGISTRAR_ROLE, msg.sender);

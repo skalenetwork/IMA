@@ -21,12 +21,12 @@
 
 pragma solidity 0.8.4;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
 import "./bls/FieldOperations.sol";
 
 
-contract KeyStorage is AccessControlUpgradeable {
+contract KeyStorage is AccessControlEnumerableUpgradeable {
 
     uint256 public constant FREE_MEM_PTR = 0x40;
     uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;    
@@ -49,7 +49,7 @@ contract KeyStorage is AccessControlUpgradeable {
         virtual
         initializer
     {
-        AccessControlUpgradeable.__AccessControl_init();
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 

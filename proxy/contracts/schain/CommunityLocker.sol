@@ -23,7 +23,7 @@
 
 pragma solidity 0.8.4;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
 import "../Messages.sol";
 import "../mainnet/CommunityPool.sol";
@@ -35,7 +35,7 @@ import "./TokenManagerLinker.sol";
  * @title CommunityLocker
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract CommunityLocker is IMessageReceiver, AccessControlUpgradeable {
+contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable {
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
@@ -117,7 +117,7 @@ contract CommunityLocker is IMessageReceiver, AccessControlUpgradeable {
         initializer
     {
         require(newCommunityPool != address(0), "Node address has to be set");
-        AccessControlUpgradeable.__AccessControl_init();
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         messageProxy = newMessageProxy;
         tokenManagerLinker = newTokenManagerLinker;

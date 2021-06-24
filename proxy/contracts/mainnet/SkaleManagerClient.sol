@@ -23,7 +23,7 @@ pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 
@@ -34,7 +34,7 @@ import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
  * @author Artem Payvin
  * @author Dmytro Stebaiev
  */
-contract SkaleManagerClient is Initializable, AccessControlUpgradeable {
+contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     IContractManager public contractManagerOfSkaleManager;
@@ -66,7 +66,7 @@ contract SkaleManagerClient is Initializable, AccessControlUpgradeable {
         virtual
         initializer
     {
-        AccessControlUpgradeable.__AccessControl_init();
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         contractManagerOfSkaleManager = newContractManagerOfSkaleManager;
     }

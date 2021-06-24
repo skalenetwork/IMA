@@ -259,7 +259,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     )
         public
         view
-        override(AccessControlUpgradeable, ERC1155ReceiverUpgradeable)
+        override(AccessControlEnumerableUpgradeable, ERC1155ReceiverUpgradeable)
         returns (bool)
     {
         return interfaceId == type(Twin).interfaceId
