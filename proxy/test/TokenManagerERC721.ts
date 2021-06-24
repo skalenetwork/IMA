@@ -64,6 +64,7 @@ describe("TokenManagerERC721", () => {
     let to: string;
     let token: ERC721OnChain;
     let tokenClone: ERC721OnChain;
+    let fakeDepositBox: string;
     let tokenManagerERC721: TokenManagerERC721;
     let tokenManagerLinker: TokenManagerLinker;
     let messages: MessagesTester;
@@ -79,7 +80,7 @@ describe("TokenManagerERC721", () => {
         messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, schainName);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
         messages = await deployMessages();
-        const fakeDepositBox = messages.address;
+        fakeDepositBox = messages.address;
         const fakeCommunityPool = messages.address;
 
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker, fakeCommunityPool);
@@ -106,6 +107,7 @@ describe("TokenManagerERC721", () => {
         const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
         await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
 
+        await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
         await communityLocker.setTimeLimitPerMessage(0);
     });
 
@@ -230,7 +232,6 @@ describe("TokenManagerERC721", () => {
 
         it("should transfer ERC721 token token with token info", async () => {
             //  preparation
-            const fakeDepositBox = messages;
             const data = await messages.encodeTransferErc721AndTokenInfoMessage(
                 token.address,
                 to,
@@ -241,11 +242,11 @@ describe("TokenManagerERC721", () => {
                 }
             );
 
-            await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox.address, data)
+            await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox, data)
                 .should.be.eventually.rejectedWith("Automatic deploy is disabled");
 
             await tokenManagerERC721.connect(schainOwner).enableAutomaticDeploy();
-            await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox.address, data);
+            await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox, data);
             const addressERC721OnSchain = await tokenManagerERC721.clonesErc721(token.address);
             const erc721OnChain = await (await ethers.getContractFactory("ERC721OnChain")).attach(addressERC721OnSchain) as ERC721OnChain;
             expect((await erc721OnChain.functions.ownerOf(tokenId))[0]).to.be.equal(to);
@@ -256,26 +257,24 @@ describe("TokenManagerERC721", () => {
             await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(token.address, tokenClone.address);
             await tokenClone.connect(deployer).grantRole(await tokenClone.MINTER_ROLE(), tokenManagerERC721.address);
 
-            const fakeDepositBox = messages;
             const data = await messages.encodeTransferErc721Message(
                 token.address,
                 to,
                 tokenId
             );
 
-            await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox.address, data);
+            await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox, data);
             const addressERC721OnSchain = await tokenManagerERC721.clonesErc721(token.address);
             const erc721OnChain = (await ethers.getContractFactory("ERC721OnChain")).attach(addressERC721OnSchain) as ERC721OnChain;
             expect((await erc721OnChain.functions.ownerOf(tokenId))[0]).to.be.equal(to);
         });
 
-        it("should reject if message type is known", async () => {
-            const fakeDepositBox = messages;
+        it("should reject if message type is unknown", async () => {
             const data = "0x0000000000000000000000000000000000000000000000000000000000000001"+
             "000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"+
             "00000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8"+
             "0000000000000000000000000000000000000000000000000000000000000001";
-            await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox.address, data)
+            await messageProxyForSchain.postMessage(tokenManagerERC721.address, mainnetId, fakeDepositBox, data)
                 .should.be.eventually.rejectedWith("MessageType is unknown");
 
         });

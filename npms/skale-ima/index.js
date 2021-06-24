@@ -195,38 +195,6 @@ async function get_web3_blockNumber( details, attempts, w3 ) {
     return nLatestBlockNumber;
 }
 
-async function get_web3_pastEvents( details, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
-    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
-
-    let joAllEventsInBlock = "";
-    try {
-        joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
-            filter: joFilter,
-            fromBlock: nBlockFrom,
-            toBlock: nBlockTo
-        } );
-    } catch ( e ) {}
-    let attemptIndex = 2;
-    while( joAllEventsInBlock === "" && attemptIndex <= allAttempts ) {
-        details.write(
-            cc.warning( "Repeat " ) + cc.error( "getPastEvents" ) + cc.warning( "/" ) + cc.error( strEventName ) +
-            cc.warning( ", attempt " ) + cc.error( attemptIndex ) +
-            cc.warning( ", previous result is: " ) + cc.j( joAllEventsInBlock ) + "\n" );
-        await sleep( 1000 );
-        try {
-            joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
-                filter: joFilter,
-                fromBlock: nBlockFrom,
-                toBlock: nBlockTo
-            } );
-        } catch ( e ) {}
-        attemptIndex++;
-    }
-    if( attemptIndex + 1 === allAttempts && joAllEventsInBlock === "" )
-        throw new Error( "Could not not get Event" + strEventName );
-    return joAllEventsInBlock;
-}
-
 async function get_web3_transactionCount( details, attempts, w3, address, param ) {
     const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
     let txc = "";
@@ -273,9 +241,39 @@ async function get_web3_transactionReceipt( details, attempts, w3, txHash ) {
     return txReceipt;
 }
 
+async function get_web3_pastEvents( details, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    let joAllEventsInBlock = "";
+    try {
+        joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
+            filter: joFilter,
+            fromBlock: nBlockFrom,
+            toBlock: nBlockTo
+        } );
+    } catch ( e ) {}
+    let attemptIndex = 2;
+    while( joAllEventsInBlock === "" && attemptIndex <= allAttempts ) {
+        details.write(
+            cc.warning( "Repeat " ) + cc.error( "getPastEvents" ) + cc.warning( "/" ) + cc.error( strEventName ) +
+            cc.warning( ", attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( ", previous result is: " ) + cc.j( joAllEventsInBlock ) + "\n" );
+        await sleep( 1000 );
+        try {
+            joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
+                filter: joFilter,
+                fromBlock: nBlockFrom,
+                toBlock: nBlockTo
+            } );
+        } catch ( e ) {}
+        attemptIndex++;
+    }
+    if( attemptIndex + 1 === allAttempts && joAllEventsInBlock === "" )
+        throw new Error( "Could not not get Event" + strEventName );
+    return joAllEventsInBlock;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
 
 async function get_contract_call_events( details, w3, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
     joFilter = joFilter || {};
@@ -286,18 +284,6 @@ async function get_contract_call_events( details, w3, joContract, strEventName, 
     if( nBlockTo > nLatestBlockNumber )
         nBlockTo = nLatestBlockNumber;
     const joAllEventsInBlock = await get_web3_pastEvents( details, 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
-    // const joAllEventsInBlock = await get_web3_universal_call(
-    //     10,
-    //     "PastEvent " + strEventName,
-    //     w3,
-    //     joContract.getPastEvents,
-    //     "" + strEventName,
-    //     {
-    //         filter: joFilter,
-    //         fromBlock: nBlockFrom,
-    //         toBlock: nBlockTo
-    //     }
-    // );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
         const joEvent = joAllEventsInBlock[i];
@@ -458,35 +444,6 @@ function get_account_connectivity_info( joAccount ) {
     }
     return joACI;
 }
-
-// async function wait_for_transaction_receipt( details, w3, txHash, nMaxWaitAttempts, nSleepMilliseconds ) {
-//     if( w3 == null || w3 == undefined || txHash == null || txHash == undefined || typeof txHash != "string" || txHash.length == 0 )
-//         return null;
-//     nMaxWaitAttempts = nMaxWaitAttempts || 100;
-//     nSleepMilliseconds = nSleepMilliseconds || 5000;
-//     let idxAttempt;
-//     for( idxAttempt = 0; idxAttempt < nMaxWaitAttempts; ++ idxAttempt ) {
-//         try {
-//             const joReceipt = await get_web3_transactionReceipt( details, 10, w3, txHash );
-//             if( joReceipt != null ) {
-//                 details.write(
-//                     cc.debug( "Got " ) + cc.notice( txHash ) +
-//                     cc.debug( " transaction receipt: " ) + cc.j( joReceipt ) +
-//                     "\n" );
-//                 return joReceipt;
-//             }
-//         } catch ( err ) {
-//         }
-//         details.write(
-//             cc.debug( "Attempt " ) + cc.info( idxAttempt ) + cc.debug( " of " ) + cc.info( nMaxWaitAttempts ) +
-//             cc.debug( " done, sleeping " ) + cc.info( nSleepMilliseconds ) +
-//             cc.debug( " milliseconds while waiting for " ) + cc.notice( txHash ) +
-//             cc.debug( " transaction receipt..." ) +
-//             "\n" );
-//         await sleep( nSleepMilliseconds );
-//     }
-//     return null;
-// }
 
 const g_tm_pool = "transactions";
 
@@ -1373,25 +1330,6 @@ async function do_eth_payment_from_main_net(
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
-        // if( jo_lock_and_data_main_net ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "ETHReceived" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-        //     const joEvents = await get_contract_call_events( details, w3_main_net, jo_lock_and_data_main_net, "ETHReceived", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-        //     if( joEvents.length > 0 ) {
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "ETHReceived" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-        //     } else
-        //         throw new Error( "Verification failed for the \"ETHReceived\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-        // } // if( jo_lock_and_data_main_net )
-        //
-        // Must-absent event(s) analysis as indicator(s) of success
-        //
-        // if( jo_lock_and_data_main_net ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-        //     const joEvents = await get_contract_call_events( details, w3_main_net, jo_lock_and_data_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-        //     if( joEvents.length == 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, no event found" ) + "\n" );
-        //     else
-        //         throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-        // } // if( jo_lock_and_data_main_net )
         if( jo_deposit_box ) {
             details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.debug( " contract..." ) + "\n" );
             const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
@@ -1805,17 +1743,6 @@ async function do_erc721_payment_from_main_net(
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
-        //
-        // Must-absent event(s) analysis as indicator(s) of success
-        //
-        // if( jo_lock_and_data_main_net ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-        //     const joEvents = await get_contract_call_events( details, w3_main_net, jo_lock_and_data_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-        //     if( joEvents.length == 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, no event found" ) + "\n" );
-        //     else
-        //         throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-        // } // if( jo_lock_and_data_main_net )
         if( jo_deposit_box_erc721 ) {
             details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_erc721.options.address ) + cc.debug( " contract..." ) + "\n" );
             const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box_erc721, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
@@ -2000,17 +1927,6 @@ async function do_erc20_payment_from_main_net(
             else
                 throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
-        //
-        // Must-absent event(s) analysis as indicator(s) of success
-        //
-        // if( jo_lock_and_data_main_net ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-        //     const joEvents = await get_contract_call_events( details, w3_main_net, jo_lock_and_data_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-        //     if( joEvents.length == 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, no event found" ) + "\n" );
-        //     else
-        //         throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-        // } // if( jo_lock_and_data_main_net )
         if( jo_deposit_box_erc20 ) {
             details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_erc20.options.address ) + cc.debug( " contract..." ) + "\n" );
             const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box_erc20, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
@@ -2193,17 +2109,6 @@ async function do_erc1155_payment_from_main_net(
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
-        //
-        // Must-absent event(s) analysis as indicator(s) of success
-        //
-        // if( jo_lock_and_data_main_net ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-        //     const joEvents = await get_contract_call_events( details, w3_main_net, jo_lock_and_data_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-        //     if( joEvents.length == 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, no event found" ) + "\n" );
-        //     else
-        //         throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-        // } // if( jo_lock_and_data_main_net )
         if( jo_deposit_box_erc1155 ) {
             details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_erc1155.options.address ) + cc.debug( " contract..." ) + "\n" );
             const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box_erc1155, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
@@ -2386,17 +2291,6 @@ async function do_erc1155_batch_payment_from_main_net(
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
-        //
-        // Must-absent event(s) analysis as indicator(s) of success
-        //
-        // if( jo_lock_and_data_main_net ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.debug( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.debug( " contract..." ) + "\n" );
-        //     const joEvents = await get_contract_call_events( details, w3_main_net, jo_lock_and_data_main_net, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-        //     if( joEvents.length == 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "LockAndDataForMainnet" ) + cc.success( "/" ) + cc.notice( jo_lock_and_data_main_net.options.address ) + cc.success( " contract, no event found" ) + "\n" );
-        //     else
-        //         throw new Error( "Verification failed for the \"Error\" event of the \"LockAndDataForMainnet\"/" + jo_lock_and_data_main_net.options.address + " contract, no events found" );
-        // } // if( jo_lock_and_data_main_net )
         if( jo_deposit_box_erc1155 ) {
             details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_erc1155.options.address ) + cc.debug( " contract..." ) + "\n" );
             const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box_erc1155, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
@@ -3457,6 +3351,33 @@ function get_last_transfer_errors( textLog ) {
     return JSON.parse( JSON.stringify( g_arrLastTransferErrors ) );
 }
 
+async function init_ima_state_file( details, w3, strDirection, optsStateFile ) {
+    if( strDirection != "M2S" )
+        return;
+    if( ! ( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) )
+        return;
+    let isFileExist = false;
+    try {
+        if( fs.existsSync( optsStateFile.path ) )
+            isFileExist = true;
+    } catch ( err ) { }
+    if( isFileExist )
+        return;
+    let nBlockFrom = 0;
+    try {
+        nBlockFrom = await w3.eth.getBlockNumber();
+    } catch ( err ) { }
+    try {
+        const joStateForLogsSearch = {};
+        details.write( strLogPrefix + cc.normal( "(FIRST TIME) Saving next forecasted block number for logs search value " ) + cc.info( blockNumberNextForecast ) + "\n" );
+        const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
+        joStateForLogsSearch[strKeyName] = nBlockFrom;
+        const s = JSON.stringify( joStateForLogsSearch, null, 4 );
+        fs.writeFileSync( optsStateFile.path, s );
+    } catch ( err ) {
+    }
+}
+
 //
 // Do real money movement from main-net to S-chain by sniffing events
 // 1) main-net.MessageProxyForMainnet.getOutgoingMessagesCounter -> save to nOutMsgCnt
@@ -3475,6 +3396,8 @@ function get_last_transfer_errors( textLog ) {
 //            )
 //
 async function do_transfer(
+    strDirection,
+    //
     w3_src,
     jo_message_proxy_src,
     joAccountSrc,
@@ -3499,11 +3422,13 @@ async function do_transfer(
     //
     tc_dst, // same as w3_dst
     //
-    optsPendingTxAnalysis
+    optsPendingTxAnalysis,
+    optsStateFile
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // do_transfer
     let bErrorInSigningMessages = false;
+    await init_ima_state_file( details, w3_src, strDirection, optsStateFile );
     const strLogPrefix = cc.info( "Transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
         details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
@@ -3586,7 +3511,24 @@ async function do_transfer(
             //
             // inner loop wil create block of transactions
             //
-            let cntAccumulatedForBlock = 0;
+            let cntAccumulatedForBlock = 0, blockNumberNextForecast = 0;
+            let nBlockFrom = 0;
+            const nBlockTo = "latest";
+            let joStateForLogsSearch = {};
+            const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3_src ); // await get_web3_universal_call( 10, "BlockNumber", w3, null, null );
+            if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
+                try {
+                    const s = fs.readFileSync( optsStateFile.path );
+                    joStateForLogsSearch = JSON.parse( s );
+                    const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
+                    if( strKeyName in joStateForLogsSearch && typeof joStateForLogsSearch[strKeyName] == "string" )
+                        nBlockFrom = "0x" + w3_src.utils.toBN( joStateForLogsSearch[strKeyName] ).toString( 16 );
+                } catch ( err ) {
+                    nBlockFrom = 0;
+                }
+            }
+            // blockNumberNextForecast = nBlockFrom;
+
             for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++nIdxCurrentMsg, ++idxInBlock, ++cntAccumulatedForBlock ) {
                 const idxProcessing = cntProcessed + idxInBlock;
                 if( idxProcessing > nMaxTransactionsCount )
@@ -3594,34 +3536,41 @@ async function do_transfer(
                 //
                 //
                 strActionName = "src-chain.MessageProxy.getPastEvents()";
-                details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event now..." ) + "\n" );
+                details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) +
+                cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event, starting block number is " ) +
+                cc.info( nBlockFrom ) + cc.debug( ", current latest block number is ~ " ) + cc.info( nLatestBlockNumber ) +
+                cc.debug( "..." ) + "\n" );
                 r = await get_web3_pastEvents(
                     details,
                     10,
                     jo_message_proxy_src,
                     "OutgoingMessage",
-                    0,
-                    "latest",
+                    nBlockFrom,
+                    nBlockTo,
                     {
                         dstChainHash: [ w3_src.utils.soliditySha3( chain_id_dst ) ],
                         msgCounter: [ nIdxCurrentMsg ]
                     }
                 );
-                // r = await jo_message_proxy_src.getPastEvents( "OutgoingMessage", {
-                //     filter: {
-                //         dstChainHash: [ w3_src.utils.soliditySha3( chain_id_dst ) ],
-                //         msgCounter: [ nIdxCurrentMsg ]
-                //     },
-                //     fromBlock: 0,
-                //     toBlock: "latest"
-                // } );
+                //details.write( strLogPrefix + cc.normal( "Logs search result(s): " ) + cc.j( r ) + "\n" );
                 let joValues = "";
                 for( let i = r.length - 1; i >= 0; i-- ) {
                     if( r[i].returnValues.dstChainHash == w3_src.utils.soliditySha3( chain_id_dst ) ) {
                         joValues = r[i].returnValues;
+                        if( blockNumberNextForecast === 0 )
+                            blockNumberNextForecast = w3mod.utils.toHex( r[i].blockNumber );
+                        else {
+                            const oldBN = w3_src.utils.toBN( blockNumberNextForecast );
+                            const newBN = w3_src.utils.toBN( r[i].blockNumber );
+                            if( newBN.lt( oldBN ) ) {
+                                blockNumberNextForecast = "0x" + newBN.toString( 16 );
+                                details.write( strLogPrefix + cc.normal( "Narrowing next forecasted block number for logs search is " ) + cc.info( blockNumberNextForecast ) + "\n" );
+                            }
+                        }
                         break;
                     }
                 }
+                details.write( strLogPrefix + cc.normal( "Next forecasted block number for logs search is " ) + cc.info( blockNumberNextForecast ) + "\n" );
                 if( joValues == "" ) {
                     log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
                     details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
@@ -4001,28 +3950,20 @@ async function do_transfer(
                     } else
                         details.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no MessageProxy provided" ) + "\n" );
                 } // if( chain_id_dst == "Mainnet" )
-                /*
-                //
-                // check TokenManager -> Error on Schain only
-                //
-                if( chain_id_dst != "Mainnet" ) {
-                    details.write( strLogPrefix + cc.debug("Validating transfer to S-Chain via TokenManager error absence on S-Chain...") + "\n" );
-                    if( jo_token_manager_schain ) {
-                        details.write( strLogPrefix + cc.debug("Verifying the ") + cc.info("Error") + cc.debug(" event of the ") + cc.info("TokenManager") + cc.debug("/") + cc.notice(jo_token_manager_schain.options.address) + cc.debug(" contract..." ) + "\n" );
-                        let joEvents = await get_contract_call_events( details, w3_????????????????????????, jo_token_manager_schain, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-                        if( joEvents.length == 0 ) {
-                            details.write( strLogPrefix + cc.success("Success, verified the ") + cc.info("Error") + cc.success(" event of the ") + cc.info("TokenManager") + cc.success("/") + cc.notice(jo_token_manager_schain.options.address) + cc.success(" contract, no events found" ) + "\n" );
-                        } else {
-                            log.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.warning(" Failed") + cc.error(" verification of the ") + cc.warning("Error") + cc.error(" event of the ") + cc.warning("TokenManager") + cc.error("/") + cc.notice(jo_token_manager_schain.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-                            details.write( strLogPrefix + cc.fatal("CRITICAL ERROR:") + cc.warning(" Failed") + cc.error(" verification of the ") + cc.warning("Error") + cc.error(" event of the ") + cc.warning("TokenManager") + cc.error("/") + cc.notice(jo_token_manager_schain.options.address) + cc.error(" contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-                            throw new Error( "Verification failed for the \"Error\" event of the \"TokenManager\"/" + jo_token_manager_schain.options.address + " contract, error events found" );
+
+                if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
+                    if( blockNumberNextForecast !== nBlockFrom ) {
+                        try {
+                            details.write( strLogPrefix + cc.normal( "Saving next forecasted block number for logs search value " ) + cc.info( blockNumberNextForecast ) + "\n" );
+                            const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
+                            joStateForLogsSearch[strKeyName] = blockNumberNextForecast;
+                            const s = JSON.stringify( joStateForLogsSearch, null, 4 );
+                            fs.writeFileSync( optsStateFile.path, s );
+                        } catch ( err ) {
                         }
-                        details.write( strLogPrefix + cc.success("Done, validated transfer to S-Chain via TokenManager error absence on S-Chain") + "\n" );
-                    } else
-                        details.write( strLogPrefix + cc.warn("Cannot validate transfer to S-Chain via TokenManager error absence on S-Chain, no TokenManager provided") + "\n" );
-                } // if( chain_id_dst != "Mainnet" )
-                details.write( strLogPrefix + cc.success("Done, validated transfer from ") + cc.info(chain_id_src) + cc.debug(" to ") + cc.info(chain_id_dst) + cc.debug(", everything is OKay") + "\n" );
-                */
+                    }
+                }
+
                 //
                 //
                 //

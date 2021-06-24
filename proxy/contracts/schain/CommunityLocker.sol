@@ -39,6 +39,7 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
     MessageProxyForSchain public messageProxy;
     TokenManagerLinker public tokenManagerLinker;
@@ -80,14 +81,14 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
         Messages.MessageType operation = Messages.getMessageType(data);
         require(operation == Messages.MessageType.USER_STATUS, "The message should contain a status of user");
         Messages.UserStatusMessage memory message = Messages.decodeUserStatusMessage(data);
-        require(activeUsers[message.receiver] != message.isActive, "User statuses must be different");
+        require(activeUsers[message.receiver] != message.isActive, "Active user statuses must be different");
         activeUsers[message.receiver] = message.isActive;
         if (message.isActive) {
             emit ActivateUser(schainHash, message.receiver);
         } else {
             emit LockUser(schainHash, message.receiver);
         }
-        return address(1);
+        return message.receiver;
     }
 
     function checkAllowedToSendMessage(address receiver) external {
@@ -101,7 +102,7 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
     }
 
     function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
+        require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         emit TimeLimitPerMessageWasChanged(timeLimitPerMessage, newTimeLimitPerMessage);
         timeLimitPerMessage = newTimeLimitPerMessage;
     }

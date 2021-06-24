@@ -62,7 +62,7 @@ describe("TokenManagerERC20", () => {
     const schainName = "D2-chain";
     const schainId = web3.utils.soliditySha3(schainName);
     const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
-    let fakeDepositBox: any;
+    let fakeDepositBox: string;
     let fakeCommunityPool: any;
     let erc20OnChain: ERC20OnChain;
     let eRC20OnChain2: ERC20OnChain;
@@ -167,7 +167,6 @@ describe("TokenManagerERC20", () => {
 
     it("should add token by owner", async () => {
         // preparation
-        const newSchainName = randomString(10);
         const addressERC20 = erc20OnChain.address;
         const addressERC201 = erc20OnMainnet.address;
         const automaticDeploy = await tokenManagerErc20.automaticDeploy();
@@ -191,6 +190,14 @@ describe("TokenManagerERC20", () => {
         }
 
         await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(eRC20OnMainnet2.address, eRC20OnChain2.address);
+
+        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(eRC20OnMainnet2.address, deployer.address)
+            .should.be.eventually.rejectedWith("Given address is not a contract");
+
+        await eRC20OnChain2.mint(user.address, 1);
+
+        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(eRC20OnMainnet2.address, eRC20OnChain2.address)
+            .should.be.eventually.rejectedWith("TotalSupply is not zero");
 
     });
 
@@ -366,6 +373,16 @@ describe("TokenManagerERC20", () => {
             const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
             expect(parseInt((await targetErc20OnChain.functions.balanceOf(to)).toString(), 10))
                 .to.be.equal(amount);
+        });
+
+        it("should reject if message type is unknown", async () => {
+            const data = "0x0000000000000000000000000000000000000000000000000000000000000001"+
+            "000000000000000000000000a51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"+
+            "00000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8"+
+            "0000000000000000000000000000000000000000000000000000000000000001";
+            await messageProxyForSchain.postMessage(tokenManagerErc20.address, mainnetId, fakeDepositBox, data)
+                .should.be.eventually.rejectedWith("MessageType is unknown");
+
         });
     });
 });

@@ -61,7 +61,7 @@ contract TokenManagerERC1155 is TokenManager {
     )
         external
     {
-         communityLocker.checkAllowedToSendMessage(to);
+        communityLocker.checkAllowedToSendMessage(to);
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, id, amount);
     }
 
@@ -268,7 +268,6 @@ contract TokenManagerERC1155 is TokenManager {
     )
         private
     {
-        require(to != address(0), "Incorrect receiver address");
         ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
@@ -287,7 +286,6 @@ contract TokenManagerERC1155 is TokenManager {
     )
         private
     {
-        require(to != address(0), "Incorrect receiver address");
         ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");

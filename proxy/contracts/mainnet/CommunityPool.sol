@@ -73,7 +73,7 @@ contract CommunityPool is Twin {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             msg.value + _userWallets[msg.sender][schainHash] >= minTransactionGas * tx.gasprice,
-            "Not enough money for transaction"
+            "Not enough ETH for transaction"
         );
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash] + msg.value;
         if (!activeUsers[msg.sender][schainHash]) {

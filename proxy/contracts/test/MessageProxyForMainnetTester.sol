@@ -37,7 +37,7 @@ contract MessageProxyForMainnetTester {
         messageProxyForMainnet.postOutgoingMessage(targetChainHash, targetContract, data);
     }
 
-    function postOutgoingMessageTester2(
+    function postOutgoingMessageTesterOnSchain(
         MessageProxyForSchain messageProxyForSchain,
         bytes32 targetChainHash,
         address targetContract,
