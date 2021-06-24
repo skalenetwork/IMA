@@ -55,7 +55,7 @@ contract CommunityPool is Twin {
     {
         Twin.initialize(contractManagerOfSkaleManager, messageProxy);
         _setupRole(LINKER_ROLE, address(linker));
-        minTransactionGas = 1000000;
+        minTransactionGas = 1e6;
     }
 
     function refundGasByUser(

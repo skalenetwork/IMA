@@ -69,7 +69,7 @@ contract MessageProxyForSchain is MessageProxy {
         virtual
         initializer
     {
-        MessageProxy.initializeMessageProxy(3000000);
+        MessageProxy.initializeMessageProxy(3e6);
         keyStorage = blsKeyStorage;
         connectedChains[
             MAINNET_HASH
