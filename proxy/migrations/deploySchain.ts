@@ -216,6 +216,12 @@ async function main() {
     deployed.set( "TokenManagerERC1155", { address: tokenManagerERC1155.address, interface: tokenManagerERC1155.interface } );
     console.log("Contract TokenManagerERC1155 deployed to", tokenManagerERC1155.address);
 
+    console.log("Register token managers");
+    await (await tokenManagerLinker.registerTokenManager(tokenManagerEth.address)).wait();
+    await (await tokenManagerLinker.registerTokenManager(tokenManagerERC20.address)).wait();
+    await (await tokenManagerLinker.registerTokenManager(tokenManagerERC721.address)).wait();
+    await (await tokenManagerLinker.registerTokenManager(tokenManagerERC1155.address)).wait();
+
     console.log("Deploy EthErc20");
     const ethERC20Factory = await ethers.getContractFactory("EthErc20");
     const ethERC20 = await upgrades.deployProxy(ethERC20Factory, [ tokenManagerEth.address ]) as EthErc20;
