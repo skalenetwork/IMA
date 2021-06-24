@@ -17,22 +17,32 @@ class TokenManagerGenerator(ContractGenerator):
     # 1:    __gap
     # ...   __gap
     # 50:   __gap
-    # --AccessControlUpgradeable---
-    # 51:   _roles
-    # 52:   __gap
+    # ------ERC165Upgradeable------
+    # 51:   __gap
     # ...   __gap
     # 100:  __gap
+    # --AccessControlUpgradeable---
+    # 101:  _roles
+    # 102:  __gap
+    # ...   __gap
+    # 150:  __gap
+    # AccessControlEnumerableUpgradeable
+    # 151:  _roleMembers
+    # 152:  __gap
+    # ...   __gap
+    # 200:  __gap
     # ---------TokenManager---------
-    # 101:  messageProxy
-    # 102:  tokenManagerLinker
-    # 103:  communityLocker
-    # 104:  schainHash
-    # 105:  depositBox, automaticDeploy
-    # 106:  tokenManagers
+    # 201:  messageProxy
+    # 202:  tokenManagerLinker
+    # 203:  communityLocker
+    # 204:  schainHash
+    # 205:  depositBox, automaticDeploy
+    # 206:  tokenManagers
 
     INITIALIZED_SLOT = 0
-    ROLES_SLOT = 51
-    MESSAGE_PROXY_SLOT = 101
+    ROLES_SLOT = 101
+    ROLE_MEMBERS_SLOT = 151
+    MESSAGE_PROXY_SLOT = 201
     TOKEN_MANAGER_LINKER_SLOT = next_slot(MESSAGE_PROXY_SLOT)
     COMMUNITY_LOCKER_SLOT = next_slot(TOKEN_MANAGER_LINKER_SLOT)
     SCHAIN_HASH_SLOT = next_slot(COMMUNITY_LOCKER_SLOT)
@@ -48,9 +58,9 @@ class TokenManagerGenerator(ContractGenerator):
 
     def _setup_token_manager(self, deployer_address: str, deposit_box_address: str, schain_name: str) -> None:
         self._write_uint256(self.INITIALIZED_SLOT, 1)
-        self._setup_role(self.ROLES_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
-        self._setup_role(self.ROLES_SLOT, self.AUTOMATIC_DEPLOY_ROLE, [deployer_address])
-        self._setup_role(self.ROLES_SLOT, self.TOKEN_REGISTRAR_ROLE, [deployer_address])
+        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
+        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.AUTOMATIC_DEPLOY_ROLE, [deployer_address])
+        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.TOKEN_REGISTRAR_ROLE, [deployer_address])
         self._write_address(self.MESSAGE_PROXY_SLOT, MESSAGE_PROXY_FOR_SCHAIN_ADDRESS)
         self._write_address(self.TOKEN_MANAGER_LINKER_SLOT, TOKEN_MANAGER_LINKER_ADDRESS)
         self._write_address(self.COMMUNITY_LOCKER_SLOT, COMMUNITY_LOCKER_ADDRESS)

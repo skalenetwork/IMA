@@ -11,20 +11,29 @@ class TokenManagerErc1155Generator(TokenManagerGenerator):
     # 1:    __gap
     # ...   __gap
     # 50:   __gap
-    # --AccessControlUpgradeable---
-    # 51:   _roles
-    # 52:   __gap
+    # ------ERC165Upgradeable------
+    # 51:   __gap
     # ...   __gap
     # 100:  __gap
+    # --AccessControlUpgradeable---
+    # 101:  _roles
+    # 102:  __gap
+    # ...   __gap
+    # 150:  __gap
+    # AccessControlEnumerableUpgradeable
+    # 151:  _roleMembers
+    # 152:  __gap
+    # ...   __gap
+    # 200:  __gap
     # ---------TokenManager---------
-    # 101:  messageProxy
-    # 102:  tokenManagerLinker
-    # 103:  communityLocker
-    # 104:  schainHash
-    # 105:  depositBox, automaticDeploy
-    # 106:  tokenManagers
+    # 201:  messageProxy
+    # 202:  tokenManagerLinker
+    # 203:  communityLocker
+    # 204:  schainHash
+    # 205:  depositBox, automaticDeploy
+    # 206:  tokenManagers
     # ------TokenManagerERC1155------
-    # 107:  clonesErc1155
+    # 207:  clonesErc1155
 
     def __init__(self, deployer_address: str, deposit_box_address: str, schain_name: str):
         super().__init__(deployer_address, deposit_box_address, schain_name)

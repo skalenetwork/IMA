@@ -18,30 +18,39 @@ class MessageProxyForSchainGenerator(ContractGenerator):
     # 1:    __gap
     # ...   __gap
     # 50:   __gap
-    # --AccessControlUpgradeable---
-    # 51:   _roles
-    # 52:   __gap
+    # ------ERC165Upgradeable------
+    # 51:   __gap
     # ...   __gap
     # 100:  __gap
+    # --AccessControlUpgradeable---
+    # 101:  _roles
+    # 102:  __gap
+    # ...   __gap
+    # 150:  __gap
+    # AccessControlEnumerableUpgradeable
+    # 151:  _roleMembers
+    # 152:  __gap
+    # ...   __gap
+    # 200:  __gap
     # ---------MessageProxy--------
-    # 101:  connectedChains
-    # 102:  registryContracts
-    # 103: gasLimit
+    # 201:  connectedChains
+    # 202:  registryContracts
+    # 203:  gasLimit
     # ----MessageProxyForSchain----
-    # 104:  keyStorage
-    # 105:  schainHash    
-    # 106:  _outgoingMessageDataHash
-    # 107:  _idxHead
-    # 108:  _idxTail
+    # 204:  keyStorage
+    # 205:  schainHash
+    # 206:  _outgoingMessageDataHash
+    # 207:  _idxHead
+    # 208:  _idxTail
 
     INITIALIZED_SLOT = 0
-    ROLES_SLOT = 51
-    CONNECTED_CHAINS_SLOT = 101
+    ROLES_SLOT = 101
+    ROLE_MEMBERS_SLOT = 151
+    CONNECTED_CHAINS_SLOT = 201
     REGISTRY_CONTRACTS_SLOT = next_slot(CONNECTED_CHAINS_SLOT)
     GAS_LIMIT_SLOT = next_slot(REGISTRY_CONTRACTS_SLOT)
     KEY_STORAGE_SLOT = next_slot(GAS_LIMIT_SLOT)
-    SCHAIN_HASH_SLOT = next_slot(KEY_STORAGE_SLOT)    
-    
+    SCHAIN_HASH_SLOT = next_slot(KEY_STORAGE_SLOT)
 
     def __init__(self, deployer_address: str, schain_name: str):
         super().__init__(self.ARTIFACT_FILENAME)
@@ -51,7 +60,7 @@ class MessageProxyForSchainGenerator(ContractGenerator):
 
     def _setup(self, deployer_address: str, schain_name: str) -> None:
         self._write_uint256(self.INITIALIZED_SLOT, 1)
-        self._setup_role(self.ROLES_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
+        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
         self._write_address(self.KEY_STORAGE_SLOT, KEY_STORAGE_ADDRESS)
         self._write_bytes32(self.SCHAIN_HASH_SLOT, Web3.solidityKeccak(['string'], [schain_name]))
 
@@ -71,5 +80,5 @@ class MessageProxyForSchainGenerator(ContractGenerator):
             COMMUNITY_LOCKER_ADDRESS]
         for contract in allowed_contracts:
             contract_slot = calculate_mapping_value_slot(
-                any_schain_contracts_slot, int(contract, 16).to_bytes(32, 'big'), 'bytes32')
+                any_schain_contracts_slot, contract, 'address')
             self._write_uint256(contract_slot, 1)

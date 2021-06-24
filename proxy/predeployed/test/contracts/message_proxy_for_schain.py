@@ -11,7 +11,6 @@ def check_message_proxy_for_schain(owner_address, schain_name):
     if not message_proxy_for_schain.functions.getRoleMember(
             MessageProxyForSchainGenerator.DEFAULT_ADMIN_ROLE, 0).call() == owner_address:
         raise AssertionError
-
     if not message_proxy_for_schain.functions.hasRole(
             MessageProxyForSchainGenerator.DEFAULT_ADMIN_ROLE, owner_address).call():
         raise AssertionError
