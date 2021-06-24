@@ -93,7 +93,7 @@ describe("CommunityPool", () => {
         it("should revert if user recharged not enough money for most costly transaction", async () => {
             const amount = minTransactionGas.mul(gasPrice).sub(1);
             await communityPool.connect(user).rechargeUserWallet(schainName, { value: amount.toString(), gasPrice })
-                .should.be.eventually.rejectedWith("Not enough money for transaction");
+                .should.be.eventually.rejectedWith("Not enough ETH for transaction");
         });
 
         it("should recharge wallet if user passed enough money", async () => {

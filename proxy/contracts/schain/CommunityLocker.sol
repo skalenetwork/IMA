@@ -75,7 +75,7 @@ contract CommunityLocker is AccessControlUpgradeable {
         Messages.MessageType operation = Messages.getMessageType(data);
         require(operation == Messages.MessageType.USER_STATUS, "The message should contain a status of user");
         Messages.UserStatusMessage memory message = Messages.decodeUserStatusMessage(data);
-        require(activeUsers[message.receiver] != message.isActive, "User statuses must be different");
+        require(activeUsers[message.receiver] != message.isActive, "Active user statuses must be different");
         activeUsers[message.receiver] = message.isActive;
         if (message.isActive) {
             emit ActivateUser(schainHash, message.receiver);

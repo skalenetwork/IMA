@@ -133,7 +133,7 @@ contract MessageProxyForMainnet is SkaleManagerClient {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             schainHash != MAINNET_HASH,
-            "SKALE chain name is incorrect. Inside in MessageProxy"
+            "Schain name in MessageProxy is incorrect"
         );
         require(
             hasRole(CHAIN_CONNECTOR_ROLE, msg.sender) ||
