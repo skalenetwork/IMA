@@ -230,13 +230,12 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         onlyExtraContractRegistrar
     {
         bytes32 chainHash = keccak256(abi.encodePacked(schainName));
-        require(registryContracts[chainHash][extraContract], "Extra contract is already removed");
+        require(registryContracts[chainHash][extraContract], "Extra contract is not registered");
         delete registryContracts[chainHash][extraContract];
     }
 
     function removeExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
-        require(extraContract.isContract(), "Given address is not a contract");
-        require(registryContracts[bytes32(0)][extraContract], "Extra contract does not exist");
+        require(registryContracts[bytes32(0)][extraContract], "Extra contract is not registered");
         delete registryContracts[bytes32(0)][extraContract];
     }
 
@@ -252,7 +251,8 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         view
         returns (bool)
     {
-        return registryContracts[keccak256(abi.encodePacked(schainName))][contractAddress];
+        return registryContracts[keccak256(abi.encodePacked(schainName))][contractAddress] ||
+               registryContracts[bytes32(0)][contractAddress];
     }
 
     /**
