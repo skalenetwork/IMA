@@ -29,7 +29,6 @@ import "./bls/SkaleVerifier.sol";
 import "./KeyStorage.sol";
 
 
-
 contract MessageProxyForSchain is MessageProxy {
     using AddressUpgradeable for address;
     using SafeMathUpgradeable for uint;
