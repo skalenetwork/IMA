@@ -19,17 +19,19 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155MetadataURIUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155ReceiverUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/IERC1155MetadataURIUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 import "../DepositBox.sol";
 import "../../Messages.sol";
 
 
 // This contract runs on the main net and accepts deposits
 contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
+
+    using AddressUpgradeable for address;
 
 
     // schainHash => address of ERC on Mainnet
@@ -50,6 +52,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         bytes calldata
     )
         external
+        view
         override
         returns(bytes4)
     {
@@ -65,6 +68,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         bytes calldata
     )
         external
+        view
         override
         returns(bytes4)
     {
@@ -148,6 +152,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         bytes calldata data
     )
         external
+        override
         onlyMessageProxy
         whenNotKilled(schainHash)
         checkReceiverChain(schainHash, sender)
@@ -237,16 +242,28 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
 
     /// Create a new deposit box
     function initialize(
-        IContractManager contractManagerOfSkaleManager,        
-        Linker linker,
-        MessageProxyForMainnet messageProxy
+        IContractManager contractManagerOfSkaleManagerValue,        
+        Linker linkerValue,
+        MessageProxyForMainnet messageProxyValue
     )
         public
         override
         initializer
     {
-        DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
+        DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);
         __ERC1155Receiver_init();
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    )
+        public
+        view
+        override(AccessControlEnumerableUpgradeable, ERC1155ReceiverUpgradeable)
+        returns (bool)
+    {
+        return interfaceId == type(Twin).interfaceId
+            || super.supportsInterface(interfaceId);
     }
 
     function _saveTransferredAmount(
@@ -258,7 +275,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         require(ids.length == amounts.length, "Incorrect length of arrays");
         for (uint256 i = 0; i < ids.length; i++)
             transferredAmount[schainHash][erc1155Token][ids[i]] =
-                transferredAmount[schainHash][erc1155Token][ids[i]].add(amounts[i]);
+                transferredAmount[schainHash][erc1155Token][ids[i]] + amounts[i];
     }
 
     function _removeTransferredAmount(
@@ -270,7 +287,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         require(ids.length == amounts.length, "Incorrect length of arrays");
         for (uint256 i = 0; i < ids.length; i++)
             transferredAmount[schainHash][erc1155Token][ids[i]] =
-                transferredAmount[schainHash][erc1155Token][ids[i]].sub(amounts[i]);
+                transferredAmount[schainHash][erc1155Token][ids[i]] - amounts[i];
     }
 
     /**

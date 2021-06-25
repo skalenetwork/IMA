@@ -19,14 +19,11 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
-import "../interfaces/IMainnetContract.sol";
 import "../Messages.sol";
 import "./Twin.sol";
 
@@ -41,7 +38,6 @@ import "./MessageProxyForMainnet.sol";
 contract Linker is Twin {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
-    using SafeMathUpgradeable for uint;
 
     enum KillProcess {Active, PartiallyKilledBySchainOwner, PartiallyKilledByContractOwner, Killed}
     EnumerableSetUpgradeable.AddressSet private _mainnetContracts;
@@ -55,17 +51,17 @@ contract Linker is Twin {
     }
 
     function registerMainnetContract(address newMainnetContract) external onlyLinker {
-        _mainnetContracts.add(newMainnetContract);
+        require(_mainnetContracts.add(newMainnetContract), "The contracts was not registered");
     }
 
     function removeMainnetContract(address mainnetContract) external onlyLinker {
-        _mainnetContracts.remove(mainnetContract);
+        require(_mainnetContracts.remove(mainnetContract), "The contract was not removed");
     }
 
     function connectSchain(string calldata schainName, address[] calldata schainContracts) external onlyLinker {
         require(schainContracts.length == _mainnetContracts.length(), "Incorrect number of addresses");
         for (uint i = 0; i < schainContracts.length; i++) {
-            IMainnetContract(_mainnetContracts.at(i)).addSchainContract(schainName, schainContracts[i]);
+            Twin(_mainnetContracts.at(i)).addSchainContract(schainName, schainContracts[i]);
         }
         messageProxy.addConnectedChain(schainName);
     }
@@ -110,7 +106,7 @@ contract Linker is Twin {
     function disconnectSchain(string calldata schainName) external onlyLinker {
         uint length = _mainnetContracts.length();
         for (uint i = 0; i < length; i++) {
-            IMainnetContract(_mainnetContracts.at(i)).removeSchainContract(schainName);
+            Twin(_mainnetContracts.at(i)).removeSchainContract(schainName);
         }
         messageProxy.removeConnectedChain(schainName);
     }
@@ -127,19 +123,19 @@ contract Linker is Twin {
         uint length = _mainnetContracts.length();
         connected = messageProxy.isConnectedChain(schainName);
         for (uint i = 0; connected && i < length; i++) {
-            connected = connected && IMainnetContract(_mainnetContracts.at(i)).hasSchainContract(schainName);
+            connected = connected && Twin(_mainnetContracts.at(i)).hasSchainContract(schainName);
         }
     }
 
     function initialize(
-        IContractManager contractManagerOfSkaleManager,
-        MessageProxyForMainnet messageProxy
+        IContractManager contractManagerOfSkaleManagerValue,
+        MessageProxyForMainnet messageProxyValue
     )
         public
         override
         initializer
     {
-        Twin.initialize(contractManagerOfSkaleManager, messageProxy);
+        Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
         _setupRole(LINKER_ROLE, msg.sender);
         _setupRole(LINKER_ROLE, address(this));
     }

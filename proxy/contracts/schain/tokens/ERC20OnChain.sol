@@ -20,30 +20,29 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20BurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
 
-contract ERC20OnChain is AccessControlUpgradeable, ERC20BurnableUpgradeable {
+contract ERC20OnChain is AccessControlEnumerableUpgradeable, ERC20BurnableUpgradeable {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     constructor(
         string memory contractName,
         string memory contractSymbol
-    )
-        public
+    ) initializer
     {
-        AccessControlUpgradeable.__AccessControl_init();
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         ERC20Upgradeable.__ERC20_init(contractName, contractSymbol);
         ERC20BurnableUpgradeable.__ERC20Burnable_init();
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
         _setupRole(MINTER_ROLE, _msgSender());
     }
 
-    function mint(address account, uint256 value) public {
+    function mint(address account, uint256 value) external {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, value);
     }

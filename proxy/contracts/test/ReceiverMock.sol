@@ -20,8 +20,7 @@
  */
 
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
 import "../interfaces/IMessageReceiver.sol";
 
@@ -33,6 +32,7 @@ contract ReceiverMock is IMessageReceiver {
         bytes calldata
     )
         external
+        pure
         override
         returns (address) 
     {

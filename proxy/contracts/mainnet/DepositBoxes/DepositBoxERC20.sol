@@ -19,8 +19,9 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
+
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../../Messages.sol";
@@ -29,6 +30,7 @@ import "../DepositBox.sol";
 
 // This contract runs on the main net and accepts deposits
 contract DepositBoxERC20 is DepositBox {
+    using AddressUpgradeable for address;
 
         // schainHash => address of ERC on Mainnet
     mapping(bytes32 => mapping(address => bool)) public schainToERC20;
@@ -70,10 +72,13 @@ contract DepositBoxERC20 is DepositBox {
         );
         if (!linker.interchainConnections(schainHash))
             _saveTransferredAmount(schainHash, erc20OnMainnet, amount);
-        ERC20Upgradeable(erc20OnMainnet).transferFrom(
-            msg.sender,
-            address(this),
-            amount
+        require(
+            ERC20Upgradeable(erc20OnMainnet).transferFrom(
+                msg.sender,
+                address(this),
+                amount
+            ),
+            "Transfer was failed"
         );
         messageProxy.postOutgoingMessage(
             schainHash,
@@ -88,6 +93,7 @@ contract DepositBoxERC20 is DepositBox {
         bytes calldata data
     )
         external
+        override
         onlyMessageProxy
         whenNotKilled(schainHash)
         checkReceiverChain(schainHash, sender)
@@ -98,7 +104,10 @@ contract DepositBoxERC20 is DepositBox {
         require(ERC20Upgradeable(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
         if (!linker.interchainConnections(schainHash))
             _removeTransferredAmount(schainHash, message.token, message.amount);
-        ERC20Upgradeable(message.token).transfer(message.receiver, message.amount);
+        require(
+            ERC20Upgradeable(message.token).transfer(message.receiver, message.amount),
+            "Transfer was failed"
+        );
         return message.receiver;
     }
 
@@ -121,7 +130,10 @@ contract DepositBoxERC20 is DepositBox {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(transferredAmount[schainHash][erc20OnMainnet] >= amount, "Incorrect amount");
         _removeTransferredAmount(schainHash, erc20OnMainnet, amount);
-        ERC20Upgradeable(erc20OnMainnet).transfer(receiver, amount);
+        require(
+            ERC20Upgradeable(erc20OnMainnet).transfer(receiver, amount),
+            "Transfer was failed"
+        );
     }
 
     /**
@@ -133,23 +145,23 @@ contract DepositBoxERC20 is DepositBox {
 
     /// Create a new deposit box
     function initialize(
-        IContractManager contractManagerOfSkaleManager,
-        Linker linker,
-        MessageProxyForMainnet messageProxy
+        IContractManager contractManagerOfSkaleManagerValue,
+        Linker linkerValue,
+        MessageProxyForMainnet messageProxyValue
     )
         public
         override
         initializer
     {
-        DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
+        DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);
     }
 
     function _saveTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
-        transferredAmount[schainHash][erc20Token] = transferredAmount[schainHash][erc20Token].add(amount);
+        transferredAmount[schainHash][erc20Token] += amount;
     }
 
     function _removeTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
-        transferredAmount[schainHash][erc20Token] = transferredAmount[schainHash][erc20Token].sub(amount);
+        transferredAmount[schainHash][erc20Token] -= amount;
     }
 
     /**

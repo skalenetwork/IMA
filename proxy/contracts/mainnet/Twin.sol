@@ -21,9 +21,8 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
 
-import "../interfaces/IMainnetContract.sol";
 import "./MessageProxyForMainnet.sol";
 import "./SkaleManagerClient.sol";
 
@@ -83,14 +82,14 @@ abstract contract Twin is SkaleManagerClient {
     }
     
     function initialize(
-        IContractManager contractManagerOfSkaleManager,
+        IContractManager contractManagerOfSkaleManagerValue,
         MessageProxyForMainnet newMessageProxy
     )
         public
         virtual
         initializer
     {
-        SkaleManagerClient.initialize(contractManagerOfSkaleManager);
+        SkaleManagerClient.initialize(contractManagerOfSkaleManagerValue);
         messageProxy = newMessageProxy;
     }
 }

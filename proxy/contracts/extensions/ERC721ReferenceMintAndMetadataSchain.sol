@@ -19,8 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
 import "../schain/tokens/ERC721OnChain.sol";
 import "./interfaces/MessageSender.sol";
@@ -43,9 +42,10 @@ contract ERC721ReferenceMintAndMetadataSchain is MessageSender {
         address newErc721ContractOnSchain,
         address newReceiverContractOnMainnet
     )
-        public
         MessageProxyClient(newMessageProxyAddress)
     {
+        require(newErc721ContractOnSchain != address(0), "ERC721 contract has to be set");
+        require(newReceiverContractOnMainnet != address(0), "Receiver contract has to be set");
         erc721ContractOnSchain = newErc721ContractOnSchain;
         receiverContractOnMainnet = newReceiverContractOnMainnet;
     }

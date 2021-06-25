@@ -19,7 +19,10 @@ def add_0x(bytes_string: str) -> str:
 
 
 def calculate_mapping_value_slot(slot: int, key: any, key_type: str) -> int:
-    return int.from_bytes(Web3.solidityKeccak([key_type, 'uint256'], [key, slot]), 'big')
+    if key_type == 'address':
+        return calculate_mapping_value_slot(slot, int(key, 16).to_bytes(32, 'big'), 'bytes32')
+    else:
+        return int.from_bytes(Web3.solidityKeccak([key_type, 'uint256'], [key, slot]), 'big')
 
 
 def calculate_array_value_slot(slot: int, index: int) -> int:
@@ -62,13 +65,16 @@ class ContractGenerator:
     def _write_uint256(self, slot: int, value: int) -> None:
         self.storage[to_even_length(hex(slot))] = to_even_length(add_0x(hex(value)))
 
-    def _setup_role(self, slot: int, role: bytes, accounts: [str]):
-        role_data_slot = calculate_mapping_value_slot(slot, role, 'bytes32')
+    def _setup_role(self, roles_slot: int, role_members_slot: int, role: bytes, accounts: [str]):
+        role_data_slot = calculate_mapping_value_slot(roles_slot, role, 'bytes32')
         members_slot = role_data_slot
-        values_slot = members_slot
-        indexes_slot = members_slot + 1
+        role_members_value_slot = calculate_mapping_value_slot(role_members_slot, role, 'bytes32')
+        values_slot = role_members_value_slot
+        indexes_slot = role_members_value_slot + 1
         self._write_uint256(values_slot, len(accounts))
         for i, account in enumerate(accounts):
+            members_value_slot = calculate_mapping_value_slot(members_slot, account, 'address')
+            self._write_uint256(members_value_slot, 1)
             self._write_address(calculate_array_value_slot(values_slot, i), account)
             self._write_uint256(calculate_mapping_value_slot(indexes_slot, int(account, 16), 'uint256'), i + 1)
 

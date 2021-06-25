@@ -5,7 +5,7 @@
     "mark-callable-contracts": "off",
     "reason-string": "off",
 
-    "compiler-version": ["error","0.6.12"],
+    "compiler-version": ["error","0.8.6"],
     "state-visibility": "error",
     "no-empty-blocks": "error",
     "check-send-result": "error",
@@ -19,6 +19,7 @@
     "contract-name-camelcase": "error",
     "ordering": "error",
     "avoid-tx-origin": "error",
-    "const-name-snakecase": "error"
+    "const-name-snakecase": "error",
+    "func-visibility": ["error", {"ignoreConstructors":true} ]
   }
 }

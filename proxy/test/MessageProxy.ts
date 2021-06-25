@@ -478,7 +478,7 @@ describe("MessageProxy", () => {
             it("should register extra contract", async () => {
                 const fakeContractOnSchain = deployer.address;
                 await messageProxyForMainnet.connect(user).registerExtraContract(schainName,  depositBox.address)
-                    .should.be.eventually.rejectedWith("Not enough permissions to register extra contract");
+                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
                 await messageProxyForMainnet.registerExtraContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
@@ -493,7 +493,7 @@ describe("MessageProxy", () => {
             it("should register extra contract for all", async () => {
                 const fakeContractOnSchain = deployer.address;
                 await messageProxyForMainnet.connect(user).registerExtraContractForAll(depositBox.address)
-                    .should.be.eventually.rejectedWith("Not enough permissions to register extra contract for all chains");
+                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
                 await messageProxyForMainnet.registerExtraContractForAll(fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
@@ -511,30 +511,30 @@ describe("MessageProxy", () => {
             it("should remove extra contract", async () => {
                 const fakeContractOnSchain = deployer.address;
                 await messageProxyForMainnet.connect(user).removeExtraContract(schainName,  depositBox.address)
-                    .should.be.eventually.rejectedWith("Not enough permissions to remove extra contract");
+                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
                 await messageProxyForMainnet.removeExtraContract(schainName, fakeContractOnSchain)
-                    .should.be.eventually.rejectedWith("Given address is not a contract");
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
 
                 await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
                 await messageProxyForMainnet.removeExtraContract(schainName, depositBox.address);
 
                 await messageProxyForMainnet.removeExtraContract(schainName, depositBox.address)
-                    .should.be.eventually.rejectedWith("Extra contract does not exist");
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
                 expect(await messageProxyForMainnet.isContractRegistered(schainName, depositBox.address)).to.be.equal(false);
             });
 
             it("should remove extra contract for all", async () => {
                 const fakeContractOnSchain = deployer.address;
                 await messageProxyForMainnet.connect(user).removeExtraContractForAll(depositBox.address)
-                    .should.be.eventually.rejectedWith("Not enough permissions to remove extra contract for all chains");
+                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
                 await messageProxyForMainnet.removeExtraContractForAll(fakeContractOnSchain)
-                    .should.be.eventually.rejectedWith("Given address is not a contract");
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
 
                 await messageProxyForMainnet.registerExtraContractForAll(depositBox.address);
                 await messageProxyForMainnet.removeExtraContractForAll(depositBox.address);
 
                 await messageProxyForMainnet.removeExtraContractForAll(depositBox.address)
-                    .should.be.eventually.rejectedWith("Extra contract does not exist");
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
             });
         });
 
@@ -720,9 +720,9 @@ describe("MessageProxy", () => {
                 sign
             ).should.be.eventually.rejectedWith("Chain is not initialized");
 
-            (await messageProxyForSchain.getIncomingMessagesCounter(schainName)).toNumber().should.be.equal(0);
-
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
+
+            (await messageProxyForSchain.getIncomingMessagesCounter(schainName)).toNumber().should.be.equal(0);
 
             await messageProxyForSchain.connect(deployer).postIncomingMessages(
                 schainName,
@@ -748,11 +748,10 @@ describe("MessageProxy", () => {
             const addressTo = client.address;
             const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
 
+            await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
 
             // chain should be inited:
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(schainName)).should.be.deep.equal(BigNumber.from(0));
-
-            await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
 
             const outgoingMessagesCounter0 = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
@@ -822,7 +821,7 @@ describe("MessageProxy", () => {
             it("should register extra contract", async () => {
                 const fakeContractOnSchain = deployer.address;
                 await messageProxyForSchain.connect(user).registerExtraContract(schainName,  messages.address)
-                    .should.be.eventually.rejectedWith("Not enough permissions to register extra contract");
+                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
                 await messageProxyForSchain.registerExtraContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
@@ -837,7 +836,7 @@ describe("MessageProxy", () => {
             it("should register extra contract for all", async () => {
                 const fakeContractOnSchain = deployer.address;
                 await messageProxyForSchain.connect(user).registerExtraContractForAll(messages.address)
-                    .should.be.eventually.rejectedWith("Not enough permissions to register extra contract for all chains");
+                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
                 await messageProxyForSchain.registerExtraContractForAll(fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
@@ -855,30 +854,30 @@ describe("MessageProxy", () => {
             it("should remove extra contract", async () => {
                 const fakeContractOnSchain = deployer.address;
                 await messageProxyForSchain.connect(user).removeExtraContract(schainName,  messages.address)
-                    .should.be.eventually.rejectedWith("Not enough permissions to remove extra contract");
+                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
                 await messageProxyForSchain.removeExtraContract(schainName, fakeContractOnSchain)
-                    .should.be.eventually.rejectedWith("Given address is not a contract");
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
 
                 await messageProxyForSchain.registerExtraContract(schainName, messages.address);
                 await messageProxyForSchain.removeExtraContract(schainName, messages.address);
 
                 await messageProxyForSchain.removeExtraContract(schainName, messages.address)
-                    .should.be.eventually.rejectedWith("Extra contract does not exist");
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
                 expect(await messageProxyForSchain.isContractRegistered(schainName, messages.address)).to.be.equal(false);
             });
 
             it("should remove extra contract for all", async () => {
                 const fakeContractOnSchain = deployer.address;
                 await messageProxyForSchain.connect(user).removeExtraContractForAll(messages.address)
-                    .should.be.eventually.rejectedWith("Not enough permissions to remove extra contract for all chains");
+                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
                 await messageProxyForSchain.removeExtraContractForAll(fakeContractOnSchain)
-                    .should.be.eventually.rejectedWith("Given address is not a contract");
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
 
                 await messageProxyForSchain.registerExtraContractForAll(messages.address);
                 await messageProxyForSchain.removeExtraContractForAll(messages.address);
 
                 await messageProxyForSchain.removeExtraContractForAll(messages.address)
-                    .should.be.eventually.rejectedWith("Extra contract does not exist");
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
             });
         });
 

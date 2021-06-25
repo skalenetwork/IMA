@@ -19,18 +19,26 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
 import "./bls/FieldOperations.sol";
 
 
-contract KeyStorage is AccessControlUpgradeable {
+contract KeyStorage is AccessControlEnumerableUpgradeable {
 
     uint256 public constant FREE_MEM_PTR = 0x40;
-    uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;    
+    uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;
+
+    function initialize()
+        external
+        virtual
+        initializer
+    {
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 
     function getBlsCommonPublicKey() external view virtual returns (G2Operations.G2Point memory) {
         return G2Operations.G2Point({
@@ -43,15 +51,6 @@ contract KeyStorage is AccessControlUpgradeable {
                 b: _getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey3")
             })
         });
-    }
-
-    function initialize()
-        public
-        virtual
-        initializer
-    {
-        AccessControlUpgradeable.__AccessControl_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     // private

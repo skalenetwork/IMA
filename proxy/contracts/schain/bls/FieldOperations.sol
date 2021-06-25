@@ -20,15 +20,12 @@
     along with SKALE Manager.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.6.12;
-
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+pragma solidity 0.8.6;
 
 import "./Precompiled.sol";
 
 
 library Fp2Operations {
-    using SafeMathUpgradeable for uint;
 
     struct Fp2Point {
         uint a;
@@ -52,12 +49,12 @@ library Fp2Operations {
         if (diminished.a >= subtracted.a) {
             difference.a = addmod(diminished.a, p - subtracted.a, p);
         } else {
-            difference.a = (p - addmod(subtracted.a, p - diminished.a, p)).mod(p);
+            difference.a = (p - addmod(subtracted.a, p - diminished.a, p)) % p;
         }
         if (diminished.b >= subtracted.b) {
             difference.b = addmod(diminished.b, p - subtracted.b, p);
         } else {
-            difference.b = (p - addmod(subtracted.b, p - diminished.b, p)).mod(p);
+            difference.b = (p - addmod(subtracted.b, p - diminished.b, p)) % p;
         }
     }
 
@@ -106,7 +103,6 @@ library Fp2Operations {
 }
 
 library G1Operations {
-    using SafeMathUpgradeable for uint;
     using Fp2Operations for Fp2Operations.Fp2Point;
 
     function getG1Generator() internal pure returns (Fp2Operations.Fp2Point memory) {
@@ -133,14 +129,13 @@ library G1Operations {
     }
 
     function negate(uint y) internal pure returns (uint) {
-        return Fp2Operations.P.sub(y).mod(Fp2Operations.P);
+        return (Fp2Operations.P - y) % Fp2Operations.P;
     }
 
 }
 
 
 library G2Operations {
-    using SafeMathUpgradeable for uint;
     using Fp2Operations for Fp2Operations.Fp2Point;
 
     struct G2Point {

@@ -1,5 +1,6 @@
 from contracts.admin_upgradeability_proxy import check_admin_upgradeability_proxy
 from contracts.community_locker import check_community_locker
+from contracts.eth_erc20 import check_eth_erc20
 from contracts.key_storage import check_key_storage
 from contracts.message_proxy_for_schain import check_message_proxy_for_schain
 from contracts.proxy_admin import check_proxy_admin
@@ -34,6 +35,7 @@ def main():
     check_token_manager_erc20(owner_address, erc20_deposit_box, schain_name)
     check_token_manager_erc721(owner_address, erc721_deposit_box, schain_name)
     check_token_manager_erc1155(owner_address, erc1155_deposit_box, schain_name)
+    check_eth_erc20(owner_address)
 
     print('All tests pass')
 

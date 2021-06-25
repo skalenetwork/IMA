@@ -19,8 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
@@ -35,7 +34,7 @@ import "../interfaces/IMessageReceiver.sol";
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
+abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageReceiver {
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
@@ -51,6 +50,11 @@ abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
     bool public automaticDeploy;
 
     mapping(bytes32 => address) public tokenManagers;    
+
+    event DepositBoxWasChanged(
+        address oldValue,
+        address newValue
+    );
 
     modifier onlyAutomaticDeploy() {
         require(hasRole(AUTOMATIC_DEPLOY_ROLE, msg.sender), "AUTOMATIC_DEPLOY_ROLE is required");
@@ -157,6 +161,8 @@ abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
      */
     function changeDepositBoxAddress(address newDepositBox) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
+        require(newDepositBox != address(0), "DepositBox address has to be set");
+        emit DepositBoxWasChanged(depositBox, newDepositBox);
         depositBox = newDepositBox;
     }
 
@@ -178,7 +184,9 @@ abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
         virtual
         initializer
     {
-        AccessControlUpgradeable.__AccessControl_init();
+        require(newDepositBox != address(0), "DepositBox address has to be set");
+
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(AUTOMATIC_DEPLOY_ROLE, msg.sender);
         _setupRole(TOKEN_REGISTRAR_ROLE, msg.sender);
@@ -188,5 +196,7 @@ abstract contract TokenManager is AccessControlUpgradeable, IMessageReceiver {
         tokenManagerLinker = newIMALinker;
         communityLocker = newCommunityLocker;        
         depositBox = newDepositBox;
+
+        emit DepositBoxWasChanged(address(0), newDepositBox);
     }
 }

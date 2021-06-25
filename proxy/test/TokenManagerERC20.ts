@@ -91,6 +91,7 @@ describe("TokenManagerERC20", () => {
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker, fakeCommunityPool);
         tokenManagerErc20 = await deployTokenManagerERC20(schainName, messageProxyForSchain.address, tokenManagerLinker, communityLocker, fakeDepositBox);
         await erc20OnChain.connect(deployer).grantRole(await erc20OnChain.MINTER_ROLE(), tokenManagerErc20.address);
+        await tokenManagerLinker.registerTokenManager(tokenManagerErc20.address);
 
         await tokenManagerErc20.connect(deployer).grantRole(await tokenManagerErc20.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
         await tokenManagerErc20.connect(deployer).grantRole(await tokenManagerErc20.AUTOMATIC_DEPLOY_ROLE(), schainOwner.address);
@@ -153,7 +154,7 @@ describe("TokenManagerERC20", () => {
 
     it("should reject with `Insufficient funds` if token balance is too low", async () => {
         // preparation
-        const error = "Insufficient funds";
+        const error = "insufficient funds";
         const amount = 10;
         // execution/expectation
         await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);

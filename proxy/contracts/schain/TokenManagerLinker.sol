@@ -19,15 +19,13 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
-import "../Messages.sol";
-import "../interfaces/IMessageProxy.sol";
 import "../interfaces/IMessageReceiver.sol";
+import "../Messages.sol";
+import "../MessageProxy.sol";
 import "./TokenManager.sol";
 
 
@@ -35,15 +33,13 @@ import "./TokenManager.sol";
  * @title TokenManagerLinker
  * @dev Runs on Schain
  */
-contract TokenManagerLinker is AccessControlUpgradeable, IMessageReceiver {
-
-    using SafeMathUpgradeable for uint;
+contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageReceiver {
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
     bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
 
-    IMessageProxy public messageProxy;
+    MessageProxy public messageProxy;
     address public linkerAddress;
     TokenManager[] public tokenManagers;	
     bool public interchainConnections;    
@@ -68,8 +64,8 @@ contract TokenManagerLinker is AccessControlUpgradeable, IMessageReceiver {
             }
         }
         if (index < length) {
-            if (index < length.sub(1)) {
-                tokenManagers[index] = tokenManagers[length.sub(1)];
+            if (index < length - 1) {
+                tokenManagers[index] = tokenManagers[length - 1];
             }
             tokenManagers.pop();
         }
@@ -142,12 +138,14 @@ contract TokenManagerLinker is AccessControlUpgradeable, IMessageReceiver {
         connected = connected && messageProxy.isConnectedChain(schainName);
     }
 
-    function initialize(IMessageProxy newMessageProxyAddress, address linker)
-        public
+    function initialize(MessageProxy newMessageProxyAddress, address linker)
+        external
         virtual
         initializer
     {
-        AccessControlUpgradeable.__AccessControl_init();
+        require(linker != address(0), "Linker address has to be set");
+
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(REGISTRAR_ROLE, msg.sender);
         messageProxy = newMessageProxyAddress;    

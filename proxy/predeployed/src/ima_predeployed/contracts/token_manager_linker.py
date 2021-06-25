@@ -16,20 +16,30 @@ class TokenManagerLinkerGenerator(ContractGenerator):
     # 1:    __gap
     # ...   __gap
     # 50:   __gap
-    # --AccessControlUpgradeable---
-    # 51:   _roles
-    # 52:   __gap
+    # ------ERC165Upgradeable------
+    # 51:   __gap
     # ...   __gap
     # 100:  __gap
+    # --AccessControlUpgradeable---
+    # 101:  _roles
+    # 102:  __gap
+    # ...   __gap
+    # 150:  __gap
+    # AccessControlEnumerableUpgradeable
+    # 151:  _roleMembers
+    # 152:  __gap
+    # ...   __gap
+    # 200:  __gap
     # ------TokenManagerLinker------
-    # 101:  messageProxy
-    # 102:  linkerAddress
-    # 103:  tokenManagers
-    # 104:  interchainConnections
+    # 201:  messageProxy
+    # 202:  linkerAddress
+    # 203:  tokenManagers
+    # 204:  interchainConnections
 
     INITIALIZED_SLOT = 0
-    ROLES_SLOT = 51
-    MESSAGE_PROXY_SLOT = 101
+    ROLES_SLOT = 101
+    ROLE_MEMBERS_SLOT = 151
+    MESSAGE_PROXY_SLOT = 201
     LINKER_ADDRESS_SLOT = next_slot(MESSAGE_PROXY_SLOT)
     TOKEN_MANAGERS_SLOT = next_slot(LINKER_ADDRESS_SLOT)
 
@@ -41,8 +51,8 @@ class TokenManagerLinkerGenerator(ContractGenerator):
 
     def _setup(self, deployer_address: str, linker_addres: str) -> None:
         self._write_uint256(self.INITIALIZED_SLOT, 1)
-        self._setup_role(self.ROLES_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
-        self._setup_role(self.ROLES_SLOT, self.REGISTRAR_ROLE, [deployer_address])
+        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
+        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.REGISTRAR_ROLE, [deployer_address])
         self._write_address(self.MESSAGE_PROXY_SLOT, MESSAGE_PROXY_FOR_SCHAIN_ADDRESS)
         self._write_address(self.LINKER_ADDRESS_SLOT, linker_addres)
         self._write_addresses_array(
