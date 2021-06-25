@@ -425,16 +425,18 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "tm-url-main-net" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
             let strURL = "" + joArg.value;
-            if( strURL.indexOf( "/sign-and-send" ) < 0 )
-                strURL += "/sign-and-send";
+            // if( strURL.indexOf( "/sign-and-send" ) < 0 )
+            //    strURL += "/sign-and-send";
+            // strURL += "/0";
             imaState.joAccount_main_net.strTransactionManagerURL = strURL;
             continue;
         }
         if( joArg.name == "tm-url-s-chain" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
             let strURL = "" + joArg.value;
-            if( strURL.indexOf( "/sign-and-send" ) < 0 )
-                strURL += "/sign-and-send";
+            // if( strURL.indexOf( "/sign-and-send" ) < 0 )
+            //    strURL += "/sign-and-send";
+            // strURL += "/0";
             imaState.joAccount_s_chain.strTransactionManagerURL = strURL;
             continue;
         }
