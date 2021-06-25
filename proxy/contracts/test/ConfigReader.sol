@@ -20,7 +20,7 @@
  */
 
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
 
 
 library ConfigReader {
@@ -37,7 +37,6 @@ library ConfigReader {
     )
         external
         view
-        virtual
         returns ( uint256 rv )
     {
         uint256 fmp = FREE_MEM_PTR;
@@ -62,7 +61,6 @@ library ConfigReader {
     )
         external
         view
-        virtual
         returns ( address rv )
     {
         uint256 fmp = FREE_MEM_PTR;
@@ -112,7 +110,6 @@ library ConfigReader {
     )
         public
         view
-        virtual
         returns (uint256 rv)
     {
         uint256 fmp = FREE_MEM_PTR;

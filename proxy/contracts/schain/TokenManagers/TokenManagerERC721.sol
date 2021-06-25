@@ -19,8 +19,9 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
+
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC721OnChain.sol";
@@ -35,6 +36,7 @@ import "../TokenManager.sol";
  * burns tokens.
  */
 contract TokenManagerERC721 is TokenManager {
+    using AddressUpgradeable for address;
 
     // address of ERC721 on Mainnet => ERC721 on Schain
     mapping(address => ERC721OnChain) public clonesErc721;
@@ -126,7 +128,7 @@ contract TokenManagerERC721 is TokenManager {
         CommunityLocker newCommunityLocker,
         address newDepositBox
     )
-        public
+        external
     {
         TokenManager.initializeTokenManager(
             newChainName,

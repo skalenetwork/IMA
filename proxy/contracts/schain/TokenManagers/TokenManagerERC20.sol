@@ -19,10 +19,10 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC20OnChain.sol";
@@ -42,6 +42,7 @@ import "../TokenManager.sol";
  * burns tokens.
  */
 contract TokenManagerERC20 is TokenManager {
+    using AddressUpgradeable for address;
 
     // address of ERC20 on Mainnet => ERC20 on Schain
     mapping(address => ERC20OnChain) public clonesErc20;
@@ -137,7 +138,7 @@ contract TokenManagerERC20 is TokenManager {
         CommunityLocker newCommunityLocker,
         address newDepositBox
     )
-        public        
+        external        
     {
         TokenManager.initializeTokenManager(
             newChainName,
@@ -217,7 +218,10 @@ contract TokenManagerERC20 is TokenManager {
             ) >= amount,
             "Transfer is not approved by token holder"
         );
-        contractOnSchain.transferFrom(msg.sender, address(this), amount);
+        require(
+            contractOnSchain.transferFrom(msg.sender, address(this), amount),
+            "Transfer was failed"
+        );
         contractOnSchain.burn(amount);
         messageProxy.postOutgoingMessage(
             chainHash,

@@ -20,22 +20,21 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155BurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155BurnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
 
-contract ERC1155OnChain is AccessControlUpgradeable, ERC1155BurnableUpgradeable {
+contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUpgradeable {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     constructor(
         string memory uri
-    )
-        public
+    ) initializer
     {
-        AccessControlUpgradeable.__AccessControl_init();
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         ERC1155Upgradeable.__ERC1155_init(uri);
         ERC1155BurnableUpgradeable.__ERC1155Burnable_init();
 
@@ -49,7 +48,7 @@ contract ERC1155OnChain is AccessControlUpgradeable, ERC1155BurnableUpgradeable 
         uint256 amount,
         bytes memory data
     )
-        public
+        external
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, id, amount, data);
@@ -61,9 +60,20 @@ contract ERC1155OnChain is AccessControlUpgradeable, ERC1155BurnableUpgradeable 
         uint256[] memory amounts,
         bytes memory data
     )
-        public
+        external
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mintBatch(account, ids, amounts, data);
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    )
+        public
+        view
+        override(AccessControlEnumerableUpgradeable, ERC1155Upgradeable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
     }
 }

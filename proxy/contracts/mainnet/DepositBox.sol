@@ -20,7 +20,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
 
 import "./Linker.sol";
 import "./MessageProxyForMainnet.sol";
@@ -30,7 +30,7 @@ import "./MessageProxyForMainnet.sol";
  * @title ProxyConnectorMainnet - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-abstract contract DepositBox is Twin {
+abstract contract DepositBox is IMessageReceiver, Twin {
 
     Linker public linker;
 
@@ -81,15 +81,15 @@ abstract contract DepositBox is Twin {
     }
 
     function initialize(
-        IContractManager contractManagerOfSkaleManager,
+        IContractManager contractManagerOfSkaleManagerValue,
         Linker newLinker,
-        MessageProxyForMainnet messageProxy
+        MessageProxyForMainnet messageProxyValue
     )
         public
         virtual
         initializer
     {
-        Twin.initialize(contractManagerOfSkaleManager, messageProxy);
+        Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
         _setupRole(LINKER_ROLE, address(newLinker));
         linker = newLinker;
     }

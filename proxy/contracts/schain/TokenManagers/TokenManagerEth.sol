@@ -19,8 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
 import "../../Messages.sol";
 import "../tokens/EthErc20.sol";
@@ -108,7 +107,7 @@ contract TokenManagerEth is TokenManager {
         address newDepositBox,
         EthErc20 ethErc20Address
     )
-        public
+        external
         virtual
         initializer
     {

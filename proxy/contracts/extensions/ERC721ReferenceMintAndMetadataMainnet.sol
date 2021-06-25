@@ -19,8 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
 import "../schain/tokens/ERC721OnChain.sol";
 import "./interfaces/MessageReceiver.sol";
@@ -45,15 +44,16 @@ contract ERC721ReferenceMintAndMetadataMainnet is MessageReceiver {
         address newErc721Contract,
         string memory newSchainName
     )
-        public
         MessageProxyClient(newMessageProxyAddress)
     {
+        require(newErc721Contract != address(0), "ERC721 contract has to be set");
         erc721ContractOnMainnet = newErc721Contract;
         schainName = newSchainName;
         owner = msg.sender;
     }
 
     function setSenderContractOnSchain(address newSenderContractOnSchain) external onlyOwner {
+        require(newSenderContractOnSchain != address(0), "Sender contract has to be set");
         senderContractOnSchain = newSenderContractOnSchain;
     }
 
@@ -74,7 +74,10 @@ contract ERC721ReferenceMintAndMetadataMainnet is MessageReceiver {
         string memory tokenURI;
         (to, tokenId, tokenURI) = abi.decode(data, (address, uint256, string));
         ERC721OnChain(erc721ContractOnMainnet).mint(address(this), tokenId);
-        ERC721OnChain(erc721ContractOnMainnet).setTokenURI(tokenId, tokenURI);
+        require(
+            ERC721OnChain(erc721ContractOnMainnet).setTokenURI(tokenId, tokenURI),
+            "Token URI was not set"
+        );
         ERC721OnChain(erc721ContractOnMainnet).transferFrom(address(this), to, tokenId);
         return address(0);
     }

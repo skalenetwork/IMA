@@ -92,6 +92,7 @@ describe("TokenManagerEth", () => {
         ethERC20 = await deployEthErc20(
             tokenManagerEth
         );
+        await tokenManagerLinker.registerTokenManager(tokenManagerEth.address);
         await tokenManagerEth.connect(deployer).setEthErc20Address(ethERC20.address);
         messages = await deployMessages();
 

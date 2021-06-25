@@ -20,23 +20,23 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721BurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
 
-contract ERC721OnChain is AccessControlUpgradeable, ERC721BurnableUpgradeable {
+contract ERC721OnChain is AccessControlEnumerableUpgradeable, ERC721BurnableUpgradeable, ERC721URIStorageUpgradeable {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     constructor(
         string memory contractName,
         string memory contractSymbol
-    )
-        public       
+    ) initializer
     {
-        AccessControlUpgradeable.__AccessControl_init();
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         ERC721Upgradeable.__ERC721_init(contractName, contractSymbol);
         ERC721BurnableUpgradeable.__ERC721Burnable_init();
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
@@ -54,9 +54,37 @@ contract ERC721OnChain is AccessControlUpgradeable, ERC721BurnableUpgradeable {
     }
 
     function mint(address account, uint256 tokenId)
-        public
+        external
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, tokenId);
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    )
+        public
+        view
+        override(AccessControlEnumerableUpgradeable, ERC721Upgradeable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+
+    function tokenURI(
+        uint256 tokenId
+    )
+        public
+        view
+        override (ERC721Upgradeable, ERC721URIStorageUpgradeable)
+        returns (string memory) 
+    {
+        return ERC721URIStorageUpgradeable.tokenURI(tokenId);
+    }
+
+    // private
+
+    function _burn(uint256 tokenId) internal override (ERC721Upgradeable, ERC721URIStorageUpgradeable) {
+        ERC721URIStorageUpgradeable._burn(tokenId);
     }
 }

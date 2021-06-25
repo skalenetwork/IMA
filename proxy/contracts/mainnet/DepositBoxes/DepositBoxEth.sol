@@ -19,8 +19,9 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
+
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "../DepositBox.sol";
 import "../../Messages.sol";
@@ -29,8 +30,7 @@ import "../../Messages.sol";
 
 // This contract runs on the main net and accepts deposits
 contract DepositBoxEth is DepositBox {
-
-    using SafeMathUpgradeable for uint;
+    using AddressUpgradeable for address;
 
     mapping(address => uint256) public approveTransfers;
 
@@ -64,6 +64,7 @@ contract DepositBoxEth is DepositBox {
         bytes calldata data
     )
         external
+        override
         onlyMessageProxy
         whenNotKilled(schainHash)
         checkReceiverChain(schainHash, sender)
@@ -74,8 +75,7 @@ contract DepositBoxEth is DepositBox {
             message.amount <= address(this).balance,
             "Not enough money to finish this transaction"
         );
-        approveTransfers[message.receiver] =
-            approveTransfers[message.receiver].add(message.amount);
+        approveTransfers[message.receiver] += message.amount;
         if (!linker.interchainConnections(schainHash))
             _removeTransferredAmount(schainHash, message.amount);
         return message.receiver;
@@ -97,7 +97,7 @@ contract DepositBoxEth is DepositBox {
         require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
         uint256 amount = approveTransfers[msg.sender];
         approveTransfers[msg.sender] = 0;
-        msg.sender.transfer(amount);
+        payable(msg.sender).transfer(amount);
     }
 
     function getFunds(string calldata schainName, address payable receiver, uint amount)
@@ -105,6 +105,7 @@ contract DepositBoxEth is DepositBox {
         onlySchainOwner(schainName)
         whenKilled(keccak256(abi.encodePacked(schainName)))
     {
+        require(receiver != address(0), "Receiver address has to be set");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(transferredAmount[schainHash] >= amount, "Incorrect amount");
         _removeTransferredAmount(schainHash, amount);
@@ -113,22 +114,22 @@ contract DepositBoxEth is DepositBox {
 
     /// Create a new deposit box
     function initialize(
-        IContractManager contractManagerOfSkaleManager,        
-        Linker linker,
-        MessageProxyForMainnet messageProxy
+        IContractManager contractManagerOfSkaleManagerValue,        
+        Linker linkerValue,
+        MessageProxyForMainnet messageProxyValue
     )
         public
         override
         initializer
     {
-        DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
+        DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);
     }
 
     function _saveTransferredAmount(bytes32 schainHash, uint256 amount) private {
-        transferredAmount[schainHash] = transferredAmount[schainHash].add(amount);
+        transferredAmount[schainHash] += amount;
     }
 
     function _removeTransferredAmount(bytes32 schainHash, uint256 amount) private {
-        transferredAmount[schainHash] = transferredAmount[schainHash].sub(amount);
+        transferredAmount[schainHash] -= amount;
     }
 }

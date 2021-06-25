@@ -21,21 +21,21 @@
     along with SKALE Manager.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
 import "../Messages.sol";
+import "../mainnet/CommunityPool.sol";
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
-import "../mainnet/CommunityPool.sol";
+
 
 /**
  * @title CommunityLocker
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract CommunityLocker is AccessControlUpgradeable {
+contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable {
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
@@ -59,7 +59,12 @@ contract CommunityLocker is AccessControlUpgradeable {
     event LockUser(
         bytes32 schainHash,
         address user
-    );  
+    ); 
+
+    event TimeLimitPerMessageWasChanged(
+        uint256 oldValue,
+        uint256 newValue
+    );
 
     function postMessage(
         bytes32 fromChainHash,
@@ -67,6 +72,7 @@ contract CommunityLocker is AccessControlUpgradeable {
         bytes calldata data
     )
         external
+        override
         returns (address)
     {
         require(msg.sender == address(messageProxy), "Sender is not a message proxy");
@@ -86,7 +92,10 @@ contract CommunityLocker is AccessControlUpgradeable {
     }
 
     function checkAllowedToSendMessage(address receiver) external {
-        tokenManagerLinker.hasTokenManager(TokenManager(msg.sender));
+        require(
+            tokenManagerLinker.hasTokenManager(TokenManager(msg.sender)),
+            "Sender is not registered token manager"
+        );
         require(activeUsers[receiver], "Recipient must be active");
         require(
             _lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
@@ -97,6 +106,7 @@ contract CommunityLocker is AccessControlUpgradeable {
 
     function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
+        emit TimeLimitPerMessageWasChanged(timeLimitPerMessage, newTimeLimitPerMessage);
         timeLimitPerMessage = newTimeLimitPerMessage;
     }
 
@@ -106,11 +116,12 @@ contract CommunityLocker is AccessControlUpgradeable {
         TokenManagerLinker newTokenManagerLinker,
         address newCommunityPool
     )
-        public
+        external
         virtual
         initializer
     {
-        AccessControlUpgradeable.__AccessControl_init();
+        require(newCommunityPool != address(0), "Node address has to be set");
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         messageProxy = newMessageProxy;
         tokenManagerLinker = newTokenManagerLinker;

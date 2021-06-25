@@ -97,6 +97,7 @@ describe("TokenManagerERC1155", () => {
                 communityLocker,
                 fakeDepositBox
             );
+        await tokenManagerLinker.registerTokenManager(tokenManagerERC1155.address);
         await tokenManagerERC1155.grantRole(await tokenManagerERC1155.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
         await tokenManagerERC1155.grantRole(await tokenManagerERC1155.AUTOMATIC_DEPLOY_ROLE(), schainOwner.address);
 

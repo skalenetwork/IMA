@@ -13,20 +13,29 @@ class TokenManagerEthGenerator(TokenManagerGenerator):
     # 1:    __gap
     # ...   __gap
     # 50:   __gap
-    # --AccessControlUpgradeable---
-    # 51:   _roles
-    # 52:   __gap
+    # ------ERC165Upgradeable------
+    # 51:   __gap
     # ...   __gap
     # 100:  __gap
+    # --AccessControlUpgradeable---
+    # 101:  _roles
+    # 102:  __gap
+    # ...   __gap
+    # 150:  __gap
+    # AccessControlEnumerableUpgradeable
+    # 151:  _roleMembers
+    # 152:  __gap
+    # ...   __gap
+    # 200:  __gap
     # ---------TokenManager---------
-    # 101:  messageProxy
-    # 102:  tokenManagerLinker
-    # 103:  communityLocker
-    # 104:  schainHash
-    # 105:  depositBox, automaticDeploy
-    # 106:  tokenManagers
+    # 201:  messageProxy
+    # 202:  tokenManagerLinker
+    # 203:  communityLocker
+    # 204:  schainHash
+    # 205:  depositBox, automaticDeploy
+    # 206:  tokenManagers
     # -------TokenManagerEth-------
-    # 107:  ethErc20
+    # 207:  ethErc20
 
     ETH_ERC_20_SLOT = next_slot(TokenManagerGenerator.TOKEN_MANAGERS_SLOT)
 
