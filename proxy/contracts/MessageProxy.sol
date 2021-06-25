@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxyForMainnet.sol - SKALE Interchain Messaging Agent
+ *   MessageProxy.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Dmytro Stebaiev
  *
