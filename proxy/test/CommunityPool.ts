@@ -78,7 +78,7 @@ describe("CommunityPool", () => {
         let gasPrice: BigNumber;
         beforeEach(async () => {
             await messageProxy.registerExtraContract(schainName, communityPool.address);
-            gasPrice = <BigNumber>((await messageProxy.addConnectedChain(schainName)).gasPrice);
+            gasPrice = ((await messageProxy.addConnectedChain(schainName)).gasPrice) as BigNumber;
         });
 
         it("should not allow to withdraw from user wallet if CommunityPool is not registered", async () => {
