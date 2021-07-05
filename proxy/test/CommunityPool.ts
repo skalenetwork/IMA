@@ -103,13 +103,13 @@ describe("CommunityPool", () => {
             await communityPool.connect(user).rechargeUserWallet(schainName, { value: amount.toString(), gasPrice });
             userBalance = await communityPool.connect(user).getBalance(schainName);
             userBalance.should.be.deep.equal(amount.mul(2));
-            expect(await messageProxy.getOutgoingMessagesCounter(schainName)).deep.equal(BigNumber.from(1));
+            expect(BigNumber.from(await messageProxy.getOutgoingMessagesCounter(schainName)).toString()).to.be.equal(BigNumber.from(1).toString());
         });
 
         it("should allow to withdraw money", async () => {
             const amount = minTransactionGas.mul(gasPrice).toNumber();
             await communityPool.connect(user).rechargeUserWallet(schainName, { value: (amount + 1).toString(), gasPrice });
-            expect(await messageProxy.getOutgoingMessagesCounter(schainName)).deep.equal(BigNumber.from(1));
+            expect(BigNumber.from(await messageProxy.getOutgoingMessagesCounter(schainName)).toString()).to.be.equal(BigNumber.from(1).toString());
 
             await communityPool.connect(user).withdrawFunds(schainName, amount + 2 )
                 .should.be.eventually.rejectedWith("Balance is too low");
@@ -122,7 +122,7 @@ describe("CommunityPool", () => {
 
             await communityPool.connect(user).withdrawFunds(schainName, 1, { gasPrice });
 
-            expect(await messageProxy.getOutgoingMessagesCounter(schainName)).deep.equal(BigNumber.from(2));
+            expect(BigNumber.from(await messageProxy.getOutgoingMessagesCounter(schainName)).toString()).deep.equal(BigNumber.from(2).toString());
 
         });
 
@@ -222,11 +222,11 @@ describe("CommunityPool", () => {
         const newMinTransactionGas = BigNumber.from(100);
         const CONSTANT_SETTER_ROLE  = await communityPool.CONSTANT_SETTER_ROLE();
         await communityPool.grantRole(CONSTANT_SETTER_ROLE, deployer.address);
-        expect(await communityPool.minTransactionGas()).to.be.deep.equal(BigNumber.from(1000000));
+        expect(BigNumber.from(await communityPool.minTransactionGas()).toString()).to.be.equal(BigNumber.from(1000000).toString());
         await communityPool.connect(user).setMinTransactionGas(newMinTransactionGas)
             .should.be.eventually.rejectedWith("CONSTANT_SETTER_ROLE is required");
         await communityPool.setMinTransactionGas(newMinTransactionGas);
-        expect(await communityPool.minTransactionGas()).to.be.deep.equal(newMinTransactionGas);
+        expect(BigNumber.from(await communityPool.minTransactionGas()).toString()).to.be.equal(newMinTransactionGas.toString());
     });
 
     it("should set rejected when call refundGasByUser not from messageProxy contract", async () => {
