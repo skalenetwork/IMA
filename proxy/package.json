@@ -30,7 +30,7 @@
         "ethers": "^5.4.1",
         "hardhat": "^2.4.1",
         "path": "^0.12.7",
-        "web3": "^1.4.0"
+        "web3": "^1.3.6"
     },
     "devDependencies": {
         "@nomiclabs/hardhat-etherscan": "^2.1.1",
