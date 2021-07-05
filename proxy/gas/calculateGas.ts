@@ -351,10 +351,10 @@ describe("Gas calculation", () => {
             res = await (await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 2)).wait();
             console.log("Second approve of ERC20 token cost:", res.gasUsed.toNumber());
         });
-    
+
         it("calculate erc20 deposits without eth without automatic deploy", async () => {
             await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
-    
+
             let res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1)).wait();
             console.log("First deposit erc20 cost:", res.gasUsed.toNumber());
             res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1)).wait();
@@ -366,10 +366,10 @@ describe("Gas calculation", () => {
             res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1)).wait();
             console.log("Deposit all remaining approved erc20 tokens cost:", res.gasUsed.toNumber());
         });
-    
+
         it("calculate erc20 deposits of all approved tokens without eth without automatic deploy", async () => {
             await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
-    
+
             const res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 5)).wait();
             console.log("Deposit all approved erc20 tokens at once cost:", res.gasUsed.toNumber());
         });
@@ -405,7 +405,7 @@ describe("Gas calculation", () => {
             res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 10)).wait();
             console.log("Tenth transfer of ERC721 token cost:", res.gasUsed.toNumber());
         });
-    
+
         it("calculate erc721 deposits without eth without automatic deploy", async () => {
             await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1);
             await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2);
@@ -417,7 +417,7 @@ describe("Gas calculation", () => {
             await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 8);
             await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 9);
             await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 10);
-    
+
             let res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 1)).wait();
             console.log("First deposit erc721 cost:", res.gasUsed.toNumber());
             res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 2)).wait();
@@ -439,8 +439,8 @@ describe("Gas calculation", () => {
             res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 10)).wait();
             console.log("Tenth deposit erc721 cost:", res.gasUsed.toNumber());
         });
-    
-        it("calculate erc721 deposits without eth without automatic deploy and approve each time", async () => {    
+
+        it("calculate erc721 deposits without eth without automatic deploy and approve each time", async () => {
             let res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1)).wait();
             console.log("First approve of ERC721 token cost:", res.gasUsed.toNumber());
             res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 1)).wait();
@@ -493,13 +493,13 @@ describe("Gas calculation", () => {
         });
 
         it("calculate registration and approve ERC1155", async () => {
-            let res = await (await ERC1155TokenOnMainnet.connect(user).setApprovalForAll(depositBoxERC1155.address, true)).wait();
+            const res = await (await ERC1155TokenOnMainnet.connect(user).setApprovalForAll(depositBoxERC1155.address, true)).wait();
             console.log("Approve ERC1155 token cost:", res.gasUsed.toNumber());
         });
-    
+
         it("calculate erc1155 deposits without eth without automatic deploy", async () => {
             await ERC1155TokenOnMainnet.connect(user).setApprovalForAll(depositBoxERC1155.address, true);
-    
+
             let res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, user.address, 1, 1)).wait();
             console.log("First deposit erc1155 cost:", res.gasUsed.toNumber());
             res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, user.address, 2, 2)).wait();
@@ -521,10 +521,10 @@ describe("Gas calculation", () => {
             res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, user.address, 10, 10)).wait();
             console.log("Tenth deposit erc1155 cost:", res.gasUsed.toNumber());
         });
-    
+
         it("calculate erc1155 deposits batches without eth without automatic deploy", async () => {
             await ERC1155TokenOnMainnet.connect(user).setApprovalForAll(depositBoxERC1155.address, true);
-    
+
             let res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, user.address, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1])).wait();
             console.log("First deposit erc1155 cost:", res.gasUsed.toNumber());
             res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, user.address, [2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 1, 1, 1, 1, 1, 1, 1, 1])).wait();
@@ -563,7 +563,7 @@ describe("Gas calculation", () => {
         };
 
         async function postIncomingMessages(startingCounter: number, arrayOfMessages: any, action: string) {
-            let res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+            const res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
                 schainName,
                 startingCounter,
                 arrayOfMessages,
@@ -586,12 +586,12 @@ describe("Gas calculation", () => {
             async function sendEth() {
                 await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"});
             }
-    
+
             async function getMyEth(action: string) {
-                let res = await (await depositBoxEth.connect(user).getMyEth()).wait();
+                const res = await (await depositBoxEth.connect(user).getMyEth()).wait();
                 console.log(action, "getMyEth eth cost:", res.gasUsed.toNumber());
             }
-    
+
             it("calculate 1 exit eth cost per one message", async () => {
                 await sendEth();
                 await sendEth();
@@ -609,8 +609,8 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(4, [await getEthMessage()], "Fifth exit eth");
                 await getMyEth("Fifth");
             });
-        
-            it("calculate 1 exit eth cost per one message deposit each time", async () => {    
+
+            it("calculate 1 exit eth cost per one message deposit each time", async () => {
                 await sendEth();
                 await postIncomingMessages(0, [await getEthMessage()], "First exit eth");
                 await getMyEth("First");
@@ -627,7 +627,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(4, [await getEthMessage()], "Fifth exit eth");
                 await getMyEth("Fifth");
             });
-        
+
             it("calculate 1 exit eth cost per one message getMyEth by the end", async () => {
                 await sendEth();
                 await sendEth();
@@ -641,8 +641,8 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(4, [await getEthMessage()], "Fifth exit eth");
                 await getMyEth("All");
             });
-        
-            it("calculate 1 exit eth cost per one message deposit each time getMyEth by the end", async () => {    
+
+            it("calculate 1 exit eth cost per one message deposit each time getMyEth by the end", async () => {
                 await sendEth();
                 await postIncomingMessages(0, [await getEthMessage()], "First exit eth");
                 await sendEth();
@@ -655,7 +655,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(4, [await getEthMessage()], "Fifth exit eth");
                 await getMyEth("All");
             });
-        
+
             it("calculate 2 exit eth cost per one message", async () => {
                 await sendEth();
                 await sendEth();
@@ -669,8 +669,8 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(4, [await getEthMessage()], "Third exit eth");
                 await getMyEth("Third");
             });
-        
-            it("calculate 2 exit eth cost per one message deposit each time", async () => {    
+
+            it("calculate 2 exit eth cost per one message deposit each time", async () => {
                 await sendEth();
                 await sendEth();
                 await postIncomingMessages(0, [await getEthMessage(), await getEthMessage()], "First 2 exit eth");
@@ -683,7 +683,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(4, [await getEthMessage()], "Third exit eth");
                 await getMyEth("Third");
             });
-        
+
             it("calculate 2 exit eth cost per one message getMyEth by the end", async () => {
                 await sendEth();
                 await sendEth();
@@ -695,7 +695,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(4, [await getEthMessage()], "Third exit eth");
                 await getMyEth("All");
             });
-        
+
             it("calculate 2 exit eth cost per one message deposit each time getMyEth by the end", async () => {
                 await sendEth();
                 await sendEth();
@@ -707,7 +707,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(4, [await getEthMessage()], "Third exit eth");
                 await getMyEth("All");
             });
-        
+
             it("calculate 3 exit eth cost per one message", async () => {
                 await sendEth();
                 await sendEth();
@@ -719,7 +719,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(3, [await getEthMessage(), await getEthMessage()], "Second 2 exit eth");
                 await getMyEth("Second");
             });
-        
+
             it("calculate 3 exit eth cost per one message deposit each time", async () => {
                 await sendEth();
                 await sendEth();
@@ -731,7 +731,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(3, [await getEthMessage(), await getEthMessage()], "Second 2 exit eth");
                 await getMyEth("Second");
             });
-        
+
             it("calculate 3 exit eth cost per one message getMyEth by the end", async () => {
                 await sendEth();
                 await sendEth();
@@ -742,7 +742,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(3, [await getEthMessage(), await getEthMessage()], "Second 2 exit eth");
                 await getMyEth("All");
             });
-        
+
             it("calculate 3 exit eth cost per one message deposit each time getMyEth by the end", async () => {
                 await sendEth();
                 await sendEth();
@@ -753,7 +753,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(3, [await getEthMessage(), await getEthMessage()], "Second 2 exit eth");
                 await getMyEth("All");
             });
-        
+
             it("calculate 4 exit eth cost per one message", async () => {
                 await sendEth();
                 await sendEth();
@@ -765,8 +765,8 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(4, [await getEthMessage()], "Second exit eth");
                 await getMyEth("Second");
             });
-        
-            it("calculate 4 exit eth cost per one message deposit each time", async () => {    
+
+            it("calculate 4 exit eth cost per one message deposit each time", async () => {
                 await sendEth();
                 await sendEth();
                 await sendEth();
@@ -777,7 +777,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(4, [await getEthMessage()], "Second exit eth");
                 await getMyEth("Second");
             });
-        
+
             it("calculate 4 exit eth cost per one message getMyEth by the end", async () => {
                 await sendEth();
                 await sendEth();
@@ -788,8 +788,8 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(4, [await getEthMessage()], "Second exit eth");
                 await getMyEth("All");
             });
-        
-            it("calculate 4 exit eth cost per one message deposit each time getMyEth by the end", async () => {    
+
+            it("calculate 4 exit eth cost per one message deposit each time getMyEth by the end", async () => {
                 await sendEth();
                 await sendEth();
                 await sendEth();
@@ -799,7 +799,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(4, [await getEthMessage()], "Second exit eth");
                 await getMyEth("All");
             });
-        
+
             it("calculate 5 exit eth cost per one message", async () => {
                 await sendEth();
                 await sendEth();
@@ -848,7 +848,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(3, [await getERC20Message(1)], "Forth exit erc20");
                 await postIncomingMessages(4, [await getERC20Message(1)], "Fifth exit erc20");
             });
-        
+
             it("calculate 1 exit erc20 cost per one message deposit each time", async () => {
                 await sendERC20(1);
                 await postIncomingMessages(0, [await getERC20Message(1)], "First exit erc20");
@@ -861,14 +861,14 @@ describe("Gas calculation", () => {
                 await sendERC20(1);
                 await postIncomingMessages(4, [await getERC20Message(1)], "Fifth exit erc20");
             });
-        
+
             it("calculate 2 exit erc20 cost per one message", async () => {
                 await sendERC20(5);
                 await postIncomingMessages(0, [await getERC20Message(1), await getERC20Message(1)], "First 2 exit erc20");
                 await postIncomingMessages(2, [await getERC20Message(1), await getERC20Message(1)], "Second 2 exit erc20");
                 await postIncomingMessages(4, [await getERC20Message(1)], "Third exit erc20");
             });
-        
+
             it("calculate 2 exit erc20 cost per one message deposit each time", async () => {
                 await sendERC20(1);
                 await sendERC20(1);
@@ -879,13 +879,13 @@ describe("Gas calculation", () => {
                 await sendERC20(1);
                 await postIncomingMessages(4, [await getERC20Message(1)], "Third exit erc20");
             });
-        
+
             it("calculate 3 exit erc20 cost per one message", async () => {
                 await sendERC20(5);
                 await postIncomingMessages(0, [await getERC20Message(1), await getERC20Message(1), await getERC20Message(1)], "First 3 exit erc20");
                 await postIncomingMessages(3, [await getERC20Message(1), await getERC20Message(1)], "Second 2 exit erc20");
             });
-        
+
             it("calculate 3 exit erc20 cost per one message deposit each time", async () => {
                 await sendERC20(1);
                 await sendERC20(1);
@@ -895,13 +895,13 @@ describe("Gas calculation", () => {
                 await sendERC20(1);
                 await postIncomingMessages(3, [await getERC20Message(1), await getERC20Message(1)], "Second 2 exit erc20");
             });
-        
+
             it("calculate 4 exit erc20 cost per one message", async () => {
                 await sendERC20(5);
                 await postIncomingMessages(0, [await getERC20Message(1), await getERC20Message(1), await getERC20Message(1), await getERC20Message(1)], "First 4 exit erc20");
                 await postIncomingMessages(4, [await getERC20Message(1)], "Second exit erc20");
             });
-        
+
             it("calculate 4 exit erc20 cost per one message deposit each time", async () => {
                 await sendERC20(1);
                 await sendERC20(1);
@@ -911,13 +911,13 @@ describe("Gas calculation", () => {
                 await sendERC20(1);
                 await postIncomingMessages(4, [await getERC20Message(1)], "Second exit erc20");
             });
-        
+
             it("calculate 5 exit erc20 cost per one message", async () => {
                 await sendERC20(5);
                 await postIncomingMessages(0, [await getERC20Message(1), await getERC20Message(1), await getERC20Message(1), await getERC20Message(1), await getERC20Message(1)], "First 5 exit erc20");
             });
         });
-    
+
         describe("ERC721 Token registered and approved", async() => {
 
             // prepare exit message of erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, tokenId, {from: user});
@@ -967,7 +967,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(3, [await getERC721Message(4)], "Forth exit erc721");
                 await postIncomingMessages(4, [await getERC721Message(5)], "Fifth exit erc721");
             });
-        
+
             it("calculate 1 exit erc721 cost per one message deposit each time", async () => {
                 await sendERC721(1);
                 await postIncomingMessages(0, [await getERC721Message(1)], "First exit erc721");
@@ -980,7 +980,7 @@ describe("Gas calculation", () => {
                 await sendERC721(5);
                 await postIncomingMessages(4, [await getERC721Message(5)], "Fifth exit erc721");
             });
-        
+
             it("calculate 2 exit erc721 cost per one message", async () => {
                 await sendERC721(1);
                 await sendERC721(2);
@@ -991,7 +991,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(2, [await getERC721Message(3), await getERC721Message(4)], "Second 2 exit erc721");
                 await postIncomingMessages(4, [await getERC721Message(5)], "Third exit erc721");
             });
-        
+
             it("calculate 2 exit erc721 cost per one message deposit each time", async () => {
                 await sendERC721(1);
                 await sendERC721(2);
@@ -1002,7 +1002,7 @@ describe("Gas calculation", () => {
                 await sendERC721(5);
                 await postIncomingMessages(4, [await getERC721Message(5)], "Third exit erc721");
             });
-        
+
             it("calculate 3 exit erc721 cost per one message", async () => {
                 await sendERC721(1);
                 await sendERC721(2);
@@ -1012,7 +1012,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(0, [await getERC721Message(1), await getERC721Message(2), await getERC721Message(3)], "First 3 exit erc721");
                 await postIncomingMessages(3, [await getERC721Message(4), await getERC721Message(5)], "Second 2 exit erc721");
             });
-        
+
             it("calculate 3 exit erc721 cost per one message deposit each time", async () => {
                 await sendERC721(1);
                 await sendERC721(2);
@@ -1022,7 +1022,7 @@ describe("Gas calculation", () => {
                 await sendERC721(5);
                 await postIncomingMessages(3, [await getERC721Message(4), await getERC721Message(5)], "Second 2 exit erc721");
             });
-        
+
             it("calculate 4 exit erc721 cost per one message", async () => {
                 await sendERC721(1);
                 await sendERC721(2);
@@ -1032,8 +1032,8 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(0, [await getERC721Message(1), await getERC721Message(2), await getERC721Message(3), await getERC721Message(4)], "First 4 exit erc721");
                 await postIncomingMessages(4, [await getERC721Message(5)], "Second exit erc721");
             });
-        
-            it("calculate 4 exit erc721 cost per one message deposit each time", async () => {        
+
+            it("calculate 4 exit erc721 cost per one message deposit each time", async () => {
                 await sendERC721(1);
                 await sendERC721(2);
                 await sendERC721(3);
@@ -1042,7 +1042,7 @@ describe("Gas calculation", () => {
                 await sendERC721(5);
                 await postIncomingMessages(4, [await getERC721Message(5)], "Second exit erc721");
             });
-        
+
             it("calculate 5 exit erc721 cost per one message", async () => {
                 await sendERC721(1);
                 await sendERC721(2);
@@ -1112,7 +1112,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(3, [await getERC1155Message(4, 4)], "Forth exit erc1155");
                 await postIncomingMessages(4, [await getERC1155Message(5, 5)], "Fifth exit erc1155");
             });
-        
+
             it("calculate 1 exit erc1155 cost per one message deposit each time", async () => {
                 await sendERC1155(1, 1);
                 await postIncomingMessages(0, [await getERC1155Message(1, 1)], "First exit erc1155");
@@ -1125,7 +1125,7 @@ describe("Gas calculation", () => {
                 await sendERC1155(5, 5);
                 await postIncomingMessages(4, [await getERC1155Message(5, 5)], "Fifth exit erc1155");
             });
-        
+
             it("calculate 2 exit erc1155 cost per one message", async () => {
                 await sendERC1155(1, 1);
                 await sendERC1155(2, 2);
@@ -1136,7 +1136,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(2, [await getERC1155Message(3, 3), await getERC1155Message(4, 4)], "Second 2 exit erc1155");
                 await postIncomingMessages(4, [await getERC1155Message(5, 5)], "Third exit erc1155");
             });
-        
+
             it("calculate 2 exit erc1155 cost per one message deposit each time", async () => {
                 await sendERC1155(1, 1);
                 await sendERC1155(2, 2);
@@ -1147,7 +1147,7 @@ describe("Gas calculation", () => {
                 await sendERC1155(5, 5);
                 await postIncomingMessages(4, [await getERC1155Message(5, 5)], "Third exit erc1155");
             });
-        
+
             it("calculate 3 exit erc1155 cost per one message", async () => {
                 await sendERC1155(1, 1);
                 await sendERC1155(2, 2);
@@ -1157,7 +1157,7 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(0, [await getERC1155Message(1, 1), await getERC1155Message(2, 2), await getERC1155Message(3, 3)], "First 3 exit erc1155");
                 await postIncomingMessages(3, [await getERC1155Message(4, 4), await getERC1155Message(5, 5)], "Second 2 exit erc1155");
             });
-        
+
             it("calculate 3 exit erc1155 cost per one message deposit each time", async () => {
                 await sendERC1155(1, 1);
                 await sendERC1155(2, 2);
@@ -1167,7 +1167,7 @@ describe("Gas calculation", () => {
                 await sendERC1155(5, 5);
                 await postIncomingMessages(3, [await getERC1155Message(4, 4), await getERC1155Message(5, 5)], "Second 2 exit erc1155");
             });
-        
+
             it("calculate 4 exit erc1155 cost per one message", async () => {
                 await sendERC1155(1, 1);
                 await sendERC1155(2, 2);
@@ -1177,8 +1177,8 @@ describe("Gas calculation", () => {
                 await postIncomingMessages(0, [await getERC1155Message(1, 1), await getERC1155Message(2, 2), await getERC1155Message(3, 3), await getERC1155Message(4, 4)], "First 4 exit erc1155");
                 await postIncomingMessages(4, [await getERC1155Message(5, 5)], "Second exit erc1155");
             });
-        
-            it("calculate 4 exit erc1155 cost per one message deposit each time", async () => {        
+
+            it("calculate 4 exit erc1155 cost per one message deposit each time", async () => {
                 await sendERC1155(1, 1);
                 await sendERC1155(2, 2);
                 await sendERC1155(3, 3);
@@ -1187,7 +1187,7 @@ describe("Gas calculation", () => {
                 await sendERC1155(5, 5);
                 await postIncomingMessages(4, [await getERC1155Message(5, 5)], "Second exit erc1155");
             });
-        
+
             it("calculate 5 exit erc1155 cost per one message", async () => {
                 await sendERC1155(1, 1);
                 await sendERC1155(2, 2);
