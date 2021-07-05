@@ -38,8 +38,9 @@ contract MemoryToken is ERC721PresetMinterPauserAutoId, ERC721URIStorage {
     mapping (bytes32 => uint256) private _limitOfTokenURIs;
     mapping (bytes32 => uint256) private _countersOfTokenURIs;
 
-    constructor()
-        ERC721PresetMinterPauserAutoId("SKALE Match", "SKALE_MATCH", "https://demo.skalelabs.com/")
+    constructor(string memory tokenName, string memory tokenSymbol)
+        // default tokenName = "SKALE Match", tokenSymbol = "SKALE_MATCH"
+        ERC721PresetMinterPauserAutoId(tokenName, tokenSymbol, "https://demo.skalelabs.com/")
     {
         grantRole(MINTER_ROLE, msg.sender);
         globalLimit = 500;

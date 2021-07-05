@@ -281,7 +281,7 @@ Examples:
 
 ```bash
 npx hardhat mint-erc1155 --token-address ERC1155TokenAddress --receiver-address receiverAddress --token-id tokenId --amount amountOfTokens --data 0xabbccddeef12233445 --network mainnet
-npx hardhat mint-erc1155 --token-address ERC1155TokenAddress --receiver-address receiverAddress --token-id tokenId --amount amountOfTokens --batch --network mainnet
+npx hardhat mint-erc1155 --token-address ERC1155TokenAddress --receiver-address receiverAddress --token-id "[tokenId1,tokenId2]" --amount "[amountOfTokens1,amountOfTokens2]" --batch true --network schain
 ```
 
 Help:

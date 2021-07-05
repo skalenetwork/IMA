@@ -2,6 +2,7 @@ import { task, HardhatUserConfig } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-ethers";
+import * as owasp from "../npms/skale-owasp/owasp-util";
 import * as dotenv from "dotenv"
 import { promises as fs } from "fs";
 
@@ -21,7 +22,7 @@ task("erc20", "Deploy ERC20 Token sample to chain")
         const jsonObj: {[str: string]: any} = {};
         jsonObj.erc20_address = erc20.address;
         jsonObj.erc20_abi = erc20.interface;
-        await fs.writeFile("data/" + contractName + "-" + taskArgs.name + "-" + taskArgs.symbol + ".json", JSON.stringify(jsonObj, null, 4));
+        await fs.writeFile("data/" + contractName + "-" + taskArgs.name + "-" + taskArgs.symbol + "-" + erc20.address + ".json", JSON.stringify(jsonObj, null, 4));
     }
 );
 
@@ -38,7 +39,7 @@ task("erc721", "Deploy ERC721 Token sample to chain")
         const jsonObj: {[str: string]: any} = {};
         jsonObj.erc721_address = erc721.address;
         jsonObj.erc721_abi = erc721.interface;
-        await fs.writeFile("data/" + contractName + "-" + taskArgs.name + "-" + taskArgs.symbol + ".json", JSON.stringify(jsonObj, null, 4));
+        await fs.writeFile("data/" + contractName + "-" + taskArgs.name + "-" + taskArgs.symbol + "-" + erc721.address + ".json", JSON.stringify(jsonObj, null, 4));
     }
 );
 
@@ -54,7 +55,7 @@ task("erc1155", "Deploy ERC1155 Token sample to chain")
         const jsonObj: {[str: string]: any} = {};
         jsonObj.erc1155_address = erc1155.address;
         jsonObj.erc1155_abi = erc1155.interface;
-        await fs.writeFile("data/" + contractName + "-" + taskArgs.uri + ".json", JSON.stringify(jsonObj, null, 4));
+        await fs.writeFile("data/" + contractName + "-" + taskArgs.uri + "-" + erc1155.address + ".json", JSON.stringify(jsonObj, null, 4));
     }
 );
 
@@ -104,7 +105,13 @@ task("mint-erc1155", "Mint ERC1155 Token")
         const data = taskArgs.data ? taskArgs.data : "0x";
         let res = null;
         if (batch) {
-          res = await(await erc1155.mintBatch(taskArgs.receiverAddress, taskArgs.tokenId, taskArgs.amount, data)).wait();
+          const tokenIds = owasp.verifyArgumentIsArrayOfIntegers({value: taskArgs.tokenId});
+          const amounts = owasp.verifyArgumentIsArrayOfIntegers({value: taskArgs.amount});
+          if (tokenIds.length !== amounts.length) {
+            console.log("\n\n!!! Length of arrays should be equal !!!\n\n");
+            return;
+          }
+          res = await(await erc1155.mintBatch(taskArgs.receiverAddress, tokenIds, amounts, data)).wait();
         } else {
           res = await(await erc1155.mint(taskArgs.receiverAddress, taskArgs.tokenId, taskArgs.amount, data)).wait();
         }
