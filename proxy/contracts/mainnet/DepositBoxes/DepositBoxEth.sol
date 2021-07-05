@@ -30,7 +30,7 @@ import "../../Messages.sol";
 
 // This contract runs on the main net and accepts deposits
 contract DepositBoxEth is DepositBox {
-    using AddressUpgradeable for address;
+    using AddressUpgradeable for address payable;
 
     mapping(address => uint256) public approveTransfers;
 
@@ -97,7 +97,7 @@ contract DepositBoxEth is DepositBox {
         require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
         uint256 amount = approveTransfers[msg.sender];
         approveTransfers[msg.sender] = 0;
-        payable(msg.sender).transfer(amount);
+        payable(msg.sender).sendValue(amount);
     }
 
     function getFunds(string calldata schainName, address payable receiver, uint amount)
@@ -109,7 +109,7 @@ contract DepositBoxEth is DepositBox {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(transferredAmount[schainHash] >= amount, "Incorrect amount");
         _removeTransferredAmount(schainHash, amount);
-        receiver.transfer(amount);
+        receiver.sendValue(amount);
     }
 
     /// Create a new deposit box

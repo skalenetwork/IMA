@@ -189,7 +189,7 @@ contract DepositBoxERC20 is DepositBox {
         require(amount <= totalSupply, "Amount is incorrect");
         bool isERC20AddedToSchain = schainToERC20[schainHash][erc20OnMainnet];
         if (!isERC20AddedToSchain) {
-            require(withoutWhitelist[schainHash], "Whitelist is enabled");
+            require(!isWhitelisted(schainName), "Whitelist is enabled");
             _addERC20ForSchain(schainName, erc20OnMainnet);
             data = Messages.encodeTransferErc20AndTokenInfoMessage(
                 erc20OnMainnet,
