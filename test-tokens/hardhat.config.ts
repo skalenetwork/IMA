@@ -93,7 +93,7 @@ task("mint-erc1155", "Mint ERC1155 Token")
     .addParam("tokenAddress", "Address of ERC1155 token")
     .addParam("receiverAddress", "Address of receiver")
     .addParam("tokenId", "Token ID of ERC1155 Token")
-    .addParam("tokenAmount", "Token Amount of ERC1155 Token")
+    .addParam("amount", "Token Amount of ERC1155 Token")
     .addOptionalParam("data", "Bytes data for minting Token")
     .addOptionalParam("batch", "Bytes data for minting Token")
     .setAction(async (taskArgs: any, { ethers }) => {
@@ -104,12 +104,12 @@ task("mint-erc1155", "Mint ERC1155 Token")
         const data = taskArgs.data ? taskArgs.data : "0x";
         let res = null;
         if (batch) {
-          res = await(await erc1155.mintBatch(taskArgs.receiverAddress, taskArgs.tokenId, taskArgs.tokenAmount, data)).wait();
+          res = await(await erc1155.mintBatch(taskArgs.receiverAddress, taskArgs.tokenId, taskArgs.amount, data)).wait();
         } else {
-          res = await(await erc1155.mint(taskArgs.receiverAddress, taskArgs.tokenId, taskArgs.tokenAmount, data)).wait();
+          res = await(await erc1155.mint(taskArgs.receiverAddress, taskArgs.tokenId, taskArgs.amount, data)).wait();
         }
         console.log("ERC1155 Token at address:", taskArgs.tokenAddress);
-        console.log("Minted tokenId:", taskArgs.tokenId, "and amount:", taskArgs.tokenAmount, "with data:", data, "to address", taskArgs.receiverAddress);
+        console.log("Minted tokenId:", taskArgs.tokenId, "and amount:", taskArgs.amount, "with data:", data, "to address", taskArgs.receiverAddress);
         console.log("Gas spent:", res.gasUsed.toNumber());
     }
 );

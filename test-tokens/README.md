@@ -83,6 +83,37 @@ Help:
 npx hardhat help erc721
 ```
 
+### ERC1155 Deploy
+
+Deploy ERC1155 sample based on openzeppelin contracts:
+
+To main-chain:
+
+```bash
+npx hardhat erc1155 --uri ERC1155TokenURI --network mainnet
+```
+
+To skale-chain:
+
+```bash
+npx hardhat erc1155 --uri ERC1155TokenURI --network schain
+```
+
+To deploy custom token - please develop your ERC1155 contract and add option param with you contract name:
+
+```bash
+--contract "Your contract name"
+
+npx hardhat erc1155 --contract ERC1155CustomName --uri ERC1155TokenURI --network mainnet
+npx hardhat erc1155 --contract ERC1155CustomName --uri ERC1155TokenURI --network schain
+```
+
+Help:
+
+```bash
+npx hardhat help erc1155
+```
+
 ## Verify your token on Etherscan
 
 To verify your contract need to run:
@@ -97,6 +128,12 @@ npx hardhat verify ERC20TokenAddress "ERC20TokenName" "ERC20TokenSymbol" --netwo
 
 ```bash
 npx hardhat verify ERC721TokenAddress "ERC721TokenName" "ERC721TokenSymbol" --network mainnet
+```
+
+### ERC1155 Verify
+
+```bash
+npx hardhat verify ERC1155TokenAddress "ERC1155TokenURI" --network mainnet
 ```
 
 Help:
@@ -151,6 +188,28 @@ Help:
 npx hardhat help add-minter-erc721
 ```
 
+### ERC1155 Add minter
+
+Mint ERC1155 token:
+
+To main-chain:
+
+```bash
+npx hardhat add-minter-erc1155 --token-address ERC1155TokenAddress --address minterAddress --network mainnet
+```
+
+To skale-chain:
+
+```bash
+npx hardhat add-minter-erc1155 --token-address ERC1155TokenAddress --address minterAddress --network schain
+```
+
+Help:
+
+```bash
+npx hardhat help add-minter-erc1155
+```
+
 ## Mint
 
 ### ERC20 Mint
@@ -196,4 +255,37 @@ Help:
 
 ```bash
 npx hardhat help mint-erc721
+```
+
+### ERC1155 Mint
+
+Mint ERC1155 token:
+
+To main-chain:
+
+```bash
+npx hardhat mint-erc1155 --token-address ERC1155TokenAddress --receiver-address receiverAddress --token-id tokenId --amount amountOfTokens --network mainnet
+```
+
+To skale-chain:
+
+```bash
+npx hardhat mint-erc1155 --token-address ERC1155TokenAddress --receiver-address receiverAddress --token-id tokenId --amount amountOfTokens --network schain
+```
+
+Optional params:
+- `data` - bytes data `0x0102...` (default `0x`)
+- `batch` - batch mint or not (default `false`)
+
+Examples:
+
+```bash
+npx hardhat mint-erc1155 --token-address ERC1155TokenAddress --receiver-address receiverAddress --token-id tokenId --amount amountOfTokens --data 0xabbccddeef12233445 --network mainnet
+npx hardhat mint-erc1155 --token-address ERC1155TokenAddress --receiver-address receiverAddress --token-id tokenId --amount amountOfTokens --batch --network mainnet
+```
+
+Help:
+
+```bash
+npx hardhat help mint-erc1155
 ```
