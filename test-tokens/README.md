@@ -274,8 +274,8 @@ npx hardhat mint-erc1155 --token-address ERC1155TokenAddress --receiver-address 
 ```
 
 Optional params:
-- `data` - bytes data `0x0102...` (default `0x`)
-- `batch` - batch mint or not (default `false`)
+-   `data` - bytes data `0x0102...` (default `0x`)
+-   `batch` - batch mint or not (default `false`)
 
 Examples:
 
