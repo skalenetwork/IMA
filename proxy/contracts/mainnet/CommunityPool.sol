@@ -33,6 +33,8 @@ import "./Linker.sol";
  */
 contract CommunityPool is Twin {
 
+    using AddressUpgradeable for address payable;
+
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
     mapping(address => mapping(bytes32 => uint)) private _userWallets;
@@ -79,7 +81,7 @@ contract CommunityPool is Twin {
                 Messages.encodeLockUserMessage(user)
             );
         }
-        node.transfer(amount);
+        node.sendValue(amount);
     }
 
     function rechargeUserWallet(string calldata schainName) external payable {
@@ -114,7 +116,7 @@ contract CommunityPool is Twin {
                 Messages.encodeLockUserMessage(msg.sender)
             );
         }
-        payable(msg.sender).transfer(amount);
+        payable(msg.sender).sendValue(amount);
     }
 
     function setMinTransactionGas(uint newMinTransactionGas) external {
