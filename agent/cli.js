@@ -424,7 +424,7 @@ function parse( joExternalHandlers, argv ) {
         //
         if( joArg.name == "tm-url-main-net" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
-            let strURL = "" + joArg.value;
+            const strURL = "" + joArg.value;
             // if( strURL.indexOf( "/sign-and-send" ) < 0 )
             //    strURL += "/sign-and-send";
             // strURL += "/0";
@@ -433,7 +433,7 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "tm-url-s-chain" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
-            let strURL = "" + joArg.value;
+            const strURL = "" + joArg.value;
             // if( strURL.indexOf( "/sign-and-send" ) < 0 )
             //    strURL += "/sign-and-send";
             // strURL += "/0";

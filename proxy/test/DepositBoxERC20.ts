@@ -325,7 +325,7 @@ describe("DepositBoxERC20", () => {
             await linker.allowInterchainConnections(schainName);
             await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, user.address, amount);
             await messageProxy.connect(deployer).postIncomingMessages(schainName, 3, [message], sign);
-            expect(await depositBoxERC20.transferredAmount(schainHash, erc20.address)).to.be.deep.equal(BigNumber.from(0));
+            expect(BigNumber.from(await depositBoxERC20.transferredAmount(schainHash, erc20.address)).toString()).to.be.equal(BigNumber.from(0).toString());
 
             (await erc20.balanceOf(user.address)).toString().should.be.equal((amount * 2).toString());
 
