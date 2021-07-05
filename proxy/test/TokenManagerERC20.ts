@@ -386,7 +386,7 @@ describe("TokenManagerERC20", () => {
 
         });
 
-        it.only("should reject if total supply is exceeded", async () => {
+        it("should reject if total supply is exceeded", async () => {
             //  preparation
             const amount = 10;
             const to = user.address;
