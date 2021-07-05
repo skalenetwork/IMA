@@ -275,6 +275,15 @@ describe("MessageProxy", () => {
                     sign
                 ).should.be.eventually.rejectedWith("User should be active");
 
+            await messageProxyForMainnet
+                .connect(deployer)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter,
+                    [message1, message1, message1, message1, message1, message1, message1, message1, message1, message1, message1],
+                    sign
+                    ).should.be.eventually.rejectedWith("Too many messages");
+
             await communityPool.connect(client).rechargeUserWallet(schainName, {value: amountWei.toString()});
 
             await messageProxyForMainnet
@@ -705,13 +714,6 @@ describe("MessageProxy", () => {
                 hashB: "0x0000000000000000000000000000000000000000000000000000000000000000",
             }
 
-            await messageProxyForSchain.connect(deployer).postIncomingMessages(
-                schainName,
-                startingCounter,
-                outgoingMessages,
-                fakeSign
-            ).should.be.eventually.rejectedWith("Signature is not verified");
-
             // chain should be inited:
             await messageProxyForSchain.connect(deployer).postIncomingMessages(
                 schainName,
@@ -726,12 +728,27 @@ describe("MessageProxy", () => {
 
             await messageProxyForSchain.connect(deployer).postIncomingMessages(
                 schainName,
+                startingCounter,
+                outgoingMessages,
+                fakeSign
+            ).should.be.eventually.rejectedWith("Signature is not verified");
+
+            await messageProxyForSchain.connect(deployer).postIncomingMessages(
+                schainName,
                 startingCounter + 1,
                 outgoingMessages,
                 sign
             ).should.be.eventually.rejectedWith("Starting counter is not qual to incoming message counter");
 
             (await messageProxyForSchain.getIncomingMessagesCounter(schainName)).toNumber().should.be.equal(0);
+
+
+            await messageProxyForSchain.connect(deployer).postIncomingMessages(
+                schainName,
+                startingCounter,
+                [message1, message1, message1, message1, message1, message1, message1, message1, message1, message1, message1],
+                sign
+            ).should.be.eventually.rejectedWith("Too many messages");
 
             await messageProxyForSchain.connect(deployer).postIncomingMessages(
                 schainName,

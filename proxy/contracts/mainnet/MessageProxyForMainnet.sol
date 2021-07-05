@@ -129,6 +129,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         uint256 gasTotal = gasleft();
         bytes32 fromSchainHash = keccak256(abi.encodePacked(fromSchainName));
         require(connectedChains[fromSchainHash].inited, "Chain is not initialized");
+        require(messages.length <= MESSAGES_LENGTH, "Too many messages");
         require(
             startingCounter == connectedChains[fromSchainHash].incomingMessageCounter,
             "Starting counter is not equal to incoming message counter");
