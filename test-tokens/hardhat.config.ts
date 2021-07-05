@@ -42,6 +42,22 @@ task("erc721", "Deploy ERC721 Token sample to chain")
     }
 );
 
+task("erc1155", "Deploy ERC1155 Token sample to chain")
+    .addOptionalParam("contract", "ERC1155 Token contract")
+    .addParam("uri", "ERC1155 Base Token URI")
+    .setAction(async (taskArgs: any, { ethers }) => {
+        const contractName = taskArgs.contract ? taskArgs.contract : "ERC1155Example";
+        const erc1155Factory = await ethers.getContractFactory(contractName);
+        const erc1155 = await erc1155Factory.deploy(taskArgs.uri);
+        console.log("ERC1155 Token with Base Token URI", taskArgs.uri, "was deployed");
+        console.log("Address:", erc1155.address);
+        const jsonObj: {[str: string]: any} = {};
+        jsonObj.erc1155_address = erc1155.address;
+        jsonObj.erc1155_abi = erc1155.interface;
+        await fs.writeFile("data/" + contractName + "-" + taskArgs.uri + ".json", JSON.stringify(jsonObj, null, 4));
+    }
+);
+
 task("mint-erc20", "Mint ERC20 Token")
     .addParam("tokenAddress", "Address of ERC20 token")
     .addParam("receiverAddress", "Address of receiver")
@@ -73,6 +89,31 @@ task("mint-erc721", "Mint ERC721 Token")
     }
 );
 
+task("mint-erc1155", "Mint ERC1155 Token")
+    .addParam("tokenAddress", "Address of ERC1155 token")
+    .addParam("receiverAddress", "Address of receiver")
+    .addParam("tokenId", "Token ID of ERC1155 Token")
+    .addParam("tokenAmount", "Token Amount of ERC1155 Token")
+    .addOptionalParam("data", "Bytes data for minting Token")
+    .addOptionalParam("batch", "Bytes data for minting Token")
+    .setAction(async (taskArgs: any, { ethers }) => {
+        const contractName = "ERC1155Example";
+        const erc1155Factory = await ethers.getContractFactory(contractName);
+        const erc1155 = erc1155Factory.attach(taskArgs.tokenAddress);
+        const batch = taskArgs.batch ? true : false;
+        const data = taskArgs.data ? taskArgs.data : "0x";
+        let res = null;
+        if (batch) {
+          res = await(await erc1155.mintBatch(taskArgs.receiverAddress, taskArgs.tokenId, taskArgs.tokenAmount, data)).wait();
+        } else {
+          res = await(await erc1155.mint(taskArgs.receiverAddress, taskArgs.tokenId, taskArgs.tokenAmount, data)).wait();
+        }
+        console.log("ERC1155 Token at address:", taskArgs.tokenAddress);
+        console.log("Minted tokenId:", taskArgs.tokenId, "and amount:", taskArgs.tokenAmount, "with data:", data, "to address", taskArgs.receiverAddress);
+        console.log("Gas spent:", res.gasUsed.toNumber());
+    }
+);
+
 task("add-minter-erc20", "Add minter to ERC20 Token")
     .addParam("tokenAddress", "Address of ERC20 token")
     .addParam("address", "Minter Address of ERC20 token")
@@ -98,6 +139,21 @@ task("add-minter-erc721", "Add minter to ERC721 Token")
         const minterRole = await erc721.MINTER_ROLE();
         const res = await(await erc721.grantRole(minterRole, taskArgs.address)).wait();
         console.log("ERC721 Token at address:", taskArgs.tokenAddress);
+        console.log("Minter address:", taskArgs.address);
+        console.log("Gas spent:", res.gasUsed.toNumber());
+    }
+);
+
+task("add-minter-erc1155", "Add minter to ERC1155 Token")
+    .addParam("tokenAddress", "Address of ERC1155 token")
+    .addParam("address", "Minter Address of ERC1155 token")
+    .setAction(async (taskArgs: any, { ethers }) => {
+        const contractName = "ERC1155Example";
+        const erc1155Factory = await ethers.getContractFactory(contractName);
+        const erc1155 = erc1155Factory.attach(taskArgs.tokenAddress);
+        const minterRole = await erc1155.MINTER_ROLE();
+        const res = await(await erc1155.grantRole(minterRole, taskArgs.address)).wait();
+        console.log("ERC1155 Token at address:", taskArgs.tokenAddress);
         console.log("Minter address:", taskArgs.address);
         console.log("Gas spent:", res.gasUsed.toNumber());
     }
