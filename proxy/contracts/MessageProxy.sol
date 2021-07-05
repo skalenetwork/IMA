@@ -34,6 +34,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
+    uint256 public constant MESSAGES_LENGTH = 10;
 
     struct ConnectedChainInfo {
         // message counters start with 0
