@@ -205,7 +205,7 @@ describe("TokenManagerEth", () => {
 
         // send Eth to a client on Mainnet:
         await tokenManagerEth.connect(user).exitToMain(to, amountTo);
-        expect(await ethERC20.balanceOf(user.address)).to.be.deep.equal(amountAfter);
+        expect(BigNumber.from(await ethERC20.balanceOf(user.address)).toString()).to.be.equal(amountAfter.toString());
 
         await tokenManagerEth.connect(user).exitToMain(deployer.address, amountTo)
             .should.be.eventually.rejectedWith("Recipient must be active");
