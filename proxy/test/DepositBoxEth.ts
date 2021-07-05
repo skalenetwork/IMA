@@ -422,7 +422,7 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .deposit(schainName, user.address, { value: wei });
 
-            expect(await depositBoxEth.transferredAmount(schainHash)).to.be.deep.equal(BigNumber.from(0));
+            expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(0).toString());
 
             const balanceBefore = await getBalance(deployer.address);
             await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
