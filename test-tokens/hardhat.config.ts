@@ -130,7 +130,7 @@ function getGasPrice(gasPrice: string | undefined) {
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   solidity: {
-    version: '0.8.0',
+    version: '0.8.6',
     settings: {
       optimizer:{
         enabled: true,

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   ERC721Example.sol - SKALE Interchain Messaging Agent Test tokens
+ *   ERC1155Example.sol - SKALE Interchain Messaging Agent Test tokens
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -21,43 +21,55 @@
 
 pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
+import "@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
-contract ERC721Example is AccessControlEnumerable, ERC721Burnable {
+contract ERC1155Example is AccessControlEnumerable, ERC1155Burnable {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     constructor(
-        string memory contractName,
-        string memory contractSymbol
+        string memory uri
     )
-        ERC721(contractName, contractSymbol)
+        ERC1155(uri)
     {
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
         _setupRole(MINTER_ROLE, _msgSender());
     }
 
-    function mint(address to, uint256 tokenId)
+    function mint(
+        address account,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    )
         external
-        returns (bool)
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
-        _mint(to, tokenId);
-        return true;
+        _mint(account, id, amount, data);
+    }
+
+    function mintBatch(
+        address account,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    )
+        external
+    {
+        require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
+        _mintBatch(account, ids, amounts, data);
     }
 
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(AccessControlEnumerable, ERC721)
+        override(AccessControlEnumerable, ERC1155)
         returns (bool)
     {
-        return interfaceId == type(IAccessControlEnumerable).interfaceId
-            || interfaceId == type(IERC721).interfaceId
-            || interfaceId == type(IERC721Metadata).interfaceId
-            || interfaceId == bytes4(keccak256(abi.encodePacked("mint(address,uint256)")))
-            || interfaceId == bytes4(keccak256(abi.encodePacked("burn(uint256)")))
+        return interfaceId == bytes4(keccak256(abi.encodePacked("mint(address,uint256,uint256,bytes)")))
+            || interfaceId == bytes4(keccak256(abi.encodePacked("mintBatch(address,uint256[],uint256[],bytes)")))
             || super.supportsInterface(interfaceId);
     }
 }
