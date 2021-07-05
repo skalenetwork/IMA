@@ -163,7 +163,7 @@ contract DepositBoxERC721 is DepositBox {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         bool isERC721AddedToSchain = schainToERC721[schainHash][erc721OnMainnet];
         if (!isERC721AddedToSchain) {
-            require(withoutWhitelist[schainHash], "Whitelist is enabled");
+            require(!isWhitelisted(schainName), "Whitelist is enabled");
             _addERC721ForSchain(schainName, erc721OnMainnet);
             data = Messages.encodeTransferErc721AndTokenInfoMessage(
                 erc721OnMainnet,
