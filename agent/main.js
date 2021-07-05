@@ -91,7 +91,7 @@ global.imaState = {
     "bShowConfigMode": false, // true - just show configuration values and exit
 
     "bNoWaitSChainStarted": false,
-    "nMaxWaitSChainAttempts": 0 + Number.MAX_SAFE_INTEGER, // 20
+    "nMaxWaitSChainAttempts": 20,
     "isPreventExitAfterLastAction": false,
 
     "strURL_main_net": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ), // example: "http://127.0.0.1:8545"
@@ -1036,87 +1036,8 @@ if( imaState.bShowConfigMode ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function get_s_chain_nodes_count( joSChainNetworkInfo ) {
-    try {
-        if( ! joSChainNetworkInfo )
-            return 0;
-        const jarrNodes = joSChainNetworkInfo.network;
-        const cntNodes = jarrNodes.length;
-        return cntNodes;
-    } catch ( err ) {
-        return 0;
-    }
-}
-
-function get_s_chain_discovered_nodes_count( joSChainNetworkInfo ) {
-    try {
-        if( ! joSChainNetworkInfo )
-            return 0;
-        if( ! ( "network" in joSChainNetworkInfo && joSChainNetworkInfo.network ) )
-            return 0;
-        const jarrNodes = joSChainNetworkInfo.network;
-        const cntNodes = jarrNodes.length;
-        if( cntNodes <= 0 )
-            return 0;
-        let cntDiscovered = 0;
-        for( let i = 0; i < cntNodes; ++ i ) {
-            try {
-                const joNode = joSChainNetworkInfo.network[i];
-                if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
-                    "t" in joNode.imaInfo && typeof joNode.imaInfo.t === "number"
-                )
-                    ++ cntDiscovered;
-            } catch ( err ) {
-                return 0;
-            }
-        }
-        return cntDiscovered;
-    } catch ( err ) {
-        return 0;
-    }
-}
-
-let g_timer_s_chain_discovery = null;
-let g_b_in_s_chain_discovery = false;
-
-async function continue_schain_discovery_in_background_if_needed() {
-    const cntNodes = get_s_chain_nodes_count( imaState.joSChainNetworkInfo );
-    const cntDiscovered = get_s_chain_discovered_nodes_count( imaState.joSChainNetworkInfo );
-    if( cntDiscovered >= cntNodes ) {
-        if( g_timer_s_chain_discovery != null ) {
-            clearInterval( g_timer_s_chain_discovery );
-            g_timer_s_chain_discovery = null;
-        }
-        return;
-    }
-    if( g_timer_s_chain_discovery != null )
-        return;
-    g_timer_s_chain_discovery = setInterval( async function() {
-        if( g_b_in_s_chain_discovery )
-            return;
-        g_b_in_s_chain_discovery = true;
-        try {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( cc.info( "Will re-discover S-Chain network..." ) + "\n" );
-            await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
-                if( ! err ) {
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                        log.write( cc.success( "S-Chain network was re-discovered: " ) + cc.j( joSChainNetworkInfo ) + "\n" );
-                    imaState.joSChainNetworkInfo = joSChainNetworkInfo;
-                }
-                continue_schain_discovery_in_background_if_needed();
-            }, false, imaState.joSChainNetworkInfo, cntNodes );
-        } catch ( err ) {
-        }
-        g_b_in_s_chain_discovery = false;
-    }, 1 * 1000 );
-}
-
-async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkInfo, nCountToWait ) {
+async function discover_s_chain_network( fnAfter, isSilent ) {
     isSilent = isSilent || false;
-    joPrevSChainNetworkInfo = joPrevSChainNetworkInfo || null;
-    if( nCountToWait == null || nCountToWait == undefined || nCountToWait < 0 )
-        nCountToWait = 0;
     const strLogPrefix = cc.info( "S net discover:" ) + " ";
     fnAfter = fnAfter || function() {};
     let joSChainNetworkInfo = null;
@@ -1127,7 +1048,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                 if( ! isSilent ) {
                     log.write(
                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " JSON RPC call to (own) S-Chain " ) + cc.u( imaState.strURL_s_chain ) + cc.error( " failed: " ) +
+                        cc.error( " JSON RPC call to S-Chain " ) + cc.u( imaState.strURL_s_chain ) + cc.error( " failed: " ) +
                         cc.warning( err ) + "\n"
                     );
                 }
@@ -1142,7 +1063,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                     if( ! isSilent ) {
                         log.write(
                             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                            cc.error( " JSON RPC call to (own) S-Chain " ) + cc.u( imaState.strURL_s_chain ) + cc.error( " failed, error: " ) +
+                            cc.error( " JSON RPC call to S-Chain " ) + cc.u( imaState.strURL_s_chain ) + cc.error( " failed, error: " ) +
                             cc.warning( err ) + "\n"
                         );
                     }
@@ -1150,10 +1071,10 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                     return;
                 }
                 if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.normal( "OK, got (own) S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
+                    log.write( strLogPrefix + cc.normal( "OK, got S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
                 else if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                     log.write( strLogPrefix + cc.success( "OK, got S-Chain " ) + cc.u( imaState.strURL_s_chain ) + cc.success( " network information." ) + "\n" );
-                //
+
                 let nCountReceivedImaDescriptions = 0;
                 joSChainNetworkInfo = joOut.result;
                 if( ! joSChainNetworkInfo ) {
@@ -1169,43 +1090,10 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                 }
                 const jarrNodes = joSChainNetworkInfo.network;
                 const cntNodes = jarrNodes.length;
-                if( nCountToWait <= 0 ) {
-                    nCountToWait = 0 + cntNodes;
-                    if( nCountToWait > 2 )
-                        nCountToWait = Math.ceil( nCountToWait * 2 / 3 );
-                } else if( nCountToWait > cntNodes )
-                    nCountToWait = cntNodes;
-                if( ! isSilent ) {
-                    log.write( strLogPrefix + cc.debug( "Will gather details of " ) + cc.info( nCountToWait ) +
-                        cc.debug( " of " ) + cc.info( cntNodes ) + cc.debug( " node(s)..." ) + "\n"
-                    );
-                }
                 let cntFailed = 0;
                 for( let i = 0; i < cntNodes; ++ i ) {
-                    const nCurrentNodeIdx = 0 + i;
-                    try {
-                        if( joPrevSChainNetworkInfo && "network" in joPrevSChainNetworkInfo && joPrevSChainNetworkInfo.network ) {
-                            const joPrevNode = joPrevSChainNetworkInfo.network[nCurrentNodeIdx];
-                            if( joPrevNode && "imaInfo" in joPrevNode && typeof joPrevNode.imaInfo === "object" &&
-                                "t" in joPrevNode.imaInfo && typeof joPrevNode.imaInfo.t === "number"
-                            ) {
-                                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
-                                    log.write(
-                                        strLogPrefix + cc.info( "OK, in case of " ) + strNodeDescColorized +
-                                        cc.info( " node " ) + cc.info( joNode.nodeID ) +
-                                        cc.info( " will use previous discovery result." ) + "\n"
-                                    );
-                                }
-                                continue; // skip this node discovery, enrich rest of nodes
-                            }
-                        }
-                    } catch ( err ) {
-                    }
-                    const joNode = jarrNodes[nCurrentNodeIdx];
+                    const joNode = jarrNodes[i];
                     const strNodeURL = imaUtils.compose_schain_node_url( joNode );
-                    const strNodeDescColorized =
-                        cc.notice( "#" ) + cc.info( nCurrentNodeIdx ) +
-                        cc.attention( "(" ) + cc.u( strNodeURL ) + + cc.attention( ")" );
                     const rpcCallOpts = null;
                     try {
                         await rpcCall.create( strNodeURL, rpcCallOpts, function( joCall, err ) {
@@ -1213,7 +1101,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                                 if( ! isSilent ) {
                                     log.write(
                                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                                        cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized + cc.error( " failed" ) +
+                                        cc.error( " JSON RPC call to S-Chain node " ) + cc.u( strNodeURL ) + cc.error( " failed" ) +
                                         "\n"
                                     );
                                 }
@@ -1230,7 +1118,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                                     if( ! isSilent ) {
                                         log.write(
                                             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                                            cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized + cc.error( " failed, error: " ) +
+                                            cc.error( " JSON RPC call to S-Chain node " ) + cc.u( strNodeURL ) + cc.error( " failed, error: " ) +
                                             cc.warning( err ) + "\n"
                                         );
                                     }
@@ -1244,7 +1132,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                                 //joNode.joCall = joCall;
                                 if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
                                     log.write(
-                                        strLogPrefix + cc.success( "OK, got " ) + strNodeDescColorized +
+                                        strLogPrefix + cc.success( "OK, got  " ) + cc.u( strNodeURL ) +
                                         cc.success( " node " ) + cc.info( joNode.nodeID ) +
                                         cc.success( " IMA information(" ) + cc.info( nCountReceivedImaDescriptions ) + cc.success( " of " ) +
                                         cc.info( cntNodes ) + cc.success( ")." ) + "\n"
@@ -1256,7 +1144,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         if( ! isSilent ) {
                             log.write(
                                 strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                                cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized + cc.error( " was not created: " ) +
+                                cc.error( " JSON RPC call to S-Chain node " ) + cc.u( strNodeURL ) + cc.error( " was not created: " ) +
                                 cc.warning( err ) + "\n"
                             );
                         }
@@ -1266,6 +1154,9 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                     }
                 }
                 let nCountAvailable = cntNodes - cntFailed;
+                let nCountToWait = 0 + cntNodes;
+                if( nCountToWait > 2 )
+                    nCountToWait = Math.ceil( nCountToWait * 2 / 3 );
                 if( ! isSilent ) {
                     log.write(
                         cc.debug( "Waiting for S-Chain nodes, total " ) + cc.warning( cntNodes ) +
@@ -1537,17 +1428,16 @@ if( imaState.bSignMessages ) {
         process.exit( 160 );
     }
     if( ! imaState.bNoWaitSChainStarted ) {
-        wait_until_s_chain_started().then( function() { // uses call to discover_s_chain_network()
+        wait_until_s_chain_started().then( function() { // discover_s_chain_network
             discover_s_chain_network( function( err, joSChainNetworkInfo ) {
                 if( err )
                     process.exit( 161 ); // error information is printed by discover_s_chain_network()
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                     log.write( cc.success( "S-Chain network was discovered: " ) + cc.j( joSChainNetworkInfo ) + "\n" );
                 imaState.joSChainNetworkInfo = joSChainNetworkInfo;
-                continue_schain_discovery_in_background_if_needed();
                 do_the_job();
                 return 0; // FINISH
-            }, false, imaState.joSChainNetworkInfo, -1 );
+            }, false );
         } );
     }
 } else
@@ -1814,7 +1704,7 @@ async function wait_until_s_chain_started() {
             const joSChainNetworkInfo = await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
                 if( ! err )
                     bSuccess = true;
-            }, true, null, -1 );
+            }, true );
             if( ! joSChainNetworkInfo )
                 bSuccess = false;
         } catch ( err ) {
