@@ -39,7 +39,7 @@ contract Linker is Twin {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
-    enum KillProcess {Active, PartiallyKilledBySchainOwner, PartiallyKilledByContractOwner, Killed}
+    enum KillProcess {NotKilled, PartiallyKilledBySchainOwner, PartiallyKilledByContractOwner, Killed}
     EnumerableSetUpgradeable.AddressSet private _mainnetContracts;
 
     mapping(bytes32 => bool) public interchainConnections;
@@ -68,7 +68,7 @@ contract Linker is Twin {
 
     function allowInterchainConnections(string calldata schainName) external onlySchainOwner(schainName) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(statuses[schainHash] == KillProcess.Active, "Schain is in kill process");
+        require(statuses[schainHash] == KillProcess.NotKilled, "Schain is in kill process");
         interchainConnections[schainHash] = true;
         messageProxy.postOutgoingMessage(
             schainHash,
@@ -80,7 +80,7 @@ contract Linker is Twin {
     function kill(string calldata schainName) external {
         require(!interchainConnections[keccak256(abi.encodePacked(schainName))], "Interchain connections turned on");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        if (statuses[schainHash] == KillProcess.Active) {
+        if (statuses[schainHash] == KillProcess.NotKilled) {
             if (hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
                 statuses[schainHash] = KillProcess.PartiallyKilledByContractOwner;
             } else if (isSchainOwner(msg.sender, schainHash)) {
