@@ -34,7 +34,7 @@ abstract contract DepositBox is IMessageReceiver, Twin {
 
     Linker public linker;
 
-    mapping(bytes32 => bool) public withoutWhitelist;
+    mapping(bytes32 => bool) private _automaticDeploy;
 
     bytes32 public constant DEPOSIT_BOX_MANAGER_ROLE = keccak256("DEPOSIT_BOX_MANAGER_ROLE");
 
@@ -70,14 +70,14 @@ abstract contract DepositBox is IMessageReceiver, Twin {
      * @dev Allows Schain owner turn on whitelist of tokens.
      */
     function enableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
-        withoutWhitelist[keccak256(abi.encodePacked(schainName))] = false;
+        _automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
     }
 
     /**
      * @dev Allows Schain owner turn off whitelist of tokens.
      */
     function disableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
-        withoutWhitelist[keccak256(abi.encodePacked(schainName))] = true;
+        _automaticDeploy[keccak256(abi.encodePacked(schainName))] = true;
     }
 
     function initialize(
@@ -92,5 +92,12 @@ abstract contract DepositBox is IMessageReceiver, Twin {
         Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
         _setupRole(LINKER_ROLE, address(newLinker));
         linker = newLinker;
+    }
+
+    /**
+     * @dev Returns is whitelist enabled on schain
+     */
+    function isWhitelisted(string memory schainName) public view returns (bool) {
+        return !_automaticDeploy[keccak256(abi.encodePacked(schainName))];
     }
 }
