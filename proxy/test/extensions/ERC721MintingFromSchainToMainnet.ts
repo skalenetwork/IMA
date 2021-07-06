@@ -182,6 +182,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
         // initialize schain and data
         await schainsInternal.connect(deployer).initializeSchain(schainName, deployer.address, 12345678, 12345678);
         await schainsInternal.connect(deployer).addNodesToSchainsGroups(stringValue(schainNameHash), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+        await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
 
         // set BLS Public Key to schain
         // P.s. this is test public key from test of SkaleManager.SkaleVerifier - please do not use it!!!

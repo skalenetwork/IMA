@@ -52,6 +52,7 @@ import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProx
 import { deployDepositBoxEth } from "./utils/deploy/mainnet/depositBoxEth";
 import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
+import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 
 import { deployMessageProxyForMainnetTester } from "./utils/deploy/test/messageProxyForMainnetTester";
@@ -228,6 +229,7 @@ describe("MessageProxy", () => {
         it("should post incoming messages", async () => {
             const startingCounter = 0;
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
             await depositBox.addSchainContract(schainName, deployer.address);
@@ -271,21 +273,10 @@ describe("MessageProxy", () => {
                 .postIncomingMessages(
                     schainName,
                     startingCounter,
-                    outgoingMessages,
-                    sign
-                ).should.be.eventually.rejectedWith("User should be active");
-
-            await messageProxyForMainnet
-                .connect(deployer)
-                .postIncomingMessages(
-                    schainName,
-                    startingCounter,
                     [message1, message1, message1, message1, message1, message1, message1, message1, message1, message1, message1],
                     sign
                     ).should.be.eventually.rejectedWith("Too many messages");
-
-            await communityPool.connect(client).rechargeUserWallet(schainName, {value: amountWei.toString()});
-
+    
             await messageProxyForMainnet
                 .connect(deployer)
                 .postIncomingMessages(
@@ -293,7 +284,18 @@ describe("MessageProxy", () => {
                     startingCounter,
                     outgoingMessages,
                     sign
-                );
+                ); //.should.be.eventually.rejectedWith("User should be active");
+
+            await communityPool.connect(client).rechargeUserWallet(schainName, {value: amountWei.toString()});
+
+            // await messageProxyForMainnet
+            //     .connect(deployer)
+            //     .postIncomingMessages(
+            //         schainName,
+            //         startingCounter,
+            //         outgoingMessages,
+            //         sign
+            //     );
             const incomingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
             incomingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
@@ -324,6 +326,7 @@ describe("MessageProxy", () => {
 
         it("should get incoming messages counter", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
             const startingCounter = 0;
             const message1 = {
@@ -372,6 +375,7 @@ describe("MessageProxy", () => {
 
         it("should get incoming messages counter", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
 
             const startingCounter = 0;
@@ -440,6 +444,7 @@ describe("MessageProxy", () => {
 
         it("should check gas limit issue", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
 
