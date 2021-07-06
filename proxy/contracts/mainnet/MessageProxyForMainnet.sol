@@ -128,6 +128,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
     {
         uint256 gasTotal = gasleft();
         bytes32 fromSchainHash = keccak256(abi.encodePacked(fromSchainName));
+        require(_checkSchainBalance(fromSchainHash), "Schain wallet has not enough funds");
         require(connectedChains[fromSchainHash].inited, "Chain is not initialized");
         require(messages.length <= MESSAGES_LENGTH, "Too many messages");
         require(
@@ -137,18 +138,26 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         require(_verifyMessages(fromSchainName, _hashedArray(messages), sign), "Signature is not verified");
         uint additionalGasPerMessage = 
             (gasTotal - gasleft() + headerMessageGasCost + messages.length * messageGasCost) / messages.length;
+        uint notReimbursedGas = 0;
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
             address receiver = _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
-            if (receiver == address(0)) 
+            if (!registryContracts[bytes32(0)][messages[i].destinationContract] || receiver == address(0)) {
+                notReimbursedGas += gasTotal - gasleft() + additionalGasPerMessage;
                 continue;
-            communityPool.refundGasByUser(
-                fromSchainHash,
-                payable(msg.sender),
-                receiver,
-                gasTotal - gasleft() + additionalGasPerMessage
-            );
+            } else {
+                try communityPool.refundGasByUser(
+                    fromSchainHash,
+                    payable(msg.sender),
+                    receiver,
+                    gasTotal - gasleft() + additionalGasPerMessage
+                ) returns (bool) {
+                } catch (bytes memory) {
+                    notReimbursedGas += gasTotal - gasleft() + additionalGasPerMessage;
+                }
+            }
         }
+        communityPool.refundGasBySchainWallet(fromSchainHash, payable(msg.sender), notReimbursedGas);
         connectedChains[fromSchainHash].incomingMessageCounter += messages.length;
     }
 
@@ -233,5 +242,11 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
             sign.hashB,
             fromSchainName
         );
+    }
+
+    function _checkSchainBalance(bytes32 schainHash) internal view returns (bool) {
+        return IWallets(
+            contractManagerOfSkaleManager.getContract("Wallets")
+        ).getSchainBalance(schainHash) >= (MESSAGES_LENGTH + 1) * gasLimit * tx.gasprice;
     }
 }
