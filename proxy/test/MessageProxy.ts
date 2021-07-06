@@ -276,7 +276,7 @@ describe("MessageProxy", () => {
                     [message1, message1, message1, message1, message1, message1, message1, message1, message1, message1, message1],
                     sign
                     ).should.be.eventually.rejectedWith("Too many messages");
-    
+
             await messageProxyForMainnet
                 .connect(deployer)
                 .postIncomingMessages(
@@ -284,7 +284,7 @@ describe("MessageProxy", () => {
                     startingCounter,
                     outgoingMessages,
                     sign
-                ); //.should.be.eventually.rejectedWith("User should be active");
+                ); // .should.be.eventually.rejectedWith("User should be active");
 
             await communityPool.connect(client).rechargeUserWallet(schainName, {value: amountWei.toString()});
 
