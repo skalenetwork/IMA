@@ -278,19 +278,6 @@ imaCLI.parse( {
             }
         } );
     },
-    // "check-registration2": function() {
-    //     imaState.arrActions.push( {
-    //         "name": "Registration status check step 2, register Main-net deposit box on S-Chain",
-    //         "fn": async function() {
-    //             if( ! imaState.bNoWaitSChainStarted )
-    //                 await wait_until_s_chain_started(); // check_registration_step2
-    //             const b = await check_registration_step2();
-    //             const nExitCode = b ? 0 : 153; // 0 - OKay - registered; non-zero -  not registered or error
-    //             log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-    //             process.exit( nExitCode ); // 153
-    //         }
-    //     } );
-    // },
     "show-balance": function() {
         imaState.arrActions.push( {
             "name": "show balance",
@@ -1515,24 +1502,6 @@ async function check_registration_step1() {
     );
     return bRetVal;
 }
-// async function check_registration_step2() {
-//     // const bRetVal2A = await IMA.check_is_registered_main_net_depositBox_on_s_chain( // step 2A
-//     //     imaState.w3_s_chain,
-//     //     imaState.jo_deposit_box_eth, // only main net
-//     //     imaState.jo_deposit_box_erc20, // only main net
-//     //     imaState.jo_deposit_box_erc721, // only main net
-//     //     imaState.jo_token_manager_linker,
-//     //     imaState.joAccount_s_chain
-//     // );
-//     const bRetVal = await IMA.check_is_registered_main_net_on_s_chain( // step 2B
-//         imaState.w3_s_chain,
-//         imaState.jo_message_proxy_s_chain,
-//         imaState.joAccount_s_chain,
-//         imaState.strChainName_main_net
-//     );
-//     // const bRetVal = ( bRetVal2A && bRetVal2B ) ? true : false;
-//     return bRetVal;
-// }
 
 function print_summary_registration_costs() {
     IMA.print_gas_usage_report_from_array( "Main Net REGISTRATION", g_registrationCostInfo.mn );
