@@ -105,6 +105,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         _setupRole(CHAIN_CONNECTOR_ROLE, msg.sender);
         _setupRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender);
         _setupRole(CONSTANT_SETTER_ROLE, msg.sender);
+        emit GasLimitWasChanged(gasLimit, newGasLimit);
         gasLimit = newGasLimit;
     }
 

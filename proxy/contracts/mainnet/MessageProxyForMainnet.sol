@@ -158,8 +158,8 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
                 }
             }
         }
-        communityPool.refundGasBySchainWallet(fromSchainHash, payable(msg.sender), notReimbursedGas);
         connectedChains[fromSchainHash].incomingMessageCounter += messages.length;
+        communityPool.refundGasBySchainWallet(fromSchainHash, payable(msg.sender), notReimbursedGas);
     }
 
     /**
