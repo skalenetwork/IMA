@@ -23,6 +23,7 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC20OnChain.sol";
@@ -190,8 +191,11 @@ contract TokenManagerERC20 is TokenManager {
         if (totalSupply != totalSupplyOnMainnet[contractOnSchain]) {
             totalSupplyOnMainnet[contractOnSchain] = totalSupply;
         }
+        bool noOverflow;
+        uint updatedTotalSupply;
+        (noOverflow, updatedTotalSupply) = SafeMathUpgradeable.tryAdd(contractOnSchain.totalSupply(), amount);
         require(
-            contractOnSchain.totalSupply() + amount <= totalSupplyOnMainnet[contractOnSchain],
+            noOverflow && updatedTotalSupply <= totalSupplyOnMainnet[contractOnSchain],
             "Total supply exceeded"
         );
         contractOnSchain.mint(receiver, amount);

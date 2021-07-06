@@ -385,5 +385,46 @@ describe("TokenManagerERC20", () => {
                 .should.be.eventually.rejectedWith("MessageType is unknown");
 
         });
+
+        it("should reject if total supply is exceeded", async () => {
+            //  preparation
+            const amount = 10;
+            const to = user.address;
+            const remoteTokenManagerAddress = fakeDepositBox;
+            const fromSchainName = randomString(10);
+            const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
+            await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
+            await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(erc20OnMainnet.address, erc20OnChain.address);
+
+            await erc20OnMainnet.mint(deployer.address, amount);
+            let data = await messages.encodeTransferErc20AndTokenInfoMessage(
+                erc20OnMainnet.address,
+                to,
+                amount,
+                (await erc20OnMainnet.totalSupply()).toNumber(),
+                {
+                    name: await erc20OnMainnet.name(),
+                    symbol: await erc20OnMainnet.symbol(),
+                    decimals: BigNumber.from(await erc20OnMainnet.decimals()).toString()
+                }
+            );
+            await tokenManagerErc20.connect(schainOwner).enableAutomaticDeploy();
+            console.log("Before preparation");
+            await messageProxyForSchain.postMessage(tokenManagerErc20.address, fromSchainHash, remoteTokenManagerAddress, data);
+            console.log("After preparation");
+
+            // execution
+            const UINT256_MAX = BigNumber.from(2).pow(256).sub(1);
+            console.log(UINT256_MAX.toString());
+
+            data = await messages.encodeTransferErc20AndTotalSupplyMessage(
+                erc20OnMainnet.address,
+                to,
+                UINT256_MAX,
+                0);
+
+            await messageProxyForSchain.postMessage(tokenManagerErc20.address, mainnetId, fakeDepositBox, data)
+                .should.be.eventually.rejectedWith("Total supply exceeded");
+        });
     });
 });
