@@ -161,6 +161,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
                     payable(msg.sender),
                     receiver,
                     gasTotal - gasleft() + additionalGasPerMessage
+                // solhint-disable-next-line no-empty-blocks
                 ) returns (bool) {
                 } catch (bytes memory) {
                     notReimbursedGas += gasTotal - gasleft() + additionalGasPerMessage;

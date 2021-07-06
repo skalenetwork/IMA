@@ -98,7 +98,12 @@ contract CommunityPool is Twin {
         returns (bool)
     {
         if (gas > 0) {
-            IWallets(contractManagerOfSkaleManager.getContract("Wallets")).refundGasBySchain(schainHash, node, gas, false);
+            IWallets(contractManagerOfSkaleManager.getContract("Wallets")).refundGasBySchain(
+                schainHash,
+                node,
+                gas,
+                false
+            );
         }
         return true;
     }
