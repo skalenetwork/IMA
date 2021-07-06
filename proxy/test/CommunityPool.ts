@@ -235,4 +235,10 @@ describe("CommunityPool", () => {
             .should.be.eventually.rejectedWith("Sender is not a MessageProxy");
     });
 
+    it("should set rejected when call refundGasBySchainWallet not from messageProxy contract", async () => {
+        const schainHash = stringValue(web3.utils.soliditySha3("Schain"));
+        await communityPool.connect(deployer).refundGasBySchainWallet(schainHash, node.address, 0)
+            .should.be.eventually.rejectedWith("Sender is not a MessageProxy");
+    });
+
 });
