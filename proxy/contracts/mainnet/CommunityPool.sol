@@ -23,6 +23,8 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
+
 import "../Messages.sol";
 import "./MessageProxyForMainnet.sol";
 import "./Linker.sol";
@@ -65,9 +67,10 @@ contract CommunityPool is Twin {
         address payable node,
         address user,
         uint gas
-    ) 
+    )
         external
         onlyMessageProxy
+        returns (bool)
     {
         require(activeUsers[user][schainHash], "User should be active");
         require(node != address(0), "Node address must be set");
@@ -82,6 +85,22 @@ contract CommunityPool is Twin {
             );
         }
         node.sendValue(amount);
+        return true;
+    }
+
+    function refundGasBySchainWallet(
+        bytes32 schainHash,
+        address payable node,
+        uint gas
+    )
+        external
+        onlyMessageProxy
+        returns (bool)
+    {
+        if (gas > 0) {
+            IWallets(contractManagerOfSkaleManager.getContract("Wallets")).refundGasBySchain(schainHash, node, gas, false);
+        }
+        return true;
     }
 
     /**
