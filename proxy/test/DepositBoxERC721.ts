@@ -98,7 +98,7 @@ describe("DepositBoxERC721", () => {
         await messageProxy.grantRole(await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
         await rechargeSchainWallet(contractManager, schainName, user2.address, "1000000000000000000");
-        await messageProxy.registerExtraContract(schainName, depositBoxERC721.address);
+        await messageProxy.registerExtraContractForAll(depositBoxERC721.address);
         await messageProxy.registerExtraContract(schainName, communityPool.address);
         await messageProxy.registerExtraContract(schainName, linker.address);
     });
