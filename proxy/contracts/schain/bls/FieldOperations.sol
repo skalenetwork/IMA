@@ -144,9 +144,29 @@ library Fp2Operations {
     }
 }
 
+/**
+ * @title G1Operations
+ * @dev This library contains operations of a group of elements {x, y}
+ * where y^2 = x^3 + 3 mod P and (x + iy) is an element of Fp2
+ * 
+ * Element of the group is Fp2Point
+ * 
+ * Prime divisor is Fp2Operations.P
+ * 
+ * A group generator is {1, 2}
+ * 
+ * Defined operations:
+ * 
+ * - check if a point is in the group G1
+ * - check if a point is in the field Fp2
+ * - for x of Fp calculate -x
+ */
 library G1Operations {
     using Fp2Operations for Fp2Operations.Fp2Point;
 
+    /**
+     * @dev Get G1 group generator
+     */
     function getG1Generator() internal pure returns (Fp2Operations.Fp2Point memory) {
         // Current solidity version does not support Constants of non-value type
         // so we implemented this function
@@ -156,20 +176,32 @@ library G1Operations {
         });
     }
 
+    /**
+     * @dev Check if ({x], {y}) is a G1 element
+     */
     function isG1Point(uint x, uint y) internal pure returns (bool) {
         uint p = Fp2Operations.P;
         return mulmod(y, y, p) == 
             addmod(mulmod(mulmod(x, x, p), x, p), 3, p);
     }
 
+    /**
+     * @dev Check if {point} is a G1 element
+     */
     function isG1(Fp2Operations.Fp2Point memory point) internal pure returns (bool) {
         return isG1Point(point.a, point.b);
     }
 
+    /**
+     * @dev Check if {point} is a Fp2 element
+     */
     function checkRange(Fp2Operations.Fp2Point memory point) internal pure returns (bool) {
         return point.a < Fp2Operations.P && point.b < Fp2Operations.P;
     }
 
+    /**
+     * @dev For {y} of Fp calculate -y
+     */
     function negate(uint y) internal pure returns (uint) {
         return (Fp2Operations.P - y) % Fp2Operations.P;
     }
