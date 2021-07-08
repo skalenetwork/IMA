@@ -62,7 +62,19 @@ contract MessageProxyForSchain is MessageProxy {
     //      schainHash  => head of unprocessed messages
     mapping(bytes32 => uint) private _idxHead;
     //      schainHash  => tail of unprocessed messages
-    mapping(bytes32 => uint) private _idxTail;    
+    mapping(bytes32 => uint) private _idxTail;
+
+    function registerExtraContract(string memory schainName, address extraContract) external onlyExtraContractRegistrar {
+        bytes32 chainHash = keccak256(abi.encodePacked(schainName));
+        require(chainHash != schainHash, "Schain hash can not be equal Mainnet");
+        _registerExtraContract(chainHash, extraContract);
+    }
+
+    function removeExtraContract(string memory schainName, address extraContract) external onlyExtraContractRegistrar {
+        bytes32 chainHash = keccak256(abi.encodePacked(schainName));
+        require(chainHash != schainHash, "Schain hash can not be equal Mainnet");
+        _removeExtraContract(chainHash, extraContract);
+    }
 
     function initialize(KeyStorage blsKeyStorage, string memory schainName)
         public
@@ -100,18 +112,6 @@ contract MessageProxyForSchain is MessageProxy {
         bytes32 chainHash = keccak256(abi.encodePacked(schainName));
         require(chainHash != MAINNET_HASH, "Mainnet cannot be removed");
         super.removeConnectedChain(schainName);
-    }
-
-    function registerExtraContract(string memory schainName, address extraContract) public onlyExtraContractRegistrar {
-        bytes32 chainHash = keccak256(abi.encodePacked(schainName));
-        require(chainHash != schainHash, "Schain hash can not be equal Mainnet");
-        _registerExtraContract(chainHash, extraContract);
-    }
-
-    function removeExtraContract(string memory schainName, address extraContract) public onlyExtraContractRegistrar {
-        bytes32 chainHash = keccak256(abi.encodePacked(schainName));
-        require(chainHash != schainHash, "Schain hash can not be equal Mainnet");
-        _removeExtraContract(chainHash, extraContract);
     }
 
     // This is called by a smart contract that wants to make a cross-chain call

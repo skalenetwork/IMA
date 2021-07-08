@@ -95,7 +95,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         communityPool = newCommunityPoolAddress;
     }
 
-    function registerExtraContract(string memory schainName, address extraContract) public {
+    function registerExtraContract(string memory schainName, address extraContract) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
@@ -106,7 +106,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         _registerExtraContract(schainHash, extraContract);
     }
 
-    function removeExtraContract(string memory schainName, address extraContract) public {
+    function removeExtraContract(string memory schainName, address extraContract) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
