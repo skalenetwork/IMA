@@ -452,7 +452,9 @@ const tm_gen_random_hex = size => [ ...Array( size ) ].map( () => Math.floor( Ma
 function tm_make_id() {
     const prefix = "tx-";
     const unique = tm_gen_random_hex( 16 );
-    return prefix + unique;
+    const id = prefix + unique + 'js'
+    details.write( cc.debug( "TM - Generated id: " ) + cc.debug( id ) + "\n" );
+    return id
 }
 
 function tm_make_record( tx = {}, score ) {
