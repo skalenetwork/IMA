@@ -99,8 +99,6 @@ contract TokenManagerERC20 is TokenManager {
     /**
      * @dev Allows MessageProxy to post operational message from mainnet
      * or SKALE chains.
-     * 
-     * Emits an {Error} event upon failure.
      *
      * Requirements:
      * 
@@ -222,7 +220,7 @@ contract TokenManagerERC20 is TokenManager {
     }
 
     /**
-     * @dev Burn tokens on schain and send message to unlock them on mainnet
+     * @dev Burn tokens on schain and send message to unlock them on target chain
      */
     function _exit(
         bytes32 chainHash,

@@ -29,11 +29,11 @@ import "../TokenManager.sol";
 
 
 /**
- * @title Token Manager
- * @dev Runs on SKALE Chains, accepts messages from mainnet, and instructs
- * TokenFactory to create clones. TokenManager mints tokens via
- * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
- * burns tokens.
+ * @title TokenManagerERC721
+ * @dev Runs on SKALE Chains,
+ * accepts messages from mainnet,
+ * and creates ERC721 clones.
+ * TokenManagerERC721 mints tokens. When a user exits a SKALE chain, it burns them.
  */
 contract TokenManagerERC721 is TokenManager {
     using AddressUpgradeable for address;
@@ -41,12 +41,26 @@ contract TokenManagerERC721 is TokenManager {
     // address of ERC721 on Mainnet => ERC721 on Schain
     mapping(address => ERC721OnChain) public clonesErc721;
 
+    /**
+     * @dev Emitted when schain owner register new ERC721 clone
+     */
     event ERC721TokenAdded(address indexed erc721OnMainnet, address indexed erc721OnSchain);
 
+    /**
+     * @dev Emitted when TokenManagerERC721 automatically deploys new ERC721 clone
+     */
     event ERC721TokenCreated(address indexed erc721OnMainnet, address indexed erc721OnSchain);
 
+    /**
+     * @dev Emitted when someone sends tokens from mainnet to schain
+     */
     event ERC721TokenReceived(address indexed erc721OnMainnet, address indexed erc721OnSchain, uint256 tokenId);
 
+    /**
+     * @dev Move tokens from schain to mainnet
+     * 
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address
+     */
     function exitToMainERC721(
         address contractOnMainnet,
         address to,
@@ -58,6 +72,12 @@ contract TokenManagerERC721 is TokenManager {
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, tokenId);
     }
 
+    /**
+     * @dev Move tokens from schain to schain
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {to} address
+     */
     function transferToSchainERC721(
         string calldata targetSchainName,
         address contractOnMainnet,
@@ -74,8 +94,6 @@ contract TokenManagerERC721 is TokenManager {
     /**
      * @dev Allows MessageProxy to post operational message from mainnet
      * or SKALE chains.
-     * 
-     * Emits an {Error} event upon failure.
      *
      * Requirements:
      * 
@@ -107,7 +125,7 @@ contract TokenManagerERC721 is TokenManager {
     }
 
     /**
-     * @dev Allows Schain owner to add an ERC721 token to LockAndDataForSchainERC721.
+     * @dev Allows Schain owner to register an ERC721 token clone in the token manager
      */
     function addERC721TokenByOwner(
         address erc721OnMainnet,
@@ -121,6 +139,9 @@ contract TokenManagerERC721 is TokenManager {
         emit ERC721TokenAdded(erc721OnMainnet, address(erc721OnSchain));
     }
 
+    /**
+     * @dev Is called once during contract deployment
+     */
     function initialize(
         string memory newChainName,
         MessageProxyForSchain newMessageProxy,
@@ -144,7 +165,8 @@ contract TokenManagerERC721 is TokenManager {
     /**
      * @dev Allows TokenManager to send ERC721 tokens.
      *  
-     * Emits a {ERC721TokenCreated} event if to address = 0.
+     * Emits a {ERC20TokenCreated} event if token does not exist.
+     * Emits a {ERC20TokenReceived} event on success.
      */
     function _sendERC721(bytes calldata data) private returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
@@ -177,6 +199,9 @@ contract TokenManagerERC721 is TokenManager {
         return receiver;
     }
 
+    /**
+     * @dev Burn tokens on schain and send message to unlock them on target chain
+     */
     function _exit(
         bytes32 chainHash,
         address messageReceiver,
