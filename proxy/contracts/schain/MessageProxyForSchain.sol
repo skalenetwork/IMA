@@ -102,6 +102,18 @@ contract MessageProxyForSchain is MessageProxy {
         super.removeConnectedChain(schainName);
     }
 
+    function registerExtraContract(string memory schainName, address extraContract) public onlyExtraContractRegistrar {
+        bytes32 chainHash = keccak256(abi.encodePacked(schainName));
+        require(chainHash != schainHash, "Schain hash can not be equal Mainnet");
+        _registerExtraContract(chainHash, extraContract);
+    }
+
+    function removeExtraContract(string memory schainName, address extraContract) public onlyExtraContractRegistrar {
+        bytes32 chainHash = keccak256(abi.encodePacked(schainName));
+        require(chainHash != schainHash, "Schain hash can not be equal Mainnet");
+        _removeExtraContract(chainHash, extraContract);
+    }
+
     // This is called by a smart contract that wants to make a cross-chain call
     function postOutgoingMessage(
         bytes32 targetChainHash,
