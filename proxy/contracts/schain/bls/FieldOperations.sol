@@ -208,15 +208,51 @@ library G1Operations {
 
 }
 
-
+/**
+ * @title G2Operations
+ * @dev This library contains operations of a group of elements {x, y}
+ * where y^2 = x^3 + TWISTB and x and y are elements of Fp2
+ * 
+ * Element of the group is G2Point
+ * 
+ * Prime divisor is Fp2Operations.P
+ * TWISTB is
+ * {
+ *     19485874751759354771024239261021720505790618469301721065564631296452457478373,
+ *     266929791119991161246907387137283842545076965332900288569378510910307636690
+ * }
+ * A group generator is
+ * {
+ *     {
+ *         10857046999023057135944570762232829481370756359578518086990519993285655852781,
+ *         11559732032986387107991004021392285783925812861821192530917403151452391805634
+ *     },
+ *     {
+ *         8495653923123431417604973247489272438418190587263600148770280649306958101930,
+ *         4082367875863433681332203403145435568316851327593401208105741076214120093531
+ *     }
+ * }
+ * 
+ * Defined operations:
+ * 
+ * - check if a point is in the group G2
+ * - check if a point is zero element of group G2
+ * - comparison for equality
+ */
 library G2Operations {
     using Fp2Operations for Fp2Operations.Fp2Point;
 
+    /**
+     * @dev Structure that represents an element of G2
+     */
     struct G2Point {
         Fp2Operations.Fp2Point x;
         Fp2Operations.Fp2Point y;
     }
 
+    /**
+     * @dev Get value of TWISTB
+     */
     function getTWISTB() internal pure returns (Fp2Operations.Fp2Point memory) {
         // Current solidity version does not support Constants of non-value type
         // so we implemented this function
@@ -226,6 +262,9 @@ library G2Operations {
         });
     }
 
+    /**
+     * @dev Get G2 group generator
+     */
     function getG2Generator() internal pure returns (G2Point memory) {
         // Current solidity version does not support Constants of non-value type
         // so we implemented this function
@@ -241,6 +280,9 @@ library G2Operations {
         });
     }
 
+    /**
+     * @dev Get G2 zero element
+     */
     function getG2Zero() internal pure returns (G2Point memory) {
         // Current solidity version does not support Constants of non-value type
         // so we implemented this function
@@ -256,6 +298,9 @@ library G2Operations {
         });
     }
 
+    /**
+     * @dev Check if ({x}, {y}) is an element of G2
+     */
     function isG2Point(Fp2Operations.Fp2Point memory x, Fp2Operations.Fp2Point memory y) internal pure returns (bool) {
         if (isG2ZeroPoint(x, y)) {
             return true;
@@ -267,10 +312,16 @@ library G2Operations {
         return res.a == 0 && res.b == 0;
     }
 
+    /**
+     * @dev Check if {value} is an element of G2
+     */
     function isG2(G2Point memory value) internal pure returns (bool) {
         return isG2Point(value.x, value.y);
     }
 
+    /**
+     * @dev Check if ({x}, {y}) is a zero element of G2
+     */
     function isG2ZeroPoint(
         Fp2Operations.Fp2Point memory x,
         Fp2Operations.Fp2Point memory y
@@ -282,10 +333,16 @@ library G2Operations {
         return x.a == 0 && x.b == 0 && y.a == 1 && y.b == 0;
     }
 
+    /**
+     * @dev Check if {value} is a zero element of G2
+     */
     function isG2Zero(G2Point memory value) internal pure returns (bool) {
         return value.x.a == 0 && value.x.b == 0 && value.y.a == 1 && value.y.b == 0;
     }
 
+    /**
+     * @dev Check if {value1} is equal to {value2}
+     */
     function isEqual(
         G2Point memory value1,
         G2Point memory value2
