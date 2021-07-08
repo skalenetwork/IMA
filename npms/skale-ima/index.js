@@ -467,7 +467,8 @@ function tm_make_record( tx = {}, score ) {
 }
 
 function tm_make_score( priority ) {
-    const ts = parseInt( Date.now() / 1000 );
+    const d = Date.now();
+    const ts = Math.floor( ( d ).getTime() / 1000 );
     return priority * Math.pow( 10, ts.toString().length ) + ts;
 }
 
