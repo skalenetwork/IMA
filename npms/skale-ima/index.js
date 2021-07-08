@@ -445,11 +445,14 @@ function get_account_connectivity_info( joAccount ) {
     return joACI;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 const g_tm_pool = "transactions";
 
 const tm_gen_random_hex = size => [ ...Array( size ) ].map( () => Math.floor( Math.random() * 16 ).toString( 16 ) ).join( "" );
 
-function tm_make_id() {
+function tm_make_id( details ) {
     const prefix = "tx-";
     const unique = tm_gen_random_hex( 16 );
     const id = prefix + unique + "js";
@@ -474,7 +477,7 @@ function tm_make_score( priority ) {
 
 async function tm_send( details, tx, priority = 5 ) {
     details.write( cc.debug( "TM - sending tx " ) + cc.j( tx ) + "\n" );
-    const id = tm_make_id();
+    const id = tm_make_id( details );
     const score = tm_make_score( priority );
     const record = tm_make_record( tx, score );
     details.write( cc.debug( "TM - Sending score: " ) + cc.info( score ) + cc.debug( ", record: " ) + cc.info( record ) + "\n" );
@@ -511,6 +514,9 @@ async function tm_wait( details, tx_id, w3 ) {
     // return await w3.eth.getTransactionReceipt( hash );
     return await get_web3_transactionReceipt( details, 10, w3, hash );
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
     const joSR = {
