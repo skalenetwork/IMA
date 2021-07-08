@@ -95,16 +95,26 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         communityPool = newCommunityPoolAddress;
     }
 
-    function registerExtraContract(string memory schainName, address extraContract) public override {
+    function registerExtraContract(string memory schainName, address extraContract) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(
+            hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
+            isSchainOwner(msg.sender, schainHash),
+            "Not enough permissions to register extra contract"
+        );
         require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");        
-        super.registerExtraContract(schainName, extraContract);
+        _registerExtraContract(schainHash, extraContract);
     }
 
-    function removeExtraContract(string memory schainName, address extraContract) public override {
+    function removeExtraContract(string memory schainName, address extraContract) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(
+            hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
+            isSchainOwner(msg.sender, schainHash),
+            "Not enough permissions to register extra contract"
+        );
         require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");
-        super.removeExtraContract(schainName, extraContract);
+        _removeExtraContract(schainHash, extraContract);
     }
 
     /**

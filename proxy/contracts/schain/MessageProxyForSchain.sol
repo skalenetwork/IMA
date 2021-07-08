@@ -62,7 +62,25 @@ contract MessageProxyForSchain is MessageProxy {
     //      schainHash  => head of unprocessed messages
     mapping(bytes32 => uint) private _idxHead;
     //      schainHash  => tail of unprocessed messages
-    mapping(bytes32 => uint) private _idxTail;    
+    mapping(bytes32 => uint) private _idxTail;
+
+    function registerExtraContract(
+        string memory chainName,
+        address extraContract
+    )
+        external
+        onlyExtraContractRegistrar
+    {
+        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
+        require(chainHash != schainHash, "Schain hash can not be equal Mainnet");
+        _registerExtraContract(chainHash, extraContract);
+    }
+
+    function removeExtraContract(string memory chainName, address extraContract) external onlyExtraContractRegistrar {
+        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
+        require(chainHash != schainHash, "Schain hash can not be equal Mainnet");
+        _removeExtraContract(chainHash, extraContract);
+    }
 
     function initialize(KeyStorage blsKeyStorage, string memory schainName)
         public
@@ -96,10 +114,10 @@ contract MessageProxyForSchain is MessageProxy {
         _addConnectedChain(chainHash);
     }
 
-    function removeConnectedChain(string memory schainName) public override onlyChainConnector {
-        bytes32 chainHash = keccak256(abi.encodePacked(schainName));
+    function removeConnectedChain(string memory chainName) public override onlyChainConnector {
+        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
         require(chainHash != MAINNET_HASH, "Mainnet cannot be removed");
-        super.removeConnectedChain(schainName);
+        super.removeConnectedChain(chainName);
     }
 
     // This is called by a smart contract that wants to make a cross-chain call
