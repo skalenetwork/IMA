@@ -171,7 +171,7 @@ contract TokenManagerERC20 is TokenManager {
     /**
      * @dev Allows TokenManager to send ERC20 tokens.
      *  
-     * Emits a {ERC20TokenCreated} event if token does not exist.
+     * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
      * Emits a {ERC20TokenReceived} event on success.
      */
     function _sendERC20(bytes calldata data) private returns (address) {        

@@ -30,11 +30,11 @@ import "../TokenManager.sol";
 
 
 /**
- * @title Token Manager
- * @dev Runs on SKALE Chains, accepts messages from mainnet, and instructs
- * TokenFactory to create clones. TokenManager mints tokens via
- * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
- * burns tokens.
+ * @title TokenManagerERC1155
+ * @dev Runs on SKALE Chains,
+ * accepts messages from mainnet,
+ * and creates ERC1155 clones.
+ * TokenManagerERC1155 mints tokens. When a user exits a SKALE chain, it burns them.
  */
 contract TokenManagerERC1155 is TokenManager {
     using AddressUpgradeable for address;
@@ -42,10 +42,19 @@ contract TokenManagerERC1155 is TokenManager {
     // address of ERC1155 on Mainnet => ERC1155 on Schain
     mapping(address => ERC1155OnChain) public clonesErc1155;
 
+    /**
+     * @dev Emitted when schain owner register new ERC1155 clone
+     */
     event ERC1155TokenAdded(address indexed erc1155OnMainnet, address indexed erc1155OnSchain);
 
+    /**
+     * @dev Emitted when TokenManagerERC1155 automatically deploys new ERC1155 clone
+     */
     event ERC1155TokenCreated(address indexed erc1155OnMainnet, address indexed erc1155OnSchain);
 
+    /**
+     * @dev Emitted when someone sends tokens from mainnet to schain
+     */
     event ERC1155TokenReceived(
         address indexed erc1155OnMainnet,
         address indexed erc1155OnSchain,
@@ -53,6 +62,11 @@ contract TokenManagerERC1155 is TokenManager {
         uint256[] amounts
     );  
 
+    /**
+     * @dev Move tokens from schain to mainnet
+     * 
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address
+     */
     function exitToMainERC1155(
         address contractOnMainnet,
         address to,
@@ -65,6 +79,11 @@ contract TokenManagerERC1155 is TokenManager {
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, id, amount);
     }
 
+    /**
+     * @dev Move batch of tokens from schain to mainnet
+     * 
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address
+     */
     function exitToMainERC1155Batch(
         address contractOnMainnet,
         address to,
@@ -77,6 +96,12 @@ contract TokenManagerERC1155 is TokenManager {
         _exitBatch(MAINNET_HASH, depositBox, contractOnMainnet, to, ids, amounts);
     }
 
+    /**
+     * @dev Move tokens from schain to schain
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {to} address
+     */
     function transferToSchainERC1155(
         string calldata targetSchainName,
         address contractOnMainnet,
@@ -91,6 +116,12 @@ contract TokenManagerERC1155 is TokenManager {
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, id, amount);
     }
 
+    /**
+     * @dev Move batch of tokens from schain to schain
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {to} address
+     */
     function transferToSchainERC1155Batch(
         string calldata targetSchainName,
         address contractOnMainnet,
@@ -108,13 +139,11 @@ contract TokenManagerERC1155 is TokenManager {
     /**
      * @dev Allows MessageProxy to post operational message from mainnet
      * or SKALE chains.
-     * 
-     * Emits an {Error} event upon failure.
      *
      * Requirements:
      * 
      * - MessageProxy must be the sender.
-     * - `fromSchainName` must exist in TokenManager addresses.
+     * - `fromSchainName` must exist in TokenManagerERC1155 addresses.
      */
     function postMessage(
         bytes32 fromChainHash,
@@ -146,7 +175,7 @@ contract TokenManagerERC1155 is TokenManager {
     }
 
     /**
-     * @dev Allows Schain owner to add an ERC1155 token to LockAndDataForSchainERC1155.
+     * @dev Allows Schain owner to register an ERC1155 token clone in the token manager
      */
     function addERC1155TokenByOwner(
         address erc1155OnMainnet,
@@ -160,6 +189,9 @@ contract TokenManagerERC1155 is TokenManager {
         emit ERC1155TokenAdded(erc1155OnMainnet, address(erc1155OnSchain));
     }
 
+    /**
+     * @dev Is called once during contract deployment
+     */
     function initialize(
         string memory newChainName,
         MessageProxyForSchain newMessageProxy,
@@ -183,7 +215,8 @@ contract TokenManagerERC1155 is TokenManager {
     /**
      * @dev Allows TokenManager to send ERC1155 tokens.
      *  
-     * Emits a {ERC1155TokenCreated} event if to address = 0.
+     * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
+     * Emits a {ERC20TokenReceived} event on success.
      */
     function _sendERC1155(bytes calldata data) private returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
@@ -220,9 +253,10 @@ contract TokenManagerERC1155 is TokenManager {
     }
 
     /**
-     * @dev Allows TokenManager to send ERC1155 tokens.
+     * @dev Allows TokenManager to send a batch of ERC1155 tokens.
      *  
-     * Emits a {ERC1155TokenCreated} event if to address = 0.
+     * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
+     * Emits a {ERC20TokenReceived} event on success.
      */
     function _sendERC1155Batch(bytes calldata data) private returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
@@ -258,6 +292,9 @@ contract TokenManagerERC1155 is TokenManager {
         return receiver;
     }
 
+    /**
+     * @dev Burn tokens on schain and send message to unlock them on target chain
+     */
     function _exit(
         bytes32 chainHash,
         address messageReceiver,
@@ -276,6 +313,9 @@ contract TokenManagerERC1155 is TokenManager {
         messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
     }
 
+    /**
+     * @dev Burn batch of tokens on schain and send message to unlock them on target chain
+     */
     function _exitBatch(
         bytes32 chainHash,
         address messageReceiver,
@@ -294,6 +334,9 @@ contract TokenManagerERC1155 is TokenManager {
         messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
     }
 
+    /**
+     * @dev Create array with single element in it
+     */
     function _asSingletonArray(uint256 element) private pure returns (uint256[] memory array) {
         array = new uint256[](1);
         array[0] = element;
