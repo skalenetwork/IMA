@@ -25,23 +25,56 @@ pragma solidity 0.8.6;
 import "./Precompiled.sol";
 
 
+/**
+ * @title Fp2Operations
+ * @dev This library contains operations of field that is an extension by imaginary unit of 
+ * a field of division remainders of a prime number
+ * 
+ * Element of field is Fp2Point
+ * 
+ * Prime divisor is P
+ * 
+ * Defined operations:
+ * 
+ * - addition
+ * - subtraction
+ * - scalar multiplication
+ * - multiplication
+ * - squaring
+ * - comparison for equality
+ */
 library Fp2Operations {
 
+    /**
+     * @dev Structure that represents the field element { a + ib }
+     */
     struct Fp2Point {
         uint a;
         uint b;
     }
 
+    /**
+     * @dev Prime devisor
+     */
     uint constant public P = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
+    /**
+     * @dev Add {value1} to {value2}
+     */
     function addFp2(Fp2Point memory value1, Fp2Point memory value2) internal pure returns (Fp2Point memory) {
         return Fp2Point({ a: addmod(value1.a, value2.a, P), b: addmod(value1.b, value2.b, P) });
     }
 
+    /**
+     * @dev Perform scalar multiplication of {value} by {scalar}
+     */
     function scalarMulFp2(Fp2Point memory value, uint scalar) internal pure returns (Fp2Point memory) {
         return Fp2Point({ a: mulmod(scalar, value.a, P), b: mulmod(scalar, value.b, P) });
     }
 
+    /**
+     * @dev Subtract {subtracted} from {diminished}
+     */
     function minusFp2(Fp2Point memory diminished, Fp2Point memory subtracted) internal pure
         returns (Fp2Point memory difference)
     {
@@ -58,6 +91,9 @@ library Fp2Operations {
         }
     }
 
+    /**
+     * @dev Multiply {value1} by {value2}
+     */
     function mulFp2(
         Fp2Point memory value1,
         Fp2Point memory value2
@@ -83,6 +119,9 @@ library Fp2Operations {
             p);
     }
 
+    /**
+     * @dev Square {value}
+     */
     function squaredFp2(Fp2Point memory value) internal pure returns (Fp2Point memory) {
         uint p = P;
         uint ab = mulmod(value.a, value.b, p);
@@ -90,6 +129,9 @@ library Fp2Operations {
         return Fp2Point({ a: mult, b: addmod(ab, ab, p) });
     }
 
+    /**
+     * @dev Check if {value1} is equal to {value2}
+     */
     function isEqual(
         Fp2Point memory value1,
         Fp2Point memory value2
