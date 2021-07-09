@@ -50,14 +50,36 @@ contract Linker is Twin {
         _;
     }
 
+    /**
+     * @dev Allows Linker to register external mainnet contracts
+     * 
+     * Requirements:
+     * 
+     * - Contract must be not registered
+     */
     function registerMainnetContract(address newMainnetContract) external onlyLinker {
         require(_mainnetContracts.add(newMainnetContract), "The contracts was not registered");
     }
 
+    /**
+     * @dev Allows Linker to remove external mainnet contracts
+     * 
+     * Requirements:
+     * 
+     * - Contract must be registered
+     */
     function removeMainnetContract(address mainnetContract) external onlyLinker {
         require(_mainnetContracts.remove(mainnetContract), "The contract was not removed");
     }
 
+    /**
+     * @dev Allows Linker to connect mainnet contracts with their receivers on schain
+     * 
+     * Requirements:
+     * 
+     * - Numbers of mainnnet contracts and schain contracts must be equal
+     * - Mainnet contract must implement method `addSchainContract`
+     */
     function connectSchain(string calldata schainName, address[] calldata schainContracts) external onlyLinker {
         require(schainContracts.length == _mainnetContracts.length(), "Incorrect number of addresses");
         for (uint i = 0; i < schainContracts.length; i++) {
@@ -66,6 +88,14 @@ contract Linker is Twin {
         messageProxy.addConnectedChain(schainName);
     }
 
+    /**
+     * @dev Allows Schain owner to connect others chains with his own,
+     * thus others schains have opportunity to send messages from chain to chain
+     * 
+     * Requirements:
+     * 
+     * - Schain should not be in the process of being killed
+     */
     function allowInterchainConnections(string calldata schainName) external onlySchainOwner(schainName) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(statuses[schainHash] == KillProcess.NotKilled, "Schain is in kill process");
@@ -77,6 +107,14 @@ contract Linker is Twin {
         );
     }
 
+    /**
+     * @dev Allows Schain owner and contract deployer to kill schain. 
+     * To kill the schain, both entities must call this function, and the order is not important.
+     * 
+     * Requirements:
+     * 
+     * - Interchain connection should be turned off
+     */
     function kill(string calldata schainName) external {
         require(!interchainConnections[keccak256(abi.encodePacked(schainName))], "Interchain connections turned on");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -103,6 +141,14 @@ contract Linker is Twin {
         }
     }
 
+    /**
+     * @dev Allows Linker disconnect schain from the network. This will remove all receiver contracts on schain.
+     * Thus, messages will not go from the mainnet to the schain.
+     * 
+     * Requirements:
+     * 
+     * - Mainnet contract should implement method `removeSchainContract`
+     */
     function disconnectSchain(string calldata schainName) external onlyLinker {
         uint length = _mainnetContracts.length();
         for (uint i = 0; i < length; i++) {
@@ -111,14 +157,23 @@ contract Linker is Twin {
         messageProxy.removeConnectedChain(schainName);
     }
 
+    /**
+     * @dev Returns true if schain is not killed
+     */
     function isNotKilled(bytes32 schainHash) external view returns (bool) {
         return statuses[schainHash] != KillProcess.Killed;
     }
 
+    /**
+     * @dev Returns true if list of mainnet contracts has particular contract
+     */
     function hasMainnetContract(address mainnetContract) external view returns (bool) {
         return _mainnetContracts.contains(mainnetContract);
     }
 
+    /**
+     * @dev Returns true if mainnet contracts and schain contracts connected together for transferring messages
+     */
     function hasSchain(string calldata schainName) external view returns (bool connected) {
         uint length = _mainnetContracts.length();
         connected = messageProxy.isConnectedChain(schainName);
@@ -127,6 +182,9 @@ contract Linker is Twin {
         }
     }
 
+    /**
+     * @dev Create a new Linker contract
+     */
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,
         MessageProxyForMainnet messageProxyValue
