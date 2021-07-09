@@ -25,21 +25,49 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgrad
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
 
 
+/**
+ * @title EthErc20
+ * @dev ERC20 token that represents ETH on mainnet
+ */
 contract EthErc20 is AccessControlEnumerableUpgradeable, ERC20BurnableUpgradeable {
 
+    /**
+     * @dev id of a role that allows token minting
+     */
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
+    /**
+     * @dev id of a role that allows token burning
+     */
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
+    /**
+     * @dev Mint tokens
+     * 
+     * Requirements:
+     * 
+     * - sender must be granted with {MINTER_ROLE}
+     */
     function mint(address account, uint256 amount) external {
         require(hasRole(MINTER_ROLE, _msgSender()), "MINTER role is required");
         _mint(account, amount);
     }
 
+    /**
+     * @dev Burn tokens for any account
+     * 
+     * Requirements:
+     * 
+     * - sender must be granted with {BURNER_ROLE}
+     */
     function forceBurn(address account, uint256 amount) external {
         require(hasRole(BURNER_ROLE, _msgSender()), "BURNER role is required");
         _burn(account, amount);
     }
 
+    /**
+     * @dev Is called once during contract deployment
+     */
     function initialize(address tokenManagerEthAddress)
         external
         virtual
