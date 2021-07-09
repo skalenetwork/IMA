@@ -26,11 +26,23 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgrad
 import "./bls/FieldOperations.sol";
 
 
+/**
+ * @title KeyStorage
+ * @dev Holds common BLS public key
+ */
 contract KeyStorage is AccessControlEnumerableUpgradeable {
 
     uint256 public constant FREE_MEM_PTR = 0x40;
+
+    /**
+     * @dev Address of custom precompiled contract on SKALE chain
+     * to get uin256 value from the config
+     */
     uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;
 
+    /**
+     * @dev Is called once during contract deployment
+     */
     function initialize()
         external
         virtual
@@ -40,6 +52,9 @@ contract KeyStorage is AccessControlEnumerableUpgradeable {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
+    /**
+     * @dev Get BLS common public key
+     */
     function getBlsCommonPublicKey() external view virtual returns (G2Operations.G2Point memory) {
         return G2Operations.G2Point({
             x: Fp2Operations.Fp2Point({
@@ -55,6 +70,9 @@ contract KeyStorage is AccessControlEnumerableUpgradeable {
 
     // private
 
+    /**
+     * @dev Get uint256 value from the skaled config
+     */
     function _getConfigVariableUint256(
         string memory strConfigVariableName
     )
