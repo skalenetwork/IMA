@@ -51,6 +51,10 @@ contract ERC20OnChain is AccessControlEnumerableUpgradeable, ERC20BurnableUpgrad
 
     /**
      * @dev Mint tokens
+     * 
+     * Requirements:
+     * 
+     * - sender must be granted with {MINTER_ROLE}
      */
     function mint(address account, uint256 value) external {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
