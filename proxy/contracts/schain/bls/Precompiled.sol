@@ -33,7 +33,8 @@ library Precompiled {
 
     /**
      * @dev Calls precompiled contract with address 0x8
-     * for elliptic curve pairing operations are required in order to perform zkSNARK verification within the block gas limit.
+     * for elliptic curve pairing operations are required in order to perform zkSNARK verification
+     * within the block gas limit.
      * see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-197.md for more details
      */
     function bn256Pairing(
