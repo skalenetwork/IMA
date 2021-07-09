@@ -172,7 +172,7 @@ contract Linker is Twin {
     }
 
     /**
-     * @dev Returns true if mainnet contracts and schain contracts connected together for transferring messages
+     * @dev Returns true if mainnet contracts and schain contracts are connected together for transferring messages
      */
     function hasSchain(string calldata schainName) external view returns (bool connected) {
         uint length = _mainnetContracts.length();

@@ -77,6 +77,9 @@ abstract contract Twin is SkaleManagerClient {
         delete schainLinks[schainHash];
     }
 
+    /**
+     * @dev Returns true if mainnet contract and schain contract are connected together for transferring messages
+     */
     function hasSchainContract(string calldata schainName) external view returns (bool) {
         return schainLinks[keccak256(abi.encodePacked(schainName))] != address(0);
     }
