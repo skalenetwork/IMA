@@ -1,5 +1,7 @@
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
 
+[![codecov](https://codecov.io/gh/skalenetwork/IMA/branch/develop/graph/badge.svg?token=rprj0137UA)](https://codecov.io/gh/skalenetwork/IMA)
+
 # SKALE IMA Proxy
 
 SKALE Interchain Messaging Smart Contracts
@@ -14,13 +16,14 @@ NPM version - 6.9.0
 
 This system allows sending and receiving messages from other chains. `MessageProxy.sol` contract needs to be deployed to Mainnet, and deployed to each SKALE chain to use it with the SKALE Interchain Messaging Agent.
 You can use MessageProxy contract separately by Interchain Messaging Smart Contracts:
-1) Add interface:
+
+1)  Add interface:
 
 ```solidity
 interface Proxy {
     function postOutgoingMessage(
-        string calldata dstChainID, 
-        address dstContract, 
+        string calldata targetSchainName, 
+        address targetContract, 
         uint256 amount, 
         address to, 
         bytes calldata data
@@ -29,12 +32,12 @@ interface Proxy {
 }
 ```
 
-2) Write `postMessage` function, which will receive and process messages from other chains:
+2)  Write `postMessage` function, which will receive and process messages from other chains:
 
 ```solidity
 function postMessage(
     address sender, 
-    string memory fromSchainID, 
+    string memory fromSchainName, 
     address payable to, 
     uint256 amount, 
     bytes memory data
@@ -45,9 +48,10 @@ function postMessage(
 }
 ```
 
-2) Add the address of MessageProxy on some chain:
+3)  Add the address of MessageProxy on some chain:
     Data of Smart contracts stores in `data` folder
-3) Then continue developing your dApp
+
+4)  Then continue developing your dApp
 
 ## Ether clone on SKALE chain
 
@@ -57,18 +61,16 @@ There is a Wrapped Ether clone(EthERC20.sol) on SKALE chains - it is an ERC20 to
 
 This system sends and receives ETH, ERC20, and ERC721 tokens from other chains.
 It consists of 3 additional smart contracts (not including MessageProxy contract):
-1) `DepositBox.sol` - contract only on a mainnet:
-    DepositBox can transfer ETH and ERC20, ERC721 tokens to other chains.
-     \- `deposit(string memory schainID, address to)` - transfer ETH.
-     ...
-2) `TokenManager.sol`
-3) `TokenFactory.sol`
+
+1)  `DepositBox.sol` - contract only on a mainnet: DepositBox can transfer ETH and ERC20, ERC721 tokens to other chains. \- `deposit(string memory schainName, address to)` - transfer ETH. ...
+2)  `TokenManager.sol`
+3)  `TokenFactory.sol`
 
 ## Install
 
-1) Clone this repo
-2) run `npm install`
-3) run `npm start`, this command will compile contracts
+1)  Clone this repo
+2)  run `npm install`
+3)  run `npm start`, this command will compile contracts
 
 ## Deployment
 
@@ -112,8 +114,8 @@ npm run deploy-to-both
 
 Results will be saved to `[RESULTS_FOLDER]/ima_data.json`
 
-- `ARTIFACTS_FOLDER` - path to `build/contracts` folder
-- `RESULTS_FOLDER` - path to the folder where `ima_data.json` will be saved
+-   `ARTIFACTS_FOLDER` - path to `build/contracts` folder
+-   `RESULTS_FOLDER` - path to the folder where `ima_data.json` will be saved
 
 ```bash
 cd proxy

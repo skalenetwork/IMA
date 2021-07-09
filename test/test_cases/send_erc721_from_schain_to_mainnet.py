@@ -34,6 +34,8 @@ class Senderc721ToMainnet(TestCase):
         super().__init__('Send ERC721 from schain to mainnet', config)
 
     def _prepare(self):
+        amount = 2 * 10 ** 18
+        self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amount)
         # deploy token
         self.erc721 = self.blockchain.deploy_erc721_on_mainnet(self.config.mainnet_key, 'elv721', 'ELV')
         # mint
@@ -51,7 +53,7 @@ class Senderc721ToMainnet(TestCase):
         sleep(5)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
-        self.blockchain.addERC721TokenByOwner(self.config.mainnet_key, self.config.schain_name, self.erc721.address)
+        self.blockchain.disableWhitelistERC721(self.config.mainnet_key, self.config.schain_name)
         self.blockchain.enableAutomaticDeployERC721(self.config.schain_key, "Mainnet")
         sleep(5)
         # send to schain
@@ -71,8 +73,7 @@ class Senderc721ToMainnet(TestCase):
 
         #
         sleep(5)
-        self.blockchain.add_eth_cost(self.config.schain_key,
-                                     amount_eth)
+
         #
         sleep(5)
         self.erc721_clone = self.blockchain.get_erc721_on_schain("Mainnet", self.erc721.address)
@@ -86,12 +87,15 @@ class Senderc721ToMainnet(TestCase):
             return
         #
         sleep(5)
-        self.agent.transfer_erc721_from_schain_to_mainnet(self.erc721_clone,
-                                                          self.erc721,
-                                                          self.config.schain_key,
-                                                          self.config.mainnet_key,
-                                                          self.token_id,
-                                                          self.timeout)
+        self.agent.transfer_erc721_from_schain_to_mainnet(
+            self.erc721_clone,
+            self.erc721,
+            self.config.schain_key,
+            self.config.mainnet_key,
+            self.token_id,
+            6 * 10 ** 16,
+            self.timeout
+        )
         #
         # erc721 = self.blockchain.get_erc721_on_mainnet(self.token_id)
         # new_owner_address = erc721.functions.ownerOf(self.token_id).call()

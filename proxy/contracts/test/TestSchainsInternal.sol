@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   TestSkaleVerifier.sol - SKALE Interchain Messaging Agent
+ *   TestSchainsInternal.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -20,16 +20,71 @@
  */
 
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
 
+import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 
-contract SchainsInternal {
+import "./TestContractManager.sol";
+import "./TestNodes.sol";
 
-    function isNodeAddressesInGroup(bytes32 schainId, address sender) external view returns (bool) {
+contract SchainsInternal is ISchainsInternal {
+
+    struct Schain {
+        string name;
+        address owner;
+        uint indexInOwnerList;
+        uint8 partOfNode;
+        uint lifetime;
+        uint startDate;
+        uint startBlock;
+        uint deposit;
+        uint64 index;
+    }
+
+    ContractManager public contractManager;
+
+    mapping (bytes32 => Schain) public schains;
+
+    mapping (bytes32 => bool) public isSchainActive;
+
+    mapping (bytes32 => uint[]) public schainsGroups;
+
+    function addContractManager(address newContractManager) external {
+        contractManager = ContractManager(newContractManager);
+    }
+
+    function initializeSchain(
+        string calldata name,
+        address from,
+        uint lifetime,
+        uint deposit) external
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(name));
+        schains[schainHash].name = name;
+        schains[schainHash].owner = from;
+        schains[schainHash].startDate = block.timestamp;
+        schains[schainHash].startBlock = block.number;
+        schains[schainHash].lifetime = lifetime;
+        schains[schainHash].deposit = deposit;
+        schains[schainHash].index = 1337;
+        isSchainActive[schainHash] = true;
+    }
+
+    function addNodesToSchainsGroups(bytes32 schainHash, uint[] memory nodes) external {
+        schainsGroups[schainHash] = nodes;
+    }
+
+    function isNodeAddressesInGroup(bytes32 schainHash, address sender) external view override returns (bool) {
+        Nodes nodes = Nodes(contractManager.getContract("Nodes"));
+        for (uint i = 0; i < schainsGroups[schainHash].length; i++) {
+            if (nodes.getNodeAddress(schainsGroups[schainHash][i]) == sender) {
+                return true;
+            }
+        }
         return true;
     }
 
-    function isOwnerAddress(address sender, bytes32 schainId) external view returns (bool) {
-        return true;
+    function isOwnerAddress(address from, bytes32 schainHash) external view override returns (bool) {
+        return schains[schainHash].owner == from;
     }
 }

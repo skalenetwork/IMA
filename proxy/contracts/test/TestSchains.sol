@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   TestSkaleVerifier.sol - SKALE Interchain Messaging Agent
+ *   TestSchains.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2019-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -20,24 +20,51 @@
  */
 
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
+
+import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
+
+import "./TestContractManager.sol";
+import "./KeyStorageMock.sol";
+import "./SkaleVerifierMock.sol";
 
 
-contract Schains {
+contract Schains is ISchains {
+
+    ContractManager public contractManager;
+
+    function addContractManager(address newContractManager) external {
+        contractManager = ContractManager(newContractManager);
+    }
 
     function verifySchainSignature(
-        uint256 signA,
-        uint256 signB,
+        uint signatureA,
+        uint signatureB,
         bytes32 hash,
-        uint256 counter,
-        uint256 hashA,
-        uint256 hashB,
+        uint counter,
+        uint hashA,
+        uint hashB,
         string calldata schainName
     )
         external
         view
+        override
         returns (bool)
     {
-        return true;
+        SkaleVerifierMock skaleVerifier = SkaleVerifierMock(contractManager.getContract("SkaleVerifier"));
+        G2Operations.G2Point memory publicKey = KeyStorageMock(
+            contractManager.getContract("KeyStorage")
+        ).getBlsCommonPublicKeyForSchain(
+            keccak256(abi.encodePacked(schainName))
+        );
+        return skaleVerifier.verify(
+            Fp2Operations.Fp2Point({
+                a: signatureA,
+                b: signatureB
+            }),
+            hash, counter,
+            hashA, hashB,
+            publicKey
+        );
     }
 }

@@ -1,14 +1,20 @@
-# truffle build
-proxy/build/
-proxy/types/
-
 # artifacts
 proxy/artifacts/
+test-tokens/artifacts/
 proxy/cache/
+test-tokens/cache/
+proxy/typechain
+test-tokens/typechain
 
 # openzeppelin
 proxy/.openzeppelin/dev-*.json
+proxy/.openzeppelin/unknown-*.json
 proxy/.openzeppelin/.session
+
+# predeployed generator artificats
+proxy/predeployed/test/additional.json
+proxy/predeployed/version.txt
+proxy/data/proxySchain_Bob.json.saved_copy
 
 # idea
 .DS_Store
@@ -34,6 +40,12 @@ proxy/coverage.json
 
 # tmp file after precompiled contracts generation
 proxy/data/precompiled.json.file
+
+proxy/predeployed/build
+proxy/predeployed/dist
+proxy/predeployed/src/ima_predeployed/artifacts
+*.egg-info
+proxy/predeployed/test/genesis.json
 
 # nyc test coverage
 .nyc_output
@@ -71,6 +83,7 @@ __pycache__/
 
 proxy/proxy.json
 proxy/data/*.json
+test-tokens/data/*.json
 ima_data.json
 
 test/working

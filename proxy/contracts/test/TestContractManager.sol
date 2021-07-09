@@ -19,35 +19,40 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
+
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
 
 
-contract ContractManager {
+contract ContractManager is IContractManager {
+    using AddressUpgradeable for address;
 
     // mapping of actual smart contracts addresses
     mapping (bytes32 => address) public contracts;
 
+    address public owner;
+
     event ContractUpgraded(string contractsName, address contractsAddress);
+
+    constructor() {
+        owner = msg.sender;
+    }
 
     /**
      * Adds actual contract to mapping of actual contract addresses
      * @param contractsName - contracts name in skale manager system
      * @param newContractsAddress - contracts address in skale manager system
      */
-    function setContractsAddress(string calldata contractsName, address newContractsAddress) external {
+    function setContractsAddress(string calldata contractsName, address newContractsAddress) external override {
         // check newContractsAddress is not equal zero
         require(newContractsAddress != address(0), "New address is equal zero");
         // create hash of contractsName
         bytes32 contractId = keccak256(abi.encodePacked(contractsName));
         // check newContractsAddress is not equal the previous contract's address
         require(contracts[contractId] != newContractsAddress, "Contract is already added");
-        uint256 length;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            length := extcodesize(newContractsAddress)
-        }
         // check newContractsAddress contains code
-        require(length > 0, "Given contracts address is not contain code");
+        require(newContractsAddress.isContract(), "Given contracts address is not contain code");
         // add newContractsAddress to mapping of actual contract addresses
         contracts[contractId] = newContractsAddress;
         emit ContractUpgraded(contractsName, newContractsAddress);
@@ -56,7 +61,7 @@ contract ContractManager {
     /**
      * @dev Returns the contract address for a given contractName.
      */
-    function getContract(string memory contractName) external view returns (address) {
+    function getContract(string memory contractName) external view override returns (address) {
         return contracts[keccak256(abi.encodePacked(contractName))];
     }
 }

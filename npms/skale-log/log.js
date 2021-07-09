@@ -135,17 +135,28 @@ function insertStandardOutputStream() {
 function createMemoryOutputStream() {
     try {
         const objEntry = {
-			  strPath: "memory",
-			  nMaxSizeBeforeRotation: -1,
-			  nMaxFilesCount: -1,
-			  strAccumulatedLogText: "",
-			  write: function( s ) {
+            strPath: "memory",
+            nMaxSizeBeforeRotation: -1,
+            nMaxFilesCount: -1,
+            strAccumulatedLogText: "",
+            write: function( s ) {
                 this.strAccumulatedLogText += s;
             },
-			  close: function() { this.strAccumulatedLogText = ""; },
-			  open: function() { this.strAccumulatedLogText = ""; },
-			  size: function() { return 0; },
-			  rotate: function( nBytesToWrite ) { this.strAccumulatedLogText = ""; }
+            clear: function() { this.strAccumulatedLogText = ""; },
+            close: function() { this.clear(); },
+            open: function() { this.clear(); },
+            size: function() { return 0; },
+            rotate: function( nBytesToWrite ) { this.strAccumulatedLogText = ""; },
+            toString: function() { return "" + this.strAccumulatedLogText; },
+            exposeDetailsTo: function( otherStream, strTitle, isSuccess ) {
+                strTitle = strTitle ? ( cc.bright( " (" ) + cc.attention( strTitle ) + cc.bright( ")" ) ) : "";
+                const strSuccessPrefix = isSuccess ? cc.success( "SUCCESS" ) : cc.fatal( "ERROR" );
+                otherStream.write(
+                    cc.bright( "\n\n\n--- --- --- --- --- GATHERED " ) + strSuccessPrefix + cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) + cc.bright( " action (" ) + cc.sunny( "BEGIN" ) + cc.bright( ") --- --- ------ --- \n\n" ) +
+                    this.strAccumulatedLogText +
+                    cc.bright( "\n--- --- --- --- --- GATHERED " ) + strSuccessPrefix + cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) + cc.bright( " action (" ) + cc.sunny( "END" ) + cc.bright( ") --- --- --- --- ---\n\n\n\n" )
+                );
+            }
         };
         objEntry.open();
         return objEntry;
@@ -197,7 +208,7 @@ function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount )
                     let i = 0; const cnt = 0 + this.nMaxFilesCount;
                     for( i = 0; i < cnt; ++i ) {
                         const j = this.nMaxFilesCount - i - 1;
-                        const strPath = "" + this.strPath + ( ( j == 0 ) ? "" : ( "." + j ) );
+                        const strPath = "" + this.strPath + ( ( j === 0 ) ? "" : ( "." + j ) );
                         if( j == ( cnt - 1 ) ) {
                             try { fs.unlinkSync( strPath ); } catch ( err ) { }
                             continue;
@@ -271,6 +282,9 @@ module.exports = {
     },
     addMemory: function() {
         return insertMemoryOutputStream();
+    },
+    createMemoryStream: function() {
+        return createMemoryOutputStream();
     },
     add: function( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
         return insertFileOutput(

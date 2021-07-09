@@ -71,7 +71,7 @@ function validateRadix( value, radix ) {
     value = value.trim();
     radix = ( radix == null || radix == undefined )
         ? ( ( value.length > 2 && value[0] == "0" && ( value[1] == "x" || value[1] == "X" ) ) ? 16 : 10 )
-        : parseInt( radix );
+        : parseInt( radix, 10 );
     return radix;
 }
 
@@ -83,7 +83,7 @@ function validateInteger( value, radix ) {
             return false;
         radix = validateRadix( value, radix );
         if( ( !isNaN( value ) ) &&
-            ( parseInt( Number( value ), radix ) == value || radix != 10 ) &&
+            ( parseInt( Number( value ), radix ) == value || radix !== 10 ) &&
             ( !isNaN( parseInt( value, radix ) ) )
         )
             return true;
@@ -154,7 +154,7 @@ function toURL( s ) {
         const u = new URL( s );
         if( !u.hostname )
             return null;
-        if( u.hostname.length == 0 )
+        if( u.hostname.length === 0 )
             return null;
         u.strStrippedStringComma = null;
         return u;
@@ -241,7 +241,7 @@ function toEthPrivateKey( value, defValue ) {
 }
 
 function verifyArgumentWithNonEmptyValue( joArg ) {
-    if( ( !joArg.value ) || ( typeof joArg.value === "string" && joArg.value.length == 0 ) ) {
+    if( ( !joArg.value ) || ( typeof joArg.value === "string" && joArg.value.length === 0 ) ) {
         console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
         process.exit( 126 );
     }
@@ -282,6 +282,21 @@ function verifyArgumentIsInteger( joArg ) {
     }
 }
 
+function verifyArgumentIsIntegerIpPortNumber( joArg ) {
+    try {
+        verifyArgumentIsInteger( joArg );
+        if( joArg.value < 0 )
+            throw new Error( "Port number " + joArg.value + " cannot be negative" );
+        if( joArg.value < 1 )
+            throw new Error( "Port number " + joArg.value + " too small" );
+        if( joArg.value > 65535 )
+            throw new Error( "Port number " + joArg.value + " too big" );
+    } catch ( err ) {
+        console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid integer IP port number" ) );
+        process.exit( 126 );
+    }
+}
+
 function verifyArgumentIsPathToExistingFile( joArg ) {
     try {
         verifyArgumentWithNonEmptyValue( joArg );
@@ -316,6 +331,36 @@ function verifyArgumentIsPathToExistingFolder( joArg ) {
         return joArg;
     } catch ( err ) {
         console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be path to existing folder" ) );
+        process.exit( 126 );
+    }
+}
+
+function verifyArgumentIsArrayOfIntegers( joArg ) {
+    try {
+        verifyArgumentWithNonEmptyValue( joArg );
+        if( joArg.value.length < 3 ) {
+            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " length " ) + cc.warning( joArg.value.length ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be bigger than 2" ) );
+            process.exit( 126 );
+        }
+        if( joArg.value[0] !== "[" || joArg.value[joArg.value.length - 1] !== "]" ) {
+            console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " first and last symbol " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be brackets" ) );
+            process.exit( 126 );
+        }
+        const newValue = joArg.value.replace( "[", "" ).replace( "]", "" ).split( "," );
+        for( let index = 0; index < newValue.length; index++ ) {
+            if( !newValue[index] || ( typeof newValue[index] === "string" && newValue[index].length === 0 ) ) {
+                console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( newValue[index] ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
+                process.exit( 126 );
+            }
+            if( !validateInteger( newValue[index] ) ) {
+                console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( newValue[index] ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid integer" ) );
+                process.exit( 126 );
+            }
+            newValue[index] = toInteger( newValue[index] );
+        }
+        return newValue;
+    } catch ( err ) {
+        console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid integer array" ) );
         process.exit( 126 );
     }
 }
@@ -536,8 +581,10 @@ module.exports = {
     verifyArgumentWithNonEmptyValue: verifyArgumentWithNonEmptyValue,
     verifyArgumentIsURL: verifyArgumentIsURL,
     verifyArgumentIsInteger: verifyArgumentIsInteger,
+    verifyArgumentIsIntegerIpPortNumber: verifyArgumentIsIntegerIpPortNumber,
     verifyArgumentIsPathToExistingFile: verifyArgumentIsPathToExistingFile,
     verifyArgumentIsPathToExistingFolder: verifyArgumentIsPathToExistingFolder,
+    verifyArgumentIsArrayOfIntegers: verifyArgumentIsArrayOfIntegers,
     ensure_starts_with_0x: ensure_starts_with_0x,
     remove_starting_0x: remove_starting_0x,
     private_key_2_public_key: private_key_2_public_key,

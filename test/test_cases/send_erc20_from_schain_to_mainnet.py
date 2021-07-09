@@ -29,13 +29,15 @@ class SendERC20ToMainnet(TestCase):
     erc20 = None
     erc20_clone = None
     amount = 4
-    # index of token in lock_and_data_for_schain_erc20.sol
+    # index of token in token_manager_erc20.sol
     index = 1
 
     def __init__(self, config):
         super().__init__('Send ERC20 from schain to mainnet', config)
 
     def _prepare(self):
+        amount = 2 * 10 ** 18
+        self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amount)
 
         # deploy token
 
@@ -53,7 +55,7 @@ class SendERC20ToMainnet(TestCase):
                                                                               private_key=self.config.mainnet_key)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
-        self.blockchain.addERC20TokenByOwner(self.config.mainnet_key, self.config.schain_name, self.erc20.address)
+        self.blockchain.disableWhitelistERC20(self.config.mainnet_key, self.config.schain_name)
         self.blockchain.enableAutomaticDeployERC20(self.config.schain_key, "Mainnet")
 
         # send to schain
@@ -71,8 +73,8 @@ class SendERC20ToMainnet(TestCase):
                                                        amount_of_eth,
                                                        self.timeout)
 
-        self.blockchain.add_eth_cost(self.config.schain_key,
-                                     amount_of_eth)
+        # self.blockchain.add_eth_cost(self.config.schain_key,
+        #                              amount_of_eth)
 
         self.erc20_clone = self.blockchain.get_erc20_on_schain("Mainnet", self.erc20.address)
 
@@ -85,13 +87,15 @@ class SendERC20ToMainnet(TestCase):
             return
         balance = self.erc20.functions.balanceOf(destination_address).call()
 
-        self.agent.transfer_erc20_from_schain_to_mainnet(self.erc20_clone, # token
-                                                         self.erc20, # token on mainnet
-                                                         self.config.schain_key, # from
-                                                         self.config.mainnet_key, # to
-                                                         (self.amount - 2), # 2 tokens
-                                                         self.index,
-                                                         self.timeout)
+        self.agent.transfer_erc20_from_schain_to_mainnet(
+            self.erc20_clone, # token
+            self.erc20, # token on mainnet
+            self.config.schain_key, # from
+            self.config.mainnet_key, # to
+            (self.amount - 2), # 2 tokens
+            6 * 10 ** 16,
+            self.timeout
+        )
 
         # if self.erc20.functions.balanceOf(destination_address).call() == balance + self.amount:
         if self.erc20.functions.balanceOf(destination_address).call() == (self.amount - 2):
