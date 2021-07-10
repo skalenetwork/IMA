@@ -408,9 +408,10 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
         for( i = 0; i < cnt; ++i ) {
             const joMessage = jarrMessages[i]; const idxMessage = nIdxCurrentMsgBlockStart + i;
             try {
+                details.write( cc.debug( "Will validate message " ) + cc.info( i ) + cc.debug( " of " ) + cc.info( cnt ) + "\n" );
                 // const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
                 const outgoingMessageData = {
-                    dstChainHash: w3.utils.soliditySha3( joChainName ),
+                    dstChain: w3.utils.soliditySha3( joChainName ), // dstChainHash
                     msgCounter: idxMessage,
                     srcContract: joMessage.sender,
                     dstContract: joMessage.destinationContract,
@@ -418,12 +419,12 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
                     // amount: strHexAmount,
                     data: joMessage.data
                 };
+                details.write( cc.debug( "Outgoing message data is " ) + cc.j( outgoingMessageData ) + "\n" );
                 const m = joMessageProxy.methods.verifyOutgoingMessageData(
                     outgoingMessageData
                 );
-                // console.log( "Will do call", m );
                 const isValidMessage = await m.call( { from: strCallerAccountAddress } );
-                // console.log( "Got call result", isValidMessage );
+                details.write( cc.debug( "Got verification call result " ) + cc.tf( isValidMessage ) + "\n" );
                 if( !isValidMessage )
                     throw new Error( "Bad message detected, message is: " + JSON.stringify( joMessage ) );
             } catch ( err ) {
