@@ -411,7 +411,7 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
                 details.write( cc.debug( "Will validate message " ) + cc.info( i ) + cc.debug( " of " ) + cc.info( cnt ) + "\n" );
                 // const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
                 const outgoingMessageData = {
-                    dstChain: w3.utils.soliditySha3( joChainName ), // dstChainHash
+                    dstChainHash: w3.utils.soliditySha3( joChainName ), // dstChainHash
                     msgCounter: idxMessage,
                     srcContract: joMessage.sender,
                     dstContract: joMessage.destinationContract,
