@@ -202,39 +202,10 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         external
         virtual;
 
-    function registerExtraContract(
-        string memory schainName,
-        address extraContract
-    )
-        public
-        virtual
-        onlyExtraContractRegistrar
-    {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));        
-        require(extraContract.isContract(), "Given address is not a contract");
-        require(!registryContracts[schainHash][extraContract], "Extra contract is already registered");
-        require(!registryContracts[bytes32(0)][extraContract], "Extra contract is already registered for all chains");
-        
-        registryContracts[schainHash][extraContract] = true;
-    }
-
     function registerExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
         require(extraContract.isContract(), "Given address is not a contract");
         require(!registryContracts[bytes32(0)][extraContract], "Extra contract is already registered");
         registryContracts[bytes32(0)][extraContract] = true;
-    }
-
-    function removeExtraContract(
-        string memory schainName,
-        address extraContract
-    )
-        public
-        virtual
-        onlyExtraContractRegistrar
-    {
-        bytes32 chainHash = keccak256(abi.encodePacked(schainName));
-        require(registryContracts[chainHash][extraContract], "Extra contract is not registered");
-        delete registryContracts[chainHash][extraContract];
     }
 
     function removeExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
@@ -359,6 +330,29 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
             );
             return address(0);
         }
+    }
+    
+    function _registerExtraContract(
+        bytes32 chainHash,
+        address extraContract
+    )
+        internal
+    {      
+        require(extraContract.isContract(), "Given address is not a contract");
+        require(!registryContracts[chainHash][extraContract], "Extra contract is already registered");
+        require(!registryContracts[bytes32(0)][extraContract], "Extra contract is already registered for all chains");
+        
+        registryContracts[chainHash][extraContract] = true;
+    }
+
+    function _removeExtraContract(
+        bytes32 chainHash,
+        address extraContract
+    )
+        internal
+    {
+        require(registryContracts[chainHash][extraContract], "Extra contract is not registered");
+        delete registryContracts[chainHash][extraContract];
     }
 
     /**

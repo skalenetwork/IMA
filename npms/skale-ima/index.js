@@ -236,8 +236,8 @@ async function get_web3_transactionReceipt( details, attempts, w3, txHash ) {
         } catch ( e ) {}
         attemptIndex++;
     }
-    if( attemptIndex + 1 > allAttempts && txReceipt === "" )
-        throw new Error( "Could not not get Transaction Count" );
+    if( attemptIndex + 1 > allAttempts && ( txReceipt === "" || txReceipt === undefined ) )
+        throw new Error( "Could not not get Transaction Receipt" );
     return txReceipt;
 }
 
@@ -445,14 +445,19 @@ function get_account_connectivity_info( joAccount ) {
     return joACI;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 const g_tm_pool = "transactions";
 
 const tm_gen_random_hex = size => [ ...Array( size ) ].map( () => Math.floor( Math.random() * 16 ).toString( 16 ) ).join( "" );
 
-function tm_make_id() {
+function tm_make_id( details ) {
     const prefix = "tx-";
     const unique = tm_gen_random_hex( 16 );
-    return prefix + unique;
+    const id = prefix + unique + "js";
+    details.write( cc.debug( "TM - Generated id: " ) + cc.debug( id ) + "\n" );
+    return id;
 }
 
 function tm_make_record( tx = {}, score ) {
@@ -465,13 +470,13 @@ function tm_make_record( tx = {}, score ) {
 }
 
 function tm_make_score( priority ) {
-    const ts = parseInt( Date.now() / 1000 );
+    const ts = Math.floor( ( new Date() ).getTime() / 1000 );
     return priority * Math.pow( 10, ts.toString().length ) + ts;
 }
 
 async function tm_send( details, tx, priority = 5 ) {
     details.write( cc.debug( "TM - sending tx " ) + cc.j( tx ) + "\n" );
-    const id = tm_make_id();
+    const id = tm_make_id( details );
     const score = tm_make_score( priority );
     const record = tm_make_record( tx, score );
     details.write( cc.debug( "TM - Sending score: " ) + cc.info( score ) + cc.debug( ", record: " ) + cc.info( record ) + "\n" );
@@ -501,12 +506,35 @@ async function tm_wait( details, tx_id, w3 ) {
     let hash;
     while( hash === undefined ) {
         const r = await tm_get_record( tx_id );
-        if( tm_is_finished( r ) )
-            hash = r.tx_hash;
+        if( tm_is_finished( r ) ) {
+            if( r.status == "DROPPED" )
+                return null;
+        }
+        hash = r.tx_hash;
     }
     details.write( cc.debug( "TM - TX hash is " ) + cc.info( hash ) + "\n" );
     // return await w3.eth.getTransactionReceipt( hash );
     return await get_web3_transactionReceipt( details, 10, w3, hash );
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+async function tm_ensure_transaction( details, w3, priority, txAdjusted ) {
+    let attemptIndex = 0;
+    const allAttempts = 10;
+    let tx_id = "";
+    let joReceipt = null;
+    while( joReceipt === null && attemptIndex < allAttempts ) {
+        tx_id = await tm_send( details, txAdjusted, priority );
+        details.write( cc.debug( "TM - generated TX ID: " ) + cc.info( tx_id ) + "\n" );
+        joReceipt = await tm_wait( details, tx_id, w3 );
+        ++attemptIndex;
+    }
+    if( joReceipt === null )
+        throw new Error( `TM transaction ${tx_id} transaction has been dropped` );
+
+    return [ tx_id, joReceipt ];
 }
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
@@ -591,8 +619,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         if( redis == null )
             redis = new Redis( joAccount.strTransactionManagerURL );
         const priority = joAccount.tm_priority || 5;
-        const tx_id = await tm_send( details, txAdjusted, priority );
-        const joReceipt = await tm_wait( details, tx_id, w3 );
+        const [ tx_id, joReceipt ] = tm_ensure_transaction( details, w3, priority, txAdjusted );
         joSR.txHashSent = "" + joReceipt.transactionHash;
         joSR.joReceipt = joReceipt;
         joSR.tm_tx_id = tx_id;

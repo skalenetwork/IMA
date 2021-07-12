@@ -1,5 +1,7 @@
 <!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
 
+[![codecov](https://codecov.io/gh/skalenetwork/IMA/branch/develop/graph/badge.svg?token=rprj0137UA)](https://codecov.io/gh/skalenetwork/IMA)
+
 # SKALE IMA Proxy
 
 SKALE Interchain Messaging Smart Contracts

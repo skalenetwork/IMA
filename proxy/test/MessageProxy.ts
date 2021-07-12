@@ -492,7 +492,7 @@ describe("MessageProxy", () => {
             it("should register extra contract", async () => {
                 const fakeContractOnSchain = deployer.address;
                 await messageProxyForMainnet.connect(user).registerExtraContract(schainName,  depositBox.address)
-                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
+                    .should.be.eventually.rejectedWith("Not enough permissions to register extra contract");
                 await messageProxyForMainnet.registerExtraContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
@@ -525,7 +525,7 @@ describe("MessageProxy", () => {
             it("should remove extra contract", async () => {
                 const fakeContractOnSchain = deployer.address;
                 await messageProxyForMainnet.connect(user).removeExtraContract(schainName,  depositBox.address)
-                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
+                    .should.be.eventually.rejectedWith("Not enough permissions to register extra contract");
                 await messageProxyForMainnet.removeExtraContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
 
