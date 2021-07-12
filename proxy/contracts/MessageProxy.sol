@@ -303,7 +303,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         }
     }
 
-    function _callGasPayer(
+    function _getGasPayer(
         bytes32 schainHash,
         Message calldata message,
         uint counter

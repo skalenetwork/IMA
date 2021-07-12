@@ -284,21 +284,23 @@ describe("MessageProxy", () => {
                     startingCounter,
                     outgoingMessages,
                     sign
-                ); // .should.be.eventually.rejectedWith("User should be active");
+                );
+
+            // check gas usage
 
             await communityPool.connect(client).rechargeUserWallet(schainName, {value: amountWei.toString()});
 
-            // await messageProxyForMainnet
-            //     .connect(deployer)
-            //     .postIncomingMessages(
-            //         schainName,
-            //         startingCounter,
-            //         outgoingMessages,
-            //         sign
-            //     );
+            await messageProxyForMainnet
+                .connect(deployer)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter + 2,
+                    outgoingMessages,
+                    sign
+                );
             const incomingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
-            incomingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
+            incomingMessagesCounter.should.be.deep.equal(BigNumber.from(4));
         });
 
         it("should get outgoing messages counter", async () => {
