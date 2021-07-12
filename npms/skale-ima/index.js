@@ -236,8 +236,8 @@ async function get_web3_transactionReceipt( details, attempts, w3, txHash ) {
         } catch ( e ) {}
         attemptIndex++;
     }
-    if( attemptIndex + 1 > allAttempts && txReceipt === "" )
-        throw new Error( "Could not not get Transaction Count" );
+    if( attemptIndex + 1 > allAttempts && ( txReceipt === "" || txReceipt === undefined ) )
+        throw new Error( "Could not not get Transaction Receipt" );
     return txReceipt;
 }
 
@@ -534,7 +534,7 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted ) {
     if( joReceipt === null )
         throw new Error( `TM transaction ${tx_id} transaction has been dropped` );
 
-    return [tx_id, joReceipt];
+    return [ tx_id, joReceipt ];
 }
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
@@ -619,7 +619,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         if( redis == null )
             redis = new Redis( joAccount.strTransactionManagerURL );
         const priority = joAccount.tm_priority || 5;
-        const [tx_id, joReceipt] = tm_ensure_transaction( details, w3, priority, txAdjusted );
+        const [ tx_id, joReceipt ] = tm_ensure_transaction( details, w3, priority, txAdjusted );
         joSR.txHashSent = "" + joReceipt.transactionHash;
         joSR.joReceipt = joReceipt;
         joSR.tm_tx_id = tx_id;
