@@ -531,7 +531,7 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted ) {
         joReceipt = await tm_wait( details, tx_id, w3 );
         ++attemptIndex;
     }
-    if( joReceipt === null )
+    if( !joReceipt )
         throw new Error( `TM transaction ${tx_id} transaction has been dropped` );
 
     return [ tx_id, joReceipt ];
