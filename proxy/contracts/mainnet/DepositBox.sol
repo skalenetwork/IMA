@@ -26,28 +26,40 @@ import "./Linker.sol";
 import "./MessageProxyForMainnet.sol";
 
 
+
 /**
- * @title ProxyConnectorMainnet - connected module for Upgradeable approach, knows ContractManager
- * @author Artem Payvin
+ * @title DepositBox
+ * @dev abstract contracts for DepositBoxes on mainnet
  */
 abstract contract DepositBox is IMessageReceiver, Twin {
 
     Linker public linker;
 
+    // schainHash => true if automatic depoyment tokens on schain was enabled 
     mapping(bytes32 => bool) private _automaticDeploy;
 
     bytes32 public constant DEPOSIT_BOX_MANAGER_ROLE = keccak256("DEPOSIT_BOX_MANAGER_ROLE");
 
+    /**
+     * @dev Modifier for checking whether schain was not killed
+     */
     modifier whenNotKilled(bytes32 schainHash) {
         require(linker.isNotKilled(schainHash), "Schain is killed");
         _;
     }
 
+    /**
+     * @dev Modifier for checking whether schain was killed
+     */
     modifier whenKilled(bytes32 schainHash) {
         require(!linker.isNotKilled(schainHash), "Schain is not killed");
         _;
     }
 
+    /**
+     * @dev Modifier for checking whether schainName is not equal to `Mainnet` 
+     * and address of receiver is not equal to null before transferring funds from mainnet to schain
+     */
     modifier rightTransaction(string memory schainName, address to) {
         require(
             keccak256(abi.encodePacked(schainName)) != keccak256(abi.encodePacked("Mainnet")),
@@ -57,6 +69,10 @@ abstract contract DepositBox is IMessageReceiver, Twin {
         _;
     }
 
+    /**
+     * @dev Modifier for checking whether schainHash is not equal to `Mainnet` 
+     * and sender contract was added as contract processor on schain
+     */
     modifier checkReceiverChain(bytes32 schainHash, address sender) {
         require(
             schainHash != keccak256(abi.encodePacked("Mainnet")) &&

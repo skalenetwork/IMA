@@ -28,11 +28,16 @@ import "../../Messages.sol";
 import "../DepositBox.sol";
 
 
-// This contract runs on the main net and accepts deposits
+/**
+ * @title DepositBoxERC20
+ * @dev Runs on mainnet,
+ * accepts messages from schain,
+ * stores deposits of ERC20.
+ */
 contract DepositBoxERC20 is DepositBox {
     using AddressUpgradeable for address;
 
-        // schainHash => address of ERC on Mainnet
+    // schainHash => address of ERC20 on Mainnet
     mapping(bytes32 => mapping(address => bool)) public schainToERC20;
     mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
 

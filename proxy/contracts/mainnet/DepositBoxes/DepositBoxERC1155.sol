@@ -28,7 +28,12 @@ import "../DepositBox.sol";
 import "../../Messages.sol";
 
 
-// This contract runs on the main net and accepts deposits
+/**
+ * @title DepositBoxERC1155
+ * @dev Runs on mainnet,
+ * accepts messages from schain,
+ * stores deposits of ERC1155.
+ */
 contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
 
     using AddressUpgradeable for address;
@@ -39,9 +44,14 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     mapping(bytes32 => mapping(address => mapping(uint256 => uint256))) public transferredAmount;
 
     /**
-     * @dev Emitted when token is mapped.
+     * @dev Emitted when token is mapped in DepositBoxERC20.
      */
     event ERC1155TokenAdded(string schainName, address indexed contractOnMainnet);
+
+    /**
+     * @dev Emitted when token is received by DepositBox and is ready to be cloned
+     * or transferred on SKALE chain.
+     */
     event ERC1155TokenReady(address indexed contractOnMainnet, uint256[] ids, uint256[] amounts);
 
     function onERC1155Received(

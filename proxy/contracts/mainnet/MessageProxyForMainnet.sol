@@ -64,11 +64,17 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
     uint256 public headerMessageGasCost;
     uint256 public messageGasCost;
 
+    /**
+     * @dev Emitted when gas cost for message header was changed
+     */
     event GasCostMessageHeaderWasChanged(
         uint256 oldValue,
         uint256 newValue
     );
 
+    /**
+     * @dev Emitted when gas cost for message was changed
+     */
     event GasCostMessageWasChanged(
         uint256 oldValue,
         uint256 newValue
@@ -232,9 +238,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         require(keccak256(abi.encodePacked(schainName)) != MAINNET_HASH, "Schain id can not be equal Mainnet");
         return super.isConnectedChain(schainName);
     }
-
-    // Create a new message proxy
-
+    /**
+     * @dev Creates a new MessageProxyForMainnet contract
+     */
     function initialize(IContractManager contractManagerOfSkaleManagerValue) public virtual override initializer {
         SkaleManagerClient.initialize(contractManagerOfSkaleManagerValue);
         MessageProxy.initializeMessageProxy(1e6);

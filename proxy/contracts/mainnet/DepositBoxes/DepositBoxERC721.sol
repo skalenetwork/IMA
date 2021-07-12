@@ -28,7 +28,12 @@ import "../DepositBox.sol";
 import "../../Messages.sol";
 
 
-// This contract runs on the main net and accepts deposits
+/**
+ * @title DepositBoxERC721
+ * @dev Runs on mainnet,
+ * accepts messages from schain,
+ * stores deposits of ERC721.
+ */
 contract DepositBoxERC721 is DepositBox {
     using AddressUpgradeable for address;
 
@@ -37,9 +42,14 @@ contract DepositBoxERC721 is DepositBox {
     mapping(address => mapping(uint256 => bytes32)) public transferredAmount;
 
     /**
-     * @dev Emitted when token is mapped in LockAndDataForMainnetERC721.
+     * @dev Emitted when token is mapped in DepositBoxERC721.
      */
     event ERC721TokenAdded(string schainName, address indexed contractOnMainnet);
+
+    /**
+     * @dev Emitted when token is received by DepositBox and is ready to be cloned
+     * or transferred on SKALE chain.
+     */
     event ERC721TokenReady(address indexed contractOnMainnet, uint256 tokenId);
 
     /**

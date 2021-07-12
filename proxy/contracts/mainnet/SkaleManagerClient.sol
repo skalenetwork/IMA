@@ -37,6 +37,9 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
 
     IContractManager public contractManagerOfSkaleManager;
 
+    /**
+     * @dev Modifier for checking whether caller is owner of SKALE chain
+     */
     modifier onlySchainOwner(string memory schainName) {
         require(
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))),

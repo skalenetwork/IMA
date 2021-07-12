@@ -33,7 +33,9 @@ abstract contract Twin is SkaleManagerClient {
     mapping(bytes32 => address) public schainLinks;
     bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
 
-
+    /**
+     * @dev Modifier for checking whether caller is MessageProxy contract
+     */
     modifier onlyMessageProxy() {
         require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
         _;

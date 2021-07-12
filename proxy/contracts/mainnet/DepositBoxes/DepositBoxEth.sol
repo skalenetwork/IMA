@@ -26,9 +26,12 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "../DepositBox.sol";
 import "../../Messages.sol";
 
-
-
-// This contract runs on the main net and accepts deposits
+/**
+ * @title DepositBoxEth
+ * @dev Runs on mainnet,
+ * accepts messages from schain,
+ * stores deposits of ETH.
+ */
 contract DepositBoxEth is DepositBox {
     using AddressUpgradeable for address payable;
 

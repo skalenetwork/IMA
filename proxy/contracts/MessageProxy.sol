@@ -36,6 +36,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
     uint256 public constant MESSAGES_LENGTH = 10;
 
+    /**
+     * @dev Structure that stores counters for outgoing and incoming messages
+     */
     struct ConnectedChainInfo {
         // message counters start with 0
         uint256 incomingMessageCounter;
@@ -43,12 +46,20 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         bool inited;
     }
 
+    /**
+     * @dev Structure that describes message. Should contain sender of message,
+     * destination contract on schain that will receiver message,
+     * data that contains all needed info about token or ETH.
+     */
     struct Message {
         address sender;
         address destinationContract;
         bytes data;
     }
 
+    /**
+     * @dev Structure that contains fields for bls signature
+     */
     struct Signature {
         uint256[2] blsSignature;
         uint256 hashA;
@@ -64,7 +75,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     uint256 public gasLimit;
 
     /**
-     * @dev Emitted for every outgoing message to `dstChain`.
+     * @dev Emitted for every outgoing message to schain
      */
     event OutgoingMessage(
         bytes32 indexed dstChainHash,
@@ -74,26 +85,42 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         bytes data
     );
 
+    /**
+     * @dev Emitted when function `postMessage` returns revert.
+     * We do this so that the loop inside the function `postIncomingMessages` does not get stuck.
+     */
     event PostMessageError(
         uint256 indexed msgCounter,
         bytes message
     );
 
+    /**
+     * @dev Emitted when gas limit per one call of `postMessage` was changed
+     */
     event GasLimitWasChanged(
         uint256 oldValue,
         uint256 newValue
     );
 
+    /**
+     * @dev Modifier to make a function callable only if caller is granted with {CHAIN_CONNECTOR_ROLE}
+     */
     modifier onlyChainConnector() {
         require(hasRole(CHAIN_CONNECTOR_ROLE, msg.sender), "CHAIN_CONNECTOR_ROLE is required");
         _;
     }
 
+    /**
+     * @dev Modifier to make a function callable only if caller is granted with {EXTRA_CONTRACT_REGISTRAR_ROLE}
+     */
     modifier onlyExtraContractRegistrar() {
         require(hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender), "EXTRA_CONTRACT_REGISTRAR_ROLE is required");
         _;
     }
 
+    /**
+     * @dev Modifier to make a function callable only if caller is granted with {CONSTANT_SETTER_ROLE}
+     */
     modifier onlyConstantSetter() {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         _;
@@ -108,7 +135,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         gasLimit = newGasLimit;
     }
 
-    // Registration state detection
+    /**
+     * @dev Checkes whether schain was connected to MessageProxy
+     */
     function isConnectedChain(
         string memory schainName
     )
@@ -121,23 +150,17 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     }
 
     /**
-     * @dev Allows LockAndData to add a `schainName`.
-     * 
-     * Requirements:
-     * 
-     * - `msg.sender` must be SKALE Node address.
-     * - `schainName` must not be "Mainnet".
-     * - `schainName` must not already be added.
+     * @dev Allows `msg.sender` to connect schain with MessageProxy for transfering messages
      */
     function addConnectedChain(string calldata schainName) external virtual;
 
     /**
-     * @dev Allows LockAndData to remove connected chain from this contract.
-     * 
+     * @dev Allows `msg.sender` to disconnect schain with MessageProxy for transfering messages
+     *
      * Requirements:
-     * 
-     * - `msg.sender` must be LockAndData contract.
-     * - `schainName` must be initialized.
+     *  
+     * - `msg.sender` must be granted CHAIN_CONNECTOR_ROLE.
+     * - Chain must be initialized
      */
     function removeConnectedChain(string memory schainName) public virtual onlyChainConnector {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -158,12 +181,15 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     }
 
     /**
-     * @dev Posts message from this contract to `targetSchainName` MessageProxy contract.
+     * @dev Posts message from this contract to `targetChainHash` MessageProxy contract.
      * This is called by a smart contract to make a cross-chain call.
      * 
+     * Emits an {OutgoingMessage} event.
+     *
      * Requirements:
      * 
-     * - `targetSchainName` must be initialized.
+     * - Target chain must be initialized
+     * - Target chain must be registered as external contract
      */
     function postOutgoingMessage(
         bytes32 targetChainHash,
@@ -191,6 +217,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         connectedChains[targetChainHash].outgoingMessageCounter += 1;
     }
 
+    /**
+     * @dev Virtual function for `postIncomingMessages`
+     */
     function postIncomingMessages(
         string calldata fromSchainName,
         uint256 startingCounter,
@@ -200,20 +229,37 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         external
         virtual;
 
+    /**
+     * @dev Allows `msg.sender` to register extra contract for all schains
+     * for being able to transfer messages from custom contracts
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE
+     * - Passed address should be contract
+     * - Extra contract must not be registered
+     */
     function registerExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
         require(extraContract.isContract(), "Given address is not a contract");
         require(!registryContracts[bytes32(0)][extraContract], "Extra contract is already registered");
         registryContracts[bytes32(0)][extraContract] = true;
     }
 
+    /**
+     * @dev Allows `msg.sender` to remove extra contract for all schains.
+     * Extra contract will no longer be able to send messages through MessageProxy
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE
+     */
     function removeExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
         require(registryContracts[bytes32(0)][extraContract], "Extra contract is not registered");
         delete registryContracts[bytes32(0)][extraContract];
     }
 
     /**
-     * @dev Checks whether contract is currently connected to
-     * send messages to chain or receive messages from chain.
+     * @dev Checks whether contract is currently registered as extra contract
      */
     function isContractRegistered(
         string calldata schainName,
@@ -228,11 +274,11 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     }
 
     /**
-     * @dev Returns number of outgoing messages to some schain
+     * @dev Returns number of outgoing messages
      * 
      * Requirements:
      * 
-     * - `targetSchainName` must be initialized.
+     * - Target schain  must be initialized.
      */
     function getOutgoingMessagesCounter(string calldata targetSchainName)
         external
@@ -245,11 +291,11 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     }
 
     /**
-     * @dev Returns number of incoming messages from some schain
+     * @dev Returns number of incoming messages
      * 
      * Requirements:
      * 
-     * - `fromSchainName` must be initialized.
+     * - Source schain must be initialized.
      */
     function getIncomingMessagesCounter(string calldata fromSchainName)
         external
@@ -261,8 +307,14 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         return connectedChains[srcChainHash].incomingMessageCounter;
     }
 
-    // private
-
+    /**
+     * @dev Allows MessageProxy to connect schain with MessageProxyOnMainnet for transfering messages
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted CHAIN_CONNECTOR_ROLE.
+     * - Schain must not be connected
+     */
     function _addConnectedChain(bytes32 schainHash) internal onlyChainConnector {
         require(!connectedChains[schainHash].inited,"Chain is already connected");
         connectedChains[schainHash] = ConnectedChainInfo({
@@ -272,6 +324,10 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         });
     }
 
+    /**
+     * @dev Allows MessageProxy to send messages from schain to mainnet.
+     * Destination contract must implement `postMessage` method.
+     */
     function _callReceiverContract(
         bytes32 schainHash,
         Message calldata message,
@@ -301,6 +357,15 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         }
     }
 
+    /**
+     * @dev Allows MessageProxy to register extra contract for being able to transfer messages from custom contracts
+     * 
+     * Requirements:
+     * 
+     * - Extra contract address must be contract
+     * - Extra contract must not be registered
+     * - Extra contract must not be registered for all chains
+     */
     function _registerExtraContract(
         bytes32 chainHash,
         address extraContract
@@ -314,6 +379,14 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         registryContracts[chainHash][extraContract] = true;
     }
 
+    /**
+     * @dev Allows MessageProxy to remove extra contract,
+     * thus `extraContract` will no longer be available to transfer messages from mainnet to schain
+     * 
+     * Requirements:
+     * 
+     * - Extra contract must be registered
+     */
     function _removeExtraContract(
         bytes32 chainHash,
         address extraContract

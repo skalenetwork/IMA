@@ -32,8 +32,9 @@ import "./MessageProxyForMainnet.sol";
 
 /**
  * @title Linker For Mainnet
- * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
- * balances of ETH tokens received through DepositBox.
+ * @dev Runs on Mainnet,
+ * links contracts on mainnet with their twin on schain,
+ * allows to kill schain when interchain connection was not enabled.
  */
 contract Linker is Twin {
     using AddressUpgradeable for address;
@@ -42,9 +43,15 @@ contract Linker is Twin {
     enum KillProcess {NotKilled, PartiallyKilledBySchainOwner, PartiallyKilledByContractOwner, Killed}
     EnumerableSetUpgradeable.AddressSet private _mainnetContracts;
 
+    // schainHash => true if interchain connection was enabled
     mapping(bytes32 => bool) public interchainConnections;
+
+    // schainHash => schain status of killing process 
     mapping(bytes32 => KillProcess) public statuses;
 
+    /**
+     * @dev Modifier to make a function callable only if caller is granted with {LINKER_ROLE}
+     */
     modifier onlyLinker() {
         require(hasRole(LINKER_ROLE, msg.sender), "Linker role is required");
         _;

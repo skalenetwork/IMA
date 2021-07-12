@@ -37,11 +37,17 @@ contract CommunityPool is Twin {
 
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
+    // address of user => schainHash => balance of gas wallet in ETH
     mapping(address => mapping(bytes32 => uint)) private _userWallets;
+
+    // address of user => schainHash => true if unlocked for transferring
     mapping(address => mapping(bytes32 => bool)) public activeUsers;
 
     uint public minTransactionGas;    
 
+    /**
+     * @dev Emitted when minimal value in gas for transactions from schain to mainnet was changed 
+     */
     event MinTransactionGasWasChanged(
         uint oldValue,
         uint newValue
