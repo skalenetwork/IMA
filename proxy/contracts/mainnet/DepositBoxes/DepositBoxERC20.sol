@@ -111,6 +111,21 @@ contract DepositBoxERC20 is DepositBox {
         return message.receiver;
     }
 
+    function getReceiver(
+        bytes32 schainHash,
+        address sender,
+        bytes calldata data
+    )
+        external
+        view
+        override
+        checkReceiverChain(schainHash, sender)
+        returns (address)
+    {
+        Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
+        return message.receiver;
+    }
+
     /**
      * @dev Allows Schain owner to add an ERC20 token to DepositBoxERC20.
      */

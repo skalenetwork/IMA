@@ -25,7 +25,6 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 
-import "../interfaces/IMessageReceiver.sol";
 import "../MessageProxy.sol";
 import "./SkaleManagerClient.sol";
 import "./CommunityPool.sol";
@@ -141,21 +140,22 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         uint notReimbursedGas = 0;
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
-            address receiver = _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
-            if (!registryContracts[bytes32(0)][messages[i].destinationContract] || receiver == address(0)) {
-                notReimbursedGas += gasTotal - gasleft() + additionalGasPerMessage;
-                continue;
-            } else {
-                try communityPool.refundGasByUser(
-                    fromSchainHash,
-                    payable(msg.sender),
-                    receiver,
-                    gasTotal - gasleft() + additionalGasPerMessage
-                // solhint-disable-next-line no-empty-blocks
-                ) returns (bool) {
-                } catch (bytes memory) {
+            if (registryContracts[bytes32(0)][messages[i].destinationContract]) {
+                address receiver = _callGetReceiver(fromSchainHash, messages[i], startingCounter + i);
+                if (communityPool.checkUserBalance(fromSchainHash, receiver)) {
+                    _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
+                    communityPool.refundGasByUser(
+                        fromSchainHash,
+                        payable(msg.sender),
+                        receiver,
+                        gasTotal - gasleft() + additionalGasPerMessage
+                    );
+                } else {
                     notReimbursedGas += gasTotal - gasleft() + additionalGasPerMessage;
                 }
+            } else {
+                _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
+                notReimbursedGas += gasTotal - gasleft() + additionalGasPerMessage;
             }
         }
         connectedChains[fromSchainHash].incomingMessageCounter += messages.length;
@@ -185,8 +185,6 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         emit GasCostMessageWasChanged(messageGasCost, newMessageGasCost);
         messageGasCost = newMessageGasCost;
     }
-
-    
 
     /**
      * @dev Checks whether chain is currently connected.
