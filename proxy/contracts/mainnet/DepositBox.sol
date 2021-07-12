@@ -30,7 +30,7 @@ import "./MessageProxyForMainnet.sol";
  * @title ProxyConnectorMainnet - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-abstract contract DepositBox is IMessageReceiverReimbursement, Twin {
+abstract contract DepositBox is IGasReimbursable, Twin {
 
     Linker public linker;
 

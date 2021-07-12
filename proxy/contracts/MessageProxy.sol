@@ -25,7 +25,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgrad
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "./interfaces/IMessageReceiver.sol";
-import "./interfaces/IMessageReceiverReimbursement.sol";
+import "./interfaces/IGasReimbursable.sol";
 
 
 abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
@@ -303,7 +303,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         }
     }
 
-    function _callGetReceiver(
+    function _callGasPayer(
         bytes32 schainHash,
         Message calldata message,
         uint counter
@@ -311,7 +311,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         internal
         returns (address)
     {
-        try IMessageReceiverReimbursement(message.destinationContract).getReceiver{gas: gasLimit}(
+        try IGasReimbursable(message.destinationContract).gasPayer{gas: gasLimit}(
             schainHash,
             message.sender,
             message.data

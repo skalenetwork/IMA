@@ -81,7 +81,7 @@ contract DepositBoxEth is DepositBox {
         return message.receiver;
     }
 
-    function getReceiver(
+    function gasPayer(
         bytes32 schainHash,
         address sender,
         bytes calldata data

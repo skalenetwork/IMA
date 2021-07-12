@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   IMessageReceiverReimbursement.sol - SKALE Interchain Messaging Agent
+ *   IGasReimbursable.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -21,17 +21,11 @@
 
 pragma solidity 0.8.6;
 
+import "./IMessageReceiver.sol";
 
-interface IMessageReceiverReimbursement {
-    function postMessage(
-        bytes32 schainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        returns (address);
 
-    function getReceiver(
+interface IGasReimbursable is IMessageReceiver {
+    function gasPayer(
         bytes32 schainHash,
         address sender,
         bytes calldata data

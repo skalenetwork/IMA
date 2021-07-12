@@ -151,7 +151,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
             if (registryContracts[bytes32(0)][messages[i].destinationContract]) {
-                address receiver = _callGetReceiver(fromSchainHash, messages[i], startingCounter + i);
+                address receiver = _callGasPayer(fromSchainHash, messages[i], startingCounter + i);
                 if (communityPool.checkUserBalance(fromSchainHash, receiver)) {
                     _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
                     communityPool.refundGasByUser(
