@@ -22,13 +22,13 @@
     "dependencies": {
         "@nomiclabs/hardhat-ethers": "^2.0.2",
         "@nomiclabs/hardhat-web3": "^2.0.0",
-        "@openzeppelin/contracts-upgradeable": "^4.1.0",
+        "@openzeppelin/contracts-upgradeable": "^4.2.0",
         "@openzeppelin/hardhat-upgrades": "^1.9.0",
         "@skalenetwork/skale-manager-interfaces": "^0.1.2",
         "dotenv": "^10.0.0",
         "ethereumjs-tx": "2.1.2",
         "ethers": "^5.4.1",
-        "hardhat": "^2.4.1",
+        "hardhat": "^2.4.3",
         "path": "^0.12.7",
         "web3": "^1.4.0"
     },
