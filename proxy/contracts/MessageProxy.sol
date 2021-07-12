@@ -25,6 +25,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgrad
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "./interfaces/IMessageReceiver.sol";
+import "./interfaces/IMessageReceiverReimbursement.sol";
 
 
 abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
@@ -323,6 +324,35 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     {
         require(registryContracts[chainHash][extraContract], "Extra contract is not registered");
         delete registryContracts[chainHash][extraContract];
+    }
+
+    function _callGetReceiver(
+        bytes32 schainHash,
+        Message calldata message,
+        uint counter
+    )
+        internal
+        returns (address)
+    {
+        try IMessageReceiverReimbursement(message.destinationContract).getReceiver{gas: gasLimit}(
+            schainHash,
+            message.sender,
+            message.data
+        ) returns (address receiver) {
+            return receiver;
+        } catch Error(string memory reason) {
+            emit PostMessageError(
+                counter,
+                bytes(reason)
+            );
+            return address(0);
+        } catch (bytes memory revertData) {
+            emit PostMessageError(
+                counter,
+                revertData
+            );
+            return address(0);
+        }
     }
 
     /**
