@@ -191,7 +191,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         }
     }
 
-    function getReceiver(
+    function gasPayer(
         bytes32 schainHash,
         address sender,
         bytes calldata data
