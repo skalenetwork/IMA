@@ -28,7 +28,6 @@ import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 import "../Messages.sol";
 import "./MessageProxyForMainnet.sol";
 import "./Linker.sol";
-import "hardhat/console.sol";
 
 /**
  * @title CommunityPool
