@@ -26,7 +26,10 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "./interfaces/IMessageReceiver.sol";
 
-
+/**
+ * @title MessageProxy
+ * @dev abstract contract for MessageProxyForMainnet and MessageProxyForSchain
+ */
 abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     using AddressUpgradeable for address;
 

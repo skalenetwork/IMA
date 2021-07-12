@@ -26,7 +26,11 @@ pragma solidity 0.8.6;
 import "./MessageProxyForMainnet.sol";
 import "./SkaleManagerClient.sol";
 
-
+/**
+ * @title Twin
+ * @dev Runs on Mainnet,
+ * contains logic for connecting paired contracts on Mainnet and on Schain
+ */
 abstract contract Twin is SkaleManagerClient {
 
     MessageProxyForMainnet public messageProxy;

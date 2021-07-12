@@ -30,8 +30,6 @@ import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 /**
  * @title SkaleManagerClient - contract that knows ContractManager
  * and makes calls to SkaleManager contracts
- * @author Artem Payvin
- * @author Dmytro Stebaiev
  */
 contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable {
 
