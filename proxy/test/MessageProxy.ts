@@ -30,7 +30,7 @@ import {
     ContractManager,
     Linker,
     MessageProxyForMainnet,
-    MessageProxyForMainnetTester,
+    MessageProxyCaller,
     MessageProxyForSchain,
     MessageProxyForSchainWithoutSignature,
     MessagesTester,
@@ -55,7 +55,7 @@ import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
 import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 
-import { deployMessageProxyForMainnetTester } from "./utils/deploy/test/messageProxyForMainnetTester";
+import { deployMessageProxyCaller } from "./utils/deploy/test/messageProxyCaller";
 import { deployMessages } from "./utils/deploy/messages";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
@@ -80,7 +80,7 @@ describe("MessageProxy", () => {
     let depositBox: DepositBoxEth;
     let contractManager: ContractManager;
     let messageProxyForMainnet: MessageProxyForMainnet;
-    let caller: MessageProxyForMainnetTester;
+    let caller: MessageProxyCaller;
     let imaLinker: Linker;
     let messages: MessagesTester;
     let communityPool: CommunityPool;
@@ -113,7 +113,7 @@ describe("MessageProxy", () => {
             contractManager = await deployContractManager(contractManagerAddress);
             // contractManagerAddress = contractManager.address;
             messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
-            caller = await deployMessageProxyForMainnetTester();
+            caller = await deployMessageProxyCaller();
             imaLinker = await deployLinker(contractManager, messageProxyForMainnet);
             depositBox = await deployDepositBoxEth(contractManager, imaLinker, messageProxyForMainnet);
             messages = await deployMessages();
@@ -560,7 +560,7 @@ describe("MessageProxy", () => {
             keyStorage = await deployKeyStorageMock();
             messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, "Base schain");
             messages = await deployMessages();
-            caller = await deployMessageProxyForMainnetTester();
+            caller = await deployMessageProxyCaller();
             const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
             await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, deployer.address);
             const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
@@ -792,7 +792,7 @@ describe("MessageProxy", () => {
             const messageProxyForSchainWithoutSignature = await messageProxyForSchainWithoutSignatureFactory.deploy() as MessageProxyForSchainWithoutSignature;
             await messageProxyForSchainWithoutSignature.initialize(deployer.address, "MyChain2");
             messages = await deployMessages();
-            caller = await deployMessageProxyForMainnetTester();
+            caller = await deployMessageProxyCaller();
             const chainConnectorRole = await messageProxyForSchainWithoutSignature.CHAIN_CONNECTOR_ROLE();
             await messageProxyForSchainWithoutSignature.connect(deployer).grantRole(chainConnectorRole, deployer.address);
             const extraContractRegistrarRole = await messageProxyForSchainWithoutSignature.EXTRA_CONTRACT_REGISTRAR_ROLE();
