@@ -28,6 +28,7 @@ import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 import "../Messages.sol";
 import "./MessageProxyForMainnet.sol";
 import "./Linker.sol";
+import "hardhat/console.sol";
 
 /**
  * @title CommunityPool
@@ -76,7 +77,7 @@ contract CommunityPool is Twin {
         require(node != address(0), "Node address must be set");
         uint amount = tx.gasprice * gas;
         _userWallets[user][schainHash] = _userWallets[user][schainHash] - amount;
-        if (!_isEnoughForGas(schainHash, user, 0)) {
+        if (!_balanceIsSufficient(schainHash, user, 0)) {
             activeUsers[user][schainHash] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
@@ -119,7 +120,7 @@ contract CommunityPool is Twin {
     function rechargeUserWallet(string calldata schainName, address user) external payable {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
-            _isEnoughForGas(schainHash, msg.sender, msg.value),
+            _balanceIsSufficient(schainHash, msg.sender, msg.value),
             "Not enough ETH for transaction"
         );
         _userWallets[user][schainHash] = _userWallets[user][schainHash] + msg.value;
@@ -138,7 +139,7 @@ contract CommunityPool is Twin {
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash] - amount;
         if (
-            !_isEnoughForGas(schainHash, msg.sender, 0) &&
+            !_balanceIsSufficient(schainHash, msg.sender, 0) &&
             activeUsers[msg.sender][schainHash]
         ) {
             activeUsers[msg.sender][schainHash] = false;
@@ -162,10 +163,10 @@ contract CommunityPool is Twin {
     }
 
     function checkUserBalance(bytes32 schainHash, address receiver) external view returns (bool) {
-        return activeUsers[receiver][schainHash] && _isEnoughForGas(schainHash, receiver, 0);
+        return activeUsers[receiver][schainHash] && _balanceIsSufficient(schainHash, receiver, 0);
     }
 
-    function _isEnoughForGas(bytes32 schainHash, address receiver, uint256 delta) private view returns (bool) {
+    function _balanceIsSufficient(bytes32 schainHash, address receiver, uint256 delta) private view returns (bool) {
         return delta + _userWallets[receiver][schainHash] >= minTransactionGas * tx.gasprice;
     } 
 }

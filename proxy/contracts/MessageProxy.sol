@@ -326,7 +326,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         delete registryContracts[chainHash][extraContract];
     }
 
-    function _callGasPayer(
+    function _getGasPayer(
         bytes32 schainHash,
         Message calldata message,
         uint counter
