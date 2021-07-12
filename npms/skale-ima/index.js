@@ -601,6 +601,10 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         const priority = joAccount.tm_priority || 5;
         const tx_id = await tm_send( details, txAdjusted, priority );
         const joReceipt = await tm_wait( details, tx_id, w3 );
+        if( ! joReceipt ) {
+            details.write( cc.error( "No receipt form Transaction Manager" ) + "\n" );
+            throw new Error( "No receipt form Transaction Manager" );
+        }
         joSR.txHashSent = "" + joReceipt.transactionHash;
         joSR.joReceipt = joReceipt;
         joSR.tm_tx_id = tx_id;
