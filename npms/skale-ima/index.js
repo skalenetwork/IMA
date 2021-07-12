@@ -523,6 +523,8 @@ async function tm_wait( details, tx_id, w3 ) {
 async function tm_ensure_transaction( details, w3, priority, txAdjusted ) {
     let attemptIndex = 0;
     const allAttempts = 10;
+    let tx_id = "";
+    let joReceipt = null;
     while( joReceipt === null && attemptIndex < allAttempts ) {
         tx_id = await tm_send( details, txAdjusted, priority );
         details.write( cc.debug( "TM - generated TX ID: " ) + cc.info( tx_id ) + "\n" );
@@ -530,9 +532,9 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted ) {
         ++attemptIndex;
     }
     if( joReceipt === null )
-        throw new Error( "TM transaction has been dropped" );
+        throw new Error( `TM transaction ${tx_id} transaction has been dropped` );
 
-    return joReceipt;
+    return [tx_id, joReceipt];
 }
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
@@ -617,9 +619,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         if( redis == null )
             redis = new Redis( joAccount.strTransactionManagerURL );
         const priority = joAccount.tm_priority || 5;
-        let joReceipt = null;
-        const tx_id = "";
-        joReceipt = tm_ensure_transaction( details, w3, priority, txAdjusted );
+        const [tx_id, joReceipt] = tm_ensure_transaction( details, w3, priority, txAdjusted );
         joSR.txHashSent = "" + joReceipt.transactionHash;
         joSR.joReceipt = joReceipt;
         joSR.tm_tx_id = tx_id;
