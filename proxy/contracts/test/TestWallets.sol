@@ -63,4 +63,8 @@ contract Wallets is IWallets {
         _schainWallets[schainHash] += msg.value;
         emit SchainWalletRecharged(msg.sender, msg.value, schainHash);
     }
+
+    function getSchainBalance(bytes32 schainHash) external view override returns (uint) {
+        return _schainWallets[schainHash];
+    }
 }
