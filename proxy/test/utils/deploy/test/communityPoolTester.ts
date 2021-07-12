@@ -1,11 +1,11 @@
 import { ethers } from "hardhat";
-import { ContractManager, MessageProxyForMainnet, Linker, CommunityPool } from "../../../../typechain";
+import { ContractManager, MessageProxyForMainnetTester, Linker, CommunityPool } from "../../../../typechain";
 
 
-export async function deployCommunityPool(
+export async function deployCommunityPoolTester(
     contractManager: ContractManager,
     linker: Linker,
-    messageProxy: MessageProxyForMainnet
+    messageProxy: MessageProxyForMainnetTester
 ) {
     const factory = await ethers.getContractFactory("CommunityPool");
     const instance = await factory.deploy() as CommunityPool;
