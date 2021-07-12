@@ -409,13 +409,10 @@ describe("TokenManagerERC20", () => {
                 }
             );
             await tokenManagerErc20.connect(schainOwner).enableAutomaticDeploy();
-            console.log("Before preparation");
             await messageProxyForSchain.postMessage(tokenManagerErc20.address, fromSchainHash, remoteTokenManagerAddress, data);
-            console.log("After preparation");
 
             // execution
             const UINT256_MAX = BigNumber.from(2).pow(256).sub(1);
-            console.log(UINT256_MAX.toString());
 
             data = await messages.encodeTransferErc20AndTotalSupplyMessage(
                 erc20OnMainnet.address,
