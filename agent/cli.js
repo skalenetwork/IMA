@@ -956,6 +956,8 @@ function getWeb3FromURL( strURL ) {
 }
 
 function ima_common_init() {
+    log.write( cc.info( "This process " ) + cc.sunny( "PID" ) + cc.info( " is " ) + cc.bright( process.pid ) + "\n" );
+
     let n1 = 0;
     let n2 = 0;
     imaState.joTrufflePublishResult_main_net = imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net, null );
