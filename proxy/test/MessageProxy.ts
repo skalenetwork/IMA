@@ -286,8 +286,6 @@ describe("MessageProxy", () => {
                     sign
                 );
 
-            // check gas usage
-
             await communityPool.connect(client).rechargeUserWallet(schainName, {value: amountWei.toString()});
 
             await messageProxyForMainnet
