@@ -236,8 +236,8 @@ async function get_web3_transactionReceipt( details, attempts, w3, txHash ) {
         } catch ( e ) {}
         attemptIndex++;
     }
-    if( attemptIndex + 1 > allAttempts && txReceipt === "" )
-        throw new Error( "Could not not get Transaction Count" );
+    if( attemptIndex + 1 > allAttempts && ( txReceipt === "" || txReceipt === undefined ) )
+        throw new Error( "Could not not get Transaction Receipt" );
     return txReceipt;
 }
 
@@ -470,8 +470,7 @@ function tm_make_record( tx = {}, score ) {
 }
 
 function tm_make_score( priority ) {
-    const d = Date.now();
-    const ts = Math.floor( ( d ).getTime() / 1000 );
+    const ts = Math.floor( ( new Date() ).getTime() / 1000 );
     return priority * Math.pow( 10, ts.toString().length ) + ts;
 }
 
@@ -507,8 +506,11 @@ async function tm_wait( details, tx_id, w3 ) {
     let hash;
     while( hash === undefined ) {
         const r = await tm_get_record( tx_id );
-        if( tm_is_finished( r ) )
-            hash = r.tx_hash;
+        if( tm_is_finished( r ) ) {
+            if( r.status == "DROPPED" )
+                return null;
+        }
+        hash = r.tx_hash;
     }
     details.write( cc.debug( "TM - TX hash is " ) + cc.info( hash ) + "\n" );
     // return await w3.eth.getTransactionReceipt( hash );
@@ -517,6 +519,23 @@ async function tm_wait( details, tx_id, w3 ) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+async function tm_ensure_transaction( details, w3, priority, txAdjusted ) {
+    let attemptIndex = 0;
+    const allAttempts = 10;
+    let tx_id = "";
+    let joReceipt = null;
+    while( joReceipt === null && attemptIndex < allAttempts ) {
+        tx_id = await tm_send( details, txAdjusted, priority );
+        details.write( cc.debug( "TM - generated TX ID: " ) + cc.info( tx_id ) + "\n" );
+        joReceipt = await tm_wait( details, tx_id, w3 );
+        ++attemptIndex;
+    }
+    if( joReceipt === null )
+        throw new Error( `TM transaction ${tx_id} transaction has been dropped` );
+
+    return [ tx_id, joReceipt ];
+}
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
     const joSR = {
@@ -600,8 +619,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         if( redis == null )
             redis = new Redis( joAccount.strTransactionManagerURL );
         const priority = joAccount.tm_priority || 5;
-        const tx_id = await tm_send( details, txAdjusted, priority );
-        const joReceipt = await tm_wait( details, tx_id, w3 );
+        const [ tx_id, joReceipt ] = tm_ensure_transaction( details, w3, priority, txAdjusted );
         joSR.txHashSent = "" + joReceipt.transactionHash;
         joSR.joReceipt = joReceipt;
         joSR.tm_tx_id = tx_id;
