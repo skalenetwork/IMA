@@ -228,6 +228,7 @@ async function main() {
                 } else {
                     try {
                         await contractManagerInst.setContractsAddress( "MessageProxyForMainnet", deployed.get( "MessageProxyForMainnet" )?.address);
+                        await contractManagerInst.setContractsAddress( "CommunityPool", deployed.get( "CommunityPool" )?.address);
                         console.log( "Successfully registered MessageProxy in ContractManager" );
                     } catch ( error ) {
                         console.log( "Registration of MessageProxy is failed on ContractManager. Please redo it by yourself!\nError:", error );
