@@ -174,75 +174,75 @@ async function wait_for_next_block_to_appear( details, w3 ) {
 }
 
 async function get_web3_blockNumber( details, attempts, w3 ) {
-    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    const cntAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
     let nLatestBlockNumber = "";
     try {
         nLatestBlockNumber = await w3.eth.getBlockNumber();
     } catch ( e ) {}
-    let attemptIndex = 2;
-    while( nLatestBlockNumber === "" && attemptIndex <= allAttempts ) {
+    let idxAttempt = 2;
+    while( nLatestBlockNumber === "" && idxAttempt <= cntAttempts ) {
         details.write(
-            cc.warning( "Repeat " ) + cc.error( "getBlockNumber" ) + cc.warning( ", attempt " ) + cc.info( attemptIndex ) +
+            cc.warning( "Repeat " ) + cc.error( "getBlockNumber" ) + cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
             cc.info( ", previous result is: " ) + cc.info( nLatestBlockNumber ) + "\n" );
         await sleep( 10000 );
         try {
             nLatestBlockNumber = await w3.eth.getBlockNumber();
         } catch ( e ) {}
-        attemptIndex++;
+        idxAttempt++;
     }
-    if( attemptIndex + 1 > allAttempts && nLatestBlockNumber === "" )
+    if( idxAttempt + 1 > cntAttempts && nLatestBlockNumber === "" )
         throw new Error( "Could not not get blockNumber" );
     return nLatestBlockNumber;
 }
 
 async function get_web3_transactionCount( details, attempts, w3, address, param ) {
-    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    const cntAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
     let txc = "";
     try {
         txc = await w3.eth.getTransactionCount( address, param );
     } catch ( e ) {}
-    let attemptIndex = 2;
-    while( txc === "" && attemptIndex <= allAttempts ) {
+    let idxAttempt = 2;
+    while( txc === "" && idxAttempt <= cntAttempts ) {
         details.write(
             cc.warning( "Repeat " ) + cc.error( "getTransactionCount" ) +
-            cc.warning( " attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( " attempt " ) + cc.error( idxAttempt ) +
             cc.warning( ", previous result is: " ) + cc.info( txc ) + "\n"
         );
         await sleep( 10000 );
         try {
             txc = await w3.eth.getBlockNumber();
         } catch ( e ) {}
-        attemptIndex++;
+        idxAttempt++;
     }
-    if( attemptIndex + 1 > allAttempts && txc === "" )
+    if( idxAttempt + 1 > cntAttempts && txc === "" )
         throw new Error( "Could not not get Transaction Count" );
     return txc;
 }
 
 async function get_web3_transactionReceipt( details, attempts, w3, txHash ) {
-    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    const cntAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
     let txReceipt = "";
     try {
         txReceipt = await w3.eth.getTransactionReceipt( txHash );
     } catch ( e ) {}
-    let attemptIndex = 2;
-    while( txReceipt === "" && attemptIndex <= allAttempts ) {
+    let idxAttempt = 2;
+    while( txReceipt === "" && idxAttempt <= cntAttempts ) {
         details.write(
-            cc.warning( "Repeat " ) + cc.error( "getTransactionReceipt" ) + cc.warning( ", attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( "Repeat " ) + cc.error( "getTransactionReceipt" ) + cc.warning( ", attempt " ) + cc.error( idxAttempt ) +
             cc.warning( ", previous result is: " ) + cc.j( txReceipt ) + "\n" );
         await sleep( 10000 );
         try {
             txReceipt = await w3.eth.getTransactionReceipt( txHash );
         } catch ( e ) {}
-        attemptIndex++;
+        idxAttempt++;
     }
-    if( attemptIndex + 1 > allAttempts && ( txReceipt === "" || txReceipt === undefined ) )
+    if( idxAttempt + 1 > cntAttempts && ( txReceipt === "" || txReceipt === undefined ) )
         throw new Error( "Could not not get Transaction Receipt" );
     return txReceipt;
 }
 
 async function get_web3_pastEvents( details, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
-    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    const cntAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
     let joAllEventsInBlock = "";
     try {
         joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
@@ -251,11 +251,11 @@ async function get_web3_pastEvents( details, attempts, joContract, strEventName,
             toBlock: nBlockTo
         } );
     } catch ( e ) {}
-    let attemptIndex = 2;
-    while( joAllEventsInBlock === "" && attemptIndex <= allAttempts ) {
+    let idxAttempt = 2;
+    while( joAllEventsInBlock === "" && idxAttempt <= cntAttempts ) {
         details.write(
             cc.warning( "Repeat " ) + cc.error( "getPastEvents" ) + cc.warning( "/" ) + cc.error( strEventName ) +
-            cc.warning( ", attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( ", attempt " ) + cc.error( idxAttempt ) +
             cc.warning( ", previous result is: " ) + cc.j( joAllEventsInBlock ) + "\n" );
         await sleep( 1000 );
         try {
@@ -265,9 +265,9 @@ async function get_web3_pastEvents( details, attempts, joContract, strEventName,
                 toBlock: nBlockTo
             } );
         } catch ( e ) {}
-        attemptIndex++;
+        idxAttempt++;
     }
-    if( attemptIndex + 1 === allAttempts && joAllEventsInBlock === "" )
+    if( idxAttempt + 1 === cntAttempts && joAllEventsInBlock === "" )
         throw new Error( "Could not not get Event" + strEventName );
     return joAllEventsInBlock;
 }
@@ -520,20 +520,27 @@ async function tm_wait( details, tx_id, w3 ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function tm_ensure_transaction( details, w3, priority, txAdjusted ) {
-    let attemptIndex = 0;
-    const allAttempts = 10;
+async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAttempts, sleepMilliseconds ) {
+    cntAttempts = cntAttempts || 10;
+    sleepMilliseconds = sleepMilliseconds || 3000;
     let tx_id = "";
     let joReceipt = null;
-    while( joReceipt === null && attemptIndex < allAttempts ) {
+    let idxAttempt = 0;
+    for( ; idxAttempt < cntAttempts; ++idxAttempt ) {
         tx_id = await tm_send( details, txAdjusted, priority );
         details.write( cc.debug( "TM - generated TX ID: " ) + cc.info( tx_id ) + "\n" );
         joReceipt = await tm_wait( details, tx_id, w3 );
-        ++attemptIndex;
+        if( joReceipt )
+            break;
+        details.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) + cc.warning( " of " ) + cc.info( cntAttempts ) + "\n" );
+        await sleep( sleepMilliseconds );
     }
-    if( !joReceipt )
-        throw new Error( `TM transaction ${tx_id} transaction has been dropped` );
-
+    if( !joReceipt ) {
+        details.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( tx_id ) + cc.error( " transaction has been dropped" ) + "\n" );
+        log.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( tx_id ) + cc.error( " transaction has been dropped" ) + "\n" );
+        throw new Error( "TM transaction " + tx_id + " transaction has been dropped" );
+    }
+    details.write( cc.success( "TM - successful TX sending attempt " ) + cc.info( idxAttempt ) + cc.success( " of " ) + cc.info( cntAttempts ) + "\n" );
     return [ tx_id, joReceipt ];
 }
 
@@ -619,10 +626,16 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         if( redis == null )
             redis = new Redis( joAccount.strTransactionManagerURL );
         const priority = joAccount.tm_priority || 5;
-        const [ tx_id, joReceipt ] = tm_ensure_transaction( details, w3, priority, txAdjusted );
-        joSR.txHashSent = "" + joReceipt.transactionHash;
-        joSR.joReceipt = joReceipt;
-        joSR.tm_tx_id = tx_id;
+        try {
+            const [ tx_id, joReceipt ] = await tm_ensure_transaction( details, w3, priority, txAdjusted );
+            joSR.txHashSent = "" + joReceipt.transactionHash;
+            joSR.joReceipt = joReceipt;
+            joSR.tm_tx_id = tx_id;
+        } catch ( err ) {
+            details.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM - transaction was not sent, underlying error is: " ) + cc.warning( err.toString() ) + "\n" );
+            log.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM - transaction was not sent, underlying error is: " ) + cc.warning( err.toString() ) + "\n" );
+            // throw err;
+        }
     } break;
     case "sgx": {
         details.write(

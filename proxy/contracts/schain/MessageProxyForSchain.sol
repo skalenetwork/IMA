@@ -47,7 +47,7 @@ contract MessageProxyForSchain is MessageProxy {
      */
 
     struct OutgoingMessageData {
-        bytes32 dstChain;
+        bytes32 dstChainHash;
         uint256 msgCounter;
         address srcContract;
         address dstContract;
@@ -139,7 +139,7 @@ contract MessageProxyForSchain is MessageProxy {
             data
         );
 
-        bytes32 dstChainHash = outgoingMessageData.dstChain;
+        bytes32 dstChainHash = outgoingMessageData.dstChainHash;
         _outgoingMessageDataHash[dstChainHash][_idxTail[dstChainHash]] = _hashOfMessage(outgoingMessageData);
         _idxTail[dstChainHash] += 1;
     }
@@ -173,14 +173,14 @@ contract MessageProxyForSchain is MessageProxy {
         view
         returns (bool isValidMessage)
     {
-        bytes32 messageDataHash = _outgoingMessageDataHash[message.dstChain][message.msgCounter];
+        bytes32 messageDataHash = _outgoingMessageDataHash[message.dstChainHash][message.msgCounter];
         if (messageDataHash == _hashOfMessage(message))
             isValidMessage = true;
     }
 
     function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
         bytes memory data = abi.encodePacked(
-            message.dstChain,
+            message.dstChainHash,
             bytes32(message.msgCounter),
             bytes32(bytes20(message.srcContract)),
             bytes32(bytes20(message.dstContract)),
