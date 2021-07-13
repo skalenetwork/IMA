@@ -74,7 +74,7 @@ contract CommunityPool is Twin {
      * 
      * Requirements:
      * 
-     * - User that receives funds should have enough funds on his gas wallet
+     * - User that receives funds should have enough funds in their gas wallet
      * - Address that should be reimbursed for executing transaction must not be null
      */
     function refundGasByUser(
