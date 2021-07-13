@@ -95,7 +95,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
     }
 
     /**
-     * @dev Unregister new token manager
+     * @dev Cancel registration of token manager
      * 
      * Requirements:
      * 
@@ -178,7 +178,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
     }
 
     /**
-     * @dev Unregister linked SKALE chain
+     * @dev Cancel registration of linked SKALE chain
      * 
      * Requirements:
      * 

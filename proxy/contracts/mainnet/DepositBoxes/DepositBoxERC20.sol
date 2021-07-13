@@ -104,7 +104,7 @@ contract DepositBoxERC20 is DepositBox {
     }
 
     /**
-     * @dev Allows MessageProxyForMainnet contract to execute transfering ERC20 token from schain to mainnet
+     * @dev Allows MessageProxyForMainnet contract to execute transferring ERC20 token from schain to mainnet
      * 
      * Requirements:
      * 
@@ -237,7 +237,7 @@ contract DepositBoxERC20 is DepositBox {
      * Requirements:
      * 
      * - Amount must be less than or equal to the total supply of the ERC20 contract.
-     * - Whitelist should be turned off for automatical adding tokens to DepositBoxERC20
+     * - Whitelist should be turned off for auto adding tokens to DepositBoxERC20
      */
     function _receiveERC20(
         string calldata schainName,

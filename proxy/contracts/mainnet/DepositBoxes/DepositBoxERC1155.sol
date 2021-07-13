@@ -173,7 +173,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     }
 
     /**
-     * @dev Allows MessageProxyForMainnet contract to execute transfering ERC1155 token from schain to mainnet
+     * @dev Allows MessageProxyForMainnet contract to execute transferring ERC1155 token from schain to mainnet
      * 
      * Requirements:
      * 
@@ -382,7 +382,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
      * 
      * Requirements:
      * 
-     * - Whitelist should be turned off for automatical adding tokens to DepositBoxERC1155
+     * - Whitelist should be turned off for auto adding tokens to DepositBoxERC1155
      */
     function _receiveERC1155(
         string calldata schainName,
@@ -420,7 +420,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
      * 
      * Requirements:
      * 
-     * - Whitelist should be turned off for automatical adding tokens to DepositBoxERC1155
+     * - Whitelist should be turned off for auto adding tokens to DepositBoxERC1155
      */
     function _receiveERC1155Batch(
         string calldata schainName,

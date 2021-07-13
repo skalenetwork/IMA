@@ -29,7 +29,7 @@ import "./interfaces/IGasReimbursable.sol";
 
 /**
  * @title MessageProxy
- * @dev abstract contract for MessageProxyForMainnet and MessageProxyForSchain
+ * @dev Abstract contract to represent communication point between chains
  */
 abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     using AddressUpgradeable for address;
@@ -91,7 +91,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
 
     /**
      * @dev Emitted when function `postMessage` returns revert.
-     * We do this so that the loop inside the function `postIncomingMessages` does not get stuck.
+     * Used to prevent stuck loop inside function `postIncomingMessages`.
      */
     event PostMessageError(
         uint256 indexed msgCounter,
@@ -141,7 +141,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     }
 
     /**
-     * @dev Checkes whether schain was connected to MessageProxy
+     * @dev Checks whether schain was connected to MessageProxy
      */
     function isConnectedChain(
         string memory schainName
@@ -155,12 +155,12 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     }
 
     /**
-     * @dev Allows `msg.sender` to connect schain with MessageProxy for transfering messages
+     * @dev Allows `msg.sender` to connect schain with MessageProxy for transferring messages
      */
     function addConnectedChain(string calldata schainName) external virtual;
 
     /**
-     * @dev Allows `msg.sender` to disconnect schain with MessageProxy for transfering messages
+     * @dev Allows `msg.sender` to disconnect schain with MessageProxy for transferring messages
      *
      * Requirements:
      *  

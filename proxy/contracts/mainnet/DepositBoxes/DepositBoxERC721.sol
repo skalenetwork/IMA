@@ -94,7 +94,7 @@ contract DepositBoxERC721 is DepositBox {
     }
 
     /**
-     * @dev Allows MessageProxyForMainnet contract to execute transfering ERC721 token from schain to mainnet
+     * @dev Allows MessageProxyForMainnet contract to execute transferring ERC721 token from schain to mainnet
      * 
      * Requirements:
      * 
@@ -220,7 +220,7 @@ contract DepositBoxERC721 is DepositBox {
      * 
      * Requirements:
      * 
-     * - Whitelist should be turned off for automatical adding tokens to DepositBoxERC721
+     * - Whitelist should be turned off for auto adding tokens to DepositBoxERC721
      */
     function _receiveERC721(
         string calldata schainName,

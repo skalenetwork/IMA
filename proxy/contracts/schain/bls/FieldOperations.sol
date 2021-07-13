@@ -125,8 +125,8 @@ library Fp2Operations {
     function squaredFp2(Fp2Point memory value) internal pure returns (Fp2Point memory) {
         uint p = P;
         uint ab = mulmod(value.a, value.b, p);
-        uint mult = mulmod(addmod(value.a, value.b, p), addmod(value.a, mulmod(p - 1, value.b, p), p), p);
-        return Fp2Point({ a: mult, b: addmod(ab, ab, p) });
+        uint multiplication = mulmod(addmod(value.a, value.b, p), addmod(value.a, mulmod(p - 1, value.b, p), p), p);
+        return Fp2Point({ a: multiplication, b: addmod(ab, ab, p) });
     }
 
     /**
