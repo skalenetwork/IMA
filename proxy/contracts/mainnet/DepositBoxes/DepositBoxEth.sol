@@ -103,6 +103,21 @@ contract DepositBoxEth is DepositBox {
         return message.receiver;
     }
 
+    function gasPayer(
+        bytes32 schainHash,
+        address sender,
+        bytes calldata data
+    )
+        external
+        view
+        override
+        checkReceiverChain(schainHash, sender)
+        returns (address)
+    {
+        Messages.TransferEthMessage memory message = Messages.decodeTransferEthMessage(data);
+        return message.receiver;
+    }
+
     /**
      * @dev Transfers a user's ETH.
      *

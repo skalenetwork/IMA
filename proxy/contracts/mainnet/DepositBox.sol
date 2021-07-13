@@ -31,7 +31,7 @@ import "./MessageProxyForMainnet.sol";
  * @title DepositBox
  * @dev abstract contracts for DepositBoxes on mainnet
  */
-abstract contract DepositBox is IMessageReceiver, Twin {
+abstract contract DepositBox is IGasReimbursable, Twin {
 
     Linker public linker;
 

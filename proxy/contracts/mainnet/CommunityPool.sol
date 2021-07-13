@@ -23,6 +23,8 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
+
 import "../Messages.sol";
 import "./MessageProxyForMainnet.sol";
 import "./Linker.sol";
@@ -80,15 +82,16 @@ contract CommunityPool is Twin {
         address payable node,
         address user,
         uint gas
-    ) 
+    )
         external
         onlyMessageProxy
+        returns (bool)
     {
         require(activeUsers[user][schainHash], "User should be active");
         require(node != address(0), "Node address must be set");
         uint amount = tx.gasprice * gas;
         _userWallets[user][schainHash] = _userWallets[user][schainHash] - amount;
-        if (_userWallets[user][schainHash] < minTransactionGas * tx.gasprice) {
+        if (!_balanceIsSufficient(schainHash, user, 0)) {
             activeUsers[user][schainHash] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
@@ -97,6 +100,27 @@ contract CommunityPool is Twin {
             );
         }
         node.sendValue(amount);
+        return true;
+    }
+
+    function refundGasBySchainWallet(
+        bytes32 schainHash,
+        address payable node,
+        uint gas
+    )
+        external
+        onlyMessageProxy
+        returns (bool)
+    {
+        if (gas > 0) {
+            IWallets(contractManagerOfSkaleManager.getContract("Wallets")).refundGasBySchain(
+                schainHash,
+                node,
+                gas,
+                false
+            );
+        }
+        return true;
     }
 
     /**
@@ -110,7 +134,7 @@ contract CommunityPool is Twin {
     function rechargeUserWallet(string calldata schainName) external payable {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
-            msg.value + _userWallets[msg.sender][schainHash] >= minTransactionGas * tx.gasprice,
+            _balanceIsSufficient(schainHash, msg.sender, msg.value),
             "Not enough ETH for transaction"
         );
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash] + msg.value;
@@ -138,7 +162,7 @@ contract CommunityPool is Twin {
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash] - amount;
         if (
-            _userWallets[msg.sender][schainHash] < minTransactionGas * tx.gasprice &&
+            !_balanceIsSufficient(schainHash, msg.sender, 0) &&
             activeUsers[msg.sender][schainHash]
         ) {
             activeUsers[msg.sender][schainHash] = false;
@@ -171,4 +195,12 @@ contract CommunityPool is Twin {
     function getBalance(address user, string calldata schainName) external view returns (uint) {
         return _userWallets[user][keccak256(abi.encodePacked(schainName))];
     }
+
+    function checkUserBalance(bytes32 schainHash, address receiver) external view returns (bool) {
+        return activeUsers[receiver][schainHash] && _balanceIsSufficient(schainHash, receiver, 0);
+    }
+
+    function _balanceIsSufficient(bytes32 schainHash, address receiver, uint256 delta) private view returns (bool) {
+        return delta + _userWallets[receiver][schainHash] >= minTransactionGas * tx.gasprice;
+    } 
 }
