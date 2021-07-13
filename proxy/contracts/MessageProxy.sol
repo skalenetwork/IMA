@@ -29,7 +29,7 @@ import "./interfaces/IGasReimbursable.sol";
 
 /**
  * @title MessageProxy
- * @dev Abstract contract to represent communication point between chains
+ * @dev Abstract contract for MessageProxyForMainnet and MessageProxyForSchain
  */
 abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     using AddressUpgradeable for address;
@@ -91,7 +91,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
 
     /**
      * @dev Emitted when function `postMessage` returns revert.
-     * Used to prevent stuck loop inside function `postIncomingMessages`.
+     *  Used to prevent stuck loop inside function `postIncomingMessages`.
      */
     event PostMessageError(
         uint256 indexed msgCounter,
