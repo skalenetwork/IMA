@@ -214,6 +214,11 @@ global.imaState = {
     "nReimbursementWithdraw": 0,
     "nReimbursementRange": -1, // < 0 - do not change anything
 
+    "joSChainDiscovery": {
+        "isSilentReDiscovery": true,
+        "repeatIntervalMilliseconds": 10 * 1000 // zero to disable (for debugging only)
+    },
+
     "arrActions": [] // array of actions to run
 };
 
@@ -1078,12 +1083,13 @@ async function continue_schain_discovery_in_background_if_needed() {
     }
     if( g_timer_s_chain_discovery != null )
         return;
+    if( imaState.joSChainDiscovery.repeatIntervalMilliseconds <= 0 )
+        return; // no S-Chain re-discovery (for debugging only)
     g_timer_s_chain_discovery = setInterval( async function() {
         if( g_b_in_s_chain_discovery )
             return;
         g_b_in_s_chain_discovery = true;
         try {
-            const isSilentReDiscovery = true;
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
                 log.write(
                     cc.info( "Will re-discover " ) + cc.notice( cntNodes ) + cc.info( "-node S-Chain network, " ) +
@@ -1091,16 +1097,17 @@ async function continue_schain_discovery_in_background_if_needed() {
             }
             await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
                 if( ! err ) {
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information && ( !isSilentReDiscovery ) )
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information && ( !imaState.joSChainDiscovery.isSilentReDiscovery ) )
                         log.write( cc.success( "S-Chain network was re-discovered: " ) + cc.j( joSChainNetworkInfo ) + "\n" );
+
                     imaState.joSChainNetworkInfo = joSChainNetworkInfo;
                 }
                 continue_schain_discovery_in_background_if_needed();
-            }, isSilentReDiscovery, imaState.joSChainNetworkInfo, cntNodes );
+            }, imaState.joSChainDiscovery.isSilentReDiscovery, imaState.joSChainNetworkInfo, cntNodes );
         } catch ( err ) {
         }
         g_b_in_s_chain_discovery = false;
-    }, 10 * 1000 );
+    }, imaState.joSChainDiscovery.repeatIntervalMilliseconds );
 }
 
 async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkInfo, nCountToWait ) {
