@@ -1083,20 +1083,24 @@ async function continue_schain_discovery_in_background_if_needed() {
             return;
         g_b_in_s_chain_discovery = true;
         try {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( cc.info( "Will re-discover S-Chain network..." ) + "\n" );
+            const isSilentReDiscovery = true;
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+                log.write(
+                    cc.info( "Will re-discover " ) + cc.notice( cntNodes ) + cc.info( "-node S-Chain network, " ) +
+                    + cc.notice( cntDiscovered ) + cc.info( " node(s) already discovered..." ) + "\n" );
+            }
             await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
                 if( ! err ) {
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information && ( !isSilentReDiscovery ) )
                         log.write( cc.success( "S-Chain network was re-discovered: " ) + cc.j( joSChainNetworkInfo ) + "\n" );
                     imaState.joSChainNetworkInfo = joSChainNetworkInfo;
                 }
                 continue_schain_discovery_in_background_if_needed();
-            }, false, imaState.joSChainNetworkInfo, cntNodes );
+            }, isSilentReDiscovery, imaState.joSChainNetworkInfo, cntNodes );
         } catch ( err ) {
         }
         g_b_in_s_chain_discovery = false;
-    }, 1 * 1000 );
+    }, 10 * 1000 );
 }
 
 async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkInfo, nCountToWait ) {
