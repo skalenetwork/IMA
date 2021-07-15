@@ -39,60 +39,60 @@ import "./TokenManagerLinker.sol";
 contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable {
 
     /**
-     * @dev Mainnet identifier
+     * @dev Mainnet identifier.
      */
     string constant public MAINNET_NAME = "Mainnet";
 
     /**
-     * @dev Keccak256 hash of mainnet name
+     * @dev Keccak256 hash of mainnet name.
      */
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
 
     /**
-     * @dev id of a role that allows changing of the contract parameters
+     * @dev id of a role that allows changing of the contract parameters.
      */
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
     /**
-     * @dev Address of MessageProxyForSchain
+     * @dev Address of MessageProxyForSchain.
      */
     MessageProxyForSchain public messageProxy;
 
     /**
-     * @dev Address of TokenManagerLinker
+     * @dev Address of TokenManagerLinker.
      */
     TokenManagerLinker public tokenManagerLinker;
 
     /**
-     * @dev Address of CommunityPool on mainnet
+     * @dev Address of CommunityPool on mainnet.
      */
     address public communityPool;
 
     /**
-     * @dev Keccak256 hash of schain name
+     * @dev Keccak256 hash of schain name.
      */
     bytes32 public schainHash;
 
     /**
      * @dev Amount of seconds after message sending
-     * when next message cannot be sent
+     * when next message cannot be sent.
      */
     uint public timeLimitPerMessage;
 
     /**
-     * @dev Mapping of users who are allowed to send a message
+     * @dev Mapping of users who are allowed to send a message.
      */
     // user address => allowed to send message
     mapping(address => bool) public activeUsers;
 
     /**
-     * @dev Timestamp of previous sent message by user
+     * @dev Timestamp of previous sent message by user.
      */
     // user address => timestamp of last message
     mapping(address => uint) private _lastMessageTimeStamp;
 
     /**
-     * @dev Emitted when a user becomes active
+     * @dev Emitted when a user becomes active.
      */
     event ActivateUser(
         bytes32 schainHash,
@@ -100,7 +100,7 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
     );
 
     /**
-     * @dev Emitted when a user stops being active
+     * @dev Emitted when a user stops being active.
      */
     event LockUser(
         bytes32 schainHash,
@@ -108,7 +108,7 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
     ); 
 
     /**
-     * @dev Emitted when value of {timeLimitPerMessage} was changed
+     * @dev Emitted when value of {timeLimitPerMessage} was changed.
      */
     event TimeLimitPerMessageWasChanged(
         uint256 oldValue,
@@ -121,11 +121,11 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
      *
      * Requirements:
      * 
-     * - MessageProxy must be the caller of the function
-     * - CommunityPool must be an origin of the message on mainnet
-     * - The message must come from the mainnet
-     * - The message must contains status of a user
-     * - Status of a user in the message must be different from the current status
+     * - MessageProxy must be the caller of the function.
+     * - CommunityPool must be an origin of the message on mainnet.
+     * - The message must come from the mainnet.
+     * - The message must contains status of a user.
+     * - Status of a user in the message must be different from the current status.
      */
     function postMessage(
         bytes32 fromChainHash,
@@ -153,14 +153,14 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
     }
 
     /**
-     * @dev Reverts if {receiver} is not allowed to send a message
+     * @dev Reverts if {receiver} is not allowed to send a message.
      *
      * Requirements:
      * 
-     * - Function caller has to be registered in TokenManagerLinker as a TokenManager
-     * - {receiver} must be an active user
+     * - Function caller has to be registered in TokenManagerLinker as a TokenManager.
+     * - {receiver} must be an active user.
      * - Previous message sent by {receiver} must be sent earlier then {timeLimitPerMessage} seconds before current time
-     * or there are no messages sent by {receiver}
+     * or there are no messages sent by {receiver}.
      */
     function checkAllowedToSendMessage(address receiver) external {
         require(
@@ -176,11 +176,11 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
     }
 
     /**
-     * @dev Set value of {timeLimitPerMessage}
+     * @dev Set value of {timeLimitPerMessage}.
      *
      * Requirements:
      * 
-     * - Function caller has to be granted with {CONSTANT_SETTER_ROLE}
+     * - Function caller has to be granted with {CONSTANT_SETTER_ROLE}.
      * 
      * Emits a {TimeLimitPerMessageWasChanged} event.
      */
@@ -191,7 +191,7 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
     }
 
     /**
-     * @dev Is called once during contract deployment
+     * @dev Is called once during contract deployment.
      */
     function initialize(
         string memory newSchainName,

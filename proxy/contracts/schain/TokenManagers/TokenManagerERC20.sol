@@ -47,24 +47,24 @@ contract TokenManagerERC20 is TokenManager {
     mapping(IERC20Upgradeable => uint) public totalSupplyOnMainnet;
 
     /**
-     * @dev Emitted when schain owner register new ERC20 clone
+     * @dev Emitted when schain owner register new ERC20 clone.
      */
     event ERC20TokenAdded(address indexed erc20OnMainnet, address indexed erc20OnSchain);
 
     /**
-     * @dev Emitted when TokenManagerERC20 automatically deploys new ERC20 clone
+     * @dev Emitted when TokenManagerERC20 automatically deploys new ERC20 clone.
      */
     event ERC20TokenCreated(address indexed erc20OnMainnet, address indexed erc20OnSchain);
 
     /**
-     * @dev Emitted when someone sends tokens from mainnet to schain
+     * @dev Emitted when someone sends tokens from mainnet to schain.
      */
     event ERC20TokenReceived(address indexed erc20OnMainnet, address indexed erc20OnSchain, uint256 amount);
 
     /**
-     * @dev Move tokens from schain to mainnet
+     * @dev Move tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
      */
     function exitToMainERC20(
         address contractOnMainnet,
@@ -78,10 +78,10 @@ contract TokenManagerERC20 is TokenManager {
     }
 
     /**
-     * @dev Move tokens from schain to schain
+     * @dev Move tokens from schain to schain.
      * 
      * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {to} address
+     * and are minted on {targetSchainName} schain for {to} address.
      */
     function transferToSchainERC20(
         string calldata targetSchainName,
@@ -130,7 +130,7 @@ contract TokenManagerERC20 is TokenManager {
     }
 
     /**
-     * @dev Allows Schain owner to register an ERC20 token clone in the token manager
+     * @dev Allows Schain owner to register an ERC20 token clone in the token manager.
      */
     function addERC20TokenByOwner(
         address erc20OnMainnet,
@@ -146,7 +146,7 @@ contract TokenManagerERC20 is TokenManager {
     }
 
     /**
-     * @dev Is called once during contract deployment
+     * @dev Is called once during contract deployment.
      */
     function initialize(
         string memory newChainName,
@@ -220,7 +220,7 @@ contract TokenManagerERC20 is TokenManager {
     }
 
     /**
-     * @dev Burn tokens on schain and send message to unlock them on target chain
+     * @dev Burn tokens on schain and send message to unlock them on target chain.
      */
     function _exit(
         bytes32 chainHash,

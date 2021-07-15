@@ -53,12 +53,12 @@ contract DepositBoxERC721 is DepositBox {
     event ERC721TokenReady(address indexed contractOnMainnet, uint256 tokenId);
 
     /**
-     * @dev Allows `msg.sender` to send ERC721 token from mainnet to schain
+     * @dev Allows `msg.sender` to send ERC721 token from mainnet to schain.
      * 
      * Requirements:
      * 
-     * - Receiver contract should be defined
-     * - `msg.sender` should approve his token for DepositBoxERC721 address
+     * - Receiver contract should be defined.
+     * - `msg.sender` should approve their token for DepositBoxERC721 address.
      */
     function depositERC721(
         string calldata schainName,
@@ -94,13 +94,13 @@ contract DepositBoxERC721 is DepositBox {
     }
 
     /**
-     * @dev Allows MessageProxyForMainnet contract to execute transferring ERC721 token from schain to mainnet
+     * @dev Allows MessageProxyForMainnet contract to execute transferring ERC721 token from schain to mainnet.
      * 
      * Requirements:
      * 
-     * - Schain from which the tokens came should not be killed
-     * - Sender contract should be defined and schain name cannot be `Mainnet`
-     * - DepositBoxERC721 contract should own token
+     * - Schain from which the tokens came should not be killed.
+     * - Sender contract should be defined and schain name cannot be `Mainnet`.
+     * - DepositBoxERC721 contract should own token.
      */
     function postMessage(
         bytes32 schainHash,
@@ -145,8 +145,8 @@ contract DepositBoxERC721 is DepositBox {
      * 
      * Requirements:
      * 
-     * - Schain should not be killed
-     * - Only owner of the schain able to run function
+     * - Schain should not be killed.
+     * - Only owner of the schain able to run function.
      */
     function addERC721TokenByOwner(string calldata schainName, address erc721OnMainnet)
         external
@@ -159,11 +159,11 @@ contract DepositBoxERC721 is DepositBox {
     /**
      * @dev Allows Schain owner to return each user their tokens.
      * The Schain owner decides which tokens to send to which address, 
-     * since the contract on mainnet does not store information about which tokens belong to whom
+     * since the contract on mainnet does not store information about which tokens belong to whom.
      *
      * Requirements:
      * 
-     * - DepositBoxERC721 contract should own such token
+     * - DepositBoxERC721 contract should own such token.
      */
     function getFunds(string calldata schainName, address erc721OnMainnet, address receiver, uint tokenId)
         external
@@ -178,14 +178,14 @@ contract DepositBoxERC721 is DepositBox {
 
     /**
      * @dev Should return true if token was added by Schain owner or 
-     * automatically added after sending to schain if whitelist was turned off
+     * automatically added after sending to schain if whitelist was turned off.
      */
     function getSchainToERC721(string calldata schainName, address erc721OnMainnet) external view returns (bool) {
         return schainToERC721[keccak256(abi.encodePacked(schainName))][erc721OnMainnet];
     }
 
     /**
-     * @dev Creates a new DepositBoxERC721 contract
+     * @dev Creates a new DepositBoxERC721 contract.
      */
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,        
@@ -200,14 +200,14 @@ contract DepositBoxERC721 is DepositBox {
     }
 
     /**
-     * @dev Saves the ids of tokens that was transferred to schain
+     * @dev Saves the ids of tokens that was transferred to schain.
      */
     function _saveTransferredAmount(bytes32 schainHash, address erc721Token, uint256 tokenId) private {
         transferredAmount[erc721Token][tokenId] = schainHash;
     }
 
     /**
-     * @dev Removes the ids of tokens that was transferred from schain
+     * @dev Removes the ids of tokens that was transferred from schain.
      */
     function _removeTransferredAmount(address erc721Token, uint256 tokenId) private {
         transferredAmount[erc721Token][tokenId] = bytes32(0);
@@ -220,7 +220,7 @@ contract DepositBoxERC721 is DepositBox {
      * 
      * Requirements:
      * 
-     * - Whitelist should be turned off for auto adding tokens to DepositBoxERC721
+     * - Whitelist should be turned off for auto adding tokens to DepositBoxERC721.
      */
     function _receiveERC721(
         string calldata schainName,
@@ -255,7 +255,7 @@ contract DepositBoxERC721 is DepositBox {
      * 
      * Requirements:
      * 
-     * - Given address should be contract
+     * - Given address should be contract.
      */
     function _addERC721ForSchain(string calldata schainName, address erc721OnMainnet) private {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -265,7 +265,7 @@ contract DepositBoxERC721 is DepositBox {
     }
 
     /**
-     * @dev Returns info about ERC721 token such as token name, symbol
+     * @dev Returns info about ERC721 token such as token name, symbol.
      */
     function _getTokenInfo(IERC721MetadataUpgradeable erc721) private view returns (Messages.Erc721TokenInfo memory) {
         return Messages.Erc721TokenInfo({

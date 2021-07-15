@@ -28,7 +28,7 @@ import "./bls/FieldOperations.sol";
 
 /**
  * @title KeyStorage
- * @dev Holds common BLS public key
+ * @dev Holds common BLS public key.
  */
 contract KeyStorage is AccessControlEnumerableUpgradeable {
 
@@ -36,12 +36,12 @@ contract KeyStorage is AccessControlEnumerableUpgradeable {
 
     /**
      * @dev Address of custom precompiled contract on SKALE chain
-     * to get uin256 value from the config
+     * to get uin256 value from the config.
      */
     uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;
 
     /**
-     * @dev Is called once during contract deployment
+     * @dev Is called once during contract deployment.
      */
     function initialize()
         external
@@ -53,7 +53,7 @@ contract KeyStorage is AccessControlEnumerableUpgradeable {
     }
 
     /**
-     * @dev Get BLS common public key
+     * @dev Get BLS common public key.
      */
     function getBlsCommonPublicKey() external view virtual returns (G2Operations.G2Point memory) {
         return G2Operations.G2Point({
@@ -71,7 +71,7 @@ contract KeyStorage is AccessControlEnumerableUpgradeable {
     // private
 
     /**
-     * @dev Get uint256 value from the skaled config
+     * @dev Get uint256 value from the skaled config.
      */
     function _getConfigVariableUint256(
         string memory strConfigVariableName

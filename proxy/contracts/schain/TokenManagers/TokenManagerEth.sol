@@ -39,7 +39,7 @@ contract TokenManagerEth is TokenManager {
     /// Create a new token manager    
 
     /**
-     * @dev Register EthErc20 token
+     * @dev Register EthErc20 token.
      */
     function setEthErc20Address(EthErc20 newEthErc20Address) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
@@ -48,9 +48,9 @@ contract TokenManagerEth is TokenManager {
     }
 
     /**
-     * @dev Move ETH from schain to mainnet
+     * @dev Move ETH from schain to mainnet.
      * 
-     * EthErc20 tokens are burned on schain and ETH are unlocked on mainnet for {to} address
+     * EthErc20 tokens are burned on schain and ETH are unlocked on mainnet for {to} address.
      */
     function exitToMain(address to, uint256 amount) external {
         communityLocker.checkAllowedToSendMessage(to);
@@ -58,10 +58,10 @@ contract TokenManagerEth is TokenManager {
     }
 
     /**
-     * @dev Move ETH from schain to schain
+     * @dev Move ETH from schain to schain.
      * 
-     * EthErc20 tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {to} address
+     * EthErc20 tokens are burned on origin schain.
+     * and are minted on {targetSchainName} schain for {to} address.
      */
     function transferToSchain(
         string memory targetSchainName,
@@ -103,7 +103,7 @@ contract TokenManagerEth is TokenManager {
     }
 
     /**
-     * @dev Is called once during contract deployment
+     * @dev Is called once during contract deployment.
      */
     function initialize(
         string memory newChainName,
@@ -130,7 +130,7 @@ contract TokenManagerEth is TokenManager {
     // private
 
     /**
-     * @dev Burn EthErc20 tokens on schain and send message to unlock ETH on target chain
+     * @dev Burn EthErc20 tokens on schain and send message to unlock ETH on target chain.
      */
     function _exit(
         bytes32 chainHash,

@@ -28,12 +28,12 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgrad
 
 /**
  * @title ERC1155OnChain
- * @dev ERC1155 token that is used as an automatically deployed clone of ERC1155 on mainnet
+ * @dev ERC1155 token that is used as an automatically deployed clone of ERC1155 on mainnet.
  */
 contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUpgradeable {
 
     /**
-     * @dev id of a role that allows token minting
+     * @dev id of a role that allows token minting.
      */
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -50,11 +50,11 @@ contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUp
     }
 
     /**
-     * @dev Mint tokens
+     * @dev Mint tokens.
      * 
      * Requirements:
      * 
-     * - sender must be granted with {MINTER_ROLE}
+     * - sender must be granted with {MINTER_ROLE}.
      */
     function mint(
         address account,
@@ -69,11 +69,11 @@ contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUp
     }
 
     /**
-     * @dev Mint batch of tokens
+     * @dev Mint batch of tokens.
      * 
      * Requirements:
      * 
-     * - sender must be granted with {MINTER_ROLE}
+     * - sender must be granted with {MINTER_ROLE}.
      */
     function mintBatch(
         address account,
@@ -88,9 +88,9 @@ contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUp
     }
 
     /**
-     * @dev Check if contract support {interfaceId} interface
+     * @dev Check if contract support {interfaceId} interface.
      * 
-     * See https://eips.ethereum.org/EIPS/eip-165 for more details
+     * See https://eips.ethereum.org/EIPS/eip-165 for more details.
      */
     function supportsInterface(
         bytes4 interfaceId

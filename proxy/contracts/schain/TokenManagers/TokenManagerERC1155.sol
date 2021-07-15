@@ -43,17 +43,17 @@ contract TokenManagerERC1155 is TokenManager {
     mapping(address => ERC1155OnChain) public clonesErc1155;
 
     /**
-     * @dev Emitted when schain owner register new ERC1155 clone
+     * @dev Emitted when schain owner register new ERC1155 clone.
      */
     event ERC1155TokenAdded(address indexed erc1155OnMainnet, address indexed erc1155OnSchain);
 
     /**
-     * @dev Emitted when TokenManagerERC1155 automatically deploys new ERC1155 clone
+     * @dev Emitted when TokenManagerERC1155 automatically deploys new ERC1155 clone.
      */
     event ERC1155TokenCreated(address indexed erc1155OnMainnet, address indexed erc1155OnSchain);
 
     /**
-     * @dev Emitted when someone sends tokens from mainnet to schain
+     * @dev Emitted when someone sends tokens from mainnet to schain.
      */
     event ERC1155TokenReceived(
         address indexed erc1155OnMainnet,
@@ -63,9 +63,9 @@ contract TokenManagerERC1155 is TokenManager {
     );  
 
     /**
-     * @dev Move tokens from schain to mainnet
+     * @dev Move tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
      */
     function exitToMainERC1155(
         address contractOnMainnet,
@@ -80,9 +80,9 @@ contract TokenManagerERC1155 is TokenManager {
     }
 
     /**
-     * @dev Move batch of tokens from schain to mainnet
+     * @dev Move batch of tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
      */
     function exitToMainERC1155Batch(
         address contractOnMainnet,
@@ -97,10 +97,10 @@ contract TokenManagerERC1155 is TokenManager {
     }
 
     /**
-     * @dev Move tokens from schain to schain
+     * @dev Move tokens from schain to schain.
      * 
      * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {to} address
+     * and are minted on {targetSchainName} schain for {to} address.
      */
     function transferToSchainERC1155(
         string calldata targetSchainName,
@@ -117,10 +117,10 @@ contract TokenManagerERC1155 is TokenManager {
     }
 
     /**
-     * @dev Move batch of tokens from schain to schain
+     * @dev Move batch of tokens from schain to schain.
      * 
      * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {to} address
+     * and are minted on {targetSchainName} schain for {to} address.
      */
     function transferToSchainERC1155Batch(
         string calldata targetSchainName,
@@ -175,7 +175,7 @@ contract TokenManagerERC1155 is TokenManager {
     }
 
     /**
-     * @dev Allows Schain owner to register an ERC1155 token clone in the token manager
+     * @dev Allows Schain owner to register an ERC1155 token clone in the token manager.
      */
     function addERC1155TokenByOwner(
         address erc1155OnMainnet,
@@ -190,7 +190,7 @@ contract TokenManagerERC1155 is TokenManager {
     }
 
     /**
-     * @dev Is called once during contract deployment
+     * @dev Is called once during contract deployment.
      */
     function initialize(
         string memory newChainName,
@@ -293,7 +293,7 @@ contract TokenManagerERC1155 is TokenManager {
     }
 
     /**
-     * @dev Burn tokens on schain and send message to unlock them on target chain
+     * @dev Burn tokens on schain and send message to unlock them on target chain.
      */
     function _exit(
         bytes32 chainHash,
@@ -314,7 +314,7 @@ contract TokenManagerERC1155 is TokenManager {
     }
 
     /**
-     * @dev Burn batch of tokens on schain and send message to unlock them on target chain
+     * @dev Burn batch of tokens on schain and send message to unlock them on target chain.
      */
     function _exitBatch(
         bytes32 chainHash,
@@ -335,7 +335,7 @@ contract TokenManagerERC1155 is TokenManager {
     }
 
     /**
-     * @dev Create array with single element in it
+     * @dev Create array with single element in it.
      */
     function _asSingletonArray(uint256 element) private pure returns (uint256[] memory array) {
         array = new uint256[](1);

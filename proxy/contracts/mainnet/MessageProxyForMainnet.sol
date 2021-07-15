@@ -47,9 +47,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
     /**
      * 16 Agents
      * Synchronize time with time.nist.gov
-     * Every agent checks if it is his time slot
+     * Every agent checks if it is their time slot
      * Time slots are in increments of 10 seconds
-     * At the start of his slot each agent:
+     * At the start of their slot each agent:
      * For each connected schain:
      * Read incoming counter on the dst chain
      * Read outgoing counter on the src chain
@@ -64,7 +64,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
     uint256 public messageGasCost;
 
     /**
-     * @dev Emitted when gas cost for message header was changed
+     * @dev Emitted when gas cost for message header was changed.
      */
     event GasCostMessageHeaderWasChanged(
         uint256 oldValue,
@@ -72,7 +72,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
     );
 
     /**
-     * @dev Emitted when gas cost for message was changed
+     * @dev Emitted when gas cost for message was changed.
      */
     event GasCostMessageWasChanged(
         uint256 oldValue,
@@ -80,11 +80,11 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
     );
 
     /**
-     * @dev Allows `msg.sender` to connect schain with MessageProxyOnMainnet for transfering messages
+     * @dev Allows `msg.sender` to connect schain with MessageProxyOnMainnet for transferring messages.
      * 
      * Requirements:
      * 
-     * - Schain name must not be `Mainnet`
+     * - Schain name must not be `Mainnet`.
      */
     function addConnectedChain(string calldata schainName) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -93,12 +93,12 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
     }
 
     /**
-     * @dev Allows owner of the contract to set CommunityPool address for gas reimbursement
+     * @dev Allows owner of the contract to set CommunityPool address for gas reimbursement.
      * 
      * Requirements:
      * 
      * - `msg.sender` must be granted as DEFAULT_ADMIN_ROLE.
-     * - Address of CommunityPool contract must not be null
+     * - Address of CommunityPool contract must not be null.
      */
     function setCommunityPool(CommunityPool newCommunityPoolAddress) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
@@ -107,12 +107,12 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
     }
 
     /**
-     * @dev Allows `msg.sender` to register extra contract for being able to transfer messages from custom contracts
+     * @dev Allows `msg.sender` to register extra contract for being able to transfer messages from custom contracts.
      * 
      * Requirements:
      * 
-     * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE
-     * - Schain name must not be `Mainnet`
+     * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
+     * - Schain name must not be `Mainnet`.
      */
     function registerExtraContract(string memory schainName, address extraContract) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -127,12 +127,12 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
 
     /**
      * @dev Allows `msg.sender` to remove extra contract,
-     * thus `extraContract` will no longer be available to transfer messages from mainnet to schain
+     * thus `extraContract` will no longer be available to transfer messages from mainnet to schain.
      * 
      * Requirements:
      * 
-     * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE
-     * - Schain name must not be `Mainnet`
+     * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
+     * - Schain name must not be `Mainnet`.
      */
     function removeExtraContract(string memory schainName, address extraContract) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -202,7 +202,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
     }
 
     /**
-     * @dev Sets headerMessageGasCost to a new value
+     * @dev Sets headerMessageGasCost to a new value.
      * 
      * Requirements:
      * 
@@ -214,7 +214,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
     }
 
     /**
-     * @dev Sets messageGasCost to a new value
+     * @dev Sets messageGasCost to a new value.
      * 
      * Requirements:
      * 
@@ -247,7 +247,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         return super.isConnectedChain(schainName);
     }
     /**
-     * @dev Creates a new MessageProxyForMainnet contract
+     * @dev Creates a new MessageProxyForMainnet contract.
      */
     function initialize(IContractManager contractManagerOfSkaleManagerValue) public virtual override initializer {
         SkaleManagerClient.initialize(contractManagerOfSkaleManagerValue);

@@ -44,14 +44,14 @@ contract DepositBoxEth is DepositBox {
     }
 
     /**
-     * @dev Allows `msg.sender` to send ETH from mainnet to schain
+     * @dev Allows `msg.sender` to send ETH from mainnet to schain.
      * 
      * Requirements:
      * 
-     * - Schain name must not be `Mainnet`
-     * - Receiver account on schain cannot be null
-     * - Receiver contract should be added as twin contract on schain
-     * - Schain that receives tokens should not be killed
+     * - Schain name must not be `Mainnet`.
+     * - Receiver account on schain cannot be null.
+     * - Receiver contract should be added as twin contract on schain.
+     * - Schain that receives tokens should not be killed.
      */
     function deposit(string memory schainName, address to)
         external
@@ -72,13 +72,13 @@ contract DepositBoxEth is DepositBox {
     }
 
     /**
-     * @dev Allows MessageProxyForMainnet contract to execute transfering ERC20 token from schain to mainnet
+     * @dev Allows MessageProxyForMainnet contract to execute transferring ERC20 token from schain to mainnet.
      * 
      * Requirements:
      * 
-     * - Schain from which the tokens came should not be killed
-     * - Sender contract should be defined and schain name cannot be `Mainnet`
-     * - Amount of tokens on DepositBoxERC20 should be equal or more than transferred amount
+     * - Schain from which the tokens came should not be killed.
+     * - Sender contract should be defined and schain name cannot be `Mainnet`.
+     * - Amount of tokens on DepositBoxERC20 should be equal or more than transferred amount.
      */
     function postMessage(
         bytes32 schainHash,
@@ -142,8 +142,8 @@ contract DepositBoxEth is DepositBox {
      *
      * Requirements:
      * 
-     * - Amount of ETH on schain should be equal or more than transferred amount
-     * - Receiver address must not be null
+     * - Amount of ETH on schain should be equal or more than transferred amount.
+     * - Receiver address must not be null.
      */
     function getFunds(string calldata schainName, address payable receiver, uint amount)
         external
@@ -157,7 +157,7 @@ contract DepositBoxEth is DepositBox {
         receiver.sendValue(amount);
     }
     /**
-     * @dev Creates a new DepositBoxEth contract
+     * @dev Creates a new DepositBoxEth contract.
      */
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,        
@@ -172,14 +172,14 @@ contract DepositBoxEth is DepositBox {
     }
 
     /**
-     * @dev Saves amount of ETH that was transferred to schain
+     * @dev Saves amount of ETH that was transferred to schain.
      */
     function _saveTransferredAmount(bytes32 schainHash, uint256 amount) private {
         transferredAmount[schainHash] += amount;
     }
 
     /**
-     * @dev Removes amount of ETH that was transferred from schain
+     * @dev Removes amount of ETH that was transferred from schain.
      */
     function _removeTransferredAmount(bytes32 schainHash, uint256 amount) private {
         transferredAmount[schainHash] -= amount;

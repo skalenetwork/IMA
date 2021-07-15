@@ -31,52 +31,52 @@ import "./TokenManager.sol";
 
 /**
  * @title TokenManagerLinker
- * @dev Links custom TokenManagers to MessageProxy
+ * @dev Links custom TokenManagers to MessageProxy.
  */
 contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageReceiver {
 
     /**
-     * @dev Mainnet identifier
+     * @dev Mainnet identifier.
      */
     string constant public MAINNET_NAME = "Mainnet";
 
      /**
-     * @dev Keccak256 hash of mainnet name
+     * @dev Keccak256 hash of mainnet name.
      */
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
 
     /**
-     * @dev id of a role that allows to register new token manager
+     * @dev id of a role that allows to register new token manager.
      */
     bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
 
     /**
-     * @dev Address of MessageProxyForSchain
+     * @dev Address of MessageProxyForSchain.
      */
     MessageProxy public messageProxy;
 
     /**
-     * @dev Address of {Linker} on mainnet
+     * @dev Address of {Linker} on mainnet.
      */
     address public linkerAddress;
 
     /**
-     * @dev List of address of registered token managers
+     * @dev List of address of registered token managers.
      */
     TokenManager[] public tokenManagers;
 
     /**
-     * @dev Flag that allows direct messaging between SKALE chains
+     * @dev Flag that allows direct messaging between SKALE chains.
      */	
     bool public interchainConnections;    
 
     /**
-     * @dev Emitted when {interchainConnections} was changed
+     * @dev Emitted when {interchainConnections} was changed.
      */
     event InterchainConnectionAllowed(bool isAllowed);
 
     /**
-     * @dev Modifier to make a function callable only if caller is granted with {REGISTRAR_ROLE}
+     * @dev Modifier to make a function callable only if caller is granted with {REGISTRAR_ROLE}.
      */
     modifier onlyRegistrar() {
         require(hasRole(REGISTRAR_ROLE, msg.sender), "REGISTRAR_ROLE is required");
@@ -84,22 +84,22 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
     }
 
     /**
-     * @dev Register new token manager
+     * @dev Register new token manager.
      * 
      * Requirements:
      * 
-     * - Function caller has to be granted with {REGISTRAR_ROLE}
+     * - Function caller has to be granted with {REGISTRAR_ROLE}.
      */
     function registerTokenManager(TokenManager newTokenManager) external onlyRegistrar {
         tokenManagers.push(newTokenManager);
     }
 
     /**
-     * @dev Cancel registration of token manager
+     * @dev Cancel registration of token manager.
      * 
      * Requirements:
      * 
-     * - Function caller has to be granted with {REGISTRAR_ROLE}
+     * - Function caller has to be granted with {REGISTRAR_ROLE}.
      */
     function removeTokenManager(TokenManager tokenManagerAddress) external onlyRegistrar {
         uint index;
@@ -118,13 +118,13 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
     }
 
     /**
-     * @dev Register new SKALE chain
+     * @dev Register new SKALE chain.
      * 
      * Requirements:
      * 
-     * - Function caller has to be granted with {REGISTRAR_ROLE}
-     * - Direct messaging between SKALE chains must be allowed
-     * - Amount of token managers on target SKALE chain must be equal to the amount on current one
+     * - Function caller has to be granted with {REGISTRAR_ROLE}.
+     * - Direct messaging between SKALE chains must be allowed.
+     * - Amount of token managers on target SKALE chain must be equal to the amount on current one.
      */
     function connectSchain(
         string calldata schainName,
@@ -147,11 +147,11 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
      *
      * Requirements:
      * 
-     * - MessageProxy must be the caller of the function
-     * - {Linker} must be an origin of the message on mainnet
-     * - The message must come from the mainnet
-     * - The message must contains information about interchain connection allowance
-     * - Interchain connection allowance in the message must be different from the current one
+     * - MessageProxy must be the caller of the function.
+     * - {Linker} must be an origin of the message on mainnet.
+     * - The message must come from the mainnet.
+     * - The message must contains information about interchain connection allowance.
+     * - Interchain connection allowance in the message must be different from the current one.
      */
     function postMessage(
         bytes32 fromChainHash,
@@ -178,11 +178,11 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
     }
 
     /**
-     * @dev Cancel registration of linked SKALE chain
+     * @dev Cancel registration of linked SKALE chain.
      * 
      * Requirements:
      * 
-     * - Function caller has to be granted with {REGISTRAR_ROLE}
+     * - Function caller has to be granted with {REGISTRAR_ROLE}.
      */
     function disconnectSchain(string calldata schainName) external onlyRegistrar {
         uint length = tokenManagers.length;
@@ -193,7 +193,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
     }
 
     /**
-     * @dev Check if {tokenManager} is registered in IMA
+     * @dev Check if {tokenManager} is registered in IMA.
      */
     function hasTokenManager(TokenManager tokenManager) external view returns (bool) {
         uint index;
@@ -207,7 +207,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
     }
 
     /**
-     * @dev Check if SKALE chain with name {schainName} is registered in IMA
+     * @dev Check if SKALE chain with name {schainName} is registered in IMA.
      */
     function hasSchain(string calldata schainName) external view returns (bool connected) {
         uint length = tokenManagers.length;
@@ -219,7 +219,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
     }
 
     /**
-     * @dev Is called once during contract deployment
+     * @dev Is called once during contract deployment.
      */
     function initialize(MessageProxy newMessageProxyAddress, address linker)
         external

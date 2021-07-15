@@ -50,7 +50,7 @@ contract Linker is Twin {
     mapping(bytes32 => KillProcess) public statuses;
 
     /**
-     * @dev Modifier to make a function callable only if caller is granted with {LINKER_ROLE}
+     * @dev Modifier to make a function callable only if caller is granted with {LINKER_ROLE}.
      */
     modifier onlyLinker() {
         require(hasRole(LINKER_ROLE, msg.sender), "Linker role is required");
@@ -58,34 +58,34 @@ contract Linker is Twin {
     }
 
     /**
-     * @dev Allows Linker to register external mainnet contracts
+     * @dev Allows Linker to register external mainnet contracts.
      * 
      * Requirements:
      * 
-     * - Contract must be not registered
+     * - Contract must be not registered.
      */
     function registerMainnetContract(address newMainnetContract) external onlyLinker {
         require(_mainnetContracts.add(newMainnetContract), "The contracts was not registered");
     }
 
     /**
-     * @dev Allows Linker to remove external mainnet contracts
+     * @dev Allows Linker to remove external mainnet contracts.
      * 
      * Requirements:
      * 
-     * - Contract must be registered
+     * - Contract must be registered.
      */
     function removeMainnetContract(address mainnetContract) external onlyLinker {
         require(_mainnetContracts.remove(mainnetContract), "The contract was not removed");
     }
 
     /**
-     * @dev Allows Linker to connect mainnet contracts with their receivers on schain
+     * @dev Allows Linker to connect mainnet contracts with their receivers on schain.
      * 
      * Requirements:
      * 
-     * - Numbers of mainnnet contracts and schain contracts must be equal
-     * - Mainnet contract must implement method `addSchainContract`
+     * - Numbers of mainnet contracts and schain contracts must be equal.
+     * - Mainnet contract must implement method `addSchainContract`.
      */
     function connectSchain(string calldata schainName, address[] calldata schainContracts) external onlyLinker {
         require(schainContracts.length == _mainnetContracts.length(), "Incorrect number of addresses");
@@ -96,12 +96,12 @@ contract Linker is Twin {
     }
 
     /**
-     * @dev Allows Schain owner to connect others chains with his own,
-     * thus others schains have opportunity to send messages from chain to chain
+     * @dev Allows Schain owner to connect others chains with their own,
+     * thus others schains have opportunity to send messages from chain to chain.
      * 
      * Requirements:
      * 
-     * - Schain should not be in the process of being killed
+     * - Schain should not be in the process of being killed.
      */
     function allowInterchainConnections(string calldata schainName) external onlySchainOwner(schainName) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -120,7 +120,7 @@ contract Linker is Twin {
      * 
      * Requirements:
      * 
-     * - Interchain connection should be turned off
+     * - Interchain connection should be turned off.
      */
     function kill(string calldata schainName) external {
         require(!interchainConnections[keccak256(abi.encodePacked(schainName))], "Interchain connections turned on");
@@ -154,7 +154,7 @@ contract Linker is Twin {
      * 
      * Requirements:
      * 
-     * - Mainnet contract should implement method `removeSchainContract`
+     * - Mainnet contract should implement method `removeSchainContract`.
      */
     function disconnectSchain(string calldata schainName) external onlyLinker {
         uint length = _mainnetContracts.length();
@@ -165,21 +165,21 @@ contract Linker is Twin {
     }
 
     /**
-     * @dev Returns true if schain is not killed
+     * @dev Returns true if schain is not killed.
      */
     function isNotKilled(bytes32 schainHash) external view returns (bool) {
         return statuses[schainHash] != KillProcess.Killed;
     }
 
     /**
-     * @dev Returns true if list of mainnet contracts has particular contract
+     * @dev Returns true if list of mainnet contracts has particular contract.
      */
     function hasMainnetContract(address mainnetContract) external view returns (bool) {
         return _mainnetContracts.contains(mainnetContract);
     }
 
     /**
-     * @dev Returns true if mainnet contracts and schain contracts are connected together for transferring messages
+     * @dev Returns true if mainnet contracts and schain contracts are connected together for transferring messages.
      */
     function hasSchain(string calldata schainName) external view returns (bool connected) {
         uint length = _mainnetContracts.length();
@@ -190,7 +190,7 @@ contract Linker is Twin {
     }
 
     /**
-     * @dev Create a new Linker contract
+     * @dev Create a new Linker contract.
      */
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,

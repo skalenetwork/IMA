@@ -42,24 +42,24 @@ contract TokenManagerERC721 is TokenManager {
     mapping(address => ERC721OnChain) public clonesErc721;
 
     /**
-     * @dev Emitted when schain owner register new ERC721 clone
+     * @dev Emitted when schain owner register new ERC721 clone.
      */
     event ERC721TokenAdded(address indexed erc721OnMainnet, address indexed erc721OnSchain);
 
     /**
-     * @dev Emitted when TokenManagerERC721 automatically deploys new ERC721 clone
+     * @dev Emitted when TokenManagerERC721 automatically deploys new ERC721 clone.
      */
     event ERC721TokenCreated(address indexed erc721OnMainnet, address indexed erc721OnSchain);
 
     /**
-     * @dev Emitted when someone sends tokens from mainnet to schain
+     * @dev Emitted when someone sends tokens from mainnet to schain.
      */
     event ERC721TokenReceived(address indexed erc721OnMainnet, address indexed erc721OnSchain, uint256 tokenId);
 
     /**
-     * @dev Move tokens from schain to mainnet
+     * @dev Move tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
      */
     function exitToMainERC721(
         address contractOnMainnet,
@@ -73,10 +73,10 @@ contract TokenManagerERC721 is TokenManager {
     }
 
     /**
-     * @dev Move tokens from schain to schain
+     * @dev Move tokens from schain to schain.
      * 
      * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {to} address
+     * and are minted on {targetSchainName} schain for {to} address.
      */
     function transferToSchainERC721(
         string calldata targetSchainName,
@@ -125,7 +125,7 @@ contract TokenManagerERC721 is TokenManager {
     }
 
     /**
-     * @dev Allows Schain owner to register an ERC721 token clone in the token manager
+     * @dev Allows Schain owner to register an ERC721 token clone in the token manager.
      */
     function addERC721TokenByOwner(
         address erc721OnMainnet,
@@ -140,7 +140,7 @@ contract TokenManagerERC721 is TokenManager {
     }
 
     /**
-     * @dev Is called once during contract deployment
+     * @dev Is called once during contract deployment.
      */
     function initialize(
         string memory newChainName,
@@ -200,7 +200,7 @@ contract TokenManagerERC721 is TokenManager {
     }
 
     /**
-     * @dev Burn tokens on schain and send message to unlock them on target chain
+     * @dev Burn tokens on schain and send message to unlock them on target chain.
      */
     function _exit(
         bytes32 chainHash,

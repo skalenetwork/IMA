@@ -28,12 +28,12 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgrad
 
 /**
  * @title ERC20OnChain
- * @dev ERC20 token that is used as an automatically deployed clone of ERC20 on mainnet
+ * @dev ERC20 token that is used as an automatically deployed clone of ERC20 on mainnet.
  */
 contract ERC20OnChain is AccessControlEnumerableUpgradeable, ERC20BurnableUpgradeable {
 
     /**
-     * @dev id of a role that allows token minting
+     * @dev id of a role that allows token minting.
      */
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -50,11 +50,11 @@ contract ERC20OnChain is AccessControlEnumerableUpgradeable, ERC20BurnableUpgrad
     }
 
     /**
-     * @dev Mint tokens
+     * @dev Mint tokens.
      * 
      * Requirements:
      * 
-     * - sender must be granted with {MINTER_ROLE}
+     * - sender must be granted with {MINTER_ROLE}.
      */
     function mint(address account, uint256 value) external {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");

@@ -29,14 +29,14 @@ import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 
 /**
  * @title SkaleManagerClient - contract that knows ContractManager
- * and makes calls to SkaleManager contracts
+ * and makes calls to SkaleManager contracts.
  */
 contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable {
 
     IContractManager public contractManagerOfSkaleManager;
 
     /**
-     * @dev Modifier for checking whether caller is owner of SKALE chain
+     * @dev Modifier for checking whether caller is owner of SKALE chain.
      */
     modifier onlySchainOwner(string memory schainName) {
         require(
@@ -47,7 +47,7 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
     }
 
     /**
-     * @dev Checks whether sender is owner of SKALE chain
+     * @dev Checks whether sender is owner of SKALE chain.
      */
     function isSchainOwner(address sender, bytes32 schainHash) public view returns (bool) {
         address skaleChainsInternal = contractManagerOfSkaleManager.getContract("SchainsInternal");
@@ -55,8 +55,8 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
     }
 
     /**
-     * @dev initialize - sets current address of ContractManager of SkaleManager
-     * @param newContractManagerOfSkaleManager - current address of ContractManager of SkaleManager
+     * @dev initialize - sets current address of ContractManager of SkaleManager.
+     * @param newContractManagerOfSkaleManager - current address of ContractManager of SkaleManager.
      */
     function initialize(
         IContractManager newContractManagerOfSkaleManager

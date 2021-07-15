@@ -29,19 +29,19 @@ import "./MessageProxyForMainnet.sol";
 
 /**
  * @title DepositBox
- * @dev abstract contracts for DepositBoxes on mainnet
+ * @dev Abstract contracts for DepositBoxes on mainnet.
  */
 abstract contract DepositBox is IGasReimbursable, Twin {
 
     Linker public linker;
 
-    // schainHash => true if automatic depoyment tokens on schain was enabled 
+    // schainHash => true if automatic deployment tokens on schain was enabled 
     mapping(bytes32 => bool) private _automaticDeploy;
 
     bytes32 public constant DEPOSIT_BOX_MANAGER_ROLE = keccak256("DEPOSIT_BOX_MANAGER_ROLE");
 
     /**
-     * @dev Modifier for checking whether schain was not killed
+     * @dev Modifier for checking whether schain was not killed.
      */
     modifier whenNotKilled(bytes32 schainHash) {
         require(linker.isNotKilled(schainHash), "Schain is killed");
@@ -49,7 +49,7 @@ abstract contract DepositBox is IGasReimbursable, Twin {
     }
 
     /**
-     * @dev Modifier for checking whether schain was killed
+     * @dev Modifier for checking whether schain was killed.
      */
     modifier whenKilled(bytes32 schainHash) {
         require(!linker.isNotKilled(schainHash), "Schain is not killed");
@@ -58,7 +58,7 @@ abstract contract DepositBox is IGasReimbursable, Twin {
 
     /**
      * @dev Modifier for checking whether schainName is not equal to `Mainnet` 
-     * and address of receiver is not equal to null before transferring funds from mainnet to schain
+     * and address of receiver is not equal to null before transferring funds from mainnet to schain.
      */
     modifier rightTransaction(string memory schainName, address to) {
         require(
@@ -71,7 +71,7 @@ abstract contract DepositBox is IGasReimbursable, Twin {
 
     /**
      * @dev Modifier for checking whether schainHash is not equal to `Mainnet` 
-     * and sender contract was added as contract processor on schain
+     * and sender contract was added as contract processor on schain.
      */
     modifier checkReceiverChain(bytes32 schainHash, address sender) {
         require(
@@ -111,7 +111,7 @@ abstract contract DepositBox is IGasReimbursable, Twin {
     }
 
     /**
-     * @dev Returns is whitelist enabled on schain
+     * @dev Returns is whitelist enabled on schain.
      */
     function isWhitelisted(string memory schainName) public view returns (bool) {
         return !_automaticDeploy[keccak256(abi.encodePacked(schainName))];

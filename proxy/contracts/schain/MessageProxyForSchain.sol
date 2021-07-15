@@ -32,17 +32,17 @@ import "./KeyStorage.sol";
 /**
  * @title MessageProxyForSchain
  * @dev Entry point for messages that come from mainnet or other SKALE chains
- * and contract that emits messages for mainnet or other SKALE chains
+ * and contract that emits messages for mainnet or other SKALE chains.
  * 
- * Messages are submitted by IMA-agent and secured with threshold signature
+ * Messages are submitted by IMA-agent and secured with threshold signature.
  * 
- * IMA-agent monitors events of {MessageProxyForSchain} and sends messages to other chains
+ * IMA-agent monitors events of {MessageProxyForSchain} and sends messages to other chains.
 
  * NOTE: 16 Agents
  * Synchronize time with time.nist.gov
- * Every agent checks if it is his time slot
+ * Every agent checks if it is their time slot
  * Time slots are in increments of 5 minutes
- * At the start of his slot each agent:
+ * At the start of their slot each agent:
  * For each connected schain:
  * Read incoming counter on the dst chain
  * Read outgoing counter on the src chain
@@ -54,7 +54,7 @@ contract MessageProxyForSchain is MessageProxy {
     using AddressUpgradeable for address;
 
     /**
-     * @dev Structure that contains information about outgoing message
+     * @dev Structure that contains information about outgoing message.
      */
     struct OutgoingMessageData {
         bytes32 dstChainHash; // destination chain
@@ -65,29 +65,29 @@ contract MessageProxyForSchain is MessageProxy {
     }
 
     /**
-     * @dev Address of {KeyStorage}
+     * @dev Address of {KeyStorage}.
      */
     KeyStorage public keyStorage;
 
     /**
-     * @dev Keccak256 hash of schain name
+     * @dev Keccak256 hash of schain name.
      */
     bytes32 public schainHash;
 
     /**
-     * @dev Hashed of meta information of outgoing messages
+     * @dev Hashed of meta information of outgoing messages.
      */
     //      schainHash  =>      message_id  => MessageData
     mapping(bytes32 => mapping(uint256 => bytes32)) private _outgoingMessageDataHash;
 
     /**
-     * @dev First unprocessed outgoing message
+     * @dev First unprocessed outgoing message.
      */
     //      schainHash  => head of unprocessed messages
     mapping(bytes32 => uint) private _idxHead;
 
     /**
-     * @dev Last unprocessed outgoing message
+     * @dev Last unprocessed outgoing message.
      */
     //      schainHash  => tail of unprocessed messages
     mapping(bytes32 => uint) private _idxTail;
@@ -111,7 +111,7 @@ contract MessageProxyForSchain is MessageProxy {
     }
 
     /**
-     * @dev Is called once during contract deployment
+     * @dev Is called once during contract deployment.
      */
     function initialize(KeyStorage blsKeyStorage, string memory schainName)
         public
@@ -134,14 +134,14 @@ contract MessageProxyForSchain is MessageProxy {
     }
 
     /**
-     * @dev Link external chain
+     * @dev Link external chain.
      *
-     * NOTE: Mainnet is linked automatically
+     * NOTE: Mainnet is linked automatically.
      * 
      * Requirements:
      * 
-     * - Function caller has to be granted with {CHAIN_CONNECTOR_ROLE}
-     * - Target chain must be different from the current
+     * - Function caller has to be granted with {CHAIN_CONNECTOR_ROLE}.
+     * - Target chain must be different from the current.
      */
     function addConnectedChain(string calldata chainName) external override {
         bytes32 chainHash = keccak256(abi.encodePacked(chainName));
@@ -150,12 +150,12 @@ contract MessageProxyForSchain is MessageProxy {
     }
 
     /**
-     * @dev Unlink external SKALE chain
+     * @dev Unlink external SKALE chain.
      * 
      * Requirements:
      * 
-     * - Function caller has to be granted with {CHAIN_CONNECTOR_ROLE}
-     * - Target chain must be different from Mainnet
+     * - Function caller has to be granted with {CHAIN_CONNECTOR_ROLE}.
+     * - Target chain must be different from Mainnet.
      */
     function removeConnectedChain(string memory chainName) public override onlyChainConnector {
         bytes32 chainHash = keccak256(abi.encodePacked(chainName));
@@ -165,12 +165,12 @@ contract MessageProxyForSchain is MessageProxy {
 
     /**
      * @dev This function is called by a smart contract
-     * that wants to make a cross-chain call
+     * that wants to make a cross-chain call.
      * 
      * Requirements:
      * 
-     * - Destination chain has to be registered
-     * - Sender contract has to be registered
+     * - Destination chain has to be registered.
+     * - Sender contract has to be registered.
      */
     function postOutgoingMessage(
         bytes32 targetChainHash,
@@ -196,16 +196,16 @@ contract MessageProxyForSchain is MessageProxy {
     }
 
     /**
-     * @dev Entry point for incoming messages
-     * This function is called by IMA-agent to deliver incoming messages from external chains
+     * @dev Entry point for incoming messages.
+     * This function is called by IMA-agent to deliver incoming messages from external chains.
      * 
      * Requirements:
      * 
-     * - Origin chain has to be registered
-     * - Amount of messages must be no more than {MESSAGES_LENGTH}
-     * - Messages batch has to be signed with threshold signature
-     * by super majority of current SKALE chain nodes
-     * - All previous messages must be already delivered
+     * - Origin chain has to be registered.
+     * - Amount of messages must be no more than {MESSAGES_LENGTH}.
+     * - Messages batch has to be signed with threshold signature.
+     * by super majority of current SKALE chain nodes.
+     * - All previous messages must be already delivered.
      */
     function postIncomingMessages(
         string calldata fromChainName,
@@ -230,7 +230,7 @@ contract MessageProxyForSchain is MessageProxy {
     }
 
     /**
-     * @dev Verify if the message metadata is valid
+     * @dev Verify if the message metadata is valid.
      */
     function verifyOutgoingMessageData(
         OutgoingMessageData memory message
@@ -247,7 +247,7 @@ contract MessageProxyForSchain is MessageProxy {
     // private
 
     /**
-     * @dev Calculate a message hash
+     * @dev Calculate a message hash.
      */
     function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
         bytes memory data = abi.encodePacked(
@@ -263,7 +263,7 @@ contract MessageProxyForSchain is MessageProxy {
     /**
      * @dev Converts calldata structure to memory structure and checks
      * whether message BLS signature is valid.
-     * Returns true if signature is valid
+     * Returns true if signature is valid.
      */
     function _verifyMessages(
         bytes32 hashedMessages,
