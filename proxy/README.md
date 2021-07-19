@@ -1,3 +1,7 @@
+<!-- SPDX-License-Identifier: (AGPL-3.0-only OR CC-BY-4.0) -->
+
+[![codecov](https://codecov.io/gh/skalenetwork/IMA/branch/develop/graph/badge.svg?token=rprj0137UA)](https://codecov.io/gh/skalenetwork/IMA)
+
 # SKALE IMA Proxy
 
 SKALE Interchain Messaging Smart Contracts
@@ -6,20 +10,21 @@ Proxy is a library with smart contracts for the SKALE Interchain Messaging Agent
 
 Smart contract language - Solidity 0.5.10
 NodeJS version - 10.16.0
-NPM verion - 6.9.0
+NPM version - 6.9.0
 
 ## Message Proxy system
 
 This system allows sending and receiving messages from other chains. `MessageProxy.sol` contract needs to be deployed to Mainnet, and deployed to each SKALE chain to use it with the SKALE Interchain Messaging Agent.
 You can use MessageProxy contract separately by Interchain Messaging Smart Contracts:
-1) Add interface:
+
+1)  Add interface:
 
 ```solidity
 interface Proxy {
     function postOutgoingMessage(
-        string calldata dstChainID, 
-        address dstContract, 
-        uint amount, 
+        string calldata targetSchainName, 
+        address targetContract, 
+        uint256 amount, 
         address to, 
         bytes calldata data
     ) 
@@ -27,14 +32,14 @@ interface Proxy {
 }
 ```
 
-2) Write `postMessage` function, which will receive and process messages from other chains:
+2)  Write `postMessage` function, which will receive and process messages from other chains:
 
 ```solidity
 function postMessage(
     address sender, 
-    string memory fromSchainID, 
+    string memory fromSchainName, 
     address payable to, 
-    uint amount, 
+    uint256 amount, 
     bytes memory data
 ) 
     public 
@@ -43,26 +48,29 @@ function postMessage(
 }
 ```
 
-2) Add the address of MessageProxy on some chain:
+3)  Add the address of MessageProxy on some chain:
     Data of Smart contracts stores in `data` folder
-3) Then continue developing your dApp
+
+4)  Then continue developing your dApp
+
+## Ether clone on SKALE chain
+
+There is a Wrapped Ether clone(EthERC20.sol) on SKALE chains - it is an ERC20 token and inherits the known ERC-20 approve issue. Please find more details here https://blog.smartdec.net/erc20-approve-issue-in-simple-words-a41aaf47bca6
 
 ## Interchain Messaging Agent system
 
 This system sends and receives ETH, ERC20, and ERC721 tokens from other chains.
 It consists of 3 additional smart contracts (not including MessageProxy contract):
-1) `DepositBox.sol` - contract only on a mainnet:
-    DespositBox can transfer ETH and ERC20, ERC721 tokens to other chains.
-     \- `deposit(string memory schainID, address to)` - transfer ETH.
-     ...
-2) `TokenManager.sol`
-3) `TokenFactory.sol`
+
+1)  `DepositBox.sol` - contract only on a mainnet: DepositBox can transfer ETH and ERC20, ERC721 tokens to other chains. \- `deposit(string memory schainName, address to)` - transfer ETH. ...
+2)  `TokenManager.sol`
+3)  `TokenFactory.sol`
 
 ## Install
 
-1) Clone this repo
-2) run `npm install`
-3) run `npm start`, this command will compile contracts
+1)  Clone this repo
+2)  run `npm install`
+3)  run `npm start`, this command will compile contracts
 
 ## Deployment
 
@@ -73,16 +81,14 @@ There are several example networks in comments.
 The `.env` file should include the following variables:
 
 ```bash
-MAINNET_RPC_URL="your mainnet RPC url, it also can be an infura endpoint"
-SCHAIN_RPC_URL="your SKALE chain RPC url, it also can be an infura endpoint"
-SCHAIN_NAME="your SKALE chain name"
-PRIVATE_KEY_FOR_MAINNET="your private key for mainnet"
+URL_W3_ETHEREUM="your mainnet RPC url, it also can be an infura endpoint"
+URL_W3_S_CHAIN="your SKALE chain RPC url, it also can be an infura endpoint"
+CHAIN_NAME_SCHAIN="your SKALE chain name"
+PRIVATE_KEY_FOR_ETHEREUM="your private key for mainnet"
 PRIVATE_KEY_FOR_SCHAIN="your private key for SKALE chain"
-ACCOUNT_FOR_MAINNET="your account for mainnet"
+ACCOUNT_FOR_ETHEREUM="your account for mainnet"
 ACCOUNT_FOR_SCHAIN="your account for SKALE chain"
-MNEMONIC_FOR_MAINNET="your mnemonic for mainnet"
-MNEMONIC_FOR_SCHAIN="your mnemonic for SKALE chain"
-NETWORK_FOR_MAINNET="your created network for mainnet"
+NETWORK_FOR_ETHEREUM="your created network for mainnet"
 NETWORK_FOR_SCHAIN="your created network for SKALE chain"
 ```
 
@@ -102,4 +108,17 @@ npm run deploy-to-schain
 
 ```bash
 npm run deploy-to-both
+```
+
+### Generate IMA data file for skale-node
+
+Results will be saved to `[RESULTS_FOLDER]/ima_data.json`
+
+-   `ARTIFACTS_FOLDER` - path to `build/contracts` folder
+-   `RESULTS_FOLDER` - path to the folder where `ima_data.json` will be saved
+
+```bash
+cd proxy
+npm run compile
+python ima_datafile_generator.py [ARTIFACTS_FOLDER] [RESULTS_FOLDER]
 ```

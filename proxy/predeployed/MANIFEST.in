@@ -1,0 +1,2 @@
+graft src/ima_predeployed/artifacts
+include version.txt

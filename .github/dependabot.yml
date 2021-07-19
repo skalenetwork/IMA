@@ -1,0 +1,21 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/agent"
+  schedule:
+    interval: "weekly"
+    day: "saturday"
+  open-pull-requests-limit: 10
+- package-ecosystem: npm
+  directory: "/proxy"
+  schedule:
+    interval: "weekly"
+    day: "saturday"
+  allow: 
+    - dependency-type: "production"
+- package-ecosystem: npm
+  directory: "/npms/skale-ima"
+  schedule:
+    interval: "weekly"
+    day: "saturday"
+  open-pull-requests-limit: 10

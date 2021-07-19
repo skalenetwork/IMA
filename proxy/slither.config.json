@@ -1,0 +1,4 @@
+{
+    "detectors_to_exclude": "uninitialized-local,calls-loop,reentrancy-events,assembly,solc-version,timestamp,unused-return,variable-scope,dead-code",
+    "filter_paths": "test|@openzeppelin/contracts"
+}

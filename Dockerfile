@@ -1,15 +1,23 @@
-FROM node:10.15.1
+FROM node:10.18.0
 
 RUN mkdir /ima
 WORKDIR /ima
 
+COPY proxy proxy
 COPY agent agent
 COPY npms npms
 
-RUN cd agent && npm i
-RUN cd npms/skale-ima && npm i
+RUN mkdir /ima/bls_binaries
+COPY scripts/bls_binaries /ima/bls_binaries
+
+RUN chmod +x /ima/bls_binaries/bls_glue
+RUN chmod +x /ima/bls_binaries/hash_g1
+RUN chmod +x /ima/bls_binaries/verify_bls
+
+RUN cd proxy && yarn install && cd ..
+RUN cd npms/skale-owasp && yarn install && cd ../..
+RUN cd npms/skale-ima && yarn install && cd ../..
+RUN cd agent && yarn install && cd ..
 
 
-CMD ["node", "/ima/agent/run.js"]
-#CMD exec /bin/bash -c "trap : TERM INT; sleep infinity & wait"
-
+CMD ["bash", "/ima/agent/run.sh"]
