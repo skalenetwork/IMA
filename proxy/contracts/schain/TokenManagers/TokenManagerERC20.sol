@@ -31,16 +31,11 @@ import "../TokenManager.sol";
 
 
 /**
- * This contract runs on schains and accepts messages from main net creates ETH clones.
- * When the user exits, it burns them
- */
-
-/**
- * @title Token Manager
- * @dev Runs on SKALE Chains, accepts messages from mainnet, and instructs
- * TokenFactory to create clones. TokenManager mints tokens via
- * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
- * burns tokens.
+ * @title TokenManagerERC20
+ * @dev Runs on SKALE Chains,
+ * accepts messages from mainnet,
+ * and creates ERC20 clones.
+ * TokenManagerERC20 mints tokens. When a user exits a SKALE chain, it burns them.
  */
 contract TokenManagerERC20 is TokenManager {
     using AddressUpgradeable for address;
@@ -51,12 +46,26 @@ contract TokenManagerERC20 is TokenManager {
     // address of clone on schain => totalSupplyOnMainnet
     mapping(IERC20Upgradeable => uint) public totalSupplyOnMainnet;
 
+    /**
+     * @dev Emitted when schain owner register new ERC20 clone.
+     */
     event ERC20TokenAdded(address indexed erc20OnMainnet, address indexed erc20OnSchain);
 
+    /**
+     * @dev Emitted when TokenManagerERC20 automatically deploys new ERC20 clone.
+     */
     event ERC20TokenCreated(address indexed erc20OnMainnet, address indexed erc20OnSchain);
 
+    /**
+     * @dev Emitted when someone sends tokens from mainnet to schain.
+     */
     event ERC20TokenReceived(address indexed erc20OnMainnet, address indexed erc20OnSchain, uint256 amount);
 
+    /**
+     * @dev Move tokens from schain to mainnet.
+     * 
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     */
     function exitToMainERC20(
         address contractOnMainnet,
         address to,
@@ -68,6 +77,12 @@ contract TokenManagerERC20 is TokenManager {
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, amount);
     }
 
+    /**
+     * @dev Move tokens from schain to schain.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
     function transferToSchainERC20(
         string calldata targetSchainName,
         address contractOnMainnet,
@@ -84,8 +99,6 @@ contract TokenManagerERC20 is TokenManager {
     /**
      * @dev Allows MessageProxy to post operational message from mainnet
      * or SKALE chains.
-     * 
-     * Emits an {Error} event upon failure.
      *
      * Requirements:
      * 
@@ -117,7 +130,7 @@ contract TokenManagerERC20 is TokenManager {
     }
 
     /**
-     * @dev Allows Schain owner to add an ERC20 token to LockAndDataForSchainERC20.
+     * @dev Allows Schain owner to register an ERC20 token clone in the token manager.
      */
     function addERC20TokenByOwner(
         address erc20OnMainnet,
@@ -132,6 +145,9 @@ contract TokenManagerERC20 is TokenManager {
         emit ERC20TokenAdded(erc20OnMainnet, address(erc20OnSchain));
     }
 
+    /**
+     * @dev Is called once during contract deployment.
+     */
     function initialize(
         string memory newChainName,
         MessageProxyForSchain newMessageProxy,
@@ -155,7 +171,7 @@ contract TokenManagerERC20 is TokenManager {
     /**
      * @dev Allows TokenManager to send ERC20 tokens.
      *  
-     * Emits a {ERC20TokenCreated} event if token does not exist.
+     * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
      * Emits a {ERC20TokenReceived} event on success.
      */
     function _sendERC20(bytes calldata data) private returns (address) {        
@@ -203,6 +219,9 @@ contract TokenManagerERC20 is TokenManager {
         return receiver;
     }
 
+    /**
+     * @dev Burn tokens on schain and send message to unlock them on target chain.
+     */
     function _exit(
         bytes32 chainHash,
         address messageReceiver,

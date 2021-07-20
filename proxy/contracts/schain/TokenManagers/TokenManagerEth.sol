@@ -27,16 +27,10 @@ import "../TokenManager.sol";
 
 
 /**
- * This contract runs on schains and accepts messages from main net creates ETH clones.
- * When the user exits, it burns them
- */
-
-/**
- * @title Token Manager
- * @dev Runs on SKALE Chains, accepts messages from mainnet, and instructs
- * TokenFactory to create clones. TokenManager mints tokens via
- * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
- * burns tokens.
+ * @title TokenManagerEth
+ * @dev Runs on SKALE Chains and
+ * accepts messages from mainnet.
+ * TokenManagerEth mints EthErc20 tokens. When a user exits a SKALE chain, it burns them.
  */
 contract TokenManagerEth is TokenManager {
 
@@ -44,6 +38,9 @@ contract TokenManagerEth is TokenManager {
 
     /// Create a new token manager    
 
+    /**
+     * @dev Register EthErc20 token.
+     */
     function setEthErc20Address(EthErc20 newEthErc20Address) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
         require(ethErc20 != newEthErc20Address, "Must be new address");
@@ -51,13 +48,21 @@ contract TokenManagerEth is TokenManager {
     }
 
     /**
-     * @dev Performs an exit (post outgoing message) to Mainnet.
+     * @dev Move ETH from schain to mainnet.
+     * 
+     * EthErc20 tokens are burned on schain and ETH are unlocked on mainnet for {to} address.
      */
     function exitToMain(address to, uint256 amount) external {
         communityLocker.checkAllowedToSendMessage(to);
         _exit(MAINNET_HASH, depositBox, to, amount);
     }
 
+    /**
+     * @dev Move ETH from schain to schain.
+     * 
+     * EthErc20 tokens are burned on origin schain.
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
     function transferToSchain(
         string memory targetSchainName,
         address to,
@@ -73,8 +78,6 @@ contract TokenManagerEth is TokenManager {
     /**
      * @dev Allows MessageProxy to post operational message from mainnet
      * or SKALE chains.
-     * 
-     * Emits an {Error} event upon failure.
      *
      * Requirements:
      * 
@@ -99,6 +102,9 @@ contract TokenManagerEth is TokenManager {
         return receiver;
     }
 
+    /**
+     * @dev Is called once during contract deployment.
+     */
     function initialize(
         string memory newChainName,
         MessageProxyForSchain newMessageProxy,
@@ -123,6 +129,9 @@ contract TokenManagerEth is TokenManager {
 
     // private
 
+    /**
+     * @dev Burn EthErc20 tokens on schain and send message to unlock ETH on target chain.
+     */
     function _exit(
         bytes32 chainHash,
         address messageReceiver,

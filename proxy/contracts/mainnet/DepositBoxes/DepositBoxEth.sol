@@ -26,9 +26,12 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "../DepositBox.sol";
 import "../../Messages.sol";
 
-
-
-// This contract runs on the main net and accepts deposits
+/**
+ * @title DepositBoxEth
+ * @dev Runs on mainnet,
+ * accepts messages from schain,
+ * stores deposits of ETH.
+ */
 contract DepositBoxEth is DepositBox {
     using AddressUpgradeable for address payable;
 
@@ -40,6 +43,16 @@ contract DepositBoxEth is DepositBox {
         revert("Use deposit function");
     }
 
+    /**
+     * @dev Allows `msg.sender` to send ETH from mainnet to schain.
+     * 
+     * Requirements:
+     * 
+     * - Schain name must not be `Mainnet`.
+     * - Receiver account on schain cannot be null.
+     * - Receiver contract should be added as twin contract on schain.
+     * - Schain that receives tokens should not be killed.
+     */
     function deposit(string memory schainName, address to)
         external
         payable
@@ -58,6 +71,15 @@ contract DepositBoxEth is DepositBox {
         );
     }
 
+    /**
+     * @dev Allows MessageProxyForMainnet contract to execute transferring ERC20 token from schain to mainnet.
+     * 
+     * Requirements:
+     * 
+     * - Schain from which the tokens came should not be killed.
+     * - Sender contract should be defined and schain name cannot be `Mainnet`.
+     * - Amount of tokens on DepositBoxERC20 should be equal or more than transferred amount.
+     */
     function postMessage(
         bytes32 schainHash,
         address sender,
@@ -101,7 +123,7 @@ contract DepositBoxEth is DepositBox {
      *
      * Requirements:
      *
-     * - LockAndDataForMainnet must have sufficient ETH.
+     * - DepositBoxETh must have sufficient ETH.
      * - User must be approved for ETH transfer.
      */
     function getMyEth() external {
@@ -115,6 +137,14 @@ contract DepositBoxEth is DepositBox {
         payable(msg.sender).sendValue(amount);
     }
 
+    /**
+     * @dev Allows Schain owner to return each user their ETH.
+     *
+     * Requirements:
+     * 
+     * - Amount of ETH on schain should be equal or more than transferred amount.
+     * - Receiver address must not be null.
+     */
     function getFunds(string calldata schainName, address payable receiver, uint amount)
         external
         onlySchainOwner(schainName)
@@ -126,8 +156,9 @@ contract DepositBoxEth is DepositBox {
         _removeTransferredAmount(schainHash, amount);
         receiver.sendValue(amount);
     }
-
-    /// Create a new deposit box
+    /**
+     * @dev Creates a new DepositBoxEth contract.
+     */
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,        
         Linker linkerValue,
@@ -140,10 +171,16 @@ contract DepositBoxEth is DepositBox {
         DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);
     }
 
+    /**
+     * @dev Saves amount of ETH that was transferred to schain.
+     */
     function _saveTransferredAmount(bytes32 schainHash, uint256 amount) private {
         transferredAmount[schainHash] += amount;
     }
 
+    /**
+     * @dev Removes amount of ETH that was transferred from schain.
+     */
     function _removeTransferredAmount(bytes32 schainHash, uint256 amount) private {
         transferredAmount[schainHash] -= amount;
     }

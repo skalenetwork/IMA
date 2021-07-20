@@ -95,15 +95,15 @@ contract SkaleVerifierMock {
         if (counter > 100) {
             return false;
         }
-        uint xCoord = uint(hash) % Fp2Operations.P;
-        xCoord = (xCoord + counter) % Fp2Operations.P;
+        uint xCoordinate = uint(hash) % Fp2Operations.P;
+        xCoordinate = (xCoordinate + counter) % Fp2Operations.P;
 
         uint ySquared = addmod(
-            mulmod(mulmod(xCoord, xCoord, Fp2Operations.P), xCoord, Fp2Operations.P),
+            mulmod(mulmod(xCoordinate, xCoordinate, Fp2Operations.P), xCoordinate, Fp2Operations.P),
             3,
             Fp2Operations.P
         );
-        if (hashB < Fp2Operations.P / 2 || mulmod(hashB, hashB, Fp2Operations.P) != ySquared || xCoord != hashA) {
+        if (hashB < Fp2Operations.P / 2 || mulmod(hashB, hashB, Fp2Operations.P) != ySquared || xCoordinate != hashA) {
             return true;
         }
 

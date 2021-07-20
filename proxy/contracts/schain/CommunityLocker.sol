@@ -33,39 +33,100 @@ import "./TokenManagerLinker.sol";
 
 /**
  * @title CommunityLocker
- * @dev Contract contains logic to perform automatic self-recharging ether for nodes
+ * @dev Contract contains logic to perform automatic reimbursement
+ * of gas fees for sent messages
  */
 contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable {
 
+    /**
+     * @dev Mainnet identifier.
+     */
     string constant public MAINNET_NAME = "Mainnet";
+
+    /**
+     * @dev Keccak256 hash of mainnet name.
+     */
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+
+    /**
+     * @dev id of a role that allows changing of the contract parameters.
+     */
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
+    /**
+     * @dev Address of MessageProxyForSchain.
+     */
     MessageProxyForSchain public messageProxy;
+
+    /**
+     * @dev Address of TokenManagerLinker.
+     */
     TokenManagerLinker public tokenManagerLinker;
+
+    /**
+     * @dev Address of CommunityPool on mainnet.
+     */
     address public communityPool;
 
+    /**
+     * @dev Keccak256 hash of schain name.
+     */
     bytes32 public schainHash;
+
+    /**
+     * @dev Amount of seconds after message sending
+     * when next message cannot be sent.
+     */
     uint public timeLimitPerMessage;
 
+    /**
+     * @dev Mapping of users who are allowed to send a message.
+     */
+    // user address => allowed to send message
     mapping(address => bool) public activeUsers;
+
+    /**
+     * @dev Timestamp of previous sent message by user.
+     */
+    // user address => timestamp of last message
     mapping(address => uint) private _lastMessageTimeStamp;
 
+    /**
+     * @dev Emitted when a user becomes active.
+     */
     event ActivateUser(
         bytes32 schainHash,
         address user
     );
 
+    /**
+     * @dev Emitted when a user stops being active.
+     */
     event LockUser(
         bytes32 schainHash,
         address user
     ); 
 
+    /**
+     * @dev Emitted when value of {timeLimitPerMessage} was changed.
+     */
     event TimeLimitPerMessageWasChanged(
         uint256 oldValue,
         uint256 newValue
     );
 
+    /**
+     * @dev Allows MessageProxy to post operational message from mainnet
+     * or SKALE chains.
+     *
+     * Requirements:
+     * 
+     * - MessageProxy must be the caller of the function.
+     * - CommunityPool must be an origin of the message on mainnet.
+     * - The message must come from the mainnet.
+     * - The message must contains status of a user.
+     * - Status of a user in the message must be different from the current status.
+     */
     function postMessage(
         bytes32 fromChainHash,
         address sender,
@@ -91,6 +152,16 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
         return message.receiver;
     }
 
+    /**
+     * @dev Reverts if {receiver} is not allowed to send a message.
+     *
+     * Requirements:
+     * 
+     * - Function caller has to be registered in TokenManagerLinker as a TokenManager.
+     * - {receiver} must be an active user.
+     * - Previous message sent by {receiver} must be sent earlier then {timeLimitPerMessage} seconds before current time
+     * or there are no messages sent by {receiver}.
+     */
     function checkAllowedToSendMessage(address receiver) external {
         require(
             tokenManagerLinker.hasTokenManager(TokenManager(msg.sender)),
@@ -104,12 +175,24 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
         _lastMessageTimeStamp[receiver] = block.timestamp;
     }
 
+    /**
+     * @dev Set value of {timeLimitPerMessage}.
+     *
+     * Requirements:
+     * 
+     * - Function caller has to be granted with {CONSTANT_SETTER_ROLE}.
+     * 
+     * Emits a {TimeLimitPerMessageWasChanged} event.
+     */
     function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         emit TimeLimitPerMessageWasChanged(timeLimitPerMessage, newTimeLimitPerMessage);
         timeLimitPerMessage = newTimeLimitPerMessage;
     }
 
+    /**
+     * @dev Is called once during contract deployment.
+     */
     function initialize(
         string memory newSchainName,
         MessageProxyForSchain newMessageProxy,
