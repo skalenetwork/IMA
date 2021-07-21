@@ -153,28 +153,21 @@ const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( r
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function parseIntSafer( s ) {
-    s = s.trim();
-    if( s.length > 2 && s[0] == "0" && ( s[1] == "x" || s[1] == "X" ) )
-        return parseInt( s, 10 );
-    return parseInt( s, 16 );
-}
-
 async function wait_for_next_block_to_appear( details, w3 ) {
     const nBlockNumber = await get_web3_blockNumber( details, 10, w3 );
     details.write( cc.debug( "Waiting for next block to appear..." ) + "\n" );
-    details.write( cc.debug( "    ...have block " ) + cc.info( parseIntSafer( nBlockNumber ) ) + "\n" );
+    details.write( cc.debug( "    ...have block " ) + cc.info( parseIntOrHex( nBlockNumber ) ) + "\n" );
     for( ; true; ) {
         await sleep( 1000 );
         const nBlockNumber2 = await get_web3_blockNumber( details, 10, w3 );
-        details.write( cc.debug( "    ...have block " ) + cc.info( parseIntSafer( nBlockNumber2 ) ) + "\n" );
+        details.write( cc.debug( "    ...have block " ) + cc.info( parseIntOrHex( nBlockNumber2 ) ) + "\n" );
         if( nBlockNumber2 > nBlockNumber )
             break;
     }
 }
 
 async function get_web3_blockNumber( details, attempts, w3 ) {
-    const cntAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    const cntAttempts = parseIntOrHex( attempts ) < 1 ? 1 : parseIntOrHex( attempts );
     let nLatestBlockNumber = "";
     try {
         nLatestBlockNumber = await w3.eth.getBlockNumber();
@@ -196,7 +189,7 @@ async function get_web3_blockNumber( details, attempts, w3 ) {
 }
 
 async function get_web3_transactionCount( details, attempts, w3, address, param ) {
-    const cntAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    const cntAttempts = parseIntOrHex( attempts ) < 1 ? 1 : parseIntOrHex( attempts );
     let txc = "";
     try {
         txc = await w3.eth.getTransactionCount( address, param );
@@ -220,7 +213,7 @@ async function get_web3_transactionCount( details, attempts, w3, address, param 
 }
 
 async function get_web3_transactionReceipt( details, attempts, w3, txHash ) {
-    const cntAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    const cntAttempts = parseIntOrHex( attempts ) < 1 ? 1 : parseIntOrHex( attempts );
     let txReceipt = "";
     try {
         txReceipt = await w3.eth.getTransactionReceipt( txHash );
@@ -242,7 +235,7 @@ async function get_web3_transactionReceipt( details, attempts, w3, txHash ) {
 }
 
 async function get_web3_pastEvents( details, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
-    const cntAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    const cntAttempts = parseIntOrHex( attempts ) < 1 ? 1 : parseIntOrHex( attempts );
     let joAllEventsInBlock = "";
     try {
         joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
@@ -683,10 +676,10 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 }
                 details.write( cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
                 const joNeededResult = {
-                    // "v": Buffer.from( parseInt( joOut.result.signature_v, 10 ).toString( "hex" ), "utf8" ),
+                    // "v": Buffer.from( parseIntOrHex( joOut.result.signature_v ).toString( "hex" ), "utf8" ),
                     // "r": Buffer.from( "" + joOut.result.signature_r, "utf8" ),
                     // "s": Buffer.from( "" + joOut.result.signature_s, "utf8" )
-                    "v": parseInt( joOut.result.signature_v, 10 ),
+                    "v": parseIntOrHex( joOut.result.signature_v, 10 ),
                     "r": "" + joOut.result.signature_r,
                     "s": "" + joOut.result.signature_s
                 };
@@ -2423,7 +2416,7 @@ async function do_erc20_payment_from_s_chain(
         const strDRC_approve = "do_erc20_payment_from_s_chain, approve";
         await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
         //
-        let tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        let tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         const rawTxApprove = {
             chainId: cid_s_chain,
@@ -2466,7 +2459,7 @@ async function do_erc20_payment_from_s_chain(
         strActionName = "create ERC20/exitToMain transaction S->M";
         const estimatedGas_rawExitToMainERC20 = await tc_s_chain.computeGas( methodWithArguments_rawExitToMainERC20, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_rawExitToMainERC20 ) + "\n" );
-        tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
@@ -2593,7 +2586,7 @@ async function do_erc721_payment_from_s_chain(
         //
         //
         strActionName = "create ERC721/approve transaction S->M";
-        let tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        let tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         const estimatedGas_approve = await tc_s_chain.computeGas( methodWithArguments_approve, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
@@ -2642,7 +2635,7 @@ async function do_erc721_payment_from_s_chain(
         //
         //
         strActionName = "create ERC721/rawExitToMain transaction S->M";
-        tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
@@ -2776,7 +2769,7 @@ async function do_erc1155_payment_from_s_chain(
         //
         //
         strActionName = "create ERC1155/approve transaction S->M";
-        let tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        let tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         const estimatedGas_approve = await tc_s_chain.computeGas( methodWithArguments_approve, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
@@ -2825,7 +2818,7 @@ async function do_erc1155_payment_from_s_chain(
         //
         //
         strActionName = "create ERC1155/rawExitToMain transaction S->M";
-        tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
@@ -2959,7 +2952,7 @@ async function do_erc1155_batch_payment_from_s_chain(
         //
         //
         strActionName = "create ERC1155 Batch/approve transaction S->M";
-        let tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        let tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         const estimatedGas_approve = await tc_s_chain.computeGas( methodWithArguments_approve, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
@@ -3008,7 +3001,7 @@ async function do_erc1155_batch_payment_from_s_chain(
         //
         //
         strActionName = "create ERC1155 Batch/rawExitToMain transaction S->M";
-        tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
@@ -3107,6 +3100,18 @@ function w3_2_url( w3 ) {
     if( !( "currentProvider" in w3 ) )
         return null;
     return w3provider_2_url( w3.currentProvider );
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function parseIntOrHex( s ) {
+    if( typeof s != "string" )
+        return parseInt( s );
+    s = s.trim();
+    if( s.length > 2 && s[0] == "0" && ( s[1] == "x" || s[1] == "X" ) )
+        return parseInt( s, 16 );
+    return parseInt( s, 10 );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4070,9 +4075,9 @@ class TransactionCustomizer {
         this.gasMultiplier = gasMultiplier ? ( 0.0 + gasMultiplier ) : 1.25;
     }
     async computeGasPrice( w3, maxGasPrice ) {
-        const gasPrice = parseInt( await w3.eth.getGasPrice() );
+        const gasPrice = parseIntOrHex( await w3.eth.getGasPrice() );
         if( gasPrice == 0 || gasPrice == null || gasPrice == undefined || gasPrice <= 1000000000 )
-            return parseInt( "1000000000" );
+            return parseIntOrHex( "1000000000" );
         else if(
             this.gasPriceMultiplier != null &&
             this.gasPriceMultiplier != undefined &&
@@ -4081,9 +4086,9 @@ class TransactionCustomizer {
             maxGasPrice != undefined
         ) {
             if( gasPrice * this.gasPriceMultiplier > maxGasPrice )
-                return parseInt( maxGasPrice );
+                return parseIntOrHex( maxGasPrice );
             else
-                return gasPrice * this.gasPriceMultiplier;
+                return parseIntOrHex( ( gasPrice * this.gasPriceMultiplier ).toString() );
         } else
             return gasPrice;
     }
@@ -4105,7 +4110,7 @@ class TransactionCustomizer {
             estimatedGas = 0;
         }
         estimatedGas *= this.gasMultiplier;
-        estimatedGas = parseInt( "" + estimatedGas ); // avoid using floating point
+        estimatedGas = parseIntOrHex( "" + estimatedGas ); // avoid using floating point
         if( estimatedGas == 0 )
             estimatedGas = recommendedGas;
         return estimatedGas;
@@ -4284,6 +4289,7 @@ module.exports.getWaitForNextBlockOnSChain = getWaitForNextBlockOnSChain;
 module.exports.setWaitForNextBlockOnSChain = setWaitForNextBlockOnSChain;
 module.exports.get_web3_blockNumber = get_web3_blockNumber;
 module.exports.get_web3_pastEvents = get_web3_pastEvents;
+module.exports.parseIntOrHex = parseIntOrHex;
 
 module.exports.balanceETH = balanceETH;
 module.exports.balanceERC20 = balanceERC20;
