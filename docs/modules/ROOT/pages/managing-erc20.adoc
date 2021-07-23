@@ -1,5 +1,6 @@
 = Managing ERC20
 :sectnumlevels: 5
+include::ima-sandboxes.adoc[]
 
 
 As a SKALE Chain Owner, there are two main steps to managing ERC20 through IMA:
@@ -14,7 +15,7 @@ Once you have completed step 1 to setup and map your ERC20 tokens, you can then 
 
 The following one-time setup for each ERC20 token is required for SKALE Chains with a default access control policy (default settings are: whitelisting enabled, automatic deployment disabled). For more information on IMA access control, xref:access-control.adoc[see here].
 
-To see a complete Javascript sandbox version of setup, map, and transfer, see <https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-forked-w1t5m>
+To see a complete Javascript sandbox version of setup, map, and transfer, see <{erc20-sandbox}>
 
 === 1. Review/Modify the token contract
 

@@ -1,14 +1,14 @@
 = Getting Started with IMA 
 
-The IMA bridge between SKALE and Ethereum allows users to transfer tokens across chains. The SKALE IMA bridge supports ETH, ERC20, ERC721, and ERC1155 out of the box. IMA can be expanded to any arbitrary message or token standard using MessageProxy.
+The IMA bridge between SKALE and Ethereum allows users to transfer tokens and messages across chains. The SKALE IMA bridge supports ETH, ERC20, ERC721, and ERC1155 out of the box. IMA can be expanded to any arbitrary message or token standard using MessageProxy.
 
 IMA consists of three parts:
 
 1. IMA contracts on Ethereum.
-2. IMA contracts pre-deployed on your SKALE Chain.
-3. IMA Agent - a containerized service on each SKALE Chain node that relays messages between Ethereum and your SKALE Chain.
+2. IMA contracts pre-deployed on SKALE Chains.
+3. IMA Agent - a containerized service on each SKALE Chain node that relays messages between Ethereum and SKALE Chains.
 
-Developing with IMA is easy. You will only need to interact with the IMA contracts on Ethereum and your SKALE Chain. The IMA Agent works behind the scenes to relay messages between Ethereum and SKALE.
+Developing with IMA is easy. You will only need to interact with the IMA contracts on Ethereum and your SKALE Chain using Web3. The IMA Agent works behind the scenes to relay messages between Ethereum and SKALE.
 
 The high-level flow between Ethereum and SKALE Chains consists of the following:
 
@@ -28,3 +28,13 @@ Deposits and withdraws take only seconds, and are secured using BLS Threshold si
 * When using ERC721s, be careful with *MINT_ID*. This is the mapping between Mainnet and SKALE Chain ERC721s. Improper or corrupt mapping may cause loss of ERC721.
 
 * Be sure to use Web3.js 1.3.5.  Don't use any Web3.js 2.x.x
+
+== Troubleshooting
+
+* When attempting a transaction on the SKALE Chain, why do I receive an error message about balance and gas?
+
+Ensure that the msg.sender has sufficient skETH on the SKALE Chain. Users attempting transactions on the SKALE Chain will need some skETH to conduct transactions. Remember skETH has no value, and is distributed by the SKALE Chain owner to permit users to conduct transactions. When transactions are "mined" by users, the skETH gets redistributed to the SKALE Chain owner account. Conducting a getBalance call on the SKALE chain endpoint user's account will return the skETH balance. To display locked ETH, use one of the Informational Ports of the endpoint to return a user's ETH.
+
+* I can't seem to conduct an exit, and I receive a "Recipient must be active" revert message.
+
+Ensure that the end user has provided ETH to the CommunityPool contract. This is used to pay for transactions to execute the exit on Ethereum.

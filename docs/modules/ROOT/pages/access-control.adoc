@@ -15,13 +15,19 @@ This document describes how SKALE Chain owners can set permissions for IMA token
 IMA permissions include:
 
 * Enable/disable IMA token whitelist on mainnet (default: enabled)
-* Enable/disable automatic deployment on schain (default: disabled)
-* AddERC20TokenByOwner on mainnet and on schain
-* AddERC721TokenByOwner on mainnet and on schain
+* Enable/disable automatic deployment on SKALE Chain (default: disabled)
+* AddERC20TokenByOwner on mainnet and on SKALE Chain
+* AddERC721TokenByOwner on mainnet and on SKALE Chain
+* AddERC1155TokenByOwner on mainnet and on SKALE Chain
+
+The general architecture is that:
+
+* Enable/disable permissions are set using DepositBox and TokenManager contracts on Ethereum and on a SKALE Chain.  
+* Mapping (AddERC20TokenByOwner, AddERC721TokenByOwner, AddERC1155TokenByOwner) are set using the respective DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155.
 
 == Enable or Disable the Whitelist
 
-The token whitelist allows the Schain owner to allow token exchange through IMA and a SKALE chain. For example, a decentralized exchange may prefer to disable the whitelist to allow any token transfer. A dApp using only one token may enable the whitelist to allow only a single token exchange. 
+The token whitelist allows the SKALE chain owner to allow token exchange through IMA and a SKALE chain. For example, a decentralized exchange may prefer to disable the whitelist to allow any token transfer. A dApp using only one token may enable the whitelist to allow only a single token exchange. 
 
 To disable the whitelist, the owner executes `disableWhitelist` in LockAndDataForMainnetERC20 or LockAndDataForMainnetERC721 contracts, and pass in the schainName as the only argument. For example:
 
@@ -83,14 +89,14 @@ self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
 If the whitelist is enabled, the SKALE chain owner must authorize each token for the schain. 
 
-You can use `addERC20TokenByOwner` and `addERC721TokenByOwner` functions available in DepositBox... and TokenManager... contracts on both Mainnet and each Schain.
+You can use `addERC20TokenByOwner`, `addERC721TokenByOwner`, and `addERC1155TokenByOwner` functions available in DepositBoxERC20, DepositBoxERC721, DepositBox1155, and TokenManagerERC20, TokenManagerERC721, TokenManagerERC1155 contracts on both Mainnet and each SKALE chain.
 
 The recommended process is
 
-1. Deploy the ERC20 or ERC721 token contract on the SKALE chain.
-2. Add the token to TokenManager... on the Schain.
-3. Grant the token's minter role to LockATokenManager...ndData on the Schain.
-4. Add the token to DepositBox... on Mainnet.
+1. Deploy the ERC20/ERC721/ERC1155 token contract on the SKALE chain.
+2. Add the token to TokenManagerERC20/TokenManagerERC721/TokenManager1155 on the SKALE chain.
+3. Grant the token's minter role to TokenManagerERC20/TokenManagerERC721/TokenManager1155 on the SKALE chain.
+4. Add the token to DepositBoxERC20/DepositBoxERC721/DepositBox1155 on Mainnet.
 
 === Adding tokens to TokenManager
 
@@ -152,7 +158,7 @@ self.web3_schain.eth.sendRawTransaction(signed_txn.rawTransaction)
 
 === Assign Schain TokenManager as Minter and Burner role
 
-You need to assign TokenManager as the minter and burner for the deployed token on the schain. For AccessControl supported ERC20/ERC721, you can use apply the following pseudocode:
+You need to assign TokenManagerERC20/TokenManagerERC721/TokenManagerERC1155 as the minter and burner for the deployed token on the schain. For AccessControl supported ERC20/ERC721/ERC1155, you can use apply the following pseudocode:
 
 [tabs]
 ====
@@ -171,7 +177,7 @@ newERC20.grantRole(minterRoleERC20, token_manager_erc20.address)
 
 === Adding tokens to DepositBox
 
-NOTE: `addERC20TokenByOwner` and `addERC721TokenByOwner` on the DepositBox takes 2 arguments: schainName and erc20Mainnet/erc721Mainnet address.
+NOTE: `addERC20TokenByOwner`, `addERC721TokenByOwner`, `addERC1155TokenByOwner` on the DepositBox takes 2 arguments: schainName and erc20Mainnet/erc721Mainnet/erc1155Mainnet address.
 
 ==== Adding ERC20
 
