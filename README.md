@@ -8,7 +8,7 @@
 
 The IMA is still in active development and therefore should be regarded as _alpha software_. The development is still subject to further security hardening, testing, and breaking changes.
 
-**The proxy contracts have been reviewed and audited by a third-party for security.**
+**The proxy contracts have been reviewed and audited by a third-parties for security.**
 Please see [SECURITY.md](.github/SECURITY.md) for audit reports and reporting policies.
 
 ## Software Architecture
