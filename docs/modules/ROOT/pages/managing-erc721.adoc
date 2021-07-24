@@ -1,4 +1,5 @@
 = Managing ERC721
+include::ima-sandboxes.adoc[]
 
 As a SKALE Chain Owner, there are two main steps to managing ERC721 through IMA:
 
@@ -338,7 +339,7 @@ let addERC721TokenByOwner = TokenManager.methods
 
 The Interchain Messaging Agent can be used for managing ERC721 tokens between Ethereum and SKALE.  The following steps guide you through a complete transfer from Ethereum to SKALE and back. Be sure to follow any one-time setup and mapping steps described xref:setup[here].
 
-https://codesandbox.io/s/erc721-transfer-skale-interchain-messaging-agent-forked-hwexm[Live ERC721 IMA Demo]
+{erc721-sandbox}[Live ERC721 IMA Demo: {erc721-sandbox}]
 
 === 1. Deposit ERC721 on Ethereum
 

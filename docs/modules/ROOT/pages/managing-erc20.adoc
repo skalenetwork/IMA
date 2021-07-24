@@ -359,7 +359,7 @@ For a Javascript sandbox version of registering contracts on your SKALE Chain, s
 
 The Interchain Messaging Agent can be used for managing ERC20 tokens between Ethereum and SKALE.  The following steps guide you through a complete transfer from Ethereum to SKALE and back. Be sure to follow any one-time setup and mapping steps described xref:setup[here] before initiating transfers.
 
-https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-forked-w1t5m[Live ERC20 IMA Demo]
+link:{erc20-sandbox}[Live ERC20 IMA Demo]
 
 === 1. Deposit ERC20 on Ethereum
 

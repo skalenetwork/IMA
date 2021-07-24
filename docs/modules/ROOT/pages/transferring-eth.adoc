@@ -1,10 +1,11 @@
 = Transferring ETH
+include::ima-sandboxes.adoc[]
 
 You can use the Interchain Messaging Agent for managing ETH between Ethereum and SKALE.  The following three steps guide you through a complete transfer from Ethereum to SKALE and back. Unlike ERC20, ERC721, and ERC1155, ETH is natively supported so there is no need for you to set up and map ETH on your SKALE Chain.
 
 Also, note that the following steps apply to transferring Ethereum ETH to SKALE Chains, rather than describing SKALE Chain ETH (skETH), which has no monetary value and is used exclusively on SKALE Chains.
 
-https://codesandbox.io/s/eth-skale-interchain-messaging-agent-forked-7tzr7[Live ETH IMA Demo]
+link:{eth-sandbox}[Live ETH IMA Demo: {eth-sandbox}]
 
 :sectnums:
 == Deposit ETH on Ethereum

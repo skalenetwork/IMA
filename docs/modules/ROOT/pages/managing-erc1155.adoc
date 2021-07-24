@@ -1,4 +1,5 @@
 = Managing ERC1155
+include::ima-sandboxes.adoc[]
 
 As a SKALE Chain Owner, there are two main steps to managing ERC1155 through IMA:
 
@@ -368,7 +369,7 @@ let addERC1155TokenByOwner = TokenManager.methods
 
 The Interchain Messaging Agent can be used for managing ERC1155 tokens between Ethereum and SKALE.  The following steps guide you through a complete transfer from Ethereum to SKALE and back. Be sure to follow any one-time setup and mapping steps described xref:setup[here].
 
-https://codesandbox.io/s/erc1155-transfer-skale-interchain-messaging-agent-forked-nmie4[Live ERC1155 IMA Demo]
+link:{erc1155-sandbox}[Live ERC1155 IMA Demo: {erc1155-sandbox}]
 
 === 1. Deposit ERC1155 on Ethereum
 
