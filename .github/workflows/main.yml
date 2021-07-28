@@ -306,7 +306,10 @@ jobs:
 
     - name: Compile contracts
       working-directory: ./proxy
-      run: yarn install
+      run: |
+        pwd
+        ../npms/scrypt/get_scrypt_npm.sh
+        yarn install
 
     - name: Install agent      
       run: |
