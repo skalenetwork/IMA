@@ -72,7 +72,7 @@ jobs:
     - name: Install project
       working-directory: ${{env.PROXY_DIR}}
       run: |
-        ./npms/scrypt/get_scrypt_npm.sh
+        ../npms/scrypt/get_scrypt_npm.sh
         yarn install
 
     - name: Build predeployed pip package
