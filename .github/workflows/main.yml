@@ -47,7 +47,7 @@ jobs:
     - name: Install project
       working-directory: ${{env.working-directory}}
       run: |
-        npms/scrypt/get_scrypt_npm.sh
+        ./npms/scrypt/get_scrypt_npm.sh
         yarn install
 
     - name: Install slither
