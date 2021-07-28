@@ -18,5 +18,12 @@
         "sha3": "2.1.4",
         "shelljs": "0.8.4"
     },
-    "devDependencies": {}
+    "devDependencies": {},
+    "resolutions": {
+        "**/sqlite3": "5.0.2",
+        "**/sha3": "2.1.4",
+        "web3/ethereumjs-**/scrypt": "file:../npms/scrypt/node-scrypt",
+        "web3/**/scrypt": "file:../npms/scrypt/node-scrypt",
+        "scrypt.js/scrypt": "file:../npms/scrypt/node-scrypt"
+    }
 }
