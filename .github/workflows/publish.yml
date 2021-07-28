@@ -72,7 +72,6 @@ jobs:
     - name: Install project
       working-directory: ${{env.PROXY_DIR}}
       run: |
-        pwd
         ../npms/scrypt/get_scrypt_npm.sh
         yarn install
 

@@ -47,7 +47,6 @@ jobs:
     - name: Install project
       working-directory: ${{env.working-directory}}
       run: |
-        pwd
         ../npms/scrypt/get_scrypt_npm.sh
         yarn install
 
@@ -307,7 +306,6 @@ jobs:
     - name: Compile contracts
       working-directory: ./proxy
       run: |
-        pwd
         ../npms/scrypt/get_scrypt_npm.sh
         yarn install
 
