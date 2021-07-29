@@ -34,10 +34,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Set up Node
+    - name: Install NODE JS
       uses: actions/setup-node@v2
       with:
-        node-version: '10'
+        node-version: '14'
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -46,7 +46,9 @@ jobs:
 
     - name: Install project
       working-directory: ${{env.working-directory}}
-      run: yarn install
+      run: |
+        ../npms/scrypt/get_scrypt_npm.sh
+        yarn install
 
     - name: Install slither
       working-directory: ${{env.working-directory}}
@@ -303,7 +305,9 @@ jobs:
 
     - name: Compile contracts
       working-directory: ./proxy
-      run: yarn install
+      run: |
+        ../npms/scrypt/get_scrypt_npm.sh
+        yarn install
 
     - name: Install agent      
       run: |

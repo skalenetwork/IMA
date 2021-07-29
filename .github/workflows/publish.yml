@@ -39,10 +39,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Set up Node
+    - name: Install NODE JS
       uses: actions/setup-node@v2
       with:
-        node-version: '12'
+        node-version: '14'
 
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
@@ -71,7 +71,9 @@ jobs:
 
     - name: Install project
       working-directory: ${{env.PROXY_DIR}}
-      run: yarn install
+      run: |
+        ../npms/scrypt/get_scrypt_npm.sh
+        yarn install
 
     - name: Build predeployed pip package
       working-directory: ${{env.PROXY_DIR}}
