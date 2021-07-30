@@ -6,6 +6,7 @@
     "scripts": {
         "lint-check": "eslint ./agent/*.js ./npms/skale-*/*.js ./test/*.js",
         "lint-fix": "eslint ./agent/*.js ./npms/skale-*/*.js ./test/*.js --fix",
+        "preinstall": "./npms/scrypt/get_scrypt_npm.sh",
         "postinstall": "echo \"----- installing in agent\n\" && cd ./agent && yarn install && cd .. && echo \"----- installing in test\n\" && cd ./test && yarn install && cd .. && echo \"----- installing in proxy\n\" && cd ./proxy && yarn install && cd .. && echo \"----- installing in test-tokens\n\" && cd ./test-tokens && yarn install && cd .."
     },
     "dependencies": {},

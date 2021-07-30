@@ -993,7 +993,7 @@ async function reimbursement_show_balance(
     try {
         details.write( strLogPrefix + cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) + cc.debug( " balance..." ) + "\n" );
         const addressFrom = joAccount_main_net.address( w3_main_net );
-        const xWei = await jo_community_pool.methods.getBalance( strReimbursementChain ).call( {
+        const xWei = await jo_community_pool.methods.getBalance( addressFrom, strReimbursementChain ).call( {
             from: addressFrom
         } );
         //
