@@ -1,16 +1,18 @@
 = Interchain Messaging Agent
 
-SKALE makes it possible to manage tokens for end-users between Ethereum and your SKALE Chain. You can use the Interchain Messaging Agent (IMA) to transfer ETH, ERC20, ERC721, or Dai to a deposit box on Ethereum, and SKALE will create clones of the token on your SKALE Chain. You can then send the tokens back to your end-users, and the tokens will be released from the deposit box back to the end-user. 
+.Ethereum <> SKALE Bridge
 
-*IMA is very flexible* - it can not only support transfer tokens, but it can also transfer any arbitrary message between chains. See Managing Message Transfer below for more information.
+SKALE makes it possible to manage tokens for end-users between Ethereum and your SKALE Chain. Users can use the Interchain Messaging Agent (IMA) to transfer ETH, ERC-20, ERC-721 (NFTs), ERC-1155, Dai/USDC/USDT and others to a deposit box on Ethereum, and IMA will create clones of the token on your SKALE Chain. Users can then withdraw the tokens back to Ethereum, and the tokens will be released from the deposit box. 
 
-*IMA is backed by security mechanisms* - it uses your SKALE Chain's 16 randomly chosen validator-nodes to sign and verify messages between Mainnet and SKALE Chains using BLS threshold signatures and Trusted-Execution Environments (TEE). If that's not enough, know that each of the 16 nodes your SKALE Chain runs on has 20 million SKL tokens staked.
+*IMA is flexible and modular* - it can support transfer of any token standard, and can also transfer any arbitrary message between chains. See Managing Message Transfer below for more information.
+
+*IMA is backed by security mechanisms* - it uses your SKALE Chain's 16 randomly chosen validator-nodes to sign and verify messages between Mainnet and SKALE Chains using BLS threshold signatures and Trusted-Execution Environments (TEE). And, each of the 16 nodes supporting your SKALE Chain each has 20 million SKL tokens staked.
 
 To learn how to integrate this feature into your dApp, please see the guides below.
 
 == General Guides
 
-The IMA bridge between SKALE and Ethereum allows users to transfer tokens across chains. The SKALE IMA bridge supports ETH, ERC20, and ERC721 out of the box. IMA can be expanded to any arbitrary message or token standard using MessageProxy.
+The IMA bridge between SKALE and Ethereum allows users to transfer tokens across chains. The SKALE IMA bridge supports ETH, ERC-20, ERC-721, and ERC-1155 out of the box. IMA can be expanded to any arbitrary message or token standard using MessageProxy.
 
 IMA consists of three parts:
 
@@ -35,6 +37,6 @@ Deposits and withdraws take only seconds, and are secured using BLS Threshold si
 
 * The SKALE Chain contracts "LockAndData.." must be assigned the minter role for your modified token contract. This enables IMA to mint token clones as the tokens are Locked on mainnet contracts.
 
-* When using ERC721s, be careful with *MINT_ID*. This is the mapping between Mainnet and SKALE Chain ERC721s. Improper or corrupt mapping may cause loss of ERC721.
+* When using ERC-721s, be careful with *MINT_ID*. This is the mapping between Mainnet and SKALE Chain ERC-721s. Improper or corrupt mapping may cause loss of ERC721.
 
-* Be sure to use Web3.js 1.3.5.  Don't use any Web3.js 2.x.x
+* It's recommended to use Web3.js 1.3.5.  Don't use any Web3.js 2.x.x

@@ -1,5 +1,5 @@
 name: ima
-title: Interchain Messaging Agent
+title: Ethereum <> SKALE Bridge
 version: 1.0.x
 nav:
   - modules/ROOT/nav.adoc
