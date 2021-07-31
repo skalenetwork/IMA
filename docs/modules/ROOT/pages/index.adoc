@@ -1,6 +1,6 @@
-= Interchain Messaging Agent
+= Ethereum <> SKALE Bridge
 
-.Ethereum <> SKALE Bridge
+*Interchain Messaging Agent (IMA)*
 
 SKALE makes it possible to manage tokens for end-users between Ethereum and your SKALE Chain. Users can use the Interchain Messaging Agent (IMA) to transfer ETH, ERC-20, ERC-721 (NFTs), ERC-1155, Dai/USDC/USDT and others to a deposit box on Ethereum, and IMA will create clones of the token on your SKALE Chain. Users can then withdraw the tokens back to Ethereum, and the tokens will be released from the deposit box. 
 
