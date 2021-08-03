@@ -74,6 +74,10 @@ describe("TokenManagerERC1155", () => {
     let messages: MessagesTester;
     let messageProxyForSchain: MessageProxyForSchainTester;
     let communityLocker: CommunityLocker;
+    let token2: ERC1155OnChain;
+    let tokenClone2: ERC1155OnChain;
+    let token3: ERC1155OnChain;
+    let tokenClone3: ERC1155OnChain;
 
     before(async () => {
         [deployer, user, schainOwner] = await ethers.getSigners();
@@ -103,6 +107,10 @@ describe("TokenManagerERC1155", () => {
 
         tokenClone = await deployERC1155OnChain("ELVIS Multi Token");
         token = await deployERC1155OnChain("ELVIS Multi Token");
+        tokenClone2 = await deployERC1155OnChain("ELVIS2 Multi Token");
+        token2 = await deployERC1155OnChain("ELVIS2 Multi Token");
+        tokenClone3 = await deployERC1155OnChain("ELVIS3 Multi Token");
+        token3 = await deployERC1155OnChain("ELVIS3 Multi Token");
 
         to = user.address;
 
@@ -173,6 +181,12 @@ describe("TokenManagerERC1155", () => {
             .should.be.eventually.rejectedWith("Given address is not a contract");
 
         await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone.address);
+
+        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token2.address, tokenClone.address)
+            .should.be.eventually.rejectedWith("Clone was already added");
+    
+        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone2.address)
+            .should.be.eventually.rejectedWith("Could not relink clone");
     });
 
     it("should successfully call transferToSchainERC1155", async () => {
