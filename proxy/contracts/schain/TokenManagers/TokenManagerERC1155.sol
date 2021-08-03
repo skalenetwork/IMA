@@ -42,6 +42,9 @@ contract TokenManagerERC1155 is TokenManager {
     // address of ERC1155 on Mainnet => ERC1155 on Schain
     mapping(address => ERC1155OnChain) public clonesErc1155;
 
+    // address clone on schain => added or not
+    mapping(ERC1155OnChain => bool) public addedClones;
+
     /**
      * @dev Emitted when schain owner register new ERC1155 clone.
      */
@@ -185,7 +188,10 @@ contract TokenManagerERC1155 is TokenManager {
         onlyTokenRegistrar
     {
         require(address(erc1155OnSchain).isContract(), "Given address is not a contract");
+        require(address(clonesErc1155[erc1155OnMainnet]) == address(0), "Could not relink clone");
+        require(!addedClones[erc1155OnSchain], "Clone was already added");
         clonesErc1155[erc1155OnMainnet] = erc1155OnSchain;
+        addedClones[erc1155OnSchain] = true;
         emit ERC1155TokenAdded(erc1155OnMainnet, address(erc1155OnSchain));
     }
 
@@ -244,6 +250,7 @@ contract TokenManagerERC1155 is TokenManager {
                 require(automaticDeploy, "Automatic deploy is disabled");
                 contractOnSchain = new ERC1155OnChain(message.tokenInfo.uri);
                 clonesErc1155[token] = contractOnSchain;
+                addedClones[contractOnSchain] = true;
                 emit ERC1155TokenCreated(token, address(contractOnSchain));
             }
         }

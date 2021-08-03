@@ -70,6 +70,10 @@ describe("TokenManagerERC721", () => {
     let messages: MessagesTester;
     let messageProxyForSchain: MessageProxyForSchainTester;
     let communityLocker: CommunityLocker;
+    let token2: ERC721OnChain;
+    let tokenClone2: ERC721OnChain;
+    let token3: ERC721OnChain;
+    let tokenClone3: ERC721OnChain;
 
     before(async () => {
         [deployer, user, schainOwner] = await ethers.getSigners();
@@ -99,6 +103,10 @@ describe("TokenManagerERC721", () => {
 
         tokenClone = await deployERC721OnChain("ELVIS", "ELV");
         token = await deployERC721OnChain("SKALE", "SKL");
+        tokenClone2 = await deployERC721OnChain("ELVIS2", "ELV");
+        token2 = await deployERC721OnChain("SKALE2", "SKL");
+        tokenClone3 = await deployERC721OnChain("ELVIS3", "ELV");
+        token3 = await deployERC721OnChain("SKALE3", "SKL");
 
         to = user.address;
 
@@ -182,6 +190,12 @@ describe("TokenManagerERC721", () => {
             .should.be.eventually.rejectedWith("Given address is not a contract");
 
         await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(token.address, tokenClone.address);
+
+        await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(token2.address, tokenClone.address)
+            .should.be.eventually.rejectedWith("Clone was already added");
+
+        await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(token.address, tokenClone2.address)
+            .should.be.eventually.rejectedWith("Could not relink clone");
     });
 
     it("should successfully call transferToSchainERC721", async () => {
