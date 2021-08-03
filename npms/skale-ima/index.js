@@ -316,7 +316,7 @@ async function get_web3_pastEventsProgressive( details, w3, attempts, joContract
             const joAllEventsInBlock = await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, joPlan.nBlockFrom, joPlan.nBlockTo, joFilter );
             if( joAllEventsInBlock && joAllEventsInBlock.length > 0 ) {
                 details.write(
-                    cc.success( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.success( strEventName ) +
+                    cc.success( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
                     cc.success( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
                     cc.success( ", to block " ) + cc.info( joPlan.nBlockTo ) +
                     cc.success( ", found " ) + cc.info( joAllEventsInBlock.length ) +
@@ -325,11 +325,17 @@ async function get_web3_pastEventsProgressive( details, w3, attempts, joContract
             }
         } catch ( err ) {}
     }
-    throw new Error(
-        "Could not not get Event \"" + strEventName +
-        "\", from block " + joLastPlan.nBlockFrom + ", to block " + joLastPlan.nBlockTo +
-        ", using progressive event scan"
-    );
+    // throw new Error(
+    //     "Could not not get Event \"" + strEventName +
+    //     "\", from block " + joLastPlan.nBlockFrom + ", to block " + joLastPlan.nBlockTo +
+    //     ", using progressive event scan"
+    // );
+    details.write(
+        cc.error( "Could not not get Event \"" ) + cc.info( strEventName ) +
+        cc.error( "\", from block " ) + cc.info( joLastPlan.nBlockFrom ) +
+        cc.error( ", to block " ) + cc.info( joLastPlan.nBlockTo ) +
+        cc.error( ", using progressive event scan" ) + "\n" );
+    return [];
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
