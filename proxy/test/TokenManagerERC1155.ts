@@ -184,7 +184,7 @@ describe("TokenManagerERC1155", () => {
 
         await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token2.address, tokenClone.address)
             .should.be.eventually.rejectedWith("Clone was already added");
-    
+
         await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone2.address)
             .should.be.eventually.rejectedWith("Could not relink clone");
     });

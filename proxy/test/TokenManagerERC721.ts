@@ -193,7 +193,7 @@ describe("TokenManagerERC721", () => {
 
         await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(token2.address, tokenClone.address)
             .should.be.eventually.rejectedWith("Clone was already added");
-    
+
         await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(token.address, tokenClone2.address)
             .should.be.eventually.rejectedWith("Could not relink clone");
     });
