@@ -234,7 +234,7 @@ async function get_web3_transactionReceipt( details, attempts, w3, txHash ) {
     return txReceipt;
 }
 
-async function get_web3_pastEvents( details, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+async function get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
     const cntAttempts = parseIntOrHex( attempts ) < 1 ? 1 : parseIntOrHex( attempts );
     let joAllEventsInBlock = "";
     try {
@@ -243,12 +243,14 @@ async function get_web3_pastEvents( details, attempts, joContract, strEventName,
             fromBlock: nBlockFrom,
             toBlock: nBlockTo
         } );
-    } catch ( e ) {}
+    } catch ( err ) {}
     let idxAttempt = 2;
     while( joAllEventsInBlock === "" && idxAttempt <= cntAttempts ) {
         details.write(
             cc.warning( "Repeat " ) + cc.error( "getPastEvents" ) + cc.warning( "/" ) + cc.error( strEventName ) +
             cc.warning( ", attempt " ) + cc.error( idxAttempt ) +
+            cc.warning( ", from block " ) + cc.info( nBlockFrom ) +
+            cc.warning( ", to block " ) + cc.info( nBlockTo ) +
             cc.warning( ", previous result is: " ) + cc.j( joAllEventsInBlock ) + "\n" );
         await sleep( 1000 );
         try {
@@ -257,12 +259,77 @@ async function get_web3_pastEvents( details, attempts, joContract, strEventName,
                 fromBlock: nBlockFrom,
                 toBlock: nBlockTo
             } );
-        } catch ( e ) {}
+        } catch ( err ) {}
         idxAttempt++;
     }
-    if( idxAttempt + 1 === cntAttempts && joAllEventsInBlock === "" )
-        throw new Error( "Could not not get Event" + strEventName );
+    if( idxAttempt + 1 === cntAttempts && joAllEventsInBlock === "" ) {
+        throw new Error(
+            "Could not not get Event \"" + strEventName +
+            "\", from block " + nBlockFrom + ", to block " + nBlockTo
+        );
+    }
     return joAllEventsInBlock;
+}
+
+function create_progressive_events_scan_plan( nLatestBlockNumber ) {
+    // assume Main Net mines 60 txns per second for one account
+    // approximately 10x larger then real
+    const txns_in_1_minute = 60;
+    const txns_in_1_hour = txns_in_1_minute * 60;
+    const txns_in_1_day = txns_in_1_hour * 24;
+    const txns_in_1_week = txns_in_1_day * 7;
+    const txns_in_1_month = txns_in_1_day * 31;
+    const txns_in_1_year = txns_in_1_day * 366;
+    const arr_progressive_events_scan_plan_A = [
+        { nBlockFrom: nLatestBlockNumber - txns_in_1_day, nBlockTo: "latest" },
+        { nBlockFrom: nLatestBlockNumber - txns_in_1_week, nBlockTo: "latest" },
+        { nBlockFrom: nLatestBlockNumber - txns_in_1_month, nBlockTo: "latest" },
+        { nBlockFrom: nLatestBlockNumber - txns_in_1_year, nBlockTo: "latest" }
+    ];
+    const arr_progressive_events_scan_plan = [];
+    for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan.length; ++idxPlan ) {
+        const joPlan = arr_progressive_events_scan_plan_A[idxPlan];
+        if( joPlan.nBlockFrom >= 0 )
+            arr_progressive_events_scan_plan.push( joPlan );
+    }
+    arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest" } );
+    return arr_progressive_events_scan_plan;
+}
+
+async function get_web3_pastEventsProgressive( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+    if( ! ( nBlockFrom == 0 && nBlockTo == "latest" ) )
+        return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
+    const arr_progressive_events_scan_plan = create_progressive_events_scan_plan( nLatestBlockNumber );
+    let joLastPlan = { nBlockFrom: 0, nBlockTo: "latest" };
+    for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan.length; ++idxPlan ) {
+        const joPlan = arr_progressive_events_scan_plan[idxPlan];
+        if( joPlan.nBlockFrom < 0 )
+            continue;
+        joLastPlan = joPlan;
+        details.write(
+            cc.debug( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
+            cc.debug( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
+            cc.debug( ", to block " ) + cc.info( joPlan.nBlockTo ) +
+            cc.debug( "..." ) + "\n" );
+        try {
+            const joAllEventsInBlock = await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, joPlan.nBlockFrom, joPlan.nBlockTo, joFilter );
+            if( joAllEventsInBlock && joAllEventsInBlock.length > 0 ) {
+                details.write(
+                    cc.success( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.success( strEventName ) +
+                    cc.success( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
+                    cc.success( ", to block " ) + cc.info( joPlan.nBlockTo ) +
+                    cc.success( ", found " ) + cc.info( joAllEventsInBlock.length ) +
+                    cc.success( " event(s)" ) + "\n" );
+                return joAllEventsInBlock;
+            }
+        } catch ( err ) {}
+    }
+    throw new Error(
+        "Could not not get Event \"" + strEventName +
+        "\", from block " + joLastPlan.nBlockFrom + ", to block " + joLastPlan.nBlockTo +
+        ", using progressive event scan"
+    );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -271,12 +338,12 @@ async function get_web3_pastEvents( details, attempts, joContract, strEventName,
 async function get_contract_call_events( details, w3, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
     joFilter = joFilter || {};
     let nBlockFrom = nBlockNumber - 10, nBlockTo = nBlockNumber + 10;
-    const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 ); // await get_web3_universal_call( 10, "BlockNumber", w3, null, null );
+    const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
     if( nBlockFrom < 0 )
         nBlockFrom = 0;
     if( nBlockTo > nLatestBlockNumber )
         nBlockTo = nLatestBlockNumber;
-    const joAllEventsInBlock = await get_web3_pastEvents( details, 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    const joAllEventsInBlock = await get_web3_pastEvents( details, w3, 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
         const joEvent = joAllEventsInBlock[i];
@@ -3560,7 +3627,7 @@ async function do_transfer(
             let nBlockFrom = 0;
             const nBlockTo = "latest";
             let joStateForLogsSearch = {};
-            const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3_src ); // await get_web3_universal_call( 10, "BlockNumber", w3, null, null );
+            const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3_src );
             if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
                 try {
                     const s = fs.readFileSync( optsStateFile.path );
@@ -3580,13 +3647,14 @@ async function do_transfer(
                     break;
                 //
                 //
-                strActionName = "src-chain.MessageProxy.getPastEvents()";
+                strActionName = "src-chain->MessageProxy->scan-past-events()";
                 details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) +
                 cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event, starting block number is " ) +
                 cc.info( nBlockFrom ) + cc.debug( ", current latest block number is ~ " ) + cc.info( nLatestBlockNumber ) +
                 cc.debug( "..." ) + "\n" );
-                r = await get_web3_pastEvents(
+                r = await get_web3_pastEventsProgressive(
                     details,
+                    w3_src,
                     10,
                     jo_message_proxy_src,
                     "OutgoingMessage",
@@ -4289,6 +4357,7 @@ module.exports.getWaitForNextBlockOnSChain = getWaitForNextBlockOnSChain;
 module.exports.setWaitForNextBlockOnSChain = setWaitForNextBlockOnSChain;
 module.exports.get_web3_blockNumber = get_web3_blockNumber;
 module.exports.get_web3_pastEvents = get_web3_pastEvents;
+module.exports.get_web3_pastEventsProgressive = get_web3_pastEventsProgressive;
 module.exports.parseIntOrHex = parseIntOrHex;
 
 module.exports.balanceETH = balanceETH;
