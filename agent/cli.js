@@ -940,7 +940,23 @@ function getWeb3FromURL( strURL ) {
         const u = cc.safeURL( strURL );
         const strProtocol = u.protocol.trim().toLowerCase().replace( ":", "" ).replace( "/", "" );
         if( strProtocol == "ws" || strProtocol == "wss" ) {
-            const w3ws = new w3mod.providers.WebsocketProvider( strURL );
+            const w3ws = new w3mod.providers.WebsocketProvider( strURL, {
+                // see: https://github.com/ChainSafe/web3.js/tree/1.x/packages/web3-providers-ws#usage
+                clientConfig: {
+                    // // if requests are large:
+                    // maxReceivedFrameSize: 100000000,   // bytes - default: 1MiB
+                    // maxReceivedMessageSize: 100000000, // bytes - default: 8MiB
+                    // keep a connection alive
+                    keepalive: true,
+                    keepaliveInterval: 200000 // ms
+                },
+                reconnect: { // enable auto reconnection
+                    auto: true,
+                    delay: 5000, // ms
+                    maxAttempts: 10000000, // 10 million times
+                    onTimeout: false
+                }
+            } );
             w3 = new w3mod( w3ws );
         } else {
             const w3http = new w3mod.providers.HttpProvider( strURL );
@@ -956,6 +972,8 @@ function getWeb3FromURL( strURL ) {
 }
 
 function ima_common_init() {
+    log.write( cc.info( "This process " ) + cc.sunny( "PID" ) + cc.info( " is " ) + cc.bright( process.pid ) + "\n" );
+
     let n1 = 0;
     let n2 = 0;
     imaState.joTrufflePublishResult_main_net = imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net, null );

@@ -153,96 +153,89 @@ const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( r
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function parseIntSafer( s ) {
-    s = s.trim();
-    if( s.length > 2 && s[0] == "0" && ( s[1] == "x" || s[1] == "X" ) )
-        return parseInt( s, 10 );
-    return parseInt( s, 16 );
-}
-
 async function wait_for_next_block_to_appear( details, w3 ) {
     const nBlockNumber = await get_web3_blockNumber( details, 10, w3 );
     details.write( cc.debug( "Waiting for next block to appear..." ) + "\n" );
-    details.write( cc.debug( "    ...have block " ) + cc.info( parseIntSafer( nBlockNumber ) ) + "\n" );
+    details.write( cc.debug( "    ...have block " ) + cc.info( parseIntOrHex( nBlockNumber ) ) + "\n" );
     for( ; true; ) {
         await sleep( 1000 );
         const nBlockNumber2 = await get_web3_blockNumber( details, 10, w3 );
-        details.write( cc.debug( "    ...have block " ) + cc.info( parseIntSafer( nBlockNumber2 ) ) + "\n" );
+        details.write( cc.debug( "    ...have block " ) + cc.info( parseIntOrHex( nBlockNumber2 ) ) + "\n" );
         if( nBlockNumber2 > nBlockNumber )
             break;
     }
 }
 
 async function get_web3_blockNumber( details, attempts, w3 ) {
-    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    const cntAttempts = parseIntOrHex( attempts ) < 1 ? 1 : parseIntOrHex( attempts );
     let nLatestBlockNumber = "";
     try {
         nLatestBlockNumber = await w3.eth.getBlockNumber();
     } catch ( e ) {}
-    let attemptIndex = 2;
-    while( nLatestBlockNumber === "" && attemptIndex <= allAttempts ) {
+    let idxAttempt = 2;
+    while( nLatestBlockNumber === "" && idxAttempt <= cntAttempts ) {
         details.write(
-            cc.warning( "Repeat " ) + cc.error( "getBlockNumber" ) + cc.warning( ", attempt " ) + cc.info( attemptIndex ) +
+            cc.warning( "Repeat " ) + cc.error( "getBlockNumber" ) + cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
             cc.info( ", previous result is: " ) + cc.info( nLatestBlockNumber ) + "\n" );
         await sleep( 10000 );
         try {
             nLatestBlockNumber = await w3.eth.getBlockNumber();
         } catch ( e ) {}
-        attemptIndex++;
+        idxAttempt++;
     }
-    if( attemptIndex + 1 > allAttempts && nLatestBlockNumber === "" )
+    if( idxAttempt + 1 > cntAttempts && nLatestBlockNumber === "" )
         throw new Error( "Could not not get blockNumber" );
     return nLatestBlockNumber;
 }
 
 async function get_web3_transactionCount( details, attempts, w3, address, param ) {
-    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    const cntAttempts = parseIntOrHex( attempts ) < 1 ? 1 : parseIntOrHex( attempts );
     let txc = "";
     try {
         txc = await w3.eth.getTransactionCount( address, param );
     } catch ( e ) {}
-    let attemptIndex = 2;
-    while( txc === "" && attemptIndex <= allAttempts ) {
+    let idxAttempt = 2;
+    while( txc === "" && idxAttempt <= cntAttempts ) {
         details.write(
             cc.warning( "Repeat " ) + cc.error( "getTransactionCount" ) +
-            cc.warning( " attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( " attempt " ) + cc.error( idxAttempt ) +
             cc.warning( ", previous result is: " ) + cc.info( txc ) + "\n"
         );
         await sleep( 10000 );
         try {
             txc = await w3.eth.getBlockNumber();
         } catch ( e ) {}
-        attemptIndex++;
+        idxAttempt++;
     }
-    if( attemptIndex + 1 > allAttempts && txc === "" )
+    if( idxAttempt + 1 > cntAttempts && txc === "" )
         throw new Error( "Could not not get Transaction Count" );
     return txc;
 }
 
 async function get_web3_transactionReceipt( details, attempts, w3, txHash ) {
-    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+    const cntAttempts = parseIntOrHex( attempts ) < 1 ? 1 : parseIntOrHex( attempts );
     let txReceipt = "";
     try {
         txReceipt = await w3.eth.getTransactionReceipt( txHash );
     } catch ( e ) {}
-    let attemptIndex = 2;
-    while( txReceipt === "" && attemptIndex <= allAttempts ) {
+    let idxAttempt = 2;
+    while( txReceipt === "" && idxAttempt <= cntAttempts ) {
         details.write(
-            cc.warning( "Repeat " ) + cc.error( "getTransactionReceipt" ) + cc.warning( ", attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( "Repeat " ) + cc.error( "getTransactionReceipt" ) + cc.warning( ", attempt " ) + cc.error( idxAttempt ) +
             cc.warning( ", previous result is: " ) + cc.j( txReceipt ) + "\n" );
         await sleep( 10000 );
         try {
             txReceipt = await w3.eth.getTransactionReceipt( txHash );
         } catch ( e ) {}
-        attemptIndex++;
+        idxAttempt++;
     }
-    if( attemptIndex + 1 > allAttempts && txReceipt === "" )
-        throw new Error( "Could not not get Transaction Count" );
+    if( idxAttempt + 1 > cntAttempts && ( txReceipt === "" || txReceipt === undefined ) )
+        throw new Error( "Could not not get Transaction Receipt" );
     return txReceipt;
 }
 
-async function get_web3_pastEvents( details, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
-    const allAttempts = parseInt( attempts ) < 1 ? 1 : parseInt( attempts );
+async function get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+    const cntAttempts = parseIntOrHex( attempts ) < 1 ? 1 : parseIntOrHex( attempts );
     let joAllEventsInBlock = "";
     try {
         joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
@@ -250,12 +243,14 @@ async function get_web3_pastEvents( details, attempts, joContract, strEventName,
             fromBlock: nBlockFrom,
             toBlock: nBlockTo
         } );
-    } catch ( e ) {}
-    let attemptIndex = 2;
-    while( joAllEventsInBlock === "" && attemptIndex <= allAttempts ) {
+    } catch ( err ) {}
+    let idxAttempt = 2;
+    while( joAllEventsInBlock === "" && idxAttempt <= cntAttempts ) {
         details.write(
             cc.warning( "Repeat " ) + cc.error( "getPastEvents" ) + cc.warning( "/" ) + cc.error( strEventName ) +
-            cc.warning( ", attempt " ) + cc.error( attemptIndex ) +
+            cc.warning( ", attempt " ) + cc.error( idxAttempt ) +
+            cc.warning( ", from block " ) + cc.info( nBlockFrom ) +
+            cc.warning( ", to block " ) + cc.info( nBlockTo ) +
             cc.warning( ", previous result is: " ) + cc.j( joAllEventsInBlock ) + "\n" );
         await sleep( 1000 );
         try {
@@ -264,12 +259,83 @@ async function get_web3_pastEvents( details, attempts, joContract, strEventName,
                 fromBlock: nBlockFrom,
                 toBlock: nBlockTo
             } );
-        } catch ( e ) {}
-        attemptIndex++;
+        } catch ( err ) {}
+        idxAttempt++;
     }
-    if( attemptIndex + 1 === allAttempts && joAllEventsInBlock === "" )
-        throw new Error( "Could not not get Event" + strEventName );
+    if( idxAttempt + 1 === cntAttempts && joAllEventsInBlock === "" ) {
+        throw new Error(
+            "Could not not get Event \"" + strEventName +
+            "\", from block " + nBlockFrom + ", to block " + nBlockTo
+        );
+    }
     return joAllEventsInBlock;
+}
+
+function create_progressive_events_scan_plan( nLatestBlockNumber ) {
+    // assume Main Net mines 60 txns per second for one account
+    // approximately 10x larger then real
+    const txns_in_1_minute = 60;
+    const txns_in_1_hour = txns_in_1_minute * 60;
+    const txns_in_1_day = txns_in_1_hour * 24;
+    const txns_in_1_week = txns_in_1_day * 7;
+    const txns_in_1_month = txns_in_1_day * 31;
+    const txns_in_1_year = txns_in_1_day * 366;
+    const arr_progressive_events_scan_plan_A = [
+        { nBlockFrom: nLatestBlockNumber - txns_in_1_day, nBlockTo: "latest" },
+        { nBlockFrom: nLatestBlockNumber - txns_in_1_week, nBlockTo: "latest" },
+        { nBlockFrom: nLatestBlockNumber - txns_in_1_month, nBlockTo: "latest" },
+        { nBlockFrom: nLatestBlockNumber - txns_in_1_year, nBlockTo: "latest" }
+    ];
+    const arr_progressive_events_scan_plan = [];
+    for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan.length; ++idxPlan ) {
+        const joPlan = arr_progressive_events_scan_plan_A[idxPlan];
+        if( joPlan.nBlockFrom >= 0 )
+            arr_progressive_events_scan_plan.push( joPlan );
+    }
+    arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest" } );
+    return arr_progressive_events_scan_plan;
+}
+
+async function get_web3_pastEventsProgressive( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+    if( ! ( nBlockFrom == 0 && nBlockTo == "latest" ) )
+        return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
+    const arr_progressive_events_scan_plan = create_progressive_events_scan_plan( nLatestBlockNumber );
+    let joLastPlan = { nBlockFrom: 0, nBlockTo: "latest" };
+    for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan.length; ++idxPlan ) {
+        const joPlan = arr_progressive_events_scan_plan[idxPlan];
+        if( joPlan.nBlockFrom < 0 )
+            continue;
+        joLastPlan = joPlan;
+        details.write(
+            cc.debug( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
+            cc.debug( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
+            cc.debug( ", to block " ) + cc.info( joPlan.nBlockTo ) +
+            cc.debug( "..." ) + "\n" );
+        try {
+            const joAllEventsInBlock = await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, joPlan.nBlockFrom, joPlan.nBlockTo, joFilter );
+            if( joAllEventsInBlock && joAllEventsInBlock.length > 0 ) {
+                details.write(
+                    cc.success( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
+                    cc.success( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
+                    cc.success( ", to block " ) + cc.info( joPlan.nBlockTo ) +
+                    cc.success( ", found " ) + cc.info( joAllEventsInBlock.length ) +
+                    cc.success( " event(s)" ) + "\n" );
+                return joAllEventsInBlock;
+            }
+        } catch ( err ) {}
+    }
+    // throw new Error(
+    //     "Could not not get Event \"" + strEventName +
+    //     "\", from block " + joLastPlan.nBlockFrom + ", to block " + joLastPlan.nBlockTo +
+    //     ", using progressive event scan"
+    // );
+    details.write(
+        cc.error( "Could not not get Event \"" ) + cc.info( strEventName ) +
+        cc.error( "\", from block " ) + cc.info( joLastPlan.nBlockFrom ) +
+        cc.error( ", to block " ) + cc.info( joLastPlan.nBlockTo ) +
+        cc.error( ", using progressive event scan" ) + "\n" );
+    return [];
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -278,12 +344,12 @@ async function get_web3_pastEvents( details, attempts, joContract, strEventName,
 async function get_contract_call_events( details, w3, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
     joFilter = joFilter || {};
     let nBlockFrom = nBlockNumber - 10, nBlockTo = nBlockNumber + 10;
-    const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 ); // await get_web3_universal_call( 10, "BlockNumber", w3, null, null );
+    const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
     if( nBlockFrom < 0 )
         nBlockFrom = 0;
     if( nBlockTo > nLatestBlockNumber )
         nBlockTo = nLatestBlockNumber;
-    const joAllEventsInBlock = await get_web3_pastEvents( details, 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    const joAllEventsInBlock = await get_web3_pastEvents( details, w3, 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
         const joEvent = joAllEventsInBlock[i];
@@ -506,8 +572,11 @@ async function tm_wait( details, tx_id, w3 ) {
     let hash;
     while( hash === undefined ) {
         const r = await tm_get_record( tx_id );
-        if( tm_is_finished( r ) )
-            hash = r.tx_hash;
+        if( tm_is_finished( r ) ) {
+            if( r.status == "DROPPED" )
+                return null;
+        }
+        hash = r.tx_hash;
     }
     details.write( cc.debug( "TM - TX hash is " ) + cc.info( hash ) + "\n" );
     // return await w3.eth.getTransactionReceipt( hash );
@@ -516,6 +585,30 @@ async function tm_wait( details, tx_id, w3 ) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAttempts, sleepMilliseconds ) {
+    cntAttempts = cntAttempts || 10;
+    sleepMilliseconds = sleepMilliseconds || 3000;
+    let tx_id = "";
+    let joReceipt = null;
+    let idxAttempt = 0;
+    for( ; idxAttempt < cntAttempts; ++idxAttempt ) {
+        tx_id = await tm_send( details, txAdjusted, priority );
+        details.write( cc.debug( "TM - generated TX ID: " ) + cc.info( tx_id ) + "\n" );
+        joReceipt = await tm_wait( details, tx_id, w3 );
+        if( joReceipt )
+            break;
+        details.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) + cc.warning( " of " ) + cc.info( cntAttempts ) + "\n" );
+        await sleep( sleepMilliseconds );
+    }
+    if( !joReceipt ) {
+        details.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( tx_id ) + cc.error( " transaction has been dropped" ) + "\n" );
+        log.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( tx_id ) + cc.error( " transaction has been dropped" ) + "\n" );
+        throw new Error( "TM transaction " + tx_id + " transaction has been dropped" );
+    }
+    details.write( cc.success( "TM - successful TX sending attempt " ) + cc.info( idxAttempt ) + cc.success( " of " ) + cc.info( cntAttempts ) + "\n" );
+    return [ tx_id, joReceipt ];
+}
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
     const joSR = {
@@ -599,11 +692,16 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         if( redis == null )
             redis = new Redis( joAccount.strTransactionManagerURL );
         const priority = joAccount.tm_priority || 5;
-        const tx_id = await tm_send( details, txAdjusted, priority );
-        const joReceipt = await tm_wait( details, tx_id, w3 );
-        joSR.txHashSent = "" + joReceipt.transactionHash;
-        joSR.joReceipt = joReceipt;
-        joSR.tm_tx_id = tx_id;
+        try {
+            const [ tx_id, joReceipt ] = await tm_ensure_transaction( details, w3, priority, txAdjusted );
+            joSR.txHashSent = "" + joReceipt.transactionHash;
+            joSR.joReceipt = joReceipt;
+            joSR.tm_tx_id = tx_id;
+        } catch ( err ) {
+            details.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM - transaction was not sent, underlying error is: " ) + cc.warning( err.toString() ) + "\n" );
+            log.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM - transaction was not sent, underlying error is: " ) + cc.warning( err.toString() ) + "\n" );
+            // throw err;
+        }
     } break;
     case "sgx": {
         details.write(
@@ -651,10 +749,10 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 }
                 details.write( cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
                 const joNeededResult = {
-                    // "v": Buffer.from( parseInt( joOut.result.signature_v, 10 ).toString( "hex" ), "utf8" ),
+                    // "v": Buffer.from( parseIntOrHex( joOut.result.signature_v ).toString( "hex" ), "utf8" ),
                     // "r": Buffer.from( "" + joOut.result.signature_r, "utf8" ),
                     // "s": Buffer.from( "" + joOut.result.signature_s, "utf8" )
-                    "v": parseInt( joOut.result.signature_v, 10 ),
+                    "v": parseIntOrHex( joOut.result.signature_v, 10 ),
                     "r": "" + joOut.result.signature_r,
                     "s": "" + joOut.result.signature_s
                 };
@@ -2391,7 +2489,7 @@ async function do_erc20_payment_from_s_chain(
         const strDRC_approve = "do_erc20_payment_from_s_chain, approve";
         await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
         //
-        let tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        let tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         const rawTxApprove = {
             chainId: cid_s_chain,
@@ -2434,7 +2532,7 @@ async function do_erc20_payment_from_s_chain(
         strActionName = "create ERC20/exitToMain transaction S->M";
         const estimatedGas_rawExitToMainERC20 = await tc_s_chain.computeGas( methodWithArguments_rawExitToMainERC20, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_rawExitToMainERC20 ) + "\n" );
-        tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
@@ -2561,7 +2659,7 @@ async function do_erc721_payment_from_s_chain(
         //
         //
         strActionName = "create ERC721/approve transaction S->M";
-        let tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        let tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         const estimatedGas_approve = await tc_s_chain.computeGas( methodWithArguments_approve, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
@@ -2610,7 +2708,7 @@ async function do_erc721_payment_from_s_chain(
         //
         //
         strActionName = "create ERC721/rawExitToMain transaction S->M";
-        tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
@@ -2744,7 +2842,7 @@ async function do_erc1155_payment_from_s_chain(
         //
         //
         strActionName = "create ERC1155/approve transaction S->M";
-        let tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        let tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         const estimatedGas_approve = await tc_s_chain.computeGas( methodWithArguments_approve, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
@@ -2793,7 +2891,7 @@ async function do_erc1155_payment_from_s_chain(
         //
         //
         strActionName = "create ERC1155/rawExitToMain transaction S->M";
-        tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
@@ -2927,7 +3025,7 @@ async function do_erc1155_batch_payment_from_s_chain(
         //
         //
         strActionName = "create ERC1155 Batch/approve transaction S->M";
-        let tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        let tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         const estimatedGas_approve = await tc_s_chain.computeGas( methodWithArguments_approve, w3_s_chain, 8000000, gasPrice, joAccountSrc.address( w3_s_chain ), "0" );
@@ -2976,7 +3074,7 @@ async function do_erc1155_batch_payment_from_s_chain(
         //
         //
         strActionName = "create ERC1155 Batch/rawExitToMain transaction S->M";
-        tcnt = parseInt( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
+        tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
@@ -3075,6 +3173,18 @@ function w3_2_url( w3 ) {
     if( !( "currentProvider" in w3 ) )
         return null;
     return w3provider_2_url( w3.currentProvider );
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function parseIntOrHex( s ) {
+    if( typeof s != "string" )
+        return parseInt( s );
+    s = s.trim();
+    if( s.length > 2 && s[0] == "0" && ( s[1] == "x" || s[1] == "X" ) )
+        return parseInt( s, 16 );
+    return parseInt( s, 10 );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3523,7 +3633,7 @@ async function do_transfer(
             let nBlockFrom = 0;
             const nBlockTo = "latest";
             let joStateForLogsSearch = {};
-            const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3_src ); // await get_web3_universal_call( 10, "BlockNumber", w3, null, null );
+            const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3_src );
             if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
                 try {
                     const s = fs.readFileSync( optsStateFile.path );
@@ -3543,13 +3653,14 @@ async function do_transfer(
                     break;
                 //
                 //
-                strActionName = "src-chain.MessageProxy.getPastEvents()";
+                strActionName = "src-chain->MessageProxy->scan-past-events()";
                 details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) +
                 cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event, starting block number is " ) +
                 cc.info( nBlockFrom ) + cc.debug( ", current latest block number is ~ " ) + cc.info( nLatestBlockNumber ) +
                 cc.debug( "..." ) + "\n" );
-                r = await get_web3_pastEvents(
+                r = await get_web3_pastEventsProgressive(
                     details,
+                    w3_src,
                     10,
                     jo_message_proxy_src,
                     "OutgoingMessage",
@@ -4038,9 +4149,9 @@ class TransactionCustomizer {
         this.gasMultiplier = gasMultiplier ? ( 0.0 + gasMultiplier ) : 1.25;
     }
     async computeGasPrice( w3, maxGasPrice ) {
-        const gasPrice = parseInt( await w3.eth.getGasPrice() );
+        const gasPrice = parseIntOrHex( await w3.eth.getGasPrice() );
         if( gasPrice == 0 || gasPrice == null || gasPrice == undefined || gasPrice <= 1000000000 )
-            return parseInt( "1000000000" );
+            return parseIntOrHex( "1000000000" );
         else if(
             this.gasPriceMultiplier != null &&
             this.gasPriceMultiplier != undefined &&
@@ -4049,9 +4160,9 @@ class TransactionCustomizer {
             maxGasPrice != undefined
         ) {
             if( gasPrice * this.gasPriceMultiplier > maxGasPrice )
-                return parseInt( maxGasPrice );
+                return parseIntOrHex( maxGasPrice );
             else
-                return gasPrice * this.gasPriceMultiplier;
+                return parseIntOrHex( ( gasPrice * this.gasPriceMultiplier ).toString() );
         } else
             return gasPrice;
     }
@@ -4073,7 +4184,7 @@ class TransactionCustomizer {
             estimatedGas = 0;
         }
         estimatedGas *= this.gasMultiplier;
-        estimatedGas = parseInt( "" + estimatedGas ); // avoid using floating point
+        estimatedGas = parseIntOrHex( "" + estimatedGas ); // avoid using floating point
         if( estimatedGas == 0 )
             estimatedGas = recommendedGas;
         return estimatedGas;
@@ -4252,6 +4363,8 @@ module.exports.getWaitForNextBlockOnSChain = getWaitForNextBlockOnSChain;
 module.exports.setWaitForNextBlockOnSChain = setWaitForNextBlockOnSChain;
 module.exports.get_web3_blockNumber = get_web3_blockNumber;
 module.exports.get_web3_pastEvents = get_web3_pastEvents;
+module.exports.get_web3_pastEventsProgressive = get_web3_pastEventsProgressive;
+module.exports.parseIntOrHex = parseIntOrHex;
 
 module.exports.balanceETH = balanceETH;
 module.exports.balanceERC20 = balanceERC20;
