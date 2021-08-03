@@ -51,6 +51,12 @@ contract TokenManagerERC20 is TokenManager {
     // address of clone on schain => totalSupplyOnMainnet
     mapping(IERC20Upgradeable => uint) public totalSupplyOnMainnet;
 
+    // address clone on schain => added or not
+    mapping(ERC20OnChain => bool) public addedClones;
+
+    /**
+     * @dev Emitted when schain owner register new ERC20 clone.
+     */
     event ERC20TokenAdded(address indexed erc20OnMainnet, address indexed erc20OnSchain);
 
     event ERC20TokenCreated(address indexed erc20OnMainnet, address indexed erc20OnSchain);
@@ -128,7 +134,10 @@ contract TokenManagerERC20 is TokenManager {
     {
         require(address(erc20OnSchain).isContract(), "Given address is not a contract");
         require(erc20OnSchain.totalSupply() == 0, "TotalSupply is not zero");
+        require(address(clonesErc20[erc20OnMainnet]) == address(0), "Could not relink clone");
+        require(!addedClones[erc20OnSchain], "Clone was already added");
         clonesErc20[erc20OnMainnet] = erc20OnSchain;
+        addedClones[erc20OnSchain] = true;
         emit ERC20TokenAdded(erc20OnMainnet, address(erc20OnSchain));
     }
 
@@ -185,6 +194,7 @@ contract TokenManagerERC20 is TokenManager {
                 require(automaticDeploy, "Automatic deploy is disabled");
                 contractOnSchain = new ERC20OnChain(message.tokenInfo.name, message.tokenInfo.symbol);
                 clonesErc20[token] = contractOnSchain;
+                addedClones[contractOnSchain] = true;
                 emit ERC20TokenCreated(token, address(contractOnSchain));
             }
         }
