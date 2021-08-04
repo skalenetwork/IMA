@@ -5,13 +5,20 @@
     "author": "SKALE Labs and contributors",
     "scripts": {},
     "dependencies": {
-        "colors": "^1.3.3",
+        "colors": "^1.4.0",
         "ethereumjs-tx": "1.3.7",
         "ethereumjs-wallet": "0.6.3",
         "ethereumjs-util": "6.1.0",
-        "web3": "1.3.1",
+        "web3": "^1.3.6",
         "uuid": "3.3.3",
-        "sha3": "2.1.2"
+        "sha3": "2.1.4"
     },
-    "devDependencies": {}
+    "devDependencies": {},
+    "resolutions": {
+        "**/sqlite3": "5.0.2",
+        "**/sha3": "2.1.4",
+        "web3/ethereumjs-**/scrypt": "file:../scrypt/node-scrypt",
+        "web3/**/scrypt": "file:../scrypt/node-scrypt",
+        "scrypt.js/scrypt": "file:../scrypt/node-scrypt"
+    }
 }

@@ -20,29 +20,44 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721BurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
 
-contract ERC721OnChain is AccessControlUpgradeable, ERC721BurnableUpgradeable {
+/**
+ * @title ERC721OnChain
+ * @dev ERC721 token that is used as an automatically deployed clone of ERC721 on mainnet.
+ */
+contract ERC721OnChain is AccessControlEnumerableUpgradeable, ERC721BurnableUpgradeable, ERC721URIStorageUpgradeable {
 
+    /**
+     * @dev id of a role that allows token minting.
+     */
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     constructor(
         string memory contractName,
         string memory contractSymbol
-    )
-        public       
+    ) initializer
     {
-        AccessControlUpgradeable.__AccessControl_init();
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         ERC721Upgradeable.__ERC721_init(contractName, contractSymbol);
         ERC721BurnableUpgradeable.__ERC721Burnable_init();
         _setRoleAdmin(MINTER_ROLE, MINTER_ROLE);
         _setupRole(MINTER_ROLE, _msgSender());
     }
 
+    /**
+     * @dev Set URI of ERC721 token.
+     * 
+     * Requirements:
+     * 
+     * - token with {tokenId} must exist.
+     * - sender must be the token owner or approved for the token.
+     */
     function setTokenURI(uint256 tokenId, string calldata tokenUri)
         external
         returns (bool)
@@ -53,10 +68,56 @@ contract ERC721OnChain is AccessControlUpgradeable, ERC721BurnableUpgradeable {
         return true;
     }
 
+    /**
+     * @dev Mint token.
+     * 
+     * Requirements:
+     * 
+     * - sender must be granted with {MINTER_ROLE}.
+     */
     function mint(address account, uint256 tokenId)
-        public
+        external
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, tokenId);
+    }
+
+    /**
+     * @dev Check if contract support {interfaceId} interface.
+     * 
+     * See https://eips.ethereum.org/EIPS/eip-165 for more details.
+     */
+    function supportsInterface(
+        bytes4 interfaceId
+    )
+        public
+        view
+        override(AccessControlEnumerableUpgradeable, ERC721Upgradeable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+
+    /**
+     * @dev Get token URI.
+     */
+    function tokenURI(
+        uint256 tokenId
+    )
+        public
+        view
+        override (ERC721Upgradeable, ERC721URIStorageUpgradeable)
+        returns (string memory) 
+    {
+        return ERC721URIStorageUpgradeable.tokenURI(tokenId);
+    }
+
+    // private
+
+    /**
+     * @dev Burn {tokenId}.
+     */
+    function _burn(uint256 tokenId) internal override (ERC721Upgradeable, ERC721URIStorageUpgradeable) {
+        ERC721URIStorageUpgradeable._burn(tokenId);
     }
 }

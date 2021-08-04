@@ -433,6 +433,7 @@ class Agent:
             'abi-s-chain': self.config.abi_schain,
             'key-main-net': self.config.mainnet_key,
             'key-s-chain': self.config.schain_key,
+            'no-wait-s-chain': None,
             'no-ptx': None
         }
 

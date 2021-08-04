@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxyForMainnetTester.sol - SKALE Interchain Messaging Agent
+ *   MessageProxyForSchainTester.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Dmytro Stebaiev
  *
@@ -19,41 +19,20 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
 import "../mainnet/MessageProxyForMainnet.sol";
-import "../schain/MessageProxyForSchain.sol";
 
-contract MessageProxyForMainnetTester {    
+contract MessageProxyForMainnetTester is MessageProxyForMainnet {    
 
-    function postOutgoingMessageTester(
-        MessageProxyForMainnet messageProxyForMainnet,
-        bytes32 targetChainHash,
-        address targetContract,
-        bytes calldata data
+    function refundGasByUser(
+        bytes32 fromSchainHash,
+        address payable node,
+        address user,
+        uint256 gas
     )
         external
     {
-        messageProxyForMainnet.postOutgoingMessage(targetChainHash, targetContract, data);
+        communityPool.refundGasByUser(fromSchainHash, node, user, gas);
     }
-
-    function postOutgoingMessageTester2(
-        MessageProxyForSchain messageProxyForSchain,
-        string memory targetChainName,
-        address targetContract,
-        bytes calldata data
-    )
-        external
-    {
-        messageProxyForSchain.postOutgoingMessage(targetChainName, targetContract, data);
-    }
-
-    // function initialize2(IContractManager newContractManagerOfSkaleManager) public  {
-    //     MessageProxyForMainnet.initialize(newContractManagerOfSkaleManager);
-    // }
-    
-    // constructor(IContractManager newContractManagerOfSkaleManager) public  {
-    //     MessageProxyForMainnet.initialize(newContractManagerOfSkaleManager);
-    // }
 }

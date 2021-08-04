@@ -277,8 +277,6 @@ function parse( joExternalHandlers, argv ) {
             console.log( cc.sunny( "REGISTRATION" ) + cc.info( " commands:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "register" ) + cc.debug( "......................" ) + cc.note( "Register" ) + cc.notice( "(perform all steps)" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "register1" ) + cc.debug( "....................." ) + cc.note( "Perform registration step 1" ) + cc.notice( " - register S-Chain on Main-net." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "register2" ) + cc.debug( "....................." ) + cc.note( "Perform registration step 2" ) + cc.notice( " - register S-Chain in deposit box." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "register3" ) + cc.debug( "....................." ) + cc.note( "Perform registration step 3" ) + cc.notice( " - register Main-net deposit box on S-Chain." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration" ) + cc.debug( "............" ) + cc.note( "Registration status check" ) + cc.notice( "(perform all steps)" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration1" ) + cc.debug( "..........." ) + cc.note( "Perform registration status check step 1" ) + cc.notice( " - register S-Chain on Main-net." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "check-registration2" ) + cc.debug( "..........." ) + cc.note( "Perform registration status check step 2" ) + cc.notice( " - register S-Chain in deposit box." ) );
@@ -286,6 +284,7 @@ function parse( joExternalHandlers, argv ) {
             //
             console.log( cc.sunny( "ACTION" ) + cc.info( " commands:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "show-config" ) + cc.debug( "..................." ) + cc.notice( "Show " ) + cc.note( "configuration values" ) + cc.notice( " and exit." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "show-balance" ) + cc.debug( ".................." ) + cc.notice( "Show " ) + cc.note( "ETH" ) + cc.notice( " and/or token balances on Main-net and/or S-Chain and exit." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-payment" ) + cc.debug( "..................." ) + cc.notice( "Do one " ) + cc.note( "payment from Main-net user account to S-chain" ) + cc.notice( " user account." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-payment" ) + cc.debug( "..................." ) + cc.notice( "Do one " ) + cc.note( "payment from S-chain user account to Main-net" ) + cc.notice( " user account." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-receive" ) + cc.debug( "..................." ) + cc.notice( "Receive one " ) + cc.note( "payment from S-chain user account to Main-net" ) + cc.notice( " user account(ETH only, receives all the ETH pending in transfer)." ) );
@@ -323,11 +322,14 @@ function parse( joExternalHandlers, argv ) {
             console.log( cc.sunny( "PENDING TRANSACTIONS ANALYSIS" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "ptx" ) + cc.debug( "..........................." ) + cc.notice( "Enable pending transaction analysis to avoid transaction conflicts." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx" ) + cc.debug( "........................" ) + cc.notice( "Disable pending transaction analysis. Not recommended for slow and overloaded blockchains." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-attempt" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "...,........." ) + cc.notice( "Timeout in seconds to perform secondary pending transaction analysis." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-attempt" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.notice( "Timeout in seconds to perform secondary pending transaction analysis." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-ignore" ) + cc.debug( "...................." ) + cc.notice( "Ignore result of pending transaction analysis." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx-ignore" ) + cc.debug( "................." ) + cc.notice( "Do not ignore result of pending transaction analysis. Transfer loop will be delayed until pending transactions disappear." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-ignore2" ) + cc.debug( "..................." ) + cc.notice( "Ignore secondary result of pending transaction analysis." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx-ignore2" ) + cc.debug( "................" ) + cc.notice( "Do not ignore secondary result of pending transaction analysis. Transfer loop will be delayed until pending transactions disappear." ) );
+            //
+            console.log( cc.sunny( "IMA STATE" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "state-file" ) + cc.sunny( "=" ) + cc.info( "path" ) + cc.debug( "..............." ) + cc.notice( "Specifies path to IMA state file for optimized logs searches." ) );
             //
             console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "................." ) + cc.notice( "Sign transferred messages." ) );
@@ -422,17 +424,19 @@ function parse( joExternalHandlers, argv ) {
         //
         if( joArg.name == "tm-url-main-net" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
-            let strURL = "" + joArg.value;
-            if( strURL.indexOf( "/sign-and-send" ) < 0 )
-                strURL += "/sign-and-send";
+            const strURL = "" + joArg.value;
+            // if( strURL.indexOf( "/sign-and-send" ) < 0 )
+            //    strURL += "/sign-and-send";
+            // strURL += "/0";
             imaState.joAccount_main_net.strTransactionManagerURL = strURL;
             continue;
         }
         if( joArg.name == "tm-url-s-chain" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
-            let strURL = "" + joArg.value;
-            if( strURL.indexOf( "/sign-and-send" ) < 0 )
-                strURL += "/sign-and-send";
+            const strURL = "" + joArg.value;
+            // if( strURL.indexOf( "/sign-and-send" ) < 0 )
+            //    strURL += "/sign-and-send";
+            // strURL += "/0";
             imaState.joAccount_s_chain.strTransactionManagerURL = strURL;
             continue;
         }
@@ -636,6 +640,7 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "tid" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.idToken = joArg.value;
+            imaState.have_idToken = true;
             continue;
         }
         if( joArg.name == "amounts" ) {
@@ -644,6 +649,7 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "tids" ) {
             imaState.idTokens = owaspUtils.verifyArgumentIsArrayOfIntegers( joArg );
+            imaState.have_idTokens = true;
             continue;
         }
         //
@@ -834,6 +840,11 @@ function parse( joExternalHandlers, argv ) {
             imaState.optsPendingTxAnalysis.isIgnore2 = false;
             continue;
         }
+        if( joArg.name == "state-file" ) {
+            imaState.optsStateFile.isEnabled = true;
+            imaState.optsStateFile.path = joArg.value;
+            continue;
+        }
         if( joArg.name == "log-size" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
             imaState.nLogMaxSizeBeforeRotation = owaspUtils.toInteger( joArg.value );
@@ -899,12 +910,11 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "register" ||
             joArg.name == "register1" ||
-            joArg.name == "register2" ||
-            joArg.name == "register3" ||
             joArg.name == "check-registration" ||
             joArg.name == "check-registration1" ||
             joArg.name == "check-registration2" ||
             joArg.name == "check-registration3" ||
+            joArg.name == "show-balance" ||
             joArg.name == "m2s-payment" ||
             joArg.name == "s2m-payment" ||
             joArg.name == "s2m-receive" ||
@@ -930,7 +940,23 @@ function getWeb3FromURL( strURL ) {
         const u = cc.safeURL( strURL );
         const strProtocol = u.protocol.trim().toLowerCase().replace( ":", "" ).replace( "/", "" );
         if( strProtocol == "ws" || strProtocol == "wss" ) {
-            const w3ws = new w3mod.providers.WebsocketProvider( strURL );
+            const w3ws = new w3mod.providers.WebsocketProvider( strURL, {
+                // see: https://github.com/ChainSafe/web3.js/tree/1.x/packages/web3-providers-ws#usage
+                clientConfig: {
+                    // // if requests are large:
+                    // maxReceivedFrameSize: 100000000,   // bytes - default: 1MiB
+                    // maxReceivedMessageSize: 100000000, // bytes - default: 8MiB
+                    // keep a connection alive
+                    keepalive: true,
+                    keepaliveInterval: 200000 // ms
+                },
+                reconnect: { // enable auto reconnection
+                    auto: true,
+                    delay: 5000, // ms
+                    maxAttempts: 10000000, // 10 million times
+                    onTimeout: false
+                }
+            } );
             w3 = new w3mod( w3ws );
         } else {
             const w3http = new w3mod.providers.HttpProvider( strURL );
@@ -946,6 +972,8 @@ function getWeb3FromURL( strURL ) {
 }
 
 function ima_common_init() {
+    log.write( cc.info( "This process " ) + cc.sunny( "PID" ) + cc.info( " is " ) + cc.bright( process.pid ) + "\n" );
+
     let n1 = 0;
     let n2 = 0;
     imaState.joTrufflePublishResult_main_net = imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net, null );

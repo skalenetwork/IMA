@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   Migrations.sol - SKALE Interchain Messaging Agent
- *   Copyright (C) 2019-Present SKALE Labs
+ *   MessageProxyClient.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
@@ -19,28 +19,19 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
 
+import "../../MessageProxy.sol";
 
-contract Migrations {
-    address public owner;
-    uint256 public lastCompletedMigration;
+abstract contract MessageProxyClient {
+    MessageProxy public messageProxy;
 
-    modifier restricted() {
-        if (msg.sender == owner)
+    modifier onlyMessageProxy() {
+        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
         _;
     }
 
-    constructor() public {
-        owner = msg.sender;
-    }
-
-    function setCompleted(uint256 completed) external restricted {
-        lastCompletedMigration = completed;
-    }
-
-    function upgrade(address newAddress) external restricted {
-        Migrations upgraded = Migrations(newAddress);
-        upgraded.setCompleted(lastCompletedMigration);
+    constructor(address newMessageProxyAddress) {
+        messageProxy = MessageProxy(newMessageProxyAddress);
     }
 }

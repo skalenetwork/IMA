@@ -19,8 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
 import "../../Messages.sol";
 import "../tokens/EthErc20.sol";
@@ -28,16 +27,10 @@ import "../TokenManager.sol";
 
 
 /**
- * This contract runs on schains and accepts messages from main net creates ETH clones.
- * When the user exits, it burns them
- */
-
-/**
- * @title Token Manager
- * @dev Runs on SKALE Chains, accepts messages from mainnet, and instructs
- * TokenFactory to create clones. TokenManager mints tokens via
- * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
- * burns tokens.
+ * @title TokenManagerEth
+ * @dev Runs on SKALE Chains and
+ * accepts messages from mainnet.
+ * TokenManagerEth mints EthErc20 tokens. When a user exits a SKALE chain, it burns them.
  */
 contract TokenManagerEth is TokenManager {
 
@@ -45,55 +38,46 @@ contract TokenManagerEth is TokenManager {
 
     /// Create a new token manager    
 
+    /**
+     * @dev Register EthErc20 token.
+     */
     function setEthErc20Address(EthErc20 newEthErc20Address) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
-        require(ethErc20 != newEthErc20Address, "The same address");
+        require(ethErc20 != newEthErc20Address, "Must be new address");
         ethErc20 = newEthErc20Address;
     }
 
     /**
-     * @dev Performs an exit (post outgoing message) to Mainnet.
+     * @dev Move ETH from schain to mainnet.
+     * 
+     * EthErc20 tokens are burned on schain and ETH are unlocked on mainnet for {to} address.
      */
     function exitToMain(address to, uint256 amount) external {
-        require(to != address(0), "Incorrect receiver address");
-
-        _burnEthErc20(msg.sender, amount);
         communityLocker.checkAllowedToSendMessage(to);
-        messageProxy.postOutgoingMessage(
-            "Mainnet",
-            depositBox,
-            Messages.encodeTransferEthMessage(to, amount)
-        );
+        _exit(MAINNET_HASH, depositBox, to, amount);
     }
 
+    /**
+     * @dev Move ETH from schain to schain.
+     * 
+     * EthErc20 tokens are burned on origin schain.
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
     function transferToSchain(
         string memory targetSchainName,
         address to,
         uint256 amount
     )
         external
+        rightTransaction(targetSchainName, to)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        require(
-            targetSchainHash != MAINNET_HASH,
-            "This function is not for transferring to Mainnet"
-        );
-        require(tokenManagers[targetSchainHash] != address(0), "Incorrect Token Manager address");
-        require(to != address(0), "Incorrect receiver address");
-
-        _burnEthErc20(msg.sender, amount);
-        messageProxy.postOutgoingMessage(
-            targetSchainName,
-            tokenManagers[targetSchainHash],
-            Messages.encodeTransferEthMessage(to, amount)
-        );
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], to, amount);
     }
 
     /**
      * @dev Allows MessageProxy to post operational message from mainnet
      * or SKALE chains.
-     * 
-     * Emits an {Error} event upon failure.
      *
      * Requirements:
      * 
@@ -108,24 +92,19 @@ contract TokenManagerEth is TokenManager {
         external
         override
         onlyMessageProxy
-        returns (bool)
+        checkReceiverChain(fromChainHash, sender)
+        returns (address)
     {
-        require(
-            fromChainHash != schainHash && 
-                (
-                    fromChainHash == MAINNET_HASH ?
-                    sender == depositBox :
-                    sender == tokenManagers[fromChainHash]
-                ),
-            "Receiver chain is incorrect"
-        );
         Messages.TransferEthMessage memory decodedMessage = Messages.decodeTransferEthMessage(data);
         address receiver = decodedMessage.receiver;
         require(receiver != address(0), "Incorrect receiver");
         ethErc20.mint(receiver, decodedMessage.amount);
-        return true;
+        return receiver;
     }
 
+    /**
+     * @dev Is called once during contract deployment.
+     */
     function initialize(
         string memory newChainName,
         MessageProxyForSchain newMessageProxy,
@@ -134,7 +113,7 @@ contract TokenManagerEth is TokenManager {
         address newDepositBox,
         EthErc20 ethErc20Address
     )
-        public
+        external
         virtual
         initializer
     {
@@ -150,9 +129,25 @@ contract TokenManagerEth is TokenManager {
 
     // private
 
-    function _burnEthErc20(address account, uint amount) private {
+    /**
+     * @dev Burn EthErc20 tokens on schain and send message to unlock ETH on target chain.
+     */
+    function _exit(
+        bytes32 chainHash,
+        address messageReceiver,
+        address to,
+        uint256 amount
+    )
+        private
+    {
         if (amount > 0) {
-            ethErc20.forceBurn(account, amount);
+            ethErc20.forceBurn(msg.sender, amount);
         }
-    }   
+        bytes memory data = Messages.encodeTransferEthMessage(to, amount);
+        messageProxy.postOutgoingMessage(
+            chainHash,
+            messageReceiver,
+            data
+        );
+    }
 }

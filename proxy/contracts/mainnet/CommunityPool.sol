@@ -21,128 +21,186 @@
     along with SKALE Manager.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
+
+import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 
 import "../Messages.sol";
 import "./MessageProxyForMainnet.sol";
-import "../interfaces/IMainnetContract.sol";
 import "./Linker.sol";
 
 /**
  * @title CommunityPool
- * @dev Contract contains logic to perform automatic self-recharging ether for nodes
+ * @dev Contract contains logic to perform automatic self-recharging ETH for nodes.
  */
-contract CommunityPool is SkaleManagerClient {
+contract CommunityPool is Twin {
 
-    MessageProxyForMainnet public messageProxy;
+    using AddressUpgradeable for address payable;
 
+    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
+
+    // address of user => schainHash => balance of gas wallet in ETH
     mapping(address => mapping(bytes32 => uint)) private _userWallets;
-    mapping(address => bool) private _unfrozenUsers;
-    mapping(bytes32 => address) public schainLinks;
 
-    uint public minTransactionGas;
-    bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
+    // address of user => schainHash => true if unlocked for transferring
+    mapping(address => mapping(bytes32 => bool)) public activeUsers;
 
+    uint public minTransactionGas;    
+
+    /**
+     * @dev Emitted when minimal value in gas for transactions from schain to mainnet was changed 
+     */
+    event MinTransactionGasWasChanged(
+        uint oldValue,
+        uint newValue
+    );
+
+    function initialize(
+        IContractManager contractManagerOfSkaleManagerValue,
+        Linker linker,
+        MessageProxyForMainnet messageProxyValue
+    )
+        external
+        initializer
+    {
+        Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
+        _setupRole(LINKER_ROLE, address(linker));
+        minTransactionGas = 1e6;
+    }
+
+    /**
+     * @dev Allows MessageProxyForMainnet to reimburse gas for transactions 
+     * that transfer funds from schain to mainnet.
+     * 
+     * Requirements:
+     * 
+     * - User that receives funds should have enough funds in their gas wallet.
+     * - Address that should be reimbursed for executing transaction must not be null.
+     */
     function refundGasByUser(
         bytes32 schainHash,
         address payable node,
         address user,
         uint gas
-    ) 
+    )
         external
+        onlyMessageProxy
+        returns (bool)
     {
-        require(msg.sender == address(messageProxy),  "Sender is not a MessageProxy");
-        require(_unfrozenUsers[user], "User should be unfrozen");
+        require(activeUsers[user][schainHash], "User should be active");
+        require(node != address(0), "Node address must be set");
         uint amount = tx.gasprice * gas;
-        _userWallets[user][schainHash] = _userWallets[user][schainHash].sub(amount);
-        if (_userWallets[user][schainHash] < minTransactionGas * tx.gasprice) {
-            _unfrozenUsers[user] = false;
+        _userWallets[user][schainHash] = _userWallets[user][schainHash] - amount;
+        if (!_balanceIsSufficient(schainHash, user, 0)) {
+            activeUsers[user][schainHash] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
-                Messages.encodeFreezeStateMessage(user, false)
+                Messages.encodeLockUserMessage(user)
             );
         }
-        node.transfer(amount);
+        node.sendValue(amount);
+        return true;
     }
 
+    function refundGasBySchainWallet(
+        bytes32 schainHash,
+        address payable node,
+        uint gas
+    )
+        external
+        onlyMessageProxy
+        returns (bool)
+    {
+        if (gas > 0) {
+            IWallets(contractManagerOfSkaleManager.getContract("Wallets")).refundGasBySchain(
+                schainHash,
+                node,
+                gas,
+                false
+            );
+        }
+        return true;
+    }
+
+    /**
+     * @dev Allows `msg.sender` to recharge their wallet for further gas reimbursement.
+     * 
+     * Requirements:
+     * 
+     * - 'msg.sender` should recharge their gas wallet for amount that enough to reimburse any 
+     *   transaction from schain to mainnet.
+     */
     function rechargeUserWallet(string calldata schainName) external payable {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
-            msg.value.add(_userWallets[msg.sender][schainHash]) >=
-                minTransactionGas * tx.gasprice,
-            "Not enough money for transaction"
+            _balanceIsSufficient(schainHash, msg.sender, msg.value),
+            "Not enough ETH for transaction"
         );
-        _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].add(msg.value);
-        if (!_unfrozenUsers[msg.sender]) {
-            _unfrozenUsers[msg.sender] = true;
+        _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash] + msg.value;
+        if (!activeUsers[msg.sender][schainHash]) {
+            activeUsers[msg.sender][schainHash] = true;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
-                Messages.encodeFreezeStateMessage(msg.sender, true)
+                Messages.encodeActivateUserMessage(msg.sender)
             );
         }
     }
 
+    /**
+     * @dev Allows `msg.sender` to withdraw funds from their gas wallet.
+     * If `msg.sender` withdraws too much funds,
+     * then he will no longer be able to transfer their tokens on ETH from schain to mainnet.
+     * 
+     * Requirements:
+     * 
+     * - 'msg.sender` must have sufficient amount of ETH on their gas wallet.
+     */
     function withdrawFunds(string calldata schainName, uint amount) external {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
-        _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash].sub(amount);
-        if (_userWallets[msg.sender][schainHash] < minTransactionGas * tx.gasprice 
-            && _unfrozenUsers[msg.sender]) {
+        _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash] - amount;
+        if (
+            !_balanceIsSufficient(schainHash, msg.sender, 0) &&
+            activeUsers[msg.sender][schainHash]
+        ) {
+            activeUsers[msg.sender][schainHash] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
-                Messages.encodeFreezeStateMessage(msg.sender, true)
+                Messages.encodeLockUserMessage(msg.sender)
             );
         }
-        msg.sender.transfer(amount);
+        payable(msg.sender).sendValue(amount);
     }
 
-    function addSchainContract(string calldata schainName, address contractOnSchain) external {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(LINKER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(schainLinks[schainHash] == address(0), "SKALE chain is already set");
-        require(contractOnSchain != address(0), "Incorrect address for contract on Schain");
-        schainLinks[schainHash] = contractOnSchain;
+    /**
+     * @dev Allows `msg.sender` set the amount of gas that should be 
+     * enough for reimbursing any transaction from schain to mainnet.
+     * 
+     * Requirements:
+     * 
+     * - 'msg.sender` must have sufficient amount of ETH on their gas wallet.
+     */
+    function setMinTransactionGas(uint newMinTransactionGas) external {
+        require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "CONSTANT_SETTER_ROLE is required");
+        emit MinTransactionGasWasChanged(minTransactionGas, newMinTransactionGas);
+        minTransactionGas = newMinTransactionGas;
     }
 
-    function removeSchainContract(string calldata schainName) external {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(LINKER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(schainLinks[schainHash] != address(0), "SKALE chain is not set");
-        delete schainLinks[schainHash];
+    /**
+     * @dev Returns the amount of ETH on gas wallet for particular user.
+     */
+    function getBalance(address user, string calldata schainName) external view returns (uint) {
+        return _userWallets[user][keccak256(abi.encodePacked(schainName))];
     }
 
-    function hasSchainContract(string calldata schainName) external view returns (bool) {
-        return schainLinks[keccak256(abi.encodePacked(schainName))] != address(0);
+    function checkUserBalance(bytes32 schainHash, address receiver) external view returns (bool) {
+        return activeUsers[receiver][schainHash] && _balanceIsSufficient(schainHash, receiver, 0);
     }
 
-    function getBalance(string calldata schainName) external view returns (uint) {
-        return _userWallets[msg.sender][keccak256(abi.encodePacked(schainName))];
-    }
-
-    function initialize(
-        IContractManager contractManagerOfSkaleManager,
-        Linker linker,
-        MessageProxyForMainnet newMessageProxy
-    )
-        public
-        initializer
-    {
-        SkaleManagerClient.initialize(contractManagerOfSkaleManager);
-        AccessControlUpgradeable.__AccessControl_init();
-        _setupRole(LINKER_ROLE, address(linker));
-        messageProxy = newMessageProxy;
-        minTransactionGas = 1000000;
-    }
+    function _balanceIsSufficient(bytes32 schainHash, address receiver, uint256 delta) private view returns (bool) {
+        return delta + _userWallets[receiver][schainHash] >= minTransactionGas * tx.gasprice;
+    } 
 }

@@ -21,63 +21,153 @@
     along with SKALE Manager.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
 import "../Messages.sol";
+import "../mainnet/CommunityPool.sol";
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
-import "../mainnet/CommunityPool.sol";
+
 
 /**
  * @title CommunityLocker
- * @dev Contract contains logic to perform automatic self-recharging ether for nodes
+ * @dev Contract contains logic to perform automatic reimbursement
+ * of gas fees for sent messages
  */
-contract CommunityLocker is AccessControlUpgradeable {
+contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable {
 
+    /**
+     * @dev Mainnet identifier.
+     */
     string constant public MAINNET_NAME = "Mainnet";
+
+    /**
+     * @dev Keccak256 hash of mainnet name.
+     */
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
 
+    /**
+     * @dev id of a role that allows changing of the contract parameters.
+     */
+    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
+
+    /**
+     * @dev Address of MessageProxyForSchain.
+     */
     MessageProxyForSchain public messageProxy;
+
+    /**
+     * @dev Address of TokenManagerLinker.
+     */
     TokenManagerLinker public tokenManagerLinker;
+
+    /**
+     * @dev Address of CommunityPool on mainnet.
+     */
     address public communityPool;
 
+    /**
+     * @dev Keccak256 hash of schain name.
+     */
     bytes32 public schainHash;
+
+    /**
+     * @dev Amount of seconds after message sending
+     * when next message cannot be sent.
+     */
     uint public timeLimitPerMessage;
 
-    mapping(address => bool) private _unfrozenUsers;
+    /**
+     * @dev Mapping of users who are allowed to send a message.
+     */
+    // user address => allowed to send message
+    mapping(address => bool) public activeUsers;
+
+    /**
+     * @dev Timestamp of previous sent message by user.
+     */
+    // user address => timestamp of last message
     mapping(address => uint) private _lastMessageTimeStamp;
 
-    event UserUnfrozed(
+    /**
+     * @dev Emitted when a user becomes active.
+     */
+    event ActivateUser(
         bytes32 schainHash,
         address user
-    );    
+    );
 
+    /**
+     * @dev Emitted when a user stops being active.
+     */
+    event LockUser(
+        bytes32 schainHash,
+        address user
+    ); 
+
+    /**
+     * @dev Emitted when value of {timeLimitPerMessage} was changed.
+     */
+    event TimeLimitPerMessageWasChanged(
+        uint256 oldValue,
+        uint256 newValue
+    );
+
+    /**
+     * @dev Allows MessageProxy to post operational message from mainnet
+     * or SKALE chains.
+     *
+     * Requirements:
+     * 
+     * - MessageProxy must be the caller of the function.
+     * - CommunityPool must be an origin of the message on mainnet.
+     * - The message must come from the mainnet.
+     * - The message must contains status of a user.
+     * - Status of a user in the message must be different from the current status.
+     */
     function postMessage(
         bytes32 fromChainHash,
         address sender,
         bytes calldata data
     )
         external
-        returns (bool)
+        override
+        returns (address)
     {
         require(msg.sender == address(messageProxy), "Sender is not a message proxy");
         require(sender == communityPool, "Sender must be CommunityPool");
         require(fromChainHash == MAINNET_HASH, "Source chain name must be Mainnet");
         Messages.MessageType operation = Messages.getMessageType(data);
-        require(operation == Messages.MessageType.FREEZE_STATE, "The message should contain a frozen state");
-        Messages.FreezeStateMessage memory message = Messages.decodeFreezeStateMessage(data);
-        require(_unfrozenUsers[message.receiver] != message.isUnfrozen, "Freezing states must be different");
-        _unfrozenUsers[message.receiver] = message.isUnfrozen;
-        emit UserUnfrozed(schainHash, message.receiver);
-        return true;
+        require(operation == Messages.MessageType.USER_STATUS, "The message should contain a status of user");
+        Messages.UserStatusMessage memory message = Messages.decodeUserStatusMessage(data);
+        require(activeUsers[message.receiver] != message.isActive, "Active user statuses must be different");
+        activeUsers[message.receiver] = message.isActive;
+        if (message.isActive) {
+            emit ActivateUser(schainHash, message.receiver);
+        } else {
+            emit LockUser(schainHash, message.receiver);
+        }
+        return message.receiver;
     }
 
+    /**
+     * @dev Reverts if {receiver} is not allowed to send a message.
+     *
+     * Requirements:
+     * 
+     * - Function caller has to be registered in TokenManagerLinker as a TokenManager.
+     * - {receiver} must be an active user.
+     * - Previous message sent by {receiver} must be sent earlier then {timeLimitPerMessage} seconds before current time
+     * or there are no messages sent by {receiver}.
+     */
     function checkAllowedToSendMessage(address receiver) external {
-        tokenManagerLinker.hasTokenManager(TokenManager(msg.sender));
-        require(_unfrozenUsers[receiver], "Recipient must be unfrozen");
+        require(
+            tokenManagerLinker.hasTokenManager(TokenManager(msg.sender)),
+            "Sender is not registered token manager"
+        );
+        require(activeUsers[receiver], "Recipient must be active");
         require(
             _lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
             "Trying to send messages too often"
@@ -85,28 +175,42 @@ contract CommunityLocker is AccessControlUpgradeable {
         _lastMessageTimeStamp[receiver] = block.timestamp;
     }
 
+    /**
+     * @dev Set value of {timeLimitPerMessage}.
+     *
+     * Requirements:
+     * 
+     * - Function caller has to be granted with {CONSTANT_SETTER_ROLE}.
+     * 
+     * Emits a {TimeLimitPerMessageWasChanged} event.
+     */
     function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
+        require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
+        emit TimeLimitPerMessageWasChanged(timeLimitPerMessage, newTimeLimitPerMessage);
         timeLimitPerMessage = newTimeLimitPerMessage;
     }
 
+    /**
+     * @dev Is called once during contract deployment.
+     */
     function initialize(
         string memory newSchainName,
         MessageProxyForSchain newMessageProxy,
         TokenManagerLinker newTokenManagerLinker,
         address newCommunityPool
     )
-        public
+        external
         virtual
         initializer
     {
-        AccessControlUpgradeable.__AccessControl_init();
+        require(newCommunityPool != address(0), "Node address has to be set");
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         messageProxy = newMessageProxy;
         tokenManagerLinker = newTokenManagerLinker;
         schainHash = keccak256(abi.encodePacked(newSchainName));
         timeLimitPerMessage = 5 minutes;
-	communityPool = newCommunityPool;
+        communityPool = newCommunityPool;
     }
 
 }

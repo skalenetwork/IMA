@@ -127,9 +127,10 @@ async function main() {
     console.log("Deploy", linkerName);
     const linkerFactory = await getContractFactory(linkerName);
     const linker = (
-        await upgrades.deployProxy(linkerFactory, [deployed.get(messageProxyForMainnetName)?.address, contractManager?.address], { initializer: 'initialize(address,address)' })
+        await upgrades.deployProxy(linkerFactory, [contractManager?.address, deployed.get(messageProxyForMainnetName)?.address], { initializer: 'initialize(address,address)' })
     ) as Linker;
     await linker.deployTransaction.wait();
+    await (await linker.registerMainnetContract(linker.address)).wait();
     await (await messageProxyForMainnet.registerExtraContractForAll(linker.address)).wait();
     const chainConnectorRole = await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE();
     await (await messageProxyForMainnet.grantRole(chainConnectorRole, linker.address)).wait();
@@ -227,6 +228,7 @@ async function main() {
                 } else {
                     try {
                         await contractManagerInst.setContractsAddress( "MessageProxyForMainnet", deployed.get( "MessageProxyForMainnet" )?.address);
+                        await contractManagerInst.setContractsAddress( "CommunityPool", deployed.get( "CommunityPool" )?.address);
                         console.log( "Successfully registered MessageProxy in ContractManager" );
                     } catch ( error ) {
                         console.log( "Registration of MessageProxy is failed on ContractManager. Please redo it by yourself!\nError:", error );

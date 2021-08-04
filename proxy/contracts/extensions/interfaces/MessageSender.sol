@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   IMainnetContract.sol - Interface of Mainnet Template Contract
+ *   MessageSender.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
@@ -19,21 +19,17 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
 
-interface IMainnetContract {
+import "./MessageProxyClient.sol";
 
-    function postMessage(
-        bytes32 schainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        returns (address);
+abstract contract MessageSender is MessageProxyClient {
 
-    function addSchainContract(string calldata schainName, address newSchainContract) external;
-
-    function removeSchainContract(string calldata schainName) external;
-
-    function hasSchainContract(string calldata schainName) external view returns (bool);
+    function _sendMessage(
+        string memory targetChainName,
+        address targetContract,
+        bytes memory data
+    ) internal {
+        messageProxy.postOutgoingMessage(keccak256(abi.encodePacked(targetChainName)), targetContract, data);
+    }
 }

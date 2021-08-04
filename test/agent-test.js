@@ -93,7 +93,7 @@ global.imaState = {
     "bShowConfigMode": false, // true - just show configuration values and exit
 
     "bNoWaitSChainStarted": false,
-    "nMaxWaitSChainAttempts": 20,
+    "nMaxWaitSChainAttempts": 0 + Number.MAX_SAFE_INTEGER, // 20
     "isPreventExitAfterLastAction": false,
 
     "strURL_main_net": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM || "http://127.0.0.1:8545" ), // example: "http://127.0.0.1:8545
@@ -116,6 +116,9 @@ global.imaState = {
     "nAmountOfWei": 0,
     "nAmountOfToken": 0,
     "idToken": 0,
+    "idTokens": [],
+    "have_idToken": false,
+    "have_idTokens": false,
 
     "nTransferBlockSizeM2S": 4, // 10
     "nTransferBlockSizeS2M": 4, // 10

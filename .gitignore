@@ -11,6 +11,11 @@ proxy/.openzeppelin/dev-*.json
 proxy/.openzeppelin/unknown-*.json
 proxy/.openzeppelin/.session
 
+# predeployed generator artificats
+proxy/predeployed/test/additional.json
+proxy/predeployed/version.txt
+proxy/data/proxySchain_Bob.json.saved_copy
+
 # idea
 .DS_Store
 .idea
@@ -96,3 +101,4 @@ verify_bls
 
 venv
 
+npms/scrypt/node-scrypt

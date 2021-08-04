@@ -7,16 +7,23 @@
         "postinstall": "echo \"----- installing in OWASP\n\" && cd ../npms/skale-owasp && yarn install && cd ../../agent && echo \"----- installing in IMA CORE\n\" && cd ../npms/skale-ima && yarn install && cd ../../agent"
     },
     "dependencies": {
-        "colors": "^1.3.3",
+        "colors": "^1.4.0",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-wallet": "1.0.1",
-        "ethereumjs-util": "7.0.10",
-        "web3": "1.3.5",
+        "ethereumjs-util": "7.1.0",
+        "web3": "^1.4.0",
         "uuid": "8.3.2",
-        "ws": "^7.4.5",
+        "ws": "^7.5.3",
         "request": "^2.88.2",
         "sha3": "2.1.4",
         "shelljs": "0.8.4"
     },
-    "devDependencies": {}
+    "devDependencies": {},
+    "resolutions": {
+        "**/sqlite3": "5.0.2",
+        "**/sha3": "2.1.4",
+        "web3/ethereumjs-**/scrypt": "file:../npms/scrypt/node-scrypt",
+        "web3/**/scrypt": "file:../npms/scrypt/node-scrypt",
+        "scrypt.js/scrypt": "file:../npms/scrypt/node-scrypt"
+    }
 }

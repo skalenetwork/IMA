@@ -40,10 +40,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Set up Node
+    - name: Install NODE JS
       uses: actions/setup-node@v2
       with:
-        node-version: '10'
+        node-version: '14'
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -52,7 +52,9 @@ jobs:
 
     - name: Install project
       working-directory: ${{env.working-directory}}
-      run: yarn install
+      run: |
+        ../npms/scrypt/get_scrypt_npm.sh
+        yarn install
 
     - name: Install slither
       working-directory: ${{env.working-directory}}
@@ -94,7 +96,7 @@ jobs:
       env:
         VERSION: "0.0.0"
       run: |
-        python3 -m pip install --upgrade build
+        python3 -m pip install build==0.4.0
         ./predeployed/scripts/build_package.sh
 
     - name: Test predeployed pip package
@@ -309,7 +311,9 @@ jobs:
 
     - name: Compile contracts
       working-directory: ./proxy
-      run: yarn install
+      run: |
+        ../npms/scrypt/get_scrypt_npm.sh
+        yarn install
 
     - name: Install agent      
       run: |

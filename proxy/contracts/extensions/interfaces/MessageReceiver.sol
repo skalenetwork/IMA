@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxy.sol - SKALE Interchain Messaging Agent
- *   Copyright (C) 2019-Present SKALE Labs
+ *   MessageReceiver.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2021-Present SKALE Labs
  *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
@@ -19,17 +19,10 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
 
-interface IMessageProxy {
-    function postOutgoingMessage(
-        string calldata targetSchainName,
-        address targetContract,
-        bytes calldata data
-    )
-        external;
+import "./MessageProxyClient.sol";
+import "../../interfaces/IMessageReceiver.sol";
 
-    function addConnectedChain(string calldata schainName) external;
-    function removeConnectedChain(string calldata schainName) external;
-    function isConnectedChain(string calldata schainName) external view returns (bool);
-}
+// solhint-disable-next-line no-empty-blocks
+abstract contract MessageReceiver is MessageProxyClient, IMessageReceiver {}

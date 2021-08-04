@@ -30,13 +30,14 @@ import {
     ContractManager,
     Linker,
     MessageProxyForMainnet,
-    MessageProxyForMainnetTester,
+    MessageProxyCaller,
     MessageProxyForSchain,
     MessageProxyForSchainWithoutSignature,
     MessagesTester,
     ReceiverGasLimitMainnetMock,
     ReceiverGasLimitSchainMock,
     KeyStorageMock,
+    CommunityPool
 } from "../typechain/";
 
 import { randomString, stringValue } from "./utils/helper";
@@ -51,10 +52,10 @@ import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProx
 import { deployDepositBoxEth } from "./utils/deploy/mainnet/depositBoxEth";
 import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
 import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
-import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
+import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 
-import { deployMessageProxyForMainnetTester } from "./utils/deploy/test/messageProxyForMainnetTester";
+import { deployMessageProxyCaller } from "./utils/deploy/test/messageProxyCaller";
 import { deployMessages } from "./utils/deploy/messages";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 
@@ -65,6 +66,7 @@ import { BigNumber } from "ethers";
 import { assert, expect } from "chai";
 import { MessageProxyForSchainTester } from "../typechain/MessageProxyForSchainTester";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
+import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 
 describe("MessageProxy", () => {
     let deployer: SignerWithAddress;
@@ -78,9 +80,11 @@ describe("MessageProxy", () => {
     let depositBox: DepositBoxEth;
     let contractManager: ContractManager;
     let messageProxyForMainnet: MessageProxyForMainnet;
-    let caller: MessageProxyForMainnetTester;
+    let caller: MessageProxyCaller;
     let imaLinker: Linker;
     let messages: MessagesTester;
+    let communityPool: CommunityPool;
+
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const schainName = "Schain";
 
@@ -104,16 +108,19 @@ describe("MessageProxy", () => {
     });
 
     describe("MessageProxy for mainnet", async () => {
-
+        let gasPrice: any;
         beforeEach(async () => {
             contractManager = await deployContractManager(contractManagerAddress);
             // contractManagerAddress = contractManager.address;
             messageProxyForMainnet = await deployMessageProxyForMainnet(contractManager);
-            caller = await deployMessageProxyForMainnetTester();
-            imaLinker = await deployLinker(messageProxyForMainnet, contractManager);
+            caller = await deployMessageProxyCaller();
+            imaLinker = await deployLinker(contractManager, messageProxyForMainnet);
             depositBox = await deployDepositBoxEth(contractManager, imaLinker, messageProxyForMainnet);
             messages = await deployMessages();
-            await messageProxyForMainnet.registerExtraContract(schainName, caller.address);
+            communityPool = await deployCommunityPool(contractManager, imaLinker, messageProxyForMainnet);
+            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
+            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            gasPrice = (await messageProxyForMainnet.registerExtraContract(schainName, caller.address)).gasPrice;
         });
 
         it("should set constants", async () => {
@@ -161,11 +168,11 @@ describe("MessageProxy", () => {
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
-            const someCainID = randomString(10);
-            const isConnectedChain = await messageProxyForMainnet.isConnectedChain(someCainID);
+            const newSchainName = randomString(10);
+            const isConnectedChain = await messageProxyForMainnet.isConnectedChain(newSchainName);
             isConnectedChain.should.be.deep.equal(Boolean(false));
-            await messageProxyForMainnet.connect(deployer).addConnectedChain(someCainID);
-            const connectedChain = await messageProxyForMainnet.isConnectedChain(someCainID);
+            await messageProxyForMainnet.connect(deployer).addConnectedChain(newSchainName);
+            const connectedChain = await messageProxyForMainnet.isConnectedChain(newSchainName);
             connectedChain.should.be.deep.equal(Boolean(true));
             // // main net does not have a public key and is implicitly connected:
             // await messageProxyForMainnet.isConnectedChain("Mainnet").should.be.rejected;
@@ -222,23 +229,23 @@ describe("MessageProxy", () => {
         it("should post incoming messages", async () => {
             const startingCounter = 0;
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
-            await setCommonPublicKey(contractManager, schainName);
             await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
+            await setCommonPublicKey(contractManager, schainName);
+            await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
+            await depositBox.addSchainContract(schainName, deployer.address);
+            const minTransactionGas = await communityPool.minTransactionGas();
+            const amountWei = minTransactionGas.mul(gasPrice);
 
             const message1 = {
-                amount: 3,
-                data: "0x01",
                 destinationContract: depositBox.address,
                 sender: deployer.address,
-                to: client.address
+                data: await messages.encodeTransferEthMessage(client.address, 0),
             };
 
             const message2 = {
-                amount: 7,
-                data: "0x01",
                 destinationContract: depositBox.address,
-                sender: user.address,
-                to: customer.address
+                sender: deployer.address,
+                data: await messages.encodeTransferEthMessage(customer.address, 7),
             };
 
             const outgoingMessages = [message1, message2];
@@ -256,9 +263,8 @@ describe("MessageProxy", () => {
                     schainName,
                     startingCounter,
                     outgoingMessages,
-                    sign,
-                    0,
-                ).should.be.rejected;
+                    sign
+                ).should.be.eventually.rejectedWith("Chain is not initialized");
 
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
 
@@ -267,13 +273,32 @@ describe("MessageProxy", () => {
                 .postIncomingMessages(
                     schainName,
                     startingCounter,
+                    [message1, message1, message1, message1, message1, message1, message1, message1, message1, message1, message1],
+                    sign
+                    ).should.be.eventually.rejectedWith("Too many messages");
+
+            await messageProxyForMainnet
+                .connect(deployer)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter,
                     outgoingMessages,
-                    sign,
-                    0,
+                    sign
+                );
+
+            await communityPool.connect(client).rechargeUserWallet(schainName, {value: amountWei.toString()});
+
+            await messageProxyForMainnet
+                .connect(deployer)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter + 2,
+                    outgoingMessages,
+                    sign
                 );
             const incomingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
-            incomingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
+            incomingMessagesCounter.should.be.deep.equal(BigNumber.from(4));
         });
 
         it("should get outgoing messages counter", async () => {
@@ -301,6 +326,7 @@ describe("MessageProxy", () => {
 
         it("should get incoming messages counter", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
             const startingCounter = 0;
             const message1 = {
@@ -340,40 +366,18 @@ describe("MessageProxy", () => {
                     schainName,
                     startingCounter,
                     outgoingMessages,
-                    sign,
-                    0,
+                    sign
                 );
             const incomingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
             incomingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
         });
 
-        it("should move incoming counter", async () => {
-            await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
-            const isConnectedChain = await messageProxyForMainnet.isConnectedChain(schainName);
-            isConnectedChain.should.be.deep.equal(Boolean(true));
-            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.DEBUGGER_ROLE(), deployer.address);
-
-            // chain can't be connected twice:
-            const incomingMessages = BigNumber.from(
-                await messageProxyForMainnet.connect(deployer).getIncomingMessagesCounter(schainName),
-            );
-
-            // main net does not have a public key and is implicitly connected:
-            await messageProxyForMainnet.connect(deployer).incrementIncomingCounter(schainName);
-
-            const newIncomingMessages = BigNumber.from(
-                await messageProxyForMainnet.connect(deployer).getIncomingMessagesCounter(schainName),
-            );
-
-            newIncomingMessages.should.be.deep.equal(BigNumber.from(incomingMessages).add(BigNumber.from(1)));
-        });
-
         it("should get incoming messages counter", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
-            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.DEBUGGER_ROLE(), deployer.address);
-            // await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
+
             const startingCounter = 0;
             const message1 = {
                 amount: 3,
@@ -412,8 +416,7 @@ describe("MessageProxy", () => {
                     schainName,
                     startingCounter,
                     outgoingMessages,
-                    sign,
-                    0,
+                    sign
                 );
             // console.log("Gas for postIncomingMessages Eth:", res.receipt.gasUsed);
             const incomingMessagesCounter = BigNumber.from(
@@ -437,23 +440,12 @@ describe("MessageProxy", () => {
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
-
-            await messageProxyForMainnet.connect(deployer).setCountersToZero(schainName);
-
-            const newIncomingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
-            newIncomingMessagesCounter.should.be.deep.equal(BigNumber.from(0));
-
-            const newOutgoingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName)
-            );
-            newOutgoingMessagesCounter.should.be.deep.equal(BigNumber.from(0));
         });
 
         it("should check gas limit issue", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
-            await messageProxyForMainnet.grantRole(await messageProxyForMainnet.DEBUGGER_ROLE(), deployer.address);
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
 
             const receiverMockFactory = await ethers.getContractFactory("ReceiverGasLimitMainnetMock");
@@ -476,36 +468,88 @@ describe("MessageProxy", () => {
                 hashB: HashB,
             };
 
-            let res = await (await messageProxyForMainnet
-                .connect(deployer)
-                .postIncomingMessages(
-                    schainName,
-                    startingCounter,
-                    outgoingMessages,
-                    sign,
-                    0,
-                )).wait();
-            expect(res.gasUsed.toNumber()).to.be.lessThan(1000000);
-
             await messageProxyForMainnet.registerExtraContract(schainName, receiverMock.address);
 
             let a = await receiverMock.a();
             expect(a.toNumber()).be.equal(0);
 
-            res = await (await messageProxyForMainnet
+            const res = await (await messageProxyForMainnet
                 .connect(deployer)
                 .postIncomingMessages(
                     schainName,
-                    startingCounter + 1,
+                    startingCounter,
                     outgoingMessages,
-                    sign,
-                    0,
+                    sign
                 )).wait();
 
             a = await receiverMock.a();
             expect(a.toNumber()).be.equal(0);
             expect(res.gasUsed.toNumber()).to.be.greaterThan(1000000);
 
+        });
+
+        describe("register and remove extra contracts", async () => {
+            it("should register extra contract", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForMainnet.connect(user).registerExtraContract(schainName,  depositBox.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to register extra contract");
+                await messageProxyForMainnet.registerExtraContract(schainName, fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Given address is not a contract");
+
+                expect(await messageProxyForMainnet.isContractRegistered(schainName, depositBox.address)).to.be.equal(false);
+                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+                expect(await messageProxyForMainnet.isContractRegistered(schainName, depositBox.address)).to.be.equal(true);
+
+                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
+                    .should.be.eventually.rejectedWith("Extra contract is already registered");
+            });
+
+            it("should register extra contract for all", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForMainnet.connect(user).registerExtraContractForAll(depositBox.address)
+                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
+                await messageProxyForMainnet.registerExtraContractForAll(fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Given address is not a contract");
+
+                expect(await messageProxyForMainnet.isContractRegistered(schainName, depositBox.address)).to.be.equal(false);
+                await messageProxyForMainnet.registerExtraContractForAll(depositBox.address);
+                expect(await messageProxyForMainnet.isContractRegistered(schainName, depositBox.address)).to.be.equal(true);
+
+                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
+                    .should.be.eventually.rejectedWith("Extra contract is already registered for all chains");
+
+                await messageProxyForMainnet.registerExtraContractForAll(depositBox.address)
+                    .should.be.eventually.rejectedWith("Extra contract is already registered");
+            });
+
+            it("should remove extra contract", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForMainnet.connect(user).removeExtraContract(schainName,  depositBox.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to register extra contract");
+                await messageProxyForMainnet.removeExtraContract(schainName, fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
+
+                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+                await messageProxyForMainnet.removeExtraContract(schainName, depositBox.address);
+
+                await messageProxyForMainnet.removeExtraContract(schainName, depositBox.address)
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
+                expect(await messageProxyForMainnet.isContractRegistered(schainName, depositBox.address)).to.be.equal(false);
+            });
+
+            it("should remove extra contract for all", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForMainnet.connect(user).removeExtraContractForAll(depositBox.address)
+                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
+                await messageProxyForMainnet.removeExtraContractForAll(fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
+
+                await messageProxyForMainnet.registerExtraContractForAll(depositBox.address);
+                await messageProxyForMainnet.removeExtraContractForAll(depositBox.address);
+
+                await messageProxyForMainnet.removeExtraContractForAll(depositBox.address)
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
+            });
         });
 
     });
@@ -516,7 +560,7 @@ describe("MessageProxy", () => {
             keyStorage = await deployKeyStorageMock();
             messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, "Base schain");
             messages = await deployMessages();
-            caller = await deployMessageProxyForMainnetTester();
+            caller = await deployMessageProxyCaller();
             const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
             await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, deployer.address);
             const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
@@ -549,42 +593,35 @@ describe("MessageProxy", () => {
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
-            const someCainID = randomString(10);
-            const isConnectedChain = await messageProxyForSchain.isConnectedChain(someCainID);
+            const isConnectedChain = await messageProxyForSchain.isConnectedChain(schainName);
             isConnectedChain.should.be.deep.equal(Boolean(false));
-            await messageProxyForSchain.connect(deployer).addConnectedChain(someCainID);
-            const connectedChain = await messageProxyForSchain.isConnectedChain(someCainID);
+            await messageProxyForSchain.addConnectedChain("Base schain")
+                .should.be.rejectedWith("Schain cannot connect itself");
+            await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
+            const connectedChain = await messageProxyForSchain.isConnectedChain(schainName);
             connectedChain.should.be.deep.equal(Boolean(true));
-            // // main net does not have a public key and is implicitly connected:
-            // await messageProxyForSchain.isConnectedChain("Mainnet").should.be.rejected;
         });
 
         it("should add connected chain", async () => {
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
-            const isConnectedChain = await messageProxyForSchain.isConnectedChain(schainName);
-            isConnectedChain.should.be.deep.equal(Boolean(true));
+            expect(await messageProxyForSchain.isConnectedChain(schainName)).to.be.equal(true);
+
             // chain can't be connected twice:
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName)
                 .should.be.rejectedWith("Chain is already connected");
-            // main net does not have a public key and is implicitly connected:
-            // await messageProxyForSchain.connect(deployer).addConnectedChain("Mainnet")
-            // .should.be.rejectedWith("SKALE chain name is incorrect. Inside in MessageProxy");
         });
 
         it("should remove connected chain", async () => {
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
-            const connectedChain = await messageProxyForSchain.isConnectedChain(schainName);
-            connectedChain.should.be.deep.equal(Boolean(true));
-
+            expect(await messageProxyForSchain.isConnectedChain(schainName)).to.be.equal(true);
             // only owner can remove chain:
             await messageProxyForSchain.connect(user).removeConnectedChain(schainName).should.be.rejected;
-
             // main net can't be removed:
             await messageProxyForSchain.connect(deployer).removeConnectedChain("Mainnet").should.be.rejected;
-
             await messageProxyForSchain.connect(deployer).removeConnectedChain(schainName);
-            const notConnectedChain = await messageProxyForSchain.isConnectedChain(schainName);
-            notConnectedChain.should.be.deep.equal(Boolean(false));
+            expect(await messageProxyForSchain.isConnectedChain(schainName)).to.be.equal(false);
+            await messageProxyForSchain.connect(deployer).removeConnectedChain(schainName)
+                .should.be.rejectedWith("Chain is not initialized");
         });
 
         it("should post outgoing message", async () => {
@@ -593,12 +630,12 @@ describe("MessageProxy", () => {
             const addressTo = user.address;
             const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
             await caller
-                .postOutgoingMessageTester2(messageProxyForSchain.address, schainName, contractAddress, bytesData)
+                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData)
                 .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
             await caller
-                .postOutgoingMessageTester2(messageProxyForSchain.address, schainName, contractAddress, bytesData);
+                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData);
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
@@ -675,14 +712,20 @@ describe("MessageProxy", () => {
                 hashB: "0x1a44d878121e17e3f136ddbbba438a38d2dd0fdea786b0a815157828c2154047",
             };
 
+            const fakeSign = {
+                blsSignature: newBLSSignature,
+                counter: 0,
+                hashA: "0x0000000000000000000000000000000000000000000000000000000000000000",
+                hashB: "0x0000000000000000000000000000000000000000000000000000000000000000",
+            }
+
             // chain should be inited:
             await messageProxyForSchain.connect(deployer).postIncomingMessages(
                 schainName,
                 startingCounter,
                 outgoingMessages,
-                sign,
-                0,
-            ).should.be.rejected;
+                sign
+            ).should.be.eventually.rejectedWith("Chain is not initialized");
 
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
 
@@ -692,8 +735,31 @@ describe("MessageProxy", () => {
                 schainName,
                 startingCounter,
                 outgoingMessages,
-                sign,
-                0,
+                fakeSign
+            ).should.be.eventually.rejectedWith("Signature is not verified");
+
+            await messageProxyForSchain.connect(deployer).postIncomingMessages(
+                schainName,
+                startingCounter + 1,
+                outgoingMessages,
+                sign
+            ).should.be.eventually.rejectedWith("Starting counter is not qual to incoming message counter");
+
+            (await messageProxyForSchain.getIncomingMessagesCounter(schainName)).toNumber().should.be.equal(0);
+
+
+            await messageProxyForSchain.connect(deployer).postIncomingMessages(
+                schainName,
+                startingCounter,
+                [message1, message1, message1, message1, message1, message1, message1, message1, message1, message1, message1],
+                sign
+            ).should.be.eventually.rejectedWith("Too many messages");
+
+            await messageProxyForSchain.connect(deployer).postIncomingMessages(
+                schainName,
+                startingCounter,
+                outgoingMessages,
+                sign
             );
 
             (await messageProxyForSchain.getIncomingMessagesCounter(schainName)).toNumber().should.be.equal(2);
@@ -704,18 +770,17 @@ describe("MessageProxy", () => {
             const addressTo = client.address;
             const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
 
+            await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
 
             // chain should be inited:
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(schainName)).should.be.deep.equal(BigNumber.from(0));
-
-            await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
 
             const outgoingMessagesCounter0 = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
 
             await caller
-                .postOutgoingMessageTester2(messageProxyForSchain.address, schainName, depositBox.address, bytesData);
+                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), messages.address, bytesData);
 
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
@@ -727,7 +792,7 @@ describe("MessageProxy", () => {
             const messageProxyForSchainWithoutSignature = await messageProxyForSchainWithoutSignatureFactory.deploy() as MessageProxyForSchainWithoutSignature;
             await messageProxyForSchainWithoutSignature.initialize(deployer.address, "MyChain2");
             messages = await deployMessages();
-            caller = await deployMessageProxyForMainnetTester();
+            caller = await deployMessageProxyCaller();
             const chainConnectorRole = await messageProxyForSchainWithoutSignature.CHAIN_CONNECTOR_ROLE();
             await messageProxyForSchainWithoutSignature.connect(deployer).grantRole(chainConnectorRole, deployer.address);
             const extraContractRegistrarRole = await messageProxyForSchainWithoutSignature.EXTRA_CONTRACT_REGISTRAR_ROLE();
@@ -754,36 +819,88 @@ describe("MessageProxy", () => {
                 hashB: HashB,
             };
 
-            let res = await (await messageProxyForSchainWithoutSignature
-                .connect(deployer)
-                .postIncomingMessages(
-                    "Mainnet",
-                    startingCounter,
-                    outgoingMessages,
-                    sign,
-                    0,
-                )).wait();
-            expect(res.gasUsed.toNumber()).to.be.lessThan(1000000);
-
             await messageProxyForSchainWithoutSignature.registerExtraContract("Mainnet", receiverMock.address);
 
             let a = await receiverMock.a();
             expect(a.toNumber()).be.equal(0);
 
-            res = await (await messageProxyForSchainWithoutSignature
+            const res = await (await messageProxyForSchainWithoutSignature
                 .connect(deployer)
                 .postIncomingMessages(
                     "Mainnet",
-                    startingCounter + 1,
+                    startingCounter,
                     outgoingMessages,
-                    sign,
-                    0,
+                    sign
                 )).wait();
 
             a = await receiverMock.a();
             expect(a.toNumber()).be.equal(0);
             expect(res.gasUsed.toNumber()).to.be.greaterThan(1000000);
 
+        });
+
+        describe("register and remove extra contracts", async () => {
+            it("should register extra contract", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForSchain.connect(user).registerExtraContract(schainName,  messages.address)
+                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
+                await messageProxyForSchain.registerExtraContract(schainName, fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Given address is not a contract");
+
+                expect(await messageProxyForSchain.isContractRegistered(schainName, messages.address)).to.be.equal(false);
+                await messageProxyForSchain.registerExtraContract(schainName, messages.address);
+                expect(await messageProxyForSchain.isContractRegistered(schainName, messages.address)).to.be.equal(true);
+
+                await messageProxyForSchain.registerExtraContract(schainName, messages.address)
+                    .should.be.eventually.rejectedWith("Extra contract is already registered");
+            });
+
+            it("should register extra contract for all", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForSchain.connect(user).registerExtraContractForAll(messages.address)
+                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
+                await messageProxyForSchain.registerExtraContractForAll(fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Given address is not a contract");
+
+                expect(await messageProxyForSchain.isContractRegistered(schainName, messages.address)).to.be.equal(false);
+                await messageProxyForSchain.registerExtraContractForAll(messages.address);
+                expect(await messageProxyForSchain.isContractRegistered(schainName, messages.address)).to.be.equal(true);
+
+                await messageProxyForSchain.registerExtraContract(schainName, messages.address)
+                .should.be.eventually.rejectedWith("Extra contract is already registered for all chains");
+
+                await messageProxyForSchain.registerExtraContractForAll(messages.address)
+                    .should.be.eventually.rejectedWith("Extra contract is already registered");
+            });
+
+            it("should remove extra contract", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForSchain.connect(user).removeExtraContract(schainName,  messages.address)
+                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
+                await messageProxyForSchain.removeExtraContract(schainName, fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
+
+                await messageProxyForSchain.registerExtraContract(schainName, messages.address);
+                await messageProxyForSchain.removeExtraContract(schainName, messages.address);
+
+                await messageProxyForSchain.removeExtraContract(schainName, messages.address)
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
+                expect(await messageProxyForSchain.isContractRegistered(schainName, messages.address)).to.be.equal(false);
+            });
+
+            it("should remove extra contract for all", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForSchain.connect(user).removeExtraContractForAll(messages.address)
+                    .should.be.eventually.rejectedWith("EXTRA_CONTRACT_REGISTRAR_ROLE is required");
+                await messageProxyForSchain.removeExtraContractForAll(fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
+
+                await messageProxyForSchain.registerExtraContractForAll(messages.address);
+                await messageProxyForSchain.removeExtraContractForAll(messages.address);
+
+                await messageProxyForSchain.removeExtraContractForAll(messages.address)
+                    .should.be.eventually.rejectedWith("Extra contract is not registered");
+            });
         });
 
     });

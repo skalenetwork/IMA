@@ -19,17 +19,14 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 
 import "./TestSchainsInternal.sol";
 
 
 contract Wallets is IWallets {
-    using SafeMathUpgradeable for uint;
 
     ContractManager public contractManager;
 
@@ -55,7 +52,7 @@ contract Wallets is IWallets {
         uint amount = tx.gasprice * spentGas;
         require(schainHash != bytes32(0), "SchainHash cannot be null");
         require(amount <= _schainWallets[schainHash], "Schain wallet has not enough funds");
-        _schainWallets[schainHash] = _schainWallets[schainHash].sub(amount);
+        _schainWallets[schainHash] -= amount;
         emit NodeRefundedBySchain(spender, schainHash, amount);
         spender.transfer(amount);
     }
@@ -63,7 +60,11 @@ contract Wallets is IWallets {
     function rechargeSchainWallet(bytes32 schainHash) external payable override {
         SchainsInternal schainsInternal = SchainsInternal(contractManager.getContract("SchainsInternal"));
         require(schainsInternal.isSchainActive(schainHash), "Schain should be active for recharging");
-        _schainWallets[schainHash] = _schainWallets[schainHash].add(msg.value);
+        _schainWallets[schainHash] += msg.value;
         emit SchainWalletRecharged(msg.sender, msg.value, schainHash);
+    }
+
+    function getSchainBalance(bytes32 schainHash) external view override returns (uint) {
+        return _schainWallets[schainHash];
     }
 }

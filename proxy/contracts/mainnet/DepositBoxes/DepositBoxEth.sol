@@ -19,102 +19,67 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
+
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "../DepositBox.sol";
 import "../../Messages.sol";
 
-
-// This contract runs on the main net and accepts deposits
+/**
+ * @title DepositBoxEth
+ * @dev Runs on mainnet,
+ * accepts messages from schain,
+ * stores deposits of ETH.
+ */
 contract DepositBoxEth is DepositBox {
-
-    using SafeMathUpgradeable for uint;
-
-    // uint256 public gasConsumption;
-
-    mapping(bytes32 => address) public tokenManagerEthAddresses;
+    using AddressUpgradeable for address payable;
 
     mapping(address => uint256) public approveTransfers;
 
     mapping(bytes32 => uint256) public transferredAmount;
-
-    modifier rightTransaction(string memory schainName) {
-        require(
-            keccak256(abi.encodePacked(schainName)) != keccak256(abi.encodePacked("Mainnet")),
-            "SKALE chain name is incorrect"
-        );
-        _;
-    }
 
     receive() external payable {
         revert("Use deposit function");
     }
 
     /**
-     * @dev Adds a TokenManagerEth address to
-     * DepositBoxEth.
-     *
+     * @dev Allows `msg.sender` to send ETH from mainnet to schain.
+     * 
      * Requirements:
-     *
-     * - `msg.sender` must be schain owner or contract owner
-     * = or imaLinker contract.
-     * - SKALE chain must not already be added.
-     * - TokenManager address must be non-zero.
+     * 
+     * - Schain name must not be `Mainnet`.
+     * - Receiver account on schain cannot be null.
+     * - Receiver contract should be added as twin contract on schain.
+     * - Schain that receives tokens should not be killed.
      */
-    function addSchainContract(string calldata schainName, address newTokenManagerEthAddress) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(tokenManagerEthAddresses[schainHash] == address(0), "SKALE chain is already set");
-        require(newTokenManagerEthAddress != address(0), "Incorrect Token Manager address");
-
-        tokenManagerEthAddresses[schainHash] = newTokenManagerEthAddress;
-    }
-
-    /**
-     * @dev Allows Owner to remove a TokenManagerEth on SKALE chain
-     * from DepositBoxEth.
-     *
-     * Requirements:
-     *
-     * - `msg.sender` must be schain owner or contract owner
-     * - SKALE chain must already be set.
-     */
-    function removeSchainContract(string calldata schainName) external override {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(DEPOSIT_BOX_MANAGER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(tokenManagerEthAddresses[schainHash] != address(0), "SKALE chain is not set");
-
-        delete tokenManagerEthAddresses[schainHash];
-    }
-
     function deposit(string memory schainName, address to)
         external
         payable
+        rightTransaction(schainName, to)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
-        // receivedEth
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        address tokenManagerAddress = tokenManagerEthAddresses[schainHash];
-        require(tokenManagerAddress != address(0), "Unconnected chain");
-        require(to != address(0), "Community Pool is not available");
+        address contractReceiver = schainLinks[schainHash];
+        require(contractReceiver != address(0), "Unconnected chain");
         if (!linker.interchainConnections(schainHash))
             _saveTransferredAmount(schainHash, msg.value);
         messageProxy.postOutgoingMessage(
             schainHash,
-            tokenManagerAddress,
+            contractReceiver,
             Messages.encodeTransferEthMessage(to, msg.value)
         );
     }
 
+    /**
+     * @dev Allows MessageProxyForMainnet contract to execute transferring ERC20 token from schain to mainnet.
+     * 
+     * Requirements:
+     * 
+     * - Schain from which the tokens came should not be killed.
+     * - Sender contract should be defined and schain name cannot be `Mainnet`.
+     * - Amount of tokens on DepositBoxERC20 should be equal or more than transferred amount.
+     */
     function postMessage(
         bytes32 schainHash,
         address sender,
@@ -124,22 +89,32 @@ contract DepositBoxEth is DepositBox {
         override
         onlyMessageProxy
         whenNotKilled(schainHash)
+        checkReceiverChain(schainHash, sender)
         returns (address)
     {
-        require(
-            schainHash != keccak256(abi.encodePacked("Mainnet")) &&
-            sender == tokenManagerEthAddresses[schainHash],
-            "Receiver chain is incorrect"
-        );
         Messages.TransferEthMessage memory message = Messages.decodeTransferEthMessage(data);
         require(
             message.amount <= address(this).balance,
             "Not enough money to finish this transaction"
         );
-        approveTransfers[message.receiver] =
-            approveTransfers[message.receiver].add(message.amount);
+        approveTransfers[message.receiver] += message.amount;
         if (!linker.interchainConnections(schainHash))
             _removeTransferredAmount(schainHash, message.amount);
+        return message.receiver;
+    }
+
+    function gasPayer(
+        bytes32 schainHash,
+        address sender,
+        bytes calldata data
+    )
+        external
+        view
+        override
+        checkReceiverChain(schainHash, sender)
+        returns (address)
+    {
+        Messages.TransferEthMessage memory message = Messages.decodeTransferEthMessage(data);
         return message.receiver;
     }
 
@@ -148,56 +123,65 @@ contract DepositBoxEth is DepositBox {
      *
      * Requirements:
      *
-     * - LockAndDataForMainnet must have sufficient ETH.
+     * - DepositBoxETh must have sufficient ETH.
      * - User must be approved for ETH transfer.
      */
     function getMyEth() external {
         require(
             address(this).balance >= approveTransfers[msg.sender],
-            "Not enough ETH. in `DepositBox.getMyEth`"
+            "Not enough ETH in DepositBox"
         );
         require(approveTransfers[msg.sender] > 0, "User has insufficient ETH");
         uint256 amount = approveTransfers[msg.sender];
         approveTransfers[msg.sender] = 0;
-        msg.sender.transfer(amount);
+        payable(msg.sender).sendValue(amount);
     }
 
+    /**
+     * @dev Allows Schain owner to return each user their ETH.
+     *
+     * Requirements:
+     * 
+     * - Amount of ETH on schain should be equal or more than transferred amount.
+     * - Receiver address must not be null.
+     */
     function getFunds(string calldata schainName, address payable receiver, uint amount)
         external
         onlySchainOwner(schainName)
         whenKilled(keccak256(abi.encodePacked(schainName)))
     {
+        require(receiver != address(0), "Receiver address has to be set");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(transferredAmount[schainHash] >= amount, "Incorrect amount");
         _removeTransferredAmount(schainHash, amount);
-        receiver.transfer(amount);
+        receiver.sendValue(amount);
     }
-
     /**
-     * @dev Checks whether depositBoxEth is connected to a SKALE chain TokenManagerEth.
+     * @dev Creates a new DepositBoxEth contract.
      */
-    function hasSchainContract(string calldata schainName) external view override returns (bool) {
-        return tokenManagerEthAddresses[keccak256(abi.encodePacked(schainName))] != address(0);
-    }
-
-    /// Create a new deposit box
     function initialize(
-        IContractManager contractManagerOfSkaleManager,        
-        Linker linker,
-        MessageProxyForMainnet messageProxy
+        IContractManager contractManagerOfSkaleManagerValue,        
+        Linker linkerValue,
+        MessageProxyForMainnet messageProxyValue
     )
         public
         override
         initializer
     {
-        DepositBox.initialize(contractManagerOfSkaleManager, linker, messageProxy);
+        DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);
     }
 
+    /**
+     * @dev Saves amount of ETH that was transferred to schain.
+     */
     function _saveTransferredAmount(bytes32 schainHash, uint256 amount) private {
-        transferredAmount[schainHash] = transferredAmount[schainHash].add(amount);
+        transferredAmount[schainHash] += amount;
     }
 
+    /**
+     * @dev Removes amount of ETH that was transferred from schain.
+     */
     function _removeTransferredAmount(bytes32 schainHash, uint256 amount) private {
-        transferredAmount[schainHash] = transferredAmount[schainHash].sub(amount);
+        transferredAmount[schainHash] -= amount;
     }
 }

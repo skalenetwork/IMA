@@ -20,51 +20,100 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
 
-import "../interfaces/IMainnetContract.sol";
 import "./Linker.sol";
 import "./MessageProxyForMainnet.sol";
 
 
+
 /**
- * @title ProxyConnectorMainnet - connected module for Upgradeable approach, knows ContractManager
- * @author Artem Payvin
+ * @title DepositBox
+ * @dev Abstract contracts for DepositBoxes on mainnet.
  */
-abstract contract DepositBox is SkaleManagerClient, IMainnetContract {
+abstract contract DepositBox is IGasReimbursable, Twin {
+
+    Linker public linker;
+
+    // schainHash => true if automatic deployment tokens on schain was enabled 
+    mapping(bytes32 => bool) private _automaticDeploy;
 
     bytes32 public constant DEPOSIT_BOX_MANAGER_ROLE = keccak256("DEPOSIT_BOX_MANAGER_ROLE");
 
-    MessageProxyForMainnet public messageProxy;
-    Linker public linker;
-
-    modifier onlyMessageProxy() {
-        require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
-        _;
-    }
-
+    /**
+     * @dev Modifier for checking whether schain was not killed.
+     */
     modifier whenNotKilled(bytes32 schainHash) {
         require(linker.isNotKilled(schainHash), "Schain is killed");
         _;
     }
 
+    /**
+     * @dev Modifier for checking whether schain was killed.
+     */
     modifier whenKilled(bytes32 schainHash) {
         require(!linker.isNotKilled(schainHash), "Schain is not killed");
         _;
     }
-    
+
+    /**
+     * @dev Modifier for checking whether schainName is not equal to `Mainnet` 
+     * and address of receiver is not equal to null before transferring funds from mainnet to schain.
+     */
+    modifier rightTransaction(string memory schainName, address to) {
+        require(
+            keccak256(abi.encodePacked(schainName)) != keccak256(abi.encodePacked("Mainnet")),
+            "SKALE chain name cannot be Mainnet"
+        );
+        require(to != address(0), "Receiver address cannot be null");
+        _;
+    }
+
+    /**
+     * @dev Modifier for checking whether schainHash is not equal to `Mainnet` 
+     * and sender contract was added as contract processor on schain.
+     */
+    modifier checkReceiverChain(bytes32 schainHash, address sender) {
+        require(
+            schainHash != keccak256(abi.encodePacked("Mainnet")) &&
+            sender == schainLinks[schainHash],
+            "Receiver chain is incorrect"
+        );
+        _;
+    }
+
+    /**
+     * @dev Allows Schain owner turn on whitelist of tokens.
+     */
+    function enableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
+        _automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
+    }
+
+    /**
+     * @dev Allows Schain owner turn off whitelist of tokens.
+     */
+    function disableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
+        _automaticDeploy[keccak256(abi.encodePacked(schainName))] = true;
+    }
+
     function initialize(
-        IContractManager contractManagerOfSkaleManager,
+        IContractManager contractManagerOfSkaleManagerValue,
         Linker newLinker,
-        MessageProxyForMainnet newMessageProxy
+        MessageProxyForMainnet messageProxyValue
     )
         public
         virtual
         initializer
     {
-        SkaleManagerClient.initialize(contractManagerOfSkaleManager);
-        _setupRole(DEPOSIT_BOX_MANAGER_ROLE, address(newLinker));
-        messageProxy = newMessageProxy;
+        Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
+        _setupRole(LINKER_ROLE, address(newLinker));
         linker = newLinker;
+    }
+
+    /**
+     * @dev Returns is whitelist enabled on schain.
+     */
+    function isWhitelisted(string memory schainName) public view returns (bool) {
+        return !_automaticDeploy[keccak256(abi.encodePacked(schainName))];
     }
 }

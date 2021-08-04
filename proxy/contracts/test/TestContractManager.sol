@@ -19,8 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
@@ -36,7 +35,7 @@ contract ContractManager is IContractManager {
 
     event ContractUpgraded(string contractsName, address contractsAddress);
 
-    constructor() public {
+    constructor() {
         owner = msg.sender;
     }
 

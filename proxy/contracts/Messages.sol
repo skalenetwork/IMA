@@ -3,7 +3,7 @@
 /**
  *   Messages.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
- *   @author Dmytro Stebaeiv
+ *   @author Dmytro Stebaiev
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published
@@ -19,11 +19,19 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
 
+/**
+ * @title Messages
+ * @dev Library for encoding and decoding messages
+ * for transferring from Mainnet to Schain and vice versa.
+ */
 library Messages {
+
+    /**
+     * @dev Enumerator that describes all supported message types.
+     */
     enum MessageType {
         EMPTY,
         TRANSFER_ETH,
@@ -32,7 +40,7 @@ library Messages {
         TRANSFER_ERC20_AND_TOKEN_INFO,
         TRANSFER_ERC721,
         TRANSFER_ERC721_AND_TOKEN_INFO,
-        FREEZE_STATE,
+        USER_STATUS,
         INTERCHAIN_CONNECTION,
         TRANSFER_ERC1155,
         TRANSFER_ERC1155_AND_TOKEN_INFO,
@@ -40,22 +48,34 @@ library Messages {
         TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO
     }
 
+    /**
+     * @dev Structure for base message.
+     */
     struct BaseMessage {
         MessageType messageType;
     }
 
+    /**
+     * @dev Structure for describing ETH.
+     */
     struct TransferEthMessage {
         BaseMessage message;
         address receiver;
         uint256 amount;
     }
 
-    struct FreezeStateMessage {
+    /**
+     * @dev Structure for user status.
+     */
+    struct UserStatusMessage {
         BaseMessage message;
         address receiver;
-        bool isUnfrozen;
+        bool isActive;
     }
 
+    /**
+     * @dev Structure for describing ERC20 token.
+     */
     struct TransferErc20Message {
         BaseMessage message;
         address token;
@@ -63,23 +83,35 @@ library Messages {
         uint256 amount;
     }
 
+    /**
+     * @dev Structure for describing additional data for ERC20 token.
+     */
     struct Erc20TokenInfo {
         string name;
         uint8 decimals;
         string symbol;
     }
 
+    /**
+     * @dev Structure for describing ERC20 with token supply.
+     */
     struct TransferErc20AndTotalSupplyMessage {
         TransferErc20Message baseErc20transfer;
         uint256 totalSupply;
     }
 
+    /**
+     * @dev Structure for describing ERC20 with token info.
+     */
     struct TransferErc20AndTokenInfoMessage {
         TransferErc20Message baseErc20transfer;
         uint256 totalSupply;
         Erc20TokenInfo tokenInfo;
     }
 
+    /**
+     * @dev Structure for describing base ERC721.
+     */
     struct TransferErc721Message {
         BaseMessage message;
         address token;
@@ -87,21 +119,33 @@ library Messages {
         uint256 tokenId;
     }
 
+    /**
+     * @dev Structure for describing ERC20 with token info.
+     */
     struct Erc721TokenInfo {
         string name;
         string symbol;
     }
 
+    /**
+     * @dev Structure for describing additional data for ERC721 token.
+     */
     struct TransferErc721AndTokenInfoMessage {
         TransferErc721Message baseErc721transfer;
         Erc721TokenInfo tokenInfo;
     }
 
+    /**
+     * @dev Structure for describing whether interchain connection is allowed.
+     */
     struct InterchainConnectionMessage {
         BaseMessage message;
         bool isAllowed;
     }
 
+    /**
+     * @dev Structure for describing whether interchain connection is allowed.
+     */
     struct TransferErc1155Message {
         BaseMessage message;
         address token;
@@ -110,6 +154,9 @@ library Messages {
         uint256 amount;
     }
 
+    /**
+     * @dev Structure for describing ERC1155 token in batches.
+     */
     struct TransferErc1155BatchMessage {
         BaseMessage message;
         address token;
@@ -118,20 +165,33 @@ library Messages {
         uint256[] amounts;
     }
 
+    /**
+     * @dev Structure for describing ERC1155 token info.
+     */
     struct Erc1155TokenInfo {
         string uri;
     }
 
+    /**
+     * @dev Structure for describing message for transferring ERC1155 token with info.
+     */
     struct TransferErc1155AndTokenInfoMessage {
         TransferErc1155Message baseErc1155transfer;
         Erc1155TokenInfo tokenInfo;
     }
 
+    /**
+     * @dev Structure for describing message for transferring ERC1155 token in batches with info.
+     */
     struct TransferErc1155BatchAndTokenInfoMessage {
         TransferErc1155BatchMessage baseErc1155Batchtransfer;
         Erc1155TokenInfo tokenInfo;
     }
 
+
+    /**
+     * @dev Returns type of message for encoded data.
+     */
     function getMessageType(bytes calldata data) internal pure returns (MessageType) {
         uint256 firstWord = abi.decode(data, (uint256));
         if (firstWord % 32 == 0) {
@@ -141,6 +201,9 @@ library Messages {
         }
     }
 
+    /**
+     * @dev Encodes message for transferring ETH. Returns encoded message.
+     */
     function encodeTransferEthMessage(address receiver, uint256 amount) internal pure returns (bytes memory) {
         TransferEthMessage memory message = TransferEthMessage(
             BaseMessage(MessageType.TRANSFER_ETH),
@@ -150,6 +213,9 @@ library Messages {
         return abi.encode(message);
     }
 
+    /**
+     * @dev Decodes message for transferring ETH. Returns structure `TransferEthMessage`.
+     */
     function decodeTransferEthMessage(
         bytes calldata data
     ) internal pure returns (TransferEthMessage memory) {
@@ -157,6 +223,9 @@ library Messages {
         return abi.decode(data, (TransferEthMessage));
     }
 
+    /**
+     * @dev Encodes message for transferring ETH. Returns encoded message.
+     */
     function encodeTransferErc20Message(
         address token,
         address receiver,
@@ -171,6 +240,9 @@ library Messages {
         return abi.encode(message);
     }
 
+    /**
+     * @dev Encodes message for transferring ERC20 with total supply. Returns encoded message.
+     */
     function encodeTransferErc20AndTotalSupplyMessage(
         address token,
         address receiver,
@@ -189,6 +261,9 @@ library Messages {
         return abi.encode(message);
     }
 
+    /**
+     * @dev Decodes message for transferring ERC20. Returns structure `TransferErc20Message`.
+     */
     function decodeTransferErc20Message(
         bytes calldata data
     ) internal pure returns (TransferErc20Message memory) {
@@ -196,6 +271,10 @@ library Messages {
         return abi.decode(data, (TransferErc20Message));
     }
 
+    /**
+     * @dev Decodes message for transferring ERC20 with total supply. 
+     * Returns structure `TransferErc20AndTotalSupplyMessage`.
+     */
     function decodeTransferErc20AndTotalSupplyMessage(
         bytes calldata data
     ) internal pure returns (TransferErc20AndTotalSupplyMessage memory) {
@@ -206,6 +285,10 @@ library Messages {
         return abi.decode(data, (TransferErc20AndTotalSupplyMessage));
     }
 
+    /**
+     * @dev Encodes message for transferring ERC20 with token info. 
+     * Returns encoded message.
+     */
     function encodeTransferErc20AndTokenInfoMessage(
         address token,
         address receiver,
@@ -226,6 +309,10 @@ library Messages {
         return abi.encode(message);
     }
 
+    /**
+     * @dev Decodes message for transferring ERC20 with token info. 
+     * Returns structure `TransferErc20AndTokenInfoMessage`.
+     */
     function decodeTransferErc20AndTokenInfoMessage(
         bytes calldata data
     ) internal pure returns (TransferErc20AndTokenInfoMessage memory) {
@@ -236,6 +323,10 @@ library Messages {
         return abi.decode(data, (TransferErc20AndTokenInfoMessage));
     }
 
+    /**
+     * @dev Encodes message for transferring ERC721. 
+     * Returns encoded message.
+     */
     function encodeTransferErc721Message(
         address token,
         address receiver,
@@ -250,6 +341,10 @@ library Messages {
         return abi.encode(message);
     }
 
+    /**
+     * @dev Decodes message for transferring ERC721. 
+     * Returns structure `TransferErc721Message`.
+     */
     function decodeTransferErc721Message(
         bytes calldata data
     ) internal pure returns (TransferErc721Message memory) {
@@ -257,6 +352,10 @@ library Messages {
         return abi.decode(data, (TransferErc721Message));
     }
 
+    /**
+     * @dev Encodes message for transferring ERC721 with token info. 
+     * Returns encoded message.
+     */
     function encodeTransferErc721AndTokenInfoMessage(
         address token,
         address receiver,
@@ -275,6 +374,10 @@ library Messages {
         return abi.encode(message);
     }
 
+    /**
+     * @dev Decodes message for transferring ERC721 with token info. 
+     * Returns structure `TransferErc721AndTokenInfoMessage`.
+     */
     function decodeTransferErc721AndTokenInfoMessage(
         bytes calldata data
     ) internal pure returns (TransferErc721AndTokenInfoMessage memory) {
@@ -285,20 +388,36 @@ library Messages {
         return abi.decode(data, (TransferErc721AndTokenInfoMessage));
     }
 
-    function encodeFreezeStateMessage(address receiver, bool isUnfrozen) internal pure returns (bytes memory) {
-        FreezeStateMessage memory message = FreezeStateMessage(
-            BaseMessage(MessageType.FREEZE_STATE),
-            receiver,
-            isUnfrozen
-        );
-        return abi.encode(message);
+    /**
+     * @dev Encodes message for activating user on schain. 
+     * Returns encoded message.
+     */
+    function encodeActivateUserMessage(address receiver) internal pure returns (bytes memory){
+        return _encodeUserStatusMessage(receiver, true);
     }
 
-    function decodeFreezeStateMessage(bytes calldata data) internal pure returns (FreezeStateMessage memory) {
-        require(getMessageType(data) == MessageType.FREEZE_STATE, "Message type is not Freeze User");
-        return abi.decode(data, (FreezeStateMessage));
+    /**
+     * @dev Encodes message for locking user on schain. 
+     * Returns encoded message.
+     */
+    function encodeLockUserMessage(address receiver) internal pure returns (bytes memory){
+        return _encodeUserStatusMessage(receiver, false);
     }
 
+    /**
+     * @dev Decodes message for user status. 
+     * Returns structure UserStatusMessage.
+     */
+    function decodeUserStatusMessage(bytes calldata data) internal pure returns (UserStatusMessage memory) {
+        require(getMessageType(data) == MessageType.USER_STATUS, "Message type is not User Status");
+        return abi.decode(data, (UserStatusMessage));
+    }
+
+
+    /**
+     * @dev Encodes message for allowing interchain connection.
+     * Returns encoded message.
+     */
     function encodeInterchainConnectionMessage(bool isAllowed) internal pure returns (bytes memory) {
         InterchainConnectionMessage memory message = InterchainConnectionMessage(
             BaseMessage(MessageType.INTERCHAIN_CONNECTION),
@@ -307,6 +426,10 @@ library Messages {
         return abi.encode(message);
     }
 
+    /**
+     * @dev Decodes message for allowing interchain connection.
+     * Returns structure `InterchainConnectionMessage`.
+     */
     function decodeInterchainConnectionMessage(bytes calldata data)
         internal
         pure
@@ -316,6 +439,10 @@ library Messages {
         return abi.decode(data, (InterchainConnectionMessage));
     }
 
+    /**
+     * @dev Encodes message for transferring ERC1155 token.
+     * Returns encoded message.
+     */
     function encodeTransferErc1155Message(
         address token,
         address receiver,
@@ -332,6 +459,10 @@ library Messages {
         return abi.encode(message);
     }
 
+    /**
+     * @dev Decodes message for transferring ERC1155 token.
+     * Returns structure `TransferErc1155Message`.
+     */
     function decodeTransferErc1155Message(
         bytes calldata data
     ) internal pure returns (TransferErc1155Message memory) {
@@ -339,6 +470,10 @@ library Messages {
         return abi.decode(data, (TransferErc1155Message));
     }
 
+    /**
+     * @dev Encodes message for transferring ERC1155 with token info.
+     * Returns encoded message.
+     */
     function encodeTransferErc1155AndTokenInfoMessage(
         address token,
         address receiver,
@@ -359,6 +494,10 @@ library Messages {
         return abi.encode(message);
     }
 
+    /**
+     * @dev Decodes message for transferring ERC1155 with token info.
+     * Returns structure `TransferErc1155AndTokenInfoMessage`.
+     */
     function decodeTransferErc1155AndTokenInfoMessage(
         bytes calldata data
     ) internal pure returns (TransferErc1155AndTokenInfoMessage memory) {
@@ -369,6 +508,10 @@ library Messages {
         return abi.decode(data, (TransferErc1155AndTokenInfoMessage));
     }
 
+    /**
+     * @dev Encodes message for transferring ERC1155 token in batches.
+     * Returns encoded message.
+     */
     function encodeTransferErc1155BatchMessage(
         address token,
         address receiver,
@@ -385,6 +528,10 @@ library Messages {
         return abi.encode(message);
     }
 
+    /**
+     * @dev Decodes message for transferring ERC1155 token in batches.
+     * Returns structure `TransferErc1155BatchMessage`.
+     */
     function decodeTransferErc1155BatchMessage(
         bytes calldata data
     ) internal pure returns (TransferErc1155BatchMessage memory) {
@@ -395,6 +542,10 @@ library Messages {
         return abi.decode(data, (TransferErc1155BatchMessage));
     }
 
+    /**
+     * @dev Encodes message for transferring ERC1155 token in batches with token info.
+     * Returns encoded message.
+     */
     function encodeTransferErc1155BatchAndTokenInfoMessage(
         address token,
         address receiver,
@@ -415,6 +566,10 @@ library Messages {
         return abi.encode(message);
     }
 
+    /**
+     * @dev Decodes message for transferring ERC1155 token in batches with token info.
+     * Returns structure `TransferErc1155BatchAndTokenInfoMessage`.
+     */
     function decodeTransferErc1155BatchAndTokenInfoMessage(
         bytes calldata data
     ) internal pure returns (TransferErc1155BatchAndTokenInfoMessage memory) {
@@ -424,4 +579,18 @@ library Messages {
         );
         return abi.decode(data, (TransferErc1155BatchAndTokenInfoMessage));
     }
+
+    /**
+     * @dev Encodes message for transferring user status on schain.
+     * Returns encoded message.
+     */
+    function _encodeUserStatusMessage(address receiver, bool isActive) private pure returns (bytes memory) {
+        UserStatusMessage memory message = UserStatusMessage(
+            BaseMessage(MessageType.USER_STATUS),
+            receiver,
+            isActive
+        );
+        return abi.encode(message);
+    }
+
 }

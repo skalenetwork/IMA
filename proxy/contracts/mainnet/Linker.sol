@@ -19,79 +19,113 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "../Messages.sol";
-import "./SkaleManagerClient.sol";
-import "../interfaces/IMainnetContract.sol";
+import "./Twin.sol";
 
 import "./MessageProxyForMainnet.sol";
 
 
 /**
  * @title Linker For Mainnet
- * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
- * balances of ETH tokens received through DepositBox.
+ * @dev Runs on Mainnet,
+ * links contracts on mainnet with their twin on schain,
+ * allows to kill schain when interchain connection was not enabled.
  */
-contract Linker is SkaleManagerClient {
+contract Linker is Twin {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
-    using SafeMathUpgradeable for uint;
 
-    bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
-
+    enum KillProcess {NotKilled, PartiallyKilledBySchainOwner, PartiallyKilledByContractOwner, Killed}
     EnumerableSetUpgradeable.AddressSet private _mainnetContracts;
-    MessageProxyForMainnet public messageProxy;
 
+    // schainHash => true if interchain connection was enabled
     mapping(bytes32 => bool) public interchainConnections;
 
-    enum KillProcess {Active, PartiallyKilledBySchainOwner, PartiallyKilledByContractOwner, Killed}
-
+    // schainHash => schain status of killing process 
     mapping(bytes32 => KillProcess) public statuses;
-    mapping(bytes32 => address) public schainLinks;
 
+    /**
+     * @dev Modifier to make a function callable only if caller is granted with {LINKER_ROLE}.
+     */
     modifier onlyLinker() {
         require(hasRole(LINKER_ROLE, msg.sender), "Linker role is required");
         _;
     }
 
+    /**
+     * @dev Allows Linker to register external mainnet contracts.
+     * 
+     * Requirements:
+     * 
+     * - Contract must be not registered.
+     */
     function registerMainnetContract(address newMainnetContract) external onlyLinker {
-        _mainnetContracts.add(newMainnetContract);
+        require(_mainnetContracts.add(newMainnetContract), "The contracts was not registered");
     }
 
+    /**
+     * @dev Allows Linker to remove external mainnet contracts.
+     * 
+     * Requirements:
+     * 
+     * - Contract must be registered.
+     */
     function removeMainnetContract(address mainnetContract) external onlyLinker {
-        _mainnetContracts.remove(mainnetContract);
+        require(_mainnetContracts.remove(mainnetContract), "The contract was not removed");
     }
 
+    /**
+     * @dev Allows Linker to connect mainnet contracts with their receivers on schain.
+     * 
+     * Requirements:
+     * 
+     * - Numbers of mainnet contracts and schain contracts must be equal.
+     * - Mainnet contract must implement method `addSchainContract`.
+     */
     function connectSchain(string calldata schainName, address[] calldata schainContracts) external onlyLinker {
         require(schainContracts.length == _mainnetContracts.length(), "Incorrect number of addresses");
         for (uint i = 0; i < schainContracts.length; i++) {
-            IMainnetContract(_mainnetContracts.at(i)).addSchainContract(schainName, schainContracts[i]);
+            Twin(_mainnetContracts.at(i)).addSchainContract(schainName, schainContracts[i]);
         }
         messageProxy.addConnectedChain(schainName);
     }
 
+    /**
+     * @dev Allows Schain owner to connect others chains with their own,
+     * thus others schains have opportunity to send messages from chain to chain.
+     * 
+     * Requirements:
+     * 
+     * - Schain should not be in the process of being killed.
+     */
     function allowInterchainConnections(string calldata schainName) external onlySchainOwner(schainName) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(statuses[schainHash] == KillProcess.Active, "Schain is in kill process");
+        require(statuses[schainHash] == KillProcess.NotKilled, "Schain is in kill process");
         interchainConnections[schainHash] = true;
         messageProxy.postOutgoingMessage(
             schainHash,
             schainLinks[schainHash],
-            // Messages.encodeFreezeStateMessage(address(messageProxy), false)
             Messages.encodeInterchainConnectionMessage(true)
         );
     }
 
+    /**
+     * @dev Allows Schain owner and contract deployer to kill schain. 
+     * To kill the schain, both entities must call this function, and the order is not important.
+     * 
+     * Requirements:
+     * 
+     * - Interchain connection should be turned off.
+     */
     function kill(string calldata schainName) external {
         require(!interchainConnections[keccak256(abi.encodePacked(schainName))], "Interchain connections turned on");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        if (statuses[schainHash] == KillProcess.Active) {
+        if (statuses[schainHash] == KillProcess.NotKilled) {
             if (hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
                 statuses[schainHash] = KillProcess.PartiallyKilledByContractOwner;
             } else if (isSchainOwner(msg.sender, schainHash)) {
@@ -114,66 +148,60 @@ contract Linker is SkaleManagerClient {
         }
     }
 
-    function unconnectSchain(string calldata schainName) external onlyLinker {
+    /**
+     * @dev Allows Linker disconnect schain from the network. This will remove all receiver contracts on schain.
+     * Thus, messages will not go from the mainnet to the schain.
+     * 
+     * Requirements:
+     * 
+     * - Mainnet contract should implement method `removeSchainContract`.
+     */
+    function disconnectSchain(string calldata schainName) external onlyLinker {
         uint length = _mainnetContracts.length();
         for (uint i = 0; i < length; i++) {
-            IMainnetContract(_mainnetContracts.at(i)).removeSchainContract(schainName);
+            Twin(_mainnetContracts.at(i)).removeSchainContract(schainName);
         }
         messageProxy.removeConnectedChain(schainName);
     }
 
-    function addSchainContract(string calldata schainName, address contractOnSchain) external {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(LINKER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(schainLinks[schainHash] == address(0), "SKALE chain is already set");
-        require(contractOnSchain != address(0), "Incorrect address for contract on Schain");
-        schainLinks[schainHash] = contractOnSchain;
-    }
-
-    function removeSchainContract(string calldata schainName) external {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            hasRole(LINKER_ROLE, msg.sender) ||
-            isSchainOwner(msg.sender, schainHash) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
-        );
-        require(schainLinks[schainHash] != address(0), "SKALE chain is not set");
-        delete schainLinks[schainHash];
-    }
-
-    function hasSchainContract(string calldata schainName) external view returns (bool) {
-        return schainLinks[keccak256(abi.encodePacked(schainName))] != address(0);
-    }
-
+    /**
+     * @dev Returns true if schain is not killed.
+     */
     function isNotKilled(bytes32 schainHash) external view returns (bool) {
         return statuses[schainHash] != KillProcess.Killed;
     }
 
+    /**
+     * @dev Returns true if list of mainnet contracts has particular contract.
+     */
     function hasMainnetContract(address mainnetContract) external view returns (bool) {
         return _mainnetContracts.contains(mainnetContract);
     }
 
+    /**
+     * @dev Returns true if mainnet contracts and schain contracts are connected together for transferring messages.
+     */
     function hasSchain(string calldata schainName) external view returns (bool connected) {
         uint length = _mainnetContracts.length();
         connected = messageProxy.isConnectedChain(schainName);
         for (uint i = 0; connected && i < length; i++) {
-            connected = connected && IMainnetContract(_mainnetContracts.at(i)).hasSchainContract(schainName);
+            connected = connected && Twin(_mainnetContracts.at(i)).hasSchainContract(schainName);
         }
     }
 
+    /**
+     * @dev Create a new Linker contract.
+     */
     function initialize(
-        address messageProxyAddress,
-        IContractManager newContractManagerOfSkaleManager
+        IContractManager contractManagerOfSkaleManagerValue,
+        MessageProxyForMainnet messageProxyValue
     )
         public
+        override
         initializer
     {
-        SkaleManagerClient.initialize(newContractManagerOfSkaleManager);
+        Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
         _setupRole(LINKER_ROLE, msg.sender);
-        messageProxy = MessageProxyForMainnet(messageProxyAddress);
+        _setupRole(LINKER_ROLE, address(this));
     }
 }

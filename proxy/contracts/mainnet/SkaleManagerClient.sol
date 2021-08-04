@@ -19,37 +19,35 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 
 
 /**
  * @title SkaleManagerClient - contract that knows ContractManager
- * and makes calls to SkaleManager contracts
- * @author Artem Payvin
- * @author Dmytro Stebaiev
+ * and makes calls to SkaleManager contracts.
  */
-contract SkaleManagerClient is Initializable, AccessControlUpgradeable {
-    using SafeMathUpgradeable for uint256;
+contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable {
 
     IContractManager public contractManagerOfSkaleManager;
 
+    /**
+     * @dev Modifier for checking whether caller is owner of SKALE chain.
+     */
     modifier onlySchainOwner(string memory schainName) {
         require(
-            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))) ||
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))),
             "Sender is not an Schain owner"
         );
         _;
     }
 
     /**
-     * @dev Checks whether sender is owner of SKALE chain
+     * @dev Checks whether sender is owner of SKALE chain.
      */
     function isSchainOwner(address sender, bytes32 schainHash) public view returns (bool) {
         address skaleChainsInternal = contractManagerOfSkaleManager.getContract("SchainsInternal");
@@ -57,8 +55,8 @@ contract SkaleManagerClient is Initializable, AccessControlUpgradeable {
     }
 
     /**
-     * @dev initialize - sets current address of ContractManager of SkaleManager
-     * @param newContractManagerOfSkaleManager - current address of ContractManager of SkaleManager
+     * @dev initialize - sets current address of ContractManager of SkaleManager.
+     * @param newContractManagerOfSkaleManager - current address of ContractManager of SkaleManager.
      */
     function initialize(
         IContractManager newContractManagerOfSkaleManager
@@ -67,7 +65,7 @@ contract SkaleManagerClient is Initializable, AccessControlUpgradeable {
         virtual
         initializer
     {
-        AccessControlUpgradeable.__AccessControl_init();
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         contractManagerOfSkaleManager = newContractManagerOfSkaleManager;
     }

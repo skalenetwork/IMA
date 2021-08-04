@@ -19,44 +19,24 @@
     along with SKALE Manager.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.6;
 
-
+/**
+ * @title Precompiled
+ * @dev This library is a wrapper to call precompiled contracts
+ * 
+ * Defined calls:
+ * 
+ * - bn256Pairing
+ */
 library Precompiled {
 
-    function bigModExp(uint base, uint power, uint modulus) internal view returns (uint) {
-        uint[6] memory inputToBigModExp;
-        inputToBigModExp[0] = 32;
-        inputToBigModExp[1] = 32;
-        inputToBigModExp[2] = 32;
-        inputToBigModExp[3] = base;
-        inputToBigModExp[4] = power;
-        inputToBigModExp[5] = modulus;
-        uint[1] memory out;
-        bool success;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            success := staticcall(not(0), 5, inputToBigModExp, mul(6, 0x20), out, 0x20)
-        }
-        require(success, "BigModExp failed");
-        return out[0];
-    }
-
-    function bn256ScalarMul(uint x, uint y, uint k) internal view returns (uint , uint ) {
-        uint[3] memory inputToMul;
-        uint[2] memory output;
-        inputToMul[0] = x;
-        inputToMul[1] = y;
-        inputToMul[2] = k;
-        bool success;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            success := staticcall(not(0), 7, inputToMul, 0x60, output, 0x40)
-        }
-        require(success, "Multiplication failed");
-        return (output[0], output[1]);
-    }
-
+    /**
+     * @dev Calls precompiled contract with address 0x8
+     * for elliptic curve pairing operations are required in order to perform zkSNARK verification
+     * within the block gas limit.
+     * see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-197.md for more details
+     */
     function bn256Pairing(
         uint x1,
         uint y1,

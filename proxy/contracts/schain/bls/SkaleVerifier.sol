@@ -19,8 +19,7 @@
     along with SKALE Manager.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.6;
 
 import "./Precompiled.sol";
 import "./FieldOperations.sol";
@@ -31,7 +30,6 @@ import "./FieldOperations.sol";
  */
 library SkaleVerifier {
     using Fp2Operations for Fp2Operations.Fp2Point;
-    using SafeMathUpgradeable for uint;
 
 
     /**
@@ -99,15 +97,15 @@ library SkaleVerifier {
         if (counter > 100) {
             return false;
         }
-        uint xCoord = uint(hash) % Fp2Operations.P;
-        xCoord = (xCoord.add(counter)) % Fp2Operations.P;
+        uint xCoordinate = uint(hash) % Fp2Operations.P;
+        xCoordinate = (xCoordinate + counter) % Fp2Operations.P;
 
         uint ySquared = addmod(
-            mulmod(mulmod(xCoord, xCoord, Fp2Operations.P), xCoord, Fp2Operations.P),
+            mulmod(mulmod(xCoordinate, xCoordinate, Fp2Operations.P), xCoordinate, Fp2Operations.P),
             3,
             Fp2Operations.P
         );
-        if (hashB < Fp2Operations.P.div(2) || mulmod(hashB, hashB, Fp2Operations.P) != ySquared || xCoord != hashA) {
+        if (hashB < Fp2Operations.P / 2 || mulmod(hashB, hashB, Fp2Operations.P) != ySquared || xCoordinate != hashA) {
             return false;
         }
 
