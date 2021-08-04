@@ -14,6 +14,7 @@ rm -rf "$OUTDIR"
 
 solidity-docgen \
   -i contracts/ \
+  -e contracts/test/ \
   -H ../docs/helpers.js \
   --solc-module=./scripts/prepare-docs-solc.js \
   -t ../docs \
