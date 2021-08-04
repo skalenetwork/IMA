@@ -3,3 +3,4 @@ title: Ethereum <> SKALE Bridge
 version: 1.0.x
 nav:
   - modules/ROOT/nav.adoc
+  - modules/api/nav.adoc
