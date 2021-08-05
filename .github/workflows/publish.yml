@@ -62,7 +62,7 @@ jobs:
         export RELEASE=true
         echo "RELEASE=$RELEASE" >> $GITHUB_ENV
         echo ------------ get scrypt
-        ../npms/scrypt/get_scrypt_npm.sh
+        ./npms/scrypt/get_scrypt_npm.sh
         echo ------------ docker image
         bash ./scripts/build_image.sh ${{ secrets.DOCKER_USERNAME }} ${{ secrets.DOCKER_PASSWORD }} #|| echo "----> Looks like deploy failed"
 
